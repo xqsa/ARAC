@@ -1,0 +1,35 @@
+project: ARAC
+method: evidence_to_intervention_utility_mapping
+
+runtime_boundary:
+  reference_blind: true
+  forbidden_runtime_fields:
+    - final_error
+    - relative_gain
+    - oracle
+    - user_reference_best
+    - reported_baseline
+    - problem_family_label
+    - prior_final_outcome
+    - prior_pilot_outcome
+
+budget:
+  total_fe: 3000000
+  phase_i_ratio: 0.10
+  count_phase_i_and_phase_ii_together: true
+
+action_taxonomy:
+  - coordinate
+  - isolate
+  - protect
+  - reassign_repair
+  - fallback
+
+gates:
+  min_feature_coverage: 0.80
+  meaningful_relative_gain: 0.05
+  catastrophic_relative_loss: -0.20
+  require_negative_control_pass: true
+  require_backend_semantics_changed_for_active_action: true
+  allow_abstain: true
+

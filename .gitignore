@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+data/raw/*
+data/interim/*
+data/processed/*
+results/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!results/.gitkeep
+HCC_SRC/result/*
+!HCC_SRC/result/README.md
