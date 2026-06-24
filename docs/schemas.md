@@ -65,6 +65,7 @@ One row per executed action and backend semantic effect.
 | `selected_action_name` | Concrete action primitive. |
 | `backend_name` | Backend adapter or optimizer surface. |
 | `variable_owner_changed` | `1` if variable ownership changed. |
+| `relation_handling_changed` | `1` if overlap or relation handling changed. |
 | `coordination_mode_changed` | `1` if coordination behavior changed. |
 | `budget_allocation_changed` | `1` if budget allocation changed. |
 | `update_order_changed` | `1` if update order changed. |
@@ -122,4 +123,3 @@ One row per runtime table and field scan.
 | `found_in_runtime_payload` | `1` if present in runtime payload. |
 | `audit_status` | `pass` or `fail`. |
 | `note` | Short explanation. |
-
