@@ -1,7 +1,7 @@
 # ARAC
 
-`ARAC` is a clean migration package for the core idea extracted from the
-original HCC / MI-ARAC-Action workspace.
+`ARAC` is a clean extraction package for the core idea pulled out of the
+original `E:\HCC-main` / MI-ARAC-Action workspace.
 
 The package keeps the method, boundaries, schemas, and minimum code skeleton.
 It intentionally does not copy the historical Mxx milestone chain, failed
@@ -29,6 +29,8 @@ catastrophic-loss audits.
 - `docs/boundaries.md`: hard boundaries for runtime legality and claim levels.
 - `docs/schemas.md`: truth-table schemas for evidence, decisions, execution,
   utility, and audits.
+- `docs/hcc-backbone-extraction.md`: first extraction contract between the HCC
+  grouping/optimizer backbone and the ARAC evidence/action layer.
 - `src/arac/`: minimum Python skeleton for evidence extraction, action space,
   policy mapping, backend adapter, evaluation, and audit.
 - `configs/default.yaml`: minimal experiment contract.
