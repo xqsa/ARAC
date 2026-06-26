@@ -26,7 +26,7 @@ def test_hcc_action_execution_plan_marks_no_action_as_optimizer_consumed_noop() 
     assert plan.runtime_dispatch_allowed is True
 
 
-def test_hcc_action_execution_plan_blocks_unwired_active_action() -> None:
+def test_hcc_action_execution_plan_marks_repair_as_runtime_consumed() -> None:
     decision = ActionDecision(
         ActionFamily.REASSIGN_REPAIR,
         "repair_shared_variable_binding",
@@ -39,6 +39,26 @@ def test_hcc_action_execution_plan_blocks_unwired_active_action() -> None:
 
     assert plan.selected_action_name == "repair_shared_variable_binding"
     assert plan.backend_effect_kind == "shared_variable_owner_rebinding"
+    assert plan.optimizer_consumed is True
+    assert plan.optimizer_consumed_parameters == {"runtime_hook": "overlap_repair_rule"}
+    assert plan.execution_mode == "hcc_smoke_runtime_consumed"
+    assert plan.blocker_reason == ""
+    assert plan.runtime_dispatch_allowed is True
+
+
+def test_hcc_action_execution_plan_blocks_unwired_active_action() -> None:
+    decision = ActionDecision(
+        ActionFamily.ISOLATE,
+        "isolate_conflicting_relation",
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("S6", decision)
+
+    assert plan.selected_action_name == "isolate_conflicting_relation"
+    assert plan.backend_effect_kind == "relation_isolated_external_priority"
     assert plan.optimizer_consumed is False
     assert plan.optimizer_consumed_parameters == {}
     assert plan.execution_mode == "audit_only_not_executed"

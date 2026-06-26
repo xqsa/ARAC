@@ -237,10 +237,10 @@ HCC_ACTION_EFFECTS = {
     ),
     "repair_shared_variable_binding": (
         "shared_variable_owner_rebinding",
-        {},
-        "audit_only_not_executed",
-        False,
-        "no_hcc_runtime_consumer_yet",
+        {"runtime_hook": "overlap_repair_rule"},
+        "hcc_smoke_runtime_consumed",
+        True,
+        "",
     ),
     "allow_beneficial_coordination": (
         "coordination_mode_switch",
