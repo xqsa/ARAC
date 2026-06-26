@@ -31,11 +31,19 @@ catastrophic-loss audits.
   utility, and audits.
 - `docs/hcc-backbone-extraction.md`: first extraction contract between the HCC
   grouping/optimizer backbone and the ARAC evidence/action layer.
+- `docs/aob-final-evaluation-protocol.md`: AOB benchmark protocol, with the
+  current pilot fixed to 1 run and the final target left at 25 runs.
+- `references/paper_reported_table2_hcc_es.csv`: paper-reported HCC-ES Table 2
+  anchor for evaluation-only comparison.
 - `src/arac/`: minimum Python skeleton for evidence extraction, action space,
   policy mapping, backend adapter, evaluation, and audit.
 - `configs/default.yaml`: minimal experiment contract.
+- `configs/aob_pilot.yaml`: current AOB first-look pilot contract.
 - `experiments/README.md`: how to structure future runs without returning to
   the old Mxx clutter.
+- `experiments/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
+  emits action, semantics, same-budget, leakage, paper-comparison, negative
+  control, and catastrophic-loss audit tables.
 - `references/source-index.md`: pointers to the original source evidence inside
   `E:\HCC-main`.
 
