@@ -13,6 +13,7 @@ from arac.backends.hcc import (
     HccAobExecutionRequest,
     HccAobExecutionResult,
     build_hcc_evidence_profile,
+    build_hcc_action_execution_plan,
     hcc_backend_semantics_for,
     load_hcc_aob_topology,
     run_hcc_aob_smoke_execution,
@@ -115,6 +116,7 @@ def _pilot_records(
         payload = _runtime_payload(evidence)
         decision = decide_action(evidence)
         semantics = hcc_backend_semantics_for(decision)
+        action_plan = build_hcc_action_execution_plan(problem_id, decision)
 
         fallback_error = _fallback_proxy_error(problem_id)
         smoke_result = smoke_by_problem.get(problem_id)
@@ -151,6 +153,7 @@ def _pilot_records(
                 "runtime_payload": payload,
                 "decision": decision,
                 "semantics": semantics,
+                "action_plan": action_plan,
                 "ledger": ledger,
                 "fallback_proxy_error": fallback_error,
                 "pilot_proxy_final_error": None if smoke_result else action_error,
@@ -268,6 +271,10 @@ def _semantics_rows(records: list[dict[str, object]]) -> list[dict[str, object]]
             }
         )
     return rows
+
+
+def _action_execution_plan_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [record["action_plan"].to_csv_row() for record in records]
 
 
 def _anti_leakage_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
@@ -475,6 +482,21 @@ def run_aob_1run_pilot(
             "update_order_changed",
             "acceptance_rule_changed",
             "backend_semantics_changed",
+        ],
+    )
+    _write_csv(
+        output / "action_execution_plan.csv",
+        _action_execution_plan_rows(records),
+        [
+            "problem_id",
+            "selected_action_name",
+            "selected_action_family",
+            "backend_effect_kind",
+            "optimizer_consumed",
+            "optimizer_consumed_parameters",
+            "execution_mode",
+            "blocker_reason",
+            "runtime_dispatch_allowed",
         ],
     )
     _write_csv(

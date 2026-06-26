@@ -9,6 +9,7 @@ HCC baseline.
 from __future__ import annotations
 
 import ast
+import json
 import re
 import subprocess
 import sys
@@ -175,6 +176,75 @@ class HccAobExecutionResult:
         }
 
 
+@dataclass(frozen=True)
+class HccActionExecutionPlan:
+    """Audit row describing whether an ARAC action reaches HCC runtime."""
+
+    problem_id: str
+    selected_action_name: str
+    selected_action_family: str
+    backend_effect_kind: str
+    optimizer_consumed: bool
+    optimizer_consumed_parameters: dict[str, object]
+    execution_mode: str
+    blocker_reason: str
+    runtime_dispatch_allowed: bool
+
+    def to_csv_row(self) -> dict[str, str]:
+        return {
+            "problem_id": self.problem_id,
+            "selected_action_name": self.selected_action_name,
+            "selected_action_family": self.selected_action_family,
+            "backend_effect_kind": self.backend_effect_kind,
+            "optimizer_consumed": "1" if self.optimizer_consumed else "0",
+            "optimizer_consumed_parameters": _format_json_parameters(
+                self.optimizer_consumed_parameters
+            ),
+            "execution_mode": self.execution_mode,
+            "blocker_reason": self.blocker_reason,
+            "runtime_dispatch_allowed": "1" if self.runtime_dispatch_allowed else "0",
+        }
+
+
+HCC_ACTION_EFFECTS = {
+    "conservative_no_action": (
+        "no_op_safe_fallback",
+        {"backend": "repo_default_hcc_no_action"},
+        "hcc_noop_baseline",
+        True,
+        "",
+    ),
+    "isolate_conflicting_relation": (
+        "relation_isolated_external_priority",
+        {},
+        "audit_only_not_executed",
+        False,
+        "no_hcc_runtime_consumer_yet",
+    ),
+    "protect_high_margin_group": (
+        "protect_resource_priority",
+        {},
+        "audit_only_not_executed",
+        False,
+        "no_hcc_runtime_consumer_yet",
+    ),
+    "repair_shared_variable_binding": (
+        "shared_variable_owner_rebinding",
+        {},
+        "audit_only_not_executed",
+        False,
+        "no_hcc_runtime_consumer_yet",
+    ),
+    "allow_beneficial_coordination": (
+        "coordination_mode_switch",
+        {},
+        "audit_only_not_executed",
+        False,
+        "no_hcc_runtime_consumer_yet",
+    ),
+}
+
+
 def _clamp_ratio(value: float) -> float:
     return max(0.0, min(1.0, value))
 
@@ -295,6 +365,35 @@ def load_hcc_aob_topology(
     )
 
 
+def build_hcc_action_execution_plan(
+    problem_id: str,
+    decision: ActionDecision,
+) -> HccActionExecutionPlan:
+    """Describe whether an ARAC action is optimizer-consumed by HCC today."""
+
+    effect = HCC_ACTION_EFFECTS.get(decision.action_name)
+    if effect is None:
+        backend_effect_kind = "unknown_action"
+        parameters: dict[str, object] = {}
+        execution_mode = "audit_only_not_executed"
+        optimizer_consumed = False
+        blocker = "unknown_hcc_action_binding"
+    else:
+        backend_effect_kind, parameters, execution_mode, optimizer_consumed, blocker = effect
+
+    return HccActionExecutionPlan(
+        problem_id=_problem_parts(problem_id)[0],
+        selected_action_name=decision.action_name,
+        selected_action_family=decision.action_family.value,
+        backend_effect_kind=backend_effect_kind,
+        optimizer_consumed=bool(optimizer_consumed),
+        optimizer_consumed_parameters=dict(parameters),
+        execution_mode=execution_mode,
+        blocker_reason=blocker,
+        runtime_dispatch_allowed=bool(optimizer_consumed),
+    )
+
+
 def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeCommand:
     """Build the subprocess command used to run HCC-main from its own cwd."""
 
@@ -405,6 +504,12 @@ def _parse_hcc_evaluation_record(output_dir: Path) -> tuple[float, int]:
 
 def _tail(text: str, max_chars: int = 2000) -> str:
     return (text or "")[-max_chars:]
+
+
+def _format_json_parameters(parameters: dict[str, object]) -> str:
+    if not parameters:
+        return ""
+    return json.dumps(parameters, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
 def _rank_stability(groups: tuple[HccGroupSignal, ...]) -> float:

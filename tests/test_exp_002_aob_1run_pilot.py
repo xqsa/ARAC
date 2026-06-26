@@ -14,6 +14,7 @@ def test_aob_pilot_writes_one_run_truth_tables(tmp_path: Path) -> None:
         'our_result_by_case.csv',
         'same_budget_ledger.csv',
         'backend_semantics_diff.csv',
+        'action_execution_plan.csv',
         'anti_leakage_audit.csv',
         'paper_reported_comparison.csv',
         'negative_control_audit.csv',
@@ -29,6 +30,30 @@ def test_aob_pilot_marks_oracle_and_reported_baselines_offline_only(tmp_path: Pa
 
     assert 'paper-reported evaluation-only baselines' in comparison
     assert 'must not enter runtime dispatch' in manifest
+
+
+def test_aob_pilot_writes_action_execution_plan_audit(tmp_path: Path) -> None:
+    output_dir = run_aob_1run_pilot(tmp_path / 'pilot')
+    with (output_dir / 'action_execution_plan.csv').open(newline='', encoding='utf-8') as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert len(rows) == 24
+    assert {
+        'problem_id',
+        'selected_action_name',
+        'selected_action_family',
+        'backend_effect_kind',
+        'optimizer_consumed',
+        'optimizer_consumed_parameters',
+        'execution_mode',
+        'blocker_reason',
+        'runtime_dispatch_allowed',
+    } <= set(rows[0])
+    active_blockers = [
+        row for row in rows if row['selected_action_name'] != 'conservative_no_action'
+    ]
+    assert all(row['optimizer_consumed'] == '0' for row in active_blockers)
+    assert all(row['blocker_reason'] == 'no_hcc_runtime_consumer_yet' for row in active_blockers)
 
 
 def test_aob_pilot_uses_hcc_source_topology_not_synthetic_proxy(tmp_path: Path) -> None:

@@ -6,6 +6,7 @@
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
 - `backend_semantics_diff.csv`
+- `action_execution_plan.csv`
 - `anti_leakage_audit.csv`
 - `paper_reported_comparison.csv`
 - `negative_control_audit.csv`
@@ -27,6 +28,8 @@ Required invariants:
 - `runtime_dispatch_allowed=0` for paper-reported comparison rows
 - runtime payloads exclude oracle, final error, relative gain, reported baseline,
   problem-family label, and prior outcome fields
+- `action_execution_plan.csv` records whether selected ARAC actions are
+  optimizer-consumed by HCC; unwired active actions must be explicit blockers
 - negative controls and catastrophic-loss checks are visible audit surfaces
 - the default stage does not run MMES/CMAES and does not claim optimizer
   performance

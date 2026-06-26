@@ -27,6 +27,12 @@ Paper-reported HCC-ES Table 2 values are joined only in
 `paper_reported_comparison.csv` for offline evaluation. They must not enter
 runtime dispatch.
 
+`action_execution_plan.csv` audits the gap between selected ARAC actions and
+optimizer-consumed HCC runtime semantics. `conservative_no_action` is recorded
+as an HCC no-op baseline. Active actions that do not yet have a proven HCC
+runtime consumer are marked `optimizer_consumed=0` with
+`blocker_reason=no_hcc_runtime_consumer_yet`.
+
 ## Run
 
 ```powershell
