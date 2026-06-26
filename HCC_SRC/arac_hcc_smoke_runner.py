@@ -23,7 +23,7 @@ from HCC.OPT.CMAES.cmaes import CMAES
 from HCC.RDDSM import Decomposition
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path.cwd()
 DATA_DIR = PROJECT_ROOT / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
 FUNCTION_NAMES = ("elliptic", "schwefel", "rastrigin", "ackley")
 PROBLEM_IDS = (1, 2, 3, 4, 5, 6)
@@ -100,7 +100,12 @@ def decompose_problem(fun_id: int) -> list[list[int]]:
 def calculate_degree_of_overlap(overlap_groups: list[list[int]], problem_dimension: int) -> float:
     overlapping_variables = set()
     for group in overlap_groups:
-        overlapping_variables.update(group)
+        if isinstance(group, np.integer):
+            overlapping_variables.add(int(group))
+        elif isinstance(group, int):
+            overlapping_variables.add(group)
+        else:
+            overlapping_variables.update(group)
     return len(overlapping_variables) / problem_dimension
 
 
@@ -132,6 +137,25 @@ def blend_overlap_values(
     return (previous_delta / denominator) * previous_values + (
         current_delta / denominator
     ) * current_values
+
+
+def apply_arac_overlap_action(
+    action_name: str,
+    previous_values: np.ndarray,
+    current_values: np.ndarray,
+    previous_delta: float,
+    current_delta: float,
+) -> np.ndarray:
+    if action_name == "repair_shared_variable_binding":
+        if current_delta >= previous_delta:
+            return current_values
+        return previous_values
+    return blend_overlap_values(
+        previous_values=previous_values,
+        current_values=current_values,
+        previous_delta=previous_delta,
+        current_delta=current_delta,
+    )
 
 
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float]:
@@ -205,7 +229,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             fitness_delta_list.append(current_delta)
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
-                best_individual[overlap_indices] = blend_overlap_values(
+                best_individual[overlap_indices] = apply_arac_overlap_action(
+                    action_name=config.arac_action,
                     previous_values=original_best[overlap_indices],
                     current_values=best_individual[overlap_indices],
                     previous_delta=fitness_delta_list[index - 1],

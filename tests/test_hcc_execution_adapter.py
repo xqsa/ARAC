@@ -21,7 +21,9 @@ def test_hcc_aob_smoke_command_targets_hcc_main_subprocess(tmp_path: Path) -> No
     command = build_hcc_aob_smoke_command(request)
 
     assert command.cwd == Path("E:/HCC-main")
-    assert command.argv[:2] == ("python", "HCC_SRC/arac_hcc_smoke_runner.py")
+    assert command.argv[0] == "python"
+    assert Path(command.argv[1]).name == "arac_hcc_smoke_runner.py"
+    assert Path(command.argv[1]).is_absolute()
     assert "--functions" in command.argv
     assert "elliptic" in command.argv
     assert "--ids" in command.argv

@@ -23,6 +23,8 @@ from arac.evidence import EvidenceProfile, validate_runtime_payload
 from arac.policy import ActionDecision
 
 DEFAULT_HCC_MAIN_ROOT = Path("E:/HCC-main")
+ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
+ARAC_HCC_SMOKE_RUNNER = ARAC_REPO_ROOT / "HCC_SRC" / "arac_hcc_smoke_runner.py"
 TOTAL_AOB_FE = 3_000_000
 AOB_FUNCTION_NAMES = {
     "E": "elliptic",
@@ -406,7 +408,7 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
 
     argv = (
         request.python_executable,
-        "HCC_SRC/arac_hcc_smoke_runner.py",
+        str(ARAC_HCC_SMOKE_RUNNER),
         "--functions",
         function_name,
         "--ids",
