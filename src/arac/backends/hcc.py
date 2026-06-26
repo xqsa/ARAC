@@ -489,7 +489,10 @@ def _parse_hcc_evaluation_record(output_dir: Path) -> tuple[float, int]:
     if not records:
         raise FileNotFoundError(f"missing HCC evaluation_record.txt under {output_dir}")
     text = records[-1].read_text(encoding="utf-8", errors="replace")
-    final_match = re.search(r"Fin:(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)", text)
+    final_match = re.search(
+        r"Fin:\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
+        text,
+    )
     if not final_match:
         raise ValueError(f"could not parse final HCC error from {records[-1]}")
     return float(final_match.group("value")), int(float(final_match.group("fe")))
