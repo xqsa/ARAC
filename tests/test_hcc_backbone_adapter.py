@@ -77,10 +77,32 @@ def test_hcc_backend_semantics_maps_action_families_to_hcc_effects() -> None:
         ),
     }
 
-    assert hcc_backend_semantics_for(decisions["isolate"]).relation_handling_changed
-    assert hcc_backend_semantics_for(decisions["protect"]).budget_allocation_changed
-    assert hcc_backend_semantics_for(decisions["repair"]).variable_owner_changed
-    assert hcc_backend_semantics_for(decisions["coordinate"]).coordination_mode_changed
+    assert hcc_backend_semantics_for(
+        decisions["isolate"], optimizer_consumed=True
+    ).relation_handling_changed
+    assert hcc_backend_semantics_for(
+        decisions["protect"], optimizer_consumed=True
+    ).budget_allocation_changed
+    assert hcc_backend_semantics_for(
+        decisions["repair"], optimizer_consumed=True
+    ).variable_owner_changed
+    assert hcc_backend_semantics_for(
+        decisions["coordinate"], optimizer_consumed=True
+    ).coordination_mode_changed
+
+
+def test_hcc_backend_semantics_stay_empty_without_optimizer_consumption() -> None:
+    decision = ActionDecision(
+        ActionFamily.REASSIGN_REPAIR,
+        "repair_shared_variable_binding",
+        "allow",
+        "test",
+        0.4,
+    )
+
+    diff = hcc_backend_semantics_for(decision, optimizer_consumed=False)
+
+    assert not diff.changed
 
 
 def test_hcc_snapshot_rejects_forbidden_outcome_fields() -> None:

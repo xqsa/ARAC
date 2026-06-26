@@ -590,9 +590,15 @@ def build_hcc_evidence_profile(snapshot: HccBackboneSnapshot) -> EvidenceProfile
     )
 
 
-def hcc_backend_semantics_for(decision: ActionDecision) -> BackendSemanticsDiff:
+def hcc_backend_semantics_for(
+    decision: ActionDecision,
+    *,
+    optimizer_consumed: bool,
+) -> BackendSemanticsDiff:
     """Map clean ARAC actions onto HCC optimizer-consumed semantic surfaces."""
 
+    if not optimizer_consumed:
+        return BackendSemanticsDiff()
     if decision.action_family == ActionFamily.ISOLATE:
         return BackendSemanticsDiff(relation_handling_changed=True)
     if decision.action_family == ActionFamily.PROTECT:

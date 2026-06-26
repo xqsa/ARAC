@@ -115,8 +115,11 @@ def _pilot_records(
         evidence = build_hcc_evidence_profile(snapshot)
         payload = _runtime_payload(evidence)
         decision = decide_action(evidence)
-        semantics = hcc_backend_semantics_for(decision)
         action_plan = build_hcc_action_execution_plan(problem_id, decision)
+        semantics = hcc_backend_semantics_for(
+            decision,
+            optimizer_consumed=action_plan.optimizer_consumed,
+        )
 
         fallback_error = _fallback_proxy_error(problem_id)
         smoke_result = smoke_by_problem.get(problem_id)
@@ -133,6 +136,7 @@ def _pilot_records(
             ledger=ledger,
             utility_label=utility_label,
             negative_control_pass=True,
+            optimizer_consumed=action_plan.optimizer_consumed,
         )
         blockers.append("hcc_source_topology_probe_not_fresh_optimizer_execution")
 

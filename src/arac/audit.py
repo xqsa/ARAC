@@ -26,6 +26,7 @@ def claim_gate(
     ledger: SameBudgetLedger,
     utility_label: str,
     negative_control_pass: bool,
+    optimizer_consumed: bool | None = None,
 ) -> tuple[bool, list[str]]:
     blockers: list[str] = []
     forbidden = find_forbidden_runtime_fields(runtime_payload)
@@ -33,6 +34,11 @@ def claim_gate(
         blockers.append("forbidden_runtime_fields:" + ",".join(forbidden))
     if not active_action_has_effect(decision, semantics_diff):
         blockers.append("active_action_without_backend_semantic_effect")
+    if (
+        optimizer_consumed is False
+        and decision.action_family.value != "fallback"
+    ):
+        blockers.append("active_action_not_consumed_by_hcc_runtime")
     if ledger.violation:
         blockers.append("same_budget_violation")
     if not ledger.fresh_execution:
@@ -42,4 +48,3 @@ def claim_gate(
     if not negative_control_pass:
         blockers.append("negative_control_failed")
     return not blockers, blockers
-

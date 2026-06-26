@@ -3,10 +3,12 @@ from __future__ import annotations
 import pytest
 
 from arac.audit import claim_gate
+from arac.action_space import ActionFamily
+from arac.backends.hcc import build_hcc_action_execution_plan
 from arac.backend_adapter import BackendSemanticsDiff
 from arac.evaluation import SameBudgetLedger, classify_utility
 from arac.evidence import EvidenceProfile, validate_runtime_payload
-from arac.policy import decide_action
+from arac.policy import ActionDecision, decide_action
 
 
 def make_evidence(**overrides: object) -> EvidenceProfile:
@@ -83,6 +85,35 @@ def test_claim_gate_blocks_active_action_without_backend_semantics() -> None:
 
     assert allowed is False
     assert "active_action_without_backend_semantic_effect" in blockers
+
+
+def test_claim_gate_blocks_active_action_without_hcc_runtime_consumption() -> None:
+    decision = ActionDecision(
+        ActionFamily.REASSIGN_REPAIR,
+        "repair_shared_variable_binding",
+        "allow",
+        "test",
+        0.4,
+    )
+    plan = build_hcc_action_execution_plan("E2", decision)
+
+    allowed, blockers = claim_gate(
+        runtime_payload={"overlap_degree": 0.9, "direction_disagreement": 0.1},
+        decision=decision,
+        semantics_diff=BackendSemanticsDiff(variable_owner_changed=True),
+        ledger=SameBudgetLedger(
+            phase_i_fe=100,
+            phase_ii_fe=100,
+            budget_limit=200,
+            fresh_execution=True,
+        ),
+        utility_label="beneficial",
+        negative_control_pass=True,
+        optimizer_consumed=plan.optimizer_consumed,
+    )
+
+    assert allowed is False
+    assert "active_action_not_consumed_by_hcc_runtime" in blockers
 
 
 def test_utility_classification_uses_meaningful_and_catastrophic_thresholds() -> None:
