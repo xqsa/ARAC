@@ -26,6 +26,10 @@ Use these source files only as references, not as code to copy wholesale.
   - Historical mapping guard with many repair stages. Treat as evidence of
     what to simplify, not as the clean policy source.
 
+- `E:\HCC-main\HCC_SRC\arac_hcc_smoke_runner.py`
+  - ARAC-owned HCC smoke wrapper. It imports HCC `Benchmark`, `Decomposition`,
+    `MMES`, and `CMAES` without modifying the original `HCC-ES.py`.
+
 - `C:\Users\83718\Desktop\前沿\Two-Phase CC.pdf`
   - Source of the AOB protocol and Table 2 paper-reported baselines. The current
     clean anchor is `references/paper_reported_table2_hcc_es.csv`.

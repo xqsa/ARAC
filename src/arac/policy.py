@@ -16,6 +16,10 @@ class PolicyConfig:
     high_shared_support_threshold: float = 0.75
     high_priority_spread_threshold: float = 0.55
     safe_fallback_margin_threshold: float = 0.50
+    low_conflict_coordinate_threshold: float = 0.20
+    low_shared_coordinate_threshold: float = 0.35
+    coordinate_rank_stability_threshold: float = 0.80
+    coordinate_fallback_margin_threshold: float = 0.70
 
 
 @dataclass(frozen=True)
@@ -52,6 +56,12 @@ def decide_action(evidence: EvidenceProfile, config: PolicyConfig | None = None)
     conflict_signal = max(evidence.direction_disagreement, evidence.harmful_coord_score)
     shared_signal = max(evidence.shared_var_support_ratio, evidence.overlap_degree)
     protect_signal = evidence.priority_spread * evidence.rank_stability
+    coordinate_signal = (
+        (1.0 - conflict_signal)
+        * (1.0 - shared_signal)
+        * evidence.rank_stability
+        * evidence.fallback_margin_proxy
+    )
 
     if conflict_signal >= cfg.high_conflict_threshold:
         utility = conflict_signal - (1.0 - evidence.fallback_margin_proxy)
@@ -86,6 +96,22 @@ def decide_action(evidence: EvidenceProfile, config: PolicyConfig | None = None)
                 utility,
             )
 
+    if (
+        conflict_signal <= cfg.low_conflict_coordinate_threshold
+        and shared_signal <= cfg.low_shared_coordinate_threshold
+        and evidence.rank_stability >= cfg.coordinate_rank_stability_threshold
+        and evidence.fallback_margin_proxy >= cfg.coordinate_fallback_margin_threshold
+    ):
+        utility = coordinate_signal - 0.25
+        if utility > 0:
+            return ActionDecision(
+                ActionFamily.COORDINATE,
+                "allow_beneficial_coordination",
+                "allow",
+                "stable_low_conflict_evidence_supports_coordination",
+                utility,
+            )
+
     return ActionDecision(
         ActionFamily.FALLBACK,
         "conservative_no_action",
@@ -93,4 +119,3 @@ def decide_action(evidence: EvidenceProfile, config: PolicyConfig | None = None)
         "no_positive_reference_blind_action_margin",
         0.0,
     )
-

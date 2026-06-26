@@ -405,17 +405,11 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
 
     argv = (
         request.python_executable,
-        "HCC_SRC/HCC-ES.py",
-        "--config",
-        request.config_name,
+        "HCC_SRC/arac_hcc_smoke_runner.py",
         "--functions",
         function_name,
         "--ids",
         str(function_id),
-        "--cycles",
-        "1",
-        "--workers",
-        "1",
         "--seed",
         str(request.seed),
         "--max-fes",
@@ -424,7 +418,6 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         str(request.output_dir),
         "--timestamp",
         request.timestamp,
-        "--no-cmaes-restart",
     )
     return HccAobSmokeCommand(argv=argv, cwd=Path(request.hcc_root))
 

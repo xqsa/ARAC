@@ -21,15 +21,13 @@ def test_hcc_aob_smoke_command_targets_hcc_main_subprocess(tmp_path: Path) -> No
     command = build_hcc_aob_smoke_command(request)
 
     assert command.cwd == Path("E:/HCC-main")
-    assert command.argv[:3] == ("python", "HCC_SRC/HCC-ES.py", "--config")
+    assert command.argv[:2] == ("python", "HCC_SRC/arac_hcc_smoke_runner.py")
     assert "--functions" in command.argv
     assert "elliptic" in command.argv
     assert "--ids" in command.argv
     assert "1" in command.argv
     assert "--max-fes" in command.argv
     assert "2000" in command.argv
-    assert "--cycles" in command.argv
-    assert "1" in command.argv
     assert "--seed" in command.argv
     assert "--output-root" in command.argv
     assert str(tmp_path / "hcc-smoke") in command.argv

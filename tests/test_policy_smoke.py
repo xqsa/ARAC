@@ -39,6 +39,25 @@ def test_arac_package_imports_policy_and_selects_reference_blind_action() -> Non
     assert decision.decision == "allow"
 
 
+def test_policy_selects_coordinate_for_stable_beneficial_evidence() -> None:
+    decision = decide_action(
+        make_evidence(
+            overlap_degree=0.2,
+            shared_var_support_ratio=0.1,
+            direction_disagreement=0.05,
+            harmful_coord_score=0.05,
+            group_gain_asymmetry=0.2,
+            priority_spread=0.25,
+            rank_stability=0.95,
+            fallback_margin_proxy=0.85,
+        )
+    )
+
+    assert decision.action_family.value == "coordinate"
+    assert decision.action_name == "allow_beneficial_coordination"
+    assert decision.decision == "allow"
+
+
 def test_runtime_payload_rejects_forbidden_outcome_fields() -> None:
     with pytest.raises(ValueError, match="final_error"):
         validate_runtime_payload({"overlap_degree": 0.5, "final_error": 1.2})
