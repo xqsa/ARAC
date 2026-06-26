@@ -33,6 +33,21 @@ def test_hcc_aob_smoke_command_targets_hcc_main_subprocess(tmp_path: Path) -> No
     assert str(tmp_path / "hcc-smoke") in command.argv
 
 
+def test_hcc_aob_smoke_command_passes_arac_action(tmp_path: Path) -> None:
+    request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=1,
+        max_fes=2_000,
+        output_dir=tmp_path / "hcc-smoke",
+        arac_action="repair_shared_variable_binding",
+    )
+
+    command = build_hcc_aob_smoke_command(request)
+
+    action_arg_index = command.argv.index("--arac-action")
+    assert command.argv[action_arg_index + 1] == "repair_shared_variable_binding"
+
+
 def test_hcc_execution_result_fields_are_offline_only() -> None:
     result = HccAobExecutionResult(
         problem_id="E1",

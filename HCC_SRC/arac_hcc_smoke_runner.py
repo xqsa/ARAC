@@ -37,6 +37,7 @@ class SmokeConfig:
     verbose: int = 1000
     early_stopping_evaluations: int = 1000
     cmaes_restart: bool = False
+    arac_action: str = "conservative_no_action"
 
 
 def load_aob_metadata(fun_id: int) -> dict:
@@ -226,6 +227,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--verbose", type=int, default=1000)
     parser.add_argument("--early-stopping-evaluations", type=int, default=1000)
     parser.add_argument("--cmaes-restart", action="store_true")
+    parser.add_argument(
+        "--arac-action",
+        default="conservative_no_action",
+        choices=[
+            "conservative_no_action",
+            "repair_shared_variable_binding",
+            "isolate_conflicting_relation",
+            "protect_high_margin_group",
+            "allow_beneficial_coordination",
+        ],
+    )
     return parser.parse_args(argv)
 
 
@@ -237,6 +249,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         verbose=args.verbose,
         early_stopping_evaluations=args.early_stopping_evaluations,
         cmaes_restart=args.cmaes_restart,
+        arac_action=args.arac_action,
     )
     output_paths = []
     for fun_name in args.functions:

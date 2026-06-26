@@ -141,6 +141,7 @@ class HccAobExecutionRequest:
     python_executable: str = "python"
     timestamp: str = "arac-hcc-smoke"
     config_name: str = "quick_smoke"
+    arac_action: str = "conservative_no_action"
 
 
 @dataclass(frozen=True)
@@ -418,6 +419,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         str(request.output_dir),
         "--timestamp",
         request.timestamp,
+        "--arac-action",
+        request.arac_action,
     )
     return HccAobSmokeCommand(argv=argv, cwd=Path(request.hcc_root))
 
@@ -440,6 +443,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             python_executable=request.python_executable or sys.executable,
             timestamp=request.timestamp,
             config_name=request.config_name,
+            arac_action=request.arac_action,
         )
     )
     start = time.time()
