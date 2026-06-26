@@ -97,7 +97,7 @@ def test_aob_pilot_can_overlay_offline_hcc_smoke_execution_result(tmp_path: Path
 
     assert by_problem['E1']['pilot_result_source'] == 'hcc_subprocess_smoke_execution'
     assert by_problem['E1']['pilot_proxy_final_error'] == ''
-    assert by_problem['E1']['hcc_smoke_final_error'] == '42.500000'
+    assert by_problem['E1']['hcc_smoke_final_error'] == '4.250000e+01'
     assert by_problem['E1']['fresh_optimizer_execution'] == '1'
     assert by_problem['E1']['runtime_dispatch_allowed'] == '1'
 
@@ -155,6 +155,6 @@ def test_exp_002_cli_smoke_mode_runs_single_case_execution_overlay(
         rows = list(csv.DictReader(handle))
     by_problem = {row['problem_id']: row for row in rows}
     assert by_problem['E1']['pilot_result_source'] == 'hcc_subprocess_smoke_execution'
-    assert by_problem['E1']['hcc_smoke_final_error'] == '77.000000'
+    assert by_problem['E1']['hcc_smoke_final_error'] == '7.700000e+01'
     assert by_problem['E1']['fresh_optimizer_execution'] == '1'
     assert by_problem['S1']['pilot_result_source'] == 'hcc_source_grounded_grouping_probe'

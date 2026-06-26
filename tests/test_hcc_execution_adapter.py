@@ -56,6 +56,6 @@ def test_hcc_execution_result_fields_are_offline_only() -> None:
     validate_runtime_payload(runtime_payload)
 
     offline_row = result.to_offline_row()
-    assert offline_row["final_error"] == "123.456000"
+    assert offline_row["final_error"] == "1.234560e+02"
     assert offline_row["runtime_dispatch_allowed"] == "0"
     assert offline_row["fresh_optimizer_execution"] == "1"

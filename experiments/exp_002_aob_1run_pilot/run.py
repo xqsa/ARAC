@@ -211,7 +211,7 @@ def _our_result_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "hcc_smoke_final_error": (
                     ""
                     if record["hcc_smoke_final_error"] is None
-                    else f"{record['hcc_smoke_final_error']:.6f}"
+                    else f"{record['hcc_smoke_final_error']:.6e}"
                 ),
                 "hcc_smoke_fe_used": record["hcc_smoke_fe_used"],
                 "hcc_smoke_status": record["hcc_smoke_status"],
@@ -316,7 +316,7 @@ def _paper_comparison_rows(records: list[dict[str, object]]) -> list[dict[str, o
                     "" if record["pilot_proxy_final_error"] is None else f"{our_proxy:.6f}"
                 ),
                 "our_hcc_smoke_final_error": (
-                    "" if record["hcc_smoke_final_error"] is None else f"{our_proxy:.6f}"
+                    "" if record["hcc_smoke_final_error"] is None else f"{our_proxy:.6e}"
                 ),
                 "paper_method": paper_row["method"],
                 "paper_reported_mean": paper_row["reported_mean"],

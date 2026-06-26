@@ -165,7 +165,7 @@ class HccAobExecutionResult:
             "problem_id": self.problem_id,
             "seed": str(self.seed),
             "max_fes": str(self.max_fes),
-            "final_error": f"{self.final_error:.6f}",
+            "final_error": f"{self.final_error:.6e}",
             "fe_used": str(self.fe_used),
             "time_seconds": f"{self.time_seconds:.6f}",
             "output_root": str(self.output_root),
