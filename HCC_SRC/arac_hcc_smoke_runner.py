@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import math
 import time
@@ -27,6 +28,19 @@ PROJECT_ROOT = Path.cwd()
 DATA_DIR = PROJECT_ROOT / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
 FUNCTION_NAMES = ("elliptic", "schwefel", "rastrigin", "ackley")
 PROBLEM_IDS = (1, 2, 3, 4, 5, 6)
+ACTION_TRACE_FIELDS = [
+    "problem_id",
+    "seed",
+    "outer_iter",
+    "group_index",
+    "selected_action_name",
+    "overlap_size",
+    "previous_delta",
+    "current_delta",
+    "owner_selected",
+    "semantic_surface",
+    "optimizer_consumed",
+]
 
 
 @dataclass(frozen=True)
@@ -158,7 +172,63 @@ def apply_arac_overlap_action(
     )
 
 
-def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float]:
+def _problem_id(fun_name: str, fun_id: int) -> str:
+    return f"{fun_name[0].upper()}{fun_id}"
+
+
+def _owner_selected(action_name: str, previous_delta: float, current_delta: float) -> str:
+    if action_name == "repair_shared_variable_binding":
+        if current_delta >= previous_delta:
+            return "current"
+        return "previous"
+    return "weighted_blend"
+
+
+def _semantic_surface(action_name: str) -> str:
+    if action_name == "repair_shared_variable_binding":
+        return "shared_variable_owner_rebinding"
+    return "native_overlap_blend"
+
+
+def build_action_trace_row(
+    problem_id: str,
+    seed: int | None,
+    outer_iter: int,
+    group_index: int,
+    selected_action_name: str,
+    overlap_size: int,
+    previous_delta: float,
+    current_delta: float,
+) -> dict[str, str]:
+    return {
+        "problem_id": problem_id,
+        "seed": "" if seed is None else str(seed),
+        "outer_iter": str(outer_iter),
+        "group_index": str(group_index),
+        "selected_action_name": selected_action_name,
+        "overlap_size": str(overlap_size),
+        "previous_delta": f"{previous_delta:.6e}",
+        "current_delta": f"{current_delta:.6e}",
+        "owner_selected": _owner_selected(
+            selected_action_name,
+            previous_delta,
+            current_delta,
+        ),
+        "semantic_surface": _semantic_surface(selected_action_name),
+        "optimizer_consumed": (
+            "1" if selected_action_name == "repair_shared_variable_binding" else "0"
+        ),
+    }
+
+
+def _write_action_trace(path: Path, rows: list[dict[str, str]]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=ACTION_TRACE_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/")
     fun = bench.get_function(fun_name, fun_id)
@@ -170,6 +240,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     global_fes = calculate_global_fes(config.max_fes, degree)
     best_individual = np.zeros(info["dimension"])
     sum_fes = 0
+    action_trace_rows: list[dict[str, str]] = []
 
     if global_fes != 0:
         problem = {
@@ -236,9 +307,21 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     previous_delta=fitness_delta_list[index - 1],
                     current_delta=current_delta,
                 )
+                action_trace_rows.append(
+                    build_action_trace_row(
+                        problem_id=_problem_id(fun_name, fun_id),
+                        seed=config.seed,
+                        outer_iter=outer_iter,
+                        group_index=index,
+                        selected_action_name=config.arac_action,
+                        overlap_size=len(overlap_indices),
+                        previous_delta=fitness_delta_list[index - 1],
+                        current_delta=current_delta,
+                    )
+                )
         outer_iter += 1
 
-    return fun.fitness_record, time.time() - time_start
+    return fun.fitness_record, time.time() - time_start, action_trace_rows
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -285,9 +368,10 @@ def main(argv: list[str] | None = None) -> list[Path]:
             algorithm = f"{fun_name}_{fun_id}"
             output_data[algorithm] = []
             output_data[f"{algorithm}_time"] = []
-            record, elapsed = run_problem(fun_name, fun_id, output_path, config)
+            record, elapsed, trace_rows = run_problem(fun_name, fun_id, output_path, config)
             output_data[algorithm].append(record)
             output_data[f"{algorithm}_time"].append(elapsed)
+            _write_action_trace(output_path / "action_trace.csv", trace_rows)
             print(f"{algorithm} average time: {elapsed}")
         evaluation_record(output_data, str(output_path) + "/", record_FEs_list=(args.max_fes,))
         plot_evaluation_curve(output_data, str(output_path) + "/", font_size=12, log_scale=True)

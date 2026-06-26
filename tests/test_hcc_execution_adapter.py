@@ -62,6 +62,8 @@ def test_hcc_execution_result_fields_are_offline_only() -> None:
         fresh_optimizer_execution=True,
         status="completed",
         result_source="hcc_subprocess_smoke_execution",
+        action_trace_path=Path("results/hcc-smoke/action_trace.csv"),
+        action_trace_rows=3,
     )
 
     runtime_payload = {
@@ -76,3 +78,5 @@ def test_hcc_execution_result_fields_are_offline_only() -> None:
     assert offline_row["final_error"] == "1.234560e+02"
     assert offline_row["runtime_dispatch_allowed"] == "0"
     assert offline_row["fresh_optimizer_execution"] == "1"
+    assert offline_row["action_trace_path"] == "results\\hcc-smoke\\action_trace.csv"
+    assert offline_row["action_trace_rows"] == "3"

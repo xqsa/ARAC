@@ -103,3 +103,23 @@ def test_degree_of_overlap_accepts_scalar_overlap_groups() -> None:
     degree = runner.calculate_degree_of_overlap([1, [2, 3]], problem_dimension=10)
 
     assert degree == 0.3
+
+
+def test_build_action_trace_row_marks_runtime_consumed_repair() -> None:
+    runner = _load_runner_module()
+
+    row = runner.build_action_trace_row(
+        problem_id="E2",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="repair_shared_variable_binding",
+        overlap_size=3,
+        previous_delta=1.0,
+        current_delta=3.0,
+    )
+
+    assert row["problem_id"] == "E2"
+    assert row["owner_selected"] == "current"
+    assert row["semantic_surface"] == "shared_variable_owner_rebinding"
+    assert row["optimizer_consumed"] == "1"

@@ -162,6 +162,8 @@ class HccAobExecutionResult:
     result_source: str
     stdout_tail: str = ""
     stderr_tail: str = ""
+    action_trace_path: Path | None = None
+    action_trace_rows: int = 0
 
     def to_offline_row(self) -> dict[str, str]:
         return {
@@ -175,6 +177,8 @@ class HccAobExecutionResult:
             "fresh_optimizer_execution": "1" if self.fresh_optimizer_execution else "0",
             "status": self.status,
             "result_source": self.result_source,
+            "action_trace_path": "" if self.action_trace_path is None else str(self.action_trace_path),
+            "action_trace_rows": str(self.action_trace_rows),
             "runtime_dispatch_allowed": "0",
         }
 
@@ -471,9 +475,12 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             result_source="hcc_subprocess_smoke_execution",
             stdout_tail=_tail(completed.stdout),
             stderr_tail=_tail(completed.stderr),
+            action_trace_path=None,
+            action_trace_rows=0,
         )
 
     final_error, fe_used = _parse_hcc_evaluation_record(Path(request.output_dir))
+    action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
     return HccAobExecutionResult(
         problem_id=_problem_parts(request.problem_id)[0],
         seed=request.seed,
@@ -487,6 +494,8 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         result_source="hcc_subprocess_smoke_execution",
         stdout_tail=_tail(completed.stdout),
         stderr_tail=_tail(completed.stderr),
+        action_trace_path=action_trace_path,
+        action_trace_rows=action_trace_rows,
     )
 
 
@@ -502,6 +511,16 @@ def _parse_hcc_evaluation_record(output_dir: Path) -> tuple[float, int]:
     if not final_match:
         raise ValueError(f"could not parse final HCC error from {records[-1]}")
     return float(final_match.group("value")), int(float(final_match.group("fe")))
+
+
+def _find_hcc_action_trace(output_dir: Path) -> tuple[Path | None, int]:
+    traces = sorted(Path(output_dir).rglob("action_trace.csv"))
+    if not traces:
+        return None, 0
+    trace_path = traces[-1]
+    with trace_path.open(newline="", encoding="utf-8") as handle:
+        row_count = max(0, sum(1 for _ in handle) - 1)
+    return trace_path, row_count
 
 
 def _tail(text: str, max_chars: int = 2000) -> str:
