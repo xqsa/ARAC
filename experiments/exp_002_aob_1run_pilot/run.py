@@ -6,10 +6,9 @@ from pathlib import Path
 
 from arac.audit import claim_gate
 from arac.backends.hcc import (
-    HccBackboneSnapshot,
-    HccGroupSignal,
     build_hcc_evidence_profile,
     hcc_backend_semantics_for,
+    load_hcc_aob_topology,
 )
 from arac.evaluation import SameBudgetLedger, classify_utility, relative_gain
 from arac.evidence import (
@@ -25,10 +24,10 @@ DIMENSION = 1000
 TOTAL_FE = 3_000_000
 PHASE_I_FE = 600_000
 PHASE_II_FE = TOTAL_FE - PHASE_I_FE
-PILOT_RESULT_SOURCE = "scaffold_synthetic_proxy"
+PILOT_RESULT_SOURCE = "hcc_source_grounded_grouping_probe"
+SOURCE_LEVEL = "hcc_source_topology"
 
 PROBLEM_IDS = [f"{family}{idx}" for family in "ESRA" for idx in range(1, 7)]
-OVERLAP_GAMMA = {1: 0, 2: 1, 3: 3, 4: 5, 5: 7, 6: 10}
 
 ROOT = Path(__file__).resolve().parents[2]
 PAPER_REPORTED_CSV = ROOT / "references" / "paper_reported_table2_hcc_es.csv"
@@ -40,54 +39,6 @@ def _write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str])
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
-
-
-def _problem_index(problem_id: str) -> int:
-    return int(problem_id[1])
-
-
-def _groups_for(problem_id: str) -> tuple[HccGroupSignal, ...]:
-    idx = _problem_index(problem_id)
-    gamma = OVERLAP_GAMMA[idx]
-    group_count = 8 + idx
-    groups: list[HccGroupSignal] = []
-    for offset in range(group_count):
-        rank = offset + 1
-        shared = max(gamma - offset, 0)
-        delta = ((group_count - offset) * 0.1) - (0.02 * gamma)
-        groups.append(
-            HccGroupSignal(
-                group_id=f"g{rank:02d}",
-                fitness_delta=delta,
-                rank=rank,
-                shared_variable_count=shared,
-            )
-        )
-    return tuple(groups)
-
-
-def _snapshot_for(problem_id: str) -> HccBackboneSnapshot:
-    idx = _problem_index(problem_id)
-    gamma = OVERLAP_GAMMA[idx]
-    groups = _groups_for(problem_id)
-    return HccBackboneSnapshot(
-        run_id=RUN_ID,
-        problem_id=problem_id,
-        seed=SEED,
-        dimension=DIMENSION,
-        group_count=len(groups),
-        overlap_group_count=min(len(groups), gamma),
-        overlapping_element_count=gamma * 10,
-        budget_remaining_ratio=PHASE_II_FE / TOTAL_FE,
-        groups=groups,
-        runtime_payload_extra={
-            "benchmark": "AOB",
-            "aob_function_id": idx,
-            "search_lower": -100,
-            "search_upper": 100,
-            "budget_limit": TOTAL_FE,
-        },
-    )
 
 
 def _runtime_payload(evidence: EvidenceProfile) -> dict[str, object]:
@@ -113,7 +64,7 @@ def _ledger() -> SameBudgetLedger:
 
 
 def _fallback_proxy_error(problem_id: str) -> float:
-    idx = _problem_index(problem_id)
+    idx = int(str(problem_id)[1])
     return 1000.0 + (idx * 100.0)
 
 
@@ -135,7 +86,12 @@ def _pilot_records() -> list[dict[str, object]]:
     records: list[dict[str, object]] = []
     ledger = _ledger()
     for problem_id in PROBLEM_IDS:
-        snapshot = _snapshot_for(problem_id)
+        topology = load_hcc_aob_topology(problem_id)
+        snapshot = topology.to_snapshot(
+            run_id=RUN_ID,
+            seed=SEED,
+            budget_remaining_ratio=PHASE_II_FE / TOTAL_FE,
+        )
         evidence = build_hcc_evidence_profile(snapshot)
         payload = _runtime_payload(evidence)
         decision = decide_action(evidence)
@@ -152,13 +108,21 @@ def _pilot_records() -> list[dict[str, object]]:
             utility_label=utility_label,
             negative_control_pass=True,
         )
-        blockers.append("scaffold_proxy_not_fresh_optimizer_execution")
+        blockers.append("hcc_source_topology_probe_not_fresh_optimizer_execution")
 
         records.append(
             {
                 "problem_id": problem_id,
-                "aob_function_id": _problem_index(problem_id),
-                "overlap_gamma": OVERLAP_GAMMA[_problem_index(problem_id)],
+                "aob_function_id": topology.function_id,
+                "function_name": topology.function_name,
+                "overlap_gamma": topology.overlap_gamma,
+                "dimension_real": topology.dimension_real,
+                "group_count": topology.group_count,
+                "overlap_group_count": topology.overlap_group_count,
+                "overlapping_element_count": topology.overlapping_element_count,
+                "degree_of_overlap": topology.degree_of_overlap,
+                "global_fes": topology.global_fes,
+                "source_level": topology.source_level,
                 "evidence": evidence,
                 "runtime_payload": payload,
                 "decision": decision,
@@ -186,8 +150,15 @@ def _our_result_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "problem_id": record["problem_id"],
                 "seed": SEED,
                 "dimension": DIMENSION,
+                "dimension_real": record["dimension_real"],
                 "aob_function_id": record["aob_function_id"],
+                "function_name": record["function_name"],
                 "overlap_gamma": record["overlap_gamma"],
+                "group_count": record["group_count"],
+                "overlap_group_count": record["overlap_group_count"],
+                "overlapping_element_count": record["overlapping_element_count"],
+                "degree_of_overlap": f"{record['degree_of_overlap']:.12g}",
+                "global_fes": record["global_fes"],
                 "selected_action_family": decision.action_family.value,
                 "selected_action_name": decision.action_name,
                 "decision": decision.decision,
@@ -195,6 +166,7 @@ def _our_result_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "utility_proxy": f"{decision.utility_proxy:.6f}",
                 "backend_semantics_changed": int(semantics.changed),
                 "pilot_result_source": PILOT_RESULT_SOURCE,
+                "source_level": record["source_level"],
                 "pilot_proxy_final_error": f"{record['pilot_proxy_final_error']:.6f}",
                 "utility_label": record["utility_label"],
                 "claim_eligible": int(record["claim_eligible"]),
@@ -222,6 +194,7 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "same_budget_violation": int(ledger.violation),
                 "fresh_execution": int(ledger.fresh_execution),
                 "pilot_result_source": PILOT_RESULT_SOURCE,
+                "source_level": record["source_level"],
             }
         )
     return rows
@@ -351,7 +324,7 @@ def _write_manifest(output_dir: Path) -> None:
             "",
             "Date: 2026-06-26",
             "Executor: Codex",
-            "Claim level: AOB 1-run pilot scaffold / deterministic proxy only",
+            "Claim level: HCC-source-grounded AOB grouping probe only",
             "Benchmark: AOB 24 cases (E1-E6, S1-S6, R1-R6, A1-A6)",
             f"Current pilot runs: 1 independent run (seed={SEED})",
             "Final protocol remains: 25 independent runs",
@@ -360,6 +333,7 @@ def _write_manifest(output_dir: Path) -> None:
             "relative gains, and prior outcomes must not enter runtime dispatch.",
             "Paper Table 2 values are joined only in paper_reported_comparison.csv for offline evaluation.",
             f"Pilot result source: {PILOT_RESULT_SOURCE}; this is not a real full optimizer performance run.",
+            f"Source level: {SOURCE_LEVEL}; AOB metadata and grouping topology are read from E:\\HCC-main.",
             "Negative controls and catastrophic-loss checks are explicit audit surfaces.",
             "",
         ]
@@ -382,8 +356,15 @@ def run_aob_1run_pilot(
             "problem_id",
             "seed",
             "dimension",
+            "dimension_real",
             "aob_function_id",
+            "function_name",
             "overlap_gamma",
+            "group_count",
+            "overlap_group_count",
+            "overlapping_element_count",
+            "degree_of_overlap",
+            "global_fes",
             "selected_action_family",
             "selected_action_name",
             "decision",
@@ -391,6 +372,7 @@ def run_aob_1run_pilot(
             "utility_proxy",
             "backend_semantics_changed",
             "pilot_result_source",
+            "source_level",
             "pilot_proxy_final_error",
             "utility_label",
             "claim_eligible",
@@ -412,6 +394,7 @@ def run_aob_1run_pilot(
             "same_budget_violation",
             "fresh_execution",
             "pilot_result_source",
+            "source_level",
         ],
     )
     _write_csv(

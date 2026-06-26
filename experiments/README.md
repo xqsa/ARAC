@@ -25,7 +25,7 @@ For AOB work, start from `configs/aob_pilot.yaml`. The current pilot is fixed to
 one independent run so ARAC-HCC can expose utility and failure signals before
 expanding to the paper's 25-run protocol.
 
-Run the current AOB pilot scaffold with:
+Run the current AOB pilot topology probe with:
 
 ```powershell
 $env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.exp_002_aob_1run_pilot.run
@@ -33,7 +33,8 @@ $env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-run
 
 `exp_002_aob_1run_pilot` writes eight table-backed artifacts, keeps
 paper-reported Table 2 values offline-only, and labels its own result rows as
-`scaffold_synthetic_proxy` until the real HCC execution backend is attached.
+`hcc_source_grounded_grouping_probe`. It reads source AOB topology from
+`E:\HCC-main` but does not yet run MMES/CMAES optimizer execution.
 
 ## Minimum Gates
 

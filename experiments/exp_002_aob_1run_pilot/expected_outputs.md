@@ -14,9 +14,15 @@
 Required invariants:
 
 - all 24 AOB cases are covered once for seed `1`
+- result rows use `source_level=hcc_source_topology`
+- result rows use `pilot_result_source=hcc_source_grounded_grouping_probe`
+- AOB topology fields include `dimension_real`, `group_count`,
+  `overlap_group_count`, `overlapping_element_count`, `degree_of_overlap`, and
+  `global_fes`
 - `phase_i_fe + phase_ii_fe = 3000000`
 - `paper_reported_comparison.csv` is offline evaluation only
 - `runtime_dispatch_allowed=0` for paper-reported comparison rows
 - runtime payloads exclude oracle, final error, relative gain, reported baseline,
   problem-family label, and prior outcome fields
 - negative controls and catastrophic-loss checks are visible audit surfaces
+- this stage does not run MMES/CMAES and does not claim optimizer performance

@@ -8,6 +8,7 @@ from arac.backends.hcc import (
     HccGroupSignal,
     build_hcc_evidence_profile,
     hcc_backend_semantics_for,
+    load_hcc_aob_topology,
 )
 from arac.evidence import validate_runtime_payload
 from arac.policy import ActionDecision
@@ -98,3 +99,30 @@ def test_hcc_snapshot_rejects_forbidden_outcome_fields() -> None:
 
     with pytest.raises(ValueError, match="final_error"):
         build_hcc_evidence_profile(snapshot)
+
+
+def test_load_hcc_aob_topology_reads_source_metadata_without_optimizer_run() -> None:
+    topology = load_hcc_aob_topology("S6")
+
+    assert topology.problem_id == "S6"
+    assert topology.function_name == "schwefel"
+    assert topology.function_id == 6
+    assert topology.dimension == 1000
+    assert topology.dimension_real == 1190
+    assert topology.overlap_gamma == 10
+    assert topology.group_count == 20
+    assert topology.overlap_group_count == 19
+    assert topology.overlapping_element_count == 190
+    assert topology.degree_of_overlap == pytest.approx(0.19)
+    assert topology.global_fes == 1_056_000
+    assert topology.source_level == "hcc_source_topology"
+    assert topology.fresh_optimizer_execution is False
+    assert topology.groups[0].shared_variable_count == 10
+
+
+def test_hcc_aob_topology_preserves_aob_overlap_gradient() -> None:
+    topologies = [load_hcc_aob_topology(f"E{idx}") for idx in range(1, 7)]
+
+    assert [topology.overlap_gamma for topology in topologies] == [0, 1, 3, 5, 7, 10]
+    assert [topology.dimension for topology in topologies] == [1000] * 6
+    assert [topology.dimension_real for topology in topologies] == [1000, 1019, 1057, 1095, 1133, 1190]

@@ -9,9 +9,14 @@ search range `[-100, 100]^D`, one independent pilot run, and a total budget of
 
 ## Claim Level
 
-This is a deterministic pilot scaffold, not a final optimizer performance run.
-Rows in `our_result_by_case.csv` use `pilot_result_source=scaffold_synthetic_proxy`
-until the HCC execution backend is wired to fresh same-budget AOB runs.
+This is an HCC-source-grounded grouping probe, not a final optimizer
+performance run. Rows in `our_result_by_case.csv` use
+`source_level=hcc_source_topology` and
+`pilot_result_source=hcc_source_grounded_grouping_probe`.
+
+The runner reads AOB metadata, overlap gamma, real dimension, topology groups,
+and overlap-derived FE allocation from `E:\HCC-main`. It still does not run
+MMES/CMAES or claim fresh optimizer performance.
 
 Paper-reported HCC-ES Table 2 values are joined only in
 `paper_reported_comparison.csv` for offline evaluation. They must not enter
