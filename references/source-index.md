@@ -34,6 +34,13 @@ Use these source files only as references, not as code to copy wholesale.
   - Source of the AOB protocol and Table 2 paper-reported baselines. The current
     clean anchor is `references/paper_reported_table2_hcc_es.csv`.
 
+- `E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt`
+  - Historical HCC-main run evidence recovered by
+    `experiments/exp_004_hcc_main_historical_result_recovery`. The clean
+    inventory is `references/hcc_main_historical_result_inventory.csv`, and the
+    paper comparison is `references/hcc_main_vs_paper_reported_comparison.csv`.
+    These values are offline evidence only and never runtime dispatch inputs.
+
 ## What Not To Copy
 
 - `scripts\mi_arac_action_legacy\`

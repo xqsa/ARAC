@@ -35,6 +35,14 @@ catastrophic-loss audits.
   current pilot fixed to 1 run and the final target left at 25 runs.
 - `references/paper_reported_table2_hcc_es.csv`: paper-reported HCC-ES Table 2
   anchor for evaluation-only comparison.
+- `references/hcc_main_historical_result_inventory.csv`: recovered historical
+  `E:\HCC-main` evaluation records, kept as offline evidence only.
+- `references/hcc_main_vs_paper_reported_comparison.csv`: offline comparison
+  between recovered HCC-main historical records and paper-reported Table 2
+  anchors.
+- `docs/hcc-main-historical-results-audit.md`: audit summary showing which
+  historical HCC-main rows beat paper-reported means without entering runtime
+  dispatch.
 - `src/arac/`: minimum Python skeleton for evidence extraction, action space,
   policy mapping, backend adapter, evaluation, and audit.
 - `configs/default.yaml`: minimal experiment contract.
@@ -44,6 +52,10 @@ catastrophic-loss audits.
 - `experiments/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
   emits action, semantics, same-budget, leakage, paper-comparison, negative
   control, and catastrophic-loss audit tables.
+- `experiments/exp_003_hcc_runtime_consumer_smoke/`: runtime-connected HCC
+  smoke proving `repair_shared_variable_binding` is optimizer-consumed.
+- `experiments/exp_004_hcc_main_historical_result_recovery/`: read-only
+  recovery of historical `E:\HCC-main` result artifacts for offline comparison.
 - `references/source-index.md`: pointers to the original source evidence inside
   `E:\HCC-main`.
 

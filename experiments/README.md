@@ -8,8 +8,8 @@ Future experiments should be small, resumable, and table-backed.
 experiments/
   exp_001_schema_smoke/
   exp_002_aob_1run_pilot/
-  exp_003_backend_binding_smoke/
-  exp_004_same_budget_smoke/
+  exp_003_hcc_runtime_consumer_smoke/
+  exp_004_hcc_main_historical_result_recovery/
 ```
 
 Each experiment should contain:
@@ -35,6 +35,18 @@ $env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-run
 paper-reported Table 2 values offline-only, and labels its own result rows as
 `hcc_source_grounded_grouping_probe`. It reads source AOB topology from
 `E:\HCC-main` but does not yet run MMES/CMAES optimizer execution.
+
+`exp_003_hcc_runtime_consumer_smoke` runs a small E2 HCC smoke through two
+lanes: conservative fallback and `repair_shared_variable_binding`. Its claim is
+runtime connection, not performance: the repair lane must show
+`optimizer_consumed=1`, `variable_owner_changed=1`, a fresh HCC result, and
+action trace rows.
+
+`exp_004_hcc_main_historical_result_recovery` scans historical
+`E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt` files, writes an
+inventory, and joins detected AOB cases to the paper-reported Table 2 anchors.
+These recovered results are preserved as offline evidence only and must not
+enter runtime dispatch.
 
 ## Minimum Gates
 
