@@ -1,15 +1,21 @@
 from __future__ import annotations
 
+import argparse
 import csv
+import sys
 from dataclasses import asdict
 from pathlib import Path
+from typing import Callable
 
 from arac.audit import claim_gate
 from arac.backends.hcc import (
+    DEFAULT_HCC_MAIN_ROOT,
+    HccAobExecutionRequest,
     HccAobExecutionResult,
     build_hcc_evidence_profile,
     hcc_backend_semantics_for,
     load_hcc_aob_topology,
+    run_hcc_aob_smoke_execution,
 )
 from arac.evaluation import SameBudgetLedger, classify_utility, relative_gain
 from arac.evidence import (
@@ -537,5 +543,69 @@ def run_aob_1run_pilot(
     return output
 
 
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the ARAC AOB 1-run pilot artifacts.")
+    parser.add_argument(
+        "--output-dir",
+        default="results/exp_002_aob_1run_pilot",
+        help="Directory where exp_002 artifacts are written.",
+    )
+    parser.add_argument(
+        "--smoke-case",
+        default="",
+        help="Optional single AOB case, such as E1, to execute through HCC-main.",
+    )
+    parser.add_argument(
+        "--smoke-fes",
+        type=int,
+        default=2_000,
+        help="Small FE budget for the optional HCC smoke execution.",
+    )
+    parser.add_argument(
+        "--hcc-root",
+        default=str(DEFAULT_HCC_MAIN_ROOT),
+        help="Read-only HCC-main source root used by the subprocess bridge.",
+    )
+    parser.add_argument(
+        "--python-executable",
+        default=sys.executable,
+        help="Python interpreter used to run HCC-main smoke execution.",
+    )
+    return parser.parse_args(argv)
+
+
+def _smoke_results_from_args(
+    args: argparse.Namespace,
+    execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult],
+) -> list[HccAobExecutionResult]:
+    if not str(args.smoke_case).strip():
+        return []
+    smoke_output = (Path(args.output_dir) / "_hcc_smoke" / str(args.smoke_case).upper()).resolve()
+    request = HccAobExecutionRequest(
+        problem_id=str(args.smoke_case).upper(),
+        seed=SEED,
+        max_fes=int(args.smoke_fes),
+        output_dir=smoke_output,
+        hcc_root=Path(args.hcc_root),
+        python_executable=str(args.python_executable),
+        timestamp="arac-exp-002-smoke",
+    )
+    return [execution_runner(request)]
+
+
+def main(
+    argv: list[str] | None = None,
+    execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult] = (
+        run_hcc_aob_smoke_execution
+    ),
+) -> Path:
+    args = parse_args(argv)
+    smoke_results = _smoke_results_from_args(args, execution_runner)
+    return run_aob_1run_pilot(
+        output_dir=Path(args.output_dir),
+        smoke_execution_results=smoke_results,
+    )
+
+
 if __name__ == "__main__":
-    run_aob_1run_pilot()
+    main()

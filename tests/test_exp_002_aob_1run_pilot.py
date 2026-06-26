@@ -1,8 +1,8 @@
 from pathlib import Path
 import csv
 
-from arac.backends.hcc import HccAobExecutionResult
-from experiments.exp_002_aob_1run_pilot.run import run_aob_1run_pilot
+from arac.backends.hcc import HccAobExecutionRequest, HccAobExecutionResult
+from experiments.exp_002_aob_1run_pilot.run import main, run_aob_1run_pilot
 
 
 def test_aob_pilot_writes_one_run_truth_tables(tmp_path: Path) -> None:
@@ -79,3 +79,57 @@ def test_aob_pilot_can_overlay_offline_hcc_smoke_execution_result(tmp_path: Path
     comparison_text = (output_dir / 'paper_reported_comparison.csv').read_text(encoding='utf-8')
     assert 'paper-reported evaluation-only baselines' in comparison_text
     assert ',0' in comparison_text
+
+
+def test_exp_002_cli_smoke_mode_runs_single_case_execution_overlay(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    requests: list[HccAobExecutionRequest] = []
+
+    def fake_runner(request: HccAobExecutionRequest) -> HccAobExecutionResult:
+        requests.append(request)
+        return HccAobExecutionResult(
+            problem_id=request.problem_id,
+            seed=request.seed,
+            max_fes=request.max_fes,
+            final_error=77.0,
+            fe_used=request.max_fes,
+            time_seconds=0.1,
+            output_root=request.output_dir,
+            fresh_optimizer_execution=True,
+            status='completed',
+            result_source='hcc_subprocess_smoke_execution',
+        )
+
+    output_dir = Path('pilot')
+    result = main(
+        [
+            '--output-dir',
+            str(output_dir),
+            '--smoke-case',
+            'E1',
+            '--smoke-fes',
+            '2000',
+            '--python-executable',
+            'python-test',
+        ],
+        execution_runner=fake_runner,
+    )
+
+    assert result == output_dir
+    assert len(requests) == 1
+    assert requests[0].problem_id == 'E1'
+    assert requests[0].max_fes == 2000
+    assert requests[0].python_executable == 'python-test'
+    assert requests[0].output_dir.is_absolute()
+    assert str(requests[0].output_dir).startswith(str((tmp_path / output_dir).resolve()))
+
+    with (output_dir / 'our_result_by_case.csv').open(newline='', encoding='utf-8') as handle:
+        rows = list(csv.DictReader(handle))
+    by_problem = {row['problem_id']: row for row in rows}
+    assert by_problem['E1']['pilot_result_source'] == 'hcc_subprocess_smoke_execution'
+    assert by_problem['E1']['hcc_smoke_final_error'] == '77.000000'
+    assert by_problem['E1']['fresh_optimizer_execution'] == '1'
+    assert by_problem['S1']['pilot_result_source'] == 'hcc_source_grounded_grouping_probe'

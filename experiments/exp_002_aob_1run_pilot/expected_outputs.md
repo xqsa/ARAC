@@ -33,3 +33,6 @@ Required invariants:
 - explicit HCC smoke execution requires the `hcc` optional dependency set from
   `pyproject.toml`; smoke final errors are offline-only and cannot be copied
   into runtime dispatch
+- CLI smoke mode writes HCC subprocess scratch outputs below
+  `<output-dir>/_hcc_smoke/` while keeping the top-level artifact contract at
+  the eight files listed above
