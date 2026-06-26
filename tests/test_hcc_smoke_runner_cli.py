@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 
 def _load_runner_module():
@@ -123,3 +125,43 @@ def test_build_action_trace_row_marks_runtime_consumed_repair() -> None:
     assert row["owner_selected"] == "current"
     assert row["semantic_surface"] == "shared_variable_owner_rebinding"
     assert row["optimizer_consumed"] == "1"
+
+
+@pytest.mark.integration
+def test_conservative_fallback_matches_default_hcc_smoke_behavior(tmp_path: Path) -> None:
+    if os.environ.get("ARAC_RUN_HCC_SMOKE") != "1":
+        pytest.skip("set ARAC_RUN_HCC_SMOKE=1 to run the HCC subprocess smoke")
+
+    from arac.backends.hcc import HccAobExecutionRequest, run_hcc_aob_smoke_execution
+
+    python_executable = (
+        r"C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies"
+        r"\python\python.exe"
+    )
+    shared = {
+        "problem_id": "E2",
+        "seed": 1,
+        "max_fes": 2_000,
+        "hcc_root": Path("E:/HCC-main"),
+        "python_executable": python_executable,
+    }
+    default_result = run_hcc_aob_smoke_execution(
+        HccAobExecutionRequest(
+            **shared,
+            output_dir=(tmp_path / "default").resolve(),
+            timestamp="fallback-equivalence-default",
+        )
+    )
+    fallback_result = run_hcc_aob_smoke_execution(
+        HccAobExecutionRequest(
+            **shared,
+            output_dir=(tmp_path / "fallback").resolve(),
+            timestamp="fallback-equivalence-explicit",
+            arac_action="conservative_no_action",
+        )
+    )
+
+    assert default_result.status == "completed"
+    assert fallback_result.status == "completed"
+    assert fallback_result.final_error == pytest.approx(default_result.final_error)
+    assert fallback_result.fe_used == default_result.fe_used

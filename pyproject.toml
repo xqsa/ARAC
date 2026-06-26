@@ -17,6 +17,9 @@ hcc = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "integration: tests that run the HCC subprocess smoke runner",
+]
 
 [tool.ruff]
 line-length = 100
