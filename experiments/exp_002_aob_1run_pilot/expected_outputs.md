@@ -16,6 +16,9 @@ Required invariants:
 - all 24 AOB cases are covered once for seed `1`
 - result rows use `source_level=hcc_source_topology`
 - result rows use `pilot_result_source=hcc_source_grounded_grouping_probe`
+- optional HCC smoke overlays use `pilot_result_source=hcc_subprocess_smoke_execution`
+  and expose `hcc_smoke_final_error`, `hcc_smoke_fe_used`, `hcc_smoke_status`,
+  and `fresh_optimizer_execution`
 - AOB topology fields include `dimension_real`, `group_count`,
   `overlap_group_count`, `overlapping_element_count`, `degree_of_overlap`, and
   `global_fes`
@@ -25,4 +28,8 @@ Required invariants:
 - runtime payloads exclude oracle, final error, relative gain, reported baseline,
   problem-family label, and prior outcome fields
 - negative controls and catastrophic-loss checks are visible audit surfaces
-- this stage does not run MMES/CMAES and does not claim optimizer performance
+- the default stage does not run MMES/CMAES and does not claim optimizer
+  performance
+- explicit HCC smoke execution requires the `hcc` optional dependency set from
+  `pyproject.toml`; smoke final errors are offline-only and cannot be copied
+  into runtime dispatch

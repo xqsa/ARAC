@@ -1,6 +1,7 @@
 from pathlib import Path
 import csv
 
+from arac.backends.hcc import HccAobExecutionResult
 from experiments.exp_002_aob_1run_pilot.run import run_aob_1run_pilot
 
 
@@ -45,3 +46,36 @@ def test_aob_pilot_uses_hcc_source_topology_not_synthetic_proxy(tmp_path: Path) 
     assert by_problem['E1']['dimension_real'] == '1000'
     assert by_problem['S6']['dimension_real'] == '1190'
     assert by_problem['S6']['global_fes'] == '1056000'
+
+
+def test_aob_pilot_can_overlay_offline_hcc_smoke_execution_result(tmp_path: Path) -> None:
+    smoke_result = HccAobExecutionResult(
+        problem_id='E1',
+        seed=1,
+        max_fes=2_000,
+        final_error=42.5,
+        fe_used=2_000,
+        time_seconds=0.25,
+        output_root=tmp_path / 'hcc-smoke',
+        fresh_optimizer_execution=True,
+        status='completed',
+        result_source='hcc_subprocess_smoke_execution',
+    )
+
+    output_dir = run_aob_1run_pilot(
+        tmp_path / 'pilot',
+        smoke_execution_results=[smoke_result],
+    )
+    with (output_dir / 'our_result_by_case.csv').open(newline='', encoding='utf-8') as handle:
+        rows = list(csv.DictReader(handle))
+    by_problem = {row['problem_id']: row for row in rows}
+
+    assert by_problem['E1']['pilot_result_source'] == 'hcc_subprocess_smoke_execution'
+    assert by_problem['E1']['pilot_proxy_final_error'] == ''
+    assert by_problem['E1']['hcc_smoke_final_error'] == '42.500000'
+    assert by_problem['E1']['fresh_optimizer_execution'] == '1'
+    assert by_problem['E1']['runtime_dispatch_allowed'] == '1'
+
+    comparison_text = (output_dir / 'paper_reported_comparison.csv').read_text(encoding='utf-8')
+    assert 'paper-reported evaluation-only baselines' in comparison_text
+    assert ',0' in comparison_text

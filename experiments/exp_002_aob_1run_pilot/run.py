@@ -6,6 +6,7 @@ from pathlib import Path
 
 from arac.audit import claim_gate
 from arac.backends.hcc import (
+    HccAobExecutionResult,
     build_hcc_evidence_profile,
     hcc_backend_semantics_for,
     load_hcc_aob_topology,
@@ -82,9 +83,21 @@ def _paper_rows_by_problem() -> dict[str, dict[str, str]]:
     return {row["problem_id"]: row for row in rows}
 
 
-def _pilot_records() -> list[dict[str, object]]:
+def _smoke_results_by_problem(
+    smoke_execution_results: list[HccAobExecutionResult] | None,
+) -> dict[str, HccAobExecutionResult]:
+    return {
+        str(result.problem_id).strip().upper(): result
+        for result in smoke_execution_results or []
+    }
+
+
+def _pilot_records(
+    smoke_execution_results: list[HccAobExecutionResult] | None = None,
+) -> list[dict[str, object]]:
     records: list[dict[str, object]] = []
     ledger = _ledger()
+    smoke_by_problem = _smoke_results_by_problem(smoke_execution_results)
     for problem_id in PROBLEM_IDS:
         topology = load_hcc_aob_topology(problem_id)
         snapshot = topology.to_snapshot(
@@ -98,7 +111,12 @@ def _pilot_records() -> list[dict[str, object]]:
         semantics = hcc_backend_semantics_for(decision)
 
         fallback_error = _fallback_proxy_error(problem_id)
-        action_error = _action_proxy_error(problem_id, decision)
+        smoke_result = smoke_by_problem.get(problem_id)
+        action_error = (
+            smoke_result.final_error
+            if smoke_result and smoke_result.fresh_optimizer_execution
+            else _action_proxy_error(problem_id, decision)
+        )
         utility_label = classify_utility(fallback_error, action_error)
         allowed, blockers = claim_gate(
             runtime_payload=payload,
@@ -129,7 +147,16 @@ def _pilot_records() -> list[dict[str, object]]:
                 "semantics": semantics,
                 "ledger": ledger,
                 "fallback_proxy_error": fallback_error,
-                "pilot_proxy_final_error": action_error,
+                "pilot_proxy_final_error": None if smoke_result else action_error,
+                "hcc_smoke_final_error": smoke_result.final_error if smoke_result else None,
+                "hcc_smoke_fe_used": smoke_result.fe_used if smoke_result else "",
+                "hcc_smoke_status": smoke_result.status if smoke_result else "",
+                "fresh_optimizer_execution": (
+                    smoke_result.fresh_optimizer_execution if smoke_result else False
+                ),
+                "result_source": (
+                    smoke_result.result_source if smoke_result else PILOT_RESULT_SOURCE
+                ),
                 "utility_label": utility_label,
                 "claim_eligible": False if blockers else allowed,
                 "claim_blockers": ";".join(sorted(set(blockers))),
@@ -165,9 +192,21 @@ def _our_result_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "trigger_reason": decision.trigger_reason,
                 "utility_proxy": f"{decision.utility_proxy:.6f}",
                 "backend_semantics_changed": int(semantics.changed),
-                "pilot_result_source": PILOT_RESULT_SOURCE,
+                "pilot_result_source": record["result_source"],
                 "source_level": record["source_level"],
-                "pilot_proxy_final_error": f"{record['pilot_proxy_final_error']:.6f}",
+                "pilot_proxy_final_error": (
+                    ""
+                    if record["pilot_proxy_final_error"] is None
+                    else f"{record['pilot_proxy_final_error']:.6f}"
+                ),
+                "hcc_smoke_final_error": (
+                    ""
+                    if record["hcc_smoke_final_error"] is None
+                    else f"{record['hcc_smoke_final_error']:.6f}"
+                ),
+                "hcc_smoke_fe_used": record["hcc_smoke_fe_used"],
+                "hcc_smoke_status": record["hcc_smoke_status"],
+                "fresh_optimizer_execution": int(record["fresh_optimizer_execution"]),
                 "utility_label": record["utility_label"],
                 "claim_eligible": int(record["claim_eligible"]),
                 "claim_blockers": record["claim_blockers"],
@@ -192,8 +231,8 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "total_fe": ledger.total_fe,
                 "budget_limit": ledger.budget_limit,
                 "same_budget_violation": int(ledger.violation),
-                "fresh_execution": int(ledger.fresh_execution),
-                "pilot_result_source": PILOT_RESULT_SOURCE,
+                "fresh_execution": int(record["fresh_optimizer_execution"]),
+                "pilot_result_source": record["result_source"],
                 "source_level": record["source_level"],
             }
         )
@@ -250,14 +289,22 @@ def _paper_comparison_rows(records: list[dict[str, object]]) -> list[dict[str, o
     for record in records:
         paper_row = paper[str(record["problem_id"])]
         reported_mean = float(paper_row["reported_mean"])
-        our_proxy = float(record["pilot_proxy_final_error"])
+        our_result = record["hcc_smoke_final_error"]
+        if our_result is None:
+            our_result = record["pilot_proxy_final_error"]
+        our_proxy = float(our_result)
         rows.append(
             {
                 "run_id": RUN_ID,
                 "problem_id": record["problem_id"],
                 "seed": SEED,
-                "pilot_result_source": PILOT_RESULT_SOURCE,
-                "our_pilot_proxy_final_error": f"{our_proxy:.6f}",
+                "pilot_result_source": record["result_source"],
+                "our_pilot_proxy_final_error": (
+                    "" if record["pilot_proxy_final_error"] is None else f"{our_proxy:.6f}"
+                ),
+                "our_hcc_smoke_final_error": (
+                    "" if record["hcc_smoke_final_error"] is None else f"{our_proxy:.6f}"
+                ),
                 "paper_method": paper_row["method"],
                 "paper_reported_mean": paper_row["reported_mean"],
                 "paper_reported_std": paper_row["reported_std"],
@@ -297,7 +344,10 @@ def _catastrophic_loss_rows(records: list[dict[str, object]]) -> list[dict[str, 
     rows: list[dict[str, object]] = []
     for record in records:
         fallback = float(record["fallback_proxy_error"])
-        action = float(record["pilot_proxy_final_error"])
+        action_value = record["hcc_smoke_final_error"]
+        if action_value is None:
+            action_value = record["pilot_proxy_final_error"]
+        action = float(action_value)
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -334,6 +384,7 @@ def _write_manifest(output_dir: Path) -> None:
             "Paper Table 2 values are joined only in paper_reported_comparison.csv for offline evaluation.",
             f"Pilot result source: {PILOT_RESULT_SOURCE}; this is not a real full optimizer performance run.",
             f"Source level: {SOURCE_LEVEL}; AOB metadata and grouping topology are read from E:\\HCC-main.",
+            "Optional HCC smoke execution overlays are offline-only and must not enter runtime dispatch.",
             "Negative controls and catastrophic-loss checks are explicit audit surfaces.",
             "",
         ]
@@ -343,10 +394,11 @@ def _write_manifest(output_dir: Path) -> None:
 
 def run_aob_1run_pilot(
     output_dir: Path | str = Path("results/exp_002_aob_1run_pilot"),
+    smoke_execution_results: list[HccAobExecutionResult] | None = None,
 ) -> Path:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
-    records = _pilot_records()
+    records = _pilot_records(smoke_execution_results=smoke_execution_results)
 
     _write_csv(
         output / "our_result_by_case.csv",
@@ -374,6 +426,10 @@ def run_aob_1run_pilot(
             "pilot_result_source",
             "source_level",
             "pilot_proxy_final_error",
+            "hcc_smoke_final_error",
+            "hcc_smoke_fe_used",
+            "hcc_smoke_status",
+            "fresh_optimizer_execution",
             "utility_label",
             "claim_eligible",
             "claim_blockers",
@@ -437,6 +493,7 @@ def run_aob_1run_pilot(
             "seed",
             "pilot_result_source",
             "our_pilot_proxy_final_error",
+            "our_hcc_smoke_final_error",
             "paper_method",
             "paper_reported_mean",
             "paper_reported_std",

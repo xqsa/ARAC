@@ -9,6 +9,10 @@ HCC baseline.
 from __future__ import annotations
 
 import ast
+import re
+import subprocess
+import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -109,6 +113,66 @@ class HccAobCaseTopology:
                 "fresh_optimizer_execution": int(self.fresh_optimizer_execution),
             },
         )
+
+
+@dataclass(frozen=True)
+class HccAobSmokeCommand:
+    """Subprocess command for a bounded HCC-main smoke execution."""
+
+    argv: tuple[str, ...]
+    cwd: Path
+
+
+@dataclass(frozen=True)
+class HccAobExecutionRequest:
+    """Request for a single AOB/HCC smoke execution.
+
+    Full 3M-FE, 24-case pilots should be scheduled explicitly by experiment
+    code. This request is intentionally single-case to keep HCC-main execution
+    bridged through a narrow, auditable boundary.
+    """
+
+    problem_id: str
+    seed: int
+    max_fes: int
+    output_dir: Path
+    hcc_root: Path = DEFAULT_HCC_MAIN_ROOT
+    python_executable: str = "python"
+    timestamp: str = "arac-hcc-smoke"
+    config_name: str = "quick_smoke"
+
+
+@dataclass(frozen=True)
+class HccAobExecutionResult:
+    """Offline-only result from a fresh HCC optimizer smoke execution."""
+
+    problem_id: str
+    seed: int
+    max_fes: int
+    final_error: float
+    fe_used: int
+    time_seconds: float
+    output_root: Path
+    fresh_optimizer_execution: bool
+    status: str
+    result_source: str
+    stdout_tail: str = ""
+    stderr_tail: str = ""
+
+    def to_offline_row(self) -> dict[str, str]:
+        return {
+            "problem_id": self.problem_id,
+            "seed": str(self.seed),
+            "max_fes": str(self.max_fes),
+            "final_error": f"{self.final_error:.6f}",
+            "fe_used": str(self.fe_used),
+            "time_seconds": f"{self.time_seconds:.6f}",
+            "output_root": str(self.output_root),
+            "fresh_optimizer_execution": "1" if self.fresh_optimizer_execution else "0",
+            "status": self.status,
+            "result_source": self.result_source,
+            "runtime_dispatch_allowed": "0",
+        }
 
 
 def _clamp_ratio(value: float) -> float:
@@ -229,6 +293,118 @@ def load_hcc_aob_topology(
         global_fes=_calculate_global_fes(total_fes, degree),
         groups=group_signals,
     )
+
+
+def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeCommand:
+    """Build the subprocess command used to run HCC-main from its own cwd."""
+
+    problem, function_name, function_id = _problem_parts(request.problem_id)
+    if request.max_fes <= 0:
+        raise ValueError("max_fes must be positive")
+    if request.seed < 0:
+        raise ValueError("seed must be non-negative")
+
+    argv = (
+        request.python_executable,
+        "HCC_SRC/HCC-ES.py",
+        "--config",
+        request.config_name,
+        "--functions",
+        function_name,
+        "--ids",
+        str(function_id),
+        "--cycles",
+        "1",
+        "--workers",
+        "1",
+        "--seed",
+        str(request.seed),
+        "--max-fes",
+        str(request.max_fes),
+        "--output-root",
+        str(request.output_dir),
+        "--timestamp",
+        request.timestamp,
+        "--no-cmaes-restart",
+    )
+    return HccAobSmokeCommand(argv=argv, cwd=Path(request.hcc_root))
+
+
+def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecutionResult:
+    """Run one bounded HCC-main smoke execution and parse its offline result.
+
+    The subprocess is run with ``cwd=E:\\HCC-main`` because the historical AOB
+    benchmark uses relative data-file paths. Returned final-error fields are
+    offline evaluation outputs and must not be copied into runtime evidence.
+    """
+
+    command = build_hcc_aob_smoke_command(
+        HccAobExecutionRequest(
+            problem_id=request.problem_id,
+            seed=request.seed,
+            max_fes=request.max_fes,
+            output_dir=Path(request.output_dir),
+            hcc_root=Path(request.hcc_root),
+            python_executable=request.python_executable or sys.executable,
+            timestamp=request.timestamp,
+            config_name=request.config_name,
+        )
+    )
+    start = time.time()
+    completed = subprocess.run(
+        command.argv,
+        cwd=command.cwd,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    elapsed = time.time() - start
+    if completed.returncode != 0:
+        return HccAobExecutionResult(
+            problem_id=_problem_parts(request.problem_id)[0],
+            seed=request.seed,
+            max_fes=request.max_fes,
+            final_error=float("nan"),
+            fe_used=0,
+            time_seconds=elapsed,
+            output_root=Path(request.output_dir),
+            fresh_optimizer_execution=False,
+            status=f"failed_returncode_{completed.returncode}",
+            result_source="hcc_subprocess_smoke_execution",
+            stdout_tail=_tail(completed.stdout),
+            stderr_tail=_tail(completed.stderr),
+        )
+
+    final_error, fe_used = _parse_hcc_evaluation_record(Path(request.output_dir))
+    return HccAobExecutionResult(
+        problem_id=_problem_parts(request.problem_id)[0],
+        seed=request.seed,
+        max_fes=request.max_fes,
+        final_error=final_error,
+        fe_used=fe_used,
+        time_seconds=elapsed,
+        output_root=Path(request.output_dir),
+        fresh_optimizer_execution=True,
+        status="completed",
+        result_source="hcc_subprocess_smoke_execution",
+        stdout_tail=_tail(completed.stdout),
+        stderr_tail=_tail(completed.stderr),
+    )
+
+
+def _parse_hcc_evaluation_record(output_dir: Path) -> tuple[float, int]:
+    records = sorted(Path(output_dir).rglob("evaluation_record.txt"))
+    if not records:
+        raise FileNotFoundError(f"missing HCC evaluation_record.txt under {output_dir}")
+    text = records[-1].read_text(encoding="utf-8", errors="replace")
+    final_match = re.search(r"Fin:(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)", text)
+    if not final_match:
+        raise ValueError(f"could not parse final HCC error from {records[-1]}")
+    return float(final_match.group("value")), int(float(final_match.group("fe")))
+
+
+def _tail(text: str, max_chars: int = 2000) -> str:
+    return (text or "")[-max_chars:]
 
 
 def _rank_stability(groups: tuple[HccGroupSignal, ...]) -> float:

@@ -5,6 +5,15 @@ description = "Clean scaffold for reference-blind evidence-to-intervention utili
 requires-python = ">=3.11"
 dependencies = []
 
+[project.optional-dependencies]
+hcc = [
+    "matplotlib>=3.11",
+    "numpy>=2.0",
+    "PyYAML>=6.0",
+    "scipy>=1.18",
+    "torch>=2.12",
+]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
