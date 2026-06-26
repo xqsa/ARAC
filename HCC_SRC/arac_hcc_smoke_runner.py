@@ -4,12 +4,26 @@ import argparse
 import csv
 import hashlib
 import math
+import sys
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import numpy as np
 import yaml
+
+ARAC_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(ARAC_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(ARAC_REPO_ROOT))
+
+from src.arac.evidence.overlap_relation_builder import (
+    OverlapRelation,
+    build_overlap_relations,
+)
+from src.arac.policy.relation_policy import (
+    ActionDecision as RelationActionDecision,
+)
+from src.arac.policy.relation_policy import decide_actions_for_relations
 
 from AOB.AOB import Benchmark
 from AOB.utils import (
@@ -41,17 +55,56 @@ ACTION_TRACE_FIELDS = [
     "semantic_surface",
     "optimizer_consumed",
 ]
+OVERLAP_RELATION_FIELDS = [
+    "relation_id",
+    "problem_id",
+    "outer_iter",
+    "group_left",
+    "group_right",
+    "shared_vars",
+    "overlap_strength",
+    "delta_signal",
+    "rank_signal",
+    "budget_remaining_ratio",
+]
+ACTION_DECISION_FIELDS = [
+    "run_id",
+    "problem_id",
+    "relation_id",
+    "group_left",
+    "group_right",
+    "shared_vars_count",
+    "overlap_strength",
+    "delta_signal",
+    "rank_signal",
+    "action_name",
+    "action_family",
+    "confidence",
+    "trigger_reason",
+]
+REPAIR_ACTION_NAMES = {"repair_shared_variable_binding", "reassign_repair"}
 
 
 @dataclass(frozen=True)
 class SmokeConfig:
     max_fes: int
     seed: int | None
+    run_id: str = "arac-hcc-smoke"
     sigma: float = 0.5
     verbose: int = 1000
     early_stopping_evaluations: int = 1000
     cmaes_restart: bool = False
     arac_action: str = "conservative_no_action"
+    enable_relation_dispatch: bool = False
+
+
+@dataclass(frozen=True)
+class RelationExecutionContext:
+    overlap_indices: list[int]
+    previous_values: np.ndarray
+    current_values: np.ndarray
+    previous_delta: float
+    current_delta: float
 
 
 def load_aob_metadata(fun_id: int) -> dict:
@@ -177,17 +230,35 @@ def _problem_id(fun_name: str, fun_id: int) -> str:
 
 
 def _owner_selected(action_name: str, previous_delta: float, current_delta: float) -> str:
-    if action_name == "repair_shared_variable_binding":
+    if action_name in REPAIR_ACTION_NAMES:
         if current_delta >= previous_delta:
             return "current"
         return "previous"
+    if action_name == "isolate_conflicting_relation":
+        return "previous"
+    if action_name in {"coordinate", "fallback"}:
+        return "current"
     return "weighted_blend"
 
 
 def _semantic_surface(action_name: str) -> str:
-    if action_name == "repair_shared_variable_binding":
+    if action_name in REPAIR_ACTION_NAMES:
         return "shared_variable_owner_rebinding"
+    if action_name == "isolate_conflicting_relation":
+        return "relation_isolation_hook"
+    if action_name == "coordinate":
+        return "relation_coordinate_noop"
+    if action_name == "fallback":
+        return "relation_fallback_noop"
     return "native_overlap_blend"
+
+
+def _optimizer_consumed(action_name: str) -> str:
+    if action_name in {"repair_shared_variable_binding", "reassign_repair"}:
+        return "1"
+    if action_name == "isolate_conflicting_relation":
+        return "1"
+    return "0"
 
 
 def build_action_trace_row(
@@ -215,9 +286,7 @@ def build_action_trace_row(
             current_delta,
         ),
         "semantic_surface": _semantic_surface(selected_action_name),
-        "optimizer_consumed": (
-            "1" if selected_action_name == "repair_shared_variable_binding" else "0"
-        ),
+        "optimizer_consumed": _optimizer_consumed(selected_action_name),
     }
 
 
@@ -226,6 +295,110 @@ def _write_action_trace(path: Path, rows: list[dict[str, str]]) -> None:
         writer = csv.DictWriter(handle, fieldnames=ACTION_TRACE_FIELDS)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def build_overlap_relation_trace(
+    problem_id: str,
+    outer_iter: int,
+    grouping_result: list[list[int]],
+    overlapping_elements: list[list[int]],
+    fitness_delta_list: list[float] | None = None,
+    budget_remaining_ratio: float = 1.0,
+) -> list[OverlapRelation]:
+    hcc_trace = {
+        "outer_iter": outer_iter,
+        "groups": grouping_result,
+        "overlapping_elements": overlapping_elements,
+        "fitness_deltas": [] if fitness_delta_list is None else fitness_delta_list,
+        "budget_remaining_ratio": budget_remaining_ratio,
+    }
+    return build_overlap_relations(hcc_trace, problem_id)
+
+
+def apply_action_to_relation(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    previous_values: np.ndarray | None = None,
+    current_values: np.ndarray | None = None,
+    previous_delta: float = 0.0,
+    current_delta: float = 0.0,
+) -> np.ndarray | None:
+    if previous_values is None or current_values is None:
+        return None
+    if action.action_name == "reassign_repair":
+        return apply_arac_overlap_action(
+            action_name="repair_shared_variable_binding",
+            previous_values=previous_values,
+            current_values=current_values,
+            previous_delta=previous_delta,
+            current_delta=current_delta,
+        )
+    if action.action_name == "isolate_conflicting_relation":
+        return previous_values
+    if action.action_name in {"coordinate", "fallback"}:
+        return current_values
+    raise ValueError(f"unknown relation action for {relation.relation_id}: {action.action_name}")
+
+
+def _format_shared_vars(shared_vars: tuple[int, ...]) -> str:
+    return ";".join(str(variable) for variable in shared_vars)
+
+
+def _overlap_relation_row(relation: OverlapRelation) -> dict[str, str]:
+    row = asdict(relation)
+    row["shared_vars"] = _format_shared_vars(relation.shared_vars)
+    row["overlap_strength"] = f"{relation.overlap_strength:.6f}"
+    row["delta_signal"] = f"{relation.delta_signal:.6f}"
+    row["rank_signal"] = f"{relation.rank_signal:.6f}"
+    row["budget_remaining_ratio"] = f"{relation.budget_remaining_ratio:.6f}"
+    return row
+
+
+def _write_overlap_relation_trace(path: Path, relations: list[OverlapRelation]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=OVERLAP_RELATION_FIELDS)
+        writer.writeheader()
+        writer.writerows(_overlap_relation_row(relation) for relation in relations)
+
+
+def _action_decision_row(
+    run_id: str,
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+) -> dict[str, str]:
+    return {
+        "run_id": run_id,
+        "problem_id": relation.problem_id,
+        "relation_id": relation.relation_id,
+        "group_left": str(relation.group_left),
+        "group_right": str(relation.group_right),
+        "shared_vars_count": str(len(relation.shared_vars)),
+        "overlap_strength": f"{relation.overlap_strength:.6f}",
+        "delta_signal": f"{relation.delta_signal:.6f}",
+        "rank_signal": f"{relation.rank_signal:.6f}",
+        "action_name": action.action_name,
+        "action_family": action.action_family,
+        "confidence": f"{action.confidence:.6f}",
+        "trigger_reason": action.trigger_reason,
+    }
+
+
+def _append_action_decision_log(
+    path: Path,
+    run_id: str,
+    relations: list[OverlapRelation],
+    actions: list[RelationActionDecision],
+) -> None:
+    if len(relations) != len(actions):
+        raise ValueError("relations and actions must have the same length")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_header = not path.exists() or path.stat().st_size == 0
+    with path.open("a", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=ACTION_DECISION_FIELDS)
+        if write_header:
+            writer.writeheader()
+        for relation, action in zip(relations, actions, strict=True):
+            writer.writerow(_action_decision_row(run_id, relation, action))
 
 
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
@@ -241,6 +414,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     best_individual = np.zeros(info["dimension"])
     sum_fes = 0
     action_trace_rows: list[dict[str, str]] = []
+    relations: list[OverlapRelation] = []
 
     if global_fes != 0:
         problem = {
@@ -267,6 +441,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         sub_num = len(grouping_result)
         sub_fes = math.ceil((config.max_fes - sum_fes) / sub_num)
         fitness_delta_list: list[float] = []
+        relation_contexts: dict[tuple[int, int], RelationExecutionContext] = {}
         for index, dims in enumerate(grouping_result):
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
@@ -300,27 +475,87 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             fitness_delta_list.append(current_delta)
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
-                best_individual[overlap_indices] = apply_arac_overlap_action(
-                    action_name=config.arac_action,
-                    previous_values=original_best[overlap_indices],
-                    current_values=best_individual[overlap_indices],
-                    previous_delta=fitness_delta_list[index - 1],
-                    current_delta=current_delta,
+                if config.enable_relation_dispatch:
+                    relation_contexts[(index - 1, index)] = RelationExecutionContext(
+                        overlap_indices=list(overlap_indices),
+                        previous_values=original_best[overlap_indices].copy(),
+                        current_values=best_individual[overlap_indices].copy(),
+                        previous_delta=fitness_delta_list[index - 1],
+                        current_delta=current_delta,
+                    )
+                else:
+                    best_individual[overlap_indices] = apply_arac_overlap_action(
+                        action_name=config.arac_action,
+                        previous_values=original_best[overlap_indices],
+                        current_values=best_individual[overlap_indices],
+                        previous_delta=fitness_delta_list[index - 1],
+                        current_delta=current_delta,
+                    )
+                    action_trace_rows.append(
+                        build_action_trace_row(
+                            problem_id=_problem_id(fun_name, fun_id),
+                            seed=config.seed,
+                            outer_iter=outer_iter,
+                            group_index=index,
+                            selected_action_name=config.arac_action,
+                            overlap_size=len(overlap_indices),
+                            previous_delta=fitness_delta_list[index - 1],
+                            current_delta=current_delta,
+                        )
+                    )
+        budget_remaining_ratio = max(
+            0.0,
+            (config.max_fes - sum_fes) / config.max_fes,
+        )
+        iteration_relations = build_overlap_relation_trace(
+            problem_id=_problem_id(fun_name, fun_id),
+            outer_iter=outer_iter,
+            grouping_result=grouping_result,
+            overlapping_elements=overlapping_elements,
+            fitness_delta_list=fitness_delta_list,
+            budget_remaining_ratio=budget_remaining_ratio,
+        )
+        relations.extend(iteration_relations)
+        if config.enable_relation_dispatch:
+            actions = decide_actions_for_relations(iteration_relations)
+            _append_action_decision_log(
+                output_path / "action_decision.csv",
+                config.run_id,
+                iteration_relations,
+                actions,
+            )
+            actions_by_relation_id = {action.relation_id: action for action in actions}
+            for relation in iteration_relations:
+                context = relation_contexts.get((relation.group_left, relation.group_right))
+                if context is None:
+                    continue
+                action = actions_by_relation_id[relation.relation_id]
+                adjusted_values = apply_action_to_relation(
+                    relation=relation,
+                    action=action,
+                    previous_values=context.previous_values,
+                    current_values=context.current_values,
+                    previous_delta=context.previous_delta,
+                    current_delta=context.current_delta,
                 )
+                if adjusted_values is not None:
+                    best_individual[context.overlap_indices] = adjusted_values
                 action_trace_rows.append(
                     build_action_trace_row(
                         problem_id=_problem_id(fun_name, fun_id),
                         seed=config.seed,
                         outer_iter=outer_iter,
-                        group_index=index,
-                        selected_action_name=config.arac_action,
-                        overlap_size=len(overlap_indices),
-                        previous_delta=fitness_delta_list[index - 1],
-                        current_delta=current_delta,
+                        group_index=relation.group_right,
+                        selected_action_name=action.action_name,
+                        overlap_size=len(relation.shared_vars),
+                        previous_delta=context.previous_delta,
+                        current_delta=context.current_delta,
                     )
                 )
         outer_iter += 1
 
+    _write_overlap_relation_trace(output_path / "overlap_relations.csv", relations)
+    print(f"{_problem_id(fun_name, fun_id)} overlap relations extracted: {len(relations)}")
     return fun.fitness_record, time.time() - time_start, action_trace_rows
 
 
@@ -335,6 +570,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--verbose", type=int, default=1000)
     parser.add_argument("--early-stopping-evaluations", type=int, default=1000)
     parser.add_argument("--cmaes-restart", action="store_true")
+    parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument(
         "--arac-action",
         default="conservative_no_action",
@@ -352,12 +588,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> list[Path]:
     args = parse_args(argv)
     config = SmokeConfig(
+        run_id=args.timestamp,
         max_fes=args.max_fes,
         seed=args.seed,
         verbose=args.verbose,
         early_stopping_evaluations=args.early_stopping_evaluations,
         cmaes_restart=args.cmaes_restart,
         arac_action=args.arac_action,
+        enable_relation_dispatch=args.enable_relation_dispatch,
     )
     output_paths = []
     for fun_name in args.functions:

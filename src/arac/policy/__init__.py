@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .action_space import ActionFamily
-from .evidence import EvidenceProfile
+from ..action_space import ActionFamily
+from ..evidence import EvidenceProfile
 
 
 @dataclass(frozen=True)
@@ -33,12 +33,7 @@ class ActionDecision:
 
 
 def decide_action(evidence: EvidenceProfile, config: PolicyConfig | None = None) -> ActionDecision:
-    """Map legal evidence to a backend intervention decision.
-
-    This is a deliberately small baseline policy. Future work should replace
-    the simple thresholds with calibrated utility models while preserving the
-    same runtime boundary and audit outputs.
-    """
+    """Map legal evidence to a backend intervention decision."""
 
     cfg = config or PolicyConfig()
     if (
@@ -74,7 +69,10 @@ def decide_action(evidence: EvidenceProfile, config: PolicyConfig | None = None)
                 utility,
             )
 
-    if shared_signal >= cfg.high_shared_support_threshold and evidence.fallback_margin_proxy >= cfg.safe_fallback_margin_threshold:
+    if (
+        shared_signal >= cfg.high_shared_support_threshold
+        and evidence.fallback_margin_proxy >= cfg.safe_fallback_margin_threshold
+    ):
         utility = shared_signal + evidence.fallback_margin_proxy - 1.0
         if utility > 0:
             return ActionDecision(

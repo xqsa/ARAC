@@ -47,4 +47,3 @@ def validate_runtime_payload(payload: dict) -> None:
     forbidden = sorted(FORBIDDEN_RUNTIME_FIELDS.intersection(payload))
     if forbidden:
         raise ValueError(f"forbidden runtime fields present: {', '.join(forbidden)}")
-
