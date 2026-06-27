@@ -65,6 +65,14 @@ def test_runtime_payload_rejects_forbidden_outcome_fields() -> None:
         validate_runtime_payload({"overlap_degree": 0.5, "final_error": 1.2})
 
 
+def test_runtime_payload_rejects_paper_and_problem_family_fields() -> None:
+    with pytest.raises(ValueError, match="paper_reported_mean"):
+        validate_runtime_payload({"overlap_degree": 0.5, "paper_reported_mean": 6.87e6})
+
+    with pytest.raises(ValueError, match="base_function"):
+        validate_runtime_payload({"overlap_degree": 0.5, "base_function": "elliptic"})
+
+
 def test_claim_gate_blocks_active_action_without_backend_semantics() -> None:
     decision = decide_action(make_evidence())
     ledger = SameBudgetLedger(
