@@ -871,6 +871,12 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
     assert by_key["multi_problem_sota_escalation_allowed"]["blocker_reason"] == (
         "relation_dispatch_effect_size_below_threshold"
     )
+    claim_tier = by_key["multi_problem_claim_tier_recommendation"]
+    assert claim_tier["status"] == "pass"
+    assert claim_tier["observed_value"] == (
+        "runtime_evidence_driven_relation_dispatch_with_positive_utility_evidence"
+    )
+    assert claim_tier["blocker_reason"] == "sota_gate_blocked"
 
 
 def test_multi_problem_pilot_utility_allows_positive_mean_with_more_wins_than_losses() -> None:

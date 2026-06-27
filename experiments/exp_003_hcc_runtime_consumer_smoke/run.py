@@ -1849,6 +1849,20 @@ def _multi_problem_diagnosis_rows(
         and negative_control_pass
     )
     sota_allowed = not blockers
+    if sota_allowed:
+        claim_tier = "sota_level_overlap_aware_cc_backend_optimization"
+        claim_tier_blocker = ""
+        claim_tier_next_step = "freeze_policy_and_run_final_protocol"
+    elif pilot_utility_pass:
+        claim_tier = (
+            "runtime_evidence_driven_relation_dispatch_with_positive_utility_evidence"
+        )
+        claim_tier_blocker = "sota_gate_blocked"
+        claim_tier_next_step = "report_positive_utility_or_continue_policy_diagnosis"
+    else:
+        claim_tier = "auditable_runtime_dispatch_framework"
+        claim_tier_blocker = "pilot_utility_gate_blocked"
+        claim_tier_next_step = "diagnose_policy_evidence_before_utility_claim"
 
     return [
         scope_row,
@@ -2165,6 +2179,15 @@ def _multi_problem_diagnosis_rows(
             if sota_allowed
             else "diagnose_policy_evidence_before_sota",
         },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_claim_tier_recommendation",
+            "status": "pass",
+            "observed_value": claim_tier,
+            "blocker_reason": claim_tier_blocker,
+            "next_step": claim_tier_next_step,
+        },
     ]
 
 
@@ -2323,6 +2346,13 @@ def _write_manifest(
         )
         or "not_applicable"
     )
+    multi_problem_claim_tier = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_claim_tier_recommendation",
+        )
+        or "not_applicable"
+    )
     artifacts = [
         "our_result_by_case.csv",
         "same_budget_ledger.csv",
@@ -2375,6 +2405,7 @@ def _write_manifest(
             f"- fixed repair materiality: {multi_problem_fixed_repair_materiality}",
             f"- fixed coordinate baseline: {multi_problem_fixed_coordinate}",
             f"- multi-problem relation policy profile: {multi_problem_relation_policy_profile}",
+            f"- claim tier recommendation: {multi_problem_claim_tier}",
             f"- SOTA escalation: {_sota_claim_allowed(diagnosis_rows)}",
             "",
             "Artifacts:",
