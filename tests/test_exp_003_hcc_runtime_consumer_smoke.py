@@ -36,6 +36,7 @@ def test_exp_003_cli_help_works_without_pythonpath() -> None:
 
     assert completed.returncode == 0, completed.stderr
     assert "Run exp_003 HCC runtime consumer smoke" in completed.stdout
+    assert "--jobs" in completed.stdout
 
 
 def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None:
@@ -388,6 +389,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         python_executable="python",
         seeds=(1,),
         problem_ids=("E1", "E2"),
+        jobs=2,
     )
 
     assert len(requests) == 10
@@ -445,6 +447,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "multi_problem_sota_escalation_allowed"
     ]["blocker_reason"]
     multi_manifest = (multi_output / "run_manifest.md").read_text(encoding="utf-8")
+    assert "- same-budget: 0/10" in multi_manifest
     assert (
         "- multi-problem active density: "
         "mean=1.000000;min=1.000000;low_density_cases=0/2;"

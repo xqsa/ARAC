@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,6 +18,7 @@ from arac.audit import claim_gate
 from arac.backend_adapter import BackendSemanticsDiff
 from arac.backends.hcc import (
     DEFAULT_HCC_MAIN_ROOT,
+    HccActionExecutionPlan,
     HccAobExecutionRequest,
     HccAobExecutionResult,
     build_hcc_action_execution_plan,
@@ -304,8 +306,9 @@ def _records(
     python_executable: str,
     seeds: tuple[int, ...],
     problem_ids: tuple[str, ...],
+    jobs: int = 1,
 ) -> list[dict[str, object]]:
-    records: list[dict[str, object]] = []
+    contexts: list[dict[str, object]] = []
     for problem_id in problem_ids:
         for seed in seeds:
             for lane in LANES:
@@ -328,35 +331,7 @@ def _records(
                     / f"seed_{seed}"
                     / lane.lane_id
                 ).resolve()
-                result = execution_runner(
-                    HccAobExecutionRequest(
-                        problem_id=problem_id,
-                        seed=seed,
-                        max_fes=MAX_FES,
-                        output_dir=lane_output,
-                        hcc_root=hcc_root,
-                        python_executable=python_executable,
-                        timestamp=f"{RUN_ID}-{problem_id}-seed{seed}-{lane.lane_id}",
-                        arac_action=lane.runner_action_name,
-                        enable_relation_dispatch=lane.relation_dispatch_enabled,
-                        relation_policy_mode=lane.relation_policy_mode,
-                    )
-                )
-                semantics = _semantics_from_trace_rows(
-                    _read_csv_rows(result.action_trace_path),
-                    fallback=semantics,
-                )
-                ledger = _ledger_for_result(result)
-                allowed, blockers = claim_gate(
-                    runtime_payload=payload,
-                    decision=decision,
-                    semantics_diff=semantics,
-                    ledger=ledger,
-                    utility_label="runtime_smoke_not_performance_claim",
-                    negative_control_pass=not lane.negative_control,
-                    optimizer_consumed=plan.optimizer_consumed,
-                )
-                records.append(
+                contexts.append(
                     {
                         "lane": lane,
                         "lane_id": lane.lane_id,
@@ -364,13 +339,66 @@ def _records(
                         "plan": plan,
                         "semantics": semantics,
                         "payload": payload,
-                        "ledger": ledger,
-                        "result": result,
-                        "claim_allowed": allowed,
-                        "claim_blockers": ";".join(blockers),
+                        "request": HccAobExecutionRequest(
+                            problem_id=problem_id,
+                            seed=seed,
+                            max_fes=MAX_FES,
+                            output_dir=lane_output,
+                            hcc_root=hcc_root,
+                            python_executable=python_executable,
+                            timestamp=f"{RUN_ID}-{problem_id}-seed{seed}-{lane.lane_id}",
+                            arac_action=lane.runner_action_name,
+                            enable_relation_dispatch=lane.relation_dispatch_enabled,
+                            relation_policy_mode=lane.relation_policy_mode,
+                        ),
                     }
                 )
-    return records
+
+    def run_context(context: dict[str, object]) -> dict[str, object]:
+        request = context["request"]
+        semantics = context["semantics"]
+        plan = context["plan"]
+        payload = context["payload"]
+        decision = context["decision"]
+        lane = context["lane"]
+        assert isinstance(request, HccAobExecutionRequest)
+        assert isinstance(semantics, BackendSemanticsDiff)
+        assert isinstance(plan, HccActionExecutionPlan)
+        assert isinstance(decision, ActionDecision)
+        assert isinstance(lane, LaneConfig)
+        result = execution_runner(request)
+        semantics = _semantics_from_trace_rows(
+            _read_csv_rows(result.action_trace_path),
+            fallback=semantics,
+        )
+        ledger = _ledger_for_result(result)
+        allowed, blockers = claim_gate(
+            runtime_payload=payload,
+            decision=decision,
+            semantics_diff=semantics,
+            ledger=ledger,
+            utility_label="runtime_smoke_not_performance_claim",
+            negative_control_pass=not lane.negative_control,
+            optimizer_consumed=plan.optimizer_consumed,
+        )
+        return {
+            "lane": lane,
+            "lane_id": context["lane_id"],
+            "decision": decision,
+            "plan": plan,
+            "semantics": semantics,
+            "payload": payload,
+            "ledger": ledger,
+            "result": result,
+            "claim_allowed": allowed,
+            "claim_blockers": ";".join(blockers),
+        }
+
+    worker_count = max(1, int(jobs))
+    if worker_count == 1:
+        return [run_context(context) for context in contexts]
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        return list(executor.map(run_context, contexts))
 
 
 def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
@@ -1279,6 +1307,15 @@ def _multi_problem_diagnosis_rows(
         {
             "run_id": RUN_ID,
             "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_same_budget_fe_status",
+            "status": "blocked" if budget_violations else "pass",
+            "observed_value": f"{budget_violations}/{len(utility_rows)}",
+            "blocker_reason": "same_budget_violation" if budget_violations else "",
+            "next_step": "fix_same_budget_accounting" if budget_violations else "continue",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
             "diagnostic_key": "multi_problem_relation_dispatch_mean_gain",
             "status": "pass" if directional_pass else "blocked",
             "observed_value": (
@@ -1505,7 +1542,15 @@ def _write_manifest(
     seeds: tuple[int, ...],
     problem_ids: tuple[str, ...],
     diagnosis_rows: list[dict[str, object]],
+    jobs: int = 1,
 ) -> None:
+    same_budget_status = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_same_budget_fe_status",
+        )
+        or _diagnostic_observed_value(diagnosis_rows, "same_budget_fe_status")
+    )
     multi_problem_pilot = (
         _diagnostic_observed_value(
             diagnosis_rows,
@@ -1564,15 +1609,16 @@ def _write_manifest(
                 "py -3 experiments\\exp_003_hcc_runtime_consumer_smoke\\run.py "
                 "--output-dir <output_dir> --seeds "
                 f"{' '.join(str(seed) for seed in seeds)} --problems "
-                f"{' '.join(problem_ids)}"
+                f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))}"
             ),
             f"Budget: {MAX_FES} FE per lane/case",
+            f"Parallel jobs: {max(1, int(jobs))}",
             f"Lanes: {', '.join(lane.lane_id for lane in LANES)}",
             "",
             "Runtime boundary: final/reported/oracle values must not enter runtime dispatch.",
             "",
             "Key gates:",
-            f"- same-budget: {_diagnostic_observed_value(diagnosis_rows, 'same_budget_fe_status')}",
+            f"- same-budget: {same_budget_status}",
             f"- pilot utility: {_diagnostic_observed_value(diagnosis_rows, 'pilot_utility_evidence')}",
             f"- multi-problem pilot utility: {multi_problem_pilot}",
             f"- multi-problem active density: {multi_problem_active_density}",
@@ -1598,7 +1644,9 @@ def run_hcc_runtime_consumer_smoke(
     python_executable: str = sys.executable,
     seeds: tuple[int, ...] = DEFAULT_SEEDS,
     problem_ids: tuple[str, ...] = (PROBLEM_ID,),
+    jobs: int = 1,
 ) -> Path:
+    worker_count = max(1, int(jobs))
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     records = _records(
@@ -1608,6 +1656,7 @@ def run_hcc_runtime_consumer_smoke(
         python_executable=python_executable,
         seeds=tuple(seeds),
         problem_ids=tuple(problem_ids),
+        jobs=worker_count,
     )
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
@@ -1874,7 +1923,7 @@ def run_hcc_runtime_consumer_smoke(
             "claim_blockers",
         ],
     )
-    _write_manifest(output, tuple(seeds), tuple(problem_ids), diagnosis_rows)
+    _write_manifest(output, tuple(seeds), tuple(problem_ids), diagnosis_rows, worker_count)
     return output
 
 
@@ -1885,6 +1934,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--python-executable", default=sys.executable)
     parser.add_argument("--seeds", nargs="+", type=int, default=list(DEFAULT_SEEDS))
     parser.add_argument("--problems", nargs="+", default=[PROBLEM_ID])
+    parser.add_argument("--jobs", type=int, default=1)
     return parser.parse_args(argv)
 
 
@@ -1896,6 +1946,7 @@ def main(argv: list[str] | None = None) -> Path:
         python_executable=str(args.python_executable),
         seeds=tuple(args.seeds),
         problem_ids=tuple(str(problem).upper() for problem in args.problems),
+        jobs=int(args.jobs),
     )
 
 
