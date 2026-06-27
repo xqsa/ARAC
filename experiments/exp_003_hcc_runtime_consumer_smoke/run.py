@@ -908,7 +908,7 @@ def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, o
                 shuffled_errors,
                 strict=True,
             )
-            if shuffled_error < relation_error
+            if classify_utility(relation_error, shuffled_error) == "meaningful_win"
         )
         total = len(seeds)
         stable_outperform = shuffled_win_count > total / 2

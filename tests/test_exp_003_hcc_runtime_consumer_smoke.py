@@ -14,6 +14,26 @@ def _read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _hcc_result(
+    problem_id: str,
+    seed: int,
+    final_error: float,
+    tmp_path: Path,
+) -> HccAobExecutionResult:
+    return HccAobExecutionResult(
+        problem_id=problem_id,
+        seed=seed,
+        max_fes=2000,
+        final_error=final_error,
+        fe_used=1999,
+        time_seconds=0.1,
+        output_root=tmp_path,
+        fresh_optimizer_execution=True,
+        status="ok",
+        result_source="test",
+    )
+
+
 def test_exp_003_normalizes_subprocess_run_id_in_relation_artifacts(tmp_path: Path) -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import RUN_ID, _with_lane_prefix
 
@@ -69,6 +89,31 @@ def test_exp_003_cli_help_works_without_pythonpath() -> None:
     assert "Run exp_003 HCC runtime consumer smoke" in completed.stdout
     assert "--jobs" in completed.stdout
     assert "--max-fes" in completed.stdout
+
+
+def test_negative_control_ignores_tiny_shuffled_advantage(tmp_path: Path) -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
+
+    records = []
+    for seed in (1, 2, 3):
+        records.extend(
+            [
+                {
+                    "lane_id": "relation_dispatch_rule",
+                    "result": _hcc_result("E6", seed, 100.0, tmp_path),
+                },
+                {
+                    "lane_id": "shuffled_relation_dispatch",
+                    "result": _hcc_result("E6", seed, 99.99, tmp_path),
+                },
+            ]
+        )
+
+    rows = _negative_control_rows(records)
+
+    assert rows[0]["shuffled_win_count"] == 0
+    assert rows[0]["stable_outperform_detected"] == 0
+    assert rows[0]["negative_control_pass"] == 1
 
 
 def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None:
@@ -192,7 +237,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
             "fallback": 120.0 + request.seed,
             "fixed_repair": 80.0 + request.seed,
             "fixed_coordinate": 130.0 + request.seed,
-            "relation_dispatch_rule": 121.0 + request.seed,
+            "relation_dispatch_rule": 126.0 + request.seed,
             "shuffled_relation_dispatch": 119.0 + request.seed,
         }[lane_id]
         return HccAobExecutionResult(
@@ -371,7 +416,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
             "run_id": "exp_003_hcc_runtime_consumer_smoke",
             "problem_id": "E2",
             "seeds": "1;2;3",
-            "relation_dispatch_mean_final_error": "1.230000e+02",
+            "relation_dispatch_mean_final_error": "1.280000e+02",
             "shuffled_mean_final_error": "1.210000e+02",
             "shuffled_win_count": "3",
             "total_seeds": "3",
@@ -497,12 +542,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "overlap_applicable=E2;no_overlap_controls=E1"
     )
     assert aggregate_by_key["multi_problem_relation_dispatch_mean_gain"]["observed_value"] == (
-        "positive_cases=0/1;mean_gain=-0.008264;lost_case_ids=E2_seed1"
+        "positive_cases=0/1;mean_gain=-0.049587;lost_case_ids=E2_seed1"
     )
     lost_case_mix = aggregate_by_key["multi_problem_lost_case_action_mix"]
     assert lost_case_mix["status"] == "blocked"
     assert lost_case_mix["observed_value"] == (
-        "lost_cases=1;mean_lost_gain=-0.008264;"
+        "lost_cases=1;mean_lost_gain=-0.049587;"
         "actions=allow_beneficial_coordination=1;repair_shared_variable_binding=1"
     )
     action_outcome = aggregate_by_key["multi_problem_action_outcome_profile"]
@@ -518,19 +563,19 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert aggregate_by_key[
         "multi_problem_active_relation_dispatch_mean_gain"
     ]["observed_value"] == (
-        "active_cases=1;positive_cases=0/1;mean_gain=-0.008264;"
+        "active_cases=1;positive_cases=0/1;mean_gain=-0.049587;"
         "lost_case_ids=E2_seed1"
     )
     assert aggregate_by_key[
         "multi_problem_active_relation_dispatch_mean_gain"
     ]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["observed_value"] == (
-        "win_count=0/1;mean_gain=-0.506173;lost_case_ids=E2_seed1"
+        "win_count=0/1;mean_gain=-0.567901;lost_case_ids=E2_seed1"
     )
     assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["status"] == "blocked"
     assert aggregate_by_key[
         "multi_problem_relation_vs_fixed_coordinate_baseline"
-    ]["observed_value"] == "win_count=1/1;mean_gain=0.068702;lost_case_ids="
+    ]["observed_value"] == "win_count=1/1;mean_gain=0.030534;lost_case_ids="
     assert aggregate_by_key[
         "multi_problem_relation_vs_fixed_coordinate_baseline"
     ]["status"] == "pass"
@@ -576,11 +621,11 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     ) in multi_manifest
     assert (
         "- fixed repair baseline: "
-        "win_count=0/1;mean_gain=-0.506173;lost_case_ids=E2_seed1"
+        "win_count=0/1;mean_gain=-0.567901;lost_case_ids=E2_seed1"
     ) in multi_manifest
     assert (
         "- fixed coordinate baseline: "
-        "win_count=1/1;mean_gain=0.068702;lost_case_ids="
+        "win_count=1/1;mean_gain=0.030534;lost_case_ids="
     ) in multi_manifest
     assert (
         "- multi-problem relation policy profile: "
