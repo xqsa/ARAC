@@ -1,6 +1,6 @@
 # exp_003 Expected Outputs
 
-The experiment writes thirteen CSV artifacts and one Markdown run manifest:
+The experiment writes thirteen CSV artifacts and two Markdown audit files:
 
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
@@ -16,6 +16,7 @@ The experiment writes thirteen CSV artifacts and one Markdown run manifest:
 - `anti_leakage_audit.csv`
 - `claim_gate.csv`
 - `run_manifest.md`
+- `claim_evidence_table.md`
 
 The required smoke evidence is:
 
@@ -39,7 +40,9 @@ The required smoke evidence is:
   same-budget, utility, catastrophic-loss, shuffled-control, and SOTA
   escalation gates.
 - `run_manifest.md` records the command shape, problem/seed set, lanes, key
-  gates, artifact list, and the rule that final/reported/oracle values must not
-  enter runtime dispatch.
+  gates, artifact list, parallel job count, and the rule that
+  final/reported/oracle values must not enter runtime dispatch.
+- `claim_evidence_table.md` maps each diagnosis claim/gate to status,
+  observed evidence, blockers, and source artifact.
 - Final errors are offline-only smoke outputs and must not enter runtime
   dispatch.
