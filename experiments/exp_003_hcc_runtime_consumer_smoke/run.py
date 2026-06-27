@@ -1490,6 +1490,85 @@ def _multi_problem_trigger_baseline_gap_profile_row(
     }
 
 
+def _multi_problem_action_baseline_gap_profile_row(
+    utility_rows: list[dict[str, object]],
+    action_trace_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    by_case_lane = {
+        (str(row["problem_id"]), str(row["seed"]), str(row["lane_id"])): float(
+            row["final_error"]
+        )
+        for row in utility_rows
+        if _is_overlap_applicable_problem_id(str(row["problem_id"]))
+        and str(row["lane_id"])
+        in {"relation_dispatch_rule", "fixed_repair", "fixed_coordinate"}
+    }
+    gaps: dict[str, dict[str, list[float]]] = {}
+    for row in action_trace_rows:
+        if str(row.get("lane_id", "")) != "relation_dispatch_rule":
+            continue
+        problem_id = str(row.get("problem_id", ""))
+        if not _is_overlap_applicable_problem_id(problem_id):
+            continue
+        seed = str(row.get("seed", ""))
+        relation_error = by_case_lane.get((problem_id, seed, "relation_dispatch_rule"))
+        repair_error = by_case_lane.get((problem_id, seed, "fixed_repair"))
+        coordinate_error = by_case_lane.get((problem_id, seed, "fixed_coordinate"))
+        action_name = str(row.get("canonical_action_name", ""))
+        if (
+            relation_error is None
+            or repair_error is None
+            or coordinate_error is None
+            or not action_name
+        ):
+            continue
+        action_gaps = gaps.setdefault(
+            action_name,
+            {"fixed_repair": [], "fixed_coordinate": [], "value_delta": []},
+        )
+        action_gaps["fixed_repair"].append(relative_gain(repair_error, relation_error))
+        action_gaps["fixed_coordinate"].append(
+            relative_gain(coordinate_error, relation_error)
+        )
+        try:
+            action_gaps["value_delta"].append(float(row["action_value_delta_norm"]))
+        except (KeyError, TypeError, ValueError):
+            pass
+    observed_value = ";".join(
+        (
+            f"{action}=relations:{len(values['fixed_repair'])},"
+            f"vs_fixed_repair_mean={_format_float(_mean(values['fixed_repair']))},"
+            "vs_fixed_coordinate_mean="
+            f"{_format_float(_mean(values['fixed_coordinate']))},"
+            "mean_action_value_delta_norm="
+            f"{_format_float(_mean(values['value_delta']))}"
+        )
+        for action, values in sorted(gaps.items())
+    )
+    has_negative_mean = any(
+        _mean(values["fixed_repair"]) < 0.0
+        or _mean(values["fixed_coordinate"]) < 0.0
+        for values in gaps.values()
+    )
+    return {
+        "run_id": RUN_ID,
+        "problem_id": "ALL",
+        "diagnostic_key": "multi_problem_action_baseline_gap_profile",
+        "status": "blocked" if has_negative_mean else ("pass" if gaps else "blocked"),
+        "observed_value": observed_value,
+        "blocker_reason": (
+            "action_baseline_gap_detected"
+            if has_negative_mean
+            else ("" if gaps else "relation_action_trace_missing")
+        ),
+        "next_step": (
+            "inspect_action_baseline_gap_profile"
+            if has_negative_mean
+            else ("continue" if gaps else "repair_relation_artifact_join")
+        ),
+    }
+
+
 def _multi_problem_action_mismatch_profile_row(
     mismatch_rows: list[dict[str, object]],
 ) -> dict[str, object]:
@@ -2322,6 +2401,12 @@ def _policy_evidence_diagnosis_rows(
             _multi_problem_trigger_baseline_gap_profile_row(
                 utility_rows,
                 decision_rows,
+            )
+        )
+        rows.append(
+            _multi_problem_action_baseline_gap_profile_row(
+                utility_rows,
+                trace_rows,
             )
         )
         rows.append(_multi_problem_action_mismatch_profile_row(mismatch_rows))

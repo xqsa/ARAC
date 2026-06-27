@@ -1314,6 +1314,62 @@ def test_multi_problem_trigger_baseline_gap_profile_reports_strong_baseline_gaps
     assert row["blocker_reason"] == "trigger_baseline_gap_detected"
 
 
+def test_multi_problem_action_baseline_gap_profile_reports_action_gaps() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_action_baseline_gap_profile_row,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+        }
+        for problem_id, lane_id, final_error in [
+            ("E1", "relation_dispatch_rule", 1.0),
+            ("E2", "relation_dispatch_rule", 90.0),
+            ("E2", "fixed_repair", 95.0),
+            ("E2", "fixed_coordinate", 100.0),
+            ("S2", "relation_dispatch_rule", 110.0),
+            ("S2", "fixed_repair", 100.0),
+            ("S2", "fixed_coordinate", 100.0),
+            ("R2", "relation_dispatch_rule", 90.0),
+            ("R2", "fixed_repair", 100.0),
+            ("R2", "fixed_coordinate", 100.0),
+        ]
+    ]
+    trace_rows = [
+        {
+            "lane_id": "relation_dispatch_rule",
+            "problem_id": problem_id,
+            "seed": "1",
+            "canonical_action_name": action_name,
+            "action_value_delta_norm": str(delta_norm),
+        }
+        for problem_id, action_name, delta_norm in [
+            ("E1", "ignored_no_overlap", 0.0),
+            ("E2", "allow_beneficial_coordination", 1.0),
+            ("S2", "conservative_no_action", 0.0),
+            ("R2", "allow_beneficial_coordination", 2.0),
+        ]
+    ]
+
+    row = _multi_problem_action_baseline_gap_profile_row(utility_rows, trace_rows)
+
+    assert row["diagnostic_key"] == "multi_problem_action_baseline_gap_profile"
+    assert row["status"] == "blocked"
+    assert row["observed_value"] == (
+        "allow_beneficial_coordination=relations:2,"
+        "vs_fixed_repair_mean=0.076316,vs_fixed_coordinate_mean=0.100000,"
+        "mean_action_value_delta_norm=1.500000;"
+        "conservative_no_action=relations:1,"
+        "vs_fixed_repair_mean=-0.100000,vs_fixed_coordinate_mean=-0.100000,"
+        "mean_action_value_delta_norm=0.000000"
+    )
+    assert row["blocker_reason"] == "action_baseline_gap_detected"
+
+
 def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_action_mismatch_profile_row,
