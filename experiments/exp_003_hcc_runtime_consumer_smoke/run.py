@@ -811,6 +811,44 @@ def _action_mix_for_gain_bucket(
     return counts
 
 
+def _action_value_delta_profile_for_gain_bucket(
+    trace_rows: list[dict[str, object]],
+    relation_rows: list[dict[str, object]],
+    bucket: str,
+) -> str:
+    gain_by_case = {
+        (str(row["problem_id"]), str(row["seed"])): float(
+            row["relative_gain_vs_fallback"]
+        )
+        for row in relation_rows
+    }
+    values_by_action: dict[str, list[float]] = {}
+    for row in trace_rows:
+        if str(row.get("lane_id", "")) != "relation_dispatch_rule":
+            continue
+        gain = gain_by_case.get((str(row.get("problem_id", "")), str(row.get("seed", ""))))
+        if gain is None:
+            continue
+        if (
+            (bucket == "win" and gain <= 0.0)
+            or (bucket == "loss" and gain >= 0.0)
+            or (bucket == "tie" and gain != 0.0)
+        ):
+            continue
+        try:
+            value = float(row.get("action_value_delta_norm", ""))
+        except (TypeError, ValueError):
+            continue
+        action = str(row.get("canonical_action_name") or row.get("selected_action_name", ""))
+        if not action:
+            continue
+        values_by_action.setdefault(action, []).append(value)
+    return ";".join(
+        f"{action}:n={len(values)},mean={_mean(values):.6f},max={max(values):.6f}"
+        for action, values in sorted(values_by_action.items())
+    )
+
+
 def _result_by_problem_seed_and_lane(
     records: list[dict[str, object]],
 ) -> dict[tuple[str, int, str], HccAobExecutionResult]:
@@ -1272,6 +1310,7 @@ def _multi_problem_relation_policy_profile_row(
 def _multi_problem_diagnosis_rows(
     utility_rows: list[dict[str, object]],
     negative_control_rows: list[dict[str, object]],
+    action_trace_rows: list[dict[str, object]] | None = None,
 ) -> list[dict[str, object]]:
     problem_ids = sorted({str(row["problem_id"]) for row in utility_rows})
     if len(problem_ids) <= 1:
@@ -1304,6 +1343,24 @@ def _multi_problem_diagnosis_rows(
         "wins": _action_mix_for_gain_bucket(relation_rows, "win"),
         "losses": _action_mix_for_gain_bucket(relation_rows, "loss"),
         "ties": _action_mix_for_gain_bucket(relation_rows, "tie"),
+    }
+    trace_rows = [] if action_trace_rows is None else action_trace_rows
+    relation_action_value_delta_profile = {
+        "wins": _action_value_delta_profile_for_gain_bucket(
+            trace_rows,
+            relation_rows,
+            "win",
+        ),
+        "losses": _action_value_delta_profile_for_gain_bucket(
+            trace_rows,
+            relation_rows,
+            "loss",
+        ),
+        "ties": _action_value_delta_profile_for_gain_bucket(
+            trace_rows,
+            relation_rows,
+            "tie",
+        ),
     }
     positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
     mean_gain = _mean(relation_gains)
@@ -1535,6 +1592,31 @@ def _multi_problem_diagnosis_rows(
         {
             "run_id": RUN_ID,
             "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_action_value_delta_profile",
+            "status": (
+                "blocked"
+                if relation_lost_rows and action_trace_rows is not None
+                else "pass"
+            ),
+            "observed_value": (
+                f"wins={relation_action_value_delta_profile['wins']}|"
+                f"losses={relation_action_value_delta_profile['losses']}|"
+                f"ties={relation_action_value_delta_profile['ties']}"
+            ),
+            "blocker_reason": (
+                "relation_dispatch_lost_cases"
+                if relation_lost_rows and action_trace_rows is not None
+                else ""
+            ),
+            "next_step": (
+                "inspect_action_value_delta_profile"
+                if relation_lost_rows and action_trace_rows is not None
+                else "continue"
+            ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
             "diagnostic_key": "multi_problem_active_relation_dispatch_mean_gain",
             "status": "pass" if active_directional_pass else "blocked",
             "observed_value": (
@@ -1742,7 +1824,13 @@ def _policy_evidence_diagnosis_rows(
                 overlap_rows,
             )
         )
-    rows.extend(_multi_problem_diagnosis_rows(utility_rows, negative_control_rows))
+    rows.extend(
+        _multi_problem_diagnosis_rows(
+            utility_rows,
+            negative_control_rows,
+            trace_rows,
+        )
+    )
     if len({str(row["problem_id"]) for row in utility_rows}) > 1:
         rows.append(
             _multi_problem_relation_policy_profile_row(

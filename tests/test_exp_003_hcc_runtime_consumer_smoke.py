@@ -702,6 +702,75 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
     )
 
 
+def test_multi_problem_diagnostics_report_action_value_delta_profile() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_diagnosis_rows,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "final_error": "99.0",
+            "relative_gain_vs_fallback": gain,
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "backend_semantics_changed": "1",
+            "action_mix": action_mix,
+        }
+        for problem_id, gain, action_mix in [
+            ("E2", "0.010000", "allow_beneficial_coordination=1;conservative_no_action=1"),
+            ("S2", "-0.010000", "repair_shared_variable_binding=1"),
+        ]
+    ]
+    negative_rows = [
+        {
+            "problem_id": problem_id,
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        }
+        for problem_id in ("E2", "S2")
+    ]
+    trace_rows = [
+        {
+            "problem_id": "E2",
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "canonical_action_name": "allow_beneficial_coordination",
+            "action_value_delta_norm": "2.000000e+00",
+        },
+        {
+            "problem_id": "E2",
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "canonical_action_name": "conservative_no_action",
+            "action_value_delta_norm": "5.000000e-01",
+        },
+        {
+            "problem_id": "S2",
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "canonical_action_name": "repair_shared_variable_binding",
+            "action_value_delta_norm": "1.000000e+00",
+        },
+    ]
+
+    rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows, trace_rows)
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    value_delta = by_key["multi_problem_action_value_delta_profile"]
+    assert value_delta["status"] == "blocked"
+    assert value_delta["observed_value"] == (
+        "wins=allow_beneficial_coordination:n=1,mean=2.000000,max=2.000000;"
+        "conservative_no_action:n=1,mean=0.500000,max=0.500000|"
+        "losses=repair_shared_variable_binding:n=1,mean=1.000000,max=1.000000|"
+        "ties="
+    )
+    assert value_delta["blocker_reason"] == "relation_dispatch_lost_cases"
+
+
 def test_multi_problem_baseline_diagnostics_report_lost_case_ids() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
