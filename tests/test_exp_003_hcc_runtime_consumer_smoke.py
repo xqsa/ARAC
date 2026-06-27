@@ -189,6 +189,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "final/reported/oracle values must not enter runtime dispatch" in manifest
     assert "SOTA claim allowed: 0" in manifest
     assert "multi-problem pilot utility: not_applicable" in manifest
+    assert "- claim_evidence_table.md" in manifest
+    claim_table = (output / "claim_evidence_table.md").read_text(encoding="utf-8")
+    assert "# exp_003 Claim Evidence Table" in claim_table
+    assert "| E2 | relation_dispatch_utility | blocked | 0/3 |" in claim_table
+    assert "| E2 | sota_escalation_allowed | blocked | 0 |" in claim_table
+    assert "policy_evidence_diagnosis.csv" in claim_table
     assert len(requests) == 15
     assert {request.seed for request in requests} == {1, 2, 3}
     assert {

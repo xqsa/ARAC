@@ -106,6 +106,41 @@ def _write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str])
         writer.writerows(rows)
 
 
+def _markdown_cell(value: object) -> str:
+    return str(value).replace("\n", " ").replace("|", "\\|")
+
+
+def _write_claim_evidence_table(
+    output_dir: Path,
+    diagnosis_rows: list[dict[str, object]],
+) -> None:
+    lines = [
+        "# exp_003 Claim Evidence Table",
+        "",
+        "| Problem | Claim | Status | Evidence | Blocker | Source artifact |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in diagnosis_rows:
+        lines.append(
+            "| "
+            + " | ".join(
+                _markdown_cell(row.get(field, ""))
+                for field in (
+                    "problem_id",
+                    "diagnostic_key",
+                    "status",
+                    "observed_value",
+                    "blocker_reason",
+                )
+            )
+            + " | policy_evidence_diagnosis.csv |"
+        )
+    (output_dir / "claim_evidence_table.md").write_text(
+        "\n".join(lines) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _decision(lane: LaneConfig) -> ActionDecision:
     action_name = lane.plan_action_name or lane.selected_action_name
     return ActionDecision(
@@ -1676,6 +1711,7 @@ def _write_manifest(
         "policy_evidence_diagnosis.csv",
         "anti_leakage_audit.csv",
         "claim_gate.csv",
+        "claim_evidence_table.md",
     ]
     manifest = "\n".join(
         [
@@ -1975,6 +2011,7 @@ def run_hcc_runtime_consumer_smoke(
             "next_step",
         ],
     )
+    _write_claim_evidence_table(output, diagnosis_rows)
     _write_csv(
         output / "anti_leakage_audit.csv",
         _anti_leakage_rows(records),
