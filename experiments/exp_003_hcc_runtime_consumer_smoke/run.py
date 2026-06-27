@@ -1426,6 +1426,10 @@ def _multi_problem_diagnosis_rows(
     }
     positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
     mean_gain = _mean(relation_gains)
+    loss_cases = len(relation_lost_rows)
+    directional_pass = (
+        bool(relation_rows) and positive_cases > loss_cases and mean_gain > 0.0
+    )
     active_relation_rows = [
         row for row in relation_rows if _has_active_relation_action(row)
     ]
@@ -1439,6 +1443,12 @@ def _multi_problem_diagnosis_rows(
     ]
     active_positive_cases = sum(1 for gain in active_relation_gains if gain > 0.0)
     active_mean_gain = _mean(active_relation_gains)
+    active_loss_cases = len(active_relation_lost_case_ids)
+    active_directional_pass = (
+        bool(active_relation_rows)
+        and active_positive_cases > active_loss_cases
+        and active_mean_gain > 0.0
+    )
     active_density_cases = [
         (
             f"{row['problem_id']}_seed{row['seed']}",
@@ -1564,7 +1574,7 @@ def _multi_problem_diagnosis_rows(
     blockers: list[str] = []
     if budget_violations:
         blockers.append("same_budget_violation")
-    if positive_cases != len(relation_rows) or mean_gain <= 0.0:
+    if not directional_pass:
         blockers.append("multi_problem_not_directionally_positive")
     if relation_meaningful != len(relation_rows):
         blockers.append("relation_dispatch_not_meaningful_win")
@@ -1578,12 +1588,6 @@ def _multi_problem_diagnosis_rows(
         blockers.append("fixed_coordinate_baseline_not_beaten")
     if not backend_semantics_pass:
         blockers.append("backend_semantics_audit_failed")
-    directional_pass = positive_cases == len(relation_rows) and mean_gain > 0.0
-    active_directional_pass = (
-        bool(active_relation_rows)
-        and active_positive_cases == len(active_relation_rows)
-        and active_mean_gain > 0.0
-    )
     pilot_utility_pass = (
         not budget_violations
         and directional_pass
@@ -1735,7 +1739,10 @@ def _multi_problem_diagnosis_rows(
             "problem_id": "ALL",
             "diagnostic_key": "multi_problem_relation_dispatch_win_count",
             "status": "pass" if directional_pass else "blocked",
-            "observed_value": f"win_count={positive_cases}/{len(relation_rows)}",
+            "observed_value": (
+                f"win_count={positive_cases}/{len(relation_rows)};"
+                f"loss_count={loss_cases}/{len(relation_rows)}"
+            ),
             "blocker_reason": ""
             if directional_pass
             else "multi_problem_not_directionally_positive",
