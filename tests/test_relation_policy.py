@@ -129,6 +129,32 @@ def test_relation_policy_coordinates_high_margin_positive_conflict() -> None:
     assert decision.trigger_reason == "high_fallback_margin_supports_safe_coordination"
 
 
+def test_relation_policy_falls_back_without_shared_overlap_support() -> None:
+    decision = decide_action(
+        make_relation(
+            shared_vars=(),
+            overlap_strength=0.0,
+            shared_var_count=0,
+            shared_var_support_ratio=0.0,
+            previous_delta=13_516_227_713.169922,
+            current_delta=1_157_557_952.257812,
+            delta_signal=12_358_669_760.91211,
+            delta_abs_gap=12_358_669_760.91211,
+            delta_signed_gap=-12_358_669_760.91211,
+            delta_ratio_gap=0.914358,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.285714,
+            rank_stability=0.285714,
+            fallback_margin_proxy=1.0,
+        )
+    )
+
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+    assert decision.trigger_reason == "no_shared_overlap_support"
+
+
 def test_relation_policy_isolates_negative_divergence() -> None:
     decision = decide_action(
         make_relation(

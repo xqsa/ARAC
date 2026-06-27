@@ -167,6 +167,38 @@ def test_shuffled_relation_policy_rotates_rule_action_deterministically() -> Non
     assert shuffled.trigger_reason.startswith("deterministic_shuffled_negative_control")
 
 
+def test_shuffled_relation_policy_keeps_empty_overlap_fallback() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="E1",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(),
+        overlap_strength=0.0,
+        delta_signal=0.9,
+        rank_signal=0.2,
+        budget_remaining_ratio=0.8,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="fallback",
+        action_family="fallback",
+        confidence=0.0,
+        trigger_reason="no_shared_overlap_support",
+    )
+
+    shuffled = runner.select_relation_action_for_policy(
+        relation=relation,
+        action=action,
+        relation_policy_mode="shuffled",
+    )
+
+    assert shuffled.action_name == "fallback"
+    assert shuffled.canonical_action_name == "conservative_no_action"
+
+
 def test_hcc_smoke_runner_rejects_unsupported_action_file() -> None:
     runner = _load_runner_module()
 

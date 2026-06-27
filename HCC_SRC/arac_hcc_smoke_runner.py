@@ -383,6 +383,8 @@ def select_relation_action_for_policy(
     action: RelationActionDecision,
     relation_policy_mode: str,
 ) -> RelationActionDecision:
+    if not relation.shared_vars:
+        return action
     if relation_policy_mode == "rule":
         return action
     if relation_policy_mode != "shuffled":

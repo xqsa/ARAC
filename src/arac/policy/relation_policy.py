@@ -58,6 +58,15 @@ def decide_action(relation: OverlapRelation) -> ActionDecision:
     stable_delta = delta_ratio_gap <= (1.0 - STABILITY_THRESHOLD)
     stable_rank = rank_stability >= STABILITY_THRESHOLD
 
+    if relation.overlap_strength < HIGH_OVERLAP_THRESHOLD or relation.shared_var_count <= 0:
+        return _decision(
+            relation,
+            "fallback",
+            "fallback",
+            0.0,
+            "no_shared_overlap_support",
+        )
+
     if (
         relation.feature_coverage < MIN_FEATURE_COVERAGE
         or relation.budget_remaining_ratio < MIN_BUDGET_REMAINING_RATIO
