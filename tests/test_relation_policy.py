@@ -174,6 +174,27 @@ def test_relation_policy_isolates_negative_divergence() -> None:
     assert decision.action_family == "isolate"
 
 
+def test_relation_policy_falls_back_on_low_support_negative_divergence() -> None:
+    decision = decide_action(
+        make_relation(
+            delta_signal=1.0,
+            previous_delta=1.0,
+            current_delta=0.0,
+            delta_abs_gap=1.0,
+            delta_signed_gap=-1.0,
+            delta_ratio_gap=1.0,
+            both_positive=False,
+            one_side_zero=True,
+            rank_signal=0.9,
+            shared_var_support_ratio=0.02,
+        )
+    )
+
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+    assert decision.trigger_reason == "low_shared_support_blocks_strong_relation_rebinding"
+
+
 def test_relation_policy_keeps_mixed_relation_actions_for_mixed_evidence() -> None:
     relations = [
         make_relation(
@@ -239,6 +260,28 @@ def test_relation_policy_repairs_imbalanced_overlap() -> None:
     assert decision.canonical_action_name == "repair_shared_variable_binding"
     assert decision.action_family == "reassign_repair"
     assert decision.trigger_reason == "overlap_relation_has_imbalance_or_unstable_rank"
+
+
+def test_relation_policy_falls_back_on_low_support_repair_signal() -> None:
+    decision = decide_action(
+        make_relation(
+            delta_signal=0.6,
+            previous_delta=0.0,
+            current_delta=0.6,
+            delta_abs_gap=0.6,
+            delta_signed_gap=0.6,
+            delta_ratio_gap=1.0,
+            one_side_zero=True,
+            both_positive=False,
+            rank_signal=0.4,
+            rank_stability=0.4,
+            shared_var_support_ratio=0.02,
+        )
+    )
+
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+    assert decision.trigger_reason == "low_shared_support_blocks_strong_relation_rebinding"
 
 
 def test_relation_policy_keeps_native_blend_for_high_margin_positive_imbalance() -> None:
