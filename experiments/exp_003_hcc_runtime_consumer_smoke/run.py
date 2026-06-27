@@ -784,6 +784,8 @@ def _policy_evidence_diagnosis_rows_for_problem(
         blockers.append("catastrophic_loss")
     if not negative_control_pass:
         blockers.append("negative_control_failed")
+    if not relation_gating_pass:
+        blockers.append("fixed_coordinate_baseline_not_beaten")
     sota_allowed = not blockers
     rule_mix = _aggregate_lane_action_mix(utility_rows, "relation_dispatch_rule")
     shuffled_mix = _aggregate_lane_action_mix(
@@ -1047,6 +1049,26 @@ def _multi_problem_diagnosis_rows(
         and fixed_repair_win_count == len(fixed_repair_gains)
         and fixed_repair_mean_gain > 0.0
     )
+    fixed_coordinate_by_case = {
+        (str(row["problem_id"]), str(row["seed"])): float(row["final_error"])
+        for row in utility_rows
+        if row["lane_id"] == "fixed_coordinate"
+    }
+    fixed_coordinate_gains = [
+        relative_gain(
+            fixed_coordinate_by_case[(str(row["problem_id"]), str(row["seed"]))],
+            float(row["final_error"]),
+        )
+        for row in relation_rows
+        if (str(row["problem_id"]), str(row["seed"])) in fixed_coordinate_by_case
+    ]
+    fixed_coordinate_win_count = sum(1 for gain in fixed_coordinate_gains if gain > 0.0)
+    fixed_coordinate_mean_gain = _mean(fixed_coordinate_gains)
+    fixed_coordinate_pass = (
+        bool(fixed_coordinate_gains)
+        and fixed_coordinate_win_count == len(fixed_coordinate_gains)
+        and fixed_coordinate_mean_gain > 0.0
+    )
     active_rows = [
         row for row in utility_rows if row["lane_id"] != "fallback"
     ]
@@ -1088,6 +1110,8 @@ def _multi_problem_diagnosis_rows(
         blockers.append("negative_control_failed")
     if not fixed_repair_pass:
         blockers.append("fixed_repair_baseline_not_beaten")
+    if not fixed_coordinate_pass:
+        blockers.append("fixed_coordinate_baseline_not_beaten")
     if not backend_semantics_pass:
         blockers.append("backend_semantics_audit_failed")
     directional_pass = positive_cases == len(relation_rows) and mean_gain > 0.0
@@ -1132,6 +1156,20 @@ def _multi_problem_diagnosis_rows(
             if fixed_repair_pass
             else "fixed_repair_baseline_not_beaten",
             "next_step": "continue" if fixed_repair_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_relation_vs_fixed_coordinate_baseline",
+            "status": "pass" if fixed_coordinate_pass else "blocked",
+            "observed_value": (
+                f"win_count={fixed_coordinate_win_count}/{len(fixed_coordinate_gains)};"
+                f"mean_gain={fixed_coordinate_mean_gain:.6f}"
+            ),
+            "blocker_reason": ""
+            if fixed_coordinate_pass
+            else "relation_gating_not_better_than_fixed_coordinate",
+            "next_step": "continue" if fixed_coordinate_pass else "diagnose_coordinate_gating_before_sota",
         },
         {
             "run_id": RUN_ID,

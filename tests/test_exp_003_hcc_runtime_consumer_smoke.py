@@ -394,6 +394,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "win_count=0/2;mean_gain=-0.506173"
     )
     assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["status"] == "blocked"
+    assert aggregate_by_key[
+        "multi_problem_relation_vs_fixed_coordinate_baseline"
+    ]["observed_value"] == "win_count=2/2;mean_gain=0.068702"
+    assert aggregate_by_key[
+        "multi_problem_relation_vs_fixed_coordinate_baseline"
+    ]["status"] == "pass"
     assert aggregate_by_key["multi_problem_backend_semantics_audit"]["observed_value"] == (
         "changed=8/8"
     )
