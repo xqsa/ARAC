@@ -17,6 +17,10 @@ MIN_ACTIVE_REBIND_SUPPORT_RATIO = 0.05
 MAX_ACTIVE_REBIND_SUPPORT_RATIO = 0.20
 BALANCED_MID_SUPPORT_COORDINATE_MIN = 0.14
 BALANCED_MID_SUPPORT_COORDINATE_MAX = 0.17
+DENSE_REPAIR_SUPPORT_THRESHOLD = 0.20
+DENSE_REPAIR_DELTA_MIN = 0.30
+DENSE_REPAIR_DELTA_MAX = 0.75
+DENSE_REPAIR_RANK_STABILITY_MIN = 0.50
 HIGH_FALLBACK_MARGIN_THRESHOLD = 0.95
 ACTION_MARGIN_THRESHOLD = 0.05
 FALLBACK_SCORE_DISCOUNT = 0.10
@@ -137,6 +141,26 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
             and strong_rebinding_allowed
         ):
             fallback_reason = "active_isolate_conflict_abstained"
+
+        if (
+            high_overlap
+            and relation.both_positive
+            and relation.shared_var_support_ratio >= DENSE_REPAIR_SUPPORT_THRESHOLD
+            and delta_ratio_gap >= DENSE_REPAIR_DELTA_MIN
+            and delta_ratio_gap <= DENSE_REPAIR_DELTA_MAX
+            and rank_stability >= DENSE_REPAIR_RANK_STABILITY_MIN
+        ):
+            _set_candidate_score(
+                scores,
+                reasons,
+                "reassign_repair",
+                _mean(
+                    _overlap_confidence(relation.overlap_strength),
+                    relation.fallback_margin_proxy,
+                    rank_stability,
+                ),
+                "dense_two_sided_repair_mode",
+            )
 
         if high_overlap and relation.both_positive and stable_delta and stable_rank:
             _set_candidate_score(

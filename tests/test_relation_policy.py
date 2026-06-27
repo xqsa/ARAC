@@ -187,6 +187,29 @@ def test_relation_policy_falls_back_on_very_dense_shared_support_conflict() -> N
     assert decision.trigger_reason == "very_dense_shared_support_blocks_active_relation_dispatch"
 
 
+def test_relation_policy_repairs_dense_two_sided_moderate_conflict() -> None:
+    decision = decide_action(
+        make_relation(
+            previous_delta=3.0,
+            current_delta=1.1,
+            delta_signal=1.9,
+            delta_abs_gap=1.9,
+            delta_signed_gap=-1.9,
+            delta_ratio_gap=0.6333333333,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.65,
+            rank_stability=0.65,
+            shared_var_support_ratio=0.25,
+            fallback_margin_proxy=0.84,
+        )
+    )
+
+    assert decision.action_name == "reassign_repair"
+    assert decision.canonical_action_name == "repair_shared_variable_binding"
+    assert decision.trigger_reason == "dense_two_sided_repair_mode"
+
+
 def test_relation_policy_falls_back_on_very_dense_shared_support_repair_signal() -> None:
     decision = decide_action(
         make_relation(
