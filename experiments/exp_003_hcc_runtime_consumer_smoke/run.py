@@ -656,6 +656,16 @@ def _policy_evidence_diagnosis_rows(
     relation_catastrophic = sum(
         1 for row in relation_rows if row["utility_label"] == "catastrophic_loss"
     )
+    relation_gains = [
+        float(row["relative_gain_vs_fallback"]) for row in relation_rows
+    ]
+    relation_positive = sum(1 for gain in relation_gains if gain > 0.0)
+    relation_mean_gain = _mean(relation_gains)
+    relation_directional_pass = (
+        bool(relation_rows)
+        and relation_positive == len(relation_rows)
+        and relation_mean_gain > 0.0
+    )
     negative_control = negative_control_rows[0] if negative_control_rows else {}
     negative_control_pass = str(negative_control.get("negative_control_pass", "0")) == "1"
     blockers: list[str] = []
@@ -705,6 +715,22 @@ def _policy_evidence_diagnosis_rows(
                 if relation_meaningful == len(relation_rows)
                 else "diagnose_policy_evidence_before_sota"
             ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": PROBLEM_ID,
+            "diagnostic_key": "relation_dispatch_directional_utility",
+            "status": "pass" if relation_directional_pass else "blocked",
+            "observed_value": (
+                f"{relation_positive}/{len(relation_rows)};"
+                f"mean_gain={relation_mean_gain:.6f}"
+            ),
+            "blocker_reason": ""
+            if relation_directional_pass
+            else "relation_dispatch_not_directionally_positive",
+            "next_step": "continue"
+            if relation_directional_pass
+            else "diagnose_policy_evidence_before_sota",
         },
         {
             "run_id": RUN_ID,

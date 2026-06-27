@@ -278,6 +278,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     diagnosis_by_key = {row["diagnostic_key"]: row for row in diagnosis_rows}
     assert diagnosis_by_key["relation_dispatch_utility"]["status"] == "blocked"
     assert diagnosis_by_key["relation_dispatch_utility"]["observed_value"] == "0/3"
+    assert diagnosis_by_key["relation_dispatch_directional_utility"]["status"] == "blocked"
+    assert "mean_gain=" in diagnosis_by_key["relation_dispatch_directional_utility"]["observed_value"]
     assert diagnosis_by_key["shuffled_negative_control"]["status"] == "blocked"
     assert diagnosis_by_key["negative_control_action_mix"]["status"] == "blocked"
     assert "relation_dispatch_rule=" in diagnosis_by_key["negative_control_action_mix"]["observed_value"]

@@ -113,6 +113,19 @@ def decide_action(relation: OverlapRelation) -> ActionDecision:
             "high_overlap_with_stable_delta_and_rank",
         )
 
+    if (
+        high_overlap
+        and relation.both_positive
+        and relation.fallback_margin_proxy >= HIGH_FALLBACK_MARGIN_THRESHOLD
+    ):
+        return _decision(
+            relation,
+            "fallback",
+            "fallback",
+            0.0,
+            "high_fallback_margin_keeps_native_overlap_blend",
+        )
+
     if high_overlap and (
         relation.one_side_zero
         or delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
