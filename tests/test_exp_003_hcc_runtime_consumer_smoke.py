@@ -1252,3 +1252,56 @@ def test_multi_problem_trigger_outcome_profile_groups_reasons_by_case_gain() -> 
         "dense_prefix_coordinate_mode=win:1,loss:1,tie:0"
     )
     assert row["blocker_reason"] == "relation_dispatch_lost_cases"
+
+
+def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_action_mismatch_profile_row,
+    )
+
+    mismatch_rows = [
+        {
+            "lane_id": "relation_dispatch_rule",
+            "problem_id": "E1",
+            "final_action_name": "fallback",
+            "best_action_name": "fallback",
+            "margin": "0.000000",
+            "abstain_reason": "",
+        },
+        {
+            "lane_id": "relation_dispatch_rule",
+            "problem_id": "E2",
+            "final_action_name": "coordinate",
+            "best_action_name": "fallback",
+            "margin": "0.040000",
+            "abstain_reason": "",
+        },
+        {
+            "lane_id": "relation_dispatch_rule",
+            "problem_id": "S2",
+            "final_action_name": "fallback",
+            "best_action_name": "coordinate",
+            "margin": "0.030000",
+            "abstain_reason": "candidate_margin_below_threshold",
+        },
+        {
+            "lane_id": "relation_dispatch_rule",
+            "problem_id": "R2",
+            "final_action_name": "coordinate",
+            "best_action_name": "coordinate",
+            "margin": "0.100000",
+            "abstain_reason": "",
+        },
+    ]
+
+    row = _multi_problem_action_mismatch_profile_row(mismatch_rows)
+
+    assert row["diagnostic_key"] == "multi_problem_action_mismatch_profile"
+    assert row["status"] == "blocked"
+    assert row["observed_value"] == (
+        "rows=3;final_best_mismatch=2;abstains=1;"
+        "mean_margin=0.056667;final_actions=coordinate=2,fallback=1;"
+        "best_actions=coordinate=2,fallback=1;"
+        "abstain_reasons=candidate_margin_below_threshold=1"
+    )
+    assert row["blocker_reason"] == "action_mismatch_or_abstain_detected"

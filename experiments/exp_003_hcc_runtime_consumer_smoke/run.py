@@ -783,6 +783,10 @@ def _format_action_counts(counts: dict[str, int]) -> str:
     return ";".join(f"{action}={counts[action]}" for action in sorted(counts))
 
 
+def _format_inline_counts(counts: dict[str, int]) -> str:
+    return ",".join(f"{action}={counts[action]}" for action in sorted(counts))
+
+
 def _mean_numeric(rows: list[dict[str, object]], field: str) -> float:
     values: list[float] = []
     for row in rows:
@@ -1395,6 +1399,65 @@ def _multi_problem_trigger_outcome_profile_row(
             "inspect_trigger_outcome_profile"
             if losses
             else ("continue" if counts else "repair_relation_artifact_join")
+        ),
+    }
+
+
+def _multi_problem_action_mismatch_profile_row(
+    mismatch_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    relation_rows = [
+        row
+        for row in mismatch_rows
+        if str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        and _is_overlap_applicable_problem_id(str(row.get("problem_id", "")))
+    ]
+    final_counts: dict[str, int] = {}
+    best_counts: dict[str, int] = {}
+    abstain_counts: dict[str, int] = {}
+    mismatch_count = 0
+    margins: list[float] = []
+    for row in relation_rows:
+        final_action = str(row.get("final_action_name", ""))
+        best_action = str(row.get("best_action_name", ""))
+        if final_action:
+            final_counts[final_action] = final_counts.get(final_action, 0) + 1
+        if best_action:
+            best_counts[best_action] = best_counts.get(best_action, 0) + 1
+        if final_action and best_action and final_action != best_action:
+            mismatch_count += 1
+        abstain_reason = str(row.get("abstain_reason", ""))
+        if abstain_reason:
+            abstain_counts[abstain_reason] = abstain_counts.get(abstain_reason, 0) + 1
+        try:
+            margins.append(float(row.get("margin", "")))
+        except (TypeError, ValueError):
+            continue
+    abstain_total = sum(abstain_counts.values())
+    findings = mismatch_count or abstain_total
+    return {
+        "run_id": RUN_ID,
+        "problem_id": "ALL",
+        "diagnostic_key": "multi_problem_action_mismatch_profile",
+        "status": "blocked" if findings or not relation_rows else "pass",
+        "observed_value": (
+            f"rows={len(relation_rows)};"
+            f"final_best_mismatch={mismatch_count};"
+            f"abstains={abstain_total};"
+            f"mean_margin={_mean(margins):.6f};"
+            f"final_actions={_format_inline_counts(final_counts)};"
+            f"best_actions={_format_inline_counts(best_counts)};"
+            f"abstain_reasons={_format_inline_counts(abstain_counts)}"
+        ),
+        "blocker_reason": (
+            "relation_policy_profile_missing"
+            if not relation_rows
+            else ("action_mismatch_or_abstain_detected" if findings else "")
+        ),
+        "next_step": (
+            "repair_relation_artifact_join"
+            if not relation_rows
+            else ("inspect_action_mismatch_audit" if findings else "continue")
         ),
     }
 
@@ -2025,6 +2088,7 @@ def _policy_evidence_diagnosis_rows(
         str(row["problem_id"]): row for row in negative_control_rows
     }
     decision_rows = _action_decision_rows(records)
+    mismatch_rows = _action_mismatch_rows(records)
     trace_rows = _action_trace_rows(records)
     overlap_rows = _overlap_relation_rows(records)
     rows: list[dict[str, object]] = []
@@ -2069,6 +2133,7 @@ def _policy_evidence_diagnosis_rows(
                 decision_rows,
             )
         )
+        rows.append(_multi_problem_action_mismatch_profile_row(mismatch_rows))
     return rows
 
 
