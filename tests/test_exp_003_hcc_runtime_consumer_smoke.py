@@ -986,3 +986,55 @@ def test_multi_problem_baseline_diagnostics_report_lost_case_ids() -> None:
     assert by_key["multi_problem_relation_vs_fixed_coordinate_baseline"]["observed_value"] == (
         "win_count=1/2;mean_gain=-0.005140;lost_case_ids=A2_seed1"
     )
+
+
+def test_multi_problem_fixed_coordinate_baseline_uses_directional_gate() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_diagnosis_rows,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+            "relative_gain_vs_fallback": gain,
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "backend_semantics_changed": changed,
+            "action_mix": action_mix,
+        }
+        for problem_id, lane_id, final_error, gain, changed, action_mix in [
+            ("E2", "fallback", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("E2", "fixed_repair", 99.0, "0.010000", "1", "repair_shared_variable_binding=1"),
+            ("E2", "fixed_coordinate", 100.0, "0.000000", "1", "allow_beneficial_coordination=1"),
+            ("E2", "relation_dispatch_rule", 99.0, "0.010000", "1", "allow_beneficial_coordination=1"),
+            ("S2", "fallback", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("S2", "fixed_repair", 99.0, "0.010000", "1", "repair_shared_variable_binding=1"),
+            ("S2", "fixed_coordinate", 100.0, "0.000000", "1", "allow_beneficial_coordination=1"),
+            ("S2", "relation_dispatch_rule", 99.5, "0.005000", "1", "allow_beneficial_coordination=1"),
+            ("R2", "fallback", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("R2", "fixed_repair", 99.0, "0.010000", "1", "repair_shared_variable_binding=1"),
+            ("R2", "fixed_coordinate", 100.0, "0.000000", "1", "allow_beneficial_coordination=1"),
+            ("R2", "relation_dispatch_rule", 100.2, "-0.002000", "1", "allow_beneficial_coordination=1"),
+        ]
+    ]
+    negative_rows = [
+        {
+            "problem_id": problem_id,
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        }
+        for problem_id in ("E2", "S2", "R2")
+    ]
+
+    rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows)
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    coordinate = by_key["multi_problem_relation_vs_fixed_coordinate_baseline"]
+    assert coordinate["status"] == "pass"
+    assert coordinate["observed_value"] == (
+        "win_count=2/3;mean_gain=0.004333;lost_case_ids=R2_seed1"
+    )

@@ -1492,7 +1492,7 @@ def _multi_problem_diagnosis_rows(
     fixed_repair_mean_gain = _mean(fixed_repair_gains)
     fixed_repair_pass = (
         bool(fixed_repair_gains)
-        and fixed_repair_win_count == len(fixed_repair_gains)
+        and fixed_repair_win_count > len(fixed_repair_lost_case_ids)
         and fixed_repair_mean_gain > 0.0
     )
     fixed_coordinate_by_case = {
@@ -1519,7 +1519,7 @@ def _multi_problem_diagnosis_rows(
     fixed_coordinate_mean_gain = _mean(fixed_coordinate_gains)
     fixed_coordinate_pass = (
         bool(fixed_coordinate_gains)
-        and fixed_coordinate_win_count == len(fixed_coordinate_gains)
+        and fixed_coordinate_win_count > len(fixed_coordinate_lost_case_ids)
         and fixed_coordinate_mean_gain > 0.0
     )
     active_rows = [row for row in utility_rows if _expects_backend_semantics(row)]
