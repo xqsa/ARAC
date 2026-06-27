@@ -1,6 +1,6 @@
 # exp_003 Expected Outputs
 
-The experiment writes thirteen CSV artifacts:
+The experiment writes thirteen CSV artifacts and one Markdown run manifest:
 
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
@@ -15,6 +15,7 @@ The experiment writes thirteen CSV artifacts:
 - `policy_evidence_diagnosis.csv`
 - `anti_leakage_audit.csv`
 - `claim_gate.csv`
+- `run_manifest.md`
 
 The required smoke evidence is:
 
@@ -37,5 +38,8 @@ The required smoke evidence is:
 - `policy_evidence_diagnosis.csv` gives the stop/continue decision for
   same-budget, utility, catastrophic-loss, shuffled-control, and SOTA
   escalation gates.
+- `run_manifest.md` records the command shape, problem/seed set, lanes, key
+  gates, artifact list, and the rule that final/reported/oracle values must not
+  enter runtime dispatch.
 - Final errors are offline-only smoke outputs and must not enter runtime
   dispatch.

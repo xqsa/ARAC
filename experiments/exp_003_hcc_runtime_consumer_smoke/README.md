@@ -3,11 +3,12 @@
 This experiment is a runtime-connected utility smoke test, not a performance
 claim.
 
-It runs one AOB case (`E2`, seeds `1 2 3`, 2000 FE budget) through four HCC
+It runs one AOB case (`E2`, seeds `1 2 3`, 2000 FE budget) through five HCC
 smoke lanes:
 
 - `fallback`: fixed `conservative_no_action`
 - `fixed_repair`: fixed `repair_shared_variable_binding`
+- `fixed_coordinate`: fixed `allow_beneficial_coordination`
 - `relation_dispatch_rule`: per-overlap-relation rule dispatch
 - `shuffled_relation_dispatch`: deterministic shuffled relation-dispatch
   negative control
@@ -18,7 +19,9 @@ runner, relation dispatch emits joinable `relation_id` artifacts, and
 runtime connection into a performance claim. `negative_control_comparison.csv`
 blocks escalation if the shuffled control stably outperforms real relation
 dispatch. `policy_evidence_diagnosis.csv` records the stop reason and next
-step when utility evidence does not support SOTA escalation.
+step when utility evidence does not support SOTA escalation. `run_manifest.md`
+preserves the command shape, configured problems/seeds, key gates, artifact
+list, and the anti-leakage boundary for runtime dispatch.
 
 Run:
 

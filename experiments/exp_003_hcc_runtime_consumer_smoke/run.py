@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+from datetime import date
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -1474,6 +1475,96 @@ def _policy_evidence_diagnosis_rows(
     return rows
 
 
+def _diagnostic_observed_value(
+    diagnosis_rows: list[dict[str, object]],
+    diagnostic_key: str,
+) -> str:
+    for row in diagnosis_rows:
+        if str(row["diagnostic_key"]) == diagnostic_key:
+            return str(row["observed_value"])
+    return ""
+
+
+def _sota_claim_allowed(diagnosis_rows: list[dict[str, object]]) -> str:
+    multi_value = _diagnostic_observed_value(
+        diagnosis_rows,
+        "multi_problem_sota_escalation_allowed",
+    )
+    if multi_value:
+        return multi_value
+    values = [
+        str(row["observed_value"])
+        for row in diagnosis_rows
+        if str(row["diagnostic_key"]) == "sota_escalation_allowed"
+    ]
+    return "1" if values and all(value == "1" for value in values) else "0"
+
+
+def _write_manifest(
+    output_dir: Path,
+    seeds: tuple[int, ...],
+    problem_ids: tuple[str, ...],
+    diagnosis_rows: list[dict[str, object]],
+) -> None:
+    multi_problem_pilot = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_pilot_utility_evidence",
+        )
+        or "not_applicable"
+    )
+    artifacts = [
+        "our_result_by_case.csv",
+        "same_budget_ledger.csv",
+        "backend_semantics_diff.csv",
+        "action_execution_plan.csv",
+        "action_trace.csv",
+        "action_decision.csv",
+        "overlap_relations.csv",
+        "relation_join_audit.csv",
+        "action_utility_audit.csv",
+        "negative_control_comparison.csv",
+        "policy_evidence_diagnosis.csv",
+        "anti_leakage_audit.csv",
+        "claim_gate.csv",
+    ]
+    manifest = "\n".join(
+        [
+            "# exp_003_hcc_runtime_consumer_smoke Run Manifest",
+            "",
+            f"Date: {date.today().isoformat()}",
+            "Executor: Codex",
+            "",
+            "Evidence posture: runtime dispatch + utility evidence",
+            f"SOTA claim allowed: {_sota_claim_allowed(diagnosis_rows)}",
+            "",
+            "Command shape:",
+            (
+                "py -3 experiments\\exp_003_hcc_runtime_consumer_smoke\\run.py "
+                "--output-dir <output_dir> --seeds "
+                f"{' '.join(str(seed) for seed in seeds)} --problems "
+                f"{' '.join(problem_ids)}"
+            ),
+            f"Budget: {MAX_FES} FE per lane/case",
+            f"Lanes: {', '.join(lane.lane_id for lane in LANES)}",
+            "",
+            "Runtime boundary: final/reported/oracle values must not enter runtime dispatch.",
+            "",
+            "Key gates:",
+            f"- same-budget: {_diagnostic_observed_value(diagnosis_rows, 'same_budget_fe_status')}",
+            f"- pilot utility: {_diagnostic_observed_value(diagnosis_rows, 'pilot_utility_evidence')}",
+            f"- multi-problem pilot utility: {multi_problem_pilot}",
+            f"- SOTA escalation: {_sota_claim_allowed(diagnosis_rows)}",
+            "",
+            "Artifacts:",
+            *[f"- {artifact}" for artifact in artifacts],
+            "",
+            "No performance or SOTA claim is made unless the relevant SOTA escalation gate is 1.",
+        ]
+    )
+    (output_dir / "run_manifest.md").write_text(manifest + "\n", encoding="utf-8")
+
+
 def run_hcc_runtime_consumer_smoke(
     output_dir: Path | str = Path("results/exp_003_hcc_runtime_consumer_smoke"),
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult] = (
@@ -1496,6 +1587,11 @@ def run_hcc_runtime_consumer_smoke(
     )
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
+    diagnosis_rows = _policy_evidence_diagnosis_rows(
+        records,
+        utility_rows,
+        negative_control_rows,
+    )
     _write_csv(
         output / "our_result_by_case.csv",
         _our_result_rows(records, utility_rows),
@@ -1711,7 +1807,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "policy_evidence_diagnosis.csv",
-        _policy_evidence_diagnosis_rows(records, utility_rows, negative_control_rows),
+        diagnosis_rows,
         [
             "run_id",
             "problem_id",
@@ -1754,6 +1850,7 @@ def run_hcc_runtime_consumer_smoke(
             "claim_blockers",
         ],
     )
+    _write_manifest(output, tuple(seeds), tuple(problem_ids), diagnosis_rows)
     return output
 
 

@@ -183,6 +183,11 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "policy_evidence_diagnosis.csv",
     }
     assert expected == {path.name for path in output.iterdir() if path.suffix == ".csv"}
+    manifest = (output / "run_manifest.md").read_text(encoding="utf-8")
+    assert "runtime dispatch + utility evidence" in manifest
+    assert "final/reported/oracle values must not enter runtime dispatch" in manifest
+    assert "SOTA claim allowed: 0" in manifest
+    assert "multi-problem pilot utility: not_applicable" in manifest
     assert len(requests) == 15
     assert {request.seed for request in requests} == {1, 2, 3}
     assert {
