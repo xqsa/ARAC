@@ -743,12 +743,12 @@ def test_relation_action_value_delta_guard_allows_coordinate_blend_adjustment() 
     moderate_coordinate = runner.guard_relation_action_by_value_delta(
         relation,
         coordinate,
-        1.0,
+        2.0,
     )
     guarded = runner.guard_relation_action_by_value_delta(
         relation,
         coordinate,
-        1.501,
+        2.501,
     )
 
     assert kept.relation_action_name == "coordinate"
