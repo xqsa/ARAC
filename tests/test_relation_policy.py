@@ -6,6 +6,7 @@ from arac.policy.relation_policy import (
     decide_action,
     decide_actions_for_relations,
     score_relation_actions,
+    score_actions_for_relations,
 )
 
 
@@ -650,3 +651,29 @@ def test_decide_actions_for_relations_uses_balanced_mid_support_coordinate_mode(
     )
 
     assert blocked[1].trigger_reason != "balanced_mid_support_coordinate_mode"
+
+
+def test_score_actions_for_relations_reflects_balanced_batch_coordinate_mode() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.3,
+            rank_stability=0.0,
+            fallback_margin_proxy=0.9,
+        ),
+        make_relation(
+            relation_id="O0_1_2",
+            shared_var_support_ratio=0.166667,
+            delta_ratio_gap=0.80,
+            rank_stability=0.75,
+            fallback_margin_proxy=0.86,
+        ),
+    ]
+
+    scored = score_actions_for_relations(relations)
+    row = action_mismatch_audit_row(relations[1], scored[1])
+
+    assert row["final_action_name"] == "coordinate"
+    assert row["best_action_name"] == "coordinate"
+    assert row["trigger_reason"] == "balanced_mid_support_coordinate_mode"

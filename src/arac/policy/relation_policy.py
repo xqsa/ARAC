@@ -285,7 +285,21 @@ def action_mismatch_audit_row(
 def decide_actions_for_relations(
     relations: list[OverlapRelation],
 ) -> list[ActionDecision]:
-    decisions = [decide_action(relation) for relation in relations]
+    decisions = [scored.final_action for scored in score_actions_for_relations(relations)]
+    counts = {action_name: 0 for action_name in ACTION_NAMES}
+    for decision in decisions:
+        counts[decision.relation_action_name] += 1
+    LOGGER.info(
+        "relation policy action counts: %s",
+        ", ".join(f"{action_name}={counts[action_name]}" for action_name in ACTION_NAMES),
+    )
+    return decisions
+
+
+def score_actions_for_relations(
+    relations: list[OverlapRelation],
+) -> list[ScoredActionDecision]:
+    scored_actions = [score_relation_actions(relation) for relation in relations]
     dense_prefix_seen = False
     balanced_mid_support_seen = False
     prefix_has_one_side_zero = False
@@ -308,31 +322,63 @@ def decide_actions_for_relations(
             dense_prefix_seen
             and relation.both_positive
             and not relation.one_side_zero
-            and decisions[index].relation_action_name == "coordinate"
+            and scored_actions[index].final_action.relation_action_name == "coordinate"
         ):
-            decisions[index] = _decision(
+            scored_actions[index] = _with_coordinate_context_score(
+                scored_actions[index],
                 relation,
-                "coordinate",
-                "coordinate",
-                max(decisions[index].confidence, relation.fallback_margin_proxy),
                 "dense_prefix_coordinate_mode",
             )
         elif balanced_mid_support_seen:
-            decisions[index] = _decision(
+            scored_actions[index] = _with_coordinate_context_score(
+                scored_actions[index],
                 relation,
-                "coordinate",
-                "coordinate",
-                max(decisions[index].confidence, relation.fallback_margin_proxy),
                 "balanced_mid_support_coordinate_mode",
             )
-    counts = {action_name: 0 for action_name in ACTION_NAMES}
-    for decision in decisions:
-        counts[decision.relation_action_name] += 1
-    LOGGER.info(
-        "relation policy action counts: %s",
-        ", ".join(f"{action_name}={counts[action_name]}" for action_name in ACTION_NAMES),
+    return scored_actions
+
+
+def _with_coordinate_context_score(
+    scored: ScoredActionDecision,
+    relation: OverlapRelation,
+    trigger_reason: str,
+) -> ScoredActionDecision:
+    scores = dict(scored.candidate_scores)
+    other_best = max(score for action, score in scores.items() if action != "coordinate")
+    coordinate_score = max(
+        scores["coordinate"],
+        relation.fallback_margin_proxy,
+        min(1.0, other_best + ACTION_MARGIN_THRESHOLD),
     )
-    return decisions
+    if coordinate_score >= 1.0:
+        for action_name in ACTION_NAMES:
+            if action_name != "coordinate":
+                scores[action_name] = min(scores[action_name], 1.0 - ACTION_MARGIN_THRESHOLD)
+    scores["coordinate"] = _clamp(coordinate_score)
+    ranked = sorted(
+        scores.items(),
+        key=lambda item: (-item[1], _action_sort_order(item[0])),
+    )
+    best_action_name, best_score = ranked[0]
+    second_best_action_name, second_best_score = ranked[1]
+    final_action = _decision(
+        relation,
+        "coordinate",
+        "coordinate",
+        best_score,
+        trigger_reason,
+    )
+    return ScoredActionDecision(
+        relation_id=relation.relation_id,
+        candidate_scores={name: _clamp(scores[name]) for name in ACTION_NAMES},
+        final_action=final_action,
+        best_action_name=best_action_name,
+        best_score=_clamp(best_score),
+        second_best_action_name=second_best_action_name,
+        second_best_score=_clamp(second_best_score),
+        margin=_clamp(best_score - second_best_score),
+        abstain_reason="",
+    )
 
 
 def _overlap_confidence(overlap_strength: float) -> float:

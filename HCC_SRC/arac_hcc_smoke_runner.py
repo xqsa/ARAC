@@ -26,6 +26,7 @@ from src.arac.policy.relation_policy import (
     ActionDecision as RelationActionDecision,
     RELATION_ACTION_ALIASES,
     action_mismatch_audit_row,
+    score_actions_for_relations,
 )
 from src.arac.policy.relation_policy import decide_actions_for_relations
 
@@ -727,13 +728,22 @@ def _write_action_mismatch_audit_log(
         writer = csv.DictWriter(handle, fieldnames=ACTION_MISMATCH_AUDIT_FIELDS)
         writer.writeheader()
         if actions is None:
-            for relation in relations:
-                row = action_mismatch_audit_row(relation)
+            for relation, scored in zip(
+                relations,
+                score_actions_for_relations(relations),
+                strict=True,
+            ):
+                row = action_mismatch_audit_row(relation, scored)
                 row["run_id"] = run_id
                 writer.writerow(row)
             return
-        for relation, action in zip(relations, actions, strict=True):
-            row = action_mismatch_audit_row(relation, final_action=action)
+        for relation, scored, action in zip(
+            relations,
+            score_actions_for_relations(relations),
+            actions,
+            strict=True,
+        ):
+            row = action_mismatch_audit_row(relation, scored, final_action=action)
             row["run_id"] = run_id
             writer.writerow(row)
 
