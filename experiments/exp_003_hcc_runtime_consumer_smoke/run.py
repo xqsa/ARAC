@@ -152,8 +152,8 @@ def _decision(lane: LaneConfig) -> ActionDecision:
     )
 
 
-def _same_budget_group_id(problem_id: str, seed: int) -> str:
-    return f"{problem_id}_seed{seed}_{MAX_FES}fe"
+def _same_budget_group_id(problem_id: str, seed: int, max_fes: int) -> str:
+    return f"{problem_id}_seed{seed}_{max_fes}fe"
 
 
 def _runtime_payload(
@@ -161,6 +161,7 @@ def _runtime_payload(
     seed: int,
     lane_id: str,
     action_name: str,
+    max_fes: int,
 ) -> dict[str, object]:
     payload = {
         "run_id": RUN_ID,
@@ -169,7 +170,7 @@ def _runtime_payload(
         "lane_id": lane_id,
         "selected_action_name": action_name,
         "benchmark": "AOB",
-        "budget_limit": MAX_FES,
+        "budget_limit": max_fes,
         "used_for_runtime": 1,
     }
     validate_runtime_payload(payload)
@@ -181,7 +182,7 @@ def _ledger_for_result(result: HccAobExecutionResult) -> SameBudgetLedger:
     return SameBudgetLedger(
         phase_i_fe=PHASE_I_FE,
         phase_ii_fe=actual_fe_used - PHASE_I_FE,
-        budget_limit=MAX_FES,
+        budget_limit=result.max_fes,
         fresh_execution=result.fresh_optimizer_execution,
     )
 
@@ -341,6 +342,7 @@ def _records(
     python_executable: str,
     seeds: tuple[int, ...],
     problem_ids: tuple[str, ...],
+    max_fes: int,
     jobs: int = 1,
 ) -> list[dict[str, object]]:
     contexts: list[dict[str, object]] = []
@@ -358,6 +360,7 @@ def _records(
                     seed,
                     lane.lane_id,
                     lane.selected_action_name,
+                    max_fes,
                 )
                 lane_output = (
                     output_dir
@@ -377,7 +380,7 @@ def _records(
                         "request": HccAobExecutionRequest(
                             problem_id=problem_id,
                             seed=seed,
-                            max_fes=MAX_FES,
+                            max_fes=max_fes,
                             output_dir=lane_output,
                             hcc_root=hcc_root,
                             python_executable=python_executable,
@@ -566,16 +569,17 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "same_budget_group_id": _same_budget_group_id(
                     result.problem_id,
                     result.seed,
+                    result.max_fes,
                 ),
                 "phase_i_fe": PHASE_I_FE,
                 "phase_ii_fe": actual_fe_used - PHASE_I_FE,
                 "total_fe": actual_fe_used,
-                "budget_limit": MAX_FES,
-                "configured_budget_limit": MAX_FES,
+                "budget_limit": result.max_fes,
+                "configured_budget_limit": result.max_fes,
                 "budget_aligned_fe_used": result.fe_used,
                 "actual_fe_used": actual_fe_used,
                 "budget_limit_source": "experiment_config",
-                "same_budget_violation": int(actual_fe_used > MAX_FES),
+                "same_budget_violation": int(actual_fe_used > result.max_fes),
                 "fresh_execution": int(result.fresh_optimizer_execution),
             }
         )
@@ -1781,6 +1785,7 @@ def _write_manifest(
     problem_ids: tuple[str, ...],
     diagnosis_rows: list[dict[str, object]],
     jobs: int = 1,
+    max_fes: int = MAX_FES,
 ) -> None:
     same_budget_status = (
         _diagnostic_observed_value(
@@ -1855,9 +1860,10 @@ def _write_manifest(
                 "py -3 experiments\\exp_003_hcc_runtime_consumer_smoke\\run.py "
                 "--output-dir <output_dir> --seeds "
                 f"{' '.join(str(seed) for seed in seeds)} --problems "
-                f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))}"
+                f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))} "
+                f"--max-fes {max_fes}"
             ),
-            f"Budget: {MAX_FES} FE per lane/case",
+            f"Budget: {max_fes} FE per lane/case",
             f"Parallel jobs: {max(1, int(jobs))}",
             f"Lanes: {', '.join(lane.lane_id for lane in LANES)}",
             "",
@@ -1892,8 +1898,12 @@ def run_hcc_runtime_consumer_smoke(
     seeds: tuple[int, ...] = DEFAULT_SEEDS,
     problem_ids: tuple[str, ...] = (PROBLEM_ID,),
     jobs: int = 1,
+    max_fes: int = MAX_FES,
 ) -> Path:
     worker_count = max(1, int(jobs))
+    max_fes = int(max_fes)
+    if max_fes <= 0:
+        raise ValueError("max_fes must be positive")
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     records = _records(
@@ -1903,6 +1913,7 @@ def run_hcc_runtime_consumer_smoke(
         python_executable=python_executable,
         seeds=tuple(seeds),
         problem_ids=tuple(problem_ids),
+        max_fes=max_fes,
         jobs=worker_count,
     )
     utility_rows = _utility_rows(records)
@@ -2171,7 +2182,14 @@ def run_hcc_runtime_consumer_smoke(
             "claim_blockers",
         ],
     )
-    _write_manifest(output, tuple(seeds), tuple(problem_ids), diagnosis_rows, worker_count)
+    _write_manifest(
+        output,
+        tuple(seeds),
+        tuple(problem_ids),
+        diagnosis_rows,
+        worker_count,
+        max_fes,
+    )
     return output
 
 
@@ -2183,6 +2201,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--seeds", nargs="+", type=int, default=list(DEFAULT_SEEDS))
     parser.add_argument("--problems", nargs="+", default=[PROBLEM_ID])
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--max-fes", type=int, default=MAX_FES)
     return parser.parse_args(argv)
 
 
@@ -2195,6 +2214,7 @@ def main(argv: list[str] | None = None) -> Path:
         seeds=tuple(args.seeds),
         problem_ids=tuple(str(problem).upper() for problem in args.problems),
         jobs=int(args.jobs),
+        max_fes=int(args.max_fes),
     )
 
 

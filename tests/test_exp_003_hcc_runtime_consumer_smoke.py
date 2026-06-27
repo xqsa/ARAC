@@ -37,6 +37,7 @@ def test_exp_003_cli_help_works_without_pythonpath() -> None:
     assert completed.returncode == 0, completed.stderr
     assert "Run exp_003 HCC runtime consumer smoke" in completed.stdout
     assert "--jobs" in completed.stdout
+    assert "--max-fes" in completed.stdout
 
 
 def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None:
@@ -152,7 +153,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
             seed=request.seed,
             max_fes=request.max_fes,
             final_error=final_error,
-            fe_used=2_000,
+            fe_used=request.max_fes,
             time_seconds=0.5,
             output_root=request.output_dir,
             fresh_optimizer_execution=True,
@@ -379,6 +380,27 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert all(row["budget_limit"] == "2000" for row in ledger_rows)
     assert all(row["budget_limit_source"] == "experiment_config" for row in ledger_rows)
     assert all(row["same_budget_violation"] == "0" for row in ledger_rows)
+
+    requests.clear()
+    budget_output = run_hcc_runtime_consumer_smoke(
+        output_dir=tmp_path / "exp003-budget",
+        execution_runner=fake_runner,
+        python_executable="python",
+        seeds=(1,),
+        problem_ids=("E2",),
+        max_fes=3_000,
+    )
+
+    assert {request.max_fes for request in requests} == {3_000}
+    budget_ledger_rows = _read_csv(budget_output / "same_budget_ledger.csv")
+    assert {row["same_budget_group_id"] for row in budget_ledger_rows} == {
+        "E2_seed1_3000fe"
+    }
+    assert all(row["configured_budget_limit"] == "3000" for row in budget_ledger_rows)
+    assert all(row["actual_fe_used"] == "3000" for row in budget_ledger_rows)
+    budget_manifest = (budget_output / "run_manifest.md").read_text(encoding="utf-8")
+    assert "--max-fes 3000" in budget_manifest
+    assert "Budget: 3000 FE per lane/case" in budget_manifest
 
     claim_rows = _read_csv(output / "claim_gate.csv")
     assert all(row["performance_claim_allowed"] == "0" for row in claim_rows)
