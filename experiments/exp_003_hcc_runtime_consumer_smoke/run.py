@@ -858,6 +858,26 @@ def _multi_problem_diagnosis_rows(
     ]
     positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
     mean_gain = _mean(relation_gains)
+    fixed_repair_by_case = {
+        (str(row["problem_id"]), str(row["seed"])): float(row["final_error"])
+        for row in utility_rows
+        if row["lane_id"] == "fixed_repair"
+    }
+    fixed_repair_gains = [
+        relative_gain(
+            fixed_repair_by_case[(str(row["problem_id"]), str(row["seed"]))],
+            float(row["final_error"]),
+        )
+        for row in relation_rows
+        if (str(row["problem_id"]), str(row["seed"])) in fixed_repair_by_case
+    ]
+    fixed_repair_win_count = sum(1 for gain in fixed_repair_gains if gain > 0.0)
+    fixed_repair_mean_gain = _mean(fixed_repair_gains)
+    fixed_repair_pass = (
+        bool(fixed_repair_gains)
+        and fixed_repair_win_count == len(fixed_repair_gains)
+        and fixed_repair_mean_gain > 0.0
+    )
     catastrophic = sum(
         1 for row in relation_rows if row["utility_label"] == "catastrophic_loss"
     )
@@ -878,6 +898,8 @@ def _multi_problem_diagnosis_rows(
         blockers.append("catastrophic_loss")
     if negative_failures:
         blockers.append("negative_control_failed")
+    if not fixed_repair_pass:
+        blockers.append("fixed_repair_baseline_not_beaten")
     directional_pass = positive_cases == len(relation_rows) and mean_gain > 0.0
     sota_allowed = not blockers
 
@@ -906,6 +928,20 @@ def _multi_problem_diagnosis_rows(
             if directional_pass
             else "multi_problem_not_directionally_positive",
             "next_step": "continue" if directional_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_fixed_repair_baseline",
+            "status": "pass" if fixed_repair_pass else "blocked",
+            "observed_value": (
+                f"win_count={fixed_repair_win_count}/{len(fixed_repair_gains)};"
+                f"mean_gain={fixed_repair_mean_gain:.6f}"
+            ),
+            "blocker_reason": ""
+            if fixed_repair_pass
+            else "fixed_repair_baseline_not_beaten",
+            "next_step": "continue" if fixed_repair_pass else "diagnose_policy_evidence_before_sota",
         },
         {
             "run_id": RUN_ID,

@@ -352,9 +352,16 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "win_count=0/2"
     )
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["status"] == "blocked"
+    assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["observed_value"] == (
+        "win_count=0/2;mean_gain=-0.506173"
+    )
+    assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["observed_value"] == "0"
+    assert "fixed_repair_baseline_not_beaten" in aggregate_by_key[
+        "multi_problem_sota_escalation_allowed"
+    ]["blocker_reason"]
     multi_ledger = _read_csv(multi_output / "same_budget_ledger.csv")
     assert {row["same_budget_group_id"] for row in multi_ledger} == {
         "E1_seed1_2000fe",
