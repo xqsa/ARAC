@@ -360,9 +360,16 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "changed=6/6"
     )
     assert aggregate_by_key["multi_problem_backend_semantics_audit"]["status"] == "pass"
+    assert aggregate_by_key["multi_problem_negative_control"]["observed_value"] == (
+        "pass=0/2;shuffled_win_count=2/2"
+    )
+    assert aggregate_by_key["multi_problem_negative_control"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["observed_value"] == "0"
+    assert "negative_control_failed" in aggregate_by_key[
+        "multi_problem_sota_escalation_allowed"
+    ]["blocker_reason"]
     assert "fixed_repair_baseline_not_beaten" in aggregate_by_key[
         "multi_problem_sota_escalation_allowed"
     ]["blocker_reason"]

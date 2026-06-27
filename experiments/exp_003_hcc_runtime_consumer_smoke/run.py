@@ -898,6 +898,16 @@ def _multi_problem_diagnosis_rows(
         for row in negative_control_rows
         if str(row.get("negative_control_pass", "0")) != "1"
     )
+    negative_pass_count = len(negative_control_rows) - negative_failures
+    shuffled_win_count = sum(
+        int(row.get("shuffled_win_count", 0)) for row in negative_control_rows
+    )
+    negative_total_seeds = sum(
+        int(row.get("total_seeds", 0)) for row in negative_control_rows
+    )
+    negative_control_pass = (
+        bool(negative_control_rows) and negative_failures == 0
+    )
     blockers: list[str] = []
     if budget_violations:
         blockers.append("same_budget_violation")
@@ -967,6 +977,22 @@ def _multi_problem_diagnosis_rows(
             else "backend_semantics_audit_failed",
             "next_step": "continue"
             if backend_semantics_pass
+            else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_negative_control",
+            "status": "pass" if negative_control_pass else "blocked",
+            "observed_value": (
+                f"pass={negative_pass_count}/{len(negative_control_rows)};"
+                f"shuffled_win_count={shuffled_win_count}/{negative_total_seeds}"
+            ),
+            "blocker_reason": ""
+            if negative_control_pass
+            else "negative_control_failed",
+            "next_step": "continue"
+            if negative_control_pass
             else "diagnose_policy_evidence_before_sota",
         },
         {
