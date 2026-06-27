@@ -627,6 +627,73 @@ def test_write_action_decision_log_overwrites_previous_rows(tmp_path: Path) -> N
     assert rows[0]["canonical_action_name"] == "isolate_conflicting_relation"
 
 
+def test_write_action_mismatch_audit_log_overwrites_previous_rows(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+    first_relation = runner.OverlapRelation(
+        relation_id="O1_0_1",
+        problem_id="E2",
+        outer_iter=1,
+        group_left=0,
+        group_right=1,
+        shared_vars=(2,),
+        overlap_strength=1.0,
+        delta_signal=0.1,
+        rank_signal=0.9,
+        budget_remaining_ratio=0.8,
+        previous_delta=1.0,
+        current_delta=1.1,
+        delta_abs_gap=0.1,
+        delta_signed_gap=0.1,
+        delta_ratio_gap=0.090909,
+        both_positive=True,
+        rank_stability=0.9,
+        shared_var_count=1,
+        shared_var_support_ratio=0.1,
+        feature_coverage=1.0,
+        fallback_margin_proxy=0.9,
+    )
+    second_relation = runner.OverlapRelation(
+        relation_id="O1_1_2",
+        problem_id="E2",
+        outer_iter=1,
+        group_left=1,
+        group_right=2,
+        shared_vars=(3,),
+        overlap_strength=1.0,
+        delta_signal=0.05,
+        rank_signal=0.78,
+        budget_remaining_ratio=0.8,
+        previous_delta=1.0,
+        current_delta=1.05,
+        delta_abs_gap=0.05,
+        delta_signed_gap=0.05,
+        delta_ratio_gap=0.047619,
+        both_positive=True,
+        rank_stability=0.78,
+        shared_var_count=1,
+        shared_var_support_ratio=0.1,
+        feature_coverage=1.0,
+        fallback_margin_proxy=1.0,
+    )
+    output_path = tmp_path / "action_mismatch_audit.csv"
+
+    runner._write_action_mismatch_audit_log(output_path, "run-001", [first_relation])
+    runner._write_action_mismatch_audit_log(output_path, "run-001", [second_relation])
+
+    with output_path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+
+    assert reader.fieldnames == runner.ACTION_MISMATCH_AUDIT_FIELDS
+    assert len(rows) == 1
+    assert rows[0]["run_id"] == "run-001"
+    assert rows[0]["relation_id"] == "O1_1_2"
+    assert rows[0]["final_action_name"] == "fallback"
+    assert rows[0]["second_best_action_name"] == "fallback"
+    assert rows[0]["abstain_reason"] == "candidate_margin_below_threshold"
+    assert "coordinate=" in rows[0]["candidate_scores"]
+
+
 def test_relation_dispatch_is_applied_before_next_group_objective(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from arac.evidence.overlap_relation_builder import OverlapRelation
-from arac.policy.relation_policy import decide_action, decide_actions_for_relations
+from arac.policy.relation_policy import (
+    action_mismatch_audit_row,
+    decide_action,
+    decide_actions_for_relations,
+    score_relation_actions,
+)
 
 
 def make_relation(**overrides: object) -> OverlapRelation:
@@ -44,6 +49,47 @@ def test_relation_policy_coordinates_stable_high_overlap_relation() -> None:
     assert decision.action_family == "coordinate"
     assert decision.confidence > 0.0
     assert decision.trigger_reason == "high_overlap_with_stable_delta_and_rank"
+
+
+def test_relation_policy_scores_candidates_and_reports_margin() -> None:
+    relation = make_relation()
+    scored = score_relation_actions(relation)
+
+    assert scored.final_action.relation_action_name == "coordinate"
+    assert scored.second_best_action_name == "fallback"
+    assert scored.margin > 0.0
+    assert scored.abstain_reason == ""
+    assert scored.candidate_scores["coordinate"] > scored.candidate_scores["fallback"]
+
+    row = action_mismatch_audit_row(relation, scored)
+
+    assert row["relation_id"] == relation.relation_id
+    assert row["final_action_name"] == "coordinate"
+    assert row["second_best_action_name"] == "fallback"
+    assert float(row["margin"]) > 0.0
+    assert row["abstain_reason"] == ""
+    assert "coordinate=" in row["candidate_scores"]
+
+
+def test_relation_policy_falls_back_when_best_score_margin_is_too_small() -> None:
+    relation = make_relation(
+        previous_delta=1.0,
+        current_delta=1.05,
+        delta_signal=0.05,
+        delta_abs_gap=0.05,
+        delta_signed_gap=0.05,
+        delta_ratio_gap=0.047619,
+        rank_signal=0.78,
+        rank_stability=0.78,
+        shared_var_support_ratio=0.10,
+        fallback_margin_proxy=1.0,
+    )
+
+    scored = score_relation_actions(relation)
+
+    assert scored.final_action.relation_action_name == "fallback"
+    assert 0.0 < scored.margin < 0.05
+    assert scored.abstain_reason == "candidate_margin_below_threshold"
 
 
 def test_relation_policy_uses_normalized_conflict_not_raw_aob_scale() -> None:

@@ -18,8 +18,11 @@ runner, relation dispatch emits joinable `relation_id` artifacts, and
 `action_utility_audit.csv` reports utility failures plainly instead of turning
 runtime connection into a performance claim. `negative_control_comparison.csv`
 blocks escalation if the shuffled control stably outperforms real relation
-dispatch. `policy_evidence_diagnosis.csv` records the stop reason and next
-step when utility evidence does not support SOTA escalation.
+dispatch. `action_mismatch_audit.csv` records candidate action scores and
+margin-based abstains per relation. `policy_evidence_diagnosis.csv` records the
+stop reason and next step when utility evidence does not support SOTA
+escalation. In AOB multi-problem runs, level 1 cases (`E1/R1/S1/A1`) are
+no-overlap controls; overlap-utility aggregates use levels 2-6 only.
 `claim_evidence_table.md` maps each claim/gate to its observed evidence and
 source artifact. `run_manifest.md` preserves the command shape, configured
 problems/seeds, key gates, artifact list, parallel job count, and the

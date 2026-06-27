@@ -127,6 +127,22 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "repair_shared_variable_binding,reassign_repair,0.700000,repair\n",
                 encoding="utf-8",
             )
+            (request.output_dir / f"{problem_id}_action_mismatch_audit.csv").write_text(
+                "run_id,problem_id,relation_id,group_left,group_right,candidate_scores,"
+                "coordinate_score,isolate_conflicting_relation_score,reassign_repair_score,"
+                "fallback_score,best_action_name,best_score,second_best_action_name,"
+                "second_best_score,margin,final_action_name,final_canonical_action_name,"
+                "confidence,trigger_reason,abstain_reason\n"
+                f"run,{problem_id},O0_0_1,0,1,coordinate=0.800000;fallback=0.100000,"
+                "0.800000,0.000000,0.000000,0.100000,coordinate,0.800000,"
+                "fallback,0.100000,0.700000,coordinate,"
+                "allow_beneficial_coordination,0.800000,stable,\n"
+                f"run,{problem_id},O0_1_2,1,2,reassign_repair=0.700000;fallback=0.100000,"
+                "0.000000,0.000000,0.700000,0.100000,reassign_repair,0.700000,"
+                "fallback,0.100000,0.600000,reassign_repair,"
+                "repair_shared_variable_binding,0.700000,repair,\n",
+                encoding="utf-8",
+            )
             (request.output_dir / f"{problem_id}_overlap_relations.csv").write_text(
                 "relation_id,problem_id,outer_iter,group_left,group_right,shared_vars,"
                 "overlap_strength,delta_signal,rank_signal,budget_remaining_ratio,"
@@ -207,6 +223,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "action_execution_plan.csv",
         "action_trace.csv",
         "action_decision.csv",
+        "action_mismatch_audit.csv",
         "overlap_relations.csv",
         "relation_join_audit.csv",
         "action_utility_audit.csv",
@@ -305,8 +322,17 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     }.issubset(trace_rows[0])
 
     decision_rows = _read_csv(output / "action_decision.csv")
+    mismatch_rows = _read_csv(output / "action_mismatch_audit.csv")
     overlap_rows = _read_csv(output / "overlap_relations.csv")
     assert {row["relation_id"] for row in decision_rows} == {"O0_0_1", "O0_1_2"}
+    assert {row["relation_id"] for row in mismatch_rows} == {"O0_0_1", "O0_1_2"}
+    assert {
+        "candidate_scores",
+        "final_action_name",
+        "second_best_action_name",
+        "margin",
+        "abstain_reason",
+    }.issubset(mismatch_rows[0])
     assert {row["relation_id"] for row in overlap_rows} == {"O0_0_1", "O0_1_2"}
     assert overlap_rows[0]["fallback_margin_proxy"] == "0.900000"
     assert overlap_rows[0]["feature_coverage"] == "1.000000"
@@ -467,68 +493,71 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         for row in multi_diagnosis
         if row["problem_id"] == "ALL"
     }
+    assert aggregate_by_key["multi_problem_claim_scope"]["observed_value"] == (
+        "overlap_applicable=E2;no_overlap_controls=E1"
+    )
     assert aggregate_by_key["multi_problem_relation_dispatch_mean_gain"]["observed_value"] == (
-        "positive_cases=0/2;mean_gain=-0.008264;lost_case_ids=E1_seed1,E2_seed1"
+        "positive_cases=0/1;mean_gain=-0.008264;lost_case_ids=E2_seed1"
     )
     lost_case_mix = aggregate_by_key["multi_problem_lost_case_action_mix"]
     assert lost_case_mix["status"] == "blocked"
     assert lost_case_mix["observed_value"] == (
-        "lost_cases=2;mean_lost_gain=-0.008264;"
-        "actions=allow_beneficial_coordination=2;repair_shared_variable_binding=2"
+        "lost_cases=1;mean_lost_gain=-0.008264;"
+        "actions=allow_beneficial_coordination=1;repair_shared_variable_binding=1"
     )
     action_outcome = aggregate_by_key["multi_problem_action_outcome_profile"]
     assert action_outcome["status"] == "blocked"
     assert action_outcome["observed_value"] == (
-        "wins=|losses=allow_beneficial_coordination=2;"
-        "repair_shared_variable_binding=2|ties="
+        "wins=|losses=allow_beneficial_coordination=1;"
+        "repair_shared_variable_binding=1|ties="
     )
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["observed_value"] == (
-        "win_count=0/2"
+        "win_count=0/1"
     )
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["status"] == "blocked"
     assert aggregate_by_key[
         "multi_problem_active_relation_dispatch_mean_gain"
     ]["observed_value"] == (
-        "active_cases=2;positive_cases=0/2;mean_gain=-0.008264;"
-        "lost_case_ids=E1_seed1,E2_seed1"
+        "active_cases=1;positive_cases=0/1;mean_gain=-0.008264;"
+        "lost_case_ids=E2_seed1"
     )
     assert aggregate_by_key[
         "multi_problem_active_relation_dispatch_mean_gain"
     ]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["observed_value"] == (
-        "win_count=0/2;mean_gain=-0.506173;lost_case_ids=E1_seed1,E2_seed1"
+        "win_count=0/1;mean_gain=-0.506173;lost_case_ids=E2_seed1"
     )
     assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["status"] == "blocked"
     assert aggregate_by_key[
         "multi_problem_relation_vs_fixed_coordinate_baseline"
-    ]["observed_value"] == "win_count=2/2;mean_gain=0.068702;lost_case_ids="
+    ]["observed_value"] == "win_count=1/1;mean_gain=0.068702;lost_case_ids="
     assert aggregate_by_key[
         "multi_problem_relation_vs_fixed_coordinate_baseline"
     ]["status"] == "pass"
     assert aggregate_by_key["multi_problem_backend_semantics_audit"]["observed_value"] == (
-        "changed=8/8"
+        "changed=4/4"
     )
     assert aggregate_by_key["multi_problem_backend_semantics_audit"]["status"] == "pass"
     assert aggregate_by_key["multi_problem_negative_control"]["observed_value"] == (
-        "pass=0/2;shuffled_win_count=2/2;failed_problem_ids=E1,E2"
+        "pass=0/1;shuffled_win_count=1/1;failed_problem_ids=E2"
     )
     assert aggregate_by_key["multi_problem_negative_control"]["status"] == "blocked"
     aggregate_action_mix = aggregate_by_key["multi_problem_negative_control_action_mix"]
     assert aggregate_action_mix["status"] == "blocked"
     assert aggregate_action_mix["observed_value"] == (
-        "relation_dispatch_rule=allow_beneficial_coordination=2;repair_shared_variable_binding=2|"
-        "shuffled_relation_dispatch=repair_shared_variable_binding=4"
+        "relation_dispatch_rule=allow_beneficial_coordination=1;repair_shared_variable_binding=1|"
+        "shuffled_relation_dispatch=repair_shared_variable_binding=2"
     )
-    assert "failed_problem_ids=E1,E2" in aggregate_action_mix["blocker_reason"]
-    assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
+    assert "failed_problem_ids=E2" in aggregate_action_mix["blocker_reason"]
+    assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/1"
     aggregate_policy_profile = aggregate_by_key["multi_problem_relation_policy_profile"]
     assert aggregate_policy_profile["status"] == "pass"
-    assert "relations=4" in aggregate_policy_profile["observed_value"]
+    assert "relations=2" in aggregate_policy_profile["observed_value"]
     assert "active_density=1.000000" in aggregate_policy_profile["observed_value"]
-    assert "actions=allow_beneficial_coordination=2;repair_shared_variable_binding=2" in (
+    assert "actions=allow_beneficial_coordination=1;repair_shared_variable_binding=1" in (
         aggregate_policy_profile["observed_value"]
     )
-    assert "reasons=repair=2;stable=2" in aggregate_policy_profile["observed_value"]
+    assert "reasons=repair=1;stable=1" in aggregate_policy_profile["observed_value"]
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["observed_value"] == "0"
     assert "negative_control_failed" in aggregate_by_key[
@@ -538,23 +567,24 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "multi_problem_sota_escalation_allowed"
     ]["blocker_reason"]
     multi_manifest = (multi_output / "run_manifest.md").read_text(encoding="utf-8")
-    assert "- same-budget: 0/10" in multi_manifest
+    assert "- claim scope: overlap_applicable=E2;no_overlap_controls=E1" in multi_manifest
+    assert "- same-budget: 0/5" in multi_manifest
     assert (
         "- multi-problem active density: "
-        "mean=1.000000;min=1.000000;low_density_cases=0/2;"
+        "mean=1.000000;min=1.000000;low_density_cases=0/1;"
         "threshold=0.200000;low_density_case_ids="
     ) in multi_manifest
     assert (
         "- fixed repair baseline: "
-        "win_count=0/2;mean_gain=-0.506173;lost_case_ids=E1_seed1,E2_seed1"
+        "win_count=0/1;mean_gain=-0.506173;lost_case_ids=E2_seed1"
     ) in multi_manifest
     assert (
         "- fixed coordinate baseline: "
-        "win_count=2/2;mean_gain=0.068702;lost_case_ids="
+        "win_count=1/1;mean_gain=0.068702;lost_case_ids="
     ) in multi_manifest
     assert (
         "- multi-problem relation policy profile: "
-        "relations=4;active=4;active_density=1.000000"
+        "relations=2;active=2;active_density=1.000000"
     ) in multi_manifest
     multi_ledger = _read_csv(multi_output / "same_budget_ledger.csv")
     assert {row["same_budget_group_id"] for row in multi_ledger} == {
@@ -611,7 +641,10 @@ def test_multi_problem_semantics_audit_allows_fallback_only_relation_dispatch() 
     rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows)
     by_key = {row["diagnostic_key"]: row for row in rows}
 
-    assert by_key["multi_problem_backend_semantics_audit"]["observed_value"] == "changed=6/6"
+    assert by_key["multi_problem_claim_scope"]["observed_value"] == (
+        "overlap_applicable=E2;no_overlap_controls=E1"
+    )
+    assert by_key["multi_problem_backend_semantics_audit"]["observed_value"] == "changed=4/4"
     assert by_key["multi_problem_backend_semantics_audit"]["status"] == "pass"
     assert by_key["multi_problem_active_relation_dispatch_mean_gain"]["observed_value"] == (
         "active_cases=1;positive_cases=1/1;mean_gain=0.010000;lost_case_ids="

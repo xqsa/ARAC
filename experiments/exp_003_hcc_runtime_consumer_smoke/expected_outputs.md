@@ -1,6 +1,6 @@
 # exp_003 Expected Outputs
 
-The experiment writes thirteen CSV artifacts and two Markdown audit files:
+The experiment writes fourteen CSV artifacts and two Markdown audit files:
 
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
@@ -8,6 +8,7 @@ The experiment writes thirteen CSV artifacts and two Markdown audit files:
 - `action_execution_plan.csv`
 - `action_trace.csv`
 - `action_decision.csv`
+- `action_mismatch_audit.csv`
 - `overlap_relations.csv`
 - `relation_join_audit.csv`
 - `action_utility_audit.csv`
@@ -31,6 +32,8 @@ The required smoke evidence is:
   `active_action_not_consumed_by_hcc_runtime`.
 - `relation_dispatch_rule` has matching `relation_id` rows across
   `action_decision.csv`, `action_trace.csv`, and `overlap_relations.csv`.
+- `action_mismatch_audit.csv` records candidate action scores, selected action,
+  second-best action, score margin, and abstain reason for each relation.
 - `action_utility_audit.csv` contains `final_error`, `fe_used`,
   `same_budget_violation`, `relative_gain_vs_fallback`, `utility_label`,
   `action_mix`, `claim_allowed`, and `claim_blockers`.

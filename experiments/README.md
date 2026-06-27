@@ -36,13 +36,15 @@ paper-reported Table 2 values offline-only, and labels its own result rows as
 `hcc_source_grounded_grouping_probe`. It reads source AOB topology from
 `E:\HCC-main` but does not yet run MMES/CMAES optimizer execution.
 
-`exp_003_hcc_runtime_consumer_smoke` runs a small E2 HCC smoke through
-fallback, fixed repair, per-overlap-relation dispatch, and shuffled negative
-control lanes over three seeds. Its claim is runtime connection plus explicit
-utility auditing, not performance: relation artifacts must join by
-`relation_id`, utility failures stay in `action_utility_audit.csv`, and
-negative-control failures stay in `negative_control_comparison.csv`. SOTA
-escalation is gated by `policy_evidence_diagnosis.csv`.
+`exp_003_hcc_runtime_consumer_smoke` runs HCC smoke through fallback, fixed
+repair, fixed coordinate, per-overlap-relation dispatch, and shuffled negative
+control lanes. Its claim is runtime connection plus explicit utility auditing,
+not performance: relation artifacts must join by `relation_id`, candidate
+action mismatches stay in `action_mismatch_audit.csv`, utility failures stay in
+`action_utility_audit.csv`, and negative-control failures stay in
+`negative_control_comparison.csv`. In AOB multi-problem summaries, level 1
+cases are no-overlap controls and levels 2-6 are the overlap-applicable utility
+scope. SOTA escalation is gated by `policy_evidence_diagnosis.csv`.
 
 `exp_004_hcc_main_historical_result_recovery` scans historical
 `E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt` files, writes an

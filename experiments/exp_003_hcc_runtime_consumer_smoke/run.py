@@ -156,6 +156,11 @@ def _same_budget_group_id(problem_id: str, seed: int, max_fes: int) -> str:
     return f"{problem_id}_seed{seed}_{max_fes}fe"
 
 
+def _is_overlap_applicable_problem_id(problem_id: str) -> bool:
+    level = "".join(character for character in problem_id if character.isdigit())
+    return level != "1"
+
+
 def _runtime_payload(
     problem_id: str,
     seed: int,
@@ -641,6 +646,18 @@ def _action_decision_rows(records: list[dict[str, object]]) -> list[dict[str, ob
     return rows
 
 
+def _action_mismatch_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        rows.extend(
+            _with_lane_prefix(
+                record,
+                _artifact_rows_for_record(record, "action_mismatch_audit.csv"),
+            )
+        )
+    return rows
+
+
 def _overlap_relation_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
@@ -655,6 +672,7 @@ def _anti_leakage_rows(records: list[dict[str, object]]) -> list[dict[str, objec
     artifact_rows = (
         _action_trace_rows(records)
         + _action_decision_rows(records)
+        + _action_mismatch_rows(records)
         + _overlap_relation_rows(records)
     )
     rows: list[dict[str, object]] = []
@@ -1250,13 +1268,22 @@ def _multi_problem_relation_policy_profile_row(
     overlap_rows: list[dict[str, object]],
 ) -> dict[str, object]:
     relation_utility_rows = [
-        row for row in utility_rows if row["lane_id"] == "relation_dispatch_rule"
+        row
+        for row in utility_rows
+        if row["lane_id"] == "relation_dispatch_rule"
+        and _is_overlap_applicable_problem_id(str(row["problem_id"]))
     ]
     relation_decisions = [
-        row for row in decision_rows if str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        row
+        for row in decision_rows
+        if str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        and _is_overlap_applicable_problem_id(str(row.get("problem_id", "")))
     ]
     relation_overlaps = [
-        row for row in overlap_rows if str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        row
+        for row in overlap_rows
+        if str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        and _is_overlap_applicable_problem_id(str(row.get("problem_id", "")))
     ]
     action_counts: dict[str, int] = {}
     reason_counts: dict[str, int] = {}
@@ -1315,6 +1342,41 @@ def _multi_problem_diagnosis_rows(
     problem_ids = sorted({str(row["problem_id"]) for row in utility_rows})
     if len(problem_ids) <= 1:
         return []
+    overlap_applicable_ids = [
+        problem_id
+        for problem_id in problem_ids
+        if _is_overlap_applicable_problem_id(problem_id)
+    ]
+    no_overlap_control_ids = [
+        problem_id
+        for problem_id in problem_ids
+        if not _is_overlap_applicable_problem_id(problem_id)
+    ]
+    overlap_applicable_id_set = set(overlap_applicable_ids)
+    scope_row = {
+        "run_id": RUN_ID,
+        "problem_id": "ALL",
+        "diagnostic_key": "multi_problem_claim_scope",
+        "status": "pass" if overlap_applicable_ids else "blocked",
+        "observed_value": (
+            f"overlap_applicable={','.join(overlap_applicable_ids)};"
+            f"no_overlap_controls={','.join(no_overlap_control_ids)}"
+        ),
+        "blocker_reason": "" if overlap_applicable_ids else "no_overlap_applicable_cases",
+        "next_step": "continue" if overlap_applicable_ids else "add_overlap_applicable_cases",
+    }
+    utility_rows = [
+        row
+        for row in utility_rows
+        if str(row["problem_id"]) in overlap_applicable_id_set
+    ]
+    negative_control_rows = [
+        row
+        for row in negative_control_rows
+        if str(row["problem_id"]) in overlap_applicable_id_set
+    ]
+    if not utility_rows:
+        return [scope_row]
 
     relation_rows = [
         row for row in utility_rows if row["lane_id"] == "relation_dispatch_rule"
@@ -1531,6 +1593,7 @@ def _multi_problem_diagnosis_rows(
     sota_allowed = not blockers
 
     return [
+        scope_row,
         {
             "run_id": RUN_ID,
             "problem_id": "ALL",
@@ -1889,6 +1952,13 @@ def _write_manifest(
         )
         or "not_applicable"
     )
+    multi_problem_claim_scope = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_claim_scope",
+        )
+        or "not_applicable"
+    )
     multi_problem_active_density = (
         _diagnostic_observed_value(
             diagnosis_rows,
@@ -1924,6 +1994,7 @@ def _write_manifest(
         "action_execution_plan.csv",
         "action_trace.csv",
         "action_decision.csv",
+        "action_mismatch_audit.csv",
         "overlap_relations.csv",
         "relation_join_audit.csv",
         "action_utility_audit.csv",
@@ -1958,6 +2029,7 @@ def _write_manifest(
             "Runtime boundary: final/reported/oracle values must not enter runtime dispatch.",
             "",
             "Key gates:",
+            f"- claim scope: {multi_problem_claim_scope}",
             f"- same-budget: {same_budget_status}",
             f"- pilot utility: {_diagnostic_observed_value(diagnosis_rows, 'pilot_utility_evidence')}",
             f"- multi-problem pilot utility: {multi_problem_pilot}",
@@ -2140,6 +2212,34 @@ def run_hcc_runtime_consumer_smoke(
             "action_family",
             "confidence",
             "trigger_reason",
+        ],
+    )
+    _write_csv(
+        output / "action_mismatch_audit.csv",
+        _action_mismatch_rows(records),
+        [
+            "run_id",
+            "lane_id",
+            "seed",
+            "problem_id",
+            "relation_id",
+            "group_left",
+            "group_right",
+            "candidate_scores",
+            "coordinate_score",
+            "isolate_conflicting_relation_score",
+            "reassign_repair_score",
+            "fallback_score",
+            "best_action_name",
+            "best_score",
+            "second_best_action_name",
+            "second_best_score",
+            "margin",
+            "final_action_name",
+            "final_canonical_action_name",
+            "confidence",
+            "trigger_reason",
+            "abstain_reason",
         ],
     )
     _write_csv(

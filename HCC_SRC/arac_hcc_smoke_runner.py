@@ -25,6 +25,7 @@ from src.arac.evidence.overlap_relation_builder import (
 from src.arac.policy.relation_policy import (
     ActionDecision as RelationActionDecision,
     RELATION_ACTION_ALIASES,
+    action_mismatch_audit_row,
 )
 from src.arac.policy.relation_policy import decide_actions_for_relations
 
@@ -109,6 +110,28 @@ ACTION_DECISION_FIELDS = [
     "action_family",
     "confidence",
     "trigger_reason",
+]
+ACTION_MISMATCH_AUDIT_FIELDS = [
+    "run_id",
+    "problem_id",
+    "relation_id",
+    "group_left",
+    "group_right",
+    "candidate_scores",
+    "coordinate_score",
+    "isolate_conflicting_relation_score",
+    "reassign_repair_score",
+    "fallback_score",
+    "best_action_name",
+    "best_score",
+    "second_best_action_name",
+    "second_best_score",
+    "margin",
+    "final_action_name",
+    "final_canonical_action_name",
+    "confidence",
+    "trigger_reason",
+    "abstain_reason",
 ]
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
 
@@ -623,6 +646,30 @@ def _write_action_decision_log(
             writer.writerow(_action_decision_row(run_id, relation, action))
 
 
+def _write_action_mismatch_audit_log(
+    path: Path,
+    run_id: str,
+    relations: list[OverlapRelation],
+    actions: list[RelationActionDecision] | None = None,
+) -> None:
+    if actions is not None and len(relations) != len(actions):
+        raise ValueError("relations and actions must have the same length")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=ACTION_MISMATCH_AUDIT_FIELDS)
+        writer.writeheader()
+        if actions is None:
+            for relation in relations:
+                row = action_mismatch_audit_row(relation)
+                row["run_id"] = run_id
+                writer.writerow(row)
+            return
+        for relation, action in zip(relations, actions, strict=True):
+            row = action_mismatch_audit_row(relation, final_action=action)
+            row["run_id"] = run_id
+            writer.writerow(row)
+
+
 def _read_csv_rows(path: Path) -> list[dict[str, str]]:
     if not path.exists():
         return []
@@ -634,6 +681,14 @@ def _write_raw_action_decision_rows(path: Path, rows: list[dict[str, str]]) -> N
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=ACTION_DECISION_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _write_raw_action_mismatch_rows(path: Path, rows: list[dict[str, str]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=ACTION_MISMATCH_AUDIT_FIELDS)
         writer.writeheader()
         writer.writerows(rows)
 
@@ -887,6 +942,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             relations,
             action_decisions,
         )
+        _write_action_mismatch_audit_log(
+            case_artifact_path(output_path, problem_id, "action_mismatch_audit.csv"),
+            config.run_id,
+            relations,
+            action_decisions,
+        )
+        _write_action_mismatch_audit_log(
+            output_path / "action_mismatch_audit.csv",
+            config.run_id,
+            relations,
+            action_decisions,
+        )
     print(f"{problem_id} overlap relations extracted: {len(relations)}")
     return fun.fitness_record, time.time() - time_start, action_trace_rows
 
@@ -943,7 +1010,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
         output_data = {}
         function_trace_rows: list[dict[str, str]] = []
         function_action_decision_rows: list[dict[str, str]] = []
+        function_action_mismatch_rows: list[dict[str, str]] = []
         _remove_if_exists(output_path / "action_decision.csv")
+        _remove_if_exists(output_path / "action_mismatch_audit.csv")
         for fun_id in args.ids:
             algorithm = f"{fun_name}_{fun_id}"
             output_data[algorithm] = []
@@ -963,12 +1032,26 @@ def main(argv: list[str] | None = None) -> list[Path]:
                         case_artifact_path(output_path, problem_id, "action_decision.csv")
                     )
                 )
+                function_action_mismatch_rows.extend(
+                    _read_csv_rows(
+                        case_artifact_path(
+                            output_path,
+                            problem_id,
+                            "action_mismatch_audit.csv",
+                        )
+                    )
+                )
             print(f"{algorithm} average time: {elapsed}")
         _write_action_trace(output_path / "action_trace.csv", function_trace_rows)
         if config.enable_relation_dispatch:
             _write_raw_action_decision_rows(
                 output_path / "action_decision.csv",
                 function_action_decision_rows,
+            )
+        if function_action_mismatch_rows:
+            _write_raw_action_mismatch_rows(
+                output_path / "action_mismatch_audit.csv",
+                function_action_mismatch_rows,
             )
         evaluation_record(output_data, str(output_path) + "/", record_FEs_list=(args.max_fes,))
         plot_evaluation_curve(output_data, str(output_path) + "/", font_size=12, log_scale=True)
