@@ -496,3 +496,39 @@ def test_decide_actions_for_relations_preserves_order_and_logs_counts(caplog) ->
         "relation policy action counts: "
         "coordinate=1, isolate_conflicting_relation=1, reassign_repair=1, fallback=1"
     ) in caplog.text
+
+
+def test_decide_actions_for_relations_uses_dense_prefix_coordinate_mode() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.6,
+            rank_stability=0.4,
+            fallback_margin_proxy=0.8,
+        ),
+        make_relation(
+            relation_id="O0_1_2",
+            shared_var_support_ratio=0.25,
+            delta_ratio_gap=0.8,
+            rank_stability=0.4,
+            fallback_margin_proxy=0.8,
+        ),
+        make_relation(
+            relation_id="O0_2_3",
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.8,
+            rank_stability=0.4,
+            fallback_margin_proxy=0.8,
+        ),
+    ]
+
+    decisions = decide_actions_for_relations(relations)
+
+    assert [decision.relation_action_name for decision in decisions] == [
+        "fallback",
+        "coordinate",
+        "coordinate",
+    ]
+    assert decisions[1].trigger_reason == "dense_prefix_coordinate_mode"
+    assert decisions[2].trigger_reason == "dense_prefix_coordinate_mode"

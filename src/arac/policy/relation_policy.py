@@ -15,6 +15,8 @@ MIN_BUDGET_REMAINING_RATIO = 0.05
 MIN_FALLBACK_MARGIN_PROXY = 0.20
 MIN_ACTIVE_REBIND_SUPPORT_RATIO = 0.05
 MAX_ACTIVE_REBIND_SUPPORT_RATIO = 0.20
+DENSE_PREFIX_COORDINATE_SUPPORT_THRESHOLD = 0.24
+DENSE_PREFIX_COORDINATE_SUPPORT_MAX = 0.30
 HIGH_FALLBACK_MARGIN_THRESHOLD = 0.95
 ACTION_MARGIN_THRESHOLD = 0.05
 FALLBACK_SCORE_DISCOUNT = 0.10
@@ -282,6 +284,21 @@ def decide_actions_for_relations(
     relations: list[OverlapRelation],
 ) -> list[ActionDecision]:
     decisions = [decide_action(relation) for relation in relations]
+    dense_prefix_seen = False
+    for index, relation in enumerate(relations):
+        dense_prefix_seen = dense_prefix_seen or (
+            relation.shared_var_support_ratio
+            >= DENSE_PREFIX_COORDINATE_SUPPORT_THRESHOLD
+            and relation.shared_var_support_ratio <= DENSE_PREFIX_COORDINATE_SUPPORT_MAX
+        )
+        if dense_prefix_seen:
+            decisions[index] = _decision(
+                relation,
+                "coordinate",
+                "coordinate",
+                max(decisions[index].confidence, relation.fallback_margin_proxy),
+                "dense_prefix_coordinate_mode",
+            )
     counts = {action_name: 0 for action_name in ACTION_NAMES}
     for decision in decisions:
         counts[decision.relation_action_name] += 1
