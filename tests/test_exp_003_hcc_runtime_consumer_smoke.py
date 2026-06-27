@@ -95,9 +95,17 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
             )
             (request.output_dir / "E2_overlap_relations.csv").write_text(
                 "relation_id,problem_id,outer_iter,group_left,group_right,shared_vars,"
-                "overlap_strength,delta_signal,rank_signal,budget_remaining_ratio\n"
-                "O0_0_1,E2,0,0,1,7,1.000000,0.100000,0.900000,1.000000\n"
-                "O0_1_2,E2,0,1,2,9,1.000000,0.100000,0.900000,1.000000\n",
+                "overlap_strength,delta_signal,rank_signal,budget_remaining_ratio,"
+                "previous_delta,current_delta,delta_abs_gap,delta_signed_gap,"
+                "delta_ratio_gap,both_positive,one_side_zero,rank_gap,rank_stability,"
+                "shared_var_count,shared_var_support_ratio,feature_coverage,"
+                "fallback_margin_proxy\n"
+                "O0_0_1,E2,0,0,1,7,1.000000,0.100000,0.900000,1.000000,"
+                "1.000000,1.100000,0.100000,0.100000,0.090909,1,0,"
+                "0.000000,0.900000,1,0.050000,1.000000,0.900000\n"
+                "O0_1_2,E2,0,1,2,9,1.000000,0.100000,0.900000,1.000000,"
+                "1.100000,1.200000,0.100000,0.100000,0.083333,1,0,"
+                "0.000000,0.900000,1,0.050000,1.000000,0.900000\n",
                 encoding="utf-8",
             )
         else:
@@ -222,6 +230,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     overlap_rows = _read_csv(output / "overlap_relations.csv")
     assert {row["relation_id"] for row in decision_rows} == {"O0_0_1", "O0_1_2"}
     assert {row["relation_id"] for row in overlap_rows} == {"O0_0_1", "O0_1_2"}
+    assert overlap_rows[0]["fallback_margin_proxy"] == "0.900000"
+    assert overlap_rows[0]["feature_coverage"] == "1.000000"
 
     join_rows = _read_csv(output / "relation_join_audit.csv")
     assert all(row["audit_status"] == "pass" for row in join_rows)
@@ -269,6 +279,9 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert diagnosis_by_key["relation_dispatch_utility"]["status"] == "blocked"
     assert diagnosis_by_key["relation_dispatch_utility"]["observed_value"] == "0/3"
     assert diagnosis_by_key["shuffled_negative_control"]["status"] == "blocked"
+    assert diagnosis_by_key["negative_control_action_mix"]["status"] == "blocked"
+    assert "relation_dispatch_rule=" in diagnosis_by_key["negative_control_action_mix"]["observed_value"]
+    assert "shuffled_relation_dispatch=" in diagnosis_by_key["negative_control_action_mix"]["observed_value"]
     assert diagnosis_by_key["sota_escalation_allowed"]["observed_value"] == "0"
     assert diagnosis_by_key["sota_escalation_allowed"]["next_step"] == (
         "diagnose_policy_evidence_before_sota"

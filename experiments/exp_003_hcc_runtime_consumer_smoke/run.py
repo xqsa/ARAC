@@ -566,6 +566,33 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else float("nan")
 
 
+def _parse_action_mix(value: object) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for part in str(value).split(";"):
+        if not part or "=" not in part:
+            continue
+        action, count = part.rsplit("=", 1)
+        counts[action] = counts.get(action, 0) + int(count)
+    return counts
+
+
+def _format_action_counts(counts: dict[str, int]) -> str:
+    return ";".join(f"{action}={counts[action]}" for action in sorted(counts))
+
+
+def _aggregate_lane_action_mix(
+    utility_rows: list[dict[str, object]],
+    lane_id: str,
+) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in utility_rows:
+        if row["lane_id"] != lane_id:
+            continue
+        for action, count in _parse_action_mix(row.get("action_mix", "")).items():
+            counts[action] = counts.get(action, 0) + count
+    return counts
+
+
 def _result_by_seed_and_lane(
     records: list[dict[str, object]],
 ) -> dict[tuple[int, str], HccAobExecutionResult]:
@@ -641,6 +668,15 @@ def _policy_evidence_diagnosis_rows(
     if not negative_control_pass:
         blockers.append("negative_control_failed")
     sota_allowed = not blockers
+    rule_mix = _aggregate_lane_action_mix(utility_rows, "relation_dispatch_rule")
+    shuffled_mix = _aggregate_lane_action_mix(
+        utility_rows,
+        "shuffled_relation_dispatch",
+    )
+    shuffled_fallbackized_isolate = min(
+        rule_mix.get("isolate_conflicting_relation", 0),
+        shuffled_mix.get("conservative_no_action", 0),
+    )
 
     return [
         {
@@ -696,6 +732,30 @@ def _policy_evidence_diagnosis_rows(
                 "continue"
                 if negative_control_pass
                 else "diagnose_policy_evidence_before_sota"
+            ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": PROBLEM_ID,
+            "diagnostic_key": "negative_control_action_mix",
+            "status": "pass" if negative_control_pass else "blocked",
+            "observed_value": (
+                "relation_dispatch_rule="
+                f"{_format_action_counts(rule_mix)}|"
+                "shuffled_relation_dispatch="
+                f"{_format_action_counts(shuffled_mix)}"
+            ),
+            "blocker_reason": ""
+            if negative_control_pass
+            else (
+                f"{negative_control.get('diagnostic', 'negative_control_failed')};"
+                "rule_isolate_to_shuffled_fallback="
+                f"{shuffled_fallbackized_isolate}"
+            ),
+            "next_step": (
+                "continue"
+                if negative_control_pass
+                else "inspect_rule_vs_shuffled_action_mix"
             ),
         },
         {
@@ -878,6 +938,19 @@ def run_hcc_runtime_consumer_smoke(
             "delta_signal",
             "rank_signal",
             "budget_remaining_ratio",
+            "previous_delta",
+            "current_delta",
+            "delta_abs_gap",
+            "delta_signed_gap",
+            "delta_ratio_gap",
+            "both_positive",
+            "one_side_zero",
+            "rank_gap",
+            "rank_stability",
+            "shared_var_count",
+            "shared_var_support_ratio",
+            "feature_coverage",
+            "fallback_margin_proxy",
         ],
     )
     _write_csv(
