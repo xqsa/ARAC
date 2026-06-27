@@ -242,9 +242,16 @@ def _with_lane_prefix(
     ]
 
 
-def _format_action_mix(rows: list[dict[str, str]], fallback_action: str) -> str:
+def _format_action_mix(
+    rows: list[dict[str, str]],
+    fallback_action: str,
+    *,
+    optimizer_consumed_only: bool = False,
+) -> str:
     counts: dict[str, int] = {}
     for row in rows:
+        if optimizer_consumed_only and row.get("optimizer_consumed") != "1":
+            continue
         action = row.get("canonical_action_name") or row.get("selected_action_name") or ""
         if not action:
             continue
@@ -496,6 +503,11 @@ def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "action_mix": _format_action_mix(
                     _trace_rows_for_record(record),
                     lane.selected_action_name,
+                ),
+                "optimizer_consumed_action_mix": _format_action_mix(
+                    _trace_rows_for_record(record),
+                    lane.selected_action_name,
+                    optimizer_consumed_only=True,
                 ),
                 "runtime_connected_claim_allowed": int(
                     result.fresh_optimizer_execution
@@ -752,7 +764,9 @@ def _parse_action_mix(value: object) -> dict[str, int]:
 
 
 def _has_active_relation_action(row: dict[str, object]) -> bool:
-    counts = _parse_action_mix(row.get("action_mix", ""))
+    counts = _parse_action_mix(
+        row.get("optimizer_consumed_action_mix") or row.get("action_mix", "")
+    )
     return any(
         action != "conservative_no_action" and count > 0
         for action, count in counts.items()
@@ -2551,6 +2565,7 @@ def run_hcc_runtime_consumer_smoke(
             "relative_gain_vs_fallback",
             "utility_label",
             "action_mix",
+            "optimizer_consumed_action_mix",
             "runtime_connected_claim_allowed",
             "backend_semantics_changed",
             "claim_allowed",

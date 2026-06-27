@@ -394,6 +394,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "relative_gain_vs_fallback",
         "utility_label",
         "action_mix",
+        "optimizer_consumed_action_mix",
         "claim_allowed",
         "claim_blockers",
     }.issubset(utility_rows[0])
@@ -1305,3 +1306,17 @@ def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> No
         "abstain_reasons=candidate_margin_below_threshold=1"
     )
     assert row["blocker_reason"] == "action_mismatch_or_abstain_detected"
+
+
+def test_backend_semantics_expectation_uses_optimizer_consumed_action_mix() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _expects_backend_semantics,
+    )
+
+    row = {
+        "lane_id": "relation_dispatch_rule",
+        "action_mix": "allow_beneficial_coordination=1;conservative_no_action=24",
+        "optimizer_consumed_action_mix": "conservative_no_action=24",
+    }
+
+    assert _expects_backend_semantics(row) is False

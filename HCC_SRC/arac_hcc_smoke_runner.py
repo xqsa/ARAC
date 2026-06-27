@@ -622,6 +622,36 @@ def apply_and_guard_action_to_relation(
     )
     if guarded_action is action:
         return action, adjusted_values, action_value_delta_norm
+    if _canonical_relation_action_name(action) not in {
+        "conservative_no_action",
+        "allow_beneficial_coordination",
+    }:
+        coordinate_action = RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name="coordinate",
+            action_family="coordinate",
+            confidence=action.confidence,
+            trigger_reason="action_value_delta_guard_demoted_to_coordinate",
+        )
+        coordinate_values = apply_action_to_relation(
+            relation=relation,
+            action=coordinate_action,
+            previous_values=previous_values,
+            current_values=current_values,
+            previous_delta=previous_delta,
+            current_delta=current_delta,
+        )
+        coordinate_delta_norm = (
+            0.0
+            if coordinate_values is None or current_values is None
+            else float(np.linalg.norm(coordinate_values - current_values))
+        )
+        if guard_relation_action_by_value_delta(
+            relation,
+            coordinate_action,
+            coordinate_delta_norm,
+        ) is coordinate_action:
+            return coordinate_action, coordinate_values, coordinate_delta_norm
     adjusted_values = apply_action_to_relation(
         relation=relation,
         action=guarded_action,

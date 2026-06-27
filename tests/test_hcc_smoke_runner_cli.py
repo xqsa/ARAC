@@ -829,6 +829,47 @@ def test_apply_and_guard_relation_action_recomputes_guarded_fallback_delta() -> 
     assert action_value_delta_norm == 10.0
 
 
+def test_apply_and_guard_demotes_guarded_isolate_to_coordinate() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O1_0_1",
+        problem_id="E2",
+        outer_iter=1,
+        group_left=0,
+        group_right=1,
+        shared_vars=(2,),
+        overlap_strength=1.0,
+        delta_signal=0.1,
+        rank_signal=0.9,
+        budget_remaining_ratio=0.8,
+    )
+    isolate = runner.RelationActionDecision(
+        relation_id="O1_0_1",
+        action_name="isolate_conflicting_relation",
+        action_family="isolate",
+        confidence=0.95,
+        trigger_reason="conflict",
+    )
+
+    action, adjusted_values, action_value_delta_norm = (
+        runner.apply_and_guard_action_to_relation(
+            relation=relation,
+            action=isolate,
+            previous_values=np.array([2.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+        )
+    )
+
+    assert action.relation_action_name == "coordinate"
+    assert action.canonical_action_name == "allow_beneficial_coordination"
+    assert action.trigger_reason == "action_value_delta_guard_demoted_to_coordinate"
+    assert adjusted_values is not None
+    assert adjusted_values.tolist() == pytest.approx([1.3])
+    assert action_value_delta_norm == pytest.approx(1.3)
+
+
 def test_relation_dispatch_is_applied_before_next_group_objective(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
