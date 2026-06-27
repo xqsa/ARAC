@@ -558,7 +558,14 @@ def _anti_leakage_rows(records: list[dict[str, object]]) -> list[dict[str, objec
     return rows
 
 
-def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+def _claim_gate_rows(
+    records: list[dict[str, object]],
+    utility_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    utility_by_case = {
+        (row["problem_id"], row["lane_id"], row["seed"]): row
+        for row in utility_rows
+    }
     rows: list[dict[str, object]] = []
     for record in records:
         lane = record["lane"]
@@ -570,6 +577,7 @@ def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]
         assert isinstance(decision, ActionDecision)
         assert isinstance(ledger, SameBudgetLedger)
         assert isinstance(result, HccAobExecutionResult)
+        utility_row = utility_by_case[(result.problem_id, lane.lane_id, result.seed)]
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -579,9 +587,13 @@ def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "selected_action_name": lane.selected_action_name,
                 "optimizer_consumed": int(plan.optimizer_consumed),
                 "same_budget_violation": int(ledger.violation),
+                "runtime_connected_claim_allowed": int(record["claim_allowed"]),
+                "runtime_claim_blockers": record["claim_blockers"],
+                "utility_claim_allowed": utility_row["claim_allowed"],
+                "utility_claim_blockers": utility_row["claim_blockers"],
                 "performance_claim_allowed": 0,
-                "claim_allowed": int(record["claim_allowed"]),
-                "claim_blockers": record["claim_blockers"],
+                "claim_allowed": utility_row["claim_allowed"],
+                "claim_blockers": utility_row["claim_blockers"],
             }
         )
     return rows
@@ -1304,7 +1316,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "claim_gate.csv",
-        _claim_gate_rows(records),
+        _claim_gate_rows(records, utility_rows),
         [
             "run_id",
             "lane_id",
@@ -1313,6 +1325,10 @@ def run_hcc_runtime_consumer_smoke(
             "selected_action_name",
             "optimizer_consumed",
             "same_budget_violation",
+            "runtime_connected_claim_allowed",
+            "runtime_claim_blockers",
+            "utility_claim_allowed",
+            "utility_claim_blockers",
             "performance_claim_allowed",
             "claim_allowed",
             "claim_blockers",

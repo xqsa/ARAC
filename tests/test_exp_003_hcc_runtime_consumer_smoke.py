@@ -321,6 +321,11 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     claim_rows = _read_csv(output / "claim_gate.csv")
     assert all(row["performance_claim_allowed"] == "0" for row in claim_rows)
     assert all(row["same_budget_violation"] == "0" for row in claim_rows)
+    claim_by_lane = {row["lane_id"]: row for row in claim_rows}
+    assert claim_by_lane["relation_dispatch_rule"]["runtime_connected_claim_allowed"] == "1"
+    assert claim_by_lane["relation_dispatch_rule"]["utility_claim_allowed"] == "0"
+    assert claim_by_lane["relation_dispatch_rule"]["claim_allowed"] == "0"
+    assert "utility_not_meaningful_win" in claim_by_lane["relation_dispatch_rule"]["claim_blockers"]
 
     requests.clear()
     multi_output = run_hcc_runtime_consumer_smoke(
