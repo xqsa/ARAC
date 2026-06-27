@@ -422,6 +422,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "lost_cases=2;mean_lost_gain=-0.008264;"
         "actions=allow_beneficial_coordination=2;repair_shared_variable_binding=2"
     )
+    action_outcome = aggregate_by_key["multi_problem_action_outcome_profile"]
+    assert action_outcome["status"] == "blocked"
+    assert action_outcome["observed_value"] == (
+        "wins=|losses=allow_beneficial_coordination=2;"
+        "repair_shared_variable_binding=2|ties="
+    )
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["observed_value"] == (
         "win_count=0/2"
     )

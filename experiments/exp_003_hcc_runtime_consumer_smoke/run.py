@@ -789,6 +789,24 @@ def _aggregate_lane_action_mix(
     return counts
 
 
+def _action_mix_for_gain_bucket(
+    rows: list[dict[str, object]],
+    bucket: str,
+) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        gain = float(row["relative_gain_vs_fallback"])
+        if (
+            (bucket == "win" and gain <= 0.0)
+            or (bucket == "loss" and gain >= 0.0)
+            or (bucket == "tie" and gain != 0.0)
+        ):
+            continue
+        for action, count in _parse_action_mix(row.get("action_mix", "")).items():
+            counts[action] = counts.get(action, 0) + count
+    return counts
+
+
 def _result_by_problem_seed_and_lane(
     records: list[dict[str, object]],
 ) -> dict[tuple[str, int, str], HccAobExecutionResult]:
@@ -1278,6 +1296,11 @@ def _multi_problem_diagnosis_rows(
     relation_lost_mean_gain = _mean(
         [float(row["relative_gain_vs_fallback"]) for row in relation_lost_rows]
     )
+    relation_outcome_action_mix = {
+        "wins": _action_mix_for_gain_bucket(relation_rows, "win"),
+        "losses": _action_mix_for_gain_bucket(relation_rows, "loss"),
+        "ties": _action_mix_for_gain_bucket(relation_rows, "tie"),
+    }
     positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
     mean_gain = _mean(relation_gains)
     active_relation_rows = [
@@ -1486,6 +1509,23 @@ def _multi_problem_diagnosis_rows(
             ),
             "next_step": (
                 "inspect_lost_case_action_mix" if relation_lost_rows else "continue"
+            ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_action_outcome_profile",
+            "status": "blocked" if relation_lost_rows else "pass",
+            "observed_value": (
+                f"wins={_format_action_counts(relation_outcome_action_mix['wins'])}|"
+                f"losses={_format_action_counts(relation_outcome_action_mix['losses'])}|"
+                f"ties={_format_action_counts(relation_outcome_action_mix['ties'])}"
+            ),
+            "blocker_reason": (
+                "relation_dispatch_lost_cases" if relation_lost_rows else ""
+            ),
+            "next_step": (
+                "inspect_action_outcome_profile" if relation_lost_rows else "continue"
             ),
         },
         {
