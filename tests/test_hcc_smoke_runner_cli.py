@@ -835,6 +835,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
 ) -> None:
     runner = _load_runner_module()
     bases_seen_by_combine: list[np.ndarray] = []
+    policy_batch_sizes: list[int] = []
     optimize_calls = {"count": 0}
 
     class FakeFunction:
@@ -903,18 +904,24 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
         lambda fun_id: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
     )
     monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
-    monkeypatch.setattr(
-        runner,
-        "decide_actions_for_relations",
-        lambda relations: [
+
+    def fake_decide_actions_for_relations(relations):
+        policy_batch_sizes.append(len(relations))
+        return [
             runner.RelationActionDecision(
-                relation_id=relations[0].relation_id,
+                relation_id=relation.relation_id,
                 action_name="reassign_repair",
                 action_family="reassign_repair",
                 confidence=1.0,
                 trigger_reason="test_forced_repair",
             )
-        ],
+            for relation in relations
+        ]
+
+    monkeypatch.setattr(
+        runner,
+        "decide_actions_for_relations",
+        fake_decide_actions_for_relations,
     )
 
     runner.run_problem(
@@ -931,6 +938,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
 
     assert bases_seen_by_combine
     assert bases_seen_by_combine[0][1] == 100.0
+    assert policy_batch_sizes[:2] == [1, 2]
 
 
 def test_run_problem_caps_aob_fitness_record_at_max_fes(

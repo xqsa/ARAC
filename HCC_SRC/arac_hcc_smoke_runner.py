@@ -837,6 +837,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         sub_num = len(grouping_result)
         sub_fes = math.ceil((config.max_fes - current_fes) / sub_num)
         fitness_delta_list: list[float] = []
+        current_outer_relations: list[OverlapRelation] = []
         optimized_any_group = False
         for index, dims in enumerate(grouping_result):
             population_size = calculate_cmaes_population_size(len(dims))
@@ -903,7 +904,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         group_right=index,
                         budget_remaining_ratio=iteration_budget_remaining_ratio,
                     )
-                    rule_action = decide_actions_for_relations([relation])[0]
+                    relation_policy_context = current_outer_relations + [relation]
+                    rule_action = decide_actions_for_relations(relation_policy_context)[-1]
                     shuffled_source_action = previous_rule_relation_action
                     if config.relation_policy_mode == "shuffled":
                         previous_rule_relation_action, _, _ = (
@@ -935,6 +937,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     canonical_action_name = _canonical_relation_action_name(action)
+                    current_outer_relations.append(relation)
                     relations.append(relation)
                     action_decisions.append(action)
                     action_trace_rows.append(
