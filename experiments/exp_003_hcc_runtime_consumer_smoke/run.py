@@ -844,6 +844,12 @@ def _policy_evidence_diagnosis_rows_for_problem(
         blockers.append("negative_control_failed")
     if not relation_gating_pass:
         blockers.append("fixed_coordinate_baseline_not_beaten")
+    pilot_utility_pass = (
+        not budget_violations
+        and relation_directional_pass
+        and relation_catastrophic == 0
+        and negative_control_pass
+    )
     sota_allowed = not blockers
     rule_mix = _aggregate_lane_action_mix(utility_rows, "relation_dispatch_rule")
     shuffled_mix = _aggregate_lane_action_mix(
@@ -897,6 +903,24 @@ def _policy_evidence_diagnosis_rows_for_problem(
             else "relation_dispatch_not_directionally_positive",
             "next_step": "continue"
             if relation_directional_pass
+            else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": problem_id,
+            "diagnostic_key": "pilot_utility_evidence",
+            "status": "pass" if pilot_utility_pass else "blocked",
+            "observed_value": (
+                f"directional={relation_positive}/{len(relation_rows)};"
+                f"mean_gain={relation_mean_gain:.6f};"
+                f"negative_control={int(negative_control_pass)};"
+                f"catastrophic={relation_catastrophic}/{len(relation_rows)}"
+            ),
+            "blocker_reason": ""
+            if pilot_utility_pass
+            else "pilot_utility_evidence_not_established",
+            "next_step": "continue_to_multi_problem_protocol"
+            if pilot_utility_pass
             else "diagnose_policy_evidence_before_sota",
         },
         {
@@ -1151,6 +1175,9 @@ def _multi_problem_diagnosis_rows(
     catastrophic = sum(
         1 for row in relation_rows if row["utility_label"] == "catastrophic_loss"
     )
+    relation_meaningful = sum(
+        1 for row in relation_rows if row["utility_label"] == "meaningful_win"
+    )
     budget_violations = sum(
         1 for row in utility_rows if str(row["same_budget_violation"]) == "1"
     )
@@ -1174,6 +1201,8 @@ def _multi_problem_diagnosis_rows(
         blockers.append("same_budget_violation")
     if positive_cases != len(relation_rows) or mean_gain <= 0.0:
         blockers.append("multi_problem_not_directionally_positive")
+    if relation_meaningful != len(relation_rows):
+        blockers.append("relation_dispatch_not_meaningful_win")
     if catastrophic:
         blockers.append("catastrophic_loss")
     if negative_failures:
@@ -1189,6 +1218,12 @@ def _multi_problem_diagnosis_rows(
         bool(active_relation_rows)
         and active_positive_cases == len(active_relation_rows)
         and active_mean_gain > 0.0
+    )
+    pilot_utility_pass = (
+        not budget_violations
+        and directional_pass
+        and catastrophic == 0
+        and negative_control_pass
     )
     sota_allowed = not blockers
 
@@ -1221,6 +1256,24 @@ def _multi_problem_diagnosis_rows(
             if active_directional_pass
             else "active_relation_dispatch_not_directionally_positive",
             "next_step": "continue" if active_directional_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_pilot_utility_evidence",
+            "status": "pass" if pilot_utility_pass else "blocked",
+            "observed_value": (
+                f"directional={positive_cases}/{len(relation_rows)};"
+                f"mean_gain={mean_gain:.6f};"
+                f"negative_control={negative_pass_count}/{len(negative_control_rows)};"
+                f"catastrophic={catastrophic}/{len(relation_rows)}"
+            ),
+            "blocker_reason": ""
+            if pilot_utility_pass
+            else "multi_problem_pilot_utility_evidence_not_established",
+            "next_step": "continue_to_sota_protocol"
+            if pilot_utility_pass
+            else "diagnose_policy_evidence_before_sota",
         },
         {
             "run_id": RUN_ID,

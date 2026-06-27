@@ -499,3 +499,113 @@ def test_multi_problem_semantics_audit_allows_fallback_only_relation_dispatch() 
     assert by_key["multi_problem_active_relation_dispatch_mean_gain"]["observed_value"] == (
         "active_cases=1;positive_cases=1/1;mean_gain=0.010000"
     )
+
+
+def test_pilot_utility_evidence_is_separate_from_sota_claim_gate() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _policy_evidence_diagnosis_rows_for_problem,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": "E2",
+            "seed": "1",
+            "lane_id": "fallback",
+            "final_error": "100.000000",
+            "relative_gain_vs_fallback": "0.000000",
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "action_mix": "conservative_no_action=1",
+        },
+        {
+            "problem_id": "E2",
+            "seed": "1",
+            "lane_id": "fixed_coordinate",
+            "final_error": "99.995000",
+            "relative_gain_vs_fallback": "0.000050",
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "action_mix": "allow_beneficial_coordination=1",
+        },
+        {
+            "problem_id": "E2",
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "final_error": "99.990000",
+            "relative_gain_vs_fallback": "0.000100",
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "action_mix": "allow_beneficial_coordination=1;conservative_no_action=2",
+        },
+    ]
+    negative_control = {
+        "negative_control_pass": "1",
+        "diagnostic": "shuffled_control_not_stably_better",
+    }
+
+    rows = _policy_evidence_diagnosis_rows_for_problem(
+        "E2",
+        utility_rows,
+        negative_control,
+    )
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    assert by_key["pilot_utility_evidence"]["status"] == "pass"
+    assert by_key["pilot_utility_evidence"]["observed_value"] == (
+        "directional=1/1;mean_gain=0.000100;negative_control=1;catastrophic=0/1"
+    )
+    assert by_key["sota_escalation_allowed"]["status"] == "blocked"
+    assert by_key["sota_escalation_allowed"]["blocker_reason"] == (
+        "relation_dispatch_not_meaningful_win"
+    )
+
+
+def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_diagnosis_rows,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+            "relative_gain_vs_fallback": gain,
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "backend_semantics_changed": changed,
+            "action_mix": action_mix,
+        }
+        for problem_id, lane_id, final_error, gain, changed, action_mix in [
+            ("E2", "fallback", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("E2", "fixed_repair", 99.995, "0.000050", "1", "repair_shared_variable_binding=1"),
+            ("E2", "fixed_coordinate", 99.995, "0.000050", "1", "allow_beneficial_coordination=1"),
+            ("E2", "relation_dispatch_rule", 99.990, "0.000100", "1", "allow_beneficial_coordination=1"),
+            ("S2", "fallback", 200.0, "0.000000", "0", "conservative_no_action=1"),
+            ("S2", "fixed_repair", 199.990, "0.000050", "1", "repair_shared_variable_binding=1"),
+            ("S2", "fixed_coordinate", 199.990, "0.000050", "1", "allow_beneficial_coordination=1"),
+            ("S2", "relation_dispatch_rule", 199.980, "0.000100", "1", "allow_beneficial_coordination=1"),
+        ]
+    ]
+    negative_rows = [
+        {
+            "problem_id": problem_id,
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        }
+        for problem_id in ("E2", "S2")
+    ]
+
+    rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows)
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    assert by_key["multi_problem_pilot_utility_evidence"]["status"] == "pass"
+    assert by_key["multi_problem_pilot_utility_evidence"]["observed_value"] == (
+        "directional=2/2;mean_gain=0.000100;negative_control=2/2;catastrophic=0/2"
+    )
+    assert by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
+    assert by_key["multi_problem_sota_escalation_allowed"]["blocker_reason"] == (
+        "relation_dispatch_not_meaningful_win"
+    )
