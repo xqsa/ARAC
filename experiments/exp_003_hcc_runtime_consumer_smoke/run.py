@@ -1655,6 +1655,13 @@ def _write_manifest(
         )
         or "not_applicable"
     )
+    multi_problem_relation_policy_profile = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_relation_policy_profile",
+        )
+        or "not_applicable"
+    )
     artifacts = [
         "our_result_by_case.csv",
         "same_budget_ledger.csv",
@@ -1700,6 +1707,7 @@ def _write_manifest(
             f"- multi-problem active density: {multi_problem_active_density}",
             f"- fixed repair baseline: {multi_problem_fixed_repair}",
             f"- fixed coordinate baseline: {multi_problem_fixed_coordinate}",
+            f"- multi-problem relation policy profile: {multi_problem_relation_policy_profile}",
             f"- SOTA escalation: {_sota_claim_allowed(diagnosis_rows)}",
             "",
             "Artifacts:",

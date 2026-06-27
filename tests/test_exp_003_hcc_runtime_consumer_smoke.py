@@ -470,6 +470,10 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "- fixed coordinate baseline: "
         "win_count=2/2;mean_gain=0.068702;lost_case_ids="
     ) in multi_manifest
+    assert (
+        "- multi-problem relation policy profile: "
+        "relations=4;active=4;active_density=1.000000"
+    ) in multi_manifest
     multi_ledger = _read_csv(multi_output / "same_budget_ledger.csv")
     assert {row["same_budget_group_id"] for row in multi_ledger} == {
         "E1_seed1_2000fe",
