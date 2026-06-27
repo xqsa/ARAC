@@ -105,14 +105,19 @@ def _decision(lane: LaneConfig) -> ActionDecision:
     )
 
 
-def _same_budget_group_id(seed: int) -> str:
-    return f"{PROBLEM_ID}_seed{seed}_{MAX_FES}fe"
+def _same_budget_group_id(problem_id: str, seed: int) -> str:
+    return f"{problem_id}_seed{seed}_{MAX_FES}fe"
 
 
-def _runtime_payload(seed: int, lane_id: str, action_name: str) -> dict[str, object]:
+def _runtime_payload(
+    problem_id: str,
+    seed: int,
+    lane_id: str,
+    action_name: str,
+) -> dict[str, object]:
     payload = {
         "run_id": RUN_ID,
-        "problem_id": PROBLEM_ID,
+        "problem_id": problem_id,
         "seed": seed,
         "lane_id": lane_id,
         "selected_action_name": action_name,
@@ -220,7 +225,7 @@ def _relation_join_rows(records: list[dict[str, object]]) -> list[dict[str, obje
                 {
                     "run_id": RUN_ID,
                     "lane_id": lane.lane_id,
-                    "problem_id": PROBLEM_ID,
+                    "problem_id": result.problem_id,
                     "seed": result.seed,
                     "relation_id": relation_id,
                     "has_action_trace": int(has_trace),
@@ -252,67 +257,80 @@ def _records(
     hcc_root: Path,
     python_executable: str,
     seeds: tuple[int, ...],
+    problem_ids: tuple[str, ...],
 ) -> list[dict[str, object]]:
     records: list[dict[str, object]] = []
-    for seed in seeds:
-        for lane in LANES:
-            decision = _decision(lane)
-            plan = build_hcc_action_execution_plan(PROBLEM_ID, decision)
-            semantics = hcc_backend_semantics_for(
-                decision,
-                optimizer_consumed=plan.optimizer_consumed,
-            )
-            payload = _runtime_payload(seed, lane.lane_id, lane.selected_action_name)
-            lane_output = (output_dir / "_hcc_smoke" / f"seed_{seed}" / lane.lane_id).resolve()
-            result = execution_runner(
-                HccAobExecutionRequest(
-                    problem_id=PROBLEM_ID,
-                    seed=seed,
-                    max_fes=MAX_FES,
-                    output_dir=lane_output,
-                    hcc_root=hcc_root,
-                    python_executable=python_executable,
-                    timestamp=f"{RUN_ID}-seed{seed}-{lane.lane_id}",
-                    arac_action=lane.runner_action_name,
-                    enable_relation_dispatch=lane.relation_dispatch_enabled,
-                    relation_policy_mode=lane.relation_policy_mode,
+    for problem_id in problem_ids:
+        for seed in seeds:
+            for lane in LANES:
+                decision = _decision(lane)
+                plan = build_hcc_action_execution_plan(problem_id, decision)
+                semantics = hcc_backend_semantics_for(
+                    decision,
+                    optimizer_consumed=plan.optimizer_consumed,
                 )
-            )
-            ledger = _ledger_for_result(result)
-            allowed, blockers = claim_gate(
-                runtime_payload=payload,
-                decision=decision,
-                semantics_diff=semantics,
-                ledger=ledger,
-                utility_label="runtime_smoke_not_performance_claim",
-                negative_control_pass=not lane.negative_control,
-                optimizer_consumed=plan.optimizer_consumed,
-            )
-            records.append(
-                {
-                    "lane": lane,
-                    "lane_id": lane.lane_id,
-                    "decision": decision,
-                    "plan": plan,
-                    "semantics": semantics,
-                    "payload": payload,
-                    "ledger": ledger,
-                    "result": result,
-                    "claim_allowed": allowed,
-                    "claim_blockers": ";".join(blockers),
-                }
-            )
+                payload = _runtime_payload(
+                    problem_id,
+                    seed,
+                    lane.lane_id,
+                    lane.selected_action_name,
+                )
+                lane_output = (
+                    output_dir
+                    / "_hcc_smoke"
+                    / problem_id
+                    / f"seed_{seed}"
+                    / lane.lane_id
+                ).resolve()
+                result = execution_runner(
+                    HccAobExecutionRequest(
+                        problem_id=problem_id,
+                        seed=seed,
+                        max_fes=MAX_FES,
+                        output_dir=lane_output,
+                        hcc_root=hcc_root,
+                        python_executable=python_executable,
+                        timestamp=f"{RUN_ID}-{problem_id}-seed{seed}-{lane.lane_id}",
+                        arac_action=lane.runner_action_name,
+                        enable_relation_dispatch=lane.relation_dispatch_enabled,
+                        relation_policy_mode=lane.relation_policy_mode,
+                    )
+                )
+                ledger = _ledger_for_result(result)
+                allowed, blockers = claim_gate(
+                    runtime_payload=payload,
+                    decision=decision,
+                    semantics_diff=semantics,
+                    ledger=ledger,
+                    utility_label="runtime_smoke_not_performance_claim",
+                    negative_control_pass=not lane.negative_control,
+                    optimizer_consumed=plan.optimizer_consumed,
+                )
+                records.append(
+                    {
+                        "lane": lane,
+                        "lane_id": lane.lane_id,
+                        "decision": decision,
+                        "plan": plan,
+                        "semantics": semantics,
+                        "payload": payload,
+                        "ledger": ledger,
+                        "result": result,
+                        "claim_allowed": allowed,
+                        "claim_blockers": ";".join(blockers),
+                    }
+                )
     return records
 
 
 def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
-    fallback_by_seed: dict[int, HccAobExecutionResult] = {}
+    fallback_by_case: dict[tuple[str, int], HccAobExecutionResult] = {}
     for record in records:
         if record["lane_id"] != "fallback":
             continue
         result = record["result"]
         assert isinstance(result, HccAobExecutionResult)
-        fallback_by_seed[result.seed] = result
+        fallback_by_case[(result.problem_id, result.seed)] = result
     rows: list[dict[str, object]] = []
     for record in records:
         lane = record["lane"]
@@ -322,7 +340,7 @@ def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
         assert isinstance(lane, LaneConfig)
         assert isinstance(result, HccAobExecutionResult)
         assert isinstance(ledger, SameBudgetLedger)
-        fallback_result = fallback_by_seed[result.seed]
+        fallback_result = fallback_by_case[(result.problem_id, result.seed)]
         utility_label = classify_utility(fallback_result.final_error, result.final_error)
         blockers: list[str] = []
         if lane.lane_id == "fallback":
@@ -375,11 +393,13 @@ def _our_result_rows(
     utility_rows: list[dict[str, object]],
 ) -> list[dict[str, object]]:
     utility_claim_by_lane = {
-        (row["lane_id"], row["seed"]): row["claim_allowed"]
+        (row["problem_id"], row["lane_id"], row["seed"]): row["claim_allowed"]
         for row in utility_rows
     }
     runtime_claim_by_lane = {
-        (row["lane_id"], row["seed"]): row["runtime_connected_claim_allowed"]
+        (row["problem_id"], row["lane_id"], row["seed"]): row[
+            "runtime_connected_claim_allowed"
+        ]
         for row in utility_rows
     }
     rows: list[dict[str, object]] = []
@@ -407,9 +427,11 @@ def _our_result_rows(
                 "dispatch_scope": lane.dispatch_scope,
                 "relation_dispatch_enabled": int(lane.relation_dispatch_enabled),
                 "runtime_connected_claim_allowed": runtime_claim_by_lane[
-                    (lane.lane_id, result.seed)
+                    (result.problem_id, lane.lane_id, result.seed)
                 ],
-                "utility_claim_allowed": utility_claim_by_lane[(lane.lane_id, result.seed)],
+                "utility_claim_allowed": utility_claim_by_lane[
+                    (result.problem_id, lane.lane_id, result.seed)
+                ],
                 "performance_claim_allowed": 0,
             }
         )
@@ -427,7 +449,10 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "lane_id": record["lane_id"],
                 "problem_id": result.problem_id,
                 "seed": result.seed,
-                "same_budget_group_id": _same_budget_group_id(result.seed),
+                "same_budget_group_id": _same_budget_group_id(
+                    result.problem_id,
+                    result.seed,
+                ),
                 "phase_i_fe": PHASE_I_FE,
                 "phase_ii_fe": result.fe_used - PHASE_I_FE,
                 "total_fe": result.fe_used,
@@ -456,7 +481,7 @@ def _semantics_rows(records: list[dict[str, object]]) -> list[dict[str, object]]
             {
                 "run_id": RUN_ID,
                 "lane_id": record["lane_id"],
-                "problem_id": PROBLEM_ID,
+                "problem_id": result.problem_id,
                 "seed": result.seed,
                 "selected_action_name": lane.selected_action_name,
                 "variable_owner_changed": int(semantics.variable_owner_changed),
@@ -549,7 +574,7 @@ def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]
             {
                 "run_id": RUN_ID,
                 "lane_id": record["lane_id"],
-                "problem_id": PROBLEM_ID,
+                "problem_id": result.problem_id,
                 "seed": result.seed,
                 "selected_action_name": lane.selected_action_name,
                 "optimizer_consumed": int(plan.optimizer_consumed),
@@ -593,56 +618,76 @@ def _aggregate_lane_action_mix(
     return counts
 
 
-def _result_by_seed_and_lane(
+def _result_by_problem_seed_and_lane(
     records: list[dict[str, object]],
-) -> dict[tuple[int, str], HccAobExecutionResult]:
-    indexed: dict[tuple[int, str], HccAobExecutionResult] = {}
+) -> dict[tuple[str, int, str], HccAobExecutionResult]:
+    indexed: dict[tuple[str, int, str], HccAobExecutionResult] = {}
     for record in records:
         result = record["result"]
         assert isinstance(result, HccAobExecutionResult)
-        indexed[(result.seed, str(record["lane_id"]))] = result
+        indexed[(result.problem_id, result.seed, str(record["lane_id"]))] = result
     return indexed
 
 
 def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
-    indexed = _result_by_seed_and_lane(records)
-    seeds = sorted(seed for seed, lane_id in indexed if lane_id == "relation_dispatch_rule")
-    relation_errors = [
-        indexed[(seed, "relation_dispatch_rule")].final_error for seed in seeds
-    ]
-    shuffled_errors = [
-        indexed[(seed, "shuffled_relation_dispatch")].final_error for seed in seeds
-    ]
-    shuffled_win_count = sum(
-        1
-        for relation_error, shuffled_error in zip(relation_errors, shuffled_errors, strict=True)
-        if shuffled_error < relation_error
+    indexed = _result_by_problem_seed_and_lane(records)
+    problem_ids = sorted(
+        problem_id
+        for problem_id, _seed, lane_id in indexed
+        if lane_id == "relation_dispatch_rule"
     )
-    total = len(seeds)
-    stable_outperform = shuffled_win_count > total / 2
-    return [
-        {
-            "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
-            "seeds": ";".join(str(seed) for seed in seeds),
-            "relation_dispatch_mean_final_error": f"{_mean(relation_errors):.6e}",
-            "shuffled_mean_final_error": f"{_mean(shuffled_errors):.6e}",
-            "shuffled_win_count": shuffled_win_count,
-            "total_seeds": total,
-            "stable_outperform_detected": int(stable_outperform),
-            "negative_control_pass": int(not stable_outperform),
-            "diagnostic": (
-                "shuffled_control_stably_outperforms_relation_dispatch"
-                if stable_outperform
-                else "shuffled_control_not_stably_better"
-            ),
-        }
-    ]
+    rows: list[dict[str, object]] = []
+    for problem_id in sorted(set(problem_ids)):
+        seeds = sorted(
+            seed
+            for indexed_problem_id, seed, lane_id in indexed
+            if indexed_problem_id == problem_id
+            and lane_id == "relation_dispatch_rule"
+        )
+        relation_errors = [
+            indexed[(problem_id, seed, "relation_dispatch_rule")].final_error
+            for seed in seeds
+        ]
+        shuffled_errors = [
+            indexed[(problem_id, seed, "shuffled_relation_dispatch")].final_error
+            for seed in seeds
+        ]
+        shuffled_win_count = sum(
+            1
+            for relation_error, shuffled_error in zip(
+                relation_errors,
+                shuffled_errors,
+                strict=True,
+            )
+            if shuffled_error < relation_error
+        )
+        total = len(seeds)
+        stable_outperform = shuffled_win_count > total / 2
+        rows.append(
+            {
+                "run_id": RUN_ID,
+                "problem_id": problem_id,
+                "seeds": ";".join(str(seed) for seed in seeds),
+                "relation_dispatch_mean_final_error": f"{_mean(relation_errors):.6e}",
+                "shuffled_mean_final_error": f"{_mean(shuffled_errors):.6e}",
+                "shuffled_win_count": shuffled_win_count,
+                "total_seeds": total,
+                "stable_outperform_detected": int(stable_outperform),
+                "negative_control_pass": int(not stable_outperform),
+                "diagnostic": (
+                    "shuffled_control_stably_outperforms_relation_dispatch"
+                    if stable_outperform
+                    else "shuffled_control_not_stably_better"
+                ),
+            }
+        )
+    return rows
 
 
-def _policy_evidence_diagnosis_rows(
+def _policy_evidence_diagnosis_rows_for_problem(
+    problem_id: str,
     utility_rows: list[dict[str, object]],
-    negative_control_rows: list[dict[str, object]],
+    negative_control: dict[str, object],
 ) -> list[dict[str, object]]:
     relation_rows = [
         row for row in utility_rows if row["lane_id"] == "relation_dispatch_rule"
@@ -666,7 +711,6 @@ def _policy_evidence_diagnosis_rows(
         and relation_positive == len(relation_rows)
         and relation_mean_gain > 0.0
     )
-    negative_control = negative_control_rows[0] if negative_control_rows else {}
     negative_control_pass = str(negative_control.get("negative_control_pass", "0")) == "1"
     blockers: list[str] = []
     if budget_violations:
@@ -691,7 +735,7 @@ def _policy_evidence_diagnosis_rows(
     return [
         {
             "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
+            "problem_id": problem_id,
             "diagnostic_key": "same_budget_fe_status",
             "status": "blocked" if budget_violations else "pass",
             "observed_value": f"{budget_violations}/{len(utility_rows)}",
@@ -700,7 +744,7 @@ def _policy_evidence_diagnosis_rows(
         },
         {
             "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
+            "problem_id": problem_id,
             "diagnostic_key": "relation_dispatch_utility",
             "status": (
                 "pass" if relation_meaningful == len(relation_rows) else "blocked"
@@ -718,7 +762,7 @@ def _policy_evidence_diagnosis_rows(
         },
         {
             "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
+            "problem_id": problem_id,
             "diagnostic_key": "relation_dispatch_directional_utility",
             "status": "pass" if relation_directional_pass else "blocked",
             "observed_value": (
@@ -734,7 +778,7 @@ def _policy_evidence_diagnosis_rows(
         },
         {
             "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
+            "problem_id": problem_id,
             "diagnostic_key": "catastrophic_loss_gate",
             "status": "blocked" if relation_catastrophic else "pass",
             "observed_value": f"{relation_catastrophic}/{len(relation_rows)}",
@@ -747,7 +791,7 @@ def _policy_evidence_diagnosis_rows(
         },
         {
             "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
+            "problem_id": problem_id,
             "diagnostic_key": "shuffled_negative_control",
             "status": "pass" if negative_control_pass else "blocked",
             "observed_value": str(negative_control.get("negative_control_pass", "")),
@@ -762,7 +806,7 @@ def _policy_evidence_diagnosis_rows(
         },
         {
             "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
+            "problem_id": problem_id,
             "diagnostic_key": "negative_control_action_mix",
             "status": "pass" if negative_control_pass else "blocked",
             "observed_value": (
@@ -786,7 +830,7 @@ def _policy_evidence_diagnosis_rows(
         },
         {
             "run_id": RUN_ID,
-            "problem_id": PROBLEM_ID,
+            "problem_id": problem_id,
             "diagnostic_key": "sota_escalation_allowed",
             "status": "pass" if sota_allowed else "blocked",
             "observed_value": str(int(sota_allowed)),
@@ -798,6 +842,28 @@ def _policy_evidence_diagnosis_rows(
     ]
 
 
+def _policy_evidence_diagnosis_rows(
+    utility_rows: list[dict[str, object]],
+    negative_control_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    negative_by_problem = {
+        str(row["problem_id"]): row for row in negative_control_rows
+    }
+    rows: list[dict[str, object]] = []
+    for problem_id in sorted({str(row["problem_id"]) for row in utility_rows}):
+        problem_utility_rows = [
+            row for row in utility_rows if str(row["problem_id"]) == problem_id
+        ]
+        rows.extend(
+            _policy_evidence_diagnosis_rows_for_problem(
+                problem_id,
+                problem_utility_rows,
+                negative_by_problem.get(problem_id, {}),
+            )
+        )
+    return rows
+
+
 def run_hcc_runtime_consumer_smoke(
     output_dir: Path | str = Path("results/exp_003_hcc_runtime_consumer_smoke"),
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult] = (
@@ -806,6 +872,7 @@ def run_hcc_runtime_consumer_smoke(
     hcc_root: Path | str = DEFAULT_HCC_MAIN_ROOT,
     python_executable: str = sys.executable,
     seeds: tuple[int, ...] = DEFAULT_SEEDS,
+    problem_ids: tuple[str, ...] = (PROBLEM_ID,),
 ) -> Path:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -815,6 +882,7 @@ def run_hcc_runtime_consumer_smoke(
         hcc_root=Path(hcc_root),
         python_executable=python_executable,
         seeds=tuple(seeds),
+        problem_ids=tuple(problem_ids),
     )
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
@@ -1080,6 +1148,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--hcc-root", default=str(DEFAULT_HCC_MAIN_ROOT))
     parser.add_argument("--python-executable", default=sys.executable)
     parser.add_argument("--seeds", nargs="+", type=int, default=list(DEFAULT_SEEDS))
+    parser.add_argument("--problems", nargs="+", default=[PROBLEM_ID])
     return parser.parse_args(argv)
 
 
@@ -1090,6 +1159,7 @@ def main(argv: list[str] | None = None) -> Path:
         hcc_root=Path(args.hcc_root),
         python_executable=str(args.python_executable),
         seeds=tuple(args.seeds),
+        problem_ids=tuple(str(problem).upper() for problem in args.problems),
     )
 
 

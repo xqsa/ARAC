@@ -47,6 +47,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
 
     def fake_runner(request: HccAobExecutionRequest) -> HccAobExecutionResult:
         requests.append(request)
+        problem_id = request.problem_id
         lane_id = request.output_dir.name
         trace_path = request.output_dir / "action_trace.csv"
         trace_path.parent.mkdir(parents=True, exist_ok=True)
@@ -73,37 +74,37 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "overlap_size,previous_delta,current_delta,owner_selected,"
                 "semantic_surface,state_mutated,downstream_consumed,"
                 "downstream_consumption_scope,optimizer_consumed\n"
-                f"E2,{request.seed},0,1,{first_action},O0_0_1,0,1,abc123,"
+                f"{problem_id},{request.seed},0,1,{first_action},O0_0_1,0,1,abc123,"
                 f"{first_family},{first_action},{policy_source},"
                 "1,1.000000e+00,1.100000e+00,clipped_consensus_blend,"
                 "coordination_clipped_consensus_blend,1,1,same_outer_iteration,1\n"
-                f"E2,{request.seed},0,2,repair_shared_variable_binding,O0_1_2,1,2,def456,"
+                f"{problem_id},{request.seed},0,2,repair_shared_variable_binding,O0_1_2,1,2,def456,"
                 f"reassign_repair,repair_shared_variable_binding,{policy_source},"
                 "1,1.100000e+00,1.200000e+00,current,"
                 "shared_variable_owner_rebinding,1,0,same_outer_iteration,0\n",
                 encoding="utf-8",
             )
-            (request.output_dir / "E2_action_decision.csv").write_text(
+            (request.output_dir / f"{problem_id}_action_decision.csv").write_text(
                 "run_id,problem_id,relation_id,group_left,group_right,shared_vars_count,"
                 "overlap_strength,delta_signal,rank_signal,relation_action_name,"
                 "canonical_action_name,action_family,confidence,trigger_reason\n"
-                "run,E2,O0_0_1,0,1,1,1.000000,0.100000,0.900000,coordinate,"
+                f"run,{problem_id},O0_0_1,0,1,1,1.000000,0.100000,0.900000,coordinate,"
                 "allow_beneficial_coordination,coordinate,0.800000,stable\n"
-                "run,E2,O0_1_2,1,2,1,1.000000,0.100000,0.900000,reassign_repair,"
+                f"run,{problem_id},O0_1_2,1,2,1,1.000000,0.100000,0.900000,reassign_repair,"
                 "repair_shared_variable_binding,reassign_repair,0.700000,repair\n",
                 encoding="utf-8",
             )
-            (request.output_dir / "E2_overlap_relations.csv").write_text(
+            (request.output_dir / f"{problem_id}_overlap_relations.csv").write_text(
                 "relation_id,problem_id,outer_iter,group_left,group_right,shared_vars,"
                 "overlap_strength,delta_signal,rank_signal,budget_remaining_ratio,"
                 "previous_delta,current_delta,delta_abs_gap,delta_signed_gap,"
                 "delta_ratio_gap,both_positive,one_side_zero,rank_gap,rank_stability,"
                 "shared_var_count,shared_var_support_ratio,feature_coverage,"
                 "fallback_margin_proxy\n"
-                "O0_0_1,E2,0,0,1,7,1.000000,0.100000,0.900000,1.000000,"
+                f"O0_0_1,{problem_id},0,0,1,7,1.000000,0.100000,0.900000,1.000000,"
                 "1.000000,1.100000,0.100000,0.100000,0.090909,1,0,"
                 "0.000000,0.900000,1,0.050000,1.000000,0.900000\n"
-                "O0_1_2,E2,0,1,2,9,1.000000,0.100000,0.900000,1.000000,"
+                f"O0_1_2,{problem_id},0,1,2,9,1.000000,0.100000,0.900000,1.000000,"
                 "1.100000,1.200000,0.100000,0.100000,0.083333,1,0,"
                 "0.000000,0.900000,1,0.050000,1.000000,0.900000\n",
                 encoding="utf-8",
@@ -116,7 +117,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "overlap_size,previous_delta,current_delta,owner_selected,"
                 "semantic_surface,state_mutated,downstream_consumed,"
                 "downstream_consumption_scope,optimizer_consumed\n"
-                f"E2,{request.seed},0,1,{request.arac_action},O0_0_1,0,1,abc123,reassign_repair,"
+                f"{problem_id},{request.seed},0,1,{request.arac_action},O0_0_1,0,1,abc123,reassign_repair,"
                 f"{request.arac_action},legacy_single_action,"
                 "1,1.000000e+00,2.000000e+00,current,shared_variable_owner_rebinding,"
                 "1,1,same_outer_iteration,"
@@ -130,7 +131,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
             "shuffled_relation_dispatch": 119.0 + request.seed,
         }[lane_id]
         return HccAobExecutionResult(
-            problem_id=request.problem_id,
+            problem_id=problem_id,
             seed=request.seed,
             max_fes=request.max_fes,
             final_error=final_error,
@@ -320,3 +321,27 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     claim_rows = _read_csv(output / "claim_gate.csv")
     assert all(row["performance_claim_allowed"] == "0" for row in claim_rows)
     assert all(row["same_budget_violation"] == "0" for row in claim_rows)
+
+    requests.clear()
+    multi_output = run_hcc_runtime_consumer_smoke(
+        output_dir=tmp_path / "exp003-multi",
+        execution_runner=fake_runner,
+        python_executable="python",
+        seeds=(1,),
+        problem_ids=("E1", "E2"),
+    )
+
+    assert len(requests) == 8
+    assert {request.problem_id for request in requests} == {"E1", "E2"}
+    assert {request.seed for request in requests} == {1}
+    multi_utility = _read_csv(multi_output / "action_utility_audit.csv")
+    assert {row["problem_id"] for row in multi_utility} == {"E1", "E2"}
+    multi_negative = _read_csv(multi_output / "negative_control_comparison.csv")
+    assert {row["problem_id"] for row in multi_negative} == {"E1", "E2"}
+    multi_diagnosis = _read_csv(multi_output / "policy_evidence_diagnosis.csv")
+    assert {row["problem_id"] for row in multi_diagnosis} == {"E1", "E2"}
+    multi_ledger = _read_csv(multi_output / "same_budget_ledger.csv")
+    assert {row["same_budget_group_id"] for row in multi_ledger} == {
+        "E1_seed1_2000fe",
+        "E2_seed1_2000fe",
+    }
