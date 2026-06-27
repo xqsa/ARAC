@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from arac.backends.hcc import (
     HccAobExecutionRequest,
     HccAobExecutionResult,
@@ -50,6 +52,36 @@ def test_hcc_aob_smoke_command_passes_arac_action(tmp_path: Path) -> None:
     assert command.argv[action_arg_index + 1] == "repair_shared_variable_binding"
 
 
+def test_hcc_aob_smoke_command_passes_relation_dispatch_options(tmp_path: Path) -> None:
+    request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=1,
+        max_fes=2_000,
+        output_dir=tmp_path / "hcc-smoke",
+        enable_relation_dispatch=True,
+        relation_policy_mode="rule",
+    )
+
+    command = build_hcc_aob_smoke_command(request)
+
+    assert "--enable-relation-dispatch" in command.argv
+    policy_arg_index = command.argv.index("--relation-policy")
+    assert command.argv[policy_arg_index + 1] == "rule"
+
+
+def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
+    request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=1,
+        max_fes=2_000,
+        output_dir=tmp_path / "hcc-smoke",
+        arac_action_file=tmp_path / "actions.csv",
+    )
+
+    with pytest.raises(ValueError, match="arac_action_file"):
+        build_hcc_aob_smoke_command(request)
+
+
 def test_hcc_execution_result_fields_are_offline_only() -> None:
     result = HccAobExecutionResult(
         problem_id="E1",
@@ -80,3 +112,25 @@ def test_hcc_execution_result_fields_are_offline_only() -> None:
     assert offline_row["fresh_optimizer_execution"] == "1"
     assert offline_row["action_trace_path"] == "results\\hcc-smoke\\action_trace.csv"
     assert offline_row["action_trace_rows"] == "3"
+    assert offline_row["same_budget_violation"] == "0"
+    assert offline_row["performance_claim_allowed"] == "0"
+
+
+def test_hcc_execution_result_marks_over_budget_not_performance_claimable() -> None:
+    result = HccAobExecutionResult(
+        problem_id="E2",
+        seed=1,
+        max_fes=2_000,
+        final_error=1.0,
+        fe_used=2_128,
+        time_seconds=0.5,
+        output_root=Path("results/hcc-smoke"),
+        fresh_optimizer_execution=True,
+        status="completed",
+        result_source="hcc_subprocess_smoke_execution",
+    )
+
+    offline_row = result.to_offline_row()
+
+    assert offline_row["same_budget_violation"] == "1"
+    assert offline_row["performance_claim_allowed"] == "0"

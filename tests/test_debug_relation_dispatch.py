@@ -29,7 +29,8 @@ def _write_action_decision(path: Path, rows: list[dict[str, str]]) -> None:
         "overlap_strength",
         "delta_signal",
         "rank_signal",
-        "action_name",
+        "relation_action_name",
+        "canonical_action_name",
         "action_family",
         "confidence",
         "trigger_reason",
@@ -59,28 +60,34 @@ def test_summarize_rows_counts_histograms_and_means() -> None:
         {
             "group_left": "0",
             "overlap_strength": "1.0",
-            "action_name": "coordinate",
+            "relation_action_name": "coordinate",
+            "canonical_action_name": "allow_beneficial_coordination",
         },
         {
             "group_left": "0",
             "overlap_strength": "3.0",
-            "action_name": "coordinate",
+            "relation_action_name": "coordinate",
+            "canonical_action_name": "allow_beneficial_coordination",
         },
         {
             "group_left": "1",
             "overlap_strength": "2.0",
-            "action_name": "fallback",
+            "relation_action_name": "fallback",
+            "canonical_action_name": "conservative_no_action",
         },
     ]
 
     summary = module.summarize_rows(rows)
 
     assert summary.total_relations == 3
-    assert summary.action_counts == {"coordinate": 2, "fallback": 1}
+    assert summary.action_counts == {
+        "allow_beneficial_coordination": 2,
+        "conservative_no_action": 1,
+    }
     assert summary.group_left_counts == {"0": 2, "1": 1}
     assert summary.overlap_strength_mean_by_action == {
-        "coordinate": 2.0,
-        "fallback": 2.0,
+        "allow_beneficial_coordination": 2.0,
+        "conservative_no_action": 2.0,
     }
 
 

@@ -49,11 +49,20 @@ def test_aob_pilot_writes_action_execution_plan_audit(tmp_path: Path) -> None:
         'blocker_reason',
         'runtime_dispatch_allowed',
     } <= set(rows[0])
-    active_blockers = [
-        row for row in rows if row['selected_action_name'] != 'conservative_no_action'
+    relation_runtime_actions = {
+        'allow_beneficial_coordination',
+        'isolate_conflicting_relation',
+        'repair_shared_variable_binding',
+    }
+    relation_runtime_rows = [
+        row for row in rows if row['selected_action_name'] in relation_runtime_actions
     ]
-    assert all(row['optimizer_consumed'] == '0' for row in active_blockers)
-    assert all(row['blocker_reason'] == 'no_hcc_runtime_consumer_yet' for row in active_blockers)
+    assert all(row['optimizer_consumed'] == '1' for row in relation_runtime_rows)
+    assert all(row['blocker_reason'] == '' for row in relation_runtime_rows)
+
+    blocked_rows = [row for row in rows if row['selected_action_name'] == 'protect_high_margin_group']
+    assert all(row['optimizer_consumed'] == '0' for row in blocked_rows)
+    assert all(row['blocker_reason'] == 'no_hcc_runtime_consumer_yet' for row in blocked_rows)
 
 
 def test_aob_pilot_uses_hcc_source_topology_not_synthetic_proxy(tmp_path: Path) -> None:

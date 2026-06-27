@@ -6,6 +6,11 @@ import sys
 from pathlib import Path
 from typing import Callable
 
+ARAC_REPO_ROOT = Path(__file__).resolve().parents[2]
+ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
+if str(ARAC_SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(ARAC_SRC_ROOT))
+
 from arac.audit import claim_gate
 from arac.backends.hcc import (
     DEFAULT_HCC_MAIN_ROOT,
@@ -21,11 +26,13 @@ from arac.policy import ActionDecision
 from arac.action_space import ActionFamily
 
 RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
+DISPATCH_SCOPE = "fixed_lane_runtime_consumer_smoke"
 PROBLEM_ID = "E2"
 SEED = 1
 MAX_FES = 2_000
 PHASE_I_FE = 0
 PHASE_II_FE = MAX_FES
+SAME_BUDGET_GROUP_ID = f"{PROBLEM_ID}_seed{SEED}_{MAX_FES}fe"
 LANES = (
     ("fallback", ActionFamily.FALLBACK, "conservative_no_action"),
     ("repair_runtime_consumer", ActionFamily.REASSIGN_REPAIR, "repair_shared_variable_binding"),
@@ -65,6 +72,15 @@ def _runtime_payload(lane_id: str, action_name: str) -> dict[str, object]:
     return payload
 
 
+def _ledger_for_result(result: HccAobExecutionResult) -> SameBudgetLedger:
+    return SameBudgetLedger(
+        phase_i_fe=PHASE_I_FE,
+        phase_ii_fe=result.fe_used - PHASE_I_FE,
+        budget_limit=MAX_FES,
+        fresh_execution=result.fresh_optimizer_execution,
+    )
+
+
 def _records(
     output_dir: Path,
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult],
@@ -72,12 +88,6 @@ def _records(
     python_executable: str,
 ) -> list[dict[str, object]]:
     records: list[dict[str, object]] = []
-    ledger = SameBudgetLedger(
-        phase_i_fe=PHASE_I_FE,
-        phase_ii_fe=PHASE_II_FE,
-        budget_limit=MAX_FES,
-        fresh_execution=True,
-    )
     for lane_id, action_family, action_name in LANES:
         decision = _decision(action_family, action_name)
         plan = build_hcc_action_execution_plan(PROBLEM_ID, decision)
@@ -99,16 +109,12 @@ def _records(
                 arac_action=action_name,
             )
         )
+        ledger = _ledger_for_result(result)
         allowed, blockers = claim_gate(
             runtime_payload=payload,
             decision=decision,
             semantics_diff=semantics,
-            ledger=SameBudgetLedger(
-                phase_i_fe=PHASE_I_FE,
-                phase_ii_fe=result.fe_used,
-                budget_limit=result.fe_used,
-                fresh_execution=result.fresh_optimizer_execution,
-            ),
+            ledger=ledger,
             utility_label="runtime_smoke_not_performance_claim",
             negative_control_pass=True,
             optimizer_consumed=plan.optimizer_consumed,
@@ -150,6 +156,9 @@ def _our_result_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "fresh_optimizer_execution": int(result.fresh_optimizer_execution),
                 "action_trace_rows": result.action_trace_rows,
                 "runtime_dispatch_allowed": 1,
+                "dispatch_scope": DISPATCH_SCOPE,
+                "relation_dispatch_enabled": 0,
+                "performance_claim_allowed": 0,
             }
         )
     return rows
@@ -166,11 +175,15 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "lane_id": record["lane_id"],
                 "problem_id": result.problem_id,
                 "seed": result.seed,
+                "same_budget_group_id": SAME_BUDGET_GROUP_ID,
                 "phase_i_fe": PHASE_I_FE,
-                "phase_ii_fe": result.fe_used,
+                "phase_ii_fe": result.fe_used - PHASE_I_FE,
                 "total_fe": result.fe_used,
-                "budget_limit": result.fe_used,
-                "same_budget_violation": 0,
+                "budget_limit": MAX_FES,
+                "configured_budget_limit": MAX_FES,
+                "actual_fe_used": result.fe_used,
+                "budget_limit_source": "experiment_config",
+                "same_budget_violation": int(result.fe_used > MAX_FES),
                 "fresh_execution": int(result.fresh_optimizer_execution),
             }
         )
@@ -247,7 +260,9 @@ def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]
     for record in records:
         decision = record["decision"]
         plan = record["plan"]
+        ledger = record["ledger"]
         assert isinstance(decision, ActionDecision)
+        assert isinstance(ledger, SameBudgetLedger)
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -256,6 +271,8 @@ def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "seed": SEED,
                 "selected_action_name": decision.action_name,
                 "optimizer_consumed": int(plan.optimizer_consumed),
+                "same_budget_violation": int(ledger.violation),
+                "performance_claim_allowed": 0,
                 "claim_allowed": int(record["claim_allowed"]),
                 "claim_blockers": record["claim_blockers"],
             }
@@ -295,6 +312,9 @@ def run_hcc_runtime_consumer_smoke(
             "fresh_optimizer_execution",
             "action_trace_rows",
             "runtime_dispatch_allowed",
+            "dispatch_scope",
+            "relation_dispatch_enabled",
+            "performance_claim_allowed",
         ],
     )
     _write_csv(
@@ -305,10 +325,14 @@ def run_hcc_runtime_consumer_smoke(
             "lane_id",
             "problem_id",
             "seed",
+            "same_budget_group_id",
             "phase_i_fe",
             "phase_ii_fe",
             "total_fe",
             "budget_limit",
+            "configured_budget_limit",
+            "actual_fe_used",
+            "budget_limit_source",
             "same_budget_violation",
             "fresh_execution",
         ],
@@ -359,11 +383,21 @@ def run_hcc_runtime_consumer_smoke(
             "outer_iter",
             "group_index",
             "selected_action_name",
+            "relation_id",
+            "group_left",
+            "group_right",
+            "shared_vars_hash",
+            "action_family",
+            "canonical_action_name",
+            "relation_policy_source",
             "overlap_size",
             "previous_delta",
             "current_delta",
             "owner_selected",
             "semantic_surface",
+            "state_mutated",
+            "downstream_consumed",
+            "downstream_consumption_scope",
             "optimizer_consumed",
         ],
     )
@@ -388,6 +422,8 @@ def run_hcc_runtime_consumer_smoke(
             "seed",
             "selected_action_name",
             "optimizer_consumed",
+            "same_budget_violation",
+            "performance_claim_allowed",
             "claim_allowed",
             "claim_blockers",
         ],

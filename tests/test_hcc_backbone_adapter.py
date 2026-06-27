@@ -77,9 +77,9 @@ def test_hcc_backend_semantics_maps_action_families_to_hcc_effects() -> None:
         ),
     }
 
-    assert hcc_backend_semantics_for(
-        decisions["isolate"], optimizer_consumed=True
-    ).relation_handling_changed
+    isolate_diff = hcc_backend_semantics_for(decisions["isolate"], optimizer_consumed=True)
+    assert isolate_diff.relation_handling_changed
+    assert not isolate_diff.variable_owner_changed
     assert hcc_backend_semantics_for(
         decisions["protect"], optimizer_consumed=True
     ).budget_allocation_changed

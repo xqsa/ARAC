@@ -89,8 +89,8 @@ def test_claim_gate_blocks_active_action_without_backend_semantics() -> None:
 
 def test_claim_gate_blocks_active_action_without_hcc_runtime_consumption() -> None:
     decision = ActionDecision(
-        ActionFamily.ISOLATE,
-        "isolate_conflicting_relation",
+        ActionFamily.PROTECT,
+        "protect_high_margin_group",
         "allow",
         "test",
         0.4,
@@ -100,7 +100,7 @@ def test_claim_gate_blocks_active_action_without_hcc_runtime_consumption() -> No
     allowed, blockers = claim_gate(
         runtime_payload={"overlap_degree": 0.9, "direction_disagreement": 0.1},
         decision=decision,
-        semantics_diff=BackendSemanticsDiff(relation_handling_changed=True),
+        semantics_diff=BackendSemanticsDiff(budget_allocation_changed=True),
         ledger=SameBudgetLedger(
             phase_i_fe=100,
             phase_ii_fe=100,

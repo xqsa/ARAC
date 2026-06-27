@@ -20,6 +20,19 @@ class OverlapRelation:
     delta_signal: float
     rank_signal: float
     budget_remaining_ratio: float
+    previous_delta: float = 0.0
+    current_delta: float = 0.0
+    delta_abs_gap: float = 0.0
+    delta_signed_gap: float = 0.0
+    delta_ratio_gap: float = 0.0
+    both_positive: bool = False
+    one_side_zero: bool = False
+    rank_gap: float = 0.0
+    rank_stability: float = 0.0
+    shared_var_count: int = 0
+    shared_var_support_ratio: float = 0.0
+    feature_coverage: float = 0.0
+    fallback_margin_proxy: float = 1.0
 
 
 _ITERATION_KEYS = ("iterations", "outer_iterations", "trace_windows")
@@ -83,6 +96,20 @@ def build_overlap_relations(
         for group_left in range(pair_count):
             group_right = group_left + 1
             shared_vars = _shared_vars_for_pair(groups, overlap_groups, group_left, group_right)
+            previous_delta = _pair_value(deltas, group_left)
+            current_delta = _pair_value(deltas, group_right)
+            delta_signed_gap = current_delta - previous_delta
+            delta_abs_gap = abs(delta_signed_gap)
+            delta_ratio_gap = _delta_ratio_gap(previous_delta, current_delta)
+            rank_gap = _pair_abs_difference(ranks, group_left, group_right)
+            rank_stability = _rank_stability_proxy(ranks, group_left, group_right)
+            shared_var_count = len(shared_vars)
+            shared_var_support_ratio = _shared_var_support_ratio(
+                groups,
+                shared_vars,
+                group_left,
+                group_right,
+            )
             relations.append(
                 OverlapRelation(
                     relation_id=f"O{outer_iter}_{group_left}_{group_right}",
@@ -91,10 +118,35 @@ def build_overlap_relations(
                     group_left=group_left,
                     group_right=group_right,
                     shared_vars=shared_vars,
-                    overlap_strength=float(len(shared_vars)),
-                    delta_signal=_pair_abs_difference(deltas, group_left, group_right),
-                    rank_signal=_rank_stability_proxy(ranks, group_left, group_right),
+                    overlap_strength=float(shared_var_count),
+                    delta_signal=delta_abs_gap,
+                    rank_signal=rank_stability,
                     budget_remaining_ratio=budget_remaining_ratio,
+                    previous_delta=previous_delta,
+                    current_delta=current_delta,
+                    delta_abs_gap=delta_abs_gap,
+                    delta_signed_gap=delta_signed_gap,
+                    delta_ratio_gap=delta_ratio_gap,
+                    both_positive=previous_delta > 0.0 and current_delta > 0.0,
+                    one_side_zero=_one_side_zero(previous_delta, current_delta),
+                    rank_gap=rank_gap,
+                    rank_stability=rank_stability,
+                    shared_var_count=shared_var_count,
+                    shared_var_support_ratio=shared_var_support_ratio,
+                    feature_coverage=_feature_coverage(
+                        payload,
+                        groups,
+                        overlap_groups,
+                        deltas,
+                        ranks,
+                        group_left,
+                        group_right,
+                    ),
+                    fallback_margin_proxy=_fallback_margin_proxy(
+                        delta_ratio_gap,
+                        rank_stability,
+                        shared_var_support_ratio,
+                    ),
                 )
             )
 
@@ -233,11 +285,80 @@ def _pair_abs_difference(values: list[float], group_left: int, group_right: int)
     return abs(values[group_left] - values[group_right])
 
 
+def _pair_value(values: list[float], group_index: int) -> float:
+    if group_index >= len(values):
+        return 0.0
+    return values[group_index]
+
+
+def _delta_ratio_gap(previous_delta: float, current_delta: float) -> float:
+    denominator = max(abs(previous_delta), abs(current_delta))
+    if denominator <= 0.0:
+        return 0.0
+    return _clamp_ratio(abs(current_delta - previous_delta) / denominator)
+
+
+def _one_side_zero(previous_delta: float, current_delta: float) -> bool:
+    return (previous_delta <= 0.0 < current_delta) or (current_delta <= 0.0 < previous_delta)
+
+
 def _rank_stability_proxy(values: list[float], group_left: int, group_right: int) -> float:
     if group_right >= len(values):
         return 0.0
     denominator = max(len(values) - 1, max(values) - min(values), 1.0)
     return _clamp_ratio(1.0 - (abs(values[group_left] - values[group_right]) / denominator))
+
+
+def _shared_var_support_ratio(
+    groups: list[tuple[int, ...]],
+    shared_vars: tuple[int, ...],
+    group_left: int,
+    group_right: int,
+) -> float:
+    if group_right < len(groups):
+        denominator = min(len(groups[group_left]), len(groups[group_right]))
+        if denominator > 0:
+            return _clamp_ratio(len(shared_vars) / denominator)
+    return 1.0 if shared_vars else 0.0
+
+
+def _feature_coverage(
+    payload: dict,
+    groups: list[tuple[int, ...]],
+    overlap_groups: list[tuple[int, ...]],
+    deltas: list[float],
+    ranks: list[float],
+    group_left: int,
+    group_right: int,
+) -> float:
+    signals = 0
+    if group_right < len(groups) or group_left < len(overlap_groups):
+        signals += 1
+    if group_right < len(deltas):
+        signals += 1
+    if group_right < len(ranks):
+        signals += 1
+    if _has_budget_signal(payload):
+        signals += 1
+    return signals / 4
+
+
+def _has_budget_signal(payload: dict) -> bool:
+    if _first_present(payload, _BUDGET_RATIO_KEYS) is not None:
+        return True
+    return (
+        _first_present(payload, _FE_USED_KEYS) is not None
+        and _first_present(payload, _BUDGET_LIMIT_KEYS) is not None
+    )
+
+
+def _fallback_margin_proxy(
+    delta_ratio_gap: float,
+    rank_stability: float,
+    shared_var_support_ratio: float,
+) -> float:
+    instability = max(delta_ratio_gap, 1.0 - rank_stability)
+    return _clamp_ratio(1.0 - (instability * shared_var_support_ratio))
 
 
 def _budget_remaining_ratio(payload: dict) -> float:

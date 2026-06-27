@@ -46,7 +46,7 @@ def test_hcc_action_execution_plan_marks_repair_as_runtime_consumed() -> None:
     assert plan.runtime_dispatch_allowed is True
 
 
-def test_hcc_action_execution_plan_blocks_unwired_active_action() -> None:
+def test_hcc_action_execution_plan_marks_isolate_as_runtime_consumed() -> None:
     decision = ActionDecision(
         ActionFamily.ISOLATE,
         "isolate_conflicting_relation",
@@ -58,9 +58,29 @@ def test_hcc_action_execution_plan_blocks_unwired_active_action() -> None:
     plan = build_hcc_action_execution_plan("S6", decision)
 
     assert plan.selected_action_name == "isolate_conflicting_relation"
-    assert plan.backend_effect_kind == "relation_isolated_external_priority"
+    assert plan.backend_effect_kind == "shared_variable_value_selection"
+    assert plan.optimizer_consumed is True
+    assert plan.optimizer_consumed_parameters == {
+        "runtime_hook": "overlap_value_selection_rule"
+    }
+    assert plan.execution_mode == "hcc_relation_value_selection_consumed"
+    assert plan.blocker_reason == ""
+    assert plan.runtime_dispatch_allowed is True
+
+
+def test_hcc_action_execution_plan_blocks_unwired_active_action() -> None:
+    decision = ActionDecision(
+        ActionFamily.PROTECT,
+        "protect_high_margin_group",
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("S6", decision)
+
+    assert plan.selected_action_name == "protect_high_margin_group"
     assert plan.optimizer_consumed is False
-    assert plan.optimizer_consumed_parameters == {}
     assert plan.execution_mode == "audit_only_not_executed"
     assert plan.blocker_reason == "no_hcc_runtime_consumer_yet"
     assert plan.runtime_dispatch_allowed is False

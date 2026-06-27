@@ -144,6 +144,9 @@ class HccAobExecutionRequest:
     timestamp: str = "arac-hcc-smoke"
     config_name: str = "quick_smoke"
     arac_action: str = "conservative_no_action"
+    enable_relation_dispatch: bool = False
+    relation_policy_mode: str = "rule"
+    arac_action_file: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -180,6 +183,8 @@ class HccAobExecutionResult:
             "action_trace_path": "" if self.action_trace_path is None else str(self.action_trace_path),
             "action_trace_rows": str(self.action_trace_rows),
             "runtime_dispatch_allowed": "0",
+            "same_budget_violation": "1" if self.fe_used > self.max_fes else "0",
+            "performance_claim_allowed": "0",
         }
 
 
@@ -222,11 +227,11 @@ HCC_ACTION_EFFECTS = {
         "",
     ),
     "isolate_conflicting_relation": (
-        "relation_isolated_external_priority",
-        {},
-        "audit_only_not_executed",
-        False,
-        "no_hcc_runtime_consumer_yet",
+        "shared_variable_value_selection",
+        {"runtime_hook": "overlap_value_selection_rule"},
+        "hcc_relation_value_selection_consumed",
+        True,
+        "",
     ),
     "protect_high_margin_group": (
         "protect_resource_priority",
@@ -244,10 +249,10 @@ HCC_ACTION_EFFECTS = {
     ),
     "allow_beneficial_coordination": (
         "coordination_mode_switch",
-        {},
-        "audit_only_not_executed",
-        False,
-        "no_hcc_runtime_consumer_yet",
+        {"runtime_hook": "overlap_clipped_consensus_blend"},
+        "hcc_relation_runtime_consumed",
+        True,
+        "",
     ),
 }
 
@@ -409,8 +414,10 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError("max_fes must be positive")
     if request.seed < 0:
         raise ValueError("seed must be non-negative")
+    if request.arac_action_file is not None:
+        raise ValueError("arac_action_file is not supported by the HCC smoke runner yet")
 
-    argv = (
+    argv = [
         request.python_executable,
         str(ARAC_HCC_SMOKE_RUNNER),
         "--functions",
@@ -427,8 +434,12 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         request.timestamp,
         "--arac-action",
         request.arac_action,
-    )
-    return HccAobSmokeCommand(argv=argv, cwd=Path(request.hcc_root))
+    ]
+    if request.enable_relation_dispatch:
+        argv.append("--enable-relation-dispatch")
+    if request.relation_policy_mode:
+        argv.extend(("--relation-policy", request.relation_policy_mode))
+    return HccAobSmokeCommand(argv=tuple(argv), cwd=Path(request.hcc_root))
 
 
 def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecutionResult:
@@ -450,6 +461,9 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             timestamp=request.timestamp,
             config_name=request.config_name,
             arac_action=request.arac_action,
+            enable_relation_dispatch=request.enable_relation_dispatch,
+            relation_policy_mode=request.relation_policy_mode,
+            arac_action_file=request.arac_action_file,
         )
     )
     start = time.time()

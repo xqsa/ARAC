@@ -16,7 +16,8 @@ REQUIRED_COLUMNS = (
     "overlap_strength",
     "delta_signal",
     "rank_signal",
-    "action_name",
+    "relation_action_name",
+    "canonical_action_name",
     "action_family",
     "confidence",
     "trigger_reason",
@@ -46,7 +47,13 @@ def read_action_decision_rows(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         fieldnames = tuple(reader.fieldnames or ())
-        missing = [column for column in REQUIRED_COLUMNS if column not in fieldnames]
+        required_columns = REQUIRED_COLUMNS
+        if "canonical_action_name" not in fieldnames and "action_name" in fieldnames:
+            required_columns = tuple(
+                "action_name" if column in {"relation_action_name", "canonical_action_name"} else column
+                for column in REQUIRED_COLUMNS
+            )
+        missing = [column for column in required_columns if column not in fieldnames]
         if missing:
             raise ValueError(f"{path} is missing required columns: {', '.join(missing)}")
         return list(reader)
@@ -59,7 +66,7 @@ def summarize_rows(rows: list[dict[str, str]]) -> RelationDispatchSummary:
     overlap_counts: Counter[str] = Counter()
 
     for row in rows:
-        action_name = row["action_name"]
+        action_name = _action_name(row)
         group_left = row["group_left"]
         overlap_strength = _as_float(row["overlap_strength"])
         action_counts[action_name] += 1
@@ -104,7 +111,7 @@ def plot_action_frequency(summary: RelationDispatchSummary, output_path: Path) -
     fig, ax = plt.subplots(figsize=(8, 4.5))
     ax.bar(actions, counts, color="#4C78A8")
     ax.set_title("Relation Dispatch Action Frequency")
-    ax.set_xlabel("action_name")
+    ax.set_xlabel("canonical_action_name")
     ax.set_ylabel("count")
     ax.tick_params(axis="x", rotation=30)
     fig.tight_layout()
@@ -156,6 +163,10 @@ def _as_float(value: str) -> float:
         return float(value)
     except ValueError as exc:
         raise ValueError(f"expected numeric overlap_strength, got {value!r}") from exc
+
+
+def _action_name(row: dict[str, str]) -> str:
+    return row.get("canonical_action_name") or row.get("action_name") or ""
 
 
 def _group_left_sort_key(item: tuple[str, int]) -> tuple[int, int | str]:

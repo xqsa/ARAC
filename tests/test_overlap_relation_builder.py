@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from arac.evidence.overlap_relation_builder import build_overlap_relations
 
 
@@ -26,10 +28,24 @@ def test_build_overlap_relations_from_adjacent_groups() -> None:
     assert relations[0].shared_vars == (2,)
     assert relations[0].overlap_strength == 1.0
     assert relations[0].delta_signal == 2.5
+    assert relations[0].previous_delta == 10.0
+    assert relations[0].current_delta == 7.5
+    assert relations[0].delta_abs_gap == 2.5
+    assert relations[0].delta_signed_gap == -2.5
+    assert relations[0].delta_ratio_gap == 0.25
+    assert relations[0].both_positive is True
+    assert relations[0].one_side_zero is False
+    assert relations[0].shared_var_count == 1
+    assert relations[0].shared_var_support_ratio == pytest.approx(1 / 3)
+    assert relations[0].rank_gap == 1.0
+    assert relations[0].rank_stability == 0.5
     assert relations[0].rank_signal == 0.5
     assert relations[0].budget_remaining_ratio == 0.25
+    assert relations[0].feature_coverage == 1.0
+    assert 0.0 <= relations[0].fallback_margin_proxy <= 1.0
     assert relations[1].shared_vars == (4,)
     assert relations[1].delta_signal == 0.5
+    assert relations[1].delta_signed_gap == -0.5
     assert relations[1].rank_signal == 1.0
 
 
@@ -56,6 +72,15 @@ def test_build_overlap_relations_from_iteration_payloads_and_overlap_groups() ->
     assert relations[0].shared_vars == (10, 11)
     assert relations[0].overlap_strength == 2.0
     assert relations[0].delta_signal == 0.0
+    assert relations[0].previous_delta == 0.0
+    assert relations[0].current_delta == 0.0
+    assert relations[0].delta_abs_gap == 0.0
+    assert relations[0].delta_signed_gap == 0.0
+    assert relations[0].delta_ratio_gap == 0.0
+    assert relations[0].both_positive is False
+    assert relations[0].one_side_zero is False
+    assert relations[0].shared_var_count == 2
+    assert relations[0].feature_coverage < 1.0
     assert relations[0].rank_signal == 0.0
     assert relations[0].budget_remaining_ratio == 1.0
     assert relations[2].shared_vars == (13,)
