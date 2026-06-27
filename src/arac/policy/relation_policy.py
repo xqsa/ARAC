@@ -13,6 +13,7 @@ STABILITY_THRESHOLD = 0.75
 MIN_FEATURE_COVERAGE = 0.80
 MIN_BUDGET_REMAINING_RATIO = 0.05
 MIN_FALLBACK_MARGIN_PROXY = 0.20
+HIGH_FALLBACK_MARGIN_THRESHOLD = 0.95
 ACTION_NAMES = (
     "coordinate",
     "isolate_conflicting_relation",
@@ -68,6 +69,25 @@ def decide_action(relation: OverlapRelation) -> ActionDecision:
             "fallback",
             0.0,
             "insufficient_relation_policy_safety_margin",
+        )
+
+    if (
+        relation.both_positive
+        and signed_delta < 0.0
+        and delta_ratio_gap >= CONFLICT_THRESHOLD
+        and relation.fallback_margin_proxy >= HIGH_FALLBACK_MARGIN_THRESHOLD
+    ):
+        confidence = _mean(
+            _overlap_confidence(relation.overlap_strength),
+            relation.fallback_margin_proxy,
+            1.0 - relation.shared_var_support_ratio,
+        )
+        return _decision(
+            relation,
+            "coordinate",
+            "coordinate",
+            confidence,
+            "high_fallback_margin_supports_safe_coordination",
         )
 
     if signed_delta < 0.0 and delta_ratio_gap >= CONFLICT_THRESHOLD:
