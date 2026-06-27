@@ -231,7 +231,7 @@ def _with_lane_prefix(
     result = record["result"]
     assert isinstance(result, HccAobExecutionResult)
     return [
-        {"run_id": RUN_ID, "lane_id": record["lane_id"], "seed": result.seed, **row}
+        {**row, "run_id": RUN_ID, "lane_id": record["lane_id"], "seed": result.seed}
         for row in rows
     ]
 

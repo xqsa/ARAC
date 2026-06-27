@@ -14,6 +14,37 @@ def _read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def test_exp_003_normalizes_subprocess_run_id_in_relation_artifacts(tmp_path: Path) -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import RUN_ID, _with_lane_prefix
+
+    result = HccAobExecutionResult(
+        problem_id="E2",
+        seed=7,
+        max_fes=5000,
+        final_error=1.0,
+        fe_used=4999,
+        time_seconds=0.1,
+        output_root=tmp_path,
+        fresh_optimizer_execution=True,
+        status="ok",
+        result_source="test",
+    )
+
+    rows = _with_lane_prefix(
+        {"lane_id": "relation_dispatch_rule", "result": result},
+        [{"run_id": "subprocess-case-id", "relation_id": "O0_0_1"}],
+    )
+
+    assert rows == [
+        {
+            "run_id": RUN_ID,
+            "lane_id": "relation_dispatch_rule",
+            "seed": 7,
+            "relation_id": "O0_0_1",
+        }
+    ]
+
+
 def test_exp_003_cli_help_works_without_pythonpath() -> None:
     script_path = (
         Path(__file__).resolve().parents[1]
