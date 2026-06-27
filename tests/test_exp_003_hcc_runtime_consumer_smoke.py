@@ -405,6 +405,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "win_count=0/2"
     )
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["status"] == "blocked"
+    assert aggregate_by_key[
+        "multi_problem_active_relation_dispatch_mean_gain"
+    ]["observed_value"] == "active_cases=2;positive_cases=0/2;mean_gain=-0.008264"
+    assert aggregate_by_key[
+        "multi_problem_active_relation_dispatch_mean_gain"
+    ]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["observed_value"] == (
         "win_count=0/2;mean_gain=-0.506173"
     )
@@ -437,3 +443,58 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "E1_seed1_2000fe",
         "E2_seed1_2000fe",
     }
+
+
+def test_multi_problem_semantics_audit_allows_fallback_only_relation_dispatch() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_diagnosis_rows,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+            "relative_gain_vs_fallback": gain,
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "backend_semantics_changed": changed,
+            "action_mix": action_mix,
+        }
+        for problem_id, lane_id, final_error, gain, changed, action_mix in [
+            ("E1", "fallback", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("E1", "fixed_repair", 99.0, "0.010000", "1", "repair_shared_variable_binding=1"),
+            ("E1", "fixed_coordinate", 99.0, "0.010000", "1", "allow_beneficial_coordination=1"),
+            ("E1", "relation_dispatch_rule", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("E1", "shuffled_relation_dispatch", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("E2", "fallback", 100.0, "0.000000", "0", "conservative_no_action=1"),
+            ("E2", "fixed_repair", 99.0, "0.010000", "1", "repair_shared_variable_binding=1"),
+            ("E2", "fixed_coordinate", 99.0, "0.010000", "1", "allow_beneficial_coordination=1"),
+            ("E2", "relation_dispatch_rule", 99.0, "0.010000", "1", "allow_beneficial_coordination=1"),
+            ("E2", "shuffled_relation_dispatch", 99.0, "0.010000", "1", "allow_beneficial_coordination=1"),
+        ]
+    ]
+    negative_rows = [
+        {
+            "problem_id": "E1",
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        },
+        {
+            "problem_id": "E2",
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        },
+    ]
+
+    rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows)
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    assert by_key["multi_problem_backend_semantics_audit"]["observed_value"] == "changed=6/6"
+    assert by_key["multi_problem_backend_semantics_audit"]["status"] == "pass"
+    assert by_key["multi_problem_active_relation_dispatch_mean_gain"]["observed_value"] == (
+        "active_cases=1;positive_cases=1/1;mean_gain=0.010000"
+    )

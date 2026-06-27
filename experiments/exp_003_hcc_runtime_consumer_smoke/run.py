@@ -663,6 +663,21 @@ def _parse_action_mix(value: object) -> dict[str, int]:
     return counts
 
 
+def _has_active_relation_action(row: dict[str, object]) -> bool:
+    counts = _parse_action_mix(row.get("action_mix", ""))
+    return any(
+        action != "conservative_no_action" and count > 0
+        for action, count in counts.items()
+    )
+
+
+def _expects_backend_semantics(row: dict[str, object]) -> bool:
+    lane_id = row["lane_id"]
+    if lane_id in {"relation_dispatch_rule", "shuffled_relation_dispatch"}:
+        return _has_active_relation_action(row)
+    return lane_id != "fallback"
+
+
 def _format_action_counts(counts: dict[str, int]) -> str:
     return ";".join(f"{action}={counts[action]}" for action in sorted(counts))
 
@@ -1072,6 +1087,14 @@ def _multi_problem_diagnosis_rows(
     ]
     positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
     mean_gain = _mean(relation_gains)
+    active_relation_rows = [
+        row for row in relation_rows if _has_active_relation_action(row)
+    ]
+    active_relation_gains = [
+        float(row["relative_gain_vs_fallback"]) for row in active_relation_rows
+    ]
+    active_positive_cases = sum(1 for gain in active_relation_gains if gain > 0.0)
+    active_mean_gain = _mean(active_relation_gains)
     fixed_repair_by_case = {
         (str(row["problem_id"]), str(row["seed"])): float(row["final_error"])
         for row in utility_rows
@@ -1112,9 +1135,7 @@ def _multi_problem_diagnosis_rows(
         and fixed_coordinate_win_count == len(fixed_coordinate_gains)
         and fixed_coordinate_mean_gain > 0.0
     )
-    active_rows = [
-        row for row in utility_rows if row["lane_id"] != "fallback"
-    ]
+    active_rows = [row for row in utility_rows if _expects_backend_semantics(row)]
     backend_semantics_changed = sum(
         1 for row in active_rows if str(row["backend_semantics_changed"]) == "1"
     )
@@ -1158,6 +1179,11 @@ def _multi_problem_diagnosis_rows(
     if not backend_semantics_pass:
         blockers.append("backend_semantics_audit_failed")
     directional_pass = positive_cases == len(relation_rows) and mean_gain > 0.0
+    active_directional_pass = (
+        bool(active_relation_rows)
+        and active_positive_cases == len(active_relation_rows)
+        and active_mean_gain > 0.0
+    )
     sota_allowed = not blockers
 
     return [
@@ -1174,6 +1200,21 @@ def _multi_problem_diagnosis_rows(
             if directional_pass
             else "multi_problem_not_directionally_positive",
             "next_step": "continue" if directional_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_active_relation_dispatch_mean_gain",
+            "status": "pass" if active_directional_pass else "blocked",
+            "observed_value": (
+                f"active_cases={len(active_relation_rows)};"
+                f"positive_cases={active_positive_cases}/{len(active_relation_rows)};"
+                f"mean_gain={active_mean_gain:.6f}"
+            ),
+            "blocker_reason": ""
+            if active_directional_pass
+            else "active_relation_dispatch_not_directionally_positive",
+            "next_step": "continue" if active_directional_pass else "diagnose_policy_evidence_before_sota",
         },
         {
             "run_id": RUN_ID,
