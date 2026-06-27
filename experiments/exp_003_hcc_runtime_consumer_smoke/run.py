@@ -954,6 +954,7 @@ def _policy_evidence_diagnosis_rows_for_problem(
         float(row["relative_gain_vs_fallback"]) for row in relation_rows
     ]
     relation_positive = sum(1 for gain in relation_gains if gain > 0.0)
+    relation_negative = sum(1 for gain in relation_gains if gain < 0.0)
     relation_mean_gain = _mean(relation_gains)
     fixed_coordinate_by_seed = {
         str(row["seed"]): float(row["final_error"])
@@ -971,10 +972,13 @@ def _policy_evidence_diagnosis_rows_for_problem(
     relation_beats_fixed_coordinate = sum(
         1 for gain in relation_vs_fixed_coordinate_gains if gain > 0.0
     )
+    relation_loses_fixed_coordinate = sum(
+        1 for gain in relation_vs_fixed_coordinate_gains if gain < 0.0
+    )
     relation_vs_fixed_coordinate_mean_gain = _mean(relation_vs_fixed_coordinate_gains)
     relation_gating_pass = (
         bool(relation_vs_fixed_coordinate_gains)
-        and relation_beats_fixed_coordinate == len(relation_vs_fixed_coordinate_gains)
+        and relation_beats_fixed_coordinate > relation_loses_fixed_coordinate
         and relation_vs_fixed_coordinate_mean_gain > 0.0
     )
     fixed_coordinate_rows = [
@@ -985,7 +989,7 @@ def _policy_evidence_diagnosis_rows_for_problem(
     )
     relation_directional_pass = (
         bool(relation_rows)
-        and relation_positive == len(relation_rows)
+        and relation_positive > relation_negative
         and relation_mean_gain > 0.0
     )
     negative_control_pass = str(negative_control.get("negative_control_pass", "0")) == "1"

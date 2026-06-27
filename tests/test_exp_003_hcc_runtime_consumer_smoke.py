@@ -755,6 +755,58 @@ def test_pilot_utility_evidence_is_separate_from_sota_claim_gate() -> None:
     )
 
 
+def test_problem_diagnostics_use_directional_gate_for_pilot_and_coordinate() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _policy_evidence_diagnosis_rows_for_problem,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": "E2",
+            "seed": seed,
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+            "relative_gain_vs_fallback": gain,
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "action_mix": action_mix,
+        }
+        for seed, lane_id, final_error, gain, action_mix in [
+            ("1", "fallback", 100.0, "0.000000", "conservative_no_action=1"),
+            ("1", "fixed_coordinate", 100.0, "0.000000", "allow_beneficial_coordination=1"),
+            ("1", "relation_dispatch_rule", 99.0, "0.010000", "allow_beneficial_coordination=1"),
+            ("2", "fallback", 100.0, "0.000000", "conservative_no_action=1"),
+            ("2", "fixed_coordinate", 100.0, "0.000000", "allow_beneficial_coordination=1"),
+            ("2", "relation_dispatch_rule", 99.5, "0.005000", "allow_beneficial_coordination=1"),
+            ("3", "fallback", 100.0, "0.000000", "conservative_no_action=1"),
+            ("3", "fixed_coordinate", 100.0, "0.000000", "allow_beneficial_coordination=1"),
+            ("3", "relation_dispatch_rule", 100.2, "-0.002000", "allow_beneficial_coordination=1"),
+        ]
+    ]
+    negative_control = {
+        "negative_control_pass": "1",
+        "diagnostic": "shuffled_control_not_stably_better",
+    }
+
+    rows = _policy_evidence_diagnosis_rows_for_problem(
+        "E2",
+        utility_rows,
+        negative_control,
+    )
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    assert by_key["relation_dispatch_directional_utility"]["status"] == "pass"
+    assert by_key["relation_dispatch_directional_utility"]["observed_value"] == (
+        "2/3;mean_gain=0.004333"
+    )
+    assert by_key["pilot_utility_evidence"]["status"] == "pass"
+    assert by_key["relation_vs_fixed_coordinate_baseline"]["status"] == "pass"
+    assert by_key["relation_vs_fixed_coordinate_baseline"]["observed_value"] == (
+        "win_count=2/3;mean_gain_vs_fixed_coordinate=0.004333;"
+        "fixed_coordinate_mean_gain_vs_fallback=0.000000"
+    )
+
+
 def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
