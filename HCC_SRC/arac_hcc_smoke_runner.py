@@ -134,6 +134,7 @@ ACTION_MISMATCH_AUDIT_FIELDS = [
     "abstain_reason",
 ]
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
+COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 1.5
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
 
 
@@ -437,9 +438,15 @@ def guard_relation_action_by_value_delta(
     action: RelationActionDecision,
     action_value_delta_norm: float,
 ) -> RelationActionDecision:
+    canonical_action_name = _canonical_relation_action_name(action)
+    guard_threshold = (
+        COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD
+        if canonical_action_name == "allow_beneficial_coordination"
+        else ACTION_VALUE_DELTA_GUARD_THRESHOLD
+    )
     if (
-        _canonical_relation_action_name(action) == "conservative_no_action"
-        or action_value_delta_norm <= ACTION_VALUE_DELTA_GUARD_THRESHOLD
+        canonical_action_name == "conservative_no_action"
+        or action_value_delta_norm <= guard_threshold
     ):
         return action
     return RelationActionDecision(

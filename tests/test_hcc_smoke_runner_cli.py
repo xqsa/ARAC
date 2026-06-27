@@ -713,7 +713,7 @@ def test_write_action_mismatch_audit_log_overwrites_previous_rows(tmp_path: Path
     assert "coordinate=" in rows[0]["candidate_scores"]
 
 
-def test_relation_action_value_delta_guard_fallbacks_large_active_adjustment() -> None:
+def test_relation_action_value_delta_guard_allows_coordinate_blend_adjustment() -> None:
     runner = _load_runner_module()
     relation = runner.OverlapRelation(
         relation_id="O1_0_1",
@@ -740,22 +740,54 @@ def test_relation_action_value_delta_guard_fallbacks_large_active_adjustment() -
         coordinate,
         runner.ACTION_VALUE_DELTA_GUARD_THRESHOLD,
     )
+    moderate_coordinate = runner.guard_relation_action_by_value_delta(
+        relation,
+        coordinate,
+        1.0,
+    )
     guarded = runner.guard_relation_action_by_value_delta(
         relation,
         coordinate,
-        runner.ACTION_VALUE_DELTA_GUARD_THRESHOLD + 0.001,
-    )
-    moderate = runner.guard_relation_action_by_value_delta(
-        relation,
-        coordinate,
-        0.501,
+        1.501,
     )
 
     assert kept.relation_action_name == "coordinate"
+    assert moderate_coordinate.relation_action_name == "coordinate"
     assert guarded.relation_action_name == "fallback"
-    assert moderate.relation_action_name == "fallback"
     assert guarded.canonical_action_name == "conservative_no_action"
     assert guarded.trigger_reason == "action_value_delta_guard_exceeded"
+
+
+def test_relation_action_value_delta_guard_keeps_strict_non_coordinate_limit() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O1_0_1",
+        problem_id="E2",
+        outer_iter=1,
+        group_left=0,
+        group_right=1,
+        shared_vars=(2,),
+        overlap_strength=1.0,
+        delta_signal=0.1,
+        rank_signal=0.9,
+        budget_remaining_ratio=0.8,
+    )
+    isolate = runner.RelationActionDecision(
+        relation_id="O1_0_1",
+        action_name="isolate_conflicting_relation",
+        action_family="isolate",
+        confidence=0.95,
+        trigger_reason="conflict",
+    )
+
+    guarded = runner.guard_relation_action_by_value_delta(
+        relation,
+        isolate,
+        runner.ACTION_VALUE_DELTA_GUARD_THRESHOLD + 0.001,
+    )
+
+    assert guarded.relation_action_name == "fallback"
+    assert guarded.canonical_action_name == "conservative_no_action"
 
 
 def test_apply_and_guard_relation_action_recomputes_guarded_fallback_delta() -> None:
