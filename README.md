@@ -52,8 +52,8 @@ catastrophic-loss audits.
 - `experiments/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
   emits action, semantics, same-budget, leakage, paper-comparison, negative
   control, and catastrophic-loss audit tables.
-- `experiments/exp_003_hcc_runtime_consumer_smoke/`: runtime-connected HCC
-  smoke proving `repair_shared_variable_binding` is optimizer-consumed.
+- `experiments/exp_003_hcc_runtime_consumer_smoke/`: E2 HCC utility smoke with
+  fallback, fixed repair, and per-overlap-relation dispatch lanes.
 - `experiments/exp_004_hcc_main_historical_result_recovery/`: read-only
   recovery of historical `E:\HCC-main` result artifacts for offline comparison.
 - `references/source-index.md`: pointers to the original source evidence inside

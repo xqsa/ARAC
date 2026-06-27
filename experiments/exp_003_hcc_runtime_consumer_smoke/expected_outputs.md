@@ -1,12 +1,16 @@
 # exp_003 Expected Outputs
 
-The experiment writes seven CSV artifacts:
+The experiment writes ten CSV artifacts:
 
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
 - `backend_semantics_diff.csv`
 - `action_execution_plan.csv`
 - `action_trace.csv`
+- `action_decision.csv`
+- `overlap_relations.csv`
+- `relation_join_audit.csv`
+- `action_utility_audit.csv`
 - `anti_leakage_audit.csv`
 - `claim_gate.csv`
 
@@ -21,5 +25,10 @@ The required smoke evidence is:
   `optimizer_consumed=1`.
 - `claim_gate.csv` for the repair lane does not contain
   `active_action_not_consumed_by_hcc_runtime`.
+- `relation_dispatch_rule` has matching `relation_id` rows across
+  `action_decision.csv`, `action_trace.csv`, and `overlap_relations.csv`.
+- `action_utility_audit.csv` contains `final_error`, `fe_used`,
+  `same_budget_violation`, `relative_gain_vs_fallback`, `utility_label`,
+  `action_mix`, `claim_allowed`, and `claim_blockers`.
 - Final errors are offline-only smoke outputs and must not enter runtime
   dispatch.

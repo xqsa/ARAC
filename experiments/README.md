@@ -36,11 +36,11 @@ paper-reported Table 2 values offline-only, and labels its own result rows as
 `hcc_source_grounded_grouping_probe`. It reads source AOB topology from
 `E:\HCC-main` but does not yet run MMES/CMAES optimizer execution.
 
-`exp_003_hcc_runtime_consumer_smoke` runs a small E2 HCC smoke through two
-lanes: conservative fallback and `repair_shared_variable_binding`. Its claim is
-runtime connection, not performance: the repair lane must show
-`optimizer_consumed=1`, `variable_owner_changed=1`, a fresh HCC result, and
-action trace rows.
+`exp_003_hcc_runtime_consumer_smoke` runs a small E2 HCC smoke through
+fallback, fixed repair, and per-overlap-relation dispatch lanes. Its claim is
+runtime connection plus explicit utility auditing, not performance: relation
+artifacts must join by `relation_id`, and utility failures stay in
+`action_utility_audit.csv` as blockers.
 
 `exp_004_hcc_main_historical_result_recovery` scans historical
 `E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt` files, writes an

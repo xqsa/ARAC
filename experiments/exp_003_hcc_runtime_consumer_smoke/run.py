@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
@@ -21,39 +22,73 @@ from arac.backends.hcc import (
     run_hcc_aob_smoke_execution,
 )
 from arac.evaluation import SameBudgetLedger
+from arac.evaluation import classify_utility, relative_gain
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS, validate_runtime_payload
 from arac.policy import ActionDecision
 from arac.action_space import ActionFamily
 
 RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
-DISPATCH_SCOPE = "fixed_lane_runtime_consumer_smoke"
 PROBLEM_ID = "E2"
 SEED = 1
 MAX_FES = 2_000
 PHASE_I_FE = 0
 PHASE_II_FE = MAX_FES
 SAME_BUDGET_GROUP_ID = f"{PROBLEM_ID}_seed{SEED}_{MAX_FES}fe"
+
+@dataclass(frozen=True)
+class LaneConfig:
+    lane_id: str
+    action_family: ActionFamily
+    selected_action_name: str
+    runner_action_name: str
+    dispatch_scope: str
+    relation_dispatch_enabled: bool = False
+    plan_action_name: str = ""
+
+
 LANES = (
-    ("fallback", ActionFamily.FALLBACK, "conservative_no_action"),
-    ("repair_runtime_consumer", ActionFamily.REASSIGN_REPAIR, "repair_shared_variable_binding"),
+    LaneConfig(
+        "fallback",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "conservative_no_action",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+    LaneConfig(
+        "fixed_repair",
+        ActionFamily.REASSIGN_REPAIR,
+        "repair_shared_variable_binding",
+        "repair_shared_variable_binding",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_rule",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+    ),
 )
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
 
-def _decision(action_family: ActionFamily, action_name: str) -> ActionDecision:
+def _decision(lane: LaneConfig) -> ActionDecision:
+    action_name = lane.plan_action_name or lane.selected_action_name
     return ActionDecision(
-        action_family=action_family,
+        action_family=lane.action_family,
         action_name=action_name,
-        decision="fallback" if action_family == ActionFamily.FALLBACK else "allow",
-        trigger_reason="exp_003_fixed_lane_runtime_consumer_smoke",
-        utility_proxy=0.0 if action_family == ActionFamily.FALLBACK else 1.0,
+        decision="fallback" if lane.action_family == ActionFamily.FALLBACK else "allow",
+        trigger_reason=f"exp_003_{lane.dispatch_scope}",
+        utility_proxy=0.0 if lane.action_family == ActionFamily.FALLBACK else 1.0,
     )
 
 
@@ -81,6 +116,111 @@ def _ledger_for_result(result: HccAobExecutionResult) -> SameBudgetLedger:
     )
 
 
+def _read_csv_rows(path: Path | None) -> list[dict[str, str]]:
+    if path is None or not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def _find_lane_artifact(result: HccAobExecutionResult, artifact_name: str) -> Path | None:
+    root = Path(result.output_root)
+    preferred = sorted(root.rglob(f"{result.problem_id}_{artifact_name}"))
+    if preferred:
+        return preferred[-1]
+    generic = sorted(root.rglob(artifact_name))
+    return generic[-1] if generic else None
+
+
+def _trace_rows_for_record(record: dict[str, object]) -> list[dict[str, str]]:
+    result = record["result"]
+    assert isinstance(result, HccAobExecutionResult)
+    return _read_csv_rows(result.action_trace_path)
+
+
+def _artifact_rows_for_record(
+    record: dict[str, object],
+    artifact_name: str,
+) -> list[dict[str, str]]:
+    result = record["result"]
+    assert isinstance(result, HccAobExecutionResult)
+    return _read_csv_rows(_find_lane_artifact(result, artifact_name))
+
+
+def _with_lane_prefix(
+    record: dict[str, object],
+    rows: list[dict[str, str]],
+) -> list[dict[str, object]]:
+    return [{"run_id": RUN_ID, "lane_id": record["lane_id"], **row} for row in rows]
+
+
+def _format_action_mix(rows: list[dict[str, str]], fallback_action: str) -> str:
+    counts: dict[str, int] = {}
+    for row in rows:
+        action = row.get("canonical_action_name") or row.get("selected_action_name") or ""
+        if not action:
+            continue
+        counts[action] = counts.get(action, 0) + 1
+    if not counts:
+        counts[fallback_action] = 1
+    return ";".join(f"{action}={counts[action]}" for action in sorted(counts))
+
+
+def _relation_join_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        lane = record["lane"]
+        assert isinstance(lane, LaneConfig)
+        if not lane.relation_dispatch_enabled:
+            continue
+        trace_ids = {
+            row.get("relation_id", "")
+            for row in _trace_rows_for_record(record)
+            if row.get("relation_id")
+        }
+        decision_ids = {
+            row.get("relation_id", "")
+            for row in _artifact_rows_for_record(record, "action_decision.csv")
+            if row.get("relation_id")
+        }
+        overlap_ids = {
+            row.get("relation_id", "")
+            for row in _artifact_rows_for_record(record, "overlap_relations.csv")
+            if row.get("relation_id")
+        }
+        for relation_id in sorted(trace_ids | decision_ids | overlap_ids):
+            has_trace = relation_id in trace_ids
+            has_decision = relation_id in decision_ids
+            has_overlap = relation_id in overlap_ids
+            rows.append(
+                {
+                    "run_id": RUN_ID,
+                    "lane_id": lane.lane_id,
+                    "problem_id": PROBLEM_ID,
+                    "relation_id": relation_id,
+                    "has_action_trace": int(has_trace),
+                    "has_action_decision": int(has_decision),
+                    "has_overlap_relation": int(has_overlap),
+                    "audit_status": "pass"
+                    if has_trace and has_decision and has_overlap
+                    else "fail",
+                }
+            )
+    return rows
+
+
+def _relation_join_pass(record: dict[str, object]) -> bool:
+    lane = record["lane"]
+    assert isinstance(lane, LaneConfig)
+    if not lane.relation_dispatch_enabled:
+        return True
+    rows = [
+        row for row in _relation_join_rows([record])
+        if row["lane_id"] == lane.lane_id
+    ]
+    return bool(rows) and all(row["audit_status"] == "pass" for row in rows)
+
+
 def _records(
     output_dir: Path,
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult],
@@ -88,15 +228,15 @@ def _records(
     python_executable: str,
 ) -> list[dict[str, object]]:
     records: list[dict[str, object]] = []
-    for lane_id, action_family, action_name in LANES:
-        decision = _decision(action_family, action_name)
+    for lane in LANES:
+        decision = _decision(lane)
         plan = build_hcc_action_execution_plan(PROBLEM_ID, decision)
         semantics = hcc_backend_semantics_for(
             decision,
             optimizer_consumed=plan.optimizer_consumed,
         )
-        payload = _runtime_payload(lane_id, action_name)
-        lane_output = (output_dir / "_hcc_smoke" / lane_id).resolve()
+        payload = _runtime_payload(lane.lane_id, lane.selected_action_name)
+        lane_output = (output_dir / "_hcc_smoke" / lane.lane_id).resolve()
         result = execution_runner(
             HccAobExecutionRequest(
                 problem_id=PROBLEM_ID,
@@ -105,8 +245,9 @@ def _records(
                 output_dir=lane_output,
                 hcc_root=hcc_root,
                 python_executable=python_executable,
-                timestamp=f"{RUN_ID}-{lane_id}",
-                arac_action=action_name,
+                timestamp=f"{RUN_ID}-{lane.lane_id}",
+                arac_action=lane.runner_action_name,
+                enable_relation_dispatch=lane.relation_dispatch_enabled,
             )
         )
         ledger = _ledger_for_result(result)
@@ -121,7 +262,8 @@ def _records(
         )
         records.append(
             {
-                "lane_id": lane_id,
+                "lane": lane,
+                "lane_id": lane.lane_id,
                 "decision": decision,
                 "plan": plan,
                 "semantics": semantics,
@@ -135,29 +277,102 @@ def _records(
     return records
 
 
-def _our_result_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    fallback_record = next(record for record in records if record["lane_id"] == "fallback")
+    fallback_result = fallback_record["result"]
+    assert isinstance(fallback_result, HccAobExecutionResult)
     rows: list[dict[str, object]] = []
     for record in records:
+        lane = record["lane"]
+        result = record["result"]
+        ledger = record["ledger"]
+        semantics = record["semantics"]
+        assert isinstance(lane, LaneConfig)
+        assert isinstance(result, HccAobExecutionResult)
+        assert isinstance(ledger, SameBudgetLedger)
+        utility_label = classify_utility(fallback_result.final_error, result.final_error)
+        blockers: list[str] = []
+        if lane.lane_id == "fallback":
+            blockers.append("comparison_lane_not_utility_claim")
+        if ledger.violation:
+            blockers.append("same_budget_violation")
+        if not ledger.fresh_execution:
+            blockers.append("not_fresh_execution")
+        if utility_label == "catastrophic_loss":
+            blockers.append("catastrophic_loss")
+        if lane.lane_id != "fallback" and utility_label != "meaningful_win":
+            blockers.append("utility_not_meaningful_win")
+        if lane.relation_dispatch_enabled and not _relation_join_pass(record):
+            blockers.append("relation_artifact_join_failed")
+        claim_allowed = not blockers
+        rows.append(
+            {
+                "run_id": RUN_ID,
+                "lane_id": lane.lane_id,
+                "problem_id": result.problem_id,
+                "seed": result.seed,
+                "final_error": f"{result.final_error:.6e}",
+                "fe_used": result.fe_used,
+                "same_budget_violation": int(ledger.violation),
+                "relative_gain_vs_fallback": (
+                    f"{relative_gain(fallback_result.final_error, result.final_error):.6f}"
+                ),
+                "utility_label": utility_label,
+                "action_mix": _format_action_mix(
+                    _trace_rows_for_record(record),
+                    lane.selected_action_name,
+                ),
+                "runtime_connected_claim_allowed": int(
+                    result.fresh_optimizer_execution
+                    and bool(result.action_trace_rows)
+                    and (not lane.relation_dispatch_enabled or _relation_join_pass(record))
+                ),
+                "backend_semantics_changed": int(semantics.changed),
+                "claim_allowed": int(claim_allowed),
+                "claim_blockers": ";".join(sorted(set(blockers))),
+            }
+        )
+    return rows
+
+
+def _our_result_rows(
+    records: list[dict[str, object]],
+    utility_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    utility_claim_by_lane = {
+        row["lane_id"]: row["claim_allowed"]
+        for row in utility_rows
+    }
+    runtime_claim_by_lane = {
+        row["lane_id"]: row["runtime_connected_claim_allowed"]
+        for row in utility_rows
+    }
+    rows: list[dict[str, object]] = []
+    for record in records:
+        lane = record["lane"]
         decision = record["decision"]
         result = record["result"]
+        assert isinstance(lane, LaneConfig)
         assert isinstance(decision, ActionDecision)
         assert isinstance(result, HccAobExecutionResult)
         rows.append(
             {
                 "run_id": RUN_ID,
-                "lane_id": record["lane_id"],
+                "lane_id": lane.lane_id,
                 "problem_id": result.problem_id,
                 "seed": result.seed,
                 "selected_action_family": decision.action_family.value,
-                "selected_action_name": decision.action_name,
+                "selected_action_name": lane.selected_action_name,
                 "hcc_smoke_final_error": f"{result.final_error:.6e}",
                 "hcc_smoke_fe_used": result.fe_used,
                 "hcc_smoke_status": result.status,
                 "fresh_optimizer_execution": int(result.fresh_optimizer_execution),
                 "action_trace_rows": result.action_trace_rows,
                 "runtime_dispatch_allowed": 1,
-                "dispatch_scope": DISPATCH_SCOPE,
-                "relation_dispatch_enabled": 0,
+                "dispatch_scope": lane.dispatch_scope,
+                "relation_dispatch_enabled": int(lane.relation_dispatch_enabled),
+                "runtime_connected_claim_allowed": runtime_claim_by_lane[lane.lane_id],
+                "utility_claim_allowed": utility_claim_by_lane[lane.lane_id],
                 "performance_claim_allowed": 0,
             }
         )
@@ -193,8 +408,10 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
 def _semantics_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
+        lane = record["lane"]
         decision = record["decision"]
         semantics = record["semantics"]
+        assert isinstance(lane, LaneConfig)
         assert isinstance(decision, ActionDecision)
         rows.append(
             {
@@ -202,7 +419,7 @@ def _semantics_rows(records: list[dict[str, object]]) -> list[dict[str, object]]
                 "lane_id": record["lane_id"],
                 "problem_id": PROBLEM_ID,
                 "seed": SEED,
-                "selected_action_name": decision.action_name,
+                "selected_action_name": lane.selected_action_name,
                 "variable_owner_changed": int(semantics.variable_owner_changed),
                 "relation_handling_changed": int(semantics.relation_handling_changed),
                 "coordination_mode_changed": int(semantics.coordination_mode_changed),
@@ -228,28 +445,50 @@ def _action_execution_plan_rows(records: list[dict[str, object]]) -> list[dict[s
 def _action_trace_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
-        result = record["result"]
-        assert isinstance(result, HccAobExecutionResult)
-        if result.action_trace_path is None:
-            continue
-        with result.action_trace_path.open(newline="", encoding="utf-8") as handle:
-            for row in csv.DictReader(handle):
-                rows.append({"run_id": RUN_ID, "lane_id": record["lane_id"], **row})
+        rows.extend(_with_lane_prefix(record, _trace_rows_for_record(record)))
+    return rows
+
+
+def _action_decision_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        rows.extend(
+            _with_lane_prefix(record, _artifact_rows_for_record(record, "action_decision.csv"))
+        )
+    return rows
+
+
+def _overlap_relation_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        rows.extend(
+            _with_lane_prefix(record, _artifact_rows_for_record(record, "overlap_relations.csv"))
+        )
     return rows
 
 
 def _anti_leakage_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     payloads = [record["payload"] for record in records]
+    artifact_rows = (
+        _action_trace_rows(records)
+        + _action_decision_rows(records)
+        + _overlap_relation_rows(records)
+    )
     rows: list[dict[str, object]] = []
     for field in sorted(FORBIDDEN_RUNTIME_FIELDS):
         found = any(field in payload for payload in payloads)
+        artifact_found = any(field in row for row in artifact_rows)
         rows.append(
             {
                 "run_id": RUN_ID,
+                "artifact_path": (
+                    "runtime_payload;action_trace.csv;"
+                    "action_decision.csv;overlap_relations.csv"
+                ),
                 "forbidden_field": field,
-                "found_in_runtime_payload": int(found),
-                "runtime_dispatch_allowed": 0 if found else 1,
-                "audit_status": "fail" if found else "pass",
+                "found_in_runtime_payload": int(found or artifact_found),
+                "runtime_dispatch_allowed": 0 if found or artifact_found else 1,
+                "audit_status": "fail" if found or artifact_found else "pass",
             }
         )
     return rows
@@ -258,9 +497,11 @@ def _anti_leakage_rows(records: list[dict[str, object]]) -> list[dict[str, objec
 def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
+        lane = record["lane"]
         decision = record["decision"]
         plan = record["plan"]
         ledger = record["ledger"]
+        assert isinstance(lane, LaneConfig)
         assert isinstance(decision, ActionDecision)
         assert isinstance(ledger, SameBudgetLedger)
         rows.append(
@@ -269,7 +510,7 @@ def _claim_gate_rows(records: list[dict[str, object]]) -> list[dict[str, object]
                 "lane_id": record["lane_id"],
                 "problem_id": PROBLEM_ID,
                 "seed": SEED,
-                "selected_action_name": decision.action_name,
+                "selected_action_name": lane.selected_action_name,
                 "optimizer_consumed": int(plan.optimizer_consumed),
                 "same_budget_violation": int(ledger.violation),
                 "performance_claim_allowed": 0,
@@ -296,9 +537,10 @@ def run_hcc_runtime_consumer_smoke(
         hcc_root=Path(hcc_root),
         python_executable=python_executable,
     )
+    utility_rows = _utility_rows(records)
     _write_csv(
         output / "our_result_by_case.csv",
-        _our_result_rows(records),
+        _our_result_rows(records, utility_rows),
         [
             "run_id",
             "lane_id",
@@ -314,6 +556,8 @@ def run_hcc_runtime_consumer_smoke(
             "runtime_dispatch_allowed",
             "dispatch_scope",
             "relation_dispatch_enabled",
+            "runtime_connected_claim_allowed",
+            "utility_claim_allowed",
             "performance_claim_allowed",
         ],
     )
@@ -402,10 +646,84 @@ def run_hcc_runtime_consumer_smoke(
         ],
     )
     _write_csv(
+        output / "action_decision.csv",
+        _action_decision_rows(records),
+        [
+            "run_id",
+            "lane_id",
+            "problem_id",
+            "relation_id",
+            "group_left",
+            "group_right",
+            "shared_vars_count",
+            "overlap_strength",
+            "delta_signal",
+            "rank_signal",
+            "relation_action_name",
+            "canonical_action_name",
+            "action_family",
+            "confidence",
+            "trigger_reason",
+        ],
+    )
+    _write_csv(
+        output / "overlap_relations.csv",
+        _overlap_relation_rows(records),
+        [
+            "run_id",
+            "lane_id",
+            "relation_id",
+            "problem_id",
+            "outer_iter",
+            "group_left",
+            "group_right",
+            "shared_vars",
+            "overlap_strength",
+            "delta_signal",
+            "rank_signal",
+            "budget_remaining_ratio",
+        ],
+    )
+    _write_csv(
+        output / "relation_join_audit.csv",
+        _relation_join_rows(records),
+        [
+            "run_id",
+            "lane_id",
+            "problem_id",
+            "relation_id",
+            "has_action_trace",
+            "has_action_decision",
+            "has_overlap_relation",
+            "audit_status",
+        ],
+    )
+    _write_csv(
+        output / "action_utility_audit.csv",
+        utility_rows,
+        [
+            "run_id",
+            "lane_id",
+            "problem_id",
+            "seed",
+            "final_error",
+            "fe_used",
+            "same_budget_violation",
+            "relative_gain_vs_fallback",
+            "utility_label",
+            "action_mix",
+            "runtime_connected_claim_allowed",
+            "backend_semantics_changed",
+            "claim_allowed",
+            "claim_blockers",
+        ],
+    )
+    _write_csv(
         output / "anti_leakage_audit.csv",
         _anti_leakage_rows(records),
         [
             "run_id",
+            "artifact_path",
             "forbidden_field",
             "found_in_runtime_payload",
             "runtime_dispatch_allowed",

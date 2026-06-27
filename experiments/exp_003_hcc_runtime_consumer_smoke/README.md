@@ -1,22 +1,24 @@
 # exp_003_hcc_runtime_consumer_smoke
 
-This experiment is a runtime-connected smoke test, not a performance claim.
+This experiment is a runtime-connected utility smoke test, not a performance
+claim.
 
-It runs one AOB case (`E2`, seed `1`) through two HCC smoke lanes:
+It runs one AOB case (`E2`, seed `1`, 2000 FE budget) through three HCC smoke
+lanes:
 
-- `conservative_no_action`
-- `repair_shared_variable_binding`
+- `fallback`: fixed `conservative_no_action`
+- `fixed_repair`: fixed `repair_shared_variable_binding`
+- `relation_dispatch_rule`: per-overlap-relation rule dispatch
 
-The purpose is to prove that an ARAC selected action is passed into the
-ARAC-owned HCC smoke runner, consumed by the overlap repair hook, traced in
-`action_trace.csv`, and returned as a fresh HCC execution result while the
-same-budget ledger and anti-leakage audit remain explicit.
+The purpose is to prove that runtime actions reach the ARAC-owned HCC smoke
+runner, relation dispatch emits joinable `relation_id` artifacts, and
+`action_utility_audit.csv` reports utility failures plainly instead of turning
+runtime connection into a performance claim.
 
 Run:
 
 ```powershell
-$env:PYTHONPATH='src'
-& 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.exp_003_hcc_runtime_consumer_smoke.run --output-dir results\exp_003_hcc_runtime_consumer_smoke
+py -3 experiments\exp_003_hcc_runtime_consumer_smoke\run.py --output-dir results\exp_003_hcc_runtime_consumer_smoke
 ```
 
 The source HCC project remains read-only. The subprocess executes the
