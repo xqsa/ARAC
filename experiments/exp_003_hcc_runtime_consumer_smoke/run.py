@@ -1139,13 +1139,23 @@ def _multi_problem_diagnosis_rows(
     ]
     active_positive_cases = sum(1 for gain in active_relation_gains if gain > 0.0)
     active_mean_gain = _mean(active_relation_gains)
+    active_density_cases = [
+        (
+            f"{row['problem_id']}_seed{row['seed']}",
+            _active_relation_density(row),
+        )
+        for row in relation_rows
+    ]
     active_densities = [
-        density
-        for density in (_active_relation_density(row) for row in relation_rows)
-        if density == density
+        density for _case_id, density in active_density_cases if density == density
+    ]
+    low_active_density_case_ids = [
+        case_id
+        for case_id, density in active_density_cases
+        if density == density and density <= LOW_ACTIVE_DENSITY_THRESHOLD
     ]
     low_active_density_cases = sum(
-        1 for density in active_densities if density <= LOW_ACTIVE_DENSITY_THRESHOLD
+        1 for _case_id in low_active_density_case_ids
     )
     active_density_pass = low_active_density_cases == 0
     fixed_repair_by_case = {
@@ -1307,7 +1317,8 @@ def _multi_problem_diagnosis_rows(
                 f"mean={_mean(active_densities):.6f};"
                 f"min={min(active_densities) if active_densities else float('nan'):.6f};"
                 f"low_density_cases={low_active_density_cases}/{len(active_densities)};"
-                f"threshold={LOW_ACTIVE_DENSITY_THRESHOLD:.6f}"
+                f"threshold={LOW_ACTIVE_DENSITY_THRESHOLD:.6f};"
+                f"low_density_case_ids={','.join(low_active_density_case_ids)}"
             ),
             "blocker_reason": ""
             if active_density_pass

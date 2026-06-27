@@ -607,7 +607,8 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
     )
     assert by_key["multi_problem_active_density_profile"]["status"] == "blocked"
     assert by_key["multi_problem_active_density_profile"]["observed_value"] == (
-        "mean=0.600000;min=0.200000;low_density_cases=1/2;threshold=0.200000"
+        "mean=0.600000;min=0.200000;low_density_cases=1/2;"
+        "threshold=0.200000;low_density_case_ids=E2_seed1"
     )
     assert by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert by_key["multi_problem_sota_escalation_allowed"]["blocker_reason"] == (
