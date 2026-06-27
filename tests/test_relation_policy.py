@@ -532,3 +532,91 @@ def test_decide_actions_for_relations_uses_dense_prefix_coordinate_mode() -> Non
     ]
     assert decisions[1].trigger_reason == "dense_prefix_coordinate_mode"
     assert decisions[2].trigger_reason == "dense_prefix_coordinate_mode"
+
+
+def test_dense_prefix_coordinate_mode_does_not_override_one_side_zero_relation() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_var_support_ratio=0.25,
+            delta_ratio_gap=0.8,
+            rank_stability=0.5,
+            fallback_margin_proxy=0.8,
+        ),
+        make_relation(
+            relation_id="O0_1_2",
+            both_positive=False,
+            one_side_zero=True,
+            shared_var_support_ratio=0.25,
+            delta_ratio_gap=1.0,
+            rank_stability=0.2,
+            fallback_margin_proxy=0.8,
+        ),
+        make_relation(
+            relation_id="O0_2_3",
+            shared_var_support_ratio=0.25,
+            delta_ratio_gap=0.8,
+            rank_stability=0.5,
+            fallback_margin_proxy=0.8,
+        ),
+    ]
+
+    decisions = decide_actions_for_relations(relations)
+
+    assert decisions[0].trigger_reason == "dense_prefix_coordinate_mode"
+    assert decisions[1].relation_action_name != "coordinate"
+    assert decisions[1].trigger_reason != "dense_prefix_coordinate_mode"
+    assert decisions[2].trigger_reason == "dense_prefix_coordinate_mode"
+
+
+def test_decide_actions_for_relations_uses_balanced_mid_support_coordinate_mode() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.3,
+            rank_stability=0.0,
+            fallback_margin_proxy=0.9,
+        ),
+        make_relation(
+            relation_id="O0_1_2",
+            shared_var_support_ratio=0.166667,
+            delta_ratio_gap=0.80,
+            rank_stability=0.75,
+            fallback_margin_proxy=0.86,
+        ),
+        make_relation(
+            relation_id="O0_2_3",
+            shared_var_support_ratio=0.166667,
+            delta_ratio_gap=0.50,
+            rank_stability=0.60,
+            fallback_margin_proxy=0.90,
+        ),
+    ]
+
+    decisions = decide_actions_for_relations(relations)
+
+    assert [decision.relation_action_name for decision in decisions] == [
+        "fallback",
+        "coordinate",
+        "coordinate",
+    ]
+    assert decisions[1].trigger_reason == "balanced_mid_support_coordinate_mode"
+    assert decisions[2].trigger_reason == "balanced_mid_support_coordinate_mode"
+
+    blocked = decide_actions_for_relations(
+        [
+            make_relation(
+                relation_id="O0_0_1",
+                one_side_zero=True,
+                both_positive=False,
+                shared_var_support_ratio=0.10,
+                delta_ratio_gap=1.0,
+                rank_stability=0.0,
+                fallback_margin_proxy=0.9,
+            ),
+            relations[1],
+        ]
+    )
+
+    assert blocked[1].trigger_reason != "balanced_mid_support_coordinate_mode"

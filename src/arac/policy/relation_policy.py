@@ -17,6 +17,8 @@ MIN_ACTIVE_REBIND_SUPPORT_RATIO = 0.05
 MAX_ACTIVE_REBIND_SUPPORT_RATIO = 0.20
 DENSE_PREFIX_COORDINATE_SUPPORT_THRESHOLD = 0.24
 DENSE_PREFIX_COORDINATE_SUPPORT_MAX = 0.30
+BALANCED_MID_SUPPORT_COORDINATE_MIN = 0.14
+BALANCED_MID_SUPPORT_COORDINATE_MAX = 0.17
 HIGH_FALLBACK_MARGIN_THRESHOLD = 0.95
 ACTION_MARGIN_THRESHOLD = 0.05
 FALLBACK_SCORE_DISCOUNT = 0.10
@@ -285,19 +287,38 @@ def decide_actions_for_relations(
 ) -> list[ActionDecision]:
     decisions = [decide_action(relation) for relation in relations]
     dense_prefix_seen = False
+    balanced_mid_support_seen = False
+    prefix_has_one_side_zero = False
     for index, relation in enumerate(relations):
+        prefix_has_one_side_zero = prefix_has_one_side_zero or relation.one_side_zero
         dense_prefix_seen = dense_prefix_seen or (
             relation.shared_var_support_ratio
             >= DENSE_PREFIX_COORDINATE_SUPPORT_THRESHOLD
             and relation.shared_var_support_ratio <= DENSE_PREFIX_COORDINATE_SUPPORT_MAX
         )
-        if dense_prefix_seen:
+        balanced_mid_support_seen = balanced_mid_support_seen or (
+            not prefix_has_one_side_zero
+            and relation.both_positive
+            and relation.shared_var_support_ratio >= BALANCED_MID_SUPPORT_COORDINATE_MIN
+            and relation.shared_var_support_ratio <= BALANCED_MID_SUPPORT_COORDINATE_MAX
+            and relation.delta_ratio_gap >= CONFLICT_THRESHOLD
+            and relation.rank_stability >= STABILITY_THRESHOLD
+        )
+        if dense_prefix_seen and relation.both_positive and not relation.one_side_zero:
             decisions[index] = _decision(
                 relation,
                 "coordinate",
                 "coordinate",
                 max(decisions[index].confidence, relation.fallback_margin_proxy),
                 "dense_prefix_coordinate_mode",
+            )
+        elif balanced_mid_support_seen:
+            decisions[index] = _decision(
+                relation,
+                "coordinate",
+                "coordinate",
+                max(decisions[index].confidence, relation.fallback_margin_proxy),
+                "balanced_mid_support_coordinate_mode",
             )
     counts = {action_name: 0 for action_name in ACTION_NAMES}
     for decision in decisions:
