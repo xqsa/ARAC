@@ -1380,6 +1380,19 @@ def _multi_problem_diagnosis_rows(
     negative_control_pass = (
         bool(negative_control_rows) and negative_failures == 0
     )
+    rule_mix = _aggregate_lane_action_mix(utility_rows, "relation_dispatch_rule")
+    shuffled_mix = _aggregate_lane_action_mix(
+        utility_rows,
+        "shuffled_relation_dispatch",
+    )
+    shuffled_repair_to_isolate = min(
+        rule_mix.get("repair_shared_variable_binding", 0),
+        shuffled_mix.get("isolate_conflicting_relation", 0),
+    )
+    shuffled_isolate_to_fallback = min(
+        rule_mix.get("isolate_conflicting_relation", 0),
+        shuffled_mix.get("conservative_no_action", 0),
+    )
     blockers: list[str] = []
     if budget_violations:
         blockers.append("same_budget_violation")
@@ -1559,6 +1572,33 @@ def _multi_problem_diagnosis_rows(
             "next_step": "continue"
             if negative_control_pass
             else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_negative_control_action_mix",
+            "status": "pass" if negative_control_pass else "blocked",
+            "observed_value": (
+                "relation_dispatch_rule="
+                f"{_format_action_counts(rule_mix)}|"
+                "shuffled_relation_dispatch="
+                f"{_format_action_counts(shuffled_mix)}"
+            ),
+            "blocker_reason": ""
+            if negative_control_pass
+            else (
+                "negative_control_failed;"
+                f"failed_problem_ids={','.join(negative_failed_problem_ids)};"
+                "rule_repair_to_shuffled_isolate="
+                f"{shuffled_repair_to_isolate};"
+                "rule_isolate_to_shuffled_fallback="
+                f"{shuffled_isolate_to_fallback}"
+            ),
+            "next_step": (
+                "continue"
+                if negative_control_pass
+                else "inspect_rule_vs_shuffled_action_mix"
+            ),
         },
         {
             "run_id": RUN_ID,

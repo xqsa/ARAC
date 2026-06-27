@@ -444,6 +444,13 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "pass=0/2;shuffled_win_count=2/2;failed_problem_ids=E1,E2"
     )
     assert aggregate_by_key["multi_problem_negative_control"]["status"] == "blocked"
+    aggregate_action_mix = aggregate_by_key["multi_problem_negative_control_action_mix"]
+    assert aggregate_action_mix["status"] == "blocked"
+    assert aggregate_action_mix["observed_value"] == (
+        "relation_dispatch_rule=allow_beneficial_coordination=2;repair_shared_variable_binding=2|"
+        "shuffled_relation_dispatch=repair_shared_variable_binding=4"
+    )
+    assert "failed_problem_ids=E1,E2" in aggregate_action_mix["blocker_reason"]
     assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
     aggregate_policy_profile = aggregate_by_key["multi_problem_relation_policy_profile"]
     assert aggregate_policy_profile["status"] == "pass"
