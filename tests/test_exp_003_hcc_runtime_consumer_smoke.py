@@ -444,6 +444,20 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "fixed_repair_baseline_not_beaten" in aggregate_by_key[
         "multi_problem_sota_escalation_allowed"
     ]["blocker_reason"]
+    multi_manifest = (multi_output / "run_manifest.md").read_text(encoding="utf-8")
+    assert (
+        "- multi-problem active density: "
+        "mean=1.000000;min=1.000000;low_density_cases=0/2;"
+        "threshold=0.200000;low_density_case_ids="
+    ) in multi_manifest
+    assert (
+        "- fixed repair baseline: "
+        "win_count=0/2;mean_gain=-0.506173;lost_case_ids=E1_seed1,E2_seed1"
+    ) in multi_manifest
+    assert (
+        "- fixed coordinate baseline: "
+        "win_count=2/2;mean_gain=0.068702;lost_case_ids="
+    ) in multi_manifest
     multi_ledger = _read_csv(multi_output / "same_budget_ledger.csv")
     assert {row["same_budget_group_id"] for row in multi_ledger} == {
         "E1_seed1_2000fe",

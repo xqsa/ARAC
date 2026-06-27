@@ -1513,6 +1513,27 @@ def _write_manifest(
         )
         or "not_applicable"
     )
+    multi_problem_active_density = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_active_density_profile",
+        )
+        or "not_applicable"
+    )
+    multi_problem_fixed_repair = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_fixed_repair_baseline",
+        )
+        or "not_applicable"
+    )
+    multi_problem_fixed_coordinate = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_relation_vs_fixed_coordinate_baseline",
+        )
+        or "not_applicable"
+    )
     artifacts = [
         "our_result_by_case.csv",
         "same_budget_ledger.csv",
@@ -1554,6 +1575,9 @@ def _write_manifest(
             f"- same-budget: {_diagnostic_observed_value(diagnosis_rows, 'same_budget_fe_status')}",
             f"- pilot utility: {_diagnostic_observed_value(diagnosis_rows, 'pilot_utility_evidence')}",
             f"- multi-problem pilot utility: {multi_problem_pilot}",
+            f"- multi-problem active density: {multi_problem_active_density}",
+            f"- fixed repair baseline: {multi_problem_fixed_repair}",
+            f"- fixed coordinate baseline: {multi_problem_fixed_coordinate}",
             f"- SOTA escalation: {_sota_claim_allowed(diagnosis_rows)}",
             "",
             "Artifacts:",
