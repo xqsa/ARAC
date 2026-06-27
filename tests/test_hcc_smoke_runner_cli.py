@@ -829,7 +829,7 @@ def test_apply_and_guard_relation_action_recomputes_guarded_fallback_delta() -> 
     assert action_value_delta_norm == 10.0
 
 
-def test_apply_and_guard_demotes_guarded_isolate_to_coordinate() -> None:
+def test_apply_and_guard_falls_back_when_guard_blocks_isolate() -> None:
     runner = _load_runner_module()
     relation = runner.OverlapRelation(
         relation_id="O1_0_1",
@@ -862,12 +862,12 @@ def test_apply_and_guard_demotes_guarded_isolate_to_coordinate() -> None:
         )
     )
 
-    assert action.relation_action_name == "coordinate"
-    assert action.canonical_action_name == "allow_beneficial_coordination"
-    assert action.trigger_reason == "action_value_delta_guard_demoted_to_coordinate"
+    assert action.relation_action_name == "fallback"
+    assert action.canonical_action_name == "conservative_no_action"
+    assert action.trigger_reason == "action_value_delta_guard_exceeded"
     assert adjusted_values is not None
-    assert adjusted_values.tolist() == pytest.approx([1.3])
-    assert action_value_delta_norm == pytest.approx(1.3)
+    assert adjusted_values.tolist() == pytest.approx([2.0])
+    assert action_value_delta_norm == pytest.approx(2.0)
 
 
 def test_relation_dispatch_is_applied_before_next_group_objective(
