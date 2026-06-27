@@ -25,8 +25,8 @@ escalation. In AOB multi-problem runs, level 1 cases (`E1/R1/S1/A1`) are
 no-overlap controls; overlap-utility aggregates use levels 2-6 only.
 `claim_evidence_table.md` maps each claim/gate to its observed evidence and
 source artifact. `run_manifest.md` preserves the command shape, configured
-problems/seeds, key gates, artifact list, parallel job count, and the
-anti-leakage boundary for runtime dispatch.
+problems/seeds, key gates, artifact list, parallel job count, freeze hashes,
+and the anti-leakage boundary for runtime dispatch.
 
 Run:
 

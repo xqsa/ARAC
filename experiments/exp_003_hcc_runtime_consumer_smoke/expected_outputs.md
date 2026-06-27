@@ -43,7 +43,7 @@ The required smoke evidence is:
   same-budget, utility, catastrophic-loss, shuffled-control, and SOTA
   escalation gates.
 - `run_manifest.md` records the command shape, problem/seed set, lanes, key
-  gates, artifact list, parallel job count, and the rule that
+  gates, artifact list, parallel job count, git commit, code/config hashes, and the rule that
   final/reported/oracle values must not enter runtime dispatch.
 - `claim_evidence_table.md` maps each diagnosis claim/gate to status,
   observed evidence, blockers, and source artifact.

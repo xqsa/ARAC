@@ -284,6 +284,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "SOTA claim allowed: 0" in manifest
     assert "multi-problem pilot utility: not_applicable" in manifest
     assert "- claim_evidence_table.md" in manifest
+    assert "Freeze evidence:" in manifest
+    assert "- git commit:" in manifest
+    assert "- config fingerprint:" in manifest
+    assert "- policy sha256:" in manifest
+    assert "- experiment runner sha256:" in manifest
+    assert "- HCC smoke runner sha256:" in manifest
     claim_table = (output / "claim_evidence_table.md").read_text(encoding="utf-8")
     assert "# exp_003 Claim Evidence Table" in claim_table
     assert "| E2 | relation_dispatch_utility | blocked | 0/3 |" in claim_table

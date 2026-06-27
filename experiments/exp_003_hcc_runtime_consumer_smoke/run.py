@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
+import json
+import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
@@ -2605,6 +2608,48 @@ def _sota_claim_allowed(diagnosis_rows: list[dict[str, object]]) -> str:
     return "1" if values and all(value == "1" for value in values) else "0"
 
 
+def _sha256_file(path: Path) -> str:
+    if not path.exists():
+        return "missing"
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _git_commit() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=ARAC_REPO_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+    return result.stdout.strip() or "unknown"
+
+
+def _config_fingerprint(
+    seeds: tuple[int, ...],
+    problem_ids: tuple[str, ...],
+    jobs: int,
+    max_fes: int,
+) -> str:
+    payload = {
+        "jobs": max(1, int(jobs)),
+        "lanes": [lane.lane_id for lane in LANES],
+        "max_fes": int(max_fes),
+        "problem_ids": list(problem_ids),
+        "seeds": list(seeds),
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def _write_manifest(
     output_dir: Path,
     seeds: tuple[int, ...],
@@ -2721,6 +2766,13 @@ def _write_manifest(
             f"Budget: {max_fes} FE per lane/case",
             f"Parallel jobs: {max(1, int(jobs))}",
             f"Lanes: {', '.join(lane.lane_id for lane in LANES)}",
+            "",
+            "Freeze evidence:",
+            f"- git commit: {_git_commit()}",
+            f"- config fingerprint: {_config_fingerprint(seeds, problem_ids, jobs, max_fes)}",
+            f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
+            f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
+            f"- HCC smoke runner sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'arac_hcc_smoke_runner.py')}",
             "",
             "Runtime boundary: final/reported/oracle values must not enter runtime dispatch.",
             "",
