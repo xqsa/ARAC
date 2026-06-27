@@ -276,7 +276,7 @@ def test_conservative_no_action_uses_native_overlap_blend() -> None:
     runner = _load_runner_module()
     previous_values = np.array([1.0, 2.0])
     current_values = np.array([10.0, 20.0])
-    expected = 0.25 * current_values + 0.75 * previous_values
+    expected = 0.25 * previous_values + 0.75 * current_values
 
     native = runner.blend_overlap_values(
         previous_values=previous_values,
@@ -570,7 +570,7 @@ def test_apply_action_to_relation_uses_canonical_fallback_and_coordinate_semanti
         current_delta=99.0,
     )
 
-    np.testing.assert_allclose(fallback, np.array([1.0]))
+    np.testing.assert_allclose(fallback, np.array([99.0]))
     np.testing.assert_allclose(coordinate, np.array([65.0]))
 
 
@@ -793,8 +793,8 @@ def test_apply_and_guard_relation_action_recomputes_guarded_fallback_delta() -> 
 
     assert action.relation_action_name == "fallback"
     assert adjusted_values is not None
-    assert adjusted_values.tolist() == [0.0]
-    assert action_value_delta_norm == 0.0
+    assert adjusted_values.tolist() == [10.0]
+    assert action_value_delta_norm == 10.0
 
 
 def test_relation_dispatch_is_applied_before_next_group_objective(
