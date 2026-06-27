@@ -1261,6 +1261,59 @@ def test_multi_problem_trigger_outcome_profile_groups_reasons_by_case_gain() -> 
     assert row["blocker_reason"] == "relation_dispatch_lost_cases"
 
 
+def test_multi_problem_trigger_baseline_gap_profile_reports_strong_baseline_gaps() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_trigger_baseline_gap_profile_row,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+        }
+        for problem_id, lane_id, final_error in [
+            ("E1", "relation_dispatch_rule", 1.0),
+            ("E2", "relation_dispatch_rule", 90.0),
+            ("E2", "fixed_repair", 95.0),
+            ("E2", "fixed_coordinate", 100.0),
+            ("S2", "relation_dispatch_rule", 110.0),
+            ("S2", "fixed_repair", 100.0),
+            ("S2", "fixed_coordinate", 100.0),
+            ("R2", "relation_dispatch_rule", 90.0),
+            ("R2", "fixed_repair", 100.0),
+            ("R2", "fixed_coordinate", 100.0),
+        ]
+    ]
+    decision_rows = [
+        {
+            "lane_id": "relation_dispatch_rule",
+            "problem_id": problem_id,
+            "seed": "1",
+            "trigger_reason": trigger_reason,
+        }
+        for problem_id, trigger_reason in [
+            ("E1", "ignored_no_overlap"),
+            ("E2", "dense_prefix_coordinate_mode"),
+            ("S2", "dense_prefix_coordinate_mode"),
+            ("R2", "balanced_mid_support_coordinate_mode"),
+        ]
+    ]
+
+    row = _multi_problem_trigger_baseline_gap_profile_row(utility_rows, decision_rows)
+
+    assert row["diagnostic_key"] == "multi_problem_trigger_baseline_gap_profile"
+    assert row["status"] == "blocked"
+    assert row["observed_value"] == (
+        "balanced_mid_support_coordinate_mode=relations:1,"
+        "vs_fixed_repair_mean=0.100000,vs_fixed_coordinate_mean=0.100000;"
+        "dense_prefix_coordinate_mode=relations:2,"
+        "vs_fixed_repair_mean=-0.023684,vs_fixed_coordinate_mean=0.000000"
+    )
+    assert row["blocker_reason"] == "trigger_baseline_gap_detected"
+
+
 def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_action_mismatch_profile_row,

@@ -1417,6 +1417,79 @@ def _multi_problem_trigger_outcome_profile_row(
     }
 
 
+def _multi_problem_trigger_baseline_gap_profile_row(
+    utility_rows: list[dict[str, object]],
+    decision_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    by_case_lane = {
+        (str(row["problem_id"]), str(row["seed"]), str(row["lane_id"])): float(
+            row["final_error"]
+        )
+        for row in utility_rows
+        if _is_overlap_applicable_problem_id(str(row["problem_id"]))
+        and str(row["lane_id"])
+        in {"relation_dispatch_rule", "fixed_repair", "fixed_coordinate"}
+    }
+    gaps: dict[str, dict[str, list[float]]] = {}
+    for row in decision_rows:
+        if str(row.get("lane_id", "")) != "relation_dispatch_rule":
+            continue
+        problem_id = str(row.get("problem_id", ""))
+        if not _is_overlap_applicable_problem_id(problem_id):
+            continue
+        seed = str(row.get("seed", ""))
+        relation_error = by_case_lane.get((problem_id, seed, "relation_dispatch_rule"))
+        repair_error = by_case_lane.get((problem_id, seed, "fixed_repair"))
+        coordinate_error = by_case_lane.get((problem_id, seed, "fixed_coordinate"))
+        trigger_reason = str(row.get("trigger_reason", ""))
+        if (
+            relation_error is None
+            or repair_error is None
+            or coordinate_error is None
+            or not trigger_reason
+        ):
+            continue
+        trigger_gaps = gaps.setdefault(
+            trigger_reason,
+            {"fixed_repair": [], "fixed_coordinate": []},
+        )
+        trigger_gaps["fixed_repair"].append(relative_gain(repair_error, relation_error))
+        trigger_gaps["fixed_coordinate"].append(
+            relative_gain(coordinate_error, relation_error)
+        )
+    observed_value = ";".join(
+        (
+            f"{trigger}=relations:{len(values['fixed_repair'])},"
+            f"vs_fixed_repair_mean={_format_float(_mean(values['fixed_repair']))},"
+            "vs_fixed_coordinate_mean="
+            f"{_format_float(_mean(values['fixed_coordinate']))}"
+        )
+        for trigger, values in sorted(gaps.items())
+    )
+    has_negative_mean = any(
+        _mean(values["fixed_repair"]) < 0.0
+        or _mean(values["fixed_coordinate"]) < 0.0
+        for values in gaps.values()
+    )
+    return {
+        "run_id": RUN_ID,
+        "problem_id": "ALL",
+        "diagnostic_key": "multi_problem_trigger_baseline_gap_profile",
+        "status": "blocked" if has_negative_mean else ("pass" if gaps else "blocked"),
+        "observed_value": observed_value,
+        "blocker_reason": (
+            "trigger_baseline_gap_detected"
+            if has_negative_mean
+            else ("" if gaps else "relation_policy_profile_missing")
+        ),
+        "next_step": (
+            "inspect_trigger_baseline_gap_profile"
+            if has_negative_mean
+            else ("continue" if gaps else "repair_relation_artifact_join")
+        ),
+    }
+
+
 def _multi_problem_action_mismatch_profile_row(
     mismatch_rows: list[dict[str, object]],
 ) -> dict[str, object]:
@@ -2241,6 +2314,12 @@ def _policy_evidence_diagnosis_rows(
         )
         rows.append(
             _multi_problem_trigger_outcome_profile_row(
+                utility_rows,
+                decision_rows,
+            )
+        )
+        rows.append(
+            _multi_problem_trigger_baseline_gap_profile_row(
                 utility_rows,
                 decision_rows,
             )
