@@ -899,6 +899,17 @@ def _multi_problem_diagnosis_rows(
         {
             "run_id": RUN_ID,
             "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_relation_dispatch_win_count",
+            "status": "pass" if directional_pass else "blocked",
+            "observed_value": f"win_count={positive_cases}/{len(relation_rows)}",
+            "blocker_reason": ""
+            if directional_pass
+            else "multi_problem_not_directionally_positive",
+            "next_step": "continue" if directional_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
             "diagnostic_key": "multi_problem_catastrophic_loss_gate",
             "status": "blocked" if catastrophic else "pass",
             "observed_value": f"{catastrophic}/{len(relation_rows)}",

@@ -348,6 +348,10 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert aggregate_by_key["multi_problem_relation_dispatch_mean_gain"]["observed_value"] == (
         "positive_cases=0/2;mean_gain=-0.008264"
     )
+    assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["observed_value"] == (
+        "win_count=0/2"
+    )
+    assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["observed_value"] == "0"
