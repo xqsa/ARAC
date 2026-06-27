@@ -167,14 +167,21 @@ class HccAobExecutionResult:
     stderr_tail: str = ""
     action_trace_path: Path | None = None
     action_trace_rows: int = 0
+    optimizer_final_fe_used: int | None = None
 
     def to_offline_row(self) -> dict[str, str]:
+        actual_fe_used = (
+            self.fe_used
+            if self.optimizer_final_fe_used is None
+            else self.optimizer_final_fe_used
+        )
         return {
             "problem_id": self.problem_id,
             "seed": str(self.seed),
             "max_fes": str(self.max_fes),
             "final_error": f"{self.final_error:.6e}",
             "fe_used": str(self.fe_used),
+            "optimizer_final_fe_used": str(actual_fe_used),
             "time_seconds": f"{self.time_seconds:.6f}",
             "output_root": str(self.output_root),
             "fresh_optimizer_execution": "1" if self.fresh_optimizer_execution else "0",
@@ -183,7 +190,7 @@ class HccAobExecutionResult:
             "action_trace_path": "" if self.action_trace_path is None else str(self.action_trace_path),
             "action_trace_rows": str(self.action_trace_rows),
             "runtime_dispatch_allowed": "0",
-            "same_budget_violation": "1" if self.fe_used > self.max_fes else "0",
+            "same_budget_violation": "1" if actual_fe_used > self.max_fes else "0",
             "performance_claim_allowed": "0",
         }
 
@@ -493,9 +500,11 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             action_trace_rows=0,
         )
 
-    final_error, fe_used = _parse_hcc_evaluation_record(
-        Path(request.output_dir),
-        budget_limit=request.max_fes,
+    final_error, fe_used, optimizer_final_fe_used = (
+        _parse_hcc_evaluation_record_with_optimizer_final_fe(
+            Path(request.output_dir),
+            budget_limit=request.max_fes,
+        )
     )
     action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
     return HccAobExecutionResult(
@@ -513,6 +522,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         stderr_tail=_tail(completed.stderr),
         action_trace_path=action_trace_path,
         action_trace_rows=action_trace_rows,
+        optimizer_final_fe_used=optimizer_final_fe_used,
     )
 
 
@@ -520,10 +530,30 @@ def _parse_hcc_evaluation_record(
     output_dir: Path,
     budget_limit: int | None = None,
 ) -> tuple[float, int]:
+    final_error, fe_used, _optimizer_final_fe_used = (
+        _parse_hcc_evaluation_record_with_optimizer_final_fe(
+            output_dir,
+            budget_limit=budget_limit,
+        )
+    )
+    return final_error, fe_used
+
+
+def _parse_hcc_evaluation_record_with_optimizer_final_fe(
+    output_dir: Path,
+    budget_limit: int | None = None,
+) -> tuple[float, int, int]:
     records = sorted(Path(output_dir).rglob("evaluation_record.txt"))
     if not records:
         raise FileNotFoundError(f"missing HCC evaluation_record.txt under {output_dir}")
     text = records[-1].read_text(encoding="utf-8", errors="replace")
+    final_match = re.search(
+        r"Fin:\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
+        text,
+    )
+    if not final_match:
+        raise ValueError(f"could not parse final HCC error from {records[-1]}")
+    optimizer_final_fe_used = int(float(final_match.group("fe")))
     if budget_limit is not None:
         for checkpoint in re.finditer(
             r"^\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
@@ -532,15 +562,13 @@ def _parse_hcc_evaluation_record(
         ):
             fe = int(float(checkpoint.group("fe")))
             if fe == budget_limit:
-                return float(checkpoint.group("value")), fe
+                return float(checkpoint.group("value")), fe, optimizer_final_fe_used
 
-    final_match = re.search(
-        r"Fin:\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
-        text,
+    return (
+        float(final_match.group("value")),
+        optimizer_final_fe_used,
+        optimizer_final_fe_used,
     )
-    if not final_match:
-        raise ValueError(f"could not parse final HCC error from {records[-1]}")
-    return float(final_match.group("value")), int(float(final_match.group("fe")))
 
 
 def _find_hcc_action_trace(output_dir: Path) -> tuple[Path | None, int]:

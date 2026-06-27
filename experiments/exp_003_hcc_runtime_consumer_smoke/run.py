@@ -137,12 +137,19 @@ def _runtime_payload(
 
 
 def _ledger_for_result(result: HccAobExecutionResult) -> SameBudgetLedger:
+    actual_fe_used = _actual_fe_used(result)
     return SameBudgetLedger(
         phase_i_fe=PHASE_I_FE,
-        phase_ii_fe=result.fe_used - PHASE_I_FE,
+        phase_ii_fe=actual_fe_used - PHASE_I_FE,
         budget_limit=MAX_FES,
         fresh_execution=result.fresh_optimizer_execution,
     )
+
+
+def _actual_fe_used(result: HccAobExecutionResult) -> int:
+    if result.optimizer_final_fe_used is None:
+        return result.fe_used
+    return result.optimizer_final_fe_used
 
 
 def _read_csv_rows(path: Path | None) -> list[dict[str, str]]:
@@ -450,6 +457,7 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     for record in records:
         result = record["result"]
         assert isinstance(result, HccAobExecutionResult)
+        actual_fe_used = _actual_fe_used(result)
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -461,13 +469,14 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                     result.seed,
                 ),
                 "phase_i_fe": PHASE_I_FE,
-                "phase_ii_fe": result.fe_used - PHASE_I_FE,
-                "total_fe": result.fe_used,
+                "phase_ii_fe": actual_fe_used - PHASE_I_FE,
+                "total_fe": actual_fe_used,
                 "budget_limit": MAX_FES,
                 "configured_budget_limit": MAX_FES,
-                "actual_fe_used": result.fe_used,
+                "budget_aligned_fe_used": result.fe_used,
+                "actual_fe_used": actual_fe_used,
                 "budget_limit_source": "experiment_config",
-                "same_budget_violation": int(result.fe_used > MAX_FES),
+                "same_budget_violation": int(actual_fe_used > MAX_FES),
                 "fresh_execution": int(result.fresh_optimizer_execution),
             }
         )
@@ -1322,6 +1331,7 @@ def run_hcc_runtime_consumer_smoke(
             "total_fe",
             "budget_limit",
             "configured_budget_limit",
+            "budget_aligned_fe_used",
             "actual_fe_used",
             "budget_limit_source",
             "same_budget_violation",

@@ -148,3 +148,25 @@ def test_hcc_execution_result_marks_over_budget_not_performance_claimable() -> N
 
     assert offline_row["same_budget_violation"] == "1"
     assert offline_row["performance_claim_allowed"] == "0"
+
+
+def test_hcc_execution_result_marks_optimizer_final_overrun() -> None:
+    result = HccAobExecutionResult(
+        problem_id="E2",
+        seed=1,
+        max_fes=2_000,
+        final_error=1.0,
+        fe_used=2_000,
+        optimizer_final_fe_used=2_128,
+        time_seconds=0.5,
+        output_root=Path("results/hcc-smoke"),
+        fresh_optimizer_execution=True,
+        status="completed",
+        result_source="hcc_subprocess_smoke_execution",
+    )
+
+    offline_row = result.to_offline_row()
+
+    assert offline_row["fe_used"] == "2000"
+    assert offline_row["optimizer_final_fe_used"] == "2128"
+    assert offline_row["same_budget_violation"] == "1"

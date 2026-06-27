@@ -346,6 +346,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "E2_seed3_2000fe",
     }
     assert all(row["configured_budget_limit"] == "2000" for row in ledger_rows)
+    assert all(row["budget_aligned_fe_used"] == "2000" for row in ledger_rows)
     assert all(row["actual_fe_used"] == "2000" for row in ledger_rows)
     assert all(row["budget_limit"] == "2000" for row in ledger_rows)
     assert all(row["budget_limit_source"] == "experiment_config" for row in ledger_rows)
