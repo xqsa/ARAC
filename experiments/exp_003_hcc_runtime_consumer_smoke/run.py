@@ -1365,6 +1365,11 @@ def _multi_problem_diagnosis_rows(
         for row in negative_control_rows
         if str(row.get("negative_control_pass", "0")) != "1"
     )
+    negative_failed_problem_ids = sorted(
+        str(row["problem_id"])
+        for row in negative_control_rows
+        if str(row.get("negative_control_pass", "0")) != "1"
+    )
     negative_pass_count = len(negative_control_rows) - negative_failures
     shuffled_win_count = sum(
         int(row.get("shuffled_win_count", 0)) for row in negative_control_rows
@@ -1545,7 +1550,8 @@ def _multi_problem_diagnosis_rows(
             "status": "pass" if negative_control_pass else "blocked",
             "observed_value": (
                 f"pass={negative_pass_count}/{len(negative_control_rows)};"
-                f"shuffled_win_count={shuffled_win_count}/{negative_total_seeds}"
+                f"shuffled_win_count={shuffled_win_count}/{negative_total_seeds};"
+                f"failed_problem_ids={','.join(negative_failed_problem_ids)}"
             ),
             "blocker_reason": ""
             if negative_control_pass

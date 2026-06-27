@@ -441,7 +441,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     )
     assert aggregate_by_key["multi_problem_backend_semantics_audit"]["status"] == "pass"
     assert aggregate_by_key["multi_problem_negative_control"]["observed_value"] == (
-        "pass=0/2;shuffled_win_count=2/2"
+        "pass=0/2;shuffled_win_count=2/2;failed_problem_ids=E1,E2"
     )
     assert aggregate_by_key["multi_problem_negative_control"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
