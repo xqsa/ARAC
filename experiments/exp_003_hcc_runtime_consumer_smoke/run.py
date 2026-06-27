@@ -878,6 +878,15 @@ def _multi_problem_diagnosis_rows(
         and fixed_repair_win_count == len(fixed_repair_gains)
         and fixed_repair_mean_gain > 0.0
     )
+    active_rows = [
+        row for row in utility_rows if row["lane_id"] != "fallback"
+    ]
+    backend_semantics_changed = sum(
+        1 for row in active_rows if str(row["backend_semantics_changed"]) == "1"
+    )
+    backend_semantics_pass = (
+        bool(active_rows) and backend_semantics_changed == len(active_rows)
+    )
     catastrophic = sum(
         1 for row in relation_rows if row["utility_label"] == "catastrophic_loss"
     )
@@ -900,6 +909,8 @@ def _multi_problem_diagnosis_rows(
         blockers.append("negative_control_failed")
     if not fixed_repair_pass:
         blockers.append("fixed_repair_baseline_not_beaten")
+    if not backend_semantics_pass:
+        blockers.append("backend_semantics_audit_failed")
     directional_pass = positive_cases == len(relation_rows) and mean_gain > 0.0
     sota_allowed = not blockers
 
@@ -942,6 +953,21 @@ def _multi_problem_diagnosis_rows(
             if fixed_repair_pass
             else "fixed_repair_baseline_not_beaten",
             "next_step": "continue" if fixed_repair_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_backend_semantics_audit",
+            "status": "pass" if backend_semantics_pass else "blocked",
+            "observed_value": (
+                f"changed={backend_semantics_changed}/{len(active_rows)}"
+            ),
+            "blocker_reason": ""
+            if backend_semantics_pass
+            else "backend_semantics_audit_failed",
+            "next_step": "continue"
+            if backend_semantics_pass
+            else "diagnose_policy_evidence_before_sota",
         },
         {
             "run_id": RUN_ID,
