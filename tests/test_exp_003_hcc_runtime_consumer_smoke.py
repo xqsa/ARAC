@@ -624,6 +624,10 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "win_count=0/1;mean_gain=-0.567901;lost_case_ids=E2_seed1"
     ) in multi_manifest
     assert (
+        "- fixed repair materiality: "
+        "material_wins=0/1;material_losses=1/1;ties=0/1"
+    ) in multi_manifest
+    assert (
         "- fixed coordinate baseline: "
         "win_count=1/1;mean_gain=0.030534;lost_case_ids="
     ) in multi_manifest
@@ -1090,3 +1094,53 @@ def test_multi_problem_fixed_coordinate_baseline_uses_directional_gate() -> None
     assert coordinate["observed_value"] == (
         "win_count=2/3;mean_gain=0.004333;lost_case_ids=R2_seed1"
     )
+
+
+def test_multi_problem_diagnostics_report_fixed_repair_materiality() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_diagnosis_rows,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+            "relative_gain_vs_fallback": gain,
+            "utility_label": "tie_or_small_effect",
+            "same_budget_violation": "0",
+            "backend_semantics_changed": "1" if lane_id != "fallback" else "0",
+            "action_mix": action_mix,
+        }
+        for problem_id, lane_id, final_error, gain, action_mix in [
+            ("E2", "fallback", 100.0, "0.000000", "conservative_no_action=1"),
+            ("E2", "fixed_repair", 100.0, "0.000000", "repair_shared_variable_binding=1"),
+            ("E2", "relation_dispatch_rule", 94.0, "0.060000", "allow_beneficial_coordination=1"),
+            ("S2", "fallback", 100.0, "0.000000", "conservative_no_action=1"),
+            ("S2", "fixed_repair", 100.0, "0.000000", "repair_shared_variable_binding=1"),
+            ("S2", "relation_dispatch_rule", 101.0, "-0.010000", "conservative_no_action=1"),
+            ("R2", "fallback", 100.0, "0.000000", "conservative_no_action=1"),
+            ("R2", "fixed_repair", 100.0, "0.000000", "repair_shared_variable_binding=1"),
+            ("R2", "relation_dispatch_rule", 125.0, "-0.250000", "reassign_repair=1"),
+        ]
+    ]
+    negative_rows = [
+        {
+            "problem_id": problem_id,
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        }
+        for problem_id in ("E2", "S2", "R2")
+    ]
+
+    rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows)
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    materiality = by_key["multi_problem_fixed_repair_materiality"]
+    assert materiality["status"] == "blocked"
+    assert materiality["observed_value"] == (
+        "material_wins=1/3;material_losses=1/3;ties=1/3"
+    )
+    assert materiality["blocker_reason"] == "fixed_repair_material_loss_detected"

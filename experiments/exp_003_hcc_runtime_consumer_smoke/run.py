@@ -1494,6 +1494,23 @@ def _multi_problem_diagnosis_rows(
     ]
     fixed_repair_win_count = sum(1 for gain in fixed_repair_gains if gain > 0.0)
     fixed_repair_mean_gain = _mean(fixed_repair_gains)
+    fixed_repair_material_labels = [
+        classify_utility(
+            fixed_repair_by_case[(str(row["problem_id"]), str(row["seed"]))],
+            float(row["final_error"]),
+        )
+        for row in relation_rows
+        if (str(row["problem_id"]), str(row["seed"])) in fixed_repair_by_case
+    ]
+    fixed_repair_material_wins = fixed_repair_material_labels.count("meaningful_win")
+    fixed_repair_material_losses = fixed_repair_material_labels.count(
+        "catastrophic_loss"
+    )
+    fixed_repair_material_ties = (
+        len(fixed_repair_material_labels)
+        - fixed_repair_material_wins
+        - fixed_repair_material_losses
+    )
     fixed_repair_pass = (
         bool(fixed_repair_gains)
         and fixed_repair_win_count > len(fixed_repair_lost_case_ids)
@@ -1770,6 +1787,37 @@ def _multi_problem_diagnosis_rows(
         {
             "run_id": RUN_ID,
             "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_fixed_repair_materiality",
+            "status": (
+                "pass"
+                if fixed_repair_material_labels
+                and fixed_repair_material_losses == 0
+                else "blocked"
+            ),
+            "observed_value": (
+                f"material_wins={fixed_repair_material_wins}/"
+                f"{len(fixed_repair_material_labels)};"
+                f"material_losses={fixed_repair_material_losses}/"
+                f"{len(fixed_repair_material_labels)};"
+                f"ties={fixed_repair_material_ties}/"
+                f"{len(fixed_repair_material_labels)}"
+            ),
+            "blocker_reason": (
+                ""
+                if fixed_repair_material_labels
+                and fixed_repair_material_losses == 0
+                else "fixed_repair_material_loss_detected"
+            ),
+            "next_step": (
+                "continue"
+                if fixed_repair_material_labels
+                and fixed_repair_material_losses == 0
+                else "diagnose_policy_evidence_before_sota"
+            ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
             "diagnostic_key": "multi_problem_relation_vs_fixed_coordinate_baseline",
             "status": "pass" if fixed_coordinate_pass else "blocked",
             "observed_value": (
@@ -1984,6 +2032,13 @@ def _write_manifest(
         )
         or "not_applicable"
     )
+    multi_problem_fixed_repair_materiality = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_fixed_repair_materiality",
+        )
+        or "not_applicable"
+    )
     multi_problem_fixed_coordinate = (
         _diagnostic_observed_value(
             diagnosis_rows,
@@ -2046,6 +2101,7 @@ def _write_manifest(
             f"- multi-problem pilot utility: {multi_problem_pilot}",
             f"- multi-problem active density: {multi_problem_active_density}",
             f"- fixed repair baseline: {multi_problem_fixed_repair}",
+            f"- fixed repair materiality: {multi_problem_fixed_repair_materiality}",
             f"- fixed coordinate baseline: {multi_problem_fixed_coordinate}",
             f"- multi-problem relation policy profile: {multi_problem_relation_policy_profile}",
             f"- SOTA escalation: {_sota_claim_allowed(diagnosis_rows)}",
