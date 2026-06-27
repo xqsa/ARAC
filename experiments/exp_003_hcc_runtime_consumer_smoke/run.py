@@ -1163,13 +1163,20 @@ def _multi_problem_diagnosis_rows(
         for row in utility_rows
         if row["lane_id"] == "fixed_repair"
     }
-    fixed_repair_gains = [
-        relative_gain(
-            fixed_repair_by_case[(str(row["problem_id"]), str(row["seed"]))],
-            float(row["final_error"]),
+    fixed_repair_gain_cases = [
+        (
+            f"{row['problem_id']}_seed{row['seed']}",
+            relative_gain(
+                fixed_repair_by_case[(str(row["problem_id"]), str(row["seed"]))],
+                float(row["final_error"]),
+            ),
         )
         for row in relation_rows
         if (str(row["problem_id"]), str(row["seed"])) in fixed_repair_by_case
+    ]
+    fixed_repair_gains = [gain for _case_id, gain in fixed_repair_gain_cases]
+    fixed_repair_lost_case_ids = [
+        case_id for case_id, gain in fixed_repair_gain_cases if gain <= 0.0
     ]
     fixed_repair_win_count = sum(1 for gain in fixed_repair_gains if gain > 0.0)
     fixed_repair_mean_gain = _mean(fixed_repair_gains)
@@ -1183,13 +1190,20 @@ def _multi_problem_diagnosis_rows(
         for row in utility_rows
         if row["lane_id"] == "fixed_coordinate"
     }
-    fixed_coordinate_gains = [
-        relative_gain(
-            fixed_coordinate_by_case[(str(row["problem_id"]), str(row["seed"]))],
-            float(row["final_error"]),
+    fixed_coordinate_gain_cases = [
+        (
+            f"{row['problem_id']}_seed{row['seed']}",
+            relative_gain(
+                fixed_coordinate_by_case[(str(row["problem_id"]), str(row["seed"]))],
+                float(row["final_error"]),
+            ),
         )
         for row in relation_rows
         if (str(row["problem_id"]), str(row["seed"])) in fixed_coordinate_by_case
+    ]
+    fixed_coordinate_gains = [gain for _case_id, gain in fixed_coordinate_gain_cases]
+    fixed_coordinate_lost_case_ids = [
+        case_id for case_id, gain in fixed_coordinate_gain_cases if gain <= 0.0
     ]
     fixed_coordinate_win_count = sum(1 for gain in fixed_coordinate_gains if gain > 0.0)
     fixed_coordinate_mean_gain = _mean(fixed_coordinate_gains)
@@ -1345,7 +1359,8 @@ def _multi_problem_diagnosis_rows(
             "status": "pass" if fixed_repair_pass else "blocked",
             "observed_value": (
                 f"win_count={fixed_repair_win_count}/{len(fixed_repair_gains)};"
-                f"mean_gain={fixed_repair_mean_gain:.6f}"
+                f"mean_gain={fixed_repair_mean_gain:.6f};"
+                f"lost_case_ids={','.join(fixed_repair_lost_case_ids)}"
             ),
             "blocker_reason": ""
             if fixed_repair_pass
@@ -1359,7 +1374,8 @@ def _multi_problem_diagnosis_rows(
             "status": "pass" if fixed_coordinate_pass else "blocked",
             "observed_value": (
                 f"win_count={fixed_coordinate_win_count}/{len(fixed_coordinate_gains)};"
-                f"mean_gain={fixed_coordinate_mean_gain:.6f}"
+                f"mean_gain={fixed_coordinate_mean_gain:.6f};"
+                f"lost_case_ids={','.join(fixed_coordinate_lost_case_ids)}"
             ),
             "blocker_reason": ""
             if fixed_coordinate_pass
