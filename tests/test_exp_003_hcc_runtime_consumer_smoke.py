@@ -1503,6 +1503,70 @@ def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> No
     assert row["blocker_reason"] == "action_mismatch_or_abstain_detected"
 
 
+def test_multi_problem_mismatch_baseline_gap_profile_reports_final_best_gaps() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_mismatch_baseline_gap_profile_row,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": seed,
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+        }
+        for problem_id, seed, lane_id, final_error in [
+            ("E1", "1", "relation_dispatch_rule", 50.0),
+            ("E2", "1", "relation_dispatch_rule", 90.0),
+            ("E2", "1", "fixed_repair", 80.0),
+            ("E2", "1", "fixed_coordinate", 95.0),
+            ("E2", "2", "relation_dispatch_rule", 90.0),
+            ("E2", "2", "fixed_repair", 100.0),
+            ("E2", "2", "fixed_coordinate", 80.0),
+        ]
+    ]
+    mismatch_rows = [
+        {
+            "problem_id": "E1",
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "final_action_name": "fallback",
+            "best_action_name": "fallback",
+        },
+        {
+            "problem_id": "E2",
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "final_action_name": "fallback",
+            "best_action_name": "coordinate",
+        },
+        {
+            "problem_id": "E2",
+            "seed": "2",
+            "lane_id": "relation_dispatch_rule",
+            "final_action_name": "coordinate",
+            "best_action_name": "coordinate",
+        },
+    ]
+
+    row = _multi_problem_mismatch_baseline_gap_profile_row(
+        utility_rows,
+        mismatch_rows,
+    )
+
+    assert row["diagnostic_key"] == "multi_problem_mismatch_baseline_gap_profile"
+    assert row["status"] == "blocked"
+    assert row["observed_value"] == (
+        "coordinate->coordinate=relations:1,"
+        "vs_fixed_repair_mean=0.100000,"
+        "vs_fixed_coordinate_mean=-0.125000;"
+        "fallback->coordinate=relations:1,"
+        "vs_fixed_repair_mean=-0.125000,"
+        "vs_fixed_coordinate_mean=0.052632"
+    )
+    assert row["blocker_reason"] == "mismatch_baseline_gap_detected"
+
+
 def test_multi_problem_relation_confidence_interval_reports_baseline_deltas() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_relation_confidence_interval_row,
