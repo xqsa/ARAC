@@ -439,6 +439,14 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     )
     assert aggregate_by_key["multi_problem_negative_control"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
+    aggregate_policy_profile = aggregate_by_key["multi_problem_relation_policy_profile"]
+    assert aggregate_policy_profile["status"] == "pass"
+    assert "relations=4" in aggregate_policy_profile["observed_value"]
+    assert "active_density=1.000000" in aggregate_policy_profile["observed_value"]
+    assert "actions=allow_beneficial_coordination=2;repair_shared_variable_binding=2" in (
+        aggregate_policy_profile["observed_value"]
+    )
+    assert "reasons=repair=2;stable=2" in aggregate_policy_profile["observed_value"]
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["observed_value"] == "0"
     assert "negative_control_failed" in aggregate_by_key[
