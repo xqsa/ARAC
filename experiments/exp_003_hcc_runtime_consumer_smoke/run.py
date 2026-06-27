@@ -799,6 +799,14 @@ def _format_float(value: float) -> str:
     return f"{value:.6f}"
 
 
+def _gain_bucket(gain: float) -> str:
+    if gain > 0.0:
+        return "win"
+    if gain < 0.0:
+        return "loss"
+    return "tie"
+
+
 def _aggregate_lane_action_mix(
     utility_rows: list[dict[str, object]],
     lane_id: str,
@@ -1335,6 +1343,58 @@ def _multi_problem_relation_policy_profile_row(
             "diagnose_policy_evidence_before_sota"
             if relation_decisions and utility_blocked
             else ("continue" if relation_decisions else "repair_relation_artifact_join")
+        ),
+    }
+
+
+def _multi_problem_trigger_outcome_profile_row(
+    utility_rows: list[dict[str, object]],
+    decision_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    gain_by_case = {
+        (str(row["problem_id"]), str(row["seed"])): float(
+            row["relative_gain_vs_fallback"]
+        )
+        for row in utility_rows
+        if row["lane_id"] == "relation_dispatch_rule"
+        and _is_overlap_applicable_problem_id(str(row["problem_id"]))
+    }
+    counts: dict[str, dict[str, int]] = {}
+    for row in decision_rows:
+        if str(row.get("lane_id", "")) != "relation_dispatch_rule":
+            continue
+        case_key = (str(row.get("problem_id", "")), str(row.get("seed", "")))
+        if case_key not in gain_by_case:
+            continue
+        trigger_reason = str(row.get("trigger_reason", ""))
+        if not trigger_reason:
+            continue
+        bucket = _gain_bucket(gain_by_case[case_key])
+        counts.setdefault(trigger_reason, {"win": 0, "loss": 0, "tie": 0})[bucket] += 1
+    observed_value = ";".join(
+        (
+            f"{trigger}=win:{bucket_counts['win']},"
+            f"loss:{bucket_counts['loss']},"
+            f"tie:{bucket_counts['tie']}"
+        )
+        for trigger, bucket_counts in sorted(counts.items())
+    )
+    losses = sum(bucket_counts["loss"] for bucket_counts in counts.values())
+    return {
+        "run_id": RUN_ID,
+        "problem_id": "ALL",
+        "diagnostic_key": "multi_problem_trigger_outcome_profile",
+        "status": "blocked" if losses else ("pass" if counts else "blocked"),
+        "observed_value": observed_value,
+        "blocker_reason": (
+            "relation_dispatch_lost_cases"
+            if losses
+            else ("" if counts else "relation_policy_profile_missing")
+        ),
+        "next_step": (
+            "inspect_trigger_outcome_profile"
+            if losses
+            else ("continue" if counts else "repair_relation_artifact_join")
         ),
     }
 
@@ -2001,6 +2061,12 @@ def _policy_evidence_diagnosis_rows(
                 utility_rows,
                 decision_rows,
                 overlap_rows,
+            )
+        )
+        rows.append(
+            _multi_problem_trigger_outcome_profile_row(
+                utility_rows,
+                decision_rows,
             )
         )
     return rows

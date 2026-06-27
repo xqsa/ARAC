@@ -1206,3 +1206,49 @@ def test_multi_problem_diagnostics_report_relation_dispatch_materiality() -> Non
         "mean_gain=-0.060000;threshold=0.050000"
     )
     assert materiality["blocker_reason"] == "relation_dispatch_material_loss_detected"
+
+
+def test_multi_problem_trigger_outcome_profile_groups_reasons_by_case_gain() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_trigger_outcome_profile_row,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": "relation_dispatch_rule",
+            "relative_gain_vs_fallback": gain,
+        }
+        for problem_id, gain in [
+            ("E1", "0.500000"),
+            ("E2", "0.010000"),
+            ("S2", "-0.010000"),
+            ("R2", "0.000000"),
+        ]
+    ]
+    decision_rows = [
+        {
+            "lane_id": "relation_dispatch_rule",
+            "problem_id": problem_id,
+            "seed": "1",
+            "trigger_reason": trigger_reason,
+        }
+        for problem_id, trigger_reason in [
+            ("E1", "ignored_no_overlap"),
+            ("E2", "balanced_mid_support_coordinate_mode"),
+            ("E2", "dense_prefix_coordinate_mode"),
+            ("S2", "dense_prefix_coordinate_mode"),
+            ("R2", "balanced_mid_support_coordinate_mode"),
+        ]
+    ]
+
+    row = _multi_problem_trigger_outcome_profile_row(utility_rows, decision_rows)
+
+    assert row["diagnostic_key"] == "multi_problem_trigger_outcome_profile"
+    assert row["status"] == "blocked"
+    assert row["observed_value"] == (
+        "balanced_mid_support_coordinate_mode=win:1,loss:0,tie:1;"
+        "dense_prefix_coordinate_mode=win:1,loss:1,tie:0"
+    )
+    assert row["blocker_reason"] == "relation_dispatch_lost_cases"
