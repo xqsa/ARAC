@@ -620,6 +620,11 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "threshold=0.200000;low_density_case_ids="
     ) in multi_manifest
     assert (
+        "- relation dispatch materiality: "
+        "material_wins=0/1;material_losses=0/1;ties=1/1;"
+        "mean_gain=-0.049587;threshold=0.050000"
+    ) in multi_manifest
+    assert (
         "- fixed repair baseline: "
         "win_count=0/1;mean_gain=-0.567901;lost_case_ids=E2_seed1"
     ) in multi_manifest
@@ -863,7 +868,7 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
     )
     assert by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert by_key["multi_problem_sota_escalation_allowed"]["blocker_reason"] == (
-        "relation_dispatch_not_meaningful_win"
+        "relation_dispatch_effect_size_below_threshold"
     )
 
 
@@ -924,6 +929,9 @@ def test_multi_problem_pilot_utility_allows_positive_mean_with_more_wins_than_lo
         "win_count=2/3;loss_count=1/3"
     )
     assert by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
+    assert "relation_dispatch_effect_size_below_threshold" in by_key[
+        "multi_problem_sota_escalation_allowed"
+    ]["blocker_reason"]
 
 
 def test_multi_problem_diagnostics_report_action_value_delta_profile() -> None:
@@ -1144,3 +1152,57 @@ def test_multi_problem_diagnostics_report_fixed_repair_materiality() -> None:
         "material_wins=1/3;material_losses=1/3;ties=1/3"
     )
     assert materiality["blocker_reason"] == "fixed_repair_material_loss_detected"
+
+
+def test_multi_problem_diagnostics_report_relation_dispatch_materiality() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_diagnosis_rows,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+            "relative_gain_vs_fallback": gain,
+            "utility_label": utility_label,
+            "same_budget_violation": "0",
+            "backend_semantics_changed": "1" if lane_id != "fallback" else "0",
+            "action_mix": action_mix,
+        }
+        for problem_id, lane_id, final_error, gain, utility_label, action_mix in [
+            ("E2", "fallback", 100.0, "0.000000", "tie_or_small_effect", "conservative_no_action=1"),
+            ("E2", "fixed_repair", 100.0, "0.000000", "tie_or_small_effect", "repair_shared_variable_binding=1"),
+            ("E2", "fixed_coordinate", 100.0, "0.000000", "tie_or_small_effect", "allow_beneficial_coordination=1"),
+            ("E2", "relation_dispatch_rule", 94.0, "0.060000", "meaningful_win", "allow_beneficial_coordination=1"),
+            ("S2", "fallback", 100.0, "0.000000", "tie_or_small_effect", "conservative_no_action=1"),
+            ("S2", "fixed_repair", 100.0, "0.000000", "tie_or_small_effect", "repair_shared_variable_binding=1"),
+            ("S2", "fixed_coordinate", 100.0, "0.000000", "tie_or_small_effect", "allow_beneficial_coordination=1"),
+            ("S2", "relation_dispatch_rule", 99.0, "0.010000", "tie_or_small_effect", "conservative_no_action=1"),
+            ("R2", "fallback", 100.0, "0.000000", "tie_or_small_effect", "conservative_no_action=1"),
+            ("R2", "fixed_repair", 100.0, "0.000000", "tie_or_small_effect", "repair_shared_variable_binding=1"),
+            ("R2", "fixed_coordinate", 100.0, "0.000000", "tie_or_small_effect", "allow_beneficial_coordination=1"),
+            ("R2", "relation_dispatch_rule", 125.0, "-0.250000", "catastrophic_loss", "reassign_repair=1"),
+        ]
+    ]
+    negative_rows = [
+        {
+            "problem_id": problem_id,
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        }
+        for problem_id in ("E2", "S2", "R2")
+    ]
+
+    rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows)
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    materiality = by_key["multi_problem_relation_dispatch_materiality"]
+    assert materiality["status"] == "blocked"
+    assert materiality["observed_value"] == (
+        "material_wins=1/3;material_losses=1/3;ties=1/3;"
+        "mean_gain=-0.060000;threshold=0.050000"
+    )
+    assert materiality["blocker_reason"] == "relation_dispatch_material_loss_detected"

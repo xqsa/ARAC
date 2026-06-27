@@ -38,6 +38,7 @@ MAX_FES = 2_000
 PHASE_I_FE = 0
 PHASE_II_FE = MAX_FES
 LOW_ACTIVE_DENSITY_THRESHOLD = 0.20
+MEANINGFUL_GAIN_THRESHOLD = 0.05
 
 
 @dataclass(frozen=True)
@@ -1556,6 +1557,26 @@ def _multi_problem_diagnosis_rows(
     relation_meaningful = sum(
         1 for row in relation_rows if row["utility_label"] == "meaningful_win"
     )
+    relation_material_losses = sum(
+        1 for row in relation_rows if row["utility_label"] == "catastrophic_loss"
+    )
+    relation_material_ties = (
+        len(relation_rows) - relation_meaningful - relation_material_losses
+    )
+    relation_materiality_pass = (
+        bool(relation_rows)
+        and relation_material_losses == 0
+        and mean_gain >= MEANINGFUL_GAIN_THRESHOLD
+    )
+    relation_materiality_blocker = (
+        ""
+        if relation_materiality_pass
+        else (
+            "relation_dispatch_material_loss_detected"
+            if relation_material_losses
+            else "relation_dispatch_effect_size_below_threshold"
+        )
+    )
     budget_violations = sum(
         1 for row in utility_rows if str(row["same_budget_violation"]) == "1"
     )
@@ -1597,8 +1618,8 @@ def _multi_problem_diagnosis_rows(
         blockers.append("same_budget_violation")
     if not directional_pass:
         blockers.append("multi_problem_not_directionally_positive")
-    if relation_meaningful != len(relation_rows):
-        blockers.append("relation_dispatch_not_meaningful_win")
+    if not relation_materiality_pass:
+        blockers.append(relation_materiality_blocker)
     if catastrophic:
         blockers.append("catastrophic_loss")
     if negative_failures:
@@ -1642,6 +1663,27 @@ def _multi_problem_diagnosis_rows(
             if directional_pass
             else "multi_problem_not_directionally_positive",
             "next_step": "continue" if directional_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_relation_dispatch_materiality",
+            "status": "pass" if relation_materiality_pass else "blocked",
+            "observed_value": (
+                f"material_wins={relation_meaningful}/{len(relation_rows)};"
+                f"material_losses={relation_material_losses}/{len(relation_rows)};"
+                f"ties={relation_material_ties}/{len(relation_rows)};"
+                f"mean_gain={mean_gain:.6f};"
+                f"threshold={MEANINGFUL_GAIN_THRESHOLD:.6f}"
+            ),
+            "blocker_reason": (
+                "" if relation_materiality_pass else relation_materiality_blocker
+            ),
+            "next_step": (
+                "continue"
+                if relation_materiality_pass
+                else "diagnose_policy_evidence_before_sota"
+            ),
         },
         {
             "run_id": RUN_ID,
@@ -2025,6 +2067,13 @@ def _write_manifest(
         )
         or "not_applicable"
     )
+    multi_problem_relation_materiality = (
+        _diagnostic_observed_value(
+            diagnosis_rows,
+            "multi_problem_relation_dispatch_materiality",
+        )
+        or "not_applicable"
+    )
     multi_problem_fixed_repair = (
         _diagnostic_observed_value(
             diagnosis_rows,
@@ -2100,6 +2149,7 @@ def _write_manifest(
             f"- pilot utility: {_diagnostic_observed_value(diagnosis_rows, 'pilot_utility_evidence')}",
             f"- multi-problem pilot utility: {multi_problem_pilot}",
             f"- multi-problem active density: {multi_problem_active_density}",
+            f"- relation dispatch materiality: {multi_problem_relation_materiality}",
             f"- fixed repair baseline: {multi_problem_fixed_repair}",
             f"- fixed repair materiality: {multi_problem_fixed_repair_materiality}",
             f"- fixed coordinate baseline: {multi_problem_fixed_coordinate}",
