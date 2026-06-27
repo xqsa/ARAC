@@ -599,10 +599,13 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     optimize_calls = {"count": 0}
 
     class FakeFunction:
-        fitness_record = [0.0]
+        def __init__(self) -> None:
+            self.fitness_record = []
 
         def __call__(self, vector):
-            return [1000.0]
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
 
     class FakeBenchmark:
         def __init__(self, output_dir: str) -> None:
@@ -680,7 +683,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
         1,
         tmp_path,
         runner.SmokeConfig(
-            max_fes=3,
+            max_fes=30,
             seed=1,
             enable_relation_dispatch=True,
             verbose=0,
@@ -689,6 +692,72 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
 
     assert bases_seen_by_combine
     assert bases_seen_by_combine[0][1] == 100.0
+
+
+def test_run_problem_caps_aob_fitness_record_at_max_fes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 4, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            population_size = self.options["n_individuals"]
+            x_batch = np.zeros((population_size, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            return {
+                "n_function_evaluations": population_size,
+                "best_so_far_y": 1000.0,
+                "best_so_far_x": x_batch[0],
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id: [[0, 1], [1, 2], [2, 3]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2]], [[1], [2]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    record, _elapsed, _trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(max_fes=20, seed=1, verbose=0),
+    )
+
+    assert len(record) == 20
 
 
 def test_main_preserves_case_level_action_traces_for_multiple_ids(

@@ -215,6 +215,21 @@ def calculate_cmaes_population_size(subspace_dimension: int) -> int:
     return 4 + 3 * math.ceil(math.log(subspace_dimension))
 
 
+def current_fitness_evaluations(fun) -> int:
+    return len(getattr(fun, "fitness_record", []))
+
+
+def bounded_population_budget(
+    requested_fes: int,
+    remaining_fes: int,
+    population_size: int,
+) -> int:
+    usable_fes = min(requested_fes, remaining_fes)
+    if usable_fes <= 0 or population_size <= 0:
+        return 0
+    return (usable_fes // population_size) * population_size
+
+
 def iteration_start_budget_remaining_ratio(max_fes: int, sum_fes: int) -> float:
     if max_fes <= 0:
         return 0.0
@@ -684,17 +699,29 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         sum_fes += results["n_function_evaluations"]
 
     outer_iter = 0
-    while sum_fes < config.max_fes:
+    while current_fitness_evaluations(fun) < config.max_fes:
+        current_fes = current_fitness_evaluations(fun)
         iteration_budget_remaining_ratio = iteration_start_budget_remaining_ratio(
             max_fes=config.max_fes,
-            sum_fes=sum_fes,
+            sum_fes=current_fes,
         )
         sub_num = len(grouping_result)
-        sub_fes = math.ceil((config.max_fes - sum_fes) / sub_num)
+        sub_fes = math.ceil((config.max_fes - current_fes) / sub_num)
         fitness_delta_list: list[float] = []
+        optimized_any_group = False
         for index, dims in enumerate(grouping_result):
+            population_size = calculate_cmaes_population_size(len(dims))
+            if config.max_fes - current_fitness_evaluations(fun) <= population_size:
+                break
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
+            optimizer_budget = bounded_population_budget(
+                requested_fes=max(sub_fes, population_size),
+                remaining_fes=config.max_fes - current_fitness_evaluations(fun),
+                population_size=population_size,
+            )
+            if optimizer_budget <= 0:
+                break
             objective_function = lambda x_batch, dims=dims: fun(combine(x_batch, best_individual, dims))
             problem_cc = {
                 "fitness_function": objective_function,
@@ -703,10 +730,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 "upper_boundary": info["upper"] * np.ones((len(dims),)),
             }
             options_cc = {
-                "max_function_evaluations": sub_fes,
+                "max_function_evaluations": optimizer_budget,
                 "mean": (best_individual[dims],),
                 "sigma": config.sigma,
-                "n_individuals": calculate_cmaes_population_size(len(dims)),
+                "n_individuals": population_size,
                 "is_restart": config.cmaes_restart,
                 "verbose": config.verbose,
                 "early_stopping_evaluations": config.early_stopping_evaluations,
@@ -715,6 +742,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 stage_index = outer_iter * sub_num + index + 1
                 options_cc["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, stage_index)
             results_cc = CMAES(problem_cc, options_cc).optimize()
+            optimized_any_group = True
             sum_fes += results_cc["n_function_evaluations"]
             new_best_y = float(results_cc["best_so_far_y"])
             if new_best_y < original_fitness:
@@ -811,6 +839,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             downstream_consumed=index < sub_num - 1,
                         )
                     )
+        if not optimized_any_group:
+            break
         if not config.enable_relation_dispatch:
             iteration_relations = build_overlap_relation_trace(
                 problem_id=_problem_id(fun_name, fun_id),
