@@ -1028,6 +1028,11 @@ def _relation_policy_profile_row(
         for action_name, count in action_counts.items()
         if action_name != "conservative_no_action"
     )
+    active_density = (
+        active_actions / len(relation_decisions)
+        if relation_decisions
+        else float("nan")
+    )
     downstream_consumed = sum(
         1 for row in relation_traces if str(row.get("downstream_consumed", "")) == "1"
     )
@@ -1046,6 +1051,7 @@ def _relation_policy_profile_row(
         "observed_value": (
             f"relations={len(relation_decisions)};"
             f"active={active_actions};"
+            f"active_density={_format_float(active_density)};"
             f"downstream={downstream_consumed}/{len(relation_traces)};"
             f"optimizer_consumed={optimizer_consumed}/{len(relation_traces)};"
             f"actions={_format_action_counts(action_counts)};"

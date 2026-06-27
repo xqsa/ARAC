@@ -328,6 +328,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert policy_profile["status"] == "pass"
     assert "relations=6" in policy_profile["observed_value"]
     assert "actions=allow_beneficial_coordination=3;repair_shared_variable_binding=3" in policy_profile["observed_value"]
+    assert "active_density=1.000000" in policy_profile["observed_value"]
     assert "mean_active_confidence=0.750000" in policy_profile["observed_value"]
     assert policy_profile["next_step"] == "tune_policy_or_backend_effect_size"
     assert diagnosis_by_key["sota_escalation_allowed"]["observed_value"] == "0"
