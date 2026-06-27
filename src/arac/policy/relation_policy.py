@@ -14,6 +14,7 @@ MIN_FEATURE_COVERAGE = 0.80
 MIN_BUDGET_REMAINING_RATIO = 0.05
 MIN_FALLBACK_MARGIN_PROXY = 0.20
 MIN_ACTIVE_REBIND_SUPPORT_RATIO = 0.05
+MAX_ACTIVE_REBIND_SUPPORT_RATIO = 0.20
 HIGH_FALLBACK_MARGIN_THRESHOLD = 0.95
 ACTION_NAMES = (
     "coordinate",
@@ -61,6 +62,9 @@ def decide_action(relation: OverlapRelation) -> ActionDecision:
     strong_rebinding_allowed = (
         relation.shared_var_support_ratio >= MIN_ACTIVE_REBIND_SUPPORT_RATIO
     )
+    dense_rebinding_blocked = (
+        relation.shared_var_support_ratio >= MAX_ACTIVE_REBIND_SUPPORT_RATIO
+    )
 
     if relation.overlap_strength < HIGH_OVERLAP_THRESHOLD or relation.shared_var_count <= 0:
         return _decision(
@@ -101,6 +105,19 @@ def decide_action(relation: OverlapRelation) -> ActionDecision:
             "coordinate",
             confidence,
             "high_fallback_margin_supports_safe_coordination",
+        )
+
+    if (
+        signed_delta < 0.0
+        and delta_ratio_gap >= CONFLICT_THRESHOLD
+        and dense_rebinding_blocked
+    ):
+        return _decision(
+            relation,
+            "fallback",
+            "fallback",
+            0.0,
+            "very_dense_shared_support_blocks_active_relation_dispatch",
         )
 
     if (
@@ -155,6 +172,19 @@ def decide_action(relation: OverlapRelation) -> ActionDecision:
             "fallback",
             0.0,
             "low_shared_support_blocks_strong_relation_rebinding",
+        )
+
+    if high_overlap and dense_rebinding_blocked and (
+        relation.one_side_zero
+        or delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
+        or not stable_rank
+    ):
+        return _decision(
+            relation,
+            "fallback",
+            "fallback",
+            0.0,
+            "very_dense_shared_support_blocks_active_relation_dispatch",
         )
 
     if high_overlap and (

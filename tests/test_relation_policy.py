@@ -97,6 +97,7 @@ def test_relation_policy_isolates_large_delta_conflict() -> None:
             delta_signed_gap=-2.5,
             delta_ratio_gap=0.8333333333,
             rank_signal=0.9,
+            shared_var_support_ratio=0.10,
         )
     )
 
@@ -104,6 +105,47 @@ def test_relation_policy_isolates_large_delta_conflict() -> None:
     assert decision.canonical_action_name == "isolate_conflicting_relation"
     assert decision.action_family == "isolate"
     assert decision.trigger_reason == "large_delta_conflict_or_negative_divergence"
+
+
+def test_relation_policy_falls_back_on_very_dense_shared_support_conflict() -> None:
+    decision = decide_action(
+        make_relation(
+            delta_signal=2.5,
+            previous_delta=3.0,
+            current_delta=0.5,
+            delta_abs_gap=2.5,
+            delta_signed_gap=-2.5,
+            delta_ratio_gap=0.8333333333,
+            shared_var_support_ratio=0.25,
+            rank_signal=0.9,
+        )
+    )
+
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+    assert decision.trigger_reason == "very_dense_shared_support_blocks_active_relation_dispatch"
+
+
+def test_relation_policy_falls_back_on_very_dense_shared_support_repair_signal() -> None:
+    decision = decide_action(
+        make_relation(
+            delta_signal=0.6,
+            previous_delta=0.0,
+            current_delta=0.6,
+            delta_abs_gap=0.6,
+            delta_signed_gap=0.6,
+            delta_ratio_gap=1.0,
+            one_side_zero=True,
+            both_positive=False,
+            rank_signal=0.4,
+            rank_stability=0.4,
+            shared_var_support_ratio=0.25,
+        )
+    )
+
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+    assert decision.trigger_reason == "very_dense_shared_support_blocks_active_relation_dispatch"
 
 
 def test_relation_policy_coordinates_high_margin_positive_conflict() -> None:
@@ -167,6 +209,7 @@ def test_relation_policy_isolates_negative_divergence() -> None:
             both_positive=False,
             one_side_zero=True,
             rank_signal=0.9,
+            shared_var_support_ratio=0.10,
         )
     )
 
@@ -221,6 +264,7 @@ def test_relation_policy_keeps_mixed_relation_actions_for_mixed_evidence() -> No
             one_side_zero=True,
             rank_signal=0.4,
             rank_stability=0.4,
+            shared_var_support_ratio=0.10,
         ),
         make_relation(
             relation_id="O1_2_3",
@@ -253,6 +297,7 @@ def test_relation_policy_repairs_imbalanced_overlap() -> None:
             both_positive=False,
             rank_signal=0.4,
             rank_stability=0.4,
+            shared_var_support_ratio=0.10,
         )
     )
 
@@ -334,6 +379,7 @@ def test_decide_actions_for_relations_preserves_order_and_logs_counts(caplog) ->
             delta_abs_gap=2.0,
             delta_signed_gap=-2.0,
             delta_ratio_gap=1.0,
+            shared_var_support_ratio=0.10,
         ),
         make_relation(
             relation_id="O1_2_3",
@@ -347,6 +393,7 @@ def test_decide_actions_for_relations_preserves_order_and_logs_counts(caplog) ->
             both_positive=False,
             rank_signal=0.4,
             rank_stability=0.4,
+            shared_var_support_ratio=0.10,
         ),
         make_relation(
             relation_id="O1_3_4",
