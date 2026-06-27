@@ -15,3 +15,22 @@ def test_parse_hcc_evaluation_record_reads_final_line(tmp_path: Path) -> None:
 
     assert fe == 2000
     assert final_error == pytest.approx(1.234e-05)
+
+
+def test_parse_hcc_evaluation_record_prefers_budget_checkpoint(tmp_path: Path) -> None:
+    record = tmp_path / "evaluation_record.txt"
+    record.write_text(
+        "\n".join(
+            [
+                "Algorithm: elliptic_2",
+                "                    2.000e+03                9.000000                   9.000000e+00",
+                "                    Fin:2.128e+03            8.000000                   8.000000e+00",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    final_error, fe = _parse_hcc_evaluation_record(tmp_path, budget_limit=2000)
+
+    assert fe == 2000
+    assert final_error == pytest.approx(9.0)

@@ -493,7 +493,10 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             action_trace_rows=0,
         )
 
-    final_error, fe_used = _parse_hcc_evaluation_record(Path(request.output_dir))
+    final_error, fe_used = _parse_hcc_evaluation_record(
+        Path(request.output_dir),
+        budget_limit=request.max_fes,
+    )
     action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
     return HccAobExecutionResult(
         problem_id=_problem_parts(request.problem_id)[0],
@@ -513,11 +516,24 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
     )
 
 
-def _parse_hcc_evaluation_record(output_dir: Path) -> tuple[float, int]:
+def _parse_hcc_evaluation_record(
+    output_dir: Path,
+    budget_limit: int | None = None,
+) -> tuple[float, int]:
     records = sorted(Path(output_dir).rglob("evaluation_record.txt"))
     if not records:
         raise FileNotFoundError(f"missing HCC evaluation_record.txt under {output_dir}")
     text = records[-1].read_text(encoding="utf-8", errors="replace")
+    if budget_limit is not None:
+        for checkpoint in re.finditer(
+            r"^\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
+            text,
+            flags=re.MULTILINE,
+        ):
+            fe = int(float(checkpoint.group("fe")))
+            if fe == budget_limit:
+                return float(checkpoint.group("value")), fe
+
     final_match = re.search(
         r"Fin:\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
         text,
