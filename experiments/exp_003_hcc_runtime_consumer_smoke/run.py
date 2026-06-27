@@ -34,6 +34,7 @@ DEFAULT_SEEDS = (1, 2, 3)
 MAX_FES = 2_000
 PHASE_I_FE = 0
 PHASE_II_FE = MAX_FES
+LOW_ACTIVE_DENSITY_THRESHOLD = 0.20
 
 
 @dataclass(frozen=True)
@@ -671,6 +672,19 @@ def _has_active_relation_action(row: dict[str, object]) -> bool:
     )
 
 
+def _active_relation_density(row: dict[str, object]) -> float:
+    counts = _parse_action_mix(row.get("action_mix", ""))
+    total = sum(counts.values())
+    if total <= 0:
+        return float("nan")
+    active = sum(
+        count
+        for action, count in counts.items()
+        if action != "conservative_no_action"
+    )
+    return active / total
+
+
 def _expects_backend_semantics(row: dict[str, object]) -> bool:
     lane_id = row["lane_id"]
     if lane_id in {"relation_dispatch_rule", "shuffled_relation_dispatch"}:
@@ -1125,6 +1139,15 @@ def _multi_problem_diagnosis_rows(
     ]
     active_positive_cases = sum(1 for gain in active_relation_gains if gain > 0.0)
     active_mean_gain = _mean(active_relation_gains)
+    active_densities = [
+        density
+        for density in (_active_relation_density(row) for row in relation_rows)
+        if density == density
+    ]
+    low_active_density_cases = sum(
+        1 for density in active_densities if density <= LOW_ACTIVE_DENSITY_THRESHOLD
+    )
+    active_density_pass = low_active_density_cases == 0
     fixed_repair_by_case = {
         (str(row["problem_id"]), str(row["seed"])): float(row["final_error"])
         for row in utility_rows
@@ -1274,6 +1297,24 @@ def _multi_problem_diagnosis_rows(
             "next_step": "continue_to_sota_protocol"
             if pilot_utility_pass
             else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_active_density_profile",
+            "status": "pass" if active_density_pass else "blocked",
+            "observed_value": (
+                f"mean={_mean(active_densities):.6f};"
+                f"min={min(active_densities) if active_densities else float('nan'):.6f};"
+                f"low_density_cases={low_active_density_cases}/{len(active_densities)};"
+                f"threshold={LOW_ACTIVE_DENSITY_THRESHOLD:.6f}"
+            ),
+            "blocker_reason": ""
+            if active_density_pass
+            else "low_relation_action_density_detected",
+            "next_step": "continue"
+            if active_density_pass
+            else "inspect_low_active_density_problem_cases",
         },
         {
             "run_id": RUN_ID,

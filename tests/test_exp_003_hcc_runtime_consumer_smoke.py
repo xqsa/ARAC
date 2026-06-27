@@ -581,7 +581,7 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
             ("E2", "fallback", 100.0, "0.000000", "0", "conservative_no_action=1"),
             ("E2", "fixed_repair", 99.995, "0.000050", "1", "repair_shared_variable_binding=1"),
             ("E2", "fixed_coordinate", 99.995, "0.000050", "1", "allow_beneficial_coordination=1"),
-            ("E2", "relation_dispatch_rule", 99.990, "0.000100", "1", "allow_beneficial_coordination=1"),
+            ("E2", "relation_dispatch_rule", 99.990, "0.000100", "1", "allow_beneficial_coordination=1;conservative_no_action=4"),
             ("S2", "fallback", 200.0, "0.000000", "0", "conservative_no_action=1"),
             ("S2", "fixed_repair", 199.990, "0.000050", "1", "repair_shared_variable_binding=1"),
             ("S2", "fixed_coordinate", 199.990, "0.000050", "1", "allow_beneficial_coordination=1"),
@@ -604,6 +604,10 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
     assert by_key["multi_problem_pilot_utility_evidence"]["status"] == "pass"
     assert by_key["multi_problem_pilot_utility_evidence"]["observed_value"] == (
         "directional=2/2;mean_gain=0.000100;negative_control=2/2;catastrophic=0/2"
+    )
+    assert by_key["multi_problem_active_density_profile"]["status"] == "blocked"
+    assert by_key["multi_problem_active_density_profile"]["observed_value"] == (
+        "mean=0.600000;min=0.200000;low_density_cases=1/2;threshold=0.200000"
     )
     assert by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert by_key["multi_problem_sota_escalation_allowed"]["blocker_reason"] == (
