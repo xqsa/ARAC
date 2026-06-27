@@ -257,6 +257,7 @@ def test_conservative_no_action_uses_native_overlap_blend() -> None:
     runner = _load_runner_module()
     previous_values = np.array([1.0, 2.0])
     current_values = np.array([10.0, 20.0])
+    expected = 0.25 * current_values + 0.75 * previous_values
 
     native = runner.blend_overlap_values(
         previous_values=previous_values,
@@ -272,6 +273,7 @@ def test_conservative_no_action_uses_native_overlap_blend() -> None:
         current_delta=3.0,
     )
 
+    np.testing.assert_allclose(native, expected)
     np.testing.assert_allclose(action_result, native)
 
 
@@ -549,7 +551,7 @@ def test_apply_action_to_relation_uses_canonical_fallback_and_coordinate_semanti
         current_delta=99.0,
     )
 
-    np.testing.assert_allclose(fallback, np.array([99.0]))
+    np.testing.assert_allclose(fallback, np.array([1.0]))
     np.testing.assert_allclose(coordinate, np.array([65.0]))
 
 

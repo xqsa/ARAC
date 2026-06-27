@@ -252,9 +252,9 @@ def blend_overlap_values(
     denominator = previous_delta + current_delta
     if denominator == 0:
         return (previous_values + current_values) / 2
-    return (previous_delta / denominator) * previous_values + (
+    return (previous_delta / denominator) * current_values + (
         current_delta / denominator
-    ) * current_values
+    ) * previous_values
 
 
 def clipped_consensus_blend(
