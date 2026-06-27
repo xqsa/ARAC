@@ -13,6 +13,7 @@ if str(ARAC_SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(ARAC_SRC_ROOT))
 
 from arac.audit import claim_gate
+from arac.backend_adapter import BackendSemanticsDiff
 from arac.backends.hcc import (
     DEFAULT_HCC_MAIN_ROOT,
     HccAobExecutionRequest,
@@ -207,6 +208,35 @@ def _format_action_mix(rows: list[dict[str, str]], fallback_action: str) -> str:
     return ";".join(f"{action}={counts[action]}" for action in sorted(counts))
 
 
+def _semantics_from_trace_rows(
+    rows: list[dict[str, str]],
+    fallback: BackendSemanticsDiff,
+) -> BackendSemanticsDiff:
+    if not rows:
+        return fallback
+    return BackendSemanticsDiff(
+        variable_owner_changed=any(
+            _trace_action(row) == "repair_shared_variable_binding"
+            and row.get("optimizer_consumed") == "1"
+            for row in rows
+        ),
+        relation_handling_changed=any(
+            _trace_action(row) == "isolate_conflicting_relation"
+            and row.get("optimizer_consumed") == "1"
+            for row in rows
+        ),
+        coordination_mode_changed=any(
+            _trace_action(row) == "allow_beneficial_coordination"
+            and row.get("optimizer_consumed") == "1"
+            for row in rows
+        ),
+    )
+
+
+def _trace_action(row: dict[str, str]) -> str:
+    return row.get("canonical_action_name") or row.get("selected_action_name") or ""
+
+
 def _relation_join_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
@@ -309,6 +339,10 @@ def _records(
                         enable_relation_dispatch=lane.relation_dispatch_enabled,
                         relation_policy_mode=lane.relation_policy_mode,
                     )
+                )
+                semantics = _semantics_from_trace_rows(
+                    _read_csv_rows(result.action_trace_path),
+                    fallback=semantics,
                 )
                 ledger = _ledger_for_result(result)
                 allowed, blockers = claim_gate(

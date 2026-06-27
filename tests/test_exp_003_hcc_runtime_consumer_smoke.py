@@ -213,6 +213,20 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     )
     assert repair_semantics["variable_owner_changed"] == "1"
     assert repair_semantics["backend_semantics_changed"] == "1"
+    coordinate_semantics = next(
+        row
+        for row in semantics_rows
+        if row["lane_id"] == "fixed_coordinate"
+    )
+    assert coordinate_semantics["coordination_mode_changed"] == "1"
+    assert coordinate_semantics["variable_owner_changed"] == "0"
+    relation_semantics = next(
+        row
+        for row in semantics_rows
+        if row["lane_id"] == "relation_dispatch_rule"
+    )
+    assert relation_semantics["coordination_mode_changed"] == "1"
+    assert relation_semantics["variable_owner_changed"] == "0"
 
     claim_rows = _read_csv(output / "claim_gate.csv")
     repair_claim = next(
