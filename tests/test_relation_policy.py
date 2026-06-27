@@ -148,7 +148,7 @@ def test_relation_policy_safety_gate_falls_back_on_low_feature_coverage() -> Non
     assert decision.trigger_reason == "insufficient_relation_policy_safety_margin"
 
 
-def test_relation_policy_isolates_large_delta_conflict() -> None:
+def test_relation_policy_falls_back_on_large_delta_conflict() -> None:
     decision = decide_action(
         make_relation(
             delta_signal=2.5,
@@ -162,10 +162,10 @@ def test_relation_policy_isolates_large_delta_conflict() -> None:
         )
     )
 
-    assert decision.action_name == "isolate_conflicting_relation"
-    assert decision.canonical_action_name == "isolate_conflicting_relation"
-    assert decision.action_family == "isolate"
-    assert decision.trigger_reason == "large_delta_conflict_or_negative_divergence"
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+    assert decision.action_family == "fallback"
+    assert decision.trigger_reason == "active_isolate_conflict_abstained"
 
 
 def test_relation_policy_falls_back_on_very_dense_shared_support_conflict() -> None:
@@ -258,7 +258,7 @@ def test_relation_policy_falls_back_without_shared_overlap_support() -> None:
     assert decision.trigger_reason == "no_shared_overlap_support"
 
 
-def test_relation_policy_isolates_negative_divergence() -> None:
+def test_relation_policy_falls_back_on_negative_divergence() -> None:
     decision = decide_action(
         make_relation(
             delta_signal=1.0,
@@ -274,8 +274,9 @@ def test_relation_policy_isolates_negative_divergence() -> None:
         )
     )
 
-    assert decision.action_name == "isolate_conflicting_relation"
-    assert decision.action_family == "isolate"
+    assert decision.action_name == "fallback"
+    assert decision.action_family == "fallback"
+    assert decision.trigger_reason == "active_isolate_conflict_abstained"
 
 
 def test_relation_policy_falls_back_on_low_support_negative_divergence() -> None:
@@ -299,7 +300,7 @@ def test_relation_policy_falls_back_on_low_support_negative_divergence() -> None
     assert decision.trigger_reason == "low_shared_support_blocks_strong_relation_rebinding"
 
 
-def test_relation_policy_keeps_mixed_relation_actions_for_mixed_evidence() -> None:
+def test_relation_policy_keeps_coordinate_only_active_for_mixed_evidence() -> None:
     relations = [
         make_relation(
             relation_id="O1_0_1",
@@ -340,12 +341,12 @@ def test_relation_policy_keeps_mixed_relation_actions_for_mixed_evidence() -> No
 
     assert [decision.action_name for decision in decisions] == [
         "coordinate",
-        "reassign_repair",
+        "fallback",
         "fallback",
     ]
 
 
-def test_relation_policy_repairs_imbalanced_overlap() -> None:
+def test_relation_policy_falls_back_on_imbalanced_overlap() -> None:
     decision = decide_action(
         make_relation(
             delta_signal=0.6,
@@ -362,10 +363,10 @@ def test_relation_policy_repairs_imbalanced_overlap() -> None:
         )
     )
 
-    assert decision.action_name == "reassign_repair"
-    assert decision.canonical_action_name == "repair_shared_variable_binding"
-    assert decision.action_family == "reassign_repair"
-    assert decision.trigger_reason == "overlap_relation_has_imbalance_or_unstable_rank"
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+    assert decision.action_family == "fallback"
+    assert decision.trigger_reason == "active_reassign_repair_abstained"
 
 
 def test_relation_policy_does_not_repair_both_positive_instability() -> None:
@@ -497,19 +498,19 @@ def test_decide_actions_for_relations_preserves_order_and_logs_counts(caplog) ->
     ]
     assert [decision.action_name for decision in decisions] == [
         "coordinate",
-        "isolate_conflicting_relation",
-        "reassign_repair",
+        "fallback",
+        "fallback",
         "fallback",
     ]
     assert [decision.canonical_action_name for decision in decisions] == [
         "allow_beneficial_coordination",
-        "isolate_conflicting_relation",
-        "repair_shared_variable_binding",
+        "conservative_no_action",
+        "conservative_no_action",
         "conservative_no_action",
     ]
     assert (
         "relation policy action counts: "
-        "coordinate=1, isolate_conflicting_relation=1, reassign_repair=1, fallback=1"
+        "coordinate=1, isolate_conflicting_relation=0, reassign_repair=0, fallback=3"
     ) in caplog.text
 
 

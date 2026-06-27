@@ -75,7 +75,6 @@ def decide_action(relation: OverlapRelation) -> ActionDecision:
 def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
     """Score deterministic action candidates and apply a margin abstain rule."""
 
-    abs_delta = relation.delta_abs_gap or abs(relation.delta_signal)
     signed_delta = relation.delta_signed_gap
     delta_ratio_gap = relation.delta_ratio_gap
     rank_stability = relation.rank_stability or relation.rank_signal
@@ -137,13 +136,7 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
             and delta_ratio_gap >= CONFLICT_THRESHOLD
             and strong_rebinding_allowed
         ):
-            _set_candidate_score(
-                scores,
-                reasons,
-                "isolate_conflicting_relation",
-                _clamp(delta_ratio_gap / max(CONFLICT_THRESHOLD, 1e-12)),
-                "large_delta_conflict_or_negative_divergence",
-            )
+            fallback_reason = "active_isolate_conflict_abstained"
 
         if high_overlap and relation.both_positive and stable_delta and stable_rank:
             _set_candidate_score(
@@ -171,10 +164,10 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
             and high_overlap
             and not strong_rebinding_allowed
             and (
-            relation.one_side_zero
-            or signed_delta < 0.0
-            or delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
-            or not stable_rank
+                relation.one_side_zero
+                or signed_delta < 0.0
+                or delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
+                or not stable_rank
             )
         ):
             fallback_reason = "low_shared_support_blocks_strong_relation_rebinding"
@@ -193,17 +186,8 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
                 or not stable_rank
             )
         ):
-            _set_candidate_score(
-                scores,
-                reasons,
-                "reassign_repair",
-                _mean(
-                    _overlap_confidence(relation.overlap_strength),
-                    _clamp(max(delta_ratio_gap, abs_delta / max(CONFLICT_THRESHOLD, 1e-12))),
-                    1.0 - _clamp(rank_stability),
-                ),
-                "overlap_relation_has_imbalance_or_unstable_rank",
-            )
+            if fallback_reason != "active_isolate_conflict_abstained":
+                fallback_reason = "active_reassign_repair_abstained"
 
     ranked = sorted(
         scores.items(),
