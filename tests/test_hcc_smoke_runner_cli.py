@@ -694,6 +694,45 @@ def test_write_action_mismatch_audit_log_overwrites_previous_rows(tmp_path: Path
     assert "coordinate=" in rows[0]["candidate_scores"]
 
 
+def test_relation_action_value_delta_guard_fallbacks_large_active_adjustment() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O1_0_1",
+        problem_id="E2",
+        outer_iter=1,
+        group_left=0,
+        group_right=1,
+        shared_vars=(2,),
+        overlap_strength=1.0,
+        delta_signal=0.1,
+        rank_signal=0.9,
+        budget_remaining_ratio=0.8,
+    )
+    coordinate = runner.RelationActionDecision(
+        relation_id="O1_0_1",
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.95,
+        trigger_reason="stable",
+    )
+
+    kept = runner.guard_relation_action_by_value_delta(
+        relation,
+        coordinate,
+        runner.ACTION_VALUE_DELTA_GUARD_THRESHOLD,
+    )
+    guarded = runner.guard_relation_action_by_value_delta(
+        relation,
+        coordinate,
+        runner.ACTION_VALUE_DELTA_GUARD_THRESHOLD + 0.001,
+    )
+
+    assert kept.relation_action_name == "coordinate"
+    assert guarded.relation_action_name == "fallback"
+    assert guarded.canonical_action_name == "conservative_no_action"
+    assert guarded.trigger_reason == "action_value_delta_guard_exceeded"
+
+
 def test_relation_dispatch_is_applied_before_next_group_objective(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

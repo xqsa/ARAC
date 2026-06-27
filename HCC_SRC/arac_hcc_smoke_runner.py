@@ -133,6 +133,7 @@ ACTION_MISMATCH_AUDIT_FIELDS = [
     "trigger_reason",
     "abstain_reason",
 ]
+ACTION_VALUE_DELTA_GUARD_THRESHOLD = 1.5
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
 
 
@@ -432,6 +433,25 @@ def _canonical_relation_action_name(action: RelationActionDecision) -> str:
     if getattr(action, "canonical_action_name", ""):
         return action.canonical_action_name
     return RELATION_ACTION_ALIASES.get(action.action_name, action.action_name)
+
+
+def guard_relation_action_by_value_delta(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    action_value_delta_norm: float,
+) -> RelationActionDecision:
+    if (
+        _canonical_relation_action_name(action) == "conservative_no_action"
+        or action_value_delta_norm <= ACTION_VALUE_DELTA_GUARD_THRESHOLD
+    ):
+        return action
+    return RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="fallback",
+        action_family="fallback",
+        confidence=0.0,
+        trigger_reason="action_value_delta_guard_exceeded",
+    )
 
 
 def _shared_vars_hash(shared_vars: tuple[int, ...]) -> str:
@@ -852,6 +872,26 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         if adjusted_values is None
                         else float(np.linalg.norm(adjusted_values - context.current_values))
                     )
+                    guarded_action = guard_relation_action_by_value_delta(
+                        relation,
+                        action,
+                        action_value_delta_norm,
+                    )
+                    if guarded_action is not action:
+                        action = guarded_action
+                        adjusted_values = apply_action_to_relation(
+                            relation=relation,
+                            action=action,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            previous_delta=context.previous_delta,
+                            current_delta=context.current_delta,
+                        )
+                        action_value_delta_norm = (
+                            0.0
+                            if adjusted_values is None
+                            else float(np.linalg.norm(adjusted_values - context.current_values))
+                        )
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     canonical_action_name = _canonical_relation_action_name(action)
