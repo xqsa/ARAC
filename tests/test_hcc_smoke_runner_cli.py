@@ -133,14 +133,14 @@ def test_hcc_smoke_runner_parses_relation_policy_options() -> None:
     assert shuffled.relation_policy == "shuffled"
 
 
-def test_shuffled_relation_policy_rotates_rule_action_deterministically() -> None:
+def test_shuffled_relation_policy_uses_previous_rule_action_without_relabeling() -> None:
     runner = _load_runner_module()
     relation = runner.OverlapRelation(
-        relation_id="O0_0_1",
+        relation_id="O0_1_2",
         problem_id="E2",
         outer_iter=0,
-        group_left=0,
-        group_right=1,
+        group_left=1,
+        group_right=2,
         shared_vars=(7,),
         overlap_strength=1.0,
         delta_signal=0.1,
@@ -149,22 +149,41 @@ def test_shuffled_relation_policy_rotates_rule_action_deterministically() -> Non
     )
     rule_action = runner.RelationActionDecision(
         relation_id=relation.relation_id,
-        action_name="coordinate",
-        action_family="coordinate",
+        action_name="fallback",
+        action_family="fallback",
         confidence=0.8,
         trigger_reason="rule",
+    )
+    previous_rule_action = runner.RelationActionDecision(
+        relation_id="O0_0_1",
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.7,
+        trigger_reason="previous_rule",
     )
 
     shuffled = runner.select_relation_action_for_policy(
         relation=relation,
         action=rule_action,
         relation_policy_mode="shuffled",
+        shuffled_source_action=previous_rule_action,
     )
 
-    assert shuffled.relation_action_name == "reassign_repair"
-    assert shuffled.canonical_action_name == "repair_shared_variable_binding"
-    assert shuffled.action_family == "reassign_repair"
+    assert shuffled.relation_id == relation.relation_id
+    assert shuffled.relation_action_name == "coordinate"
+    assert shuffled.canonical_action_name == "allow_beneficial_coordination"
+    assert shuffled.action_family == "coordinate"
     assert shuffled.trigger_reason.startswith("deterministic_shuffled_negative_control")
+
+    first_shuffled = runner.select_relation_action_for_policy(
+        relation=relation,
+        action=rule_action,
+        relation_policy_mode="shuffled",
+        shuffled_source_action=None,
+    )
+
+    assert first_shuffled.relation_action_name == "fallback"
+    assert first_shuffled.canonical_action_name == "conservative_no_action"
 
 
 def test_shuffled_relation_policy_keeps_empty_overlap_fallback() -> None:
@@ -726,11 +745,56 @@ def test_relation_action_value_delta_guard_fallbacks_large_active_adjustment() -
         coordinate,
         runner.ACTION_VALUE_DELTA_GUARD_THRESHOLD + 0.001,
     )
+    moderate = runner.guard_relation_action_by_value_delta(
+        relation,
+        coordinate,
+        0.501,
+    )
 
     assert kept.relation_action_name == "coordinate"
     assert guarded.relation_action_name == "fallback"
+    assert moderate.relation_action_name == "fallback"
     assert guarded.canonical_action_name == "conservative_no_action"
     assert guarded.trigger_reason == "action_value_delta_guard_exceeded"
+
+
+def test_apply_and_guard_relation_action_recomputes_guarded_fallback_delta() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O1_0_1",
+        problem_id="E2",
+        outer_iter=1,
+        group_left=0,
+        group_right=1,
+        shared_vars=(2,),
+        overlap_strength=1.0,
+        delta_signal=0.1,
+        rank_signal=0.9,
+        budget_remaining_ratio=0.8,
+    )
+    coordinate = runner.RelationActionDecision(
+        relation_id="O1_0_1",
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.95,
+        trigger_reason="stable",
+    )
+
+    action, adjusted_values, action_value_delta_norm = (
+        runner.apply_and_guard_action_to_relation(
+            relation=relation,
+            action=coordinate,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+        )
+    )
+
+    assert action.relation_action_name == "fallback"
+    assert adjusted_values is not None
+    assert adjusted_values.tolist() == [0.0]
+    assert action_value_delta_norm == 0.0
 
 
 def test_relation_dispatch_is_applied_before_next_group_objective(

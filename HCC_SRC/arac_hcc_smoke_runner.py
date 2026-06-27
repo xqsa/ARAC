@@ -133,7 +133,7 @@ ACTION_MISMATCH_AUDIT_FIELDS = [
     "trigger_reason",
     "abstain_reason",
 ]
-ACTION_VALUE_DELTA_GUARD_THRESHOLD = 1.5
+ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
 
 
@@ -395,18 +395,11 @@ def _action_family_for_canonical(action_name: str) -> str:
     return ""
 
 
-SHUFFLED_RELATION_ACTION = {
-    "coordinate": ("reassign_repair", "reassign_repair"),
-    "reassign_repair": ("isolate_conflicting_relation", "isolate"),
-    "isolate_conflicting_relation": ("fallback", "fallback"),
-    "fallback": ("coordinate", "coordinate"),
-}
-
-
 def select_relation_action_for_policy(
     relation: OverlapRelation,
     action: RelationActionDecision,
     relation_policy_mode: str,
+    shuffled_source_action: RelationActionDecision | None = None,
 ) -> RelationActionDecision:
     if not relation.shared_vars:
         return action
@@ -414,17 +407,21 @@ def select_relation_action_for_policy(
         return action
     if relation_policy_mode != "shuffled":
         raise ValueError(f"unsupported relation policy mode: {relation_policy_mode}")
-    relation_action_name, action_family = SHUFFLED_RELATION_ACTION[
-        action.relation_action_name
-    ]
+    source_action = shuffled_source_action or RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="fallback",
+        action_family="fallback",
+        confidence=0.0,
+        trigger_reason="first_relation_has_no_previous_rule_action",
+    )
     return RelationActionDecision(
         relation_id=relation.relation_id,
-        action_name=relation_action_name,
-        action_family=action_family,
-        confidence=action.confidence,
+        action_name=source_action.relation_action_name,
+        action_family=source_action.action_family,
+        confidence=source_action.confidence,
         trigger_reason=(
             "deterministic_shuffled_negative_control_from:"
-            f"{action.relation_action_name}"
+            f"{source_action.relation_action_name}"
         ),
     )
 
@@ -587,6 +584,50 @@ def apply_action_to_relation(
         previous_delta=previous_delta,
         current_delta=current_delta,
     )
+
+
+def apply_and_guard_action_to_relation(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    previous_values: np.ndarray | None = None,
+    current_values: np.ndarray | None = None,
+    previous_delta: float = 0.0,
+    current_delta: float = 0.0,
+) -> tuple[RelationActionDecision, np.ndarray | None, float]:
+    adjusted_values = apply_action_to_relation(
+        relation=relation,
+        action=action,
+        previous_values=previous_values,
+        current_values=current_values,
+        previous_delta=previous_delta,
+        current_delta=current_delta,
+    )
+    action_value_delta_norm = (
+        0.0
+        if adjusted_values is None or current_values is None
+        else float(np.linalg.norm(adjusted_values - current_values))
+    )
+    guarded_action = guard_relation_action_by_value_delta(
+        relation,
+        action,
+        action_value_delta_norm,
+    )
+    if guarded_action is action:
+        return action, adjusted_values, action_value_delta_norm
+    adjusted_values = apply_action_to_relation(
+        relation=relation,
+        action=guarded_action,
+        previous_values=previous_values,
+        current_values=current_values,
+        previous_delta=previous_delta,
+        current_delta=current_delta,
+    )
+    action_value_delta_norm = (
+        0.0
+        if adjusted_values is None or current_values is None
+        else float(np.linalg.norm(adjusted_values - current_values))
+    )
+    return guarded_action, adjusted_values, action_value_delta_norm
 
 
 def _format_shared_vars(shared_vars: tuple[int, ...]) -> str:
@@ -779,6 +820,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         sum_fes += results["n_function_evaluations"]
 
     outer_iter = 0
+    previous_rule_relation_action: RelationActionDecision | None = None
     while current_fitness_evaluations(fun) < config.max_fes:
         current_fes = current_fitness_evaluations(fun)
         iteration_budget_remaining_ratio = iteration_start_budget_remaining_ratio(
@@ -854,32 +896,27 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         group_right=index,
                         budget_remaining_ratio=iteration_budget_remaining_ratio,
                     )
+                    rule_action = decide_actions_for_relations([relation])[0]
+                    shuffled_source_action = previous_rule_relation_action
+                    if config.relation_policy_mode == "shuffled":
+                        previous_rule_relation_action, _, _ = (
+                            apply_and_guard_action_to_relation(
+                                relation=relation,
+                                action=rule_action,
+                                previous_values=context.previous_values,
+                                current_values=context.current_values,
+                                previous_delta=context.previous_delta,
+                                current_delta=context.current_delta,
+                            )
+                        )
                     action = select_relation_action_for_policy(
                         relation=relation,
-                        action=decide_actions_for_relations([relation])[0],
+                        action=rule_action,
                         relation_policy_mode=config.relation_policy_mode,
+                        shuffled_source_action=shuffled_source_action,
                     )
-                    adjusted_values = apply_action_to_relation(
-                        relation=relation,
-                        action=action,
-                        previous_values=context.previous_values,
-                        current_values=context.current_values,
-                        previous_delta=context.previous_delta,
-                        current_delta=context.current_delta,
-                    )
-                    action_value_delta_norm = (
-                        0.0
-                        if adjusted_values is None
-                        else float(np.linalg.norm(adjusted_values - context.current_values))
-                    )
-                    guarded_action = guard_relation_action_by_value_delta(
-                        relation,
-                        action,
-                        action_value_delta_norm,
-                    )
-                    if guarded_action is not action:
-                        action = guarded_action
-                        adjusted_values = apply_action_to_relation(
+                    action, adjusted_values, action_value_delta_norm = (
+                        apply_and_guard_action_to_relation(
                             relation=relation,
                             action=action,
                             previous_values=context.previous_values,
@@ -887,11 +924,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             previous_delta=context.previous_delta,
                             current_delta=context.current_delta,
                         )
-                        action_value_delta_norm = (
-                            0.0
-                            if adjusted_values is None
-                            else float(np.linalg.norm(adjusted_values - context.current_values))
-                        )
+                    )
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     canonical_action_name = _canonical_relation_action_name(action)
