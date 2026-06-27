@@ -1081,10 +1081,14 @@ def _relation_policy_profile_row(
         and str(row.get("lane_id", "")) == "relation_dispatch_rule"
     ]
     action_counts: dict[str, int] = {}
+    reason_counts: dict[str, int] = {}
     for row in relation_decisions:
         action_name = str(row.get("canonical_action_name", ""))
         if action_name:
             action_counts[action_name] = action_counts.get(action_name, 0) + 1
+        trigger_reason = str(row.get("trigger_reason", ""))
+        if trigger_reason:
+            reason_counts[trigger_reason] = reason_counts.get(trigger_reason, 0) + 1
     active_decisions = [
         row
         for row in relation_decisions
@@ -1122,6 +1126,7 @@ def _relation_policy_profile_row(
             f"downstream={downstream_consumed}/{len(relation_traces)};"
             f"optimizer_consumed={optimizer_consumed}/{len(relation_traces)};"
             f"actions={_format_action_counts(action_counts)};"
+            f"reasons={_format_action_counts(reason_counts)};"
             "mean_gain="
             f"{_format_float(_mean_numeric(relation_utility_rows, 'relative_gain_vs_fallback'))};"
             "mean_active_confidence="
