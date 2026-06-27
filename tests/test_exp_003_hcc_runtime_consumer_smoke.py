@@ -1314,6 +1314,86 @@ def test_multi_problem_trigger_baseline_gap_profile_reports_strong_baseline_gaps
     assert row["blocker_reason"] == "trigger_baseline_gap_detected"
 
 
+def test_multi_problem_no_overlap_control_reports_unwanted_relation_activity() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_no_overlap_control_row,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "same_budget_violation": "0",
+        }
+        for problem_id, lane_id in [
+            ("E1", "fallback"),
+            ("E1", "relation_dispatch_rule"),
+            ("E1", "fixed_repair"),
+            ("E1", "fixed_coordinate"),
+            ("E1", "shuffled_relation_dispatch"),
+            ("E2", "relation_dispatch_rule"),
+        ]
+    ]
+
+    clean = _multi_problem_no_overlap_control_row(utility_rows, [], [])
+
+    assert clean is not None
+    assert clean["diagnostic_key"] == "multi_problem_no_overlap_control"
+    assert clean["status"] == "pass"
+    assert clean["observed_value"] == (
+        "controls=E1;relation_rows=0;active_relation_actions=0;"
+        "same_budget_violations=0/5"
+    )
+
+    zero_support = _multi_problem_no_overlap_control_row(
+        utility_rows,
+        [],
+        [
+            {
+                "problem_id": "E1",
+                "lane_id": "relation_dispatch_rule",
+                "relation_id": "O0_0_1",
+                "shared_var_count": "0",
+                "overlap_strength": "0.000000",
+                "shared_vars": "",
+            }
+        ],
+    )
+
+    assert zero_support is not None
+    assert zero_support["status"] == "pass"
+    assert zero_support["observed_value"] == (
+        "controls=E1;relation_rows=0;active_relation_actions=0;"
+        "same_budget_violations=0/5"
+    )
+
+    blocked = _multi_problem_no_overlap_control_row(
+        utility_rows,
+        [
+            {
+                "problem_id": "E1",
+                "lane_id": "relation_dispatch_rule",
+                "canonical_action_name": "allow_beneficial_coordination",
+            }
+        ],
+        [
+            {
+                "problem_id": "E1",
+                "lane_id": "relation_dispatch_rule",
+                "relation_id": "O0_0_1",
+            }
+        ],
+    )
+
+    assert blocked is not None
+    assert blocked["status"] == "blocked"
+    assert blocked["blocker_reason"] == (
+        "no_overlap_relation_rows_detected;"
+        "no_overlap_active_relation_actions_detected"
+    )
+
+
 def test_multi_problem_action_baseline_gap_profile_reports_action_gaps() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_action_baseline_gap_profile_row,

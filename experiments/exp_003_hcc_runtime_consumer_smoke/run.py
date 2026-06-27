@@ -1569,6 +1569,86 @@ def _multi_problem_action_baseline_gap_profile_row(
     }
 
 
+def _multi_problem_no_overlap_control_row(
+    utility_rows: list[dict[str, object]],
+    decision_rows: list[dict[str, object]],
+    overlap_rows: list[dict[str, object]],
+) -> dict[str, object] | None:
+    def has_overlap_support(row: dict[str, object]) -> bool:
+        saw_support_field = False
+        for key in ("shared_var_count", "shared_vars_count", "overlap_strength"):
+            if key not in row:
+                continue
+            saw_support_field = True
+            raw_value = str(row.get(key, "")).strip()
+            if not raw_value:
+                continue
+            try:
+                if float(raw_value) > 0.0:
+                    return True
+            except ValueError:
+                return True
+        if "shared_vars" in row:
+            saw_support_field = True
+            if str(row.get("shared_vars", "")).strip():
+                return True
+        return not saw_support_field
+
+    control_ids = sorted(
+        {
+            str(row["problem_id"])
+            for row in utility_rows
+            if not _is_overlap_applicable_problem_id(str(row["problem_id"]))
+        }
+    )
+    if not control_ids:
+        return None
+    control_id_set = set(control_ids)
+    control_utility_rows = [
+        row for row in utility_rows if str(row["problem_id"]) in control_id_set
+    ]
+    control_overlap_rows = [
+        row
+        for row in overlap_rows
+        if str(row.get("problem_id", "")) in control_id_set
+        and str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        and has_overlap_support(row)
+    ]
+    active_decision_rows = [
+        row
+        for row in decision_rows
+        if str(row.get("problem_id", "")) in control_id_set
+        and str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        and str(row.get("canonical_action_name", "")) != "conservative_no_action"
+    ]
+    budget_violations = sum(
+        1
+        for row in control_utility_rows
+        if str(row.get("same_budget_violation", "0")) == "1"
+    )
+    blockers: list[str] = []
+    if control_overlap_rows:
+        blockers.append("no_overlap_relation_rows_detected")
+    if active_decision_rows:
+        blockers.append("no_overlap_active_relation_actions_detected")
+    if budget_violations:
+        blockers.append("same_budget_violation")
+    return {
+        "run_id": RUN_ID,
+        "problem_id": "ALL",
+        "diagnostic_key": "multi_problem_no_overlap_control",
+        "status": "blocked" if blockers else "pass",
+        "observed_value": (
+            f"controls={','.join(control_ids)};"
+            f"relation_rows={len(control_overlap_rows)};"
+            f"active_relation_actions={len(active_decision_rows)};"
+            f"same_budget_violations={budget_violations}/{len(control_utility_rows)}"
+        ),
+        "blocker_reason": ";".join(blockers),
+        "next_step": "inspect_no_overlap_controls" if blockers else "continue",
+    }
+
+
 def _multi_problem_action_mismatch_profile_row(
     mismatch_rows: list[dict[str, object]],
 ) -> dict[str, object]:
@@ -2384,6 +2464,13 @@ def _policy_evidence_diagnosis_rows(
         )
     )
     if len({str(row["problem_id"]) for row in utility_rows}) > 1:
+        no_overlap_row = _multi_problem_no_overlap_control_row(
+            utility_rows,
+            decision_rows,
+            overlap_rows,
+        )
+        if no_overlap_row is not None:
+            rows.append(no_overlap_row)
         rows.append(
             _multi_problem_relation_policy_profile_row(
                 utility_rows,
