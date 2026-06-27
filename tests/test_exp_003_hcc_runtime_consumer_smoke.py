@@ -414,7 +414,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         if row["problem_id"] == "ALL"
     }
     assert aggregate_by_key["multi_problem_relation_dispatch_mean_gain"]["observed_value"] == (
-        "positive_cases=0/2;mean_gain=-0.008264"
+        "positive_cases=0/2;mean_gain=-0.008264;lost_case_ids=E1_seed1,E2_seed1"
     )
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["observed_value"] == (
         "win_count=0/2"
@@ -422,7 +422,10 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["status"] == "blocked"
     assert aggregate_by_key[
         "multi_problem_active_relation_dispatch_mean_gain"
-    ]["observed_value"] == "active_cases=2;positive_cases=0/2;mean_gain=-0.008264"
+    ]["observed_value"] == (
+        "active_cases=2;positive_cases=0/2;mean_gain=-0.008264;"
+        "lost_case_ids=E1_seed1,E2_seed1"
+    )
     assert aggregate_by_key[
         "multi_problem_active_relation_dispatch_mean_gain"
     ]["status"] == "blocked"
@@ -545,7 +548,7 @@ def test_multi_problem_semantics_audit_allows_fallback_only_relation_dispatch() 
     assert by_key["multi_problem_backend_semantics_audit"]["observed_value"] == "changed=6/6"
     assert by_key["multi_problem_backend_semantics_audit"]["status"] == "pass"
     assert by_key["multi_problem_active_relation_dispatch_mean_gain"]["observed_value"] == (
-        "active_cases=1;positive_cases=1/1;mean_gain=0.010000"
+        "active_cases=1;positive_cases=1/1;mean_gain=0.010000;lost_case_ids="
     )
 
 

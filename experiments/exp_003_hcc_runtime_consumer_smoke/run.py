@@ -1261,6 +1261,11 @@ def _multi_problem_diagnosis_rows(
     relation_gains = [
         float(row["relative_gain_vs_fallback"]) for row in relation_rows
     ]
+    relation_lost_case_ids = [
+        f"{row['problem_id']}_seed{row['seed']}"
+        for row in relation_rows
+        if float(row["relative_gain_vs_fallback"]) < 0.0
+    ]
     positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
     mean_gain = _mean(relation_gains)
     active_relation_rows = [
@@ -1268,6 +1273,11 @@ def _multi_problem_diagnosis_rows(
     ]
     active_relation_gains = [
         float(row["relative_gain_vs_fallback"]) for row in active_relation_rows
+    ]
+    active_relation_lost_case_ids = [
+        f"{row['problem_id']}_seed{row['seed']}"
+        for row in active_relation_rows
+        if float(row["relative_gain_vs_fallback"]) < 0.0
     ]
     active_positive_cases = sum(1 for gain in active_relation_gains if gain > 0.0)
     active_mean_gain = _mean(active_relation_gains)
@@ -1441,7 +1451,8 @@ def _multi_problem_diagnosis_rows(
             "status": "pass" if directional_pass else "blocked",
             "observed_value": (
                 f"positive_cases={positive_cases}/{len(relation_rows)};"
-                f"mean_gain={mean_gain:.6f}"
+                f"mean_gain={mean_gain:.6f};"
+                f"lost_case_ids={','.join(relation_lost_case_ids)}"
             ),
             "blocker_reason": ""
             if directional_pass
@@ -1456,7 +1467,8 @@ def _multi_problem_diagnosis_rows(
             "observed_value": (
                 f"active_cases={len(active_relation_rows)};"
                 f"positive_cases={active_positive_cases}/{len(active_relation_rows)};"
-                f"mean_gain={active_mean_gain:.6f}"
+                f"mean_gain={active_mean_gain:.6f};"
+                f"lost_case_ids={','.join(active_relation_lost_case_ids)}"
             ),
             "blocker_reason": ""
             if active_directional_pass
