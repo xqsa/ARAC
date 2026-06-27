@@ -617,6 +617,22 @@ def _format_action_counts(counts: dict[str, int]) -> str:
     return ";".join(f"{action}={counts[action]}" for action in sorted(counts))
 
 
+def _mean_numeric(rows: list[dict[str, object]], field: str) -> float:
+    values: list[float] = []
+    for row in rows:
+        try:
+            values.append(float(row[field]))
+        except (KeyError, TypeError, ValueError):
+            continue
+    return _mean(values)
+
+
+def _format_float(value: float) -> str:
+    if value != value:
+        return "nan"
+    return f"{value:.6f}"
+
+
 def _aggregate_lane_action_mix(
     utility_rows: list[dict[str, object]],
     lane_id: str,
@@ -854,6 +870,92 @@ def _policy_evidence_diagnosis_rows_for_problem(
     ]
 
 
+def _relation_policy_profile_row(
+    problem_id: str,
+    utility_rows: list[dict[str, object]],
+    decision_rows: list[dict[str, object]],
+    trace_rows: list[dict[str, object]],
+    overlap_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    relation_utility_rows = [
+        row for row in utility_rows if row["lane_id"] == "relation_dispatch_rule"
+    ]
+    relation_decisions = [
+        row
+        for row in decision_rows
+        if str(row.get("problem_id", "")) == problem_id
+        and str(row.get("lane_id", "")) == "relation_dispatch_rule"
+    ]
+    relation_traces = [
+        row
+        for row in trace_rows
+        if str(row.get("problem_id", "")) == problem_id
+        and str(row.get("lane_id", "")) == "relation_dispatch_rule"
+    ]
+    relation_overlaps = [
+        row
+        for row in overlap_rows
+        if str(row.get("problem_id", "")) == problem_id
+        and str(row.get("lane_id", "")) == "relation_dispatch_rule"
+    ]
+    action_counts: dict[str, int] = {}
+    for row in relation_decisions:
+        action_name = str(row.get("canonical_action_name", ""))
+        if action_name:
+            action_counts[action_name] = action_counts.get(action_name, 0) + 1
+    active_decisions = [
+        row
+        for row in relation_decisions
+        if str(row.get("canonical_action_name", "")) != "conservative_no_action"
+    ]
+    active_actions = sum(
+        count
+        for action_name, count in action_counts.items()
+        if action_name != "conservative_no_action"
+    )
+    downstream_consumed = sum(
+        1 for row in relation_traces if str(row.get("downstream_consumed", "")) == "1"
+    )
+    optimizer_consumed = sum(
+        1 for row in relation_traces if str(row.get("optimizer_consumed", "")) == "1"
+    )
+    profile_complete = bool(relation_decisions and relation_traces and relation_overlaps)
+    utility_blocked = any(
+        row["utility_label"] != "meaningful_win" for row in relation_utility_rows
+    )
+    return {
+        "run_id": RUN_ID,
+        "problem_id": problem_id,
+        "diagnostic_key": "relation_policy_evidence_profile",
+        "status": "pass" if profile_complete else "blocked",
+        "observed_value": (
+            f"relations={len(relation_decisions)};"
+            f"active={active_actions};"
+            f"downstream={downstream_consumed}/{len(relation_traces)};"
+            f"optimizer_consumed={optimizer_consumed}/{len(relation_traces)};"
+            f"actions={_format_action_counts(action_counts)};"
+            "mean_gain="
+            f"{_format_float(_mean_numeric(relation_utility_rows, 'relative_gain_vs_fallback'))};"
+            "mean_active_confidence="
+            f"{_format_float(_mean_numeric(active_decisions, 'confidence'))};"
+            "mean_fallback_margin="
+            f"{_format_float(_mean_numeric(relation_overlaps, 'fallback_margin_proxy'))};"
+            "mean_delta_ratio_gap="
+            f"{_format_float(_mean_numeric(relation_overlaps, 'delta_ratio_gap'))};"
+            "mean_rank_stability="
+            f"{_format_float(_mean_numeric(relation_overlaps, 'rank_stability'))};"
+            "mean_shared_var_support="
+            f"{_format_float(_mean_numeric(relation_overlaps, 'shared_var_support_ratio'))}"
+        ),
+        "blocker_reason": "" if profile_complete else "relation_policy_profile_missing",
+        "next_step": (
+            "tune_policy_or_backend_effect_size"
+            if profile_complete and utility_blocked
+            else ("continue" if profile_complete else "repair_relation_artifact_join")
+        ),
+    }
+
+
 def _multi_problem_diagnosis_rows(
     utility_rows: list[dict[str, object]],
     negative_control_rows: list[dict[str, object]],
@@ -1033,12 +1135,16 @@ def _multi_problem_diagnosis_rows(
 
 
 def _policy_evidence_diagnosis_rows(
+    records: list[dict[str, object]],
     utility_rows: list[dict[str, object]],
     negative_control_rows: list[dict[str, object]],
 ) -> list[dict[str, object]]:
     negative_by_problem = {
         str(row["problem_id"]): row for row in negative_control_rows
     }
+    decision_rows = _action_decision_rows(records)
+    trace_rows = _action_trace_rows(records)
+    overlap_rows = _overlap_relation_rows(records)
     rows: list[dict[str, object]] = []
     for problem_id in sorted({str(row["problem_id"]) for row in utility_rows}):
         problem_utility_rows = [
@@ -1049,6 +1155,15 @@ def _policy_evidence_diagnosis_rows(
                 problem_id,
                 problem_utility_rows,
                 negative_by_problem.get(problem_id, {}),
+            )
+        )
+        rows.append(
+            _relation_policy_profile_row(
+                problem_id,
+                problem_utility_rows,
+                decision_rows,
+                trace_rows,
+                overlap_rows,
             )
         )
     rows.extend(_multi_problem_diagnosis_rows(utility_rows, negative_control_rows))
@@ -1291,7 +1406,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "policy_evidence_diagnosis.csv",
-        _policy_evidence_diagnosis_rows(utility_rows, negative_control_rows),
+        _policy_evidence_diagnosis_rows(records, utility_rows, negative_control_rows),
         [
             "run_id",
             "problem_id",

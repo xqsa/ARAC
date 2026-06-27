@@ -285,6 +285,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert diagnosis_by_key["negative_control_action_mix"]["status"] == "blocked"
     assert "relation_dispatch_rule=" in diagnosis_by_key["negative_control_action_mix"]["observed_value"]
     assert "shuffled_relation_dispatch=" in diagnosis_by_key["negative_control_action_mix"]["observed_value"]
+    policy_profile = diagnosis_by_key["relation_policy_evidence_profile"]
+    assert policy_profile["status"] == "pass"
+    assert "relations=6" in policy_profile["observed_value"]
+    assert "actions=allow_beneficial_coordination=3;repair_shared_variable_binding=3" in policy_profile["observed_value"]
+    assert "mean_active_confidence=0.750000" in policy_profile["observed_value"]
+    assert policy_profile["next_step"] == "tune_policy_or_backend_effect_size"
     assert diagnosis_by_key["sota_escalation_allowed"]["observed_value"] == "0"
     assert diagnosis_by_key["sota_escalation_allowed"]["next_step"] == (
         "diagnose_policy_evidence_before_sota"
