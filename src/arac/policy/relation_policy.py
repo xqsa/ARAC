@@ -182,10 +182,10 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
         elif (
             fallback_reason != "high_fallback_margin_keeps_native_overlap_blend"
             and high_overlap
+            and relation.one_side_zero
             and (
-            relation.one_side_zero
-            or delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
-            or not stable_rank
+                delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
+                or not stable_rank
             )
         ):
             _set_candidate_score(

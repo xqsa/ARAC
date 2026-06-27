@@ -353,6 +353,28 @@ def test_relation_policy_repairs_imbalanced_overlap() -> None:
     assert decision.trigger_reason == "overlap_relation_has_imbalance_or_unstable_rank"
 
 
+def test_relation_policy_does_not_repair_both_positive_instability() -> None:
+    decision = decide_action(
+        make_relation(
+            previous_delta=4_237_141.583984,
+            current_delta=17_314_035.378906,
+            delta_signal=13_076_893.794922,
+            delta_abs_gap=13_076_893.794922,
+            delta_signed_gap=13_076_893.794922,
+            delta_ratio_gap=0.755277,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.0,
+            rank_stability=0.0,
+            shared_var_support_ratio=0.10,
+            fallback_margin_proxy=0.90,
+        )
+    )
+
+    assert decision.action_name == "fallback"
+    assert decision.canonical_action_name == "conservative_no_action"
+
+
 def test_relation_policy_falls_back_on_low_support_repair_signal() -> None:
     decision = decide_action(
         make_relation(
