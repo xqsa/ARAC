@@ -1266,6 +1266,18 @@ def _multi_problem_diagnosis_rows(
         for row in relation_rows
         if float(row["relative_gain_vs_fallback"]) < 0.0
     ]
+    relation_lost_rows = [
+        row for row in relation_rows if float(row["relative_gain_vs_fallback"]) < 0.0
+    ]
+    relation_lost_action_mix: dict[str, int] = {}
+    for row in relation_lost_rows:
+        for action, count in _parse_action_mix(row.get("action_mix", "")).items():
+            relation_lost_action_mix[action] = (
+                relation_lost_action_mix.get(action, 0) + count
+            )
+    relation_lost_mean_gain = _mean(
+        [float(row["relative_gain_vs_fallback"]) for row in relation_lost_rows]
+    )
     positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
     mean_gain = _mean(relation_gains)
     active_relation_rows = [
@@ -1458,6 +1470,23 @@ def _multi_problem_diagnosis_rows(
             if directional_pass
             else "multi_problem_not_directionally_positive",
             "next_step": "continue" if directional_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_lost_case_action_mix",
+            "status": "blocked" if relation_lost_rows else "pass",
+            "observed_value": (
+                f"lost_cases={len(relation_lost_rows)};"
+                f"mean_lost_gain={relation_lost_mean_gain:.6f};"
+                f"actions={_format_action_counts(relation_lost_action_mix)}"
+            ),
+            "blocker_reason": (
+                "relation_dispatch_lost_cases" if relation_lost_rows else ""
+            ),
+            "next_step": (
+                "inspect_lost_case_action_mix" if relation_lost_rows else "continue"
+            ),
         },
         {
             "run_id": RUN_ID,

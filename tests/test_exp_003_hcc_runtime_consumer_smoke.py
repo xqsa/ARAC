@@ -416,6 +416,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert aggregate_by_key["multi_problem_relation_dispatch_mean_gain"]["observed_value"] == (
         "positive_cases=0/2;mean_gain=-0.008264;lost_case_ids=E1_seed1,E2_seed1"
     )
+    lost_case_mix = aggregate_by_key["multi_problem_lost_case_action_mix"]
+    assert lost_case_mix["status"] == "blocked"
+    assert lost_case_mix["observed_value"] == (
+        "lost_cases=2;mean_lost_gain=-0.008264;"
+        "actions=allow_beneficial_coordination=2;repair_shared_variable_binding=2"
+    )
     assert aggregate_by_key["multi_problem_relation_dispatch_win_count"]["observed_value"] == (
         "win_count=0/2"
     )
