@@ -304,7 +304,12 @@ def decide_actions_for_relations(
             and relation.delta_ratio_gap >= CONFLICT_THRESHOLD
             and relation.rank_stability >= STABILITY_THRESHOLD
         )
-        if dense_prefix_seen and relation.both_positive and not relation.one_side_zero:
+        if (
+            dense_prefix_seen
+            and relation.both_positive
+            and not relation.one_side_zero
+            and decisions[index].relation_action_name == "coordinate"
+        ):
             decisions[index] = _decision(
                 relation,
                 "coordinate",
