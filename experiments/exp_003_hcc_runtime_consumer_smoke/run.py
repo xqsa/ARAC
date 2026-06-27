@@ -1476,6 +1476,81 @@ def _multi_problem_action_mismatch_profile_row(
     }
 
 
+def _multi_problem_relation_confidence_interval_row(
+    utility_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    indexed = {
+        (str(row["problem_id"]), str(row["seed"]), str(row["lane_id"])): row
+        for row in utility_rows
+        if _is_overlap_applicable_problem_id(str(row.get("problem_id", "")))
+    }
+    relation_rows = [
+        row
+        for row in utility_rows
+        if str(row.get("lane_id", "")) == "relation_dispatch_rule"
+        and _is_overlap_applicable_problem_id(str(row.get("problem_id", "")))
+    ]
+    comparisons = [
+        ("vs_fallback", "fallback"),
+        ("vs_fixed_repair", "fixed_repair"),
+        ("vs_fixed_coordinate", "fixed_coordinate"),
+        ("vs_shuffled_relation_dispatch", "shuffled_relation_dispatch"),
+    ]
+    parts: list[str] = []
+    missing = False
+    for label, baseline_lane in comparisons:
+        gains: list[float] = []
+        for relation_row in relation_rows:
+            case_key = (str(relation_row["problem_id"]), str(relation_row["seed"]))
+            baseline_row = indexed.get((*case_key, baseline_lane))
+            if baseline_row is None:
+                continue
+            if baseline_lane == "fallback":
+                try:
+                    gains.append(float(relation_row["relative_gain_vs_fallback"]))
+                except (KeyError, TypeError, ValueError):
+                    gains.append(
+                        relative_gain(
+                            float(baseline_row["final_error"]),
+                            float(relation_row["final_error"]),
+                        )
+                    )
+            else:
+                gains.append(
+                    relative_gain(
+                        float(baseline_row["final_error"]),
+                        float(relation_row["final_error"]),
+                    )
+                )
+        if not gains:
+            missing = True
+        parts.append(f"{label}:{_confidence_interval_summary(gains)}")
+    return {
+        "run_id": RUN_ID,
+        "problem_id": "ALL",
+        "diagnostic_key": "multi_problem_relation_dispatch_confidence_interval",
+        "status": "blocked" if missing else "pass",
+        "observed_value": ";".join(parts),
+        "blocker_reason": "confidence_interval_inputs_missing" if missing else "",
+        "next_step": "repair_utility_audit_inputs" if missing else "continue",
+    }
+
+
+def _confidence_interval_summary(values: list[float]) -> str:
+    if not values:
+        return "n=0,mean=nan,ci95=[nan,nan]"
+    mean = _mean(values)
+    if len(values) == 1:
+        half_width = 0.0
+    else:
+        variance = sum((value - mean) ** 2 for value in values) / (len(values) - 1)
+        half_width = 1.96 * ((variance ** 0.5) / (len(values) ** 0.5))
+    return (
+        f"n={len(values)},mean={mean:.6f},"
+        f"ci95=[{mean - half_width:.6f},{mean + half_width:.6f}]"
+    )
+
+
 def _multi_problem_diagnosis_rows(
     utility_rows: list[dict[str, object]],
     negative_control_rows: list[dict[str, object]],
@@ -2148,6 +2223,7 @@ def _policy_evidence_diagnosis_rows(
             )
         )
         rows.append(_multi_problem_action_mismatch_profile_row(mismatch_rows))
+        rows.append(_multi_problem_relation_confidence_interval_row(utility_rows))
     return rows
 
 

@@ -1308,6 +1308,61 @@ def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> No
     assert row["blocker_reason"] == "action_mismatch_or_abstain_detected"
 
 
+def test_multi_problem_relation_confidence_interval_reports_baseline_deltas() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_relation_confidence_interval_row,
+    )
+
+    utility_rows = []
+    for seed in ("1", "2", "3"):
+        utility_rows.extend(
+            [
+                {
+                    "problem_id": "E2",
+                    "seed": seed,
+                    "lane_id": "fallback",
+                    "final_error": "100.0",
+                },
+                {
+                    "problem_id": "E2",
+                    "seed": seed,
+                    "lane_id": "fixed_repair",
+                    "final_error": "95.0",
+                },
+                {
+                    "problem_id": "E2",
+                    "seed": seed,
+                    "lane_id": "fixed_coordinate",
+                    "final_error": "92.0",
+                },
+                {
+                    "problem_id": "E2",
+                    "seed": seed,
+                    "lane_id": "shuffled_relation_dispatch",
+                    "final_error": "91.0",
+                },
+                {
+                    "problem_id": "E2",
+                    "seed": seed,
+                    "lane_id": "relation_dispatch_rule",
+                    "final_error": "90.0",
+                    "relative_gain_vs_fallback": "0.100000",
+                },
+            ]
+        )
+
+    row = _multi_problem_relation_confidence_interval_row(utility_rows)
+
+    assert row["diagnostic_key"] == "multi_problem_relation_dispatch_confidence_interval"
+    assert row["status"] == "pass"
+    assert row["observed_value"] == (
+        "vs_fallback:n=3,mean=0.100000,ci95=[0.100000,0.100000];"
+        "vs_fixed_repair:n=3,mean=0.052632,ci95=[0.052632,0.052632];"
+        "vs_fixed_coordinate:n=3,mean=0.021739,ci95=[0.021739,0.021739];"
+        "vs_shuffled_relation_dispatch:n=3,mean=0.010989,ci95=[0.010989,0.010989]"
+    )
+
+
 def test_backend_semantics_expectation_uses_optimizer_consumed_action_mix() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _expects_backend_semantics,
