@@ -741,6 +741,34 @@ def _policy_evidence_diagnosis_rows_for_problem(
     ]
     relation_positive = sum(1 for gain in relation_gains if gain > 0.0)
     relation_mean_gain = _mean(relation_gains)
+    fixed_coordinate_by_seed = {
+        str(row["seed"]): float(row["final_error"])
+        for row in utility_rows
+        if row["lane_id"] == "fixed_coordinate"
+    }
+    relation_vs_fixed_coordinate_gains = [
+        relative_gain(
+            fixed_coordinate_by_seed[str(row["seed"])],
+            float(row["final_error"]),
+        )
+        for row in relation_rows
+        if str(row["seed"]) in fixed_coordinate_by_seed
+    ]
+    relation_beats_fixed_coordinate = sum(
+        1 for gain in relation_vs_fixed_coordinate_gains if gain > 0.0
+    )
+    relation_vs_fixed_coordinate_mean_gain = _mean(relation_vs_fixed_coordinate_gains)
+    relation_gating_pass = (
+        bool(relation_vs_fixed_coordinate_gains)
+        and relation_beats_fixed_coordinate == len(relation_vs_fixed_coordinate_gains)
+        and relation_vs_fixed_coordinate_mean_gain > 0.0
+    )
+    fixed_coordinate_rows = [
+        row for row in utility_rows if row["lane_id"] == "fixed_coordinate"
+    ]
+    fixed_coordinate_mean_gain = _mean(
+        [float(row["relative_gain_vs_fallback"]) for row in fixed_coordinate_rows]
+    )
     relation_directional_pass = (
         bool(relation_rows)
         and relation_positive == len(relation_rows)
@@ -810,6 +838,26 @@ def _policy_evidence_diagnosis_rows_for_problem(
             "next_step": "continue"
             if relation_directional_pass
             else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": problem_id,
+            "diagnostic_key": "relation_vs_fixed_coordinate_baseline",
+            "status": "pass" if relation_gating_pass else "blocked",
+            "observed_value": (
+                f"win_count={relation_beats_fixed_coordinate}/"
+                f"{len(relation_vs_fixed_coordinate_gains)};"
+                "mean_gain_vs_fixed_coordinate="
+                f"{relation_vs_fixed_coordinate_mean_gain:.6f};"
+                "fixed_coordinate_mean_gain_vs_fallback="
+                f"{fixed_coordinate_mean_gain:.6f}"
+            ),
+            "blocker_reason": ""
+            if relation_gating_pass
+            else "relation_gating_not_better_than_fixed_coordinate",
+            "next_step": "continue"
+            if relation_gating_pass
+            else "diagnose_coordinate_gating_before_sota",
         },
         {
             "run_id": RUN_ID,

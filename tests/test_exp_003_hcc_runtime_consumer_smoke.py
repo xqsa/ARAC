@@ -302,6 +302,10 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert diagnosis_by_key["relation_dispatch_utility"]["observed_value"] == "0/3"
     assert diagnosis_by_key["relation_dispatch_directional_utility"]["status"] == "blocked"
     assert "mean_gain=" in diagnosis_by_key["relation_dispatch_directional_utility"]["observed_value"]
+    coordinate_baseline = diagnosis_by_key["relation_vs_fixed_coordinate_baseline"]
+    assert coordinate_baseline["status"] == "pass"
+    assert "win_count=3/3" in coordinate_baseline["observed_value"]
+    assert "fixed_coordinate_mean_gain_vs_fallback=" in coordinate_baseline["observed_value"]
     assert diagnosis_by_key["shuffled_negative_control"]["status"] == "blocked"
     assert diagnosis_by_key["negative_control_action_mix"]["status"] == "blocked"
     assert "relation_dispatch_rule=" in diagnosis_by_key["negative_control_action_mix"]["observed_value"]
