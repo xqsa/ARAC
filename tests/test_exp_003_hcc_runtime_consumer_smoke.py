@@ -74,16 +74,16 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "relation_id,group_left,group_right,shared_vars_hash,action_family,"
                 "canonical_action_name,relation_policy_source,"
                 "overlap_size,previous_delta,current_delta,owner_selected,"
-                "semantic_surface,state_mutated,downstream_consumed,"
+                "semantic_surface,state_mutated,action_value_delta_norm,downstream_consumed,"
                 "downstream_consumption_scope,optimizer_consumed\n"
                 f"{problem_id},{request.seed},0,1,{first_action},O0_0_1,0,1,abc123,"
                 f"{first_family},{first_action},{policy_source},"
                 "1,1.000000e+00,1.100000e+00,clipped_consensus_blend,"
-                "coordination_clipped_consensus_blend,1,1,same_outer_iteration,1\n"
+                "coordination_clipped_consensus_blend,1,2.000000e-01,1,same_outer_iteration,1\n"
                 f"{problem_id},{request.seed},0,2,repair_shared_variable_binding,O0_1_2,1,2,def456,"
                 f"reassign_repair,repair_shared_variable_binding,{policy_source},"
                 "1,1.100000e+00,1.200000e+00,current,"
-                "shared_variable_owner_rebinding,1,0,same_outer_iteration,0\n",
+                "shared_variable_owner_rebinding,1,3.000000e-01,0,same_outer_iteration,0\n",
                 encoding="utf-8",
             )
             (request.output_dir / f"{problem_id}_action_decision.csv").write_text(
@@ -132,12 +132,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "relation_id,group_left,group_right,shared_vars_hash,action_family,"
                 "canonical_action_name,relation_policy_source,"
                 "overlap_size,previous_delta,current_delta,owner_selected,"
-                "semantic_surface,state_mutated,downstream_consumed,"
+                "semantic_surface,state_mutated,action_value_delta_norm,downstream_consumed,"
                 "downstream_consumption_scope,optimizer_consumed\n"
                 f"{problem_id},{request.seed},0,1,{request.arac_action},O0_0_1,0,1,abc123,{action_family},"
                 f"{request.arac_action},legacy_single_action,"
                 f"1,1.000000e+00,2.000000e+00,{owner_selected},{semantic_surface},"
-                "1,1,same_outer_iteration,"
+                "1,1.000000e-01,1,same_outer_iteration,"
                 f"{1 if request.arac_action in {'repair_shared_variable_binding', 'allow_beneficial_coordination'} else 0}\n",
                 encoding="utf-8",
             )
@@ -268,6 +268,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "canonical_action_name",
         "relation_policy_source",
         "state_mutated",
+        "action_value_delta_norm",
         "downstream_consumed",
         "downstream_consumption_scope",
     }.issubset(trace_rows[0])

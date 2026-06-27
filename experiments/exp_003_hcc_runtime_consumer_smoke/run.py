@@ -2026,6 +2026,7 @@ def run_hcc_runtime_consumer_smoke(
             "owner_selected",
             "semantic_surface",
             "state_mutated",
+            "action_value_delta_norm",
             "downstream_consumed",
             "downstream_consumption_scope",
             "optimizer_consumed",

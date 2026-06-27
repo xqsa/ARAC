@@ -64,6 +64,7 @@ ACTION_TRACE_FIELDS = [
     "owner_selected",
     "semantic_surface",
     "state_mutated",
+    "action_value_delta_norm",
     "downstream_consumed",
     "downstream_consumption_scope",
     "optimizer_consumed",
@@ -440,6 +441,7 @@ def build_action_trace_row(
     canonical_action_name: str = "",
     relation_policy_source: str = "",
     state_mutated: bool | None = None,
+    action_value_delta_norm: float = 0.0,
     downstream_consumed: bool = True,
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
@@ -472,6 +474,7 @@ def build_action_trace_row(
         ),
         "semantic_surface": _semantic_surface(selected_action_name),
         "state_mutated": state_mutated_value,
+        "action_value_delta_norm": f"{action_value_delta_norm:.6e}",
         "downstream_consumed": str(int(downstream_consumed)),
         "downstream_consumption_scope": "same_outer_iteration",
         "optimizer_consumed": _optimizer_consumed(selected_action_name, downstream_consumed),
@@ -789,6 +792,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         previous_delta=context.previous_delta,
                         current_delta=context.current_delta,
                     )
+                    action_value_delta_norm = (
+                        0.0
+                        if adjusted_values is None
+                        else float(np.linalg.norm(adjusted_values - context.current_values))
+                    )
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     canonical_action_name = _canonical_relation_action_name(action)
@@ -816,17 +824,20 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 else "rule_based_relation_policy"
                             ),
                             state_mutated=adjusted_values is not None,
+                            action_value_delta_norm=action_value_delta_norm,
                             downstream_consumed=index < sub_num - 1,
                         )
                     )
                 else:
-                    best_individual[overlap_indices] = apply_arac_overlap_action(
+                    current_overlap_values = best_individual[overlap_indices].copy()
+                    adjusted_values = apply_arac_overlap_action(
                         action_name=config.arac_action,
                         previous_values=original_best[overlap_indices],
-                        current_values=best_individual[overlap_indices],
+                        current_values=current_overlap_values,
                         previous_delta=fitness_delta_list[index - 1],
                         current_delta=current_delta,
                     )
+                    best_individual[overlap_indices] = adjusted_values
                     action_trace_rows.append(
                         build_action_trace_row(
                             problem_id=_problem_id(fun_name, fun_id),
@@ -838,6 +849,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             previous_delta=fitness_delta_list[index - 1],
                             current_delta=current_delta,
                             state_mutated=True,
+                            action_value_delta_norm=float(
+                                np.linalg.norm(adjusted_values - current_overlap_values)
+                            ),
                             downstream_consumed=index < sub_num - 1,
                         )
                     )

@@ -337,6 +337,7 @@ def test_build_action_trace_row_marks_runtime_consumed_repair() -> None:
     assert row["owner_selected"] == "current"
     assert row["semantic_surface"] == "shared_variable_owner_rebinding"
     assert row["state_mutated"] == "1"
+    assert row["action_value_delta_norm"] == "0.000000e+00"
     assert row["downstream_consumed"] == "1"
     assert row["downstream_consumption_scope"] == "same_outer_iteration"
     assert row["optimizer_consumed"] == "1"
@@ -361,6 +362,7 @@ def test_build_action_trace_row_includes_relation_join_fields() -> None:
         action_family="coordinate",
         canonical_action_name="allow_beneficial_coordination",
         relation_policy_source="rule_based_relation_policy",
+        action_value_delta_norm=1.25,
     )
 
     assert row["relation_id"] == "O0_0_1"
@@ -370,6 +372,7 @@ def test_build_action_trace_row_includes_relation_join_fields() -> None:
     assert row["action_family"] == "coordinate"
     assert row["canonical_action_name"] == "allow_beneficial_coordination"
     assert row["relation_policy_source"] == "rule_based_relation_policy"
+    assert row["action_value_delta_norm"] == "1.250000e+00"
 
 
 def test_build_action_trace_row_marks_isolate_as_value_selection() -> None:
