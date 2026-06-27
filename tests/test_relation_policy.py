@@ -499,7 +499,7 @@ def test_decide_actions_for_relations_preserves_order_and_logs_counts(caplog) ->
     ) in caplog.text
 
 
-def test_decide_actions_for_relations_uses_dense_prefix_coordinate_mode() -> None:
+def test_decide_actions_for_relations_preserves_local_coordinate_reason() -> None:
     relations = [
         make_relation(
             relation_id="O0_0_1",
@@ -531,8 +531,8 @@ def test_decide_actions_for_relations_uses_dense_prefix_coordinate_mode() -> Non
         "coordinate",
         "coordinate",
     ]
-    assert decisions[1].trigger_reason == "dense_prefix_coordinate_mode"
-    assert decisions[2].trigger_reason == "dense_prefix_coordinate_mode"
+    assert decisions[1].trigger_reason == "high_overlap_with_stable_delta_and_rank"
+    assert decisions[2].trigger_reason == "high_overlap_with_stable_delta_and_rank"
 
 
 def test_dense_prefix_coordinate_mode_does_not_override_fallback_base_decision() -> None:
@@ -565,7 +565,7 @@ def test_dense_prefix_coordinate_mode_does_not_override_fallback_base_decision()
     )
 
 
-def test_dense_prefix_coordinate_mode_does_not_override_one_side_zero_relation() -> None:
+def test_dense_prefix_context_does_not_rewrite_later_local_coordinate_reason() -> None:
     relations = [
         make_relation(
             relation_id="O0_0_1",
@@ -594,10 +594,9 @@ def test_dense_prefix_coordinate_mode_does_not_override_one_side_zero_relation()
 
     decisions = decide_actions_for_relations(relations)
 
-    assert decisions[0].trigger_reason == "dense_prefix_coordinate_mode"
+    assert decisions[0].trigger_reason == "high_overlap_with_stable_delta_and_rank"
     assert decisions[1].relation_action_name != "coordinate"
-    assert decisions[1].trigger_reason != "dense_prefix_coordinate_mode"
-    assert decisions[2].trigger_reason == "dense_prefix_coordinate_mode"
+    assert decisions[2].trigger_reason == "high_overlap_with_stable_delta_and_rank"
 
 
 def test_decide_actions_for_relations_uses_balanced_mid_support_coordinate_mode() -> None:
