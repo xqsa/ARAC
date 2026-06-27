@@ -64,6 +64,13 @@ LANES = (
         "fixed_lane_runtime_consumer_smoke",
     ),
     LaneConfig(
+        "fixed_coordinate",
+        ActionFamily.COORDINATE,
+        "allow_beneficial_coordination",
+        "allow_beneficial_coordination",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+    LaneConfig(
         "relation_dispatch_rule",
         ActionFamily.COORDINATE,
         "relation_dispatch_rule",

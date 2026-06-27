@@ -110,6 +110,21 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 encoding="utf-8",
             )
         else:
+            action_family = (
+                "coordinate"
+                if request.arac_action == "allow_beneficial_coordination"
+                else "reassign_repair"
+            )
+            owner_selected = (
+                "clipped_consensus_blend"
+                if request.arac_action == "allow_beneficial_coordination"
+                else "current"
+            )
+            semantic_surface = (
+                "coordination_clipped_consensus_blend"
+                if request.arac_action == "allow_beneficial_coordination"
+                else "shared_variable_owner_rebinding"
+            )
             trace_path.write_text(
                 "problem_id,seed,outer_iter,group_index,selected_action_name,"
                 "relation_id,group_left,group_right,shared_vars_hash,action_family,"
@@ -117,16 +132,17 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "overlap_size,previous_delta,current_delta,owner_selected,"
                 "semantic_surface,state_mutated,downstream_consumed,"
                 "downstream_consumption_scope,optimizer_consumed\n"
-                f"{problem_id},{request.seed},0,1,{request.arac_action},O0_0_1,0,1,abc123,reassign_repair,"
+                f"{problem_id},{request.seed},0,1,{request.arac_action},O0_0_1,0,1,abc123,{action_family},"
                 f"{request.arac_action},legacy_single_action,"
-                "1,1.000000e+00,2.000000e+00,current,shared_variable_owner_rebinding,"
+                f"1,1.000000e+00,2.000000e+00,{owner_selected},{semantic_surface},"
                 "1,1,same_outer_iteration,"
-                f"{1 if request.arac_action == 'repair_shared_variable_binding' else 0}\n",
+                f"{1 if request.arac_action in {'repair_shared_variable_binding', 'allow_beneficial_coordination'} else 0}\n",
                 encoding="utf-8",
             )
         final_error = {
             "fallback": 120.0 + request.seed,
             "fixed_repair": 80.0 + request.seed,
+            "fixed_coordinate": 130.0 + request.seed,
             "relation_dispatch_rule": 121.0 + request.seed,
             "shuffled_relation_dispatch": 119.0 + request.seed,
         }[lane_id]
@@ -167,7 +183,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "policy_evidence_diagnosis.csv",
     }
     assert expected == {path.name for path in output.iterdir() if path.suffix == ".csv"}
-    assert len(requests) == 12
+    assert len(requests) == 15
     assert {request.seed for request in requests} == {1, 2, 3}
     assert {
         (request.output_dir.name, request.arac_action, request.enable_relation_dispatch, request.relation_policy_mode)
@@ -175,6 +191,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     } == {
         ("fallback", "conservative_no_action", False, "rule"),
         ("fixed_repair", "repair_shared_variable_binding", False, "rule"),
+        ("fixed_coordinate", "allow_beneficial_coordination", False, "rule"),
         ("relation_dispatch_rule", "conservative_no_action", True, "rule"),
         ("shuffled_relation_dispatch", "conservative_no_action", True, "shuffled"),
     }
@@ -211,6 +228,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert {row["lane_id"] for row in trace_rows} == {
         "fallback",
         "fixed_repair",
+        "fixed_coordinate",
         "relation_dispatch_rule",
         "shuffled_relation_dispatch",
     }
@@ -252,6 +270,9 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     by_lane = {row["lane_id"]: row for row in utility_rows}
     assert by_lane["fixed_repair"]["utility_label"] == "meaningful_win"
     assert by_lane["fixed_repair"]["claim_allowed"] == "1"
+    assert by_lane["fixed_coordinate"]["utility_label"] == "tie_or_small_effect"
+    assert by_lane["fixed_coordinate"]["claim_allowed"] == "0"
+    assert "utility_not_meaningful_win" in by_lane["fixed_coordinate"]["claim_blockers"]
     assert by_lane["relation_dispatch_rule"]["utility_label"] == "tie_or_small_effect"
     assert by_lane["relation_dispatch_rule"]["claim_allowed"] == "0"
     assert "utility_not_meaningful_win" in by_lane["relation_dispatch_rule"]["claim_blockers"]
@@ -307,6 +328,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     result_by_lane = {row["lane_id"]: row for row in result_rows}
     assert result_by_lane["fixed_repair"]["runtime_connected_claim_allowed"] == "1"
     assert result_by_lane["fixed_repair"]["utility_claim_allowed"] == "1"
+    assert result_by_lane["fixed_coordinate"]["runtime_connected_claim_allowed"] == "1"
+    assert result_by_lane["fixed_coordinate"]["utility_claim_allowed"] == "0"
     assert result_by_lane["relation_dispatch_rule"]["runtime_connected_claim_allowed"] == "1"
     assert result_by_lane["relation_dispatch_rule"]["utility_claim_allowed"] == "0"
     assert result_by_lane["shuffled_relation_dispatch"]["runtime_connected_claim_allowed"] == "1"
@@ -342,7 +365,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         problem_ids=("E1", "E2"),
     )
 
-    assert len(requests) == 8
+    assert len(requests) == 10
     assert {request.problem_id for request in requests} == {"E1", "E2"}
     assert {request.seed for request in requests} == {1}
     multi_utility = _read_csv(multi_output / "action_utility_audit.csv")
@@ -368,7 +391,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     )
     assert aggregate_by_key["multi_problem_fixed_repair_baseline"]["status"] == "blocked"
     assert aggregate_by_key["multi_problem_backend_semantics_audit"]["observed_value"] == (
-        "changed=6/6"
+        "changed=8/8"
     )
     assert aggregate_by_key["multi_problem_backend_semantics_audit"]["status"] == "pass"
     assert aggregate_by_key["multi_problem_negative_control"]["observed_value"] == (
