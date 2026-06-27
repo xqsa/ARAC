@@ -91,7 +91,10 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
     scores = {action_name: 0.0 for action_name in ACTION_NAMES}
     reasons = {action_name: "" for action_name in ACTION_NAMES}
     fallback_reason = "no_deterministic_relation_rule_triggered"
-    scores["fallback"] = _clamp(relation.fallback_margin_proxy - FALLBACK_SCORE_DISCOUNT)
+    fallback_discount = (
+        0.15 if stable_delta and rank_stability >= 0.85 else FALLBACK_SCORE_DISCOUNT
+    )
+    scores["fallback"] = _clamp(relation.fallback_margin_proxy - fallback_discount)
 
     if (
         relation.overlap_strength < HIGH_OVERLAP_THRESHOLD

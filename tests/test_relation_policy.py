@@ -52,6 +52,20 @@ def test_relation_policy_coordinates_stable_high_overlap_relation() -> None:
     assert decision.trigger_reason == "high_overlap_with_stable_delta_and_rank"
 
 
+def test_relation_policy_coordinates_moderately_stable_high_margin_relation() -> None:
+    decision = decide_action(
+        make_relation(
+            delta_ratio_gap=0.15,
+            rank_signal=0.85,
+            rank_stability=0.85,
+            fallback_margin_proxy=1.0,
+        )
+    )
+
+    assert decision.relation_action_name == "coordinate"
+    assert decision.trigger_reason == "high_overlap_with_stable_delta_and_rank"
+
+
 def test_relation_policy_scores_candidates_and_reports_margin() -> None:
     relation = make_relation()
     scored = score_relation_actions(relation)
