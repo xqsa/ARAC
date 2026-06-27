@@ -1,6 +1,6 @@
 # exp_003 Expected Outputs
 
-The experiment writes twelve CSV artifacts:
+The experiment writes thirteen CSV artifacts:
 
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
@@ -12,6 +12,7 @@ The experiment writes twelve CSV artifacts:
 - `relation_join_audit.csv`
 - `action_utility_audit.csv`
 - `negative_control_comparison.csv`
+- `policy_evidence_diagnosis.csv`
 - `anti_leakage_audit.csv`
 - `claim_gate.csv`
 
@@ -33,5 +34,8 @@ The required smoke evidence is:
   `action_mix`, `claim_allowed`, and `claim_blockers`.
 - `negative_control_comparison.csv` reports whether shuffled relation dispatch
   stably outperforms real relation dispatch across the configured seeds.
+- `policy_evidence_diagnosis.csv` gives the stop/continue decision for
+  same-budget, utility, catastrophic-loss, shuffled-control, and SOTA
+  escalation gates.
 - Final errors are offline-only smoke outputs and must not enter runtime
   dispatch.

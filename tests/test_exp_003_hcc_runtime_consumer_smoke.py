@@ -118,8 +118,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         final_error = {
             "fallback": 120.0 + request.seed,
             "fixed_repair": 80.0 + request.seed,
-            "relation_dispatch_rule": 90.0 + request.seed,
-            "shuffled_relation_dispatch": 95.0 + request.seed,
+            "relation_dispatch_rule": 121.0 + request.seed,
+            "shuffled_relation_dispatch": 119.0 + request.seed,
         }[lane_id]
         return HccAobExecutionResult(
             problem_id=request.problem_id,
@@ -155,6 +155,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "anti_leakage_audit.csv",
         "claim_gate.csv",
         "negative_control_comparison.csv",
+        "policy_evidence_diagnosis.csv",
     }
     assert expected == {path.name for path in output.iterdir() if path.suffix == ".csv"}
     assert len(requests) == 12
@@ -240,9 +241,10 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     by_lane = {row["lane_id"]: row for row in utility_rows}
     assert by_lane["fixed_repair"]["utility_label"] == "meaningful_win"
     assert by_lane["fixed_repair"]["claim_allowed"] == "1"
-    assert by_lane["relation_dispatch_rule"]["utility_label"] == "meaningful_win"
-    assert by_lane["relation_dispatch_rule"]["claim_allowed"] == "1"
-    assert by_lane["shuffled_relation_dispatch"]["utility_label"] == "meaningful_win"
+    assert by_lane["relation_dispatch_rule"]["utility_label"] == "tie_or_small_effect"
+    assert by_lane["relation_dispatch_rule"]["claim_allowed"] == "0"
+    assert "utility_not_meaningful_win" in by_lane["relation_dispatch_rule"]["claim_blockers"]
+    assert by_lane["shuffled_relation_dispatch"]["utility_label"] == "tie_or_small_effect"
     assert by_lane["shuffled_relation_dispatch"]["claim_allowed"] == "0"
     assert "negative_control_lane_not_utility_claim" in by_lane["shuffled_relation_dispatch"]["claim_blockers"]
 
@@ -252,15 +254,25 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
             "run_id": "exp_003_hcc_runtime_consumer_smoke",
             "problem_id": "E2",
             "seeds": "1;2;3",
-            "relation_dispatch_mean_final_error": "9.200000e+01",
-            "shuffled_mean_final_error": "9.700000e+01",
-            "shuffled_win_count": "0",
+            "relation_dispatch_mean_final_error": "1.230000e+02",
+            "shuffled_mean_final_error": "1.210000e+02",
+            "shuffled_win_count": "3",
             "total_seeds": "3",
-            "stable_outperform_detected": "0",
-            "negative_control_pass": "1",
-            "diagnostic": "shuffled_control_not_stably_better",
+            "stable_outperform_detected": "1",
+            "negative_control_pass": "0",
+            "diagnostic": "shuffled_control_stably_outperforms_relation_dispatch",
         }
     ]
+
+    diagnosis_rows = _read_csv(output / "policy_evidence_diagnosis.csv")
+    diagnosis_by_key = {row["diagnostic_key"]: row for row in diagnosis_rows}
+    assert diagnosis_by_key["relation_dispatch_utility"]["status"] == "blocked"
+    assert diagnosis_by_key["relation_dispatch_utility"]["observed_value"] == "0/3"
+    assert diagnosis_by_key["shuffled_negative_control"]["status"] == "blocked"
+    assert diagnosis_by_key["sota_escalation_allowed"]["observed_value"] == "0"
+    assert diagnosis_by_key["sota_escalation_allowed"]["next_step"] == (
+        "diagnose_policy_evidence_before_sota"
+    )
 
     result_rows = _read_csv(output / "our_result_by_case.csv")
     assert {row["dispatch_scope"] for row in result_rows} == {
@@ -274,7 +286,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert result_by_lane["fixed_repair"]["runtime_connected_claim_allowed"] == "1"
     assert result_by_lane["fixed_repair"]["utility_claim_allowed"] == "1"
     assert result_by_lane["relation_dispatch_rule"]["runtime_connected_claim_allowed"] == "1"
-    assert result_by_lane["relation_dispatch_rule"]["utility_claim_allowed"] == "1"
+    assert result_by_lane["relation_dispatch_rule"]["utility_claim_allowed"] == "0"
     assert result_by_lane["shuffled_relation_dispatch"]["runtime_connected_claim_allowed"] == "1"
     assert result_by_lane["shuffled_relation_dispatch"]["utility_claim_allowed"] == "0"
 

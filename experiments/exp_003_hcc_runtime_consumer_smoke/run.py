@@ -613,6 +613,105 @@ def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, o
     ]
 
 
+def _policy_evidence_diagnosis_rows(
+    utility_rows: list[dict[str, object]],
+    negative_control_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    relation_rows = [
+        row for row in utility_rows if row["lane_id"] == "relation_dispatch_rule"
+    ]
+    budget_violations = sum(
+        1 for row in utility_rows if str(row["same_budget_violation"]) == "1"
+    )
+    relation_meaningful = sum(
+        1 for row in relation_rows if row["utility_label"] == "meaningful_win"
+    )
+    relation_catastrophic = sum(
+        1 for row in relation_rows if row["utility_label"] == "catastrophic_loss"
+    )
+    negative_control = negative_control_rows[0] if negative_control_rows else {}
+    negative_control_pass = str(negative_control.get("negative_control_pass", "0")) == "1"
+    blockers: list[str] = []
+    if budget_violations:
+        blockers.append("same_budget_violation")
+    if relation_meaningful != len(relation_rows):
+        blockers.append("relation_dispatch_not_meaningful_win")
+    if relation_catastrophic:
+        blockers.append("catastrophic_loss")
+    if not negative_control_pass:
+        blockers.append("negative_control_failed")
+    sota_allowed = not blockers
+
+    return [
+        {
+            "run_id": RUN_ID,
+            "problem_id": PROBLEM_ID,
+            "diagnostic_key": "same_budget_fe_status",
+            "status": "blocked" if budget_violations else "pass",
+            "observed_value": f"{budget_violations}/{len(utility_rows)}",
+            "blocker_reason": "same_budget_violation" if budget_violations else "",
+            "next_step": "fix_same_budget_accounting" if budget_violations else "continue",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": PROBLEM_ID,
+            "diagnostic_key": "relation_dispatch_utility",
+            "status": (
+                "pass" if relation_meaningful == len(relation_rows) else "blocked"
+            ),
+            "observed_value": f"{relation_meaningful}/{len(relation_rows)}",
+            "blocker_reason": (
+                "" if relation_meaningful == len(relation_rows)
+                else "relation_dispatch_not_meaningful_win"
+            ),
+            "next_step": (
+                "continue"
+                if relation_meaningful == len(relation_rows)
+                else "diagnose_policy_evidence_before_sota"
+            ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": PROBLEM_ID,
+            "diagnostic_key": "catastrophic_loss_gate",
+            "status": "blocked" if relation_catastrophic else "pass",
+            "observed_value": f"{relation_catastrophic}/{len(relation_rows)}",
+            "blocker_reason": "catastrophic_loss" if relation_catastrophic else "",
+            "next_step": (
+                "diagnose_policy_evidence_before_sota"
+                if relation_catastrophic
+                else "continue"
+            ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": PROBLEM_ID,
+            "diagnostic_key": "shuffled_negative_control",
+            "status": "pass" if negative_control_pass else "blocked",
+            "observed_value": str(negative_control.get("negative_control_pass", "")),
+            "blocker_reason": "" if negative_control_pass else str(
+                negative_control.get("diagnostic", "negative_control_failed")
+            ),
+            "next_step": (
+                "continue"
+                if negative_control_pass
+                else "diagnose_policy_evidence_before_sota"
+            ),
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": PROBLEM_ID,
+            "diagnostic_key": "sota_escalation_allowed",
+            "status": "pass" if sota_allowed else "blocked",
+            "observed_value": str(int(sota_allowed)),
+            "blocker_reason": ";".join(blockers),
+            "next_step": "continue_to_sota_protocol"
+            if sota_allowed
+            else "diagnose_policy_evidence_before_sota",
+        },
+    ]
+
+
 def run_hcc_runtime_consumer_smoke(
     output_dir: Path | str = Path("results/exp_003_hcc_runtime_consumer_smoke"),
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult] = (
@@ -632,6 +731,7 @@ def run_hcc_runtime_consumer_smoke(
         seeds=tuple(seeds),
     )
     utility_rows = _utility_rows(records)
+    negative_control_rows = _negative_control_rows(records)
     _write_csv(
         output / "our_result_by_case.csv",
         _our_result_rows(records, utility_rows),
@@ -817,7 +917,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "negative_control_comparison.csv",
-        _negative_control_rows(records),
+        negative_control_rows,
         [
             "run_id",
             "problem_id",
@@ -829,6 +929,19 @@ def run_hcc_runtime_consumer_smoke(
             "stable_outperform_detected",
             "negative_control_pass",
             "diagnostic",
+        ],
+    )
+    _write_csv(
+        output / "policy_evidence_diagnosis.csv",
+        _policy_evidence_diagnosis_rows(utility_rows, negative_control_rows),
+        [
+            "run_id",
+            "problem_id",
+            "diagnostic_key",
+            "status",
+            "observed_value",
+            "blocker_reason",
+            "next_step",
         ],
     )
     _write_csv(

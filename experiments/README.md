@@ -41,7 +41,8 @@ fallback, fixed repair, per-overlap-relation dispatch, and shuffled negative
 control lanes over three seeds. Its claim is runtime connection plus explicit
 utility auditing, not performance: relation artifacts must join by
 `relation_id`, utility failures stay in `action_utility_audit.csv`, and
-negative-control failures stay in `negative_control_comparison.csv`.
+negative-control failures stay in `negative_control_comparison.csv`. SOTA
+escalation is gated by `policy_evidence_diagnosis.csv`.
 
 `exp_004_hcc_main_historical_result_recovery` scans historical
 `E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt` files, writes an

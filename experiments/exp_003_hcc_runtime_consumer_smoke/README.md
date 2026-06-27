@@ -17,7 +17,8 @@ runner, relation dispatch emits joinable `relation_id` artifacts, and
 `action_utility_audit.csv` reports utility failures plainly instead of turning
 runtime connection into a performance claim. `negative_control_comparison.csv`
 blocks escalation if the shuffled control stably outperforms real relation
-dispatch.
+dispatch. `policy_evidence_diagnosis.csv` records the stop reason and next
+step when utility evidence does not support SOTA escalation.
 
 Run:
 
