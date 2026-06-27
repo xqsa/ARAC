@@ -713,6 +713,87 @@ def test_write_action_mismatch_audit_log_overwrites_previous_rows(tmp_path: Path
     assert "coordinate=" in rows[0]["candidate_scores"]
 
 
+def test_action_mismatch_audit_scores_reset_by_outer_iteration(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+    first_outer_relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="E2",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(2,),
+        overlap_strength=1.0,
+        delta_signal=1.0,
+        rank_signal=0.75,
+        budget_remaining_ratio=0.8,
+        previous_delta=2.0,
+        current_delta=1.0,
+        delta_abs_gap=1.0,
+        delta_signed_gap=-1.0,
+        delta_ratio_gap=0.8,
+        both_positive=True,
+        rank_stability=0.75,
+        shared_var_count=1,
+        shared_var_support_ratio=0.166667,
+        feature_coverage=1.0,
+        fallback_margin_proxy=0.86,
+    )
+    next_outer_relation = runner.OverlapRelation(
+        relation_id="O1_0_1",
+        problem_id="E2",
+        outer_iter=1,
+        group_left=0,
+        group_right=1,
+        shared_vars=(2,),
+        overlap_strength=1.0,
+        delta_signal=1.0,
+        rank_signal=0.60,
+        budget_remaining_ratio=0.8,
+        previous_delta=2.0,
+        current_delta=1.0,
+        delta_abs_gap=1.0,
+        delta_signed_gap=-1.0,
+        delta_ratio_gap=0.5,
+        both_positive=True,
+        rank_stability=0.60,
+        shared_var_count=1,
+        shared_var_support_ratio=0.10,
+        feature_coverage=1.0,
+        fallback_margin_proxy=0.9,
+    )
+    actions = [
+        runner.RelationActionDecision(
+            relation_id="O0_0_1",
+            action_name="coordinate",
+            action_family="coordinate",
+            confidence=0.86,
+            trigger_reason="balanced_mid_support_coordinate_mode",
+        ),
+        runner.RelationActionDecision(
+            relation_id="O1_0_1",
+            action_name="fallback",
+            action_family="fallback",
+            confidence=0.0,
+            trigger_reason="no_deterministic_relation_rule_triggered",
+        ),
+    ]
+    output_path = tmp_path / "action_mismatch_audit.csv"
+
+    runner._write_action_mismatch_audit_log(
+        output_path,
+        "run-001",
+        [first_outer_relation, next_outer_relation],
+        actions,
+    )
+
+    with output_path.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+
+    assert rows[1]["relation_id"] == "O1_0_1"
+    assert rows[1]["best_action_name"] == "fallback"
+    assert rows[1]["final_action_name"] == "fallback"
+
+
 def test_relation_action_value_delta_guard_allows_coordinate_blend_adjustment() -> None:
     runner = _load_runner_module()
     relation = runner.OverlapRelation(

@@ -715,6 +715,20 @@ def _write_action_decision_log(
             writer.writerow(_action_decision_row(run_id, relation, action))
 
 
+def _score_relations_with_runtime_prefix_context(relations: list[OverlapRelation]):
+    scored_actions = []
+    context_key: tuple[str, int] | None = None
+    context_relations: list[OverlapRelation] = []
+    for relation in relations:
+        relation_key = (relation.problem_id, relation.outer_iter)
+        if relation_key != context_key:
+            context_key = relation_key
+            context_relations = []
+        context_relations.append(relation)
+        scored_actions.append(score_actions_for_relations(context_relations)[-1])
+    return scored_actions
+
+
 def _write_action_mismatch_audit_log(
     path: Path,
     run_id: str,
@@ -727,10 +741,11 @@ def _write_action_mismatch_audit_log(
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=ACTION_MISMATCH_AUDIT_FIELDS)
         writer.writeheader()
+        scored_actions = _score_relations_with_runtime_prefix_context(relations)
         if actions is None:
             for relation, scored in zip(
                 relations,
-                score_actions_for_relations(relations),
+                scored_actions,
                 strict=True,
             ):
                 row = action_mismatch_audit_row(relation, scored)
@@ -739,7 +754,7 @@ def _write_action_mismatch_audit_log(
             return
         for relation, scored, action in zip(
             relations,
-            score_actions_for_relations(relations),
+            scored_actions,
             actions,
             strict=True,
         ):
