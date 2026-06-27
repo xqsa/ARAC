@@ -37,10 +37,11 @@ paper-reported Table 2 values offline-only, and labels its own result rows as
 `E:\HCC-main` but does not yet run MMES/CMAES optimizer execution.
 
 `exp_003_hcc_runtime_consumer_smoke` runs a small E2 HCC smoke through
-fallback, fixed repair, and per-overlap-relation dispatch lanes. Its claim is
-runtime connection plus explicit utility auditing, not performance: relation
-artifacts must join by `relation_id`, and utility failures stay in
-`action_utility_audit.csv` as blockers.
+fallback, fixed repair, per-overlap-relation dispatch, and shuffled negative
+control lanes over three seeds. Its claim is runtime connection plus explicit
+utility auditing, not performance: relation artifacts must join by
+`relation_id`, utility failures stay in `action_utility_audit.csv`, and
+negative-control failures stay in `negative_control_comparison.csv`.
 
 `exp_004_hcc_main_historical_result_recovery` scans historical
 `E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt` files, writes an

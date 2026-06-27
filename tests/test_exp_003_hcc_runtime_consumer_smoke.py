@@ -51,6 +51,21 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         trace_path = request.output_dir / "action_trace.csv"
         trace_path.parent.mkdir(parents=True, exist_ok=True)
         if request.enable_relation_dispatch:
+            policy_source = (
+                "deterministic_shuffled_negative_control"
+                if request.relation_policy_mode == "shuffled"
+                else "rule_based_relation_policy"
+            )
+            first_action = (
+                "repair_shared_variable_binding"
+                if request.relation_policy_mode == "shuffled"
+                else "allow_beneficial_coordination"
+            )
+            first_family = (
+                "reassign_repair"
+                if request.relation_policy_mode == "shuffled"
+                else "coordinate"
+            )
             trace_path.write_text(
                 "problem_id,seed,outer_iter,group_index,selected_action_name,"
                 "relation_id,group_left,group_right,shared_vars_hash,action_family,"
@@ -58,12 +73,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "overlap_size,previous_delta,current_delta,owner_selected,"
                 "semantic_surface,state_mutated,downstream_consumed,"
                 "downstream_consumption_scope,optimizer_consumed\n"
-                "E2,1,0,1,allow_beneficial_coordination,O0_0_1,0,1,abc123,"
-                "coordinate,allow_beneficial_coordination,rule_based_relation_policy,"
+                f"E2,{request.seed},0,1,{first_action},O0_0_1,0,1,abc123,"
+                f"{first_family},{first_action},{policy_source},"
                 "1,1.000000e+00,1.100000e+00,clipped_consensus_blend,"
                 "coordination_clipped_consensus_blend,1,1,same_outer_iteration,1\n"
-                "E2,1,0,2,repair_shared_variable_binding,O0_1_2,1,2,def456,"
-                "reassign_repair,repair_shared_variable_binding,rule_based_relation_policy,"
+                f"E2,{request.seed},0,2,repair_shared_variable_binding,O0_1_2,1,2,def456,"
+                f"reassign_repair,repair_shared_variable_binding,{policy_source},"
                 "1,1.100000e+00,1.200000e+00,current,"
                 "shared_variable_owner_rebinding,1,0,same_outer_iteration,0\n",
                 encoding="utf-8",
@@ -93,7 +108,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 "overlap_size,previous_delta,current_delta,owner_selected,"
                 "semantic_surface,state_mutated,downstream_consumed,"
                 "downstream_consumption_scope,optimizer_consumed\n"
-                f"E2,1,0,1,{request.arac_action},O0_0_1,0,1,abc123,reassign_repair,"
+                f"E2,{request.seed},0,1,{request.arac_action},O0_0_1,0,1,abc123,reassign_repair,"
                 f"{request.arac_action},legacy_single_action,"
                 "1,1.000000e+00,2.000000e+00,current,shared_variable_owner_rebinding,"
                 "1,1,same_outer_iteration,"
@@ -101,9 +116,10 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
                 encoding="utf-8",
             )
         final_error = {
-            "fallback": 100.0,
-            "fixed_repair": 80.0,
-            "relation_dispatch_rule": 130.0,
+            "fallback": 120.0 + request.seed,
+            "fixed_repair": 80.0 + request.seed,
+            "relation_dispatch_rule": 90.0 + request.seed,
+            "shuffled_relation_dispatch": 95.0 + request.seed,
         }[lane_id]
         return HccAobExecutionResult(
             problem_id=request.problem_id,
@@ -138,13 +154,20 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "action_utility_audit.csv",
         "anti_leakage_audit.csv",
         "claim_gate.csv",
+        "negative_control_comparison.csv",
     }
     assert expected == {path.name for path in output.iterdir() if path.suffix == ".csv"}
-    assert [(request.arac_action, request.enable_relation_dispatch) for request in requests] == [
-        ("conservative_no_action", False),
-        ("repair_shared_variable_binding", False),
-        ("conservative_no_action", True),
-    ]
+    assert len(requests) == 12
+    assert {request.seed for request in requests} == {1, 2, 3}
+    assert {
+        (request.output_dir.name, request.arac_action, request.enable_relation_dispatch, request.relation_policy_mode)
+        for request in requests
+    } == {
+        ("fallback", "conservative_no_action", False, "rule"),
+        ("fixed_repair", "repair_shared_variable_binding", False, "rule"),
+        ("relation_dispatch_rule", "conservative_no_action", True, "rule"),
+        ("shuffled_relation_dispatch", "conservative_no_action", True, "shuffled"),
+    }
 
     plan_rows = _read_csv(output / "action_execution_plan.csv")
     repair_plan = next(
@@ -179,6 +202,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "fallback",
         "fixed_repair",
         "relation_dispatch_rule",
+        "shuffled_relation_dispatch",
     }
     assert {
         "relation_id",
@@ -216,29 +240,50 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     by_lane = {row["lane_id"]: row for row in utility_rows}
     assert by_lane["fixed_repair"]["utility_label"] == "meaningful_win"
     assert by_lane["fixed_repair"]["claim_allowed"] == "1"
-    assert by_lane["relation_dispatch_rule"]["utility_label"] == "catastrophic_loss"
-    assert by_lane["relation_dispatch_rule"]["claim_allowed"] == "0"
-    assert "catastrophic_loss" in by_lane["relation_dispatch_rule"]["claim_blockers"]
-    assert (
-        by_lane["relation_dispatch_rule"]["action_mix"]
-        == "allow_beneficial_coordination=1;repair_shared_variable_binding=1"
-    )
+    assert by_lane["relation_dispatch_rule"]["utility_label"] == "meaningful_win"
+    assert by_lane["relation_dispatch_rule"]["claim_allowed"] == "1"
+    assert by_lane["shuffled_relation_dispatch"]["utility_label"] == "meaningful_win"
+    assert by_lane["shuffled_relation_dispatch"]["claim_allowed"] == "0"
+    assert "negative_control_lane_not_utility_claim" in by_lane["shuffled_relation_dispatch"]["claim_blockers"]
+
+    negative_control_rows = _read_csv(output / "negative_control_comparison.csv")
+    assert negative_control_rows == [
+        {
+            "run_id": "exp_003_hcc_runtime_consumer_smoke",
+            "problem_id": "E2",
+            "seeds": "1;2;3",
+            "relation_dispatch_mean_final_error": "9.200000e+01",
+            "shuffled_mean_final_error": "9.700000e+01",
+            "shuffled_win_count": "0",
+            "total_seeds": "3",
+            "stable_outperform_detected": "0",
+            "negative_control_pass": "1",
+            "diagnostic": "shuffled_control_not_stably_better",
+        }
+    ]
 
     result_rows = _read_csv(output / "our_result_by_case.csv")
     assert {row["dispatch_scope"] for row in result_rows} == {
         "fixed_lane_runtime_consumer_smoke",
         "per_overlap_relation_runtime_dispatch",
+        "shuffled_relation_dispatch_negative_control",
     }
-    assert [row["relation_dispatch_enabled"] for row in result_rows] == ["0", "0", "1"]
+    assert {row["relation_dispatch_enabled"] for row in result_rows} == {"0", "1"}
     assert all(row["performance_claim_allowed"] == "0" for row in result_rows)
     result_by_lane = {row["lane_id"]: row for row in result_rows}
     assert result_by_lane["fixed_repair"]["runtime_connected_claim_allowed"] == "1"
     assert result_by_lane["fixed_repair"]["utility_claim_allowed"] == "1"
     assert result_by_lane["relation_dispatch_rule"]["runtime_connected_claim_allowed"] == "1"
-    assert result_by_lane["relation_dispatch_rule"]["utility_claim_allowed"] == "0"
+    assert result_by_lane["relation_dispatch_rule"]["utility_claim_allowed"] == "1"
+    assert result_by_lane["shuffled_relation_dispatch"]["runtime_connected_claim_allowed"] == "1"
+    assert result_by_lane["shuffled_relation_dispatch"]["utility_claim_allowed"] == "0"
 
     ledger_rows = _read_csv(output / "same_budget_ledger.csv")
-    assert all(row["same_budget_group_id"] == "E2_seed1_2000fe" for row in ledger_rows)
+    assert {row["same_budget_group_id"] for row in ledger_rows} == {
+        "E2_seed1_2000fe",
+        "E2_seed2_2000fe",
+        "E2_seed3_2000fe",
+    }
     assert all(row["configured_budget_limit"] == "2000" for row in ledger_rows)
     assert all(row["actual_fe_used"] == "2000" for row in ledger_rows)
     assert all(row["budget_limit"] == "2000" for row in ledger_rows)

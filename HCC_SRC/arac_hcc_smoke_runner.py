@@ -355,6 +355,38 @@ def _action_family_for_canonical(action_name: str) -> str:
     return ""
 
 
+SHUFFLED_RELATION_ACTION = {
+    "coordinate": ("reassign_repair", "reassign_repair"),
+    "reassign_repair": ("isolate_conflicting_relation", "isolate"),
+    "isolate_conflicting_relation": ("fallback", "fallback"),
+    "fallback": ("coordinate", "coordinate"),
+}
+
+
+def select_relation_action_for_policy(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    relation_policy_mode: str,
+) -> RelationActionDecision:
+    if relation_policy_mode == "rule":
+        return action
+    if relation_policy_mode != "shuffled":
+        raise ValueError(f"unsupported relation policy mode: {relation_policy_mode}")
+    relation_action_name, action_family = SHUFFLED_RELATION_ACTION[
+        action.relation_action_name
+    ]
+    return RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name=relation_action_name,
+        action_family=action_family,
+        confidence=action.confidence,
+        trigger_reason=(
+            "deterministic_shuffled_negative_control_from:"
+            f"{action.relation_action_name}"
+        ),
+    )
+
+
 def _canonical_relation_action_name(action: RelationActionDecision) -> str:
     if getattr(action, "canonical_action_name", ""):
         return action.canonical_action_name
@@ -694,7 +726,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
                 if config.enable_relation_dispatch:
-                    if config.relation_policy_mode != "rule":
+                    if config.relation_policy_mode not in {"rule", "shuffled"}:
                         raise ValueError(
                             f"unsupported relation policy mode: {config.relation_policy_mode}"
                         )
@@ -714,7 +746,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         group_right=index,
                         budget_remaining_ratio=iteration_budget_remaining_ratio,
                     )
-                    action = decide_actions_for_relations([relation])[0]
+                    action = select_relation_action_for_policy(
+                        relation=relation,
+                        action=decide_actions_for_relations([relation])[0],
+                        relation_policy_mode=config.relation_policy_mode,
+                    )
                     adjusted_values = apply_action_to_relation(
                         relation=relation,
                         action=action,
@@ -744,7 +780,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             shared_vars=relation.shared_vars,
                             action_family=action.action_family,
                             canonical_action_name=canonical_action_name,
-                            relation_policy_source="rule_based_relation_policy",
+                            relation_policy_source=(
+                                "deterministic_shuffled_negative_control"
+                                if config.relation_policy_mode == "shuffled"
+                                else "rule_based_relation_policy"
+                            ),
                             state_mutated=adjusted_values is not None,
                             downstream_consumed=index < sub_num - 1,
                         )
@@ -817,7 +857,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--early-stopping-evaluations", type=int, default=1000)
     parser.add_argument("--cmaes-restart", action="store_true")
     parser.add_argument("--enable-relation-dispatch", action="store_true")
-    parser.add_argument("--relation-policy", default="rule", choices=["rule"])
+    parser.add_argument("--relation-policy", default="rule", choices=["rule", "shuffled"])
     parser.add_argument("--arac-action-file", type=Path, default=None)
     parser.add_argument(
         "--arac-action",

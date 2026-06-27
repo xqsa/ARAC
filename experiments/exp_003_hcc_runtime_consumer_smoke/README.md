@@ -3,17 +3,21 @@
 This experiment is a runtime-connected utility smoke test, not a performance
 claim.
 
-It runs one AOB case (`E2`, seed `1`, 2000 FE budget) through three HCC smoke
-lanes:
+It runs one AOB case (`E2`, seeds `1 2 3`, 2000 FE budget) through four HCC
+smoke lanes:
 
 - `fallback`: fixed `conservative_no_action`
 - `fixed_repair`: fixed `repair_shared_variable_binding`
 - `relation_dispatch_rule`: per-overlap-relation rule dispatch
+- `shuffled_relation_dispatch`: deterministic shuffled relation-dispatch
+  negative control
 
 The purpose is to prove that runtime actions reach the ARAC-owned HCC smoke
 runner, relation dispatch emits joinable `relation_id` artifacts, and
 `action_utility_audit.csv` reports utility failures plainly instead of turning
-runtime connection into a performance claim.
+runtime connection into a performance claim. `negative_control_comparison.csv`
+blocks escalation if the shuffled control stably outperforms real relation
+dispatch.
 
 Run:
 

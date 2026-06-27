@@ -112,6 +112,60 @@ def test_hcc_smoke_runner_parses_relation_policy_options() -> None:
 
     assert args.relation_policy == "rule"
 
+    shuffled = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "shuffled",
+        ]
+    )
+
+    assert shuffled.relation_policy == "shuffled"
+
+
+def test_shuffled_relation_policy_rotates_rule_action_deterministically() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="E2",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(7,),
+        overlap_strength=1.0,
+        delta_signal=0.1,
+        rank_signal=0.9,
+        budget_remaining_ratio=1.0,
+    )
+    rule_action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="rule",
+    )
+
+    shuffled = runner.select_relation_action_for_policy(
+        relation=relation,
+        action=rule_action,
+        relation_policy_mode="shuffled",
+    )
+
+    assert shuffled.relation_action_name == "reassign_repair"
+    assert shuffled.canonical_action_name == "repair_shared_variable_binding"
+    assert shuffled.action_family == "reassign_repair"
+    assert shuffled.trigger_reason.startswith("deterministic_shuffled_negative_control")
+
 
 def test_hcc_smoke_runner_rejects_unsupported_action_file() -> None:
     runner = _load_runner_module()

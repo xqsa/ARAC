@@ -68,6 +68,20 @@ def test_hcc_aob_smoke_command_passes_relation_dispatch_options(tmp_path: Path) 
     policy_arg_index = command.argv.index("--relation-policy")
     assert command.argv[policy_arg_index + 1] == "rule"
 
+    shuffled = build_hcc_aob_smoke_command(
+        HccAobExecutionRequest(
+            problem_id="E2",
+            seed=1,
+            max_fes=2_000,
+            output_dir=tmp_path / "hcc-shuffled-smoke",
+            enable_relation_dispatch=True,
+            relation_policy_mode="shuffled",
+        )
+    )
+
+    shuffled_policy_arg_index = shuffled.argv.index("--relation-policy")
+    assert shuffled.argv[shuffled_policy_arg_index + 1] == "shuffled"
+
 
 def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
