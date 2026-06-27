@@ -339,7 +339,18 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     multi_negative = _read_csv(multi_output / "negative_control_comparison.csv")
     assert {row["problem_id"] for row in multi_negative} == {"E1", "E2"}
     multi_diagnosis = _read_csv(multi_output / "policy_evidence_diagnosis.csv")
-    assert {row["problem_id"] for row in multi_diagnosis} == {"E1", "E2"}
+    assert {row["problem_id"] for row in multi_diagnosis} == {"ALL", "E1", "E2"}
+    aggregate_by_key = {
+        row["diagnostic_key"]: row
+        for row in multi_diagnosis
+        if row["problem_id"] == "ALL"
+    }
+    assert aggregate_by_key["multi_problem_relation_dispatch_mean_gain"]["observed_value"] == (
+        "positive_cases=0/2;mean_gain=-0.008264"
+    )
+    assert aggregate_by_key["multi_problem_catastrophic_loss_gate"]["observed_value"] == "0/2"
+    assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
+    assert aggregate_by_key["multi_problem_sota_escalation_allowed"]["observed_value"] == "0"
     multi_ledger = _read_csv(multi_output / "same_budget_ledger.csv")
     assert {row["same_budget_group_id"] for row in multi_ledger} == {
         "E1_seed1_2000fe",

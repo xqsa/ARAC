@@ -842,6 +842,85 @@ def _policy_evidence_diagnosis_rows_for_problem(
     ]
 
 
+def _multi_problem_diagnosis_rows(
+    utility_rows: list[dict[str, object]],
+    negative_control_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    problem_ids = sorted({str(row["problem_id"]) for row in utility_rows})
+    if len(problem_ids) <= 1:
+        return []
+
+    relation_rows = [
+        row for row in utility_rows if row["lane_id"] == "relation_dispatch_rule"
+    ]
+    relation_gains = [
+        float(row["relative_gain_vs_fallback"]) for row in relation_rows
+    ]
+    positive_cases = sum(1 for gain in relation_gains if gain > 0.0)
+    mean_gain = _mean(relation_gains)
+    catastrophic = sum(
+        1 for row in relation_rows if row["utility_label"] == "catastrophic_loss"
+    )
+    budget_violations = sum(
+        1 for row in utility_rows if str(row["same_budget_violation"]) == "1"
+    )
+    negative_failures = sum(
+        1
+        for row in negative_control_rows
+        if str(row.get("negative_control_pass", "0")) != "1"
+    )
+    blockers: list[str] = []
+    if budget_violations:
+        blockers.append("same_budget_violation")
+    if positive_cases != len(relation_rows) or mean_gain <= 0.0:
+        blockers.append("multi_problem_not_directionally_positive")
+    if catastrophic:
+        blockers.append("catastrophic_loss")
+    if negative_failures:
+        blockers.append("negative_control_failed")
+    directional_pass = positive_cases == len(relation_rows) and mean_gain > 0.0
+    sota_allowed = not blockers
+
+    return [
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_relation_dispatch_mean_gain",
+            "status": "pass" if directional_pass else "blocked",
+            "observed_value": (
+                f"positive_cases={positive_cases}/{len(relation_rows)};"
+                f"mean_gain={mean_gain:.6f}"
+            ),
+            "blocker_reason": ""
+            if directional_pass
+            else "multi_problem_not_directionally_positive",
+            "next_step": "continue" if directional_pass else "diagnose_policy_evidence_before_sota",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_catastrophic_loss_gate",
+            "status": "blocked" if catastrophic else "pass",
+            "observed_value": f"{catastrophic}/{len(relation_rows)}",
+            "blocker_reason": "catastrophic_loss" if catastrophic else "",
+            "next_step": "diagnose_policy_evidence_before_sota"
+            if catastrophic
+            else "continue",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_sota_escalation_allowed",
+            "status": "pass" if sota_allowed else "blocked",
+            "observed_value": str(int(sota_allowed)),
+            "blocker_reason": ";".join(blockers),
+            "next_step": "continue_to_sota_protocol"
+            if sota_allowed
+            else "diagnose_policy_evidence_before_sota",
+        },
+    ]
+
+
 def _policy_evidence_diagnosis_rows(
     utility_rows: list[dict[str, object]],
     negative_control_rows: list[dict[str, object]],
@@ -861,6 +940,7 @@ def _policy_evidence_diagnosis_rows(
                 negative_by_problem.get(problem_id, {}),
             )
         )
+    rows.extend(_multi_problem_diagnosis_rows(utility_rows, negative_control_rows))
     return rows
 
 
