@@ -747,7 +747,7 @@ def test_score_actions_for_relations_reflects_balanced_batch_coordinate_mode() -
     assert row["trigger_reason"] == "balanced_mid_support_coordinate_mode"
 
 
-def test_decide_actions_for_relations_uses_repeated_mid_dense_coordinate_mode() -> None:
+def test_decide_actions_for_relations_keeps_repeated_mid_dense_as_fallback() -> None:
     relations = [
         make_relation(
             relation_id="O0_0_1",
@@ -776,14 +776,14 @@ def test_decide_actions_for_relations_uses_repeated_mid_dense_coordinate_mode() 
 
     assert [decision.relation_action_name for decision in decisions] == [
         "fallback",
-        "coordinate",
-        "coordinate",
+        "fallback",
+        "fallback",
     ]
-    assert decisions[1].trigger_reason == "repeated_mid_dense_coordinate_mode"
-    assert decisions[2].trigger_reason == "repeated_mid_dense_coordinate_mode"
+    assert decisions[1].trigger_reason == "mid_dense_support_blocks_stable_coordinate"
+    assert decisions[2].trigger_reason != "repeated_mid_dense_coordinate_mode"
 
 
-def test_repeated_mid_dense_coordinate_mode_requires_two_sided_evidence() -> None:
+def test_one_sided_prefix_keeps_mid_dense_fallback() -> None:
     relations = [
         make_relation(
             relation_id="O0_0_1",
