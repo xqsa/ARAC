@@ -67,6 +67,14 @@ def test_hcc_smoke_runner_help_works_without_pythonpath() -> None:
     assert "--enable-relation-dispatch" in completed.stdout
 
 
+def test_hcc_smoke_runner_loads_ragged_local_design_matrix() -> None:
+    runner = _load_runner_module()
+
+    design = runner.load_design_matrix(5)
+
+    assert design.shape == (1000, 1000)
+
+
 def test_hcc_smoke_runner_seed_derivation_matches_hcc_es_cycle_stage_shape() -> None:
     runner = _load_runner_module()
 

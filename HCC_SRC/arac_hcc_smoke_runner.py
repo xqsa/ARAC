@@ -34,6 +34,7 @@ from AOB.AOB import Benchmark
 from AOB.utils import (
     combine,
     evaluation_record,
+    load_design_matrix as load_aob_design_matrix,
     plot_evaluation_curve,
     plot_evaluation_curve_best_so_far,
     remove_overlapping_groups,
@@ -169,7 +170,7 @@ def load_aob_metadata(fun_id: int) -> dict:
 
 
 def load_design_matrix(fun_id: int) -> np.ndarray:
-    return np.loadtxt(DATA_DIR / f"F{fun_id}-design.txt", delimiter=",")
+    return load_aob_design_matrix(DATA_DIR / f"F{fun_id}-design.txt")
 
 
 def load_permutation_vector(fun_id: int) -> list[int]:
