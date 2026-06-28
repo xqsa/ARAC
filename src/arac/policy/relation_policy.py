@@ -21,6 +21,7 @@ DENSE_REPAIR_SUPPORT_THRESHOLD = 0.20
 DENSE_REPAIR_DELTA_MIN = 0.30
 DENSE_REPAIR_DELTA_MAX = 0.75
 DENSE_REPAIR_RANK_STABILITY_MIN = 0.50
+MID_DENSE_ACTIVE_SUPPORT_MAX = 0.25
 HIGH_FALLBACK_MARGIN_THRESHOLD = 0.95
 ACTION_MARGIN_THRESHOLD = 0.05
 FALLBACK_SCORE_DISCOUNT = 0.10
@@ -91,6 +92,10 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
     dense_rebinding_blocked = (
         relation.shared_var_support_ratio >= MAX_ACTIVE_REBIND_SUPPORT_RATIO
     )
+    mid_dense_active_blocked = (
+        relation.shared_var_support_ratio >= DENSE_REPAIR_SUPPORT_THRESHOLD
+        and relation.shared_var_support_ratio < MID_DENSE_ACTIVE_SUPPORT_MAX
+    )
     scores = {action_name: 0.0 for action_name in ACTION_NAMES}
     reasons = {action_name: "" for action_name in ACTION_NAMES}
     fallback_reason = "no_deterministic_relation_rule_triggered"
@@ -142,14 +147,17 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
         ):
             fallback_reason = "active_isolate_conflict_abstained"
 
-        if (
+        dense_repair_signal = (
             high_overlap
             and relation.both_positive
             and relation.shared_var_support_ratio >= DENSE_REPAIR_SUPPORT_THRESHOLD
             and delta_ratio_gap >= DENSE_REPAIR_DELTA_MIN
             and delta_ratio_gap <= DENSE_REPAIR_DELTA_MAX
             and rank_stability >= DENSE_REPAIR_RANK_STABILITY_MIN
-        ):
+        )
+        if dense_repair_signal and mid_dense_active_blocked:
+            fallback_reason = "mid_dense_support_blocks_repair"
+        elif dense_repair_signal:
             _set_candidate_score(
                 scores,
                 reasons,
@@ -162,7 +170,15 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
                 "dense_two_sided_repair_mode",
             )
 
-        if high_overlap and relation.both_positive and stable_delta and stable_rank:
+        if (
+            high_overlap
+            and relation.both_positive
+            and stable_delta
+            and stable_rank
+            and mid_dense_active_blocked
+        ):
+            fallback_reason = "mid_dense_support_blocks_stable_coordinate"
+        elif high_overlap and relation.both_positive and stable_delta and stable_rank:
             _set_candidate_score(
                 scores,
                 reasons,
@@ -180,6 +196,7 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
             and relation.both_positive
             and relation.fallback_margin_proxy >= HIGH_FALLBACK_MARGIN_THRESHOLD
             and not scores["coordinate"]
+            and fallback_reason != "mid_dense_support_blocks_stable_coordinate"
         ):
             fallback_reason = "high_fallback_margin_keeps_native_overlap_blend"
 
@@ -196,9 +213,12 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
         ):
             fallback_reason = "low_shared_support_blocks_strong_relation_rebinding"
         elif high_overlap and dense_rebinding_blocked and (
-            relation.one_side_zero
-            or delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
-            or not stable_rank
+            fallback_reason != "mid_dense_support_blocks_repair"
+            and (
+                relation.one_side_zero
+                or delta_ratio_gap > (1.0 - STABILITY_THRESHOLD)
+                or not stable_rank
+            )
         ):
             fallback_reason = "very_dense_shared_support_blocks_active_relation_dispatch"
         elif (

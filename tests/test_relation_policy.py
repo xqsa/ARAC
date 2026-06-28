@@ -66,6 +66,37 @@ def test_relation_policy_coordinates_moderately_stable_high_margin_relation() ->
     assert decision.trigger_reason == "high_overlap_with_stable_delta_and_rank"
 
 
+def test_relation_policy_abstains_on_mid_dense_stable_coordinate_signal() -> None:
+    decision = decide_action(
+        make_relation(
+            shared_var_support_ratio=0.21875,
+            delta_ratio_gap=0.113419,
+            rank_signal=0.916667,
+            rank_stability=0.916667,
+            fallback_margin_proxy=0.975190,
+        )
+    )
+
+    assert decision.relation_action_name == "fallback"
+    assert decision.trigger_reason == "mid_dense_support_blocks_stable_coordinate"
+
+
+def test_relation_policy_abstains_on_mid_dense_repair_signal() -> None:
+    decision = decide_action(
+        make_relation(
+            shared_var_support_ratio=0.21875,
+            delta_ratio_gap=0.404862,
+            delta_signed_gap=49_847.312436,
+            rank_signal=0.888889,
+            rank_stability=0.888889,
+            fallback_margin_proxy=0.911436,
+        )
+    )
+
+    assert decision.relation_action_name == "fallback"
+    assert decision.trigger_reason == "mid_dense_support_blocks_repair"
+
+
 def test_relation_policy_scores_candidates_and_reports_margin() -> None:
     relation = make_relation()
     scored = score_relation_actions(relation)
