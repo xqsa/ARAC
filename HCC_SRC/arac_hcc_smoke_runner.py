@@ -263,8 +263,16 @@ def iteration_start_budget_remaining_ratio(max_fes: int, sum_fes: int) -> float:
     return max(0.0, (max_fes - sum_fes) / max_fes)
 
 
-def derive_optimizer_seed(base_seed: int, fun_name: str, fun_id: int, stage_index: int) -> int:
-    payload = f"{base_seed}:{fun_name}:{fun_id}:{stage_index}".encode("utf-8")
+def derive_optimizer_seed(
+    base_seed: int,
+    fun_name: str,
+    fun_id: int,
+    cycle_index: int,
+    stage_index: int,
+) -> int:
+    payload = f"{base_seed}:{fun_name}:{fun_id}:{cycle_index}:{stage_index}".encode(
+        "utf-8"
+    )
     digest = hashlib.blake2b(payload, digest_size=8).digest()
     return int.from_bytes(digest, byteorder="big") & ((1 << 63) - 1)
 
@@ -846,7 +854,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             "verbose": config.verbose,
         }
         if config.seed is not None:
-            options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0)
+            options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
         results = MMES(problem, options).optimize()
         best_individual = results["best_so_far_x"].copy()
         sum_fes += results["n_function_evaluations"]
@@ -895,7 +903,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             }
             if config.seed is not None:
                 stage_index = outer_iter * sub_num + index + 1
-                options_cc["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, stage_index)
+                options_cc["seed_rng"] = derive_optimizer_seed(
+                    config.seed,
+                    fun_name,
+                    fun_id,
+                    0,
+                    stage_index,
+                )
             results_cc = CMAES(problem_cc, options_cc).optimize()
             optimized_any_group = True
             sum_fes += results_cc["n_function_evaluations"]

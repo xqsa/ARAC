@@ -67,6 +67,12 @@ def test_hcc_smoke_runner_help_works_without_pythonpath() -> None:
     assert "--enable-relation-dispatch" in completed.stdout
 
 
+def test_hcc_smoke_runner_seed_derivation_matches_hcc_es_cycle_stage_shape() -> None:
+    runner = _load_runner_module()
+
+    assert runner.derive_optimizer_seed("1", "schwefel", 2, 0, 3) == 6494672570720988326
+
+
 def test_hcc_smoke_runner_parses_relation_dispatch_flag() -> None:
     runner = _load_runner_module()
 
