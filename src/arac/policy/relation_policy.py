@@ -17,6 +17,7 @@ MIN_ACTIVE_REBIND_SUPPORT_RATIO = 0.05
 MAX_ACTIVE_REBIND_SUPPORT_RATIO = 0.20
 BALANCED_MID_SUPPORT_COORDINATE_MIN = 0.14
 BALANCED_MID_SUPPORT_COORDINATE_MAX = 0.17
+REPEATED_MID_DENSE_COORDINATE_MIN_COUNT = 2
 DENSE_REPAIR_SUPPORT_THRESHOLD = 0.20
 DENSE_REPAIR_DELTA_MIN = 0.30
 DENSE_REPAIR_DELTA_MAX = 0.75
@@ -331,6 +332,7 @@ def score_actions_for_relations(
     scored_actions = [score_relation_actions(relation) for relation in relations]
     balanced_mid_support_seen = False
     prefix_has_one_side_zero = False
+    repeated_mid_dense_count = 0
     for index, relation in enumerate(relations):
         prefix_has_one_side_zero = prefix_has_one_side_zero or relation.one_side_zero
         balanced_mid_support_seen = balanced_mid_support_seen or (
@@ -346,6 +348,29 @@ def score_actions_for_relations(
                 scored_actions[index],
                 relation,
                 "balanced_mid_support_coordinate_mode",
+            )
+        repeated_mid_dense = (
+            not prefix_has_one_side_zero
+            and relation.both_positive
+            and relation.overlap_strength >= HIGH_OVERLAP_THRESHOLD
+            and relation.shared_var_support_ratio >= DENSE_REPAIR_SUPPORT_THRESHOLD
+            and relation.shared_var_support_ratio < MID_DENSE_ACTIVE_SUPPORT_MAX
+            and relation.feature_coverage >= MIN_FEATURE_COVERAGE
+            and relation.budget_remaining_ratio >= MIN_BUDGET_REMAINING_RATIO
+            and relation.fallback_margin_proxy >= MIN_FALLBACK_MARGIN_PROXY
+            and relation.delta_ratio_gap <= DENSE_REPAIR_DELTA_MAX
+            and relation.rank_stability >= DENSE_REPAIR_RANK_STABILITY_MIN
+        )
+        if repeated_mid_dense:
+            repeated_mid_dense_count += 1
+        if (
+            repeated_mid_dense
+            and repeated_mid_dense_count >= REPEATED_MID_DENSE_COORDINATE_MIN_COUNT
+        ):
+            scored_actions[index] = _with_coordinate_context_score(
+                scored_actions[index],
+                relation,
+                "repeated_mid_dense_coordinate_mode",
             )
     return scored_actions
 
