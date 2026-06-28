@@ -103,6 +103,26 @@ def test_hcc_smoke_runner_parses_relation_dispatch_flag() -> None:
     assert args.enable_relation_dispatch is True
 
 
+def test_hcc_smoke_runner_defaults_to_paper_like_cmaes_restart() -> None:
+    runner = _load_runner_module()
+
+    base_args = [
+        "--functions",
+        "schwefel",
+        "--ids",
+        "1",
+        "--output-root",
+        "out",
+        "--seed",
+        "1",
+        "--max-fes",
+        "2000",
+    ]
+
+    assert runner.parse_args(base_args).cmaes_restart is True
+    assert runner.parse_args(base_args + ["--no-cmaes-restart"]).cmaes_restart is False
+
+
 def test_hcc_smoke_runner_parses_relation_policy_options() -> None:
     runner = _load_runner_module()
 

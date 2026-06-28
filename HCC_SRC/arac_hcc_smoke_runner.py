@@ -148,7 +148,7 @@ class SmokeConfig:
     sigma: float = 0.5
     verbose: int = 1000
     early_stopping_evaluations: int = 1000
-    cmaes_restart: bool = False
+    cmaes_restart: bool = True
     arac_action: str = "conservative_no_action"
     enable_relation_dispatch: bool = False
     relation_policy_mode: str = "rule"
@@ -1091,7 +1091,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-fes", type=int, required=True)
     parser.add_argument("--verbose", type=int, default=1000)
     parser.add_argument("--early-stopping-evaluations", type=int, default=1000)
-    parser.add_argument("--cmaes-restart", action="store_true")
+    parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
+    parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
     parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument("--relation-policy", default="rule", choices=["rule", "shuffled"])
     parser.add_argument("--arac-action-file", type=Path, default=None)
