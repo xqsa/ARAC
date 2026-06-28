@@ -360,6 +360,7 @@ def _records(
     problem_ids: tuple[str, ...],
     max_fes: int,
     jobs: int = 1,
+    budget_accounting: str = "strict",
 ) -> list[dict[str, object]]:
     contexts: list[dict[str, object]] = []
     for problem_id in problem_ids:
@@ -404,6 +405,7 @@ def _records(
                             arac_action=lane.runner_action_name,
                             enable_relation_dispatch=lane.relation_dispatch_enabled,
                             relation_policy_mode=lane.relation_policy_mode,
+                            budget_accounting=budget_accounting,
                         ),
                     }
                 )
@@ -2638,8 +2640,10 @@ def _config_fingerprint(
     problem_ids: tuple[str, ...],
     jobs: int,
     max_fes: int,
+    budget_accounting: str,
 ) -> str:
     payload = {
+        "budget_accounting": budget_accounting,
         "jobs": max(1, int(jobs)),
         "lanes": [lane.lane_id for lane in LANES],
         "max_fes": int(max_fes),
@@ -2657,6 +2661,7 @@ def _write_manifest(
     diagnosis_rows: list[dict[str, object]],
     jobs: int = 1,
     max_fes: int = MAX_FES,
+    budget_accounting: str = "strict",
 ) -> None:
     same_budget_status = (
         _diagnostic_observed_value(
@@ -2761,15 +2766,16 @@ def _write_manifest(
                 "--output-dir <output_dir> --seeds "
                 f"{' '.join(str(seed) for seed in seeds)} --problems "
                 f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))} "
-                f"--max-fes {max_fes}"
+                f"--max-fes {max_fes} --budget-accounting {budget_accounting}"
             ),
             f"Budget: {max_fes} FE per lane/case",
+            f"Budget accounting: {budget_accounting}",
             f"Parallel jobs: {max(1, int(jobs))}",
             f"Lanes: {', '.join(lane.lane_id for lane in LANES)}",
             "",
             "Freeze evidence:",
             f"- git commit: {_git_commit()}",
-            f"- config fingerprint: {_config_fingerprint(seeds, problem_ids, jobs, max_fes)}",
+            f"- config fingerprint: {_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting)}",
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
             f"- HCC smoke runner sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'arac_hcc_smoke_runner.py')}",
@@ -2778,7 +2784,7 @@ def _write_manifest(
             "",
             "Key gates:",
             f"- claim scope: {multi_problem_claim_scope}",
-            f"- same-budget: {same_budget_status}",
+            f"- same-budget violations: {same_budget_status}",
             f"- pilot utility: {_diagnostic_observed_value(diagnosis_rows, 'pilot_utility_evidence')}",
             f"- multi-problem pilot utility: {multi_problem_pilot}",
             f"- multi-problem active density: {multi_problem_active_density}",
@@ -2810,11 +2816,14 @@ def run_hcc_runtime_consumer_smoke(
     problem_ids: tuple[str, ...] = (PROBLEM_ID,),
     jobs: int = 1,
     max_fes: int = MAX_FES,
+    budget_accounting: str = "strict",
 ) -> Path:
     worker_count = max(1, int(jobs))
     max_fes = int(max_fes)
     if max_fes <= 0:
         raise ValueError("max_fes must be positive")
+    if budget_accounting not in {"strict", "source"}:
+        raise ValueError("budget_accounting must be 'strict' or 'source'")
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     records = _records(
@@ -2826,6 +2835,7 @@ def run_hcc_runtime_consumer_smoke(
         problem_ids=tuple(problem_ids),
         max_fes=max_fes,
         jobs=worker_count,
+        budget_accounting=budget_accounting,
     )
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
@@ -3130,6 +3140,7 @@ def run_hcc_runtime_consumer_smoke(
         diagnosis_rows,
         worker_count,
         max_fes,
+        budget_accounting,
     )
     return output
 
@@ -3143,6 +3154,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--problems", nargs="+", default=[PROBLEM_ID])
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--max-fes", type=int, default=MAX_FES)
+    parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
     return parser.parse_args(argv)
 
 
@@ -3156,6 +3168,7 @@ def main(argv: list[str] | None = None) -> Path:
         problem_ids=tuple(str(problem).upper() for problem in args.problems),
         jobs=int(args.jobs),
         max_fes=int(args.max_fes),
+        budget_accounting=str(args.budget_accounting),
     )
 
 

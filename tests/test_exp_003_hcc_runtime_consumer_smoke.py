@@ -499,9 +499,11 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         seeds=(1,),
         problem_ids=("E2",),
         max_fes=3_000,
+        budget_accounting="source",
     )
 
     assert {request.max_fes for request in requests} == {3_000}
+    assert {request.budget_accounting for request in requests} == {"source"}
     budget_ledger_rows = _read_csv(budget_output / "same_budget_ledger.csv")
     assert {row["same_budget_group_id"] for row in budget_ledger_rows} == {
         "E2_seed1_3000fe"
@@ -509,8 +511,9 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert all(row["configured_budget_limit"] == "3000" for row in budget_ledger_rows)
     assert all(row["actual_fe_used"] == "3000" for row in budget_ledger_rows)
     budget_manifest = (budget_output / "run_manifest.md").read_text(encoding="utf-8")
-    assert "--max-fes 3000" in budget_manifest
+    assert "--max-fes 3000 --budget-accounting source" in budget_manifest
     assert "Budget: 3000 FE per lane/case" in budget_manifest
+    assert "Budget accounting: source" in budget_manifest
 
     claim_rows = _read_csv(output / "claim_gate.csv")
     assert all(row["performance_claim_allowed"] == "0" for row in claim_rows)
@@ -620,7 +623,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     ]["blocker_reason"]
     multi_manifest = (multi_output / "run_manifest.md").read_text(encoding="utf-8")
     assert "- claim scope: overlap_applicable=E2;no_overlap_controls=E1" in multi_manifest
-    assert "- same-budget: 0/5" in multi_manifest
+    assert "- same-budget violations: 0/5" in multi_manifest
     assert (
         "- multi-problem active density: "
         "mean=1.000000;min=1.000000;low_density_cases=0/1;"

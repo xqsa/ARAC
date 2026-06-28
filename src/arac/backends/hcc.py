@@ -147,6 +147,7 @@ class HccAobExecutionRequest:
     enable_relation_dispatch: bool = False
     relation_policy_mode: str = "rule"
     arac_action_file: Path | None = None
+    budget_accounting: str = "strict"
 
 
 @dataclass(frozen=True)
@@ -423,6 +424,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError("seed must be non-negative")
     if request.arac_action_file is not None:
         raise ValueError("arac_action_file is not supported by the HCC smoke runner yet")
+    if request.budget_accounting not in {"strict", "source"}:
+        raise ValueError("budget_accounting must be 'strict' or 'source'")
 
     argv = [
         request.python_executable,
@@ -441,6 +444,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         request.timestamp,
         "--arac-action",
         request.arac_action,
+        "--budget-accounting",
+        request.budget_accounting,
     ]
     if request.enable_relation_dispatch:
         argv.append("--enable-relation-dispatch")
@@ -471,6 +476,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             enable_relation_dispatch=request.enable_relation_dispatch,
             relation_policy_mode=request.relation_policy_mode,
             arac_action_file=request.arac_action_file,
+            budget_accounting=request.budget_accounting,
         )
     )
     start = time.time()

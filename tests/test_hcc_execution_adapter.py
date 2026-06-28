@@ -83,6 +83,21 @@ def test_hcc_aob_smoke_command_passes_relation_dispatch_options(tmp_path: Path) 
     assert shuffled.argv[shuffled_policy_arg_index + 1] == "shuffled"
 
 
+def test_hcc_aob_smoke_command_passes_budget_accounting_mode(tmp_path: Path) -> None:
+    request = HccAobExecutionRequest(
+        problem_id="S1",
+        seed=1,
+        max_fes=3_000_000,
+        output_dir=tmp_path / "hcc-source-budget-smoke",
+        budget_accounting="source",
+    )
+
+    command = build_hcc_aob_smoke_command(request)
+
+    budget_arg_index = command.argv.index("--budget-accounting")
+    assert command.argv[budget_arg_index + 1] == "source"
+
+
 def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
         problem_id="E2",

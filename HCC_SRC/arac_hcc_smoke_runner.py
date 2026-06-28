@@ -153,6 +153,7 @@ class SmokeConfig:
     enable_relation_dispatch: bool = False
     relation_policy_mode: str = "rule"
     arac_action_file: Path | None = None
+    budget_accounting: str = "strict"
 
 
 @dataclass(frozen=True)
@@ -825,6 +826,8 @@ def build_overlap_relation_for_pair(
 
 
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
+    if config.budget_accounting not in {"strict", "source"}:
+        raise ValueError(f"unsupported budget accounting mode: {config.budget_accounting}")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/")
     fun = bench.get_function(fun_name, fun_id)
@@ -862,8 +865,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
     outer_iter = 0
     previous_rule_relation_action: RelationActionDecision | None = None
-    while current_fitness_evaluations(fun) < config.max_fes:
-        current_fes = current_fitness_evaluations(fun)
+    while (
+        sum_fes if config.budget_accounting == "source" else current_fitness_evaluations(fun)
+    ) < config.max_fes:
+        current_fes = (
+            sum_fes if config.budget_accounting == "source" else current_fitness_evaluations(fun)
+        )
         iteration_budget_remaining_ratio = iteration_start_budget_remaining_ratio(
             max_fes=config.max_fes,
             sum_fes=current_fes,
@@ -875,15 +882,21 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         optimized_any_group = False
         for index, dims in enumerate(grouping_result):
             population_size = calculate_cmaes_population_size(len(dims))
-            if config.max_fes - current_fitness_evaluations(fun) <= population_size:
+            if (
+                config.budget_accounting == "strict"
+                and config.max_fes - current_fitness_evaluations(fun) <= population_size
+            ):
                 break
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
-            optimizer_budget = bounded_population_budget(
-                requested_fes=max(sub_fes, population_size),
-                remaining_fes=config.max_fes - current_fitness_evaluations(fun),
-                population_size=population_size,
-            )
+            if config.budget_accounting == "source":
+                optimizer_budget = sub_fes
+            else:
+                optimizer_budget = bounded_population_budget(
+                    requested_fes=max(sub_fes, population_size),
+                    remaining_fes=config.max_fes - current_fitness_evaluations(fun),
+                    population_size=population_size,
+                )
             if optimizer_budget <= 0:
                 break
             objective_function = lambda x_batch, dims=dims: fun(combine(x_batch, best_individual, dims))
@@ -1093,6 +1106,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--early-stopping-evaluations", type=int, default=1000)
     parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
     parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
+    parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
     parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument("--relation-policy", default="rule", choices=["rule", "shuffled"])
     parser.add_argument("--arac-action-file", type=Path, default=None)
@@ -1126,6 +1140,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         enable_relation_dispatch=args.enable_relation_dispatch,
         relation_policy_mode=args.relation_policy,
         arac_action_file=args.arac_action_file,
+        budget_accounting=args.budget_accounting,
     )
     output_paths = []
     for fun_name in args.functions:
