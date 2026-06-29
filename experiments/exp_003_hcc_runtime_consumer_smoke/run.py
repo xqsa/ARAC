@@ -439,6 +439,7 @@ def _records(
                             budget_accounting=budget_accounting,
                             cmaes_restart=cmaes_restart,
                             mmes_restart=mmes_restart,
+                            skip_plots=True,
                         ),
                     }
                 )

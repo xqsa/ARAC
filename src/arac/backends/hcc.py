@@ -151,6 +151,7 @@ class HccAobExecutionRequest:
     budget_accounting: str = "strict"
     cmaes_restart: bool = True
     mmes_restart: bool = True
+    skip_plots: bool = False
 
 
 @dataclass(frozen=True)
@@ -458,6 +459,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         argv.append("--no-cmaes-restart")
     if not request.mmes_restart:
         argv.append("--no-mmes-restart")
+    if request.skip_plots:
+        argv.append("--skip-plots")
     return HccAobSmokeCommand(argv=tuple(argv), cwd=Path(request.hcc_root))
 
 

@@ -176,6 +176,7 @@ class SmokeConfig:
     relation_policy_mode: str = "rule"
     arac_action_file: Path | None = None
     budget_accounting: str = "strict"
+    skip_plots: bool = False
 
 
 @dataclass(frozen=True)
@@ -1182,6 +1183,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
     parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument("--relation-policy", default="rule", choices=["rule", "shuffled", "lagged"])
+    parser.add_argument("--skip-plots", action="store_true")
     parser.add_argument("--arac-action-file", type=Path, default=None)
     parser.add_argument(
         "--arac-action",
@@ -1215,6 +1217,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         relation_policy_mode=args.relation_policy,
         arac_action_file=args.arac_action_file,
         budget_accounting=args.budget_accounting,
+        skip_plots=args.skip_plots,
     )
     output_paths = []
     for fun_name in args.functions:
@@ -1267,14 +1270,15 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 function_action_mismatch_rows,
             )
         evaluation_record(output_data, str(output_path) + "/", record_FEs_list=(args.max_fes,))
-        plot_evaluation_curve(output_data, str(output_path) + "/", font_size=12, log_scale=True)
-        plot_evaluation_curve_best_so_far(
-            output_data,
-            str(output_path) + "/",
-            font_size=12,
-            log_scale=True,
-            show_variance=True,
-        )
+        if not config.skip_plots:
+            plot_evaluation_curve(output_data, str(output_path) + "/", font_size=12, log_scale=True)
+            plot_evaluation_curve_best_so_far(
+                output_data,
+                str(output_path) + "/",
+                font_size=12,
+                log_scale=True,
+                show_variance=True,
+            )
         output_paths.append(output_path)
     return output_paths
 

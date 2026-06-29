@@ -145,6 +145,28 @@ def test_hcc_smoke_runner_parses_budget_accounting_mode() -> None:
     assert runner.parse_args(base_args + ["--budget-accounting", "source"]).budget_accounting == "source"
 
 
+def test_hcc_smoke_runner_parses_skip_plots() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "schwefel",
+            "--ids",
+            "1",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--skip-plots",
+        ]
+    )
+
+    assert args.skip_plots is True
+
+
 def test_hcc_smoke_runner_parses_relation_policy_options() -> None:
     runner = _load_runner_module()
 

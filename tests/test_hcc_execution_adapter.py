@@ -114,6 +114,20 @@ def test_hcc_aob_smoke_command_passes_restart_modes(tmp_path: Path) -> None:
     assert "--no-mmes-restart" in command.argv
 
 
+def test_hcc_aob_smoke_command_passes_skip_plots(tmp_path: Path) -> None:
+    request = HccAobExecutionRequest(
+        problem_id="S4",
+        seed=1,
+        max_fes=3_000_000,
+        output_dir=tmp_path / "hcc-fast-smoke",
+        skip_plots=True,
+    )
+
+    command = build_hcc_aob_smoke_command(request)
+
+    assert "--skip-plots" in command.argv
+
+
 def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
         problem_id="E2",

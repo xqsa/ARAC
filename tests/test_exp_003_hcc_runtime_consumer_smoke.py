@@ -297,6 +297,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "policy_evidence_diagnosis.csv" in claim_table
     assert len(requests) == 15
     assert {request.seed for request in requests} == {1, 2, 3}
+    assert {request.skip_plots for request in requests} == {True}
     assert {
         (request.output_dir.name, request.arac_action, request.enable_relation_dispatch, request.relation_policy_mode)
         for request in requests
