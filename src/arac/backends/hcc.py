@@ -489,6 +489,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             budget_accounting=request.budget_accounting,
             cmaes_restart=request.cmaes_restart,
             mmes_restart=request.mmes_restart,
+            skip_plots=request.skip_plots,
         )
     )
     start = time.time()

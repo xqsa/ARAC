@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
 
+from arac.backends import hcc as hcc_backend
 from arac.backends.hcc import (
     HccAobExecutionRequest,
     HccAobExecutionResult,
@@ -126,6 +128,38 @@ def test_hcc_aob_smoke_command_passes_skip_plots(tmp_path: Path) -> None:
     command = build_hcc_aob_smoke_command(request)
 
     assert "--skip-plots" in command.argv
+
+
+def test_hcc_execution_runner_passes_skip_plots_to_subprocess(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, tuple[str, ...]] = {}
+
+    def fake_run(argv, **_kwargs):
+        captured["argv"] = tuple(argv)
+        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(hcc_backend.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        hcc_backend,
+        "_parse_hcc_evaluation_record_with_optimizer_final_fe",
+        lambda _output_dir, budget_limit: (0.0, budget_limit, budget_limit),
+    )
+    monkeypatch.setattr(hcc_backend, "_find_hcc_action_trace", lambda _output_dir: (None, 0))
+
+    result = hcc_backend.run_hcc_aob_smoke_execution(
+        HccAobExecutionRequest(
+            problem_id="S4",
+            seed=1,
+            max_fes=3_000_000,
+            output_dir=tmp_path / "hcc-fast-smoke",
+            skip_plots=True,
+        )
+    )
+
+    assert result.status == "completed"
+    assert "--skip-plots" in captured["argv"]
 
 
 def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
