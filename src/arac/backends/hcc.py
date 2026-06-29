@@ -9,6 +9,7 @@ HCC baseline.
 from __future__ import annotations
 
 import ast
+import csv
 import json
 import re
 import subprocess
@@ -567,7 +568,9 @@ def _parse_hcc_evaluation_record_with_optimizer_final_fe(
     )
     if not final_match:
         raise ValueError(f"could not parse final HCC error from {records[-1]}")
-    optimizer_final_fe_used = int(float(final_match.group("fe")))
+    optimizer_final_fe_used = _parse_hcc_budget_summary_final_fe(output_dir)
+    if optimizer_final_fe_used is None:
+        optimizer_final_fe_used = int(float(final_match.group("fe")))
     if budget_limit is not None:
         for checkpoint in re.finditer(
             r"^\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
@@ -583,6 +586,22 @@ def _parse_hcc_evaluation_record_with_optimizer_final_fe(
         optimizer_final_fe_used,
         optimizer_final_fe_used,
     )
+
+
+def _parse_hcc_budget_summary_final_fe(output_dir: Path) -> int | None:
+    summaries = sorted(Path(output_dir).rglob("*budget_summary.csv"))
+    if not summaries:
+        return None
+    with summaries[-1].open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    if not rows:
+        return None
+    row = rows[-1]
+    for field in ("fitness_record_fe", "optimizer_reported_fe"):
+        value = row.get(field)
+        if value not in (None, ""):
+            return int(float(value))
+    return None
 
 
 def _find_hcc_action_trace(output_dir: Path) -> tuple[Path | None, int]:

@@ -135,6 +135,15 @@ ACTION_MISMATCH_AUDIT_FIELDS = [
     "trigger_reason",
     "abstain_reason",
 ]
+BUDGET_SUMMARY_FIELDS = [
+    "problem_id",
+    "budget_accounting",
+    "max_fes",
+    "optimizer_reported_fe",
+    "fitness_record_fe",
+    "budget_aligned_fe",
+    "same_budget_violation",
+]
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
@@ -822,6 +831,32 @@ def _write_raw_action_mismatch_rows(path: Path, rows: list[dict[str, str]]) -> N
         writer.writerows(rows)
 
 
+def _write_budget_summary(
+    path: Path,
+    *,
+    problem_id: str,
+    budget_accounting: str,
+    max_fes: int,
+    optimizer_reported_fe: int,
+    fitness_record_fe: int,
+) -> None:
+    budget_aligned_fe = min(max_fes, fitness_record_fe)
+    row = {
+        "problem_id": problem_id,
+        "budget_accounting": budget_accounting,
+        "max_fes": str(max_fes),
+        "optimizer_reported_fe": str(optimizer_reported_fe),
+        "fitness_record_fe": str(fitness_record_fe),
+        "budget_aligned_fe": str(budget_aligned_fe),
+        "same_budget_violation": str(int(fitness_record_fe > max_fes)),
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=BUDGET_SUMMARY_FIELDS)
+        writer.writeheader()
+        writer.writerow(row)
+
+
 def _remove_if_exists(path: Path) -> None:
     if path.exists():
         path.unlink()
@@ -1118,6 +1153,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             relations,
             action_decisions,
         )
+    _write_budget_summary(
+        case_artifact_path(output_path, problem_id, "budget_summary.csv"),
+        problem_id=problem_id,
+        budget_accounting=config.budget_accounting,
+        max_fes=config.max_fes,
+        optimizer_reported_fe=sum_fes,
+        fitness_record_fe=current_fitness_evaluations(fun),
+    )
     print(f"{problem_id} overlap relations extracted: {len(relations)}")
     return fun.fitness_record, time.time() - time_start, action_trace_rows
 

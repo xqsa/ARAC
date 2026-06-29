@@ -1320,6 +1320,22 @@ def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
 
     assert budgets_seen == [7, 7, 7]
     assert len(record) == 24
+    summary_path = tmp_path / "E1_budget_summary.csv"
+    assert summary_path.exists()
+    with summary_path.open(newline="", encoding="utf-8") as handle:
+        summary_rows = list(csv.DictReader(handle))
+
+    assert summary_rows == [
+        {
+            "problem_id": "E1",
+            "budget_accounting": "source",
+            "max_fes": "20",
+            "optimizer_reported_fe": "21",
+            "fitness_record_fe": "24",
+            "budget_aligned_fe": "20",
+            "same_budget_violation": "1",
+        }
+    ]
 
 
 def test_main_preserves_case_level_action_traces_for_multiple_ids(
