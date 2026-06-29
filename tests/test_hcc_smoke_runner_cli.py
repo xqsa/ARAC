@@ -186,8 +186,71 @@ def test_hcc_smoke_runner_parses_relation_policy_options() -> None:
 
     assert shuffled.relation_policy == "shuffled"
 
+    lagged = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "lagged",
+        ]
+    )
 
-def test_shuffled_relation_policy_uses_previous_rule_action_without_relabeling() -> None:
+    assert lagged.relation_policy == "lagged"
+
+
+def test_shuffled_relation_policy_uses_relation_local_action_shuffle() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O0_1_2",
+        problem_id="E2",
+        outer_iter=0,
+        group_left=1,
+        group_right=2,
+        shared_vars=(7,),
+        overlap_strength=1.0,
+        delta_signal=0.1,
+        rank_signal=0.9,
+        budget_remaining_ratio=1.0,
+    )
+    rule_action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="rule",
+    )
+    previous_rule_action = runner.RelationActionDecision(
+        relation_id="O0_0_1",
+        action_name="fallback",
+        action_family="fallback",
+        confidence=0.7,
+        trigger_reason="previous_rule",
+    )
+
+    shuffled = runner.select_relation_action_for_policy(
+        relation=relation,
+        action=rule_action,
+        relation_policy_mode="shuffled",
+        shuffled_source_action=previous_rule_action,
+    )
+
+    assert shuffled.relation_id == relation.relation_id
+    assert shuffled.relation_action_name == "reassign_repair"
+    assert shuffled.canonical_action_name == "repair_shared_variable_binding"
+    assert shuffled.action_family == "reassign_repair"
+    assert shuffled.trigger_reason == "deterministic_shuffled_negative_control_from:coordinate"
+
+
+def test_lagged_relation_policy_uses_previous_rule_action_without_relabeling() -> None:
     runner = _load_runner_module()
     relation = runner.OverlapRelation(
         relation_id="O0_1_2",
@@ -216,23 +279,23 @@ def test_shuffled_relation_policy_uses_previous_rule_action_without_relabeling()
         trigger_reason="previous_rule",
     )
 
-    shuffled = runner.select_relation_action_for_policy(
+    lagged = runner.select_relation_action_for_policy(
         relation=relation,
         action=rule_action,
-        relation_policy_mode="shuffled",
+        relation_policy_mode="lagged",
         shuffled_source_action=previous_rule_action,
     )
 
-    assert shuffled.relation_id == relation.relation_id
-    assert shuffled.relation_action_name == "coordinate"
-    assert shuffled.canonical_action_name == "allow_beneficial_coordination"
-    assert shuffled.action_family == "coordinate"
-    assert shuffled.trigger_reason.startswith("deterministic_shuffled_negative_control")
+    assert lagged.relation_id == relation.relation_id
+    assert lagged.relation_action_name == "coordinate"
+    assert lagged.canonical_action_name == "allow_beneficial_coordination"
+    assert lagged.action_family == "coordinate"
+    assert lagged.trigger_reason.startswith("deterministic_lagged_relation_policy")
 
     first_shuffled = runner.select_relation_action_for_policy(
         relation=relation,
         action=rule_action,
-        relation_policy_mode="shuffled",
+        relation_policy_mode="lagged",
         shuffled_source_action=None,
     )
 

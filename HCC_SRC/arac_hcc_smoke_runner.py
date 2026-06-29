@@ -138,6 +138,18 @@ ACTION_MISMATCH_AUDIT_FIELDS = [
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
+RELATION_ACTION_FAMILIES = {
+    "coordinate": "coordinate",
+    "isolate_conflicting_relation": "isolate",
+    "reassign_repair": "reassign_repair",
+    "fallback": "fallback",
+}
+SHUFFLED_NEGATIVE_CONTROL_ACTIONS = {
+    "coordinate": "reassign_repair",
+    "reassign_repair": "coordinate",
+    "isolate_conflicting_relation": "coordinate",
+    "fallback": "fallback",
+}
 
 
 @dataclass(frozen=True)
@@ -417,7 +429,20 @@ def select_relation_action_for_policy(
         return action
     if relation_policy_mode == "rule":
         return action
-    if relation_policy_mode != "shuffled":
+    if relation_policy_mode == "shuffled":
+        source_action_name = action.relation_action_name
+        shuffled_action_name = SHUFFLED_NEGATIVE_CONTROL_ACTIONS[source_action_name]
+        return RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name=shuffled_action_name,
+            action_family=RELATION_ACTION_FAMILIES[shuffled_action_name],
+            confidence=action.confidence if shuffled_action_name != "fallback" else 0.0,
+            trigger_reason=(
+                "deterministic_shuffled_negative_control_from:"
+                f"{source_action_name}"
+            ),
+        )
+    if relation_policy_mode != "lagged":
         raise ValueError(f"unsupported relation policy mode: {relation_policy_mode}")
     source_action = shuffled_source_action or RelationActionDecision(
         relation_id=relation.relation_id,
@@ -432,7 +457,7 @@ def select_relation_action_for_policy(
         action_family=source_action.action_family,
         confidence=source_action.confidence,
         trigger_reason=(
-            "deterministic_shuffled_negative_control_from:"
+            "deterministic_lagged_relation_policy_from:"
             f"{source_action.relation_action_name}"
         ),
     )
@@ -937,7 +962,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
                 if config.enable_relation_dispatch:
-                    if config.relation_policy_mode not in {"rule", "shuffled"}:
+                    if config.relation_policy_mode not in {"rule", "shuffled", "lagged"}:
                         raise ValueError(
                             f"unsupported relation policy mode: {config.relation_policy_mode}"
                         )
@@ -960,7 +985,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     relation_policy_context = current_outer_relations + [relation]
                     rule_action = decide_actions_for_relations(relation_policy_context)[-1]
                     shuffled_source_action = previous_rule_relation_action
-                    if config.relation_policy_mode == "shuffled":
+                    if config.relation_policy_mode == "lagged":
                         previous_rule_relation_action, _, _ = (
                             apply_and_guard_action_to_relation(
                                 relation=relation,
@@ -1012,6 +1037,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             relation_policy_source=(
                                 "deterministic_shuffled_negative_control"
                                 if config.relation_policy_mode == "shuffled"
+                                else "deterministic_lagged_relation_policy"
+                                if config.relation_policy_mode == "lagged"
                                 else "rule_based_relation_policy"
                             ),
                             state_mutated=adjusted_values is not None,
@@ -1108,7 +1135,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
     parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
     parser.add_argument("--enable-relation-dispatch", action="store_true")
-    parser.add_argument("--relation-policy", default="rule", choices=["rule", "shuffled"])
+    parser.add_argument("--relation-policy", default="rule", choices=["rule", "shuffled", "lagged"])
     parser.add_argument("--arac-action-file", type=Path, default=None)
     parser.add_argument(
         "--arac-action",
