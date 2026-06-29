@@ -98,6 +98,22 @@ def test_hcc_aob_smoke_command_passes_budget_accounting_mode(tmp_path: Path) -> 
     assert command.argv[budget_arg_index + 1] == "source"
 
 
+def test_hcc_aob_smoke_command_passes_restart_modes(tmp_path: Path) -> None:
+    request = HccAobExecutionRequest(
+        problem_id="S4",
+        seed=1,
+        max_fes=3_000_000,
+        output_dir=tmp_path / "hcc-paper-fidelity-smoke",
+        cmaes_restart=False,
+        mmes_restart=False,
+    )
+
+    command = build_hcc_aob_smoke_command(request)
+
+    assert "--no-cmaes-restart" in command.argv
+    assert "--no-mmes-restart" in command.argv
+
+
 def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
         problem_id="E2",

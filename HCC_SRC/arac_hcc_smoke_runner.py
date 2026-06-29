@@ -160,6 +160,7 @@ class SmokeConfig:
     sigma: float = 0.5
     verbose: int = 1000
     early_stopping_evaluations: int = 1000
+    mmes_restart: bool = True
     cmaes_restart: bool = True
     arac_action: str = "conservative_no_action"
     enable_relation_dispatch: bool = False
@@ -879,7 +880,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             "max_function_evaluations": global_fes,
             "mean": (best_individual,),
             "sigma": config.sigma,
-            "is_restart": True,
+            "is_restart": config.mmes_restart,
             "verbose": config.verbose,
         }
         if config.seed is not None:
@@ -1131,6 +1132,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-fes", type=int, required=True)
     parser.add_argument("--verbose", type=int, default=1000)
     parser.add_argument("--early-stopping-evaluations", type=int, default=1000)
+    parser.add_argument("--mmes-restart", dest="mmes_restart", action="store_true", default=True)
+    parser.add_argument("--no-mmes-restart", dest="mmes_restart", action="store_false")
     parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
     parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
     parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
@@ -1162,6 +1165,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         seed=args.seed,
         verbose=args.verbose,
         early_stopping_evaluations=args.early_stopping_evaluations,
+        mmes_restart=args.mmes_restart,
         cmaes_restart=args.cmaes_restart,
         arac_action=args.arac_action,
         enable_relation_dispatch=args.enable_relation_dispatch,

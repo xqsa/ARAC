@@ -103,7 +103,7 @@ def test_hcc_smoke_runner_parses_relation_dispatch_flag() -> None:
     assert args.enable_relation_dispatch is True
 
 
-def test_hcc_smoke_runner_defaults_to_paper_like_cmaes_restart() -> None:
+def test_hcc_smoke_runner_parses_optimizer_restart_modes() -> None:
     runner = _load_runner_module()
 
     base_args = [
@@ -120,7 +120,9 @@ def test_hcc_smoke_runner_defaults_to_paper_like_cmaes_restart() -> None:
     ]
 
     assert runner.parse_args(base_args).cmaes_restart is True
+    assert runner.parse_args(base_args).mmes_restart is True
     assert runner.parse_args(base_args + ["--no-cmaes-restart"]).cmaes_restart is False
+    assert runner.parse_args(base_args + ["--no-mmes-restart"]).mmes_restart is False
 
 
 def test_hcc_smoke_runner_parses_budget_accounting_mode() -> None:

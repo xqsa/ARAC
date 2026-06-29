@@ -148,6 +148,8 @@ class HccAobExecutionRequest:
     relation_policy_mode: str = "rule"
     arac_action_file: Path | None = None
     budget_accounting: str = "strict"
+    cmaes_restart: bool = True
+    mmes_restart: bool = True
 
 
 @dataclass(frozen=True)
@@ -451,6 +453,10 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         argv.append("--enable-relation-dispatch")
     if request.relation_policy_mode:
         argv.extend(("--relation-policy", request.relation_policy_mode))
+    if not request.cmaes_restart:
+        argv.append("--no-cmaes-restart")
+    if not request.mmes_restart:
+        argv.append("--no-mmes-restart")
     return HccAobSmokeCommand(argv=tuple(argv), cwd=Path(request.hcc_root))
 
 
@@ -477,6 +483,8 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             relation_policy_mode=request.relation_policy_mode,
             arac_action_file=request.arac_action_file,
             budget_accounting=request.budget_accounting,
+            cmaes_restart=request.cmaes_restart,
+            mmes_restart=request.mmes_restart,
         )
     )
     start = time.time()

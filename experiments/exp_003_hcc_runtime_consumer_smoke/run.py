@@ -361,6 +361,8 @@ def _records(
     max_fes: int,
     jobs: int = 1,
     budget_accounting: str = "strict",
+    cmaes_restart: bool = True,
+    mmes_restart: bool = True,
 ) -> list[dict[str, object]]:
     contexts: list[dict[str, object]] = []
     for problem_id in problem_ids:
@@ -406,6 +408,8 @@ def _records(
                             enable_relation_dispatch=lane.relation_dispatch_enabled,
                             relation_policy_mode=lane.relation_policy_mode,
                             budget_accounting=budget_accounting,
+                            cmaes_restart=cmaes_restart,
+                            mmes_restart=mmes_restart,
                         ),
                     }
                 )
@@ -2641,12 +2645,16 @@ def _config_fingerprint(
     jobs: int,
     max_fes: int,
     budget_accounting: str,
+    cmaes_restart: bool,
+    mmes_restart: bool,
 ) -> str:
     payload = {
         "budget_accounting": budget_accounting,
+        "cmaes_restart": bool(cmaes_restart),
         "jobs": max(1, int(jobs)),
         "lanes": [lane.lane_id for lane in LANES],
         "max_fes": int(max_fes),
+        "mmes_restart": bool(mmes_restart),
         "problem_ids": list(problem_ids),
         "seeds": list(seeds),
     }
@@ -2662,6 +2670,8 @@ def _write_manifest(
     jobs: int = 1,
     max_fes: int = MAX_FES,
     budget_accounting: str = "strict",
+    cmaes_restart: bool = True,
+    mmes_restart: bool = True,
 ) -> None:
     same_budget_status = (
         _diagnostic_observed_value(
@@ -2767,15 +2777,25 @@ def _write_manifest(
                 f"{' '.join(str(seed) for seed in seeds)} --problems "
                 f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))} "
                 f"--max-fes {max_fes} --budget-accounting {budget_accounting}"
+                f"{'' if cmaes_restart else ' --no-cmaes-restart'}"
+                f"{'' if mmes_restart else ' --no-mmes-restart'}"
             ),
             f"Budget: {max_fes} FE per lane/case",
             f"Budget accounting: {budget_accounting}",
+            (
+                "Optimizer restarts: "
+                f"CMAES={'enabled' if cmaes_restart else 'disabled'}, "
+                f"MMES={'enabled' if mmes_restart else 'disabled'}"
+            ),
             f"Parallel jobs: {max(1, int(jobs))}",
             f"Lanes: {', '.join(lane.lane_id for lane in LANES)}",
             "",
             "Freeze evidence:",
             f"- git commit: {_git_commit()}",
-            f"- config fingerprint: {_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting)}",
+            (
+                "- config fingerprint: "
+                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart)}"
+            ),
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
             f"- HCC smoke runner sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'arac_hcc_smoke_runner.py')}",
@@ -2817,6 +2837,8 @@ def run_hcc_runtime_consumer_smoke(
     jobs: int = 1,
     max_fes: int = MAX_FES,
     budget_accounting: str = "strict",
+    cmaes_restart: bool = True,
+    mmes_restart: bool = True,
 ) -> Path:
     worker_count = max(1, int(jobs))
     max_fes = int(max_fes)
@@ -2836,6 +2858,8 @@ def run_hcc_runtime_consumer_smoke(
         max_fes=max_fes,
         jobs=worker_count,
         budget_accounting=budget_accounting,
+        cmaes_restart=cmaes_restart,
+        mmes_restart=mmes_restart,
     )
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
@@ -3141,6 +3165,8 @@ def run_hcc_runtime_consumer_smoke(
         worker_count,
         max_fes,
         budget_accounting,
+        cmaes_restart,
+        mmes_restart,
     )
     return output
 
@@ -3155,6 +3181,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--max-fes", type=int, default=MAX_FES)
     parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
+    parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
+    parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
+    parser.add_argument("--mmes-restart", dest="mmes_restart", action="store_true", default=True)
+    parser.add_argument("--no-mmes-restart", dest="mmes_restart", action="store_false")
     return parser.parse_args(argv)
 
 
@@ -3169,6 +3199,8 @@ def main(argv: list[str] | None = None) -> Path:
         jobs=int(args.jobs),
         max_fes=int(args.max_fes),
         budget_accounting=str(args.budget_accounting),
+        cmaes_restart=bool(args.cmaes_restart),
+        mmes_restart=bool(args.mmes_restart),
     )
 
 
