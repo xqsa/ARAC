@@ -88,6 +88,16 @@ class Optimizer(object):
     def _evaluate_fitness(self, x_batch, args=None):
 
         self.start_function_evaluations = time.time()
+        x_array = np.asarray(x_batch)
+        single_candidate = x_array.ndim == 1
+        candidate_count = 1 if single_candidate else len(x_array)
+        remaining_evaluations = int(max(0, self.max_function_evaluations - self.n_function_evaluations))
+        if remaining_evaluations <= 0:
+            self.termination_signal = Terminations.MAX_FUNCTION_EVALUATIONS
+            return np.asarray([], dtype=float)
+        if not single_candidate and candidate_count > remaining_evaluations:
+            x_batch = x_batch[:remaining_evaluations]
+            candidate_count = len(x_batch)
 
         if args is None:
             y_batch = self.fitness_function(x_batch)
@@ -95,13 +105,15 @@ class Optimizer(object):
             y_batch = self.fitness_function(x_batch, args=args)
 
         self.time_function_evaluations += time.time() - self.start_function_evaluations
-        self.n_function_evaluations += len(x_batch)  
+        self.n_function_evaluations += candidate_count
 
-        min_index = np.argmin(y_batch)
-        if y_batch[min_index] < self.best_so_far_y:
-            self.best_so_far_x, self.best_so_far_y = np.copy(x_batch[min_index]), y_batch[min_index]
+        y_values = np.atleast_1d(y_batch)
+        min_index = np.argmin(y_values)
+        if y_values[min_index] < self.best_so_far_y:
+            best_x = x_array if single_candidate else np.asarray(x_batch)[min_index]
+            self.best_so_far_x, self.best_so_far_y = np.copy(best_x), y_values[min_index]
 
-        for y in y_batch:
+        for y in y_values:
             if (self._base_early_stopping - y) <= self.early_stopping_threshold:
                 self._counter_early_stopping += 1
             else:
