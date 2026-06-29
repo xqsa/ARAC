@@ -334,14 +334,15 @@ def score_actions_for_relations(
     for index, relation in enumerate(relations):
         prefix_has_one_side_zero = prefix_has_one_side_zero or relation.one_side_zero
         balanced_mid_support_seen = balanced_mid_support_seen or (
-            not prefix_has_one_side_zero
+            _has_active_safety_margin(relation)
+            and not prefix_has_one_side_zero
             and relation.both_positive
             and relation.shared_var_support_ratio >= BALANCED_MID_SUPPORT_COORDINATE_MIN
             and relation.shared_var_support_ratio <= BALANCED_MID_SUPPORT_COORDINATE_MAX
             and relation.delta_ratio_gap >= CONFLICT_THRESHOLD
             and relation.rank_stability >= STABILITY_THRESHOLD
         )
-        if balanced_mid_support_seen:
+        if balanced_mid_support_seen and _has_active_safety_margin(relation):
             scored_actions[index] = _with_coordinate_context_score(
                 scored_actions[index],
                 relation,
@@ -395,6 +396,16 @@ def _with_coordinate_context_score(
 
 def _overlap_confidence(overlap_strength: float) -> float:
     return _clamp(overlap_strength / max(HIGH_OVERLAP_THRESHOLD, 1e-12))
+
+
+def _has_active_safety_margin(relation: OverlapRelation) -> bool:
+    return (
+        relation.overlap_strength >= HIGH_OVERLAP_THRESHOLD
+        and relation.shared_var_count > 0
+        and relation.feature_coverage >= MIN_FEATURE_COVERAGE
+        and relation.budget_remaining_ratio >= MIN_BUDGET_REMAINING_RATIO
+        and relation.fallback_margin_proxy >= MIN_FALLBACK_MARGIN_PROXY
+    )
 
 
 def _decision(

@@ -747,6 +747,33 @@ def test_score_actions_for_relations_reflects_balanced_batch_coordinate_mode() -
     assert row["trigger_reason"] == "balanced_mid_support_coordinate_mode"
 
 
+def test_balanced_batch_coordinate_mode_respects_budget_gate() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_var_support_ratio=0.166667,
+            delta_ratio_gap=0.80,
+            rank_stability=0.75,
+            fallback_margin_proxy=0.86,
+            budget_remaining_ratio=0.8,
+        ),
+        make_relation(
+            relation_id="O0_1_2",
+            shared_var_support_ratio=0.166667,
+            delta_ratio_gap=0.50,
+            rank_stability=0.60,
+            fallback_margin_proxy=0.90,
+            budget_remaining_ratio=0.01,
+        ),
+    ]
+
+    decisions = decide_actions_for_relations(relations)
+
+    assert decisions[0].trigger_reason == "balanced_mid_support_coordinate_mode"
+    assert decisions[1].relation_action_name == "fallback"
+    assert decisions[1].trigger_reason == "insufficient_relation_policy_safety_margin"
+
+
 def test_decide_actions_for_relations_keeps_repeated_mid_dense_as_fallback() -> None:
     relations = [
         make_relation(
