@@ -884,7 +884,8 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
     )
     assert by_key["multi_problem_sota_escalation_allowed"]["status"] == "blocked"
     assert by_key["multi_problem_sota_escalation_allowed"]["blocker_reason"] == (
-        "relation_dispatch_effect_size_below_threshold"
+        "relation_dispatch_effect_size_below_threshold;"
+        "formal_sota_protocol_incomplete"
     )
     claim_tier = by_key["multi_problem_claim_tier_recommendation"]
     assert claim_tier["status"] == "pass"
@@ -954,6 +955,66 @@ def test_multi_problem_pilot_utility_allows_positive_mean_with_more_wins_than_lo
     assert "relation_dispatch_effect_size_below_threshold" in by_key[
         "multi_problem_sota_escalation_allowed"
     ]["blocker_reason"]
+
+
+def test_multi_problem_sota_requires_formal_protocol_scope() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _multi_problem_diagnosis_rows,
+    )
+
+    utility_rows = [
+        {
+            "problem_id": problem_id,
+            "seed": "1",
+            "lane_id": lane_id,
+            "final_error": str(final_error),
+            "relative_gain_vs_fallback": gain,
+            "utility_label": utility_label,
+            "same_budget_violation": "0",
+            "backend_semantics_changed": changed,
+            "action_mix": action_mix,
+        }
+        for problem_id, lane_id, final_error, gain, utility_label, changed, action_mix in [
+            ("E2", "fallback", 100.0, "0.000000", "tie_or_small_effect", "0", "conservative_no_action=1"),
+            ("E2", "fixed_repair", 95.0, "0.050000", "meaningful_win", "1", "repair_shared_variable_binding=1"),
+            ("E2", "fixed_coordinate", 94.0, "0.060000", "meaningful_win", "1", "allow_beneficial_coordination=1"),
+            ("E2", "relation_dispatch_rule", 90.0, "0.100000", "meaningful_win", "1", "allow_beneficial_coordination=1"),
+            ("S2", "fallback", 100.0, "0.000000", "tie_or_small_effect", "0", "conservative_no_action=1"),
+            ("S2", "fixed_repair", 95.0, "0.050000", "meaningful_win", "1", "repair_shared_variable_binding=1"),
+            ("S2", "fixed_coordinate", 94.0, "0.060000", "meaningful_win", "1", "allow_beneficial_coordination=1"),
+            ("S2", "relation_dispatch_rule", 90.0, "0.100000", "meaningful_win", "1", "allow_beneficial_coordination=1"),
+            ("R2", "fallback", 100.0, "0.000000", "tie_or_small_effect", "0", "conservative_no_action=1"),
+            ("R2", "fixed_repair", 95.0, "0.050000", "meaningful_win", "1", "repair_shared_variable_binding=1"),
+            ("R2", "fixed_coordinate", 94.0, "0.060000", "meaningful_win", "1", "allow_beneficial_coordination=1"),
+            ("R2", "relation_dispatch_rule", 90.0, "0.100000", "meaningful_win", "1", "allow_beneficial_coordination=1"),
+        ]
+    ]
+    negative_rows = [
+        {
+            "problem_id": problem_id,
+            "negative_control_pass": "1",
+            "shuffled_win_count": "0",
+            "total_seeds": "1",
+        }
+        for problem_id in ("E2", "S2", "R2")
+    ]
+
+    rows = _multi_problem_diagnosis_rows(utility_rows, negative_rows)
+    by_key = {row["diagnostic_key"]: row for row in rows}
+
+    protocol = by_key["multi_problem_formal_sota_protocol_scope"]
+    assert protocol["status"] == "blocked"
+    assert protocol["observed_value"] == "problems=3/24;seeds=1/25"
+    assert protocol["blocker_reason"] == "formal_sota_protocol_incomplete"
+
+    sota = by_key["multi_problem_sota_escalation_allowed"]
+    assert sota["status"] == "blocked"
+    assert "formal_sota_protocol_incomplete" in sota["blocker_reason"]
+
+    claim_tier = by_key["multi_problem_claim_tier_recommendation"]
+    assert claim_tier["observed_value"] == (
+        "runtime_evidence_driven_relation_dispatch_with_positive_utility_evidence"
+    )
 
 
 def test_multi_problem_diagnostics_report_action_value_delta_profile() -> None:

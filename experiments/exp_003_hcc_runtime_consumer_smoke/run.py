@@ -42,6 +42,12 @@ PHASE_I_FE = 0
 PHASE_II_FE = MAX_FES
 LOW_ACTIVE_DENSITY_THRESHOLD = 0.20
 MEANINGFUL_GAIN_THRESHOLD = 0.05
+FORMAL_SOTA_MIN_SEEDS = 25
+FORMAL_SOTA_PROBLEMS = tuple(
+    f"{prefix}{problem_id}"
+    for prefix in ("E", "S", "R", "A")
+    for problem_id in range(1, 7)
+)
 
 
 @dataclass(frozen=True)
@@ -1897,6 +1903,14 @@ def _multi_problem_diagnosis_rows(
     action_trace_rows: list[dict[str, object]] | None = None,
 ) -> list[dict[str, object]]:
     problem_ids = sorted({str(row["problem_id"]) for row in utility_rows})
+    seed_ids = sorted({str(row["seed"]) for row in utility_rows})
+    formal_sota_protocol_pass = set(FORMAL_SOTA_PROBLEMS).issubset(problem_ids) and (
+        len(seed_ids) >= FORMAL_SOTA_MIN_SEEDS
+    )
+    formal_sota_protocol_observed = (
+        f"problems={len(set(problem_ids) & set(FORMAL_SOTA_PROBLEMS))}/"
+        f"{len(FORMAL_SOTA_PROBLEMS)};seeds={len(seed_ids)}/{FORMAL_SOTA_MIN_SEEDS}"
+    )
     if len(problem_ids) <= 1:
         return []
     overlap_applicable_ids = [
@@ -2182,6 +2196,8 @@ def _multi_problem_diagnosis_rows(
         blockers.append("fixed_coordinate_baseline_not_beaten")
     if not backend_semantics_pass:
         blockers.append("backend_semantics_audit_failed")
+    if not formal_sota_protocol_pass:
+        blockers.append("formal_sota_protocol_incomplete")
     pilot_utility_pass = (
         not budget_violations
         and directional_pass
@@ -2507,6 +2523,19 @@ def _multi_problem_diagnosis_rows(
             "next_step": "diagnose_policy_evidence_before_sota"
             if catastrophic
             else "continue",
+        },
+        {
+            "run_id": RUN_ID,
+            "problem_id": "ALL",
+            "diagnostic_key": "multi_problem_formal_sota_protocol_scope",
+            "status": "pass" if formal_sota_protocol_pass else "blocked",
+            "observed_value": formal_sota_protocol_observed,
+            "blocker_reason": ""
+            if formal_sota_protocol_pass
+            else "formal_sota_protocol_incomplete",
+            "next_step": "continue_to_sota_protocol"
+            if formal_sota_protocol_pass
+            else "run_full_aob_24_problem_25_seed_protocol_before_sota_claim",
         },
         {
             "run_id": RUN_ID,
