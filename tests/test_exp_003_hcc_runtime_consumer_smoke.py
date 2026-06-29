@@ -1649,3 +1649,27 @@ def test_backend_semantics_expectation_uses_optimizer_consumed_action_mix() -> N
     }
 
     assert _expects_backend_semantics(row) is False
+
+
+def test_relation_dispatch_noop_trace_is_a_fallback_claim_gate_decision() -> None:
+    from arac.action_space import ActionFamily
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        LANES,
+        _decision,
+        _effective_claim_gate_decision,
+    )
+
+    lane = next(lane for lane in LANES if lane.lane_id == "relation_dispatch_rule")
+    decision = _decision(lane)
+    trace_rows = [
+        {
+            "canonical_action_name": "conservative_no_action",
+            "optimizer_consumed": "1",
+        }
+    ]
+
+    effective = _effective_claim_gate_decision(lane, decision, trace_rows)
+
+    assert effective.action_family == ActionFamily.FALLBACK
+    assert effective.action_name == "conservative_no_action"
+    assert effective.decision == "fallback"

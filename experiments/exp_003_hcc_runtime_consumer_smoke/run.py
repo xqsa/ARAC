@@ -156,6 +156,29 @@ def _decision(lane: LaneConfig) -> ActionDecision:
     )
 
 
+def _effective_claim_gate_decision(
+    lane: LaneConfig,
+    decision: ActionDecision,
+    trace_rows: list[dict[str, str]],
+) -> ActionDecision:
+    if not lane.relation_dispatch_enabled:
+        return decision
+    has_active_consumed_action = any(
+        row.get("optimizer_consumed") == "1"
+        and _trace_action(row) != "conservative_no_action"
+        for row in trace_rows
+    )
+    if has_active_consumed_action:
+        return decision
+    return ActionDecision(
+        action_family=ActionFamily.FALLBACK,
+        action_name="conservative_no_action",
+        decision="fallback",
+        trigger_reason="relation_dispatch_no_active_optimizer_consumed_action",
+        utility_proxy=0.0,
+    )
+
+
 def _same_budget_group_id(problem_id: str, seed: int, max_fes: int) -> str:
     return f"{problem_id}_seed{seed}_{max_fes}fe"
 
@@ -427,14 +450,17 @@ def _records(
         assert isinstance(decision, ActionDecision)
         assert isinstance(lane, LaneConfig)
         result = execution_runner(request)
-        semantics = _semantics_from_trace_rows(
-            _read_csv_rows(result.action_trace_path),
-            fallback=semantics,
-        )
+        trace_rows = _read_csv_rows(result.action_trace_path)
+        semantics = _semantics_from_trace_rows(trace_rows, fallback=semantics)
         ledger = _ledger_for_result(result)
+        effective_decision = _effective_claim_gate_decision(
+            lane,
+            decision,
+            trace_rows,
+        )
         allowed, blockers = claim_gate(
             runtime_payload=payload,
-            decision=decision,
+            decision=effective_decision,
             semantics_diff=semantics,
             ledger=ledger,
             utility_label="runtime_smoke_not_performance_claim",
