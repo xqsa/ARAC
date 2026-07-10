@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,6 +13,8 @@ DEFAULT_HCC_RESULT_ROOT = Path("E:/HCC-main/HCC_SRC/result")
 PAPER_REPORTED_CSV = ROOT / "references" / "paper_reported_table2_hcc_es.csv"
 CASE_PATTERN = re.compile(r"^(?P<family>[ESRA])(?P<idx>[1-6])$")
 SEED_PATTERN = re.compile(r"^seed-(?P<seed>\d+)$", re.IGNORECASE)
+TARGETED_CASES = ("S4", "S5", "R4", "R5", "R6", "A1", "A2", "A3", "A4", "A5", "A6")
+NEAR_TIE_REL_GAIN_ABS_PCT = 1.0
 
 
 @dataclass(frozen=True)
@@ -176,6 +179,102 @@ def _budget_match_status(fe_used: int) -> str:
     return "non_3m_fe"
 
 
+def _targeted_case_diagnostic_rows(
+    comparison_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    rows_by_case: dict[str, list[dict[str, object]]] = {case: [] for case in TARGETED_CASES}
+    for row in comparison_rows:
+        problem_id = str(row["problem_id"])
+        if problem_id in rows_by_case:
+            rows_by_case[problem_id].append(row)
+
+    paper = _paper_rows_by_problem()
+    diagnostics: list[dict[str, object]] = []
+    for problem_id in TARGETED_CASES:
+        case_rows = rows_by_case[problem_id]
+        paper_row = paper[problem_id]
+        paper_mean = float(paper_row["reported_mean"])
+        paper_std = float(paper_row["reported_std"])
+        values = [float(row["historical_final_error"]) for row in case_rows]
+        wins = sum(1 for value in values if value < paper_mean)
+        best_row = min(
+            case_rows,
+            key=lambda row: float(row["historical_final_error"]),
+            default=None,
+        )
+        if best_row is None:
+            best_error = float("nan")
+            mean_error = float("nan")
+            sample_std = float("nan")
+            rel_gain_pct = float("nan")
+            best_experiment_label = ""
+            best_fe_used = ""
+            best_seed = ""
+            relation_label = "missing_historical_evidence"
+        else:
+            best_error = float(best_row["historical_final_error"])
+            mean_error = sum(values) / len(values)
+            sample_std = _sample_std(values)
+            rel_gain_pct = (paper_mean - best_error) / max(abs(paper_mean), 1e-12) * 100.0
+            best_experiment_label = str(best_row["experiment_label"])
+            best_fe_used = str(best_row["fe_used"])
+            best_seed = str(best_row["seed"])
+            relation_label = _target_relation_label(problem_id, rel_gain_pct)
+        diagnostics.append(
+            {
+                "run_id": RUN_ID,
+                "problem_id": problem_id,
+                "base_function": paper_row["base_function"],
+                "overlap_gamma": paper_row["overlap_gamma"],
+                "historical_rows": str(len(case_rows)),
+                "wins_vs_paper_mean": str(wins),
+                "best_historical_final_error": _format_float(best_error),
+                "mean_historical_final_error": _format_float(mean_error),
+                "std_historical_final_error": _format_float(sample_std),
+                "paper_reported_mean": paper_row["reported_mean"],
+                "paper_reported_std": paper_row["reported_std"],
+                "rel_gain_pct": _format_pct(rel_gain_pct),
+                "best_historical_experiment_label": best_experiment_label,
+                "best_historical_fe_used": best_fe_used,
+                "best_historical_seed": best_seed,
+                "relation_label": relation_label,
+                "runtime_dispatch_allowed": "0",
+                "diagnostic_role": "offline_targeted_best_row_vs_paper_reported_mean",
+            }
+        )
+    return diagnostics
+
+
+def _sample_std(values: list[float]) -> float:
+    if len(values) < 2:
+        return 0.0 if values else float("nan")
+    mean = sum(values) / len(values)
+    variance = sum((value - mean) ** 2 for value in values) / (len(values) - 1)
+    return math.sqrt(variance)
+
+
+def _target_relation_label(problem_id: str, rel_gain_pct: float) -> str:
+    if math.isnan(rel_gain_pct):
+        return "missing_historical_evidence"
+    if rel_gain_pct > 0.0:
+        return "better_than_paper_mean"
+    if problem_id.startswith("A") and abs(rel_gain_pct) <= NEAR_TIE_REL_GAIN_ABS_PCT:
+        return "near_tie_pending_25_run"
+    return "worse_than_paper_mean"
+
+
+def _format_float(value: float) -> str:
+    if math.isnan(value):
+        return ""
+    return f"{value:.6e}"
+
+
+def _format_pct(value: float) -> str:
+    if math.isnan(value):
+        return ""
+    return f"{value:.2f}"
+
+
 def _write_audit(
     output_dir: Path,
     records: list[HistoricalRecord],
@@ -261,6 +360,7 @@ def run_hcc_main_historical_result_recovery(
     records = _iter_historical_records(result_root)
     inventory = _inventory_rows(records)
     comparison = _comparison_rows(records)
+    targeted_diagnostics = _targeted_case_diagnostic_rows(comparison)
     _write_csv(
         output / "hcc_main_historical_result_inventory.csv",
         inventory,
@@ -303,6 +403,30 @@ def run_hcc_main_historical_result_recovery(
             "offline_error_delta_vs_paper",
             "runtime_dispatch_allowed",
             "comparison_role",
+        ],
+    )
+    _write_csv(
+        output / "hcc_main_targeted_case_diagnostics.csv",
+        targeted_diagnostics,
+        [
+            "run_id",
+            "problem_id",
+            "base_function",
+            "overlap_gamma",
+            "historical_rows",
+            "wins_vs_paper_mean",
+            "best_historical_final_error",
+            "mean_historical_final_error",
+            "std_historical_final_error",
+            "paper_reported_mean",
+            "paper_reported_std",
+            "rel_gain_pct",
+            "best_historical_experiment_label",
+            "best_historical_fe_used",
+            "best_historical_seed",
+            "relation_label",
+            "runtime_dispatch_allowed",
+            "diagnostic_role",
         ],
     )
     _write_audit(output, records, comparison, result_root)

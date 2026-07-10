@@ -19,4 +19,5 @@ Outputs:
 
 - `hcc_main_historical_result_inventory.csv`
 - `hcc_main_vs_paper_reported_comparison.csv`
+- `hcc_main_targeted_case_diagnostics.csv`
 - `hcc_main_historical_results_audit.md`

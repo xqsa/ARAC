@@ -80,3 +80,74 @@ def test_exp_004_recovers_hcc_main_historical_results_and_compares_paper(
 
     a1_comparison = next(row for row in comparison if row["problem_id"] == "A1")
     assert a1_comparison["better_than_paper_reported"] == "0"
+
+
+def test_exp_004_emits_targeted_case_diagnostics(tmp_path: Path) -> None:
+    from experiments.exp_004_hcc_main_historical_result_recovery.run import (
+        run_hcc_main_historical_result_recovery,
+    )
+
+    hcc_result_root = tmp_path / "HCC-main" / "HCC_SRC" / "result"
+    _write_record(
+        hcc_result_root
+        / "mi_arac_action_clean_hcc_anchor_5seed"
+        / "seed-1"
+        / "A1"
+        / "ackley"
+        / "evaluation_record.txt",
+        final_fe="3.000e+06",
+        final_error="77800.0",
+        runtime="12.5",
+    )
+    _write_record(
+        hcc_result_root
+        / "mi_arac_action_clean_hcc_anchor_5seed"
+        / "seed-2"
+        / "A1"
+        / "ackley"
+        / "evaluation_record.txt",
+        final_fe="3.000e+06",
+        final_error="77700.0",
+        runtime="12.6",
+    )
+    _write_record(
+        hcc_result_root
+        / "paper_like_seed1_topology_fix_schwefel"
+        / "seed-1"
+        / "S4"
+        / "schwefel"
+        / "evaluation_record.txt",
+        final_fe="3.000e+06",
+        final_error="15876.67",
+        runtime="13.5",
+    )
+
+    output = run_hcc_main_historical_result_recovery(
+        output_dir=tmp_path / "exp004",
+        hcc_result_root=hcc_result_root,
+    )
+
+    diagnostics = _read_csv(output / "hcc_main_targeted_case_diagnostics.csv")
+    assert [row["problem_id"] for row in diagnostics] == [
+        "S4",
+        "S5",
+        "R4",
+        "R5",
+        "R6",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6",
+    ]
+
+    a1_row = next(row for row in diagnostics if row["problem_id"] == "A1")
+    assert a1_row["relation_label"] == "near_tie_pending_25_run"
+    assert a1_row["historical_rows"] == "2"
+    assert a1_row["best_historical_final_error"] == "7.770000e+04"
+    assert a1_row["best_historical_experiment_label"] == "mi_arac_action_clean_hcc_anchor_5seed"
+
+    s4_row = next(row for row in diagnostics if row["problem_id"] == "S4")
+    assert s4_row["relation_label"] == "worse_than_paper_mean"
+    assert s4_row["best_historical_final_error"] == "1.587667e+04"
