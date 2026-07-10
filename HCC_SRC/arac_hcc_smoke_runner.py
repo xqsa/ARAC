@@ -6,7 +6,7 @@ import hashlib
 import math
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -228,6 +228,14 @@ AOB_INPUT_MANIFEST_FIELDS = [
 ]
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
+V31_NON_DENSE_PREFIX_RELATION_COUNT = 3
+V31_NON_DENSE_PREFIX_SHARED_VAR_COUNT = 3
+V31_NON_DENSE_PREFIX_REPAIR_TRIGGER = "controller_v31_non_dense_prefix_repair_lock"
+V31_NON_DENSE_LARGE_FALLBACK_DELTA_RATIO_MAX = 0.15
+V31_NON_DENSE_LARGE_FALLBACK_NORM_MIN = 10.0
+V31_NON_DENSE_LARGE_FALLBACK_REPAIR_TRIGGER = (
+    "controller_v31_non_dense_large_fallback_repair_lock"
+)
 SEARCH_STATE_BIPOP_ACTION = "bipop_search_state_restart"
 REPAIR_BIPOP_SEARCH_STATE_ACTION = "repair_bipop_search_state_restart"
 PHASE_RESCUE_MULTISTART_ACTION = "phase_rescue_multistart"
@@ -340,6 +348,12 @@ class BipopRestartPlan:
 class EvidenceActionControllerV31RunState:
     dense_overlap: bool
     locked_policy_mode: str | None = None
+    non_dense_repair_locked: bool = False
+    non_dense_repair_lock_trigger: str = ""
+    _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
+        default_factory=list,
+        repr=False,
+    )
 
     @property
     def effective_policy_mode(self) -> str:
@@ -349,7 +363,7 @@ class EvidenceActionControllerV31RunState:
 
     @property
     def phase_rescue_enabled(self) -> bool:
-        return not self.dense_overlap
+        return not self.dense_overlap and not self.non_dense_repair_locked
 
     def lock_from_runtime_prefix(self, relations: list[OverlapRelation]) -> None:
         if not self.dense_overlap or self.locked_policy_mode is not None:
@@ -359,6 +373,87 @@ class EvidenceActionControllerV31RunState:
         )
         if selected_mode is not None:
             self.locked_policy_mode = selected_mode
+
+    def observe_guarded_relation_action(
+        self,
+        relation: OverlapRelation,
+        action: RelationActionDecision,
+    ) -> None:
+        if (
+            self.dense_overlap
+            or self.non_dense_repair_locked
+            or len(self._non_dense_guarded_prefix) >= V31_NON_DENSE_PREFIX_RELATION_COUNT
+        ):
+            return
+        self._non_dense_guarded_prefix.append(
+            (
+                relation.outer_iter,
+                len(relation.shared_vars),
+                action.relation_action_name,
+                action.trigger_reason,
+            )
+        )
+        if len(self._non_dense_guarded_prefix) < V31_NON_DENSE_PREFIX_RELATION_COUNT:
+            return
+        outer_iterations = {row[0] for row in self._non_dense_guarded_prefix}
+        shared_var_counts = [row[1] for row in self._non_dense_guarded_prefix]
+        action_names = [row[2] for row in self._non_dense_guarded_prefix]
+        trigger_reasons = [row[3] for row in self._non_dense_guarded_prefix]
+        should_lock = (
+            len(outer_iterations) == 1
+            and all(
+                count == V31_NON_DENSE_PREFIX_SHARED_VAR_COUNT
+                for count in shared_var_counts
+            )
+            and all(action_name == "fallback" for action_name in action_names)
+            and trigger_reasons[-2:]
+            == [
+                "action_value_delta_guard_exceeded",
+                "action_value_delta_guard_exceeded",
+            ]
+        )
+        if should_lock:
+            self.non_dense_repair_locked = True
+            self.non_dense_repair_lock_trigger = V31_NON_DENSE_PREFIX_REPAIR_TRIGGER
+
+    def lock_from_large_fallback_writeback(
+        self,
+        relation: OverlapRelation,
+        action: RelationActionDecision,
+        action_value_delta_norm: float,
+    ) -> None:
+        if (
+            self.dense_overlap
+            or self.non_dense_repair_locked
+            or self._non_dense_guarded_prefix
+            or len(relation.shared_vars) != V31_NON_DENSE_PREFIX_SHARED_VAR_COUNT
+            or action.relation_action_name != "fallback"
+            or action.trigger_reason != "no_deterministic_relation_rule_triggered"
+            or not relation.both_positive
+            or relation.delta_ratio_gap > V31_NON_DENSE_LARGE_FALLBACK_DELTA_RATIO_MAX
+            or action_value_delta_norm < V31_NON_DENSE_LARGE_FALLBACK_NORM_MIN
+        ):
+            return
+        self.non_dense_repair_locked = True
+        self.non_dense_repair_lock_trigger = V31_NON_DENSE_LARGE_FALLBACK_REPAIR_TRIGGER
+
+    def forced_relation_action(
+        self,
+        relation: OverlapRelation,
+    ) -> RelationActionDecision | None:
+        if (
+            self.dense_overlap
+            or not self.non_dense_repair_locked
+            or not relation.shared_vars
+        ):
+            return None
+        return RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name="reassign_repair",
+            action_family="reassign_repair",
+            confidence=1.0,
+            trigger_reason=self.non_dense_repair_lock_trigger,
+        )
 
 
 def build_evidence_action_controller_v31_run_state(
@@ -652,10 +747,21 @@ def overlap_action_name_for_lane(action_name: str) -> str:
     return action_name
 
 
-def refine_sigma_for_action(action_name: str, base_sigma: float) -> float:
+def refine_sigma_for_action(
+    action_name: str,
+    base_sigma: float,
+    *,
+    controller_v31_run_state: EvidenceActionControllerV31RunState | None = None,
+) -> float:
     if action_name == REPAIR_PROTECT_DEEP_REFINE_ACTION:
         return float(base_sigma) * REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
     if action_name in {REPAIR_PROTECT_REFINE_ACTION, REPAIR_PHASE_RESCUE_MULTISTART_ACTION}:
+        return float(base_sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
+    if (
+        is_evidence_action_controller_v31(action_name)
+        and controller_v31_run_state is not None
+        and not controller_v31_run_state.dense_overlap
+    ):
         return float(base_sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
     return float(base_sigma)
 
@@ -1569,6 +1675,75 @@ def apply_and_guard_action_to_relation(
     return guarded_action, adjusted_values, action_value_delta_norm
 
 
+def apply_relation_action_with_controller_v31(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    previous_values: np.ndarray | None = None,
+    current_values: np.ndarray | None = None,
+    previous_delta: float = 0.0,
+    current_delta: float = 0.0,
+    controller_v31_run_state: EvidenceActionControllerV31RunState | None = None,
+) -> tuple[RelationActionDecision, np.ndarray | None, float]:
+    forced_action = (
+        None
+        if controller_v31_run_state is None
+        else controller_v31_run_state.forced_relation_action(relation)
+    )
+    if forced_action is None:
+        executed_action, adjusted_values, action_value_delta_norm = (
+            apply_and_guard_action_to_relation(
+                relation=relation,
+                action=action,
+                previous_values=previous_values,
+                current_values=current_values,
+                previous_delta=previous_delta,
+                current_delta=current_delta,
+            )
+        )
+    else:
+        executed_action = forced_action
+        adjusted_values = apply_action_to_relation(
+            relation=relation,
+            action=executed_action,
+            previous_values=previous_values,
+            current_values=current_values,
+            previous_delta=previous_delta,
+            current_delta=current_delta,
+        )
+        action_value_delta_norm = (
+            0.0
+            if adjusted_values is None or current_values is None
+            else float(np.linalg.norm(adjusted_values - current_values))
+        )
+    if controller_v31_run_state is not None:
+        controller_v31_run_state.lock_from_large_fallback_writeback(
+            relation,
+            executed_action,
+            action_value_delta_norm,
+        )
+        controller_v31_run_state.observe_guarded_relation_action(
+            relation,
+            executed_action,
+        )
+        newly_forced_action = controller_v31_run_state.forced_relation_action(relation)
+        if forced_action is None and newly_forced_action is not None:
+            executed_action = newly_forced_action
+            adjusted_values = apply_action_to_relation(
+                relation=relation,
+                action=executed_action,
+                previous_values=previous_values,
+                current_values=current_values,
+                previous_delta=previous_delta,
+                current_delta=current_delta,
+            )
+            action_value_delta_norm = (
+                0.0
+                if adjusted_values is None or current_values is None
+                else float(np.linalg.norm(adjusted_values - current_values))
+            )
+    return executed_action, adjusted_values, action_value_delta_norm
+
+
 def _format_shared_vars(shared_vars: tuple[int, ...]) -> str:
     return ";".join(str(variable) for variable in shared_vars)
 
@@ -1705,6 +1880,8 @@ def _relation_policy_scorer(relation_policy_mode: str):
 def relation_policy_source_name(
     relation_policy_mode: str,
     effective_mode: str,
+    *,
+    action: RelationActionDecision | None = None,
 ) -> str:
     if relation_policy_mode == "controller_v3":
         controller_mode = (
@@ -1719,7 +1896,13 @@ def relation_policy_source_name(
             if effective_mode == "adaptive_v24"
             else "search_state_assisted"
         )
-        return f"controller_v31:{controller_mode}:{effective_mode}_relation_policy"
+        source = f"controller_v31:{controller_mode}:{effective_mode}_relation_policy"
+        if action is not None:
+            if action.trigger_reason == V31_NON_DENSE_PREFIX_REPAIR_TRIGGER:
+                return f"{source}:non_dense_prefix_repair_lock"
+            if action.trigger_reason == V31_NON_DENSE_LARGE_FALLBACK_REPAIR_TRIGGER:
+                return f"{source}:non_dense_large_fallback_repair_lock"
+        return source
     if relation_policy_mode == "shuffled":
         return "deterministic_shuffled_negative_control"
     if relation_policy_mode == "lagged":
@@ -2105,7 +2288,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     lower=info["lower"],
                     upper=info["upper"],
                 )
-            cc_sigma = refine_sigma_for_action(config.arac_action, config.sigma)
+            cc_sigma = refine_sigma_for_action(
+                config.arac_action,
+                config.sigma,
+                controller_v31_run_state=controller_v31_run_state,
+            )
             objective_function = lambda x_batch, dims=dims: fun(combine(x_batch, best_individual, dims))
             problem_cc = {
                 "fitness_function": objective_function,
@@ -2555,13 +2742,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         shuffled_source_action=shuffled_source_action,
                     )
                     action, adjusted_values, action_value_delta_norm = (
-                        apply_and_guard_action_to_relation(
+                        apply_relation_action_with_controller_v31(
                             relation=relation,
                             action=action,
                             previous_values=context.previous_values,
                             current_values=context.current_values,
                             previous_delta=context.previous_delta,
                             current_delta=context.current_delta,
+                            controller_v31_run_state=controller_v31_run_state,
                         )
                     )
                     if adjusted_values is not None:
@@ -2590,6 +2778,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             relation_policy_source=relation_policy_source_name(
                                 config.relation_policy_mode,
                                 effective_policy_mode,
+                                action=action,
                             ),
                             state_mutated=adjusted_values is not None,
                             action_value_delta_norm=action_value_delta_norm,

@@ -1333,14 +1333,267 @@ def test_controller_v31_dense_run_keeps_v24_for_weaker_positive_prefix() -> None
 
     assert state.effective_policy_mode == "adaptive_v24"
     assert state.phase_rescue_enabled is False
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V31,
+        0.5,
+        controller_v31_run_state=state,
+    ) == pytest.approx(0.5)
 
 
-def test_controller_v31_non_dense_run_preserves_composite_v26_and_rescue() -> None:
+def test_controller_v31_non_dense_run_selects_v26_precision_and_rescue() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)
 
     assert state.effective_policy_mode == "adaptive_v26"
     assert state.phase_rescue_enabled is True
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V31,
+        0.5,
+        controller_v31_run_state=state,
+    ) == pytest.approx(0.25)
+
+
+def test_controller_v31_non_dense_guarded_prefix_locks_subsequent_repair() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.10)
+    relations = [
+        runner.OverlapRelation(
+            relation_id=f"O0_{index}_{index + 1}",
+            problem_id="runtime_case",
+            outer_iter=0,
+            group_left=index,
+            group_right=index + 1,
+            shared_vars=(10 + index, 20 + index, 30 + index),
+            overlap_strength=3.0,
+            delta_signal=4.0,
+            rank_signal=0.5,
+            budget_remaining_ratio=0.8,
+            shared_var_count=3,
+        )
+        for index in range(4)
+    ]
+    prefix_actions = [
+        runner.RelationActionDecision(
+            relation_id=relations[0].relation_id,
+            action_name="fallback",
+            action_family="fallback",
+            confidence=0.0,
+            trigger_reason="no_deterministic_relation_rule_triggered",
+        ),
+        *[
+            runner.RelationActionDecision(
+                relation_id=relation.relation_id,
+                action_name="reassign_repair",
+                action_family="reassign_repair",
+                confidence=0.8,
+                trigger_reason="runtime_repair_candidate",
+            )
+            for relation in relations[1:3]
+        ],
+    ]
+
+    guarded_prefix = []
+    for relation, action in zip(relations[:3], prefix_actions, strict=True):
+        guarded_action, _adjusted, _norm = runner.apply_relation_action_with_controller_v31(
+            relation=relation,
+            action=action,
+            previous_values=np.zeros(3),
+            current_values=np.full(3, 4.0),
+            previous_delta=5.0,
+            current_delta=1.0,
+            controller_v31_run_state=state,
+        )
+        guarded_prefix.append(guarded_action)
+
+    assert [action.relation_action_name for action in guarded_prefix] == [
+        "fallback",
+        "fallback",
+        "reassign_repair",
+    ]
+    assert guarded_prefix[1].trigger_reason == "action_value_delta_guard_exceeded"
+    assert guarded_prefix[2].trigger_reason == "controller_v31_non_dense_prefix_repair_lock"
+    assert state.non_dense_repair_locked is True
+    assert state.phase_rescue_enabled is False
+
+    forced_action, adjusted, action_value_delta_norm = (
+        runner.apply_relation_action_with_controller_v31(
+            relation=relations[3],
+            action=runner.RelationActionDecision(
+                relation_id=relations[3].relation_id,
+                action_name="fallback",
+                action_family="fallback",
+                confidence=0.0,
+                trigger_reason="high_fallback_margin_keeps_native_overlap_blend",
+            ),
+            previous_values=np.zeros(3),
+            current_values=np.full(3, 4.0),
+            previous_delta=5.0,
+            current_delta=1.0,
+            controller_v31_run_state=state,
+        )
+    )
+
+    assert forced_action.relation_action_name == "reassign_repair"
+    assert forced_action.trigger_reason == "controller_v31_non_dense_prefix_repair_lock"
+    np.testing.assert_allclose(adjusted, np.zeros(3))
+    assert action_value_delta_norm > runner.ACTION_VALUE_DELTA_GUARD_THRESHOLD
+    assert runner.relation_policy_source_name(
+        "controller_v31",
+        "adaptive_v26",
+        action=forced_action,
+    ).endswith(":non_dense_prefix_repair_lock")
+
+
+def test_controller_v31_non_dense_large_unstable_fallback_locks_repair_immediately() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.10)
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10, 20, 30),
+        overlap_strength=3.0,
+        delta_signal=0.5,
+        rank_signal=0.0,
+        budget_remaining_ratio=0.8,
+        previous_delta=5.0,
+        current_delta=5.5,
+        delta_ratio_gap=0.09,
+        both_positive=True,
+        shared_var_count=3,
+    )
+
+    action, adjusted, action_value_delta_norm = (
+        runner.apply_relation_action_with_controller_v31(
+            relation=relation,
+            action=runner.RelationActionDecision(
+                relation_id=relation.relation_id,
+                action_name="fallback",
+                action_family="fallback",
+                confidence=0.0,
+                trigger_reason="no_deterministic_relation_rule_triggered",
+            ),
+            previous_values=np.zeros(3),
+            current_values=np.full(3, 40.0),
+            previous_delta=5.0,
+            current_delta=5.5,
+            controller_v31_run_state=state,
+        )
+    )
+
+    assert action.relation_action_name == "reassign_repair"
+    assert action.trigger_reason == "controller_v31_non_dense_large_fallback_repair_lock"
+    np.testing.assert_allclose(adjusted, np.full(3, 40.0))
+    assert action_value_delta_norm == pytest.approx(0.0)
+    assert state.non_dense_repair_locked is True
+    assert state.phase_rescue_enabled is False
+    assert runner.relation_policy_source_name(
+        "controller_v31",
+        "adaptive_v26",
+        action=action,
+    ).endswith(":non_dense_large_fallback_repair_lock")
+
+
+@pytest.mark.parametrize(
+    ("delta_ratio_gap", "current_value"),
+    [
+        (0.60, 40.0),
+        (0.09, 1.0),
+    ],
+)
+def test_controller_v31_non_dense_large_fallback_requires_low_delta_gap_and_large_shift(
+    delta_ratio_gap: float,
+    current_value: float,
+) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.10)
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10, 20, 30),
+        overlap_strength=3.0,
+        delta_signal=4.0,
+        rank_signal=0.5,
+        budget_remaining_ratio=0.8,
+        previous_delta=5.0,
+        current_delta=5.5,
+        delta_ratio_gap=delta_ratio_gap,
+        both_positive=True,
+        shared_var_count=3,
+    )
+
+    action, _adjusted, _norm = runner.apply_relation_action_with_controller_v31(
+        relation=relation,
+        action=runner.RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name="fallback",
+            action_family="fallback",
+            confidence=0.0,
+            trigger_reason="no_deterministic_relation_rule_triggered",
+        ),
+        previous_values=np.zeros(3),
+        current_values=np.full(3, current_value),
+        previous_delta=5.0,
+        current_delta=5.5,
+        controller_v31_run_state=state,
+    )
+
+    assert action.relation_action_name == "fallback"
+    assert state.non_dense_repair_locked is False
+
+
+@pytest.mark.parametrize(
+    "prefix_actions",
+    [
+        [
+            ("fallback", "no_deterministic_relation_rule_triggered"),
+            ("fallback", "no_deterministic_relation_rule_triggered"),
+            ("fallback", "high_fallback_margin_keeps_native_overlap_blend"),
+        ],
+        [
+            ("fallback", "no_deterministic_relation_rule_triggered"),
+            ("coordinate", "adaptive_v2_conflict_coordinate_evidence"),
+            ("fallback", "action_value_delta_guard_exceeded"),
+        ],
+    ],
+)
+def test_controller_v31_non_dense_similar_three_relation_prefix_does_not_lock_repair(
+    prefix_actions: list[tuple[str, str]],
+) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.10)
+
+    for index, (action_name, trigger_reason) in enumerate(prefix_actions):
+        relation = runner.OverlapRelation(
+            relation_id=f"O0_{index}_{index + 1}",
+            problem_id="runtime_case",
+            outer_iter=0,
+            group_left=index,
+            group_right=index + 1,
+            shared_vars=(10 + index, 20 + index, 30 + index),
+            overlap_strength=3.0,
+            delta_signal=0.0,
+            rank_signal=0.5,
+            budget_remaining_ratio=0.8,
+            shared_var_count=3,
+        )
+        state.observe_guarded_relation_action(
+            relation,
+            runner.RelationActionDecision(
+                relation_id=relation.relation_id,
+                action_name=action_name,
+                action_family=("coordinate" if action_name == "coordinate" else "fallback"),
+                confidence=0.0,
+                trigger_reason=trigger_reason,
+            ),
+        )
+
+    assert state.non_dense_repair_locked is False
 
 
 def test_controller_v31_never_enables_cc_harm_full_budget_takeover() -> None:

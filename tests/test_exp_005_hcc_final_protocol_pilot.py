@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import csv
+import tomllib
 from pathlib import Path
+
+import pytest
 
 from arac.backends.hcc import HccAobExecutionRequest, HccAobExecutionResult
 
@@ -54,12 +57,14 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
         DEFAULT_MAX_FES,
         DEFAULT_PROBLEMS,
         DEFAULT_SEEDS,
+        PINNED_FINAL_PROTOCOL_ENVIRONMENT,
         run_hcc_final_protocol_pilot,
     )
 
     output = run_hcc_final_protocol_pilot(
         output_dir=tmp_path / "exp005",
         execution_runner=_fake_result,
+        environment_probe=lambda _python: dict(PINNED_FINAL_PROTOCOL_ENVIRONMENT),
         jobs=1,
     )
 
@@ -116,6 +121,66 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
     assert {row["unchanged"] for row in input_rows} == {"1"}
 
 
+def test_final_protocol_environment_gate_reports_every_mismatch() -> None:
+    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+        PINNED_FINAL_PROTOCOL_ENVIRONMENT,
+        _final_protocol_environment_failures,
+    )
+
+    observed = dict(PINNED_FINAL_PROTOCOL_ENVIRONMENT)
+    observed["python"] = "3.12.7"
+    observed["numpy"] = "2.1.3"
+    observed["matplotlib"] = "3.10.9"
+
+    assert _final_protocol_environment_failures(observed) == [
+        "python:expected=3.12.13,observed=3.12.7",
+        "numpy:expected=2.3.5,observed=2.1.3",
+        "matplotlib:expected=3.11.0,observed=3.10.9",
+    ]
+
+
+def test_final_protocol_rejects_environment_before_optimizer_execution(
+    tmp_path: Path,
+) -> None:
+    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+        PINNED_FINAL_PROTOCOL_ENVIRONMENT,
+        run_hcc_final_protocol_pilot,
+    )
+
+    execution_requests = []
+    observed = dict(PINNED_FINAL_PROTOCOL_ENVIRONMENT)
+    observed["scipy"] = "1.17.1"
+
+    with pytest.raises(
+        RuntimeError,
+        match=r"final protocol environment gate failed: scipy:expected=1\.18\.0,observed=1\.17\.1",
+    ):
+        run_hcc_final_protocol_pilot(
+            output_dir=tmp_path / "rejected",
+            execution_runner=lambda request: execution_requests.append(request),
+            environment_probe=lambda _python: observed,
+            problem_ids=("E1",),
+            seeds=(1,),
+        )
+
+    assert execution_requests == []
+    assert not (tmp_path / "rejected").exists()
+
+
+def test_hcc_optional_dependencies_match_the_pinned_final_environment() -> None:
+    pyproject_path = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    with pyproject_path.open("rb") as handle:
+        pyproject = tomllib.load(handle)
+
+    assert pyproject["project"]["optional-dependencies"]["hcc"] == [
+        "matplotlib==3.11.0",
+        "numpy==2.3.5",
+        "PyYAML==6.0.3",
+        "scipy==1.18.0",
+        "torch==2.12.1",
+    ]
+
+
 def test_canonical_protocol_gate_rejects_input_fe_leakage_and_no_harm_failures() -> None:
     from experiments.exp_005_hcc_final_protocol_pilot.run import (
         _canonical_protocol_gate_failures,
@@ -137,11 +202,15 @@ def test_canonical_protocol_gate_rejects_input_fe_leakage_and_no_harm_failures()
 
 
 def test_exp_005_writes_aob_protocol_audit(tmp_path: Path) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import run_hcc_final_protocol_pilot
+    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+        PINNED_FINAL_PROTOCOL_ENVIRONMENT,
+        run_hcc_final_protocol_pilot,
+    )
 
     output = run_hcc_final_protocol_pilot(
         output_dir=tmp_path / "exp005",
         execution_runner=_fake_result,
+        environment_probe=lambda _python: dict(PINNED_FINAL_PROTOCOL_ENVIRONMENT),
         jobs=1,
     )
 
