@@ -26,6 +26,7 @@ from arac.policy import ActionDecision
 DEFAULT_HCC_MAIN_ROOT = Path("E:/HCC-main")
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
 ARAC_HCC_SMOKE_RUNNER = ARAC_REPO_ROOT / "HCC_SRC" / "arac_hcc_smoke_runner.py"
+DEFAULT_AOB_DATA_ROOT = ARAC_REPO_ROOT / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
 TOTAL_AOB_FE = 3_000_000
 AOB_FUNCTION_NAMES = {
     "E": "elliptic",
@@ -141,6 +142,7 @@ class HccAobExecutionRequest:
     max_fes: int
     output_dir: Path
     hcc_root: Path = DEFAULT_HCC_MAIN_ROOT
+    aob_data_root: Path = DEFAULT_AOB_DATA_ROOT
     python_executable: str = "python"
     timestamp: str = "arac-hcc-smoke"
     config_name: str = "quick_smoke"
@@ -173,6 +175,12 @@ class HccAobExecutionResult:
     action_trace_path: Path | None = None
     action_trace_rows: int = 0
     optimizer_final_fe_used: int | None = None
+    global_phase_fe: int | None = None
+    cc_phase_fe: int | None = None
+    rescue_fe: int | None = None
+    refresh_fe: int | None = None
+    separable_continuation_fe: int | None = None
+    overhead_fe: int | None = None
 
     def to_offline_row(self) -> dict[str, str]:
         actual_fe_used = (
@@ -252,6 +260,155 @@ HCC_ACTION_EFFECTS = {
         False,
         "no_hcc_runtime_consumer_yet",
     ),
+    "budget_shift_mean_blend": (
+        "optimizer_budget_and_mean_trajectory",
+        {"runtime_hook": "budget_shift_mean_blend"},
+        "hcc_trajectory_runtime_consumed",
+        True,
+        "",
+    ),
+    "bipop_search_state_restart": (
+        "optimizer_search_state_restart",
+        {"runtime_hook": "bipop_search_state_restart"},
+        "hcc_search_state_runtime_consumed",
+        True,
+        "",
+    ),
+    "phase_rescue_multistart": (
+        "optimizer_phase_rescue_multistart",
+        {
+            "runtime_hook": "phase_rescue_multistart",
+            "acceptance_rule": "best_improving_candidate_only",
+        },
+        "hcc_phase_rescue_runtime_consumed",
+        True,
+        "",
+    ),
+    "repair_phase_rescue_multistart": (
+        "repair_guided_phase_rescue_multistart",
+        {
+            "overlap_runtime_hook": "overlap_repair_rule",
+            "search_state_runtime_hook": "phase_rescue_multistart",
+            "acceptance_rule": "best_improving_candidate_only",
+        },
+        "hcc_repair_phase_rescue_runtime_consumed",
+        True,
+        "",
+    ),
+    "cc_harm_guarded_sep_refresh": (
+        "cc_harm_guarded_sep_or_nda_refresh",
+        {
+            "runtime_hook": "cc_harm_guarded_sep_refresh",
+            "guard": "phase_i_or_current_incumbent_no_harm",
+            "refresh_backend": "full_space_mmes_nda_continuation",
+            "acceptance_rule": "guarded_incumbent_improving_candidate_only",
+        },
+        "hcc_cc_harm_guarded_refresh_runtime_consumed",
+        True,
+        "",
+    ),
+    "separable_cmaes_dispatch_action": (
+        "full_space_diagonal_separable_search_takeover",
+        {
+            "runtime_hook": "separable_cmaes_dispatch_action",
+            "backend": "direct_separable_cmaes",
+            "search_distribution": "diagonal_sigma_full_space",
+            "acceptance_rule": "optimizer_best_so_far",
+        },
+        "hcc_direct_separable_cmaes_runtime_consumed",
+        True,
+        "",
+    ),
+    "arac_evidence_action_controller_v1": (
+        "evidence_action_runtime_controller",
+        {
+            "relation_runtime_hook": "adaptive_v26_relation_dispatch",
+            "overlap_runtime_hook": "evidence_triggered_overlap_action",
+            "search_state_runtime_hooks": [
+                "phase_rescue_multistart",
+                "cc_harm_guarded_sep_refresh",
+            ],
+            "dispatch_boundary": "runtime_evidence_only",
+        },
+        "hcc_evidence_action_controller_runtime_consumed",
+        True,
+        "",
+    ),
+    "arac_evidence_action_controller_v2": (
+        "evidence_action_runtime_controller_v2",
+        {
+            "relation_runtime_hook": "adaptive_v24_relation_dispatch",
+            "overlap_runtime_hook": "relation_first_evidence_triggered_overlap_action",
+            "search_state_runtime_hooks": [],
+            "dispatch_boundary": "runtime_evidence_only",
+        },
+        "hcc_evidence_action_controller_v2_runtime_consumed",
+        True,
+        "",
+    ),
+    "arac_evidence_action_controller_v3": (
+        "evidence_action_runtime_controller_v3",
+        {
+            "relation_runtime_hook": "controller_v3_relation_dispatch",
+            "mode_selector": "early_runtime_overlap_relation_evidence",
+            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
+            "search_state_runtime_hooks": [
+                "phase_rescue_multistart",
+                "cc_harm_guarded_sep_refresh",
+            ],
+            "dispatch_boundary": "runtime_evidence_only",
+        },
+        "hcc_evidence_action_controller_v3_runtime_consumed",
+        True,
+        "",
+    ),
+    "arac_evidence_action_controller_v31": (
+        "evidence_action_runtime_controller_v31",
+        {
+            "relation_runtime_hook": "controller_v31_guarded_relation_dispatch",
+            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
+            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
+            "search_state_runtime_hooks": [
+                "phase_rescue_multistart",
+                "cc_harm_guarded_sep_refresh",
+            ],
+            "guard": "stable_relation_first_no_harm_gate",
+            "dispatch_boundary": "runtime_evidence_only",
+        },
+        "hcc_evidence_action_controller_v31_runtime_consumed",
+        True,
+        "",
+    ),
+    "repair_bipop_search_state_restart": (
+        "repair_guided_optimizer_search_state_restart",
+        {
+            "overlap_runtime_hook": "overlap_repair_rule",
+            "search_state_runtime_hook": "bipop_search_state_restart",
+        },
+        "hcc_repair_bipop_runtime_consumed",
+        True,
+        "",
+    ),
+    "repair_protect_refine": (
+        "repair_guided_local_refinement",
+        {
+            "overlap_runtime_hook": "overlap_repair_rule",
+            "optimizer_runtime_hook": "protected_small_sigma_refine",
+        },
+        "hcc_repair_refine_runtime_consumed",
+        True,
+        "",
+    ),
+    "repair_protect_deep_refine": (
+        "repair_guided_deep_local_refinement",
+        {
+            "overlap_runtime_hook": "overlap_repair_rule",
+            "optimizer_runtime_hook": "protected_deep_sigma_refine",
+        },
+        "hcc_repair_deep_refine_runtime_consumed",
+        True,
+        "",
+    ),
     "repair_shared_variable_binding": (
         "shared_variable_owner_rebinding",
         {"runtime_hook": "overlap_repair_rule"},
@@ -303,6 +460,42 @@ def _parse_aob_info(path: Path) -> dict[str, object]:
             continue
         values[key] = int(number) if number.is_integer() else number
     return values
+
+
+def required_aob_data_files(data_root: Path | str, function_id: int) -> tuple[Path, ...]:
+    """Return the files consumed by one AOB function id."""
+
+    root = Path(data_root).resolve()
+    prefix = f"F{int(function_id)}"
+    info_path = root / f"{prefix}-info.txt"
+    files = [
+        info_path,
+        root / f"{prefix}-design.txt",
+        root / f"{prefix}-p.txt",
+        root / f"{prefix}-s.txt",
+        root / f"{prefix}-w.txt",
+        root / f"{prefix}-xopt.txt",
+    ]
+    if info_path.is_file():
+        info = _parse_aob_info(info_path)
+        rotation_sizes = {int(size) for size in info.get("subgroups_type", [])}
+        files.extend(root / f"{prefix}-R{size}.txt" for size in sorted(rotation_sizes))
+    return tuple(files)
+
+
+def validate_aob_data_root(data_root: Path | str, function_id: int) -> Path:
+    """Fail before optimizer execution when canonical AOB inputs are incomplete."""
+
+    root = Path(data_root).resolve()
+    if not root.is_dir():
+        raise FileNotFoundError(f"AOB data root does not exist: {root}")
+    missing = [path.name for path in required_aob_data_files(root, function_id) if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            f"AOB data root is incomplete for F{function_id}: {root}; "
+            f"missing={','.join(missing)}"
+        )
+    return root
 
 
 def _read_permutation(path: Path) -> list[int]:
@@ -430,6 +623,7 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError("arac_action_file is not supported by the HCC smoke runner yet")
     if request.budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
+    aob_data_root = validate_aob_data_root(request.aob_data_root, function_id)
 
     argv = [
         request.python_executable,
@@ -444,6 +638,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         str(request.max_fes),
         "--output-root",
         str(request.output_dir),
+        "--aob-data-root",
+        str(aob_data_root),
         "--timestamp",
         request.timestamp,
         "--arac-action",
@@ -479,6 +675,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             max_fes=request.max_fes,
             output_dir=Path(request.output_dir),
             hcc_root=Path(request.hcc_root),
+            aob_data_root=Path(request.aob_data_root),
             python_executable=request.python_executable or sys.executable,
             timestamp=request.timestamp,
             config_name=request.config_name,
@@ -526,6 +723,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         )
     )
     action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
+    budget_breakdown = _parse_hcc_budget_summary(Path(request.output_dir))
     return HccAobExecutionResult(
         problem_id=_problem_parts(request.problem_id)[0],
         seed=request.seed,
@@ -542,6 +740,14 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         action_trace_path=action_trace_path,
         action_trace_rows=action_trace_rows,
         optimizer_final_fe_used=optimizer_final_fe_used,
+        global_phase_fe=budget_breakdown.get("global_phase_fe"),
+        cc_phase_fe=budget_breakdown.get("cc_phase_fe"),
+        rescue_fe=budget_breakdown.get("rescue_fe"),
+        refresh_fe=budget_breakdown.get("refresh_fe"),
+        separable_continuation_fe=budget_breakdown.get(
+            "separable_continuation_fe"
+        ),
+        overhead_fe=budget_breakdown.get("overhead_fe"),
     )
 
 
@@ -593,19 +799,37 @@ def _parse_hcc_evaluation_record_with_optimizer_final_fe(
 
 
 def _parse_hcc_budget_summary_final_fe(output_dir: Path) -> int | None:
+    summary = _parse_hcc_budget_summary(output_dir)
+    for field in ("fitness_record_fe", "optimizer_reported_fe"):
+        if field in summary:
+            return summary[field]
+    return None
+
+
+def _parse_hcc_budget_summary(output_dir: Path) -> dict[str, int]:
     summaries = sorted(Path(output_dir).rglob("*budget_summary.csv"))
     if not summaries:
-        return None
+        return {}
     with summaries[-1].open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     if not rows:
-        return None
+        return {}
     row = rows[-1]
-    for field in ("fitness_record_fe", "optimizer_reported_fe"):
+    parsed: dict[str, int] = {}
+    for field in (
+        "fitness_record_fe",
+        "optimizer_reported_fe",
+        "global_phase_fe",
+        "cc_phase_fe",
+        "rescue_fe",
+        "refresh_fe",
+        "separable_continuation_fe",
+        "overhead_fe",
+    ):
         value = row.get(field)
         if value not in (None, ""):
-            return int(float(value))
-    return None
+            parsed[field] = int(float(value))
+    return parsed
 
 
 def _find_hcc_action_trace(output_dir: Path) -> tuple[Path | None, int]:
@@ -727,4 +951,73 @@ def hcc_backend_semantics_for(
         return BackendSemanticsDiff(variable_owner_changed=True)
     if decision.action_family == ActionFamily.COORDINATE:
         return BackendSemanticsDiff(coordination_mode_changed=True)
+    if decision.action_family == ActionFamily.TRAJECTORY:
+        if decision.action_name in {"repair_protect_refine", "repair_protect_deep_refine"}:
+            return BackendSemanticsDiff(
+                variable_owner_changed=True,
+                budget_allocation_changed=True,
+                acceptance_rule_changed=True,
+            )
+        if decision.action_name in {
+            "repair_bipop_search_state_restart",
+            "repair_phase_rescue_multistart",
+        }:
+            return BackendSemanticsDiff(
+                variable_owner_changed=True,
+                budget_allocation_changed=True,
+                update_order_changed=True,
+                acceptance_rule_changed=True,
+            )
+        if decision.action_name == "cc_harm_guarded_sep_refresh":
+            return BackendSemanticsDiff(
+                budget_allocation_changed=True,
+                update_order_changed=True,
+                acceptance_rule_changed=True,
+            )
+        if decision.action_name == "separable_cmaes_dispatch_action":
+            return BackendSemanticsDiff(
+                budget_allocation_changed=True,
+                update_order_changed=True,
+                acceptance_rule_changed=True,
+            )
+        if decision.action_name == "arac_evidence_action_controller_v1":
+            return BackendSemanticsDiff(
+                variable_owner_changed=True,
+                relation_handling_changed=True,
+                coordination_mode_changed=True,
+                budget_allocation_changed=True,
+                update_order_changed=True,
+                acceptance_rule_changed=True,
+            )
+        if decision.action_name == "arac_evidence_action_controller_v2":
+            return BackendSemanticsDiff(
+                variable_owner_changed=True,
+                relation_handling_changed=True,
+                coordination_mode_changed=True,
+            )
+        if decision.action_name == "arac_evidence_action_controller_v3":
+            return BackendSemanticsDiff(
+                variable_owner_changed=True,
+                relation_handling_changed=True,
+                coordination_mode_changed=True,
+                budget_allocation_changed=True,
+                update_order_changed=True,
+                acceptance_rule_changed=True,
+            )
+        if decision.action_name == "arac_evidence_action_controller_v31":
+            return BackendSemanticsDiff(
+                variable_owner_changed=True,
+                relation_handling_changed=True,
+                coordination_mode_changed=True,
+                budget_allocation_changed=True,
+                update_order_changed=True,
+                acceptance_rule_changed=True,
+            )
+        if decision.action_name in {"bipop_search_state_restart", "phase_rescue_multistart"}:
+            return BackendSemanticsDiff(
+                budget_allocation_changed=True,
+                update_order_changed=True,
+                acceptance_rule_changed=True,
+            )
+        return BackendSemanticsDiff(budget_allocation_changed=True)
     return BackendSemanticsDiff()

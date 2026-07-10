@@ -48,6 +48,692 @@ def test_hcc_smoke_runner_parses_arac_action_argument() -> None:
     assert args.enable_relation_dispatch is False
 
 
+def test_hcc_smoke_runner_parses_explicit_aob_data_root(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+    data_root = tmp_path / "canonical-aob-data"
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "6",
+            "--output-root",
+            "out",
+            "--seed",
+            "3",
+            "--max-fes",
+            "3000000",
+            "--aob-data-root",
+            str(data_root),
+        ]
+    )
+
+    assert args.aob_data_root == data_root.resolve()
+
+
+def test_runner_aob_loaders_ignore_cwd_when_data_root_is_explicit(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    data_root = Path(__file__).resolve().parents[1] / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+    monkeypatch.chdir(tmp_path)
+
+    metadata = runner.load_aob_metadata(6, data_root)
+    permutation = runner.load_permutation_vector(6, data_root)
+
+    assert int(metadata["dimension"]) == 1000
+    assert len(permutation) == 1000
+
+
+def test_aob_benchmark_forwards_explicit_data_root(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _load_runner_module()
+    import AOB.AOB as aob_module
+
+    data_root = (tmp_path / "aob-data").resolve()
+    captured: dict[str, object] = {}
+
+    def fake_elliptic(function_id, output_path, data_dir=None):
+        captured.update(
+            function_id=function_id,
+            output_path=output_path,
+            data_dir=data_dir,
+        )
+        return object()
+
+    monkeypatch.setattr(aob_module, "elliptic", fake_elliptic)
+
+    benchmark = aob_module.Benchmark(None, data_dir=data_root)
+    benchmark.get_function("elliptic", 6)
+
+    assert captured["data_dir"] == data_root
+
+
+def _write_minimal_aob_data_root(root: Path, function_id: int = 6) -> None:
+    root.mkdir(parents=True)
+    prefix = f"F{function_id}"
+    (root / f"{prefix}-info.txt").write_text(
+        "dimension: 2\n"
+        "dimension_real: 2\n"
+        "sub_num: 1\n"
+        "subgroups: [2]\n"
+        "subgroups_type: [2]\n"
+        "overlap_degree: 0\n",
+        encoding="utf-8",
+    )
+    for suffix in ("design", "p", "s", "w", "xopt", "R2"):
+        (root / f"{prefix}-{suffix}.txt").write_text(
+            f"{prefix}-{suffix}\n",
+            encoding="utf-8",
+        )
+
+
+def test_aob_input_snapshot_is_deterministic_and_complete(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+    data_root = tmp_path / "aob-data"
+    _write_minimal_aob_data_root(data_root)
+
+    first = runner.snapshot_aob_inputs(6, data_root)
+    second = runner.snapshot_aob_inputs(6, data_root)
+
+    assert first == second
+    assert list(first) == sorted(first)
+    assert set(first) == {
+        "F6-R2.txt",
+        "F6-design.txt",
+        "F6-info.txt",
+        "F6-p.txt",
+        "F6-s.txt",
+        "F6-w.txt",
+        "F6-xopt.txt",
+    }
+
+
+def test_aob_input_audit_rejects_file_change(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+    data_root = tmp_path / "aob-data"
+    _write_minimal_aob_data_root(data_root)
+    before = runner.snapshot_aob_inputs(6, data_root)
+    (data_root / "F6-p.txt").write_text("changed\n", encoding="utf-8")
+    after = runner.snapshot_aob_inputs(6, data_root)
+
+    rows = runner.build_aob_input_audit_rows("E6", before, after)
+
+    changed = [row for row in rows if row["file"] == "F6-p.txt"]
+    assert changed[0]["unchanged"] == "0"
+    with pytest.raises(RuntimeError, match="AOB input changed during E6"):
+        runner.require_unchanged_aob_inputs("E6", rows)
+
+
+def test_hcc_smoke_runner_parses_budget_shift_mean_blend_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "4",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--arac-action",
+            "budget_shift_mean_blend",
+        ]
+    )
+
+    assert args.arac_action == "budget_shift_mean_blend"
+
+
+def test_hcc_smoke_runner_parses_bipop_search_state_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "4",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--arac-action",
+            "bipop_search_state_restart",
+        ]
+    )
+
+    assert args.arac_action == "bipop_search_state_restart"
+
+
+def test_hcc_smoke_runner_parses_cc_harm_guarded_sep_refresh_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "4",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "cc_harm_guarded_sep_refresh",
+        ]
+    )
+
+    assert args.arac_action == "cc_harm_guarded_sep_refresh"
+
+
+def test_hcc_smoke_runner_parses_separable_cmaes_dispatch_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "5",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "separable_cmaes_dispatch_action",
+        ]
+    )
+
+    assert args.arac_action == "separable_cmaes_dispatch_action"
+
+
+def test_hcc_smoke_runner_parses_repair_bipop_search_state_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "5",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--arac-action",
+            "repair_bipop_search_state_restart",
+        ]
+    )
+
+    assert args.arac_action == "repair_bipop_search_state_restart"
+
+
+def test_hcc_smoke_runner_parses_repair_protect_refine_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "5",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--arac-action",
+            "repair_protect_refine",
+        ]
+    )
+
+    assert args.arac_action == "repair_protect_refine"
+
+
+def test_hcc_smoke_runner_parses_repair_protect_deep_refine_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "3",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--arac-action",
+            "repair_protect_deep_refine",
+        ]
+    )
+
+    assert args.arac_action == "repair_protect_deep_refine"
+
+
+def test_hcc_smoke_runner_parses_phase_rescue_multistart_action() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "4",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--arac-action",
+            "phase_rescue_multistart",
+        ]
+    )
+
+    assert args.arac_action == "phase_rescue_multistart"
+
+
+def test_hcc_smoke_runner_parses_evidence_action_controller() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "4",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "arac_evidence_action_controller_v1",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v26",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v1"
+    assert args.enable_relation_dispatch is True
+    assert args.relation_policy == "adaptive_v26"
+
+
+def test_hcc_smoke_runner_parses_evidence_action_controller_v2() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "schwefel",
+            "--ids",
+            "6",
+            "--output-root",
+            "out",
+            "--seed",
+            "2",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "arac_evidence_action_controller_v2",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v24",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v2"
+    assert args.enable_relation_dispatch is True
+    assert args.relation_policy == "adaptive_v24"
+
+
+def test_hcc_smoke_runner_parses_evidence_action_controller_v3() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "schwefel",
+            "--ids",
+            "6",
+            "--output-root",
+            "out",
+            "--seed",
+            "2",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "arac_evidence_action_controller_v3",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v3",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v3"
+    assert args.enable_relation_dispatch is True
+    assert args.relation_policy == "controller_v3"
+
+
+def test_hcc_smoke_runner_parses_evidence_action_controller_v31() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "schwefel",
+            "--ids",
+            "6",
+            "--output-root",
+            "out",
+            "--seed",
+            "2",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "arac_evidence_action_controller_v31",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v31"
+    assert args.enable_relation_dispatch is True
+    assert args.relation_policy == "controller_v31"
+
+
+@pytest.mark.parametrize("action_name", ["budget_shift_only", "mean_blend_only"])
+def test_hcc_smoke_runner_parses_trajectory_diagnostic_actions(action_name: str) -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "4",
+            "--output-root",
+            "out",
+            "--max-fes",
+            "2000",
+            "--arac-action",
+            action_name,
+        ]
+    )
+
+    assert args.arac_action == action_name
+
+
+def test_trajectory_budget_shift_redistributes_same_total() -> None:
+    runner = _load_runner_module()
+
+    budgets = runner.allocate_trajectory_group_budgets(
+        total_budget=90,
+        population_sizes=[4, 4, 4],
+        overlap_support=[0.5, 1.0, 0.5],
+    )
+
+    assert sum(budgets) == 90
+    assert all(budget >= 4 for budget in budgets)
+    assert budgets[1] > budgets[0]
+    assert budgets[1] > budgets[2]
+
+
+def test_trajectory_budget_shift_requires_runtime_contribution_signal() -> None:
+    runner = _load_runner_module()
+
+    budgets = runner.allocate_trajectory_group_budgets(
+        total_budget=90,
+        population_sizes=[4, 4, 4],
+        overlap_support=[0.5, 1.0, 0.5],
+        contribution_credit=[0.0, 0.0, 0.0],
+    )
+
+    assert sum(budgets) == 90
+    assert max(budgets) - min(budgets) <= 1
+
+
+def test_trajectory_budget_shift_follows_runtime_contribution_credit() -> None:
+    runner = _load_runner_module()
+
+    budgets = runner.allocate_trajectory_group_budgets(
+        total_budget=90,
+        population_sizes=[4, 4, 4],
+        overlap_support=[0.5, 1.0, 0.5],
+        contribution_credit=[0.0, 10.0, 0.0],
+    )
+
+    assert sum(budgets) == 90
+    assert budgets[1] > budgets[0]
+    assert budgets[1] > budgets[2]
+
+
+def test_trajectory_credit_requires_multiple_positive_groups() -> None:
+    runner = _load_runner_module()
+
+    assert not runner.has_sufficient_trajectory_credit([])
+    assert not runner.has_sufficient_trajectory_credit([0.0, 10.0, 0.0])
+    assert runner.has_sufficient_trajectory_credit([1.0, 10.0, 0.0])
+
+
+def test_trajectory_mean_blend_uses_cached_optimizer_mean() -> None:
+    runner = _load_runner_module()
+
+    blended, applied_count, delta_norm = runner.blend_trajectory_mean(
+        base_mean=np.array([0.0, 10.0]),
+        dims=[1, 2],
+        variable_mean_cache={2: 20.0},
+        lower=-100.0,
+        upper=100.0,
+        strength=0.25,
+    )
+
+    np.testing.assert_allclose(blended, np.array([0.0, 12.5]))
+    assert applied_count == 1
+    assert delta_norm == pytest.approx(2.5)
+
+
+def test_trajectory_action_preserves_native_overlap_blend() -> None:
+    runner = _load_runner_module()
+
+    adjusted = runner.apply_arac_overlap_action(
+        action_name="budget_shift_mean_blend",
+        previous_values=np.array([100.0]),
+        current_values=np.array([0.0]),
+        previous_delta=10.0,
+        current_delta=1.0,
+    )
+
+    np.testing.assert_allclose(adjusted, np.array([1000.0 / 11.0]))
+
+
+def test_bipop_restart_plan_alternates_large_and_small_restart_modes() -> None:
+    runner = _load_runner_module()
+
+    first = runner.build_bipop_restart_plan(
+        group_index=0,
+        restart_count=0,
+        base_population_size=8,
+        base_sigma=0.5,
+        base_budget=100,
+        remaining_fes=100,
+        rng=np.random.default_rng(1),
+    )
+    second = runner.build_bipop_restart_plan(
+        group_index=0,
+        restart_count=1,
+        base_population_size=8,
+        base_sigma=0.5,
+        base_budget=100,
+        remaining_fes=100,
+        rng=np.random.default_rng(1),
+    )
+
+    assert first.restart_mode == "large_ipop"
+    assert first.population_size == 16
+    assert first.sigma == pytest.approx(1.0)
+    assert first.escape_budget % first.population_size == 0
+    assert second.restart_mode == "small_bipop"
+    assert 2 <= second.population_size <= 8
+    assert second.sigma <= 1.0
+    assert second.escape_budget % second.population_size == 0
+
+
+def test_bipop_restart_plan_respects_remaining_budget() -> None:
+    runner = _load_runner_module()
+
+    plan = runner.build_bipop_restart_plan(
+        group_index=0,
+        restart_count=0,
+        base_population_size=8,
+        base_sigma=0.5,
+        base_budget=100,
+        remaining_fes=15,
+        rng=np.random.default_rng(1),
+    )
+
+    assert plan.population_size == 16
+    assert plan.escape_budget == 0
+
+
+def test_bipop_restart_plan_keeps_small_population_safe_for_hcc_cmaes() -> None:
+    runner = _load_runner_module()
+
+    plan = runner.build_bipop_restart_plan(
+        group_index=0,
+        restart_count=1,
+        base_population_size=8,
+        base_sigma=0.5,
+        base_budget=20,
+        remaining_fes=60,
+        rng=np.random.default_rng(1),
+    )
+
+    assert plan.population_size >= 4
+    assert int(plan.population_size / 2) > 1
+
+
+def test_bipop_search_state_lane_uses_native_overlap_action() -> None:
+    runner = _load_runner_module()
+
+    assert runner.overlap_action_name_for_lane("bipop_search_state_restart") == "conservative_no_action"
+
+
+def test_phase_rescue_multistart_uses_native_overlap_and_search_state() -> None:
+    runner = _load_runner_module()
+
+    assert runner.overlap_action_name_for_lane("phase_rescue_multistart") == "conservative_no_action"
+    assert runner.is_phase_rescue_multistart_action("phase_rescue_multistart")
+    assert runner.is_search_state_action("phase_rescue_multistart")
+
+
+def test_repair_bipop_lane_uses_repair_overlap_action_and_bipop_search_state() -> None:
+    runner = _load_runner_module()
+
+    assert runner.overlap_action_name_for_lane("repair_bipop_search_state_restart") == "repair_shared_variable_binding"
+    assert runner.is_bipop_search_state_action("repair_bipop_search_state_restart")
+
+
+def test_repair_protect_refine_uses_repair_overlap_and_refine_sigma() -> None:
+    runner = _load_runner_module()
+
+    assert runner.overlap_action_name_for_lane("repair_protect_refine") == "repair_shared_variable_binding"
+    assert runner.refine_sigma_for_action("repair_protect_refine", 0.5) == pytest.approx(0.25)
+    assert runner.overlap_action_name_for_lane("repair_protect_deep_refine") == "repair_shared_variable_binding"
+    assert runner.refine_sigma_for_action("repair_protect_deep_refine", 0.5) == pytest.approx(0.125)
+    assert runner.refine_sigma_for_action("repair_shared_variable_binding", 0.5) == pytest.approx(0.5)
+
+
+def test_bipop_restart_requires_consecutive_stagnation_and_cooldown() -> None:
+    runner = _load_runner_module()
+
+    assert not runner.should_trigger_bipop_restart(
+        stagnation_count=1,
+        cooldown_remaining=0,
+        escape_budget=8,
+    )
+    assert runner.should_trigger_bipop_restart(
+        stagnation_count=2,
+        cooldown_remaining=0,
+        escape_budget=8,
+    )
+    assert not runner.should_trigger_bipop_restart(
+        stagnation_count=3,
+        cooldown_remaining=1,
+        escape_budget=8,
+    )
+    assert not runner.should_trigger_bipop_restart(
+        stagnation_count=3,
+        cooldown_remaining=0,
+        escape_budget=0,
+    )
+
+
+def test_bipop_restart_acceptance_requires_material_relative_improvement() -> None:
+    runner = _load_runner_module()
+
+    assert not runner.should_accept_bipop_restart(
+        candidate_best=999.95,
+        incumbent_fitness=1000.0,
+    )
+    assert runner.should_accept_bipop_restart(
+        candidate_best=999.80,
+        incumbent_fitness=1000.0,
+    )
+    assert not runner.should_accept_bipop_restart(
+        candidate_best=1000.0,
+        incumbent_fitness=1000.0,
+    )
+
+
+def test_bipop_rejected_restart_uses_sweep_level_backoff() -> None:
+    runner = _load_runner_module()
+
+    assert runner.bipop_cooldown_after_restart(
+        restart_accepted=True,
+        sub_num=20,
+        rejected_restart_streak=5,
+    ) == runner.BIPOP_RESTART_COOLDOWN
+    assert runner.bipop_cooldown_after_restart(
+        restart_accepted=False,
+        sub_num=20,
+        rejected_restart_streak=1,
+    ) == 20
+    assert runner.bipop_cooldown_after_restart(
+        restart_accepted=False,
+        sub_num=20,
+        rejected_restart_streak=3,
+    ) == 60
+    assert runner.bipop_cooldown_after_restart(
+        restart_accepted=False,
+        sub_num=20,
+        rejected_restart_streak=10,
+    ) == 60
+
+
 def test_hcc_smoke_runner_help_works_without_pythonpath() -> None:
     runner_path = Path(__file__).resolve().parents[1] / "HCC_SRC" / "arac_hcc_smoke_runner.py"
     env = os.environ.copy()
@@ -145,6 +831,75 @@ def test_hcc_smoke_runner_parses_budget_accounting_mode() -> None:
     assert runner.parse_args(base_args + ["--budget-accounting", "source"]).budget_accounting == "source"
 
 
+def test_hcc_smoke_runner_parses_focused_compare_lane_profile() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--lane-profile",
+            "focused_compare",
+        ]
+    )
+
+    assert args.lane_profile == "focused_compare"
+
+
+def test_hcc_smoke_runner_parses_focused_core_lane_profile() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--lane-profile",
+            "focused_core",
+        ]
+    )
+
+    assert args.lane_profile == "focused_core"
+
+
+def test_hcc_smoke_runner_parses_landscape_escape_lane_profile() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "4",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--lane-profile",
+            "landscape_escape",
+        ]
+    )
+
+    assert args.lane_profile == "landscape_escape"
+
+
 def test_hcc_smoke_runner_parses_skip_plots() -> None:
     runner = _load_runner_module()
 
@@ -229,6 +984,146 @@ def test_hcc_smoke_runner_parses_relation_policy_options() -> None:
     )
 
     assert lagged.relation_policy == "lagged"
+
+    adaptive_v2 = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v2",
+        ]
+    )
+
+    assert adaptive_v2.relation_policy == "adaptive_v2"
+
+    adaptive_v21 = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v21",
+        ]
+    )
+
+    assert adaptive_v21.relation_policy == "adaptive_v21"
+
+    adaptive_v22 = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v22",
+        ]
+    )
+
+    assert adaptive_v22.relation_policy == "adaptive_v22"
+
+    adaptive_v23 = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v23",
+        ]
+    )
+
+    assert adaptive_v23.relation_policy == "adaptive_v23"
+
+    adaptive_v24 = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v24",
+        ]
+    )
+
+    assert adaptive_v24.relation_policy == "adaptive_v24"
+
+    adaptive_v25 = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v25",
+        ]
+    )
+
+    assert adaptive_v25.relation_policy == "adaptive_v25"
+
+    adaptive_v26 = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "2000",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "adaptive_v26",
+        ]
+    )
+
+    assert adaptive_v26.relation_policy == "adaptive_v26"
 
 
 def test_shuffled_relation_policy_uses_relation_local_action_shuffle() -> None:
@@ -325,6 +1220,169 @@ def test_lagged_relation_policy_uses_previous_rule_action_without_relabeling() -
 
     assert first_shuffled.relation_action_name == "fallback"
     assert first_shuffled.canonical_action_name == "conservative_no_action"
+
+
+def test_controller_v31_effective_policy_is_accepted_by_relation_selector() -> None:
+    runner = _load_runner_module()
+    relation = runner.OverlapRelation(
+        relation_id="O0_1_2",
+        problem_id="S6",
+        outer_iter=0,
+        group_left=1,
+        group_right=2,
+        shared_vars=(7,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=0.2,
+        budget_remaining_ratio=1.0,
+        previous_delta=0.0,
+        current_delta=0.0,
+        shared_var_support_ratio=0.04,
+    )
+    rule_action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="fallback",
+        action_family="fallback",
+        confidence=0.0,
+        trigger_reason="rule",
+    )
+    effective_mode = runner.effective_relation_policy_mode(
+        "controller_v31",
+        [relation, relation, relation],
+    )
+
+    selected = runner.select_relation_action_for_policy(
+        relation=relation,
+        action=rule_action,
+        relation_policy_mode=effective_mode,
+    )
+
+    assert effective_mode == "adaptive_v26"
+    assert selected.relation_action_name == "fallback"
+
+
+def test_controller_v31_dense_run_collects_with_v24_then_locks_once() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.18)
+    e6_like_relations = [
+        runner.OverlapRelation(
+            relation_id=f"O0_{index}_{index + 1}",
+            problem_id="runtime_case",
+            outer_iter=0,
+            group_left=index,
+            group_right=index + 1,
+            shared_vars=tuple(range(10)),
+            overlap_strength=1.0,
+            delta_signal=1.0,
+            rank_signal=0.50,
+            budget_remaining_ratio=0.8,
+            previous_delta=1.0,
+            current_delta=1.0,
+            both_positive=True,
+            delta_ratio_gap=0.10 if index < 2 else 0.58,
+            rank_stability=0.0 if index < 2 else 0.67,
+            shared_var_count=10,
+            shared_var_support_ratio=0.10,
+            fallback_margin_proxy=0.90 if index < 2 else 0.83,
+        )
+        for index in range(3)
+    ]
+
+    assert state.effective_policy_mode == "adaptive_v24"
+    assert state.phase_rescue_enabled is False
+
+    state.lock_from_runtime_prefix(e6_like_relations[:2])
+
+    assert state.effective_policy_mode == "adaptive_v24"
+
+    state.lock_from_runtime_prefix(e6_like_relations)
+
+    assert state.effective_policy_mode == "adaptive_v26"
+    state.lock_from_runtime_prefix([])
+    assert state.effective_policy_mode == "adaptive_v26"
+
+
+def test_controller_v31_dense_run_keeps_v24_for_weaker_positive_prefix() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.20)
+    relations = [
+        runner.OverlapRelation(
+            relation_id=f"O0_{index}_{index + 1}",
+            problem_id="runtime_case",
+            outer_iter=0,
+            group_left=index,
+            group_right=index + 1,
+            shared_vars=tuple(range(10)),
+            overlap_strength=1.0,
+            delta_signal=1.0,
+            rank_signal=0.50,
+            budget_remaining_ratio=0.8,
+            previous_delta=1.0,
+            current_delta=1.0,
+            both_positive=True,
+            delta_ratio_gap=0.10 if index < 2 else 0.75,
+            rank_stability=0.0 if index < 2 else 0.33,
+            shared_var_count=10,
+            shared_var_support_ratio=0.10,
+            fallback_margin_proxy=0.90 if index < 2 else 0.79,
+        )
+        for index in range(3)
+    ]
+
+    state.lock_from_runtime_prefix(relations)
+
+    assert state.effective_policy_mode == "adaptive_v24"
+    assert state.phase_rescue_enabled is False
+
+
+def test_controller_v31_non_dense_run_preserves_composite_v26_and_rescue() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.10)
+
+    assert state.effective_policy_mode == "adaptive_v26"
+    assert state.phase_rescue_enabled is True
+
+
+def test_controller_v31_never_enables_cc_harm_full_budget_takeover() -> None:
+    runner = _load_runner_module()
+
+    assert runner.uses_cc_harm_guard_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V31,
+        evidence_controller_search_state_enabled=True,
+    ) is False
+    assert runner.uses_cc_harm_guard_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V3,
+        evidence_controller_search_state_enabled=True,
+    ) is True
+
+
+def test_budget_summary_records_runtime_stage_breakdown(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+    summary_path = tmp_path / "budget_summary.csv"
+
+    runner._write_budget_summary(
+        summary_path,
+        problem_id="runtime_case",
+        budget_accounting="strict",
+        max_fes=100,
+        optimizer_reported_fe=90,
+        fitness_record_fe=100,
+        global_phase_fe=20,
+        cc_phase_fe=50,
+        rescue_fe=20,
+        refresh_fe=0,
+        separable_continuation_fe=0,
+    )
+
+    with summary_path.open(newline="", encoding="utf-8") as handle:
+        row = next(csv.DictReader(handle))
+
+    assert row["global_phase_fe"] == "20"
+    assert row["cc_phase_fe"] == "50"
+    assert row["rescue_fe"] == "20"
+    assert row["refresh_fe"] == "0"
+    assert row["separable_continuation_fe"] == "0"
+    assert row["overhead_fe"] == "10"
 
 
 def test_shuffled_relation_policy_keeps_empty_overlap_fallback() -> None:
@@ -1111,7 +2169,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
             return [1000.0] * batch_size
 
     class FakeBenchmark:
-        def __init__(self, output_dir: str) -> None:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
             self.output_dir = output_dir
 
         def get_function(self, fun_name: str, fun_id: int):
@@ -1155,7 +2213,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
     monkeypatch.setattr(runner, "CMAES", FakeCMAES)
     monkeypatch.setattr(runner, "combine", fake_combine)
-    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id: [[0, 1], [1, 2], [2, 3]])
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]])
     monkeypatch.setattr(
         runner,
         "remove_overlapping_groups",
@@ -1164,7 +2222,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     monkeypatch.setattr(
         runner,
         "load_aob_metadata",
-        lambda fun_id: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
+        lambda fun_id, data_root=None: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
     )
     monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
 
@@ -1220,7 +2278,7 @@ def test_run_problem_caps_aob_fitness_record_at_max_fes(
             return [1000.0] * batch_size
 
     class FakeBenchmark:
-        def __init__(self, output_dir: str) -> None:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
             self.output_dir = output_dir
 
         def get_function(self, fun_name: str, fun_id: int):
@@ -1246,7 +2304,7 @@ def test_run_problem_caps_aob_fitness_record_at_max_fes(
 
     monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
     monkeypatch.setattr(runner, "CMAES", FakeCMAES)
-    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id: [[0, 1], [1, 2], [2, 3]])
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]])
     monkeypatch.setattr(
         runner,
         "remove_overlapping_groups",
@@ -1255,7 +2313,7 @@ def test_run_problem_caps_aob_fitness_record_at_max_fes(
     monkeypatch.setattr(
         runner,
         "load_aob_metadata",
-        lambda fun_id: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
+        lambda fun_id, data_root=None: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
     )
     monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
     monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
@@ -1268,6 +2326,1292 @@ def test_run_problem_caps_aob_fitness_record_at_max_fes(
     )
 
     assert len(record) == 20
+
+
+def test_run_problem_trajectory_action_passes_shifted_budget_and_blended_mean(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    budgets_seen: list[int] = []
+    means_seen: list[np.ndarray] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 4, "lower": -100.0, "upper": 100.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = self.options["max_function_evaluations"]
+            budgets_seen.append(budget)
+            means_seen.append(np.asarray(self.options["mean"][0], dtype=float).copy())
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            result_mean = np.zeros(self.problem["ndim_problem"])
+            best_so_far_x = np.zeros(self.problem["ndim_problem"])
+            if len(budgets_seen) == 1:
+                result_mean = np.array([0.0, 20.0])
+                best_so_far_x = np.array([0.0, 8.0])
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0,
+                "best_so_far_x": best_so_far_x,
+                "mean": result_mean,
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2]], [[1], [2]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    record, _elapsed, _trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=90,
+            seed=1,
+            verbose=0,
+            arac_action="budget_shift_mean_blend",
+        ),
+    )
+
+    assert len(record) <= 90
+    assert max(budgets_seen[:3]) - min(budgets_seen[:3]) <= 1
+    assert means_seen[1][0] == pytest.approx(8.0)
+
+
+def test_run_problem_bipop_search_state_restart_accepts_only_improving_escape(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    options_seen: list[dict] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            options_seen.append(self.options)
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            is_escape = self.options.get("arac_search_state_action") == "bipop_search_state_restart"
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0 if is_escape else 1000.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 3.0),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    record, _elapsed, trace_rows = runner.run_problem(
+        "ackley",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=500,
+            seed=1,
+            verbose=0,
+            arac_action="bipop_search_state_restart",
+        ),
+    )
+
+    escape_options = [
+        options for options in options_seen
+        if options.get("arac_search_state_action") == "bipop_search_state_restart"
+    ]
+    assert escape_options
+    assert escape_options[0]["n_individuals"] == 8
+    assert escape_options[0]["sigma"] == pytest.approx(1.0)
+    assert len(record) <= 500
+
+    bipop_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "bipop_search_state_restart"
+    ]
+    assert bipop_rows
+    assert bipop_rows[0]["search_state_action_type"] == "bipop_restart"
+    assert bipop_rows[0]["bipop_restart_mode"] == "large_ipop"
+    assert bipop_rows[0]["restart_triggered"] == "1"
+    assert bipop_rows[0]["restart_accepted"] == "1"
+    assert bipop_rows[0]["restart_candidate_best"] == "9.000000e+02"
+    assert bipop_rows[0]["restart_relative_improvement"] == "1.000000e-01"
+    assert bipop_rows[0]["restart_acceptance_threshold"] == "1.000000e-04"
+    assert bipop_rows[0]["population_after"] == "8"
+    assert bipop_rows[0]["sigma_after"] == "1.000000e+00"
+    assert bipop_rows[0]["optimizer_consumed"] == "1"
+    overlap_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "conservative_no_action"
+    ]
+    assert overlap_rows
+    assert all(row["search_state_action_type"] == "" for row in overlap_rows)
+
+
+def test_run_problem_bipop_search_state_restart_rejects_tiny_escape_improvement(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            is_escape = self.options.get("arac_search_state_action") == "bipop_search_state_restart"
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 999.95 if is_escape else 1000.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 3.0),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "ackley",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=500,
+            seed=1,
+            verbose=0,
+            arac_action="bipop_search_state_restart",
+        ),
+    )
+
+    bipop_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "bipop_search_state_restart"
+    ]
+    assert bipop_rows
+    assert bipop_rows[0]["restart_triggered"] == "1"
+    assert bipop_rows[0]["restart_accepted"] == "0"
+    assert bipop_rows[0]["state_mutated"] == "0"
+    assert bipop_rows[0]["restart_candidate_best"] == "9.999500e+02"
+    assert bipop_rows[0]["restart_relative_improvement"] == "5.000000e-05"
+    assert bipop_rows[0]["restart_acceptance_threshold"] == "1.000000e-04"
+    assert bipop_rows[0]["best_before"] == "1.000000e+03"
+    assert bipop_rows[0]["best_after"] == "1.000000e+03"
+
+
+def test_run_problem_phase_rescue_multistart_accepts_best_improving_candidate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    options_seen: list[dict] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            options_seen.append(self.options)
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            candidate_index = self.options.get("arac_phase_rescue_candidate")
+            candidate_scores = {0: 980.0, 1: 870.0, 2: 920.0}
+            best_y = candidate_scores.get(candidate_index, 1000.0)
+            best_x = np.full(self.problem["ndim_problem"], float(candidate_index or 0) + 3.0)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": best_y,
+                "best_so_far_x": best_x,
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "rastrigin",
+        4,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=500,
+            seed=1,
+            verbose=0,
+            arac_action="phase_rescue_multistart",
+        ),
+    )
+
+    rescue_options = [
+        options
+        for options in options_seen
+        if options.get("arac_search_state_action") == "phase_rescue_multistart"
+    ]
+    assert len(rescue_options) >= 3
+    assert {options["arac_phase_rescue_candidate"] for options in rescue_options[:3]} == {0, 1, 2}
+
+    rescue_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "phase_rescue_multistart"
+    ]
+    assert rescue_rows
+    assert rescue_rows[0]["search_state_action_type"] == "phase_rescue_multistart"
+    assert rescue_rows[0]["bipop_restart_mode"] == "phase_rescue_3_start"
+    assert rescue_rows[0]["restart_triggered"] == "1"
+    assert rescue_rows[0]["restart_accepted"] == "1"
+    assert rescue_rows[0]["restart_candidate_best"] == "8.700000e+02"
+    assert rescue_rows[0]["restart_relative_improvement"] == "1.300000e-01"
+    assert rescue_rows[0]["restart_acceptance_threshold"] == "0.000000e+00"
+    assert rescue_rows[0]["best_before"] == "1.000000e+03"
+    assert rescue_rows[0]["best_after"] == "8.700000e+02"
+
+
+def test_run_problem_repair_phase_rescue_combines_repair_overlap_with_multistart(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    options_seen: list[dict] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            options_seen.append(self.options)
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            candidate_index = self.options.get("arac_phase_rescue_candidate")
+            candidate_scores = {0: 980.0, 1: 860.0, 2: 920.0}
+            best_y = candidate_scores.get(candidate_index, 1000.0)
+            best_x = np.full(self.problem["ndim_problem"], float(candidate_index or 0) + 3.0)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": best_y,
+                "best_so_far_x": best_x,
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "rastrigin",
+        3,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=500,
+            seed=1,
+            verbose=0,
+            arac_action="repair_phase_rescue_multistart",
+        ),
+    )
+
+    rescue_options = [
+        options
+        for options in options_seen
+        if options.get("arac_search_state_action") == "phase_rescue_multistart"
+    ]
+    assert len(rescue_options) >= 3
+
+    rescue_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "repair_phase_rescue_multistart"
+    ]
+    assert rescue_rows
+    assert rescue_rows[0]["search_state_action_type"] == "phase_rescue_multistart"
+    assert rescue_rows[0]["restart_accepted"] == "1"
+    assert rescue_rows[0]["restart_candidate_best"] == "8.600000e+02"
+
+    repair_overlap_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "repair_shared_variable_binding"
+    ]
+    assert repair_overlap_rows
+    assert all(row["search_state_action_type"] == "" for row in repair_overlap_rows)
+
+
+def test_run_problem_cc_harm_guarded_sep_refresh_protects_phase_i_and_runs_nda_continuation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    mmes_options_seen: list[dict] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeMMES:
+        call_count = 0
+
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            FakeMMES.call_count += 1
+            mmes_options_seen.append(dict(self.options))
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            is_guarded_refresh = (
+                self.options.get("arac_search_state_action")
+                == "cc_harm_guarded_sep_refresh"
+            )
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 700.0 if is_guarded_refresh else 800.0,
+                "best_so_far_x": np.full(
+                    self.problem["ndim_problem"],
+                    4.0 if is_guarded_refresh else 1.0,
+                ),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 1000.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 3.0),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 16)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "rastrigin",
+        4,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=160,
+            seed=1,
+            verbose=0,
+            arac_action="cc_harm_guarded_sep_refresh",
+        ),
+    )
+
+    assert len(mmes_options_seen) == 2
+    assert mmes_options_seen[-1]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
+    assert np.allclose(mmes_options_seen[-1]["mean"][0], np.ones(5))
+
+    guarded_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "cc_harm_guarded_sep_refresh"
+    ]
+    assert guarded_rows
+    guarded_row = guarded_rows[0]
+    assert guarded_row["search_state_action_type"] == "cc_harm_guarded_sep_refresh"
+    assert guarded_row["restart_triggered"] == "1"
+    assert guarded_row["restart_accepted"] == "1"
+    assert guarded_row["best_before"] == "8.000000e+02"
+    assert guarded_row["restart_candidate_best"] == "7.000000e+02"
+
+
+def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    options_seen: list[dict] = []
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            options_seen.append(dict(self.options))
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 9.0),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([900.0] * batch_size)
+            return [900.0] * batch_size
+
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    guard = np.full(3, 1.0)
+    accepted, candidate, guarded_best, refresh_fes, candidate_best = (
+        runner.run_guarded_nda_continuation(
+            fun=FakeFunction(),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(
+                max_fes=100,
+                seed=1,
+                verbose=0,
+                arac_action="cc_harm_guarded_sep_refresh",
+            ),
+            fun_name="rastrigin",
+            fun_id=4,
+            outer_iter=0,
+            guard_individual=guard,
+            guard_fitness=800.0,
+            remaining_fes=20,
+        )
+    )
+
+    assert accepted is False
+    assert np.allclose(candidate, guard)
+    assert guarded_best == 800.0
+    assert candidate_best == 900.0
+    assert refresh_fes == 20
+    assert options_seen[0]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
+
+
+def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_worse() -> None:
+    runner = _load_runner_module()
+
+    class WorseFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            array = np.asarray(vector, dtype=float)
+            batch_size = 1 if array.ndim == 1 else len(array)
+            values = [10.0] * batch_size
+            self.fitness_record.extend(values)
+            return values
+
+    initial_mean = np.array([1.0, -2.0, 3.0])
+    result = runner.run_direct_separable_cmaes_dispatch(
+        fun=WorseFunction(),
+        info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+        config=runner.SmokeConfig(
+            max_fes=8,
+            seed=1,
+            verbose=0,
+            arac_action="separable_cmaes_dispatch_action",
+        ),
+        fun_name="rastrigin",
+        fun_id=5,
+        initial_mean=initial_mean,
+        incumbent_fitness=1.0,
+        max_function_evaluations=8,
+    )
+
+    assert result["best_so_far_y"] == 1.0
+    np.testing.assert_allclose(result["best_so_far_x"], initial_mean)
+    assert result["n_function_evaluations"] == 8
+
+
+def test_run_problem_separable_cmaes_dispatch_uses_full_space_diagonal_backend(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    mmes_options_seen = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            array = np.asarray(vector, dtype=float)
+            if array.ndim == 1:
+                values = np.array([float(np.sum(array * array))])
+            else:
+                values = np.sum(array * array, axis=1).astype(float)
+            self.fitness_record.extend(values.tolist())
+            return values.tolist()
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 3, "lower": -5.0, "upper": 5.0}
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = int(self.options["max_function_evaluations"])
+            mmes_options_seen.append(dict(self.options))
+            x_batch = np.ones((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 100.0,
+                "best_so_far_x": np.ones(self.problem["ndim_problem"]),
+            }
+
+    def fail_cmaes(*args, **kwargs):
+        raise AssertionError("separable dispatch should bypass Phase-II CMAES")
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(runner, "CMAES", fail_cmaes)
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1]], [[1]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 3, "overlap_degree": 1, "subgroups": [2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 4)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    record, _elapsed, trace_rows = runner.run_problem(
+        "rastrigin",
+        5,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=20,
+            seed=1,
+            verbose=0,
+            arac_action="separable_cmaes_dispatch_action",
+        ),
+    )
+
+    assert len(record) == 20
+    assert len(mmes_options_seen) == 1
+    assert mmes_options_seen[0]["max_function_evaluations"] == 4
+    assert mmes_options_seen[0]["arac_search_state_action"] == "separable_cmaes_dispatch_action"
+    assert len(trace_rows) == 1
+    row = trace_rows[0]
+    assert row["selected_action_name"] == "separable_cmaes_dispatch_action"
+    assert row["canonical_action_name"] == "separable_cmaes_dispatch_action"
+    assert row["semantic_surface"] == "full_space_diagonal_separable_search_takeover"
+    assert row["optimizer_consumed"] == "1"
+    assert row["search_state_action_type"] == "separable_cmaes_dispatch_action"
+    assert row["escape_budget"] == "16"
+    assert row["population_after"] == "4"
+    assert row["best_before"] == "1.000000e+02"
+    assert float(row["best_after"]) <= 100.0
+    assert row["bipop_restart_mode"] == "phase_i_warm_started_direct_full_space_diagonal_separable_cmaes"
+    budget_summary = tmp_path / "R5_budget_summary.csv"
+    assert budget_summary.exists()
+    with budget_summary.open(newline="", encoding="utf-8") as handle:
+        summary_rows = list(csv.DictReader(handle))
+    assert summary_rows[0]["optimizer_reported_fe"] == "20"
+    assert summary_rows[0]["fitness_record_fe"] == "20"
+    assert summary_rows[0]["same_budget_violation"] == "0"
+
+
+def test_run_problem_repair_bipop_combines_repair_overlap_with_guarded_restart(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            is_escape = self.options.get("arac_search_state_action") == "bipop_search_state_restart"
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0 if is_escape else 1000.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 3.0),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "ackley",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=500,
+            seed=1,
+            verbose=0,
+            arac_action="repair_bipop_search_state_restart",
+        ),
+    )
+
+    restart_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "repair_bipop_search_state_restart"
+    ]
+    assert restart_rows
+    assert restart_rows[0]["search_state_action_type"] == "bipop_restart"
+    assert restart_rows[0]["restart_accepted"] == "1"
+    repair_overlap_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "repair_shared_variable_binding"
+    ]
+    assert repair_overlap_rows
+    assert all(row["search_state_action_type"] == "" for row in repair_overlap_rows)
+
+
+def test_run_problem_repair_protect_refine_uses_repair_overlap_and_smaller_sigma(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    sigmas_seen: list[float] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            sigmas_seen.append(float(self.options["sigma"]))
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 3.0),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "ackley",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=64,
+            seed=1,
+            sigma=0.5,
+            verbose=0,
+            arac_action="repair_protect_refine",
+        ),
+    )
+
+    assert sigmas_seen
+    assert all(sigma == pytest.approx(0.25) for sigma in sigmas_seen)
+    repair_overlap_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "repair_shared_variable_binding"
+    ]
+    assert repair_overlap_rows
+
+
+def test_run_problem_repair_protect_deep_refine_uses_deeper_sigma(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    sigmas_seen: list[float] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            sigmas_seen.append(float(self.options["sigma"]))
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 3.0),
+                "mean": np.full(self.problem["ndim_problem"], 2.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 5, "overlap_degree": 1, "subgroups": [2, 2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "ackley",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=64,
+            seed=1,
+            sigma=0.5,
+            verbose=0,
+            arac_action="repair_protect_deep_refine",
+        ),
+    )
+
+    assert sigmas_seen
+    assert all(sigma == pytest.approx(0.125) for sigma in sigmas_seen)
+    repair_overlap_rows = [
+        row for row in trace_rows
+        if row["selected_action_name"] == "repair_shared_variable_binding"
+    ]
+    assert repair_overlap_rows
+
+
+def test_run_problem_trajectory_mean_cache_only_accepts_improving_steps(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    means_seen: list[np.ndarray] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 3, "lower": -100.0, "upper": 100.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            means_seen.append(np.asarray(self.options["mean"][0], dtype=float).copy())
+            budget = self.options["max_function_evaluations"]
+            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            self.problem["fitness_function"](x_batch)
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 1100.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 7.0),
+                "mean": np.full(self.problem["ndim_problem"], 20.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1]], [[1]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 3, "overlap_degree": 1, "subgroups": [2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=16,
+            seed=1,
+            verbose=0,
+            arac_action="budget_shift_mean_blend",
+        ),
+    )
+
+    np.testing.assert_allclose(means_seen[1], np.array([0.0, 0.0]))
+
+
+def test_run_problem_mean_blend_only_keeps_uniform_budget(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    budgets_seen: list[int] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 4, "lower": -100.0, "upper": 100.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = self.options["max_function_evaluations"]
+            budgets_seen.append(budget)
+            self.problem["fitness_function"](np.zeros((budget, self.problem["ndim_problem"])))
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0,
+                "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+                "mean": np.zeros(self.problem["ndim_problem"]),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2]], [[1], [2]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=90,
+            seed=1,
+            verbose=0,
+            arac_action="mean_blend_only",
+        ),
+    )
+
+    assert max(budgets_seen[:3]) - min(budgets_seen[:3]) <= 1
+
+
+def test_run_problem_budget_shift_only_does_not_blend_mean(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    means_seen: list[np.ndarray] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if vector.ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 4, "lower": -100.0, "upper": 100.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            means_seen.append(np.asarray(self.options["mean"][0], dtype=float).copy())
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](np.zeros((budget, self.problem["ndim_problem"])))
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0,
+                "best_so_far_x": np.full(self.problem["ndim_problem"], 8.0),
+                "mean": np.full(self.problem["ndim_problem"], 20.0),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2]], [[1], [2]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
+
+    runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=90,
+            seed=1,
+            verbose=0,
+            arac_action="budget_shift_only",
+        ),
+    )
+
+    np.testing.assert_allclose(means_seen[1], np.array([8.0, 0.0]))
 
 
 def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
@@ -1287,7 +3631,7 @@ def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
             return [1000.0] * batch_size
 
     class FakeBenchmark:
-        def __init__(self, output_dir: str) -> None:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
             self.output_dir = output_dir
 
         def get_function(self, fun_name: str, fun_id: int):
@@ -1314,7 +3658,7 @@ def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
 
     monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
     monkeypatch.setattr(runner, "CMAES", FakeCMAES)
-    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id: [[0, 1], [1, 2], [2, 3]])
+    monkeypatch.setattr(runner, "decompose_problem", lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]])
     monkeypatch.setattr(
         runner,
         "remove_overlapping_groups",
@@ -1323,7 +3667,7 @@ def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
     monkeypatch.setattr(
         runner,
         "load_aob_metadata",
-        lambda fun_id: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
+        lambda fun_id, data_root=None: {"dimension": 4, "overlap_degree": 1, "subgroups": [2, 2, 2]},
     )
     monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
     monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 4)
@@ -1356,6 +3700,12 @@ def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
             "fitness_record_fe": "24",
             "budget_aligned_fe": "20",
             "same_budget_violation": "1",
+            "global_phase_fe": "0",
+            "cc_phase_fe": "21",
+            "rescue_fe": "0",
+            "refresh_fe": "0",
+            "separable_continuation_fe": "0",
+            "overhead_fe": "3",
         }
     ]
 

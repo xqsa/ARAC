@@ -75,6 +75,62 @@ def test_hcc_backend_semantics_maps_action_families_to_hcc_effects() -> None:
             "test",
             0.4,
         ),
+        "bipop": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "bipop_search_state_restart",
+            "allow",
+            "test",
+            0.4,
+        ),
+        "phase_rescue": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "phase_rescue_multistart",
+            "allow",
+            "test",
+            0.4,
+        ),
+        "repair_phase_rescue": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "repair_phase_rescue_multistart",
+            "allow",
+            "test",
+            0.4,
+        ),
+        "repair_bipop": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "repair_bipop_search_state_restart",
+            "allow",
+            "test",
+            0.4,
+        ),
+        "repair_refine": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "repair_protect_refine",
+            "allow",
+            "test",
+            0.4,
+        ),
+        "deep_refine": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "repair_protect_deep_refine",
+            "allow",
+            "test",
+            0.4,
+        ),
+        "cc_harm_guarded_sep_refresh": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "cc_harm_guarded_sep_refresh",
+            "allow",
+            "test",
+            0.4,
+        ),
+        "separable_cmaes_dispatch_action": ActionDecision(
+            ActionFamily.TRAJECTORY,
+            "separable_cmaes_dispatch_action",
+            "allow",
+            "test",
+            0.4,
+        ),
     }
 
     isolate_diff = hcc_backend_semantics_for(decisions["isolate"], optimizer_consumed=True)
@@ -89,6 +145,63 @@ def test_hcc_backend_semantics_maps_action_families_to_hcc_effects() -> None:
     assert hcc_backend_semantics_for(
         decisions["coordinate"], optimizer_consumed=True
     ).coordination_mode_changed
+    bipop_diff = hcc_backend_semantics_for(decisions["bipop"], optimizer_consumed=True)
+    assert bipop_diff.budget_allocation_changed
+    assert bipop_diff.update_order_changed
+    assert bipop_diff.acceptance_rule_changed
+    phase_rescue_diff = hcc_backend_semantics_for(decisions["phase_rescue"], optimizer_consumed=True)
+    assert phase_rescue_diff.budget_allocation_changed
+    assert phase_rescue_diff.update_order_changed
+    assert phase_rescue_diff.acceptance_rule_changed
+    assert not phase_rescue_diff.variable_owner_changed
+    repair_phase_rescue_diff = hcc_backend_semantics_for(
+        decisions["repair_phase_rescue"],
+        optimizer_consumed=True,
+    )
+    assert repair_phase_rescue_diff.variable_owner_changed
+    assert repair_phase_rescue_diff.budget_allocation_changed
+    assert repair_phase_rescue_diff.update_order_changed
+    assert repair_phase_rescue_diff.acceptance_rule_changed
+    repair_bipop_diff = hcc_backend_semantics_for(
+        decisions["repair_bipop"],
+        optimizer_consumed=True,
+    )
+    assert repair_bipop_diff.variable_owner_changed
+    assert repair_bipop_diff.budget_allocation_changed
+    assert repair_bipop_diff.update_order_changed
+    assert repair_bipop_diff.acceptance_rule_changed
+    repair_refine_diff = hcc_backend_semantics_for(
+        decisions["repair_refine"],
+        optimizer_consumed=True,
+    )
+    assert repair_refine_diff.variable_owner_changed
+    assert repair_refine_diff.budget_allocation_changed
+    assert repair_refine_diff.acceptance_rule_changed
+    assert not repair_refine_diff.update_order_changed
+    deep_refine_diff = hcc_backend_semantics_for(
+        decisions["deep_refine"],
+        optimizer_consumed=True,
+    )
+    assert deep_refine_diff.variable_owner_changed
+    assert deep_refine_diff.budget_allocation_changed
+    assert deep_refine_diff.acceptance_rule_changed
+    assert not deep_refine_diff.update_order_changed
+    cc_harm_diff = hcc_backend_semantics_for(
+        decisions["cc_harm_guarded_sep_refresh"],
+        optimizer_consumed=True,
+    )
+    assert cc_harm_diff.budget_allocation_changed
+    assert cc_harm_diff.update_order_changed
+    assert cc_harm_diff.acceptance_rule_changed
+    assert not cc_harm_diff.variable_owner_changed
+    separable_diff = hcc_backend_semantics_for(
+        decisions["separable_cmaes_dispatch_action"],
+        optimizer_consumed=True,
+    )
+    assert separable_diff.budget_allocation_changed
+    assert separable_diff.update_order_changed
+    assert separable_diff.acceptance_rule_changed
+    assert not separable_diff.variable_owner_changed
 
 
 def test_hcc_backend_semantics_stay_empty_without_optimizer_consumption() -> None:

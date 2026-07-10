@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import yaml
@@ -236,6 +235,8 @@ def evaluation_record(data, output_path, record_FEs_list):
     print(f"Evaluation records have been saved to '{output_file_path}'.")
 
 def plot_evaluation_curve(data, output_path, font_size, log_scale=False, show_variance=False):
+    import matplotlib.pyplot as plt
+
     """
     Plot the evaluation curve of different algorithms, with an optional variance band.
 
@@ -291,6 +292,8 @@ def plot_evaluation_curve(data, output_path, font_size, log_scale=False, show_va
     plt.close()
 
 def plot_evaluation_curve_best_so_far(data, output_path, font_size, log_scale=False, show_variance=False):
+    import matplotlib.pyplot as plt
+
     """
     Plot the best-so-far evaluation curve of different algorithms, with an optional variance band.
 
@@ -346,7 +349,6 @@ def plot_evaluation_curve_best_so_far(data, output_path, font_size, log_scale=Fa
     plt.savefig(f"{output_path}{filename}", bbox_inches='tight')
     print(f"Plot saved to '{output_path}{filename}'.")
     plt.close()
-
 
 
 

@@ -5,38 +5,38 @@ from AOB.ackley import ackley
 import os
 
 class Benchmark():
-    def __init__(self, output_path):
+    def __init__(self, output_path, data_dir=None):
         self.output_path = output_path
+        self.data_dir = data_dir
         if output_path is not None and not os.path.exists(output_path):
             os.makedirs(output_path)
     def get_function(self, func_name, func_id):
         if func_name == 'elliptic':
-            return elliptic(func_id, self.output_path)
+            return elliptic(func_id, self.output_path, data_dir=self.data_dir)
         elif func_name == 'rastrigin':
-            return rastrigin(func_id, self.output_path)
+            return rastrigin(func_id, self.output_path, data_dir=self.data_dir)
         elif func_name == 'ackley':
-            return ackley(func_id, self.output_path)
+            return ackley(func_id, self.output_path, data_dir=self.data_dir)
         elif func_name == 'schwefel':
-            return schwefel(func_id, self.output_path)
+            return schwefel(func_id, self.output_path, data_dir=self.data_dir)
         else:
             raise ValueError("Function name is wrong.")
 
     def get_info(self, func_name, func_id):
         if func_name == 'elliptic':
-            fun_ = elliptic(func_id, self.output_path)
+            fun_ = elliptic(func_id, self.output_path, data_dir=self.data_dir)
             return fun_.info()
         elif func_name == 'rastrigin':
-            fun_ = rastrigin(func_id, self.output_path)
+            fun_ = rastrigin(func_id, self.output_path, data_dir=self.data_dir)
             return fun_.info()
         elif func_name == 'ackley':
-            fun_ = ackley(func_id, self.output_path)
+            fun_ = ackley(func_id, self.output_path, data_dir=self.data_dir)
             return fun_.info()
         elif func_name == 'schwefel':
-            fun_ = schwefel(func_id, self.output_path)
+            fun_ = schwefel(func_id, self.output_path, data_dir=self.data_dir)
             return fun_.info()
         else:
             raise ValueError("Function name is wrong.")
     
-
 
 

@@ -39,6 +39,49 @@ def test_hcc_aob_smoke_command_targets_hcc_main_subprocess(tmp_path: Path) -> No
     assert str(tmp_path / "hcc-smoke") in command.argv
 
 
+def test_hcc_aob_smoke_command_passes_explicit_aob_data_root(tmp_path: Path) -> None:
+    data_root = Path("E:/ARAC/HCC_SRC/AOB/AOBG/datafile")
+    request = HccAobExecutionRequest(
+        problem_id="E6",
+        seed=3,
+        max_fes=3_000_000,
+        output_dir=tmp_path / "canonical-e6",
+        aob_data_root=data_root,
+    )
+
+    command = build_hcc_aob_smoke_command(request)
+
+    data_root_index = command.argv.index("--aob-data-root")
+    assert command.argv[data_root_index + 1] == str(data_root.resolve())
+
+
+def test_hcc_execution_rejects_incomplete_aob_data_root_before_subprocess(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    subprocess_called = False
+
+    def fake_run(*_args, **_kwargs):
+        nonlocal subprocess_called
+        subprocess_called = True
+        raise AssertionError("subprocess must not run for an invalid AOB data root")
+
+    monkeypatch.setattr(hcc_backend.subprocess, "run", fake_run)
+
+    with pytest.raises(FileNotFoundError, match="AOB data root"):
+        hcc_backend.run_hcc_aob_smoke_execution(
+            HccAobExecutionRequest(
+                problem_id="S6",
+                seed=2,
+                max_fes=3_000_000,
+                output_dir=tmp_path / "invalid-data-root",
+                aob_data_root=tmp_path / "missing-data",
+            )
+        )
+
+    assert subprocess_called is False
+
+
 def test_hcc_aob_smoke_command_passes_arac_action(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
         problem_id="E2",

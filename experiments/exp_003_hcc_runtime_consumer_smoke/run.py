@@ -3,7 +3,10 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import importlib.metadata
 import json
+import os
+import platform
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -20,10 +23,14 @@ if str(ARAC_SRC_ROOT) not in sys.path:
 from arac.audit import claim_gate
 from arac.backend_adapter import BackendSemanticsDiff
 from arac.backends.hcc import (
+    DEFAULT_AOB_DATA_ROOT,
     DEFAULT_HCC_MAIN_ROOT,
     HccActionExecutionPlan,
     HccAobExecutionRequest,
     HccAobExecutionResult,
+    _find_hcc_action_trace,
+    _parse_hcc_budget_summary,
+    _parse_hcc_evaluation_record_with_optimizer_final_fe,
     build_hcc_action_execution_plan,
     hcc_backend_semantics_for,
     run_hcc_aob_smoke_execution,
@@ -38,8 +45,6 @@ RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
 PROBLEM_ID = "E2"
 DEFAULT_SEEDS = (1, 2, 3)
 MAX_FES = 2_000
-PHASE_I_FE = 0
-PHASE_II_FE = MAX_FES
 LOW_ACTIVE_DENSITY_THRESHOLD = 0.20
 MEANINGFUL_GAIN_THRESHOLD = 0.05
 FORMAL_SOTA_MIN_SEEDS = 25
@@ -106,6 +111,446 @@ LANES = (
         negative_control=True,
     ),
 )
+TARGETED_ABLATION_LANES = (
+    *LANES,
+    LaneConfig(
+        "trajectory_budget_shift_mean_blend",
+        ActionFamily.TRAJECTORY,
+        "budget_shift_mean_blend",
+        "budget_shift_mean_blend",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+LANDSCAPE_ESCAPE_LANES = (
+    LANES[0],
+    LANES[1],
+    LANES[2],
+    LaneConfig(
+        "bipop_search_state_restart",
+        ActionFamily.TRAJECTORY,
+        "bipop_search_state_restart",
+        "bipop_search_state_restart",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+REPAIR_LANDSCAPE_ESCAPE_LANES = (
+    LANES[0],
+    LANES[1],
+    LaneConfig(
+        "repair_bipop_search_state_restart",
+        ActionFamily.TRAJECTORY,
+        "repair_bipop_search_state_restart",
+        "repair_bipop_search_state_restart",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+REPAIR_REFINE_LANES = (
+    LANES[0],
+    LANES[1],
+    LaneConfig(
+        "repair_protect_refine",
+        ActionFamily.TRAJECTORY,
+        "repair_protect_refine",
+        "repair_protect_refine",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+PRECISION_REFINE_PUSH_LANES = (
+    LANES[0],
+    REPAIR_REFINE_LANES[-1],
+    LaneConfig(
+        "repair_protect_deep_refine",
+        ActionFamily.TRAJECTORY,
+        "repair_protect_deep_refine",
+        "repair_protect_deep_refine",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+PHASE_RESCUE_PUSH_LANES = (
+    LANES[0],
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v26",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v26",
+    ),
+    REPAIR_REFINE_LANES[-1],
+    LaneConfig(
+        "phase_rescue_multistart",
+        ActionFamily.TRAJECTORY,
+        "phase_rescue_multistart",
+        "phase_rescue_multistart",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+REPAIR_PHASE_RESCUE_PUSH_LANES = (
+    LANES[0],
+    REPAIR_REFINE_LANES[-1],
+    LaneConfig(
+        "repair_phase_rescue_multistart",
+        ActionFamily.TRAJECTORY,
+        "repair_phase_rescue_multistart",
+        "repair_phase_rescue_multistart",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+CC_HARM_SEP_REFRESH_LANES = (
+    LANES[0],
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v26",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v26",
+    ),
+    LaneConfig(
+        "cc_harm_guarded_sep_refresh",
+        ActionFamily.TRAJECTORY,
+        "cc_harm_guarded_sep_refresh",
+        "cc_harm_guarded_sep_refresh",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+SEPARABLE_CMAES_PUSH_LANES = (
+    LANES[0],
+    LaneConfig(
+        "separable_cmaes_dispatch_action",
+        ActionFamily.TRAJECTORY,
+        "separable_cmaes_dispatch_action",
+        "separable_cmaes_dispatch_action",
+        "fixed_lane_runtime_consumer_smoke",
+    ),
+)
+FOCUSED_CORE_LANES = (
+    LANES[0],
+    LANES[1],
+    LANES[2],
+    LANES[3],
+)
+FOCUSED_COMPARE_LANES = (
+    LANES[0],
+    LANES[1],
+    LANES[2],
+)
+EVIDENCE_ROUTED_ONLY_LANES = (
+    LANES[3],
+)
+EVIDENCE_ROUTED_V2_ONLY_LANES = (
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v2",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v2",
+    ),
+)
+EVIDENCE_ROUTED_V21_ONLY_LANES = (
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v21",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v21",
+    ),
+)
+EVIDENCE_ROUTED_V22_ONLY_LANES = (
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v22",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v22",
+    ),
+)
+EVIDENCE_ROUTED_V23_ONLY_LANES = (
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v23",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v23",
+    ),
+)
+EVIDENCE_ROUTED_V24_ONLY_LANES = (
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v24",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v24",
+    ),
+)
+EVIDENCE_ROUTED_V25_ONLY_LANES = (
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v25",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v25",
+    ),
+)
+EVIDENCE_ROUTED_V26_ONLY_LANES = (
+    LaneConfig(
+        "relation_dispatch_rule",
+        ActionFamily.COORDINATE,
+        "relation_dispatch_adaptive_v26",
+        "conservative_no_action",
+        "per_overlap_relation_runtime_dispatch",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v26",
+    ),
+)
+RELATION_DISPATCH_V24_LANE = LaneConfig(
+    "relation_dispatch_v24",
+    ActionFamily.COORDINATE,
+    "relation_dispatch_adaptive_v24",
+    "conservative_no_action",
+    "per_overlap_relation_runtime_dispatch",
+    relation_dispatch_enabled=True,
+    plan_action_name="allow_beneficial_coordination",
+    relation_policy_mode="adaptive_v24",
+)
+RELATION_DISPATCH_LEGACY_LANE = LaneConfig(
+    "relation_dispatch_legacy",
+    ActionFamily.COORDINATE,
+    "relation_dispatch_rule",
+    "conservative_no_action",
+    "per_overlap_relation_runtime_dispatch",
+    relation_dispatch_enabled=True,
+    plan_action_name="allow_beneficial_coordination",
+    relation_policy_mode="rule",
+)
+PAPER_BEST_WIN_PUSH_LANES = (
+    LANES[0],
+    EVIDENCE_ROUTED_V26_ONLY_LANES[0],
+    LANES[1],
+    REPAIR_REFINE_LANES[-1],
+    LANDSCAPE_ESCAPE_LANES[-1],
+    SEPARABLE_CMAES_PUSH_LANES[-1],
+)
+PAPER_BEST_WIN_PUSH_V2_LANES = (
+    LANES[0],
+    EVIDENCE_ROUTED_V26_ONLY_LANES[0],
+    RELATION_DISPATCH_V24_LANE,
+    RELATION_DISPATCH_LEGACY_LANE,
+    LANES[1],
+    REPAIR_REFINE_LANES[-1],
+    LANDSCAPE_ESCAPE_LANES[-1],
+    SEPARABLE_CMAES_PUSH_LANES[-1],
+)
+HISTORICAL_ANCHOR_REFINE_PUSH_LANES = (
+    LANES[0],
+    EVIDENCE_ROUTED_V26_ONLY_LANES[0],
+    RELATION_DISPATCH_LEGACY_LANE,
+    LANES[1],
+    REPAIR_REFINE_LANES[-1],
+    PRECISION_REFINE_PUSH_LANES[-1],
+    PHASE_RESCUE_PUSH_LANES[-1],
+    REPAIR_PHASE_RESCUE_PUSH_LANES[-1],
+    LANDSCAPE_ESCAPE_LANES[-1],
+    SEPARABLE_CMAES_PUSH_LANES[-1],
+)
+HISTORICAL_13_PRESERVE_PUSH_LANES = (
+    LANES[0],
+    LANES[2],
+    EVIDENCE_ROUTED_V26_ONLY_LANES[0],
+    RELATION_DISPATCH_V24_LANE,
+    RELATION_DISPATCH_LEGACY_LANE,
+    LANES[1],
+    REPAIR_REFINE_LANES[-1],
+    PRECISION_REFINE_PUSH_LANES[-1],
+    PHASE_RESCUE_PUSH_LANES[-1],
+    REPAIR_PHASE_RESCUE_PUSH_LANES[-1],
+    CC_HARM_SEP_REFRESH_LANES[-1],
+    LANDSCAPE_ESCAPE_LANES[-1],
+    SEPARABLE_CMAES_PUSH_LANES[-1],
+)
+HISTORICAL_13_FAST_PRESERVE_LANES = (
+    LANES[0],
+    LANES[2],
+    EVIDENCE_ROUTED_V26_ONLY_LANES[0],
+    RELATION_DISPATCH_V24_LANE,
+    REPAIR_REFINE_LANES[-1],
+    REPAIR_PHASE_RESCUE_PUSH_LANES[-1],
+    LANDSCAPE_ESCAPE_LANES[-1],
+)
+HISTORICAL_13_RUNTIME_COMPOSITE_LANES = (
+    LaneConfig(
+        "arac_runtime_composite_v1",
+        ActionFamily.TRAJECTORY,
+        "repair_phase_rescue_multistart",
+        "repair_phase_rescue_multistart",
+        "single_run_relation_dispatch_plus_repair_phase_rescue",
+        relation_dispatch_enabled=True,
+        relation_policy_mode="adaptive_v26",
+    ),
+)
+HISTORICAL_13_RUNTIME_COMPOSITE_V2_LANES = (
+    LaneConfig(
+        "arac_runtime_composite_v2",
+        ActionFamily.TRAJECTORY,
+        "cc_harm_guarded_sep_refresh",
+        "cc_harm_guarded_sep_refresh",
+        "single_run_relation_dispatch_plus_cc_harm_guarded_sep_refresh",
+        relation_dispatch_enabled=True,
+        plan_action_name="allow_beneficial_coordination",
+        relation_policy_mode="adaptive_v26",
+    ),
+)
+EVIDENCE_ACTION_CONTROLLER_V1_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v1",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v1",
+        "arac_evidence_action_controller_v1",
+        "single_run_runtime_evidence_to_action_controller",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v1",
+        relation_policy_mode="adaptive_v26",
+    ),
+)
+EVIDENCE_ACTION_CONTROLLER_V2_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v2",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v2",
+        "arac_evidence_action_controller_v2",
+        "single_run_relation_first_evidence_to_action_controller",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v2",
+        relation_policy_mode="adaptive_v24",
+    ),
+)
+EVIDENCE_ACTION_CONTROLLER_V3_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v3",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v3",
+        "arac_evidence_action_controller_v3",
+        "single_run_runtime_evidence_controller_v3",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v3",
+        relation_policy_mode="controller_v3",
+    ),
+)
+EVIDENCE_ACTION_CONTROLLER_V31_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v31",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v31",
+        "arac_evidence_action_controller_v31",
+        "single_run_guarded_runtime_evidence_controller_v31",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v31",
+        relation_policy_mode="controller_v31",
+    ),
+)
+CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
+    LaneConfig(
+        "canonical_evidence_controller_v1",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v31",
+        "arac_evidence_action_controller_v31",
+        "single_run_canonical_runtime_evidence_controller",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v31",
+        relation_policy_mode="controller_v31",
+    ),
+)
+
+
+def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
+    if lane_profile == "runtime_smoke":
+        return LANES
+    if lane_profile == "targeted_ablation":
+        return TARGETED_ABLATION_LANES
+    if lane_profile == "landscape_escape":
+        return LANDSCAPE_ESCAPE_LANES
+    if lane_profile == "repair_landscape_escape":
+        return REPAIR_LANDSCAPE_ESCAPE_LANES
+    if lane_profile == "repair_refine":
+        return REPAIR_REFINE_LANES
+    if lane_profile == "precision_refine_push":
+        return PRECISION_REFINE_PUSH_LANES
+    if lane_profile == "phase_rescue_push":
+        return PHASE_RESCUE_PUSH_LANES
+    if lane_profile == "repair_phase_rescue_push":
+        return REPAIR_PHASE_RESCUE_PUSH_LANES
+    if lane_profile == "cc_harm_sep_refresh":
+        return CC_HARM_SEP_REFRESH_LANES
+    if lane_profile == "separable_cmaes_push":
+        return SEPARABLE_CMAES_PUSH_LANES
+    if lane_profile == "focused_core":
+        return FOCUSED_CORE_LANES
+    if lane_profile == "focused_compare":
+        return FOCUSED_COMPARE_LANES
+    if lane_profile == "evidence_routed_only":
+        return EVIDENCE_ROUTED_ONLY_LANES
+    if lane_profile == "evidence_routed_v2_only":
+        return EVIDENCE_ROUTED_V2_ONLY_LANES
+    if lane_profile == "evidence_routed_v21_only":
+        return EVIDENCE_ROUTED_V21_ONLY_LANES
+    if lane_profile == "evidence_routed_v22_only":
+        return EVIDENCE_ROUTED_V22_ONLY_LANES
+    if lane_profile == "evidence_routed_v23_only":
+        return EVIDENCE_ROUTED_V23_ONLY_LANES
+    if lane_profile == "evidence_routed_v24_only":
+        return EVIDENCE_ROUTED_V24_ONLY_LANES
+    if lane_profile == "evidence_routed_v25_only":
+        return EVIDENCE_ROUTED_V25_ONLY_LANES
+    if lane_profile == "evidence_routed_v26_only":
+        return EVIDENCE_ROUTED_V26_ONLY_LANES
+    if lane_profile == "paper_best_win_push":
+        return PAPER_BEST_WIN_PUSH_LANES
+    if lane_profile == "paper_best_win_push_v2":
+        return PAPER_BEST_WIN_PUSH_V2_LANES
+    if lane_profile == "historical_anchor_refine_push":
+        return HISTORICAL_ANCHOR_REFINE_PUSH_LANES
+    if lane_profile == "historical_13_preserve_push":
+        return HISTORICAL_13_PRESERVE_PUSH_LANES
+    if lane_profile == "historical_13_fast_preserve":
+        return HISTORICAL_13_FAST_PRESERVE_LANES
+    if lane_profile == "historical_13_runtime_composite":
+        return HISTORICAL_13_RUNTIME_COMPOSITE_LANES
+    if lane_profile == "historical_13_runtime_composite_v2":
+        return HISTORICAL_13_RUNTIME_COMPOSITE_V2_LANES
+    if lane_profile == "evidence_action_controller_v1":
+        return EVIDENCE_ACTION_CONTROLLER_V1_LANES
+    if lane_profile == "evidence_action_controller_v2":
+        return EVIDENCE_ACTION_CONTROLLER_V2_LANES
+    if lane_profile == "evidence_action_controller_v3":
+        return EVIDENCE_ACTION_CONTROLLER_V3_LANES
+    if lane_profile == "evidence_action_controller_v31":
+        return EVIDENCE_ACTION_CONTROLLER_V31_LANES
+    if lane_profile == "canonical_evidence_controller_v1":
+        return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
+    raise ValueError(f"unsupported lane profile: {lane_profile}")
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
@@ -217,9 +662,10 @@ def _runtime_payload(
 
 def _ledger_for_result(result: HccAobExecutionResult) -> SameBudgetLedger:
     actual_fe_used = _actual_fe_used(result)
+    phase_i_fe = min(actual_fe_used, max(0, result.global_phase_fe or 0))
     return SameBudgetLedger(
-        phase_i_fe=PHASE_I_FE,
-        phase_ii_fe=actual_fe_used - PHASE_I_FE,
+        phase_i_fe=phase_i_fe,
+        phase_ii_fe=actual_fe_used - phase_i_fe,
         budget_limit=result.max_fes,
         fresh_execution=result.fresh_optimizer_execution,
     )
@@ -236,6 +682,45 @@ def _read_csv_rows(path: Path | None) -> list[dict[str, str]]:
         return []
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecutionResult | None:
+    action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
+    if action_trace_path is None:
+        return None
+    try:
+        final_error, fe_used, optimizer_final_fe_used = (
+            _parse_hcc_evaluation_record_with_optimizer_final_fe(
+                Path(request.output_dir),
+                budget_limit=request.max_fes,
+            )
+        )
+    except (FileNotFoundError, ValueError):
+        return None
+    budget_breakdown = _parse_hcc_budget_summary(Path(request.output_dir))
+    return HccAobExecutionResult(
+        problem_id=request.problem_id,
+        seed=request.seed,
+        max_fes=request.max_fes,
+        final_error=final_error,
+        fe_used=fe_used,
+        time_seconds=0.0,
+        output_root=Path(request.output_dir),
+        fresh_optimizer_execution=False,
+        status="completed_existing_artifact",
+        result_source="hcc_subprocess_smoke_execution_existing_artifact",
+        action_trace_path=action_trace_path,
+        action_trace_rows=action_trace_rows,
+        optimizer_final_fe_used=optimizer_final_fe_used,
+        global_phase_fe=budget_breakdown.get("global_phase_fe"),
+        cc_phase_fe=budget_breakdown.get("cc_phase_fe"),
+        rescue_fe=budget_breakdown.get("rescue_fe"),
+        refresh_fe=budget_breakdown.get("refresh_fe"),
+        separable_continuation_fe=budget_breakdown.get(
+            "separable_continuation_fe"
+        ),
+        overhead_fe=budget_breakdown.get("overhead_fe"),
+    )
 
 
 def _find_lane_artifact(result: HccAobExecutionResult, artifact_name: str) -> Path | None:
@@ -299,6 +784,13 @@ def _semantics_from_trace_rows(
 ) -> BackendSemanticsDiff:
     if not rows:
         return fallback
+    search_state_actions = {
+        "bipop_search_state_restart",
+        "phase_rescue_multistart",
+        "repair_phase_rescue_multistart",
+        "cc_harm_guarded_sep_refresh",
+        "separable_cmaes_dispatch_action",
+    }
     return BackendSemanticsDiff(
         variable_owner_changed=any(
             _trace_action(row) == "repair_shared_variable_binding"
@@ -312,6 +804,22 @@ def _semantics_from_trace_rows(
         ),
         coordination_mode_changed=any(
             _trace_action(row) == "allow_beneficial_coordination"
+            and row.get("optimizer_consumed") == "1"
+            for row in rows
+        ),
+        budget_allocation_changed=any(
+            _trace_action(row)
+            in {"budget_shift_mean_blend", "budget_shift_only", *search_state_actions}
+            and row.get("optimizer_consumed") == "1"
+            for row in rows
+        ),
+        update_order_changed=any(
+            _trace_action(row) in search_state_actions
+            and row.get("optimizer_consumed") == "1"
+            for row in rows
+        ),
+        acceptance_rule_changed=any(
+            _trace_action(row) in search_state_actions
             and row.get("optimizer_consumed") == "1"
             for row in rows
         ),
@@ -384,6 +892,7 @@ def _records(
     output_dir: Path,
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult],
     hcc_root: Path,
+    aob_data_root: Path,
     python_executable: str,
     seeds: tuple[int, ...],
     problem_ids: tuple[str, ...],
@@ -392,11 +901,12 @@ def _records(
     budget_accounting: str = "strict",
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
+    lanes: tuple[LaneConfig, ...] = LANES,
 ) -> list[dict[str, object]]:
     contexts: list[dict[str, object]] = []
     for problem_id in problem_ids:
         for seed in seeds:
-            for lane in LANES:
+            for lane in lanes:
                 decision = _decision(lane)
                 plan = build_hcc_action_execution_plan(problem_id, decision)
                 semantics = hcc_backend_semantics_for(
@@ -431,6 +941,7 @@ def _records(
                             max_fes=max_fes,
                             output_dir=lane_output,
                             hcc_root=hcc_root,
+                            aob_data_root=aob_data_root,
                             python_executable=python_executable,
                             timestamp=f"{RUN_ID}-{problem_id}-seed{seed}-{lane.lane_id}",
                             arac_action=lane.runner_action_name,
@@ -456,7 +967,7 @@ def _records(
         assert isinstance(plan, HccActionExecutionPlan)
         assert isinstance(decision, ActionDecision)
         assert isinstance(lane, LaneConfig)
-        result = execution_runner(request)
+        result = _existing_completed_result(request) or execution_runner(request)
         trace_rows = _read_csv_rows(result.action_trace_path)
         semantics = _semantics_from_trace_rows(trace_rows, fallback=semantics)
         ledger = _ledger_for_result(result)
@@ -511,9 +1022,21 @@ def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
         assert isinstance(lane, LaneConfig)
         assert isinstance(result, HccAobExecutionResult)
         assert isinstance(ledger, SameBudgetLedger)
-        fallback_result = fallback_by_case[(result.problem_id, result.seed)]
-        utility_label = classify_utility(fallback_result.final_error, result.final_error)
+        fallback_result = fallback_by_case.get((result.problem_id, result.seed))
+        if fallback_result is None:
+            utility_label = "no_fallback_reference"
+            relative_gain_vs_fallback = "nan"
+        else:
+            utility_label = classify_utility(
+                fallback_result.final_error,
+                result.final_error,
+            )
+            relative_gain_vs_fallback = (
+                f"{relative_gain(fallback_result.final_error, result.final_error):.6f}"
+            )
         blockers: list[str] = []
+        if fallback_result is None:
+            blockers.append("no_fallback_reference")
         if lane.lane_id == "fallback":
             blockers.append("comparison_lane_not_utility_claim")
         if lane.negative_control:
@@ -538,9 +1061,7 @@ def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "final_error": f"{result.final_error:.6e}",
                 "fe_used": result.fe_used,
                 "same_budget_violation": int(ledger.violation),
-                "relative_gain_vs_fallback": (
-                    f"{relative_gain(fallback_result.final_error, result.final_error):.6f}"
-                ),
+                "relative_gain_vs_fallback": relative_gain_vs_fallback,
                 "utility_label": utility_label,
                 "action_mix": _format_action_mix(
                     _trace_rows_for_record(record),
@@ -598,6 +1119,10 @@ def _our_result_rows(
                 "hcc_smoke_fe_used": result.fe_used,
                 "hcc_smoke_status": result.status,
                 "fresh_optimizer_execution": int(result.fresh_optimizer_execution),
+                "result_source": result.result_source,
+                "action_trace_sha256": _sha256_file(result.action_trace_path)
+                if result.action_trace_path is not None
+                else "missing",
                 "action_trace_rows": result.action_trace_rows,
                 "runtime_dispatch_allowed": 1,
                 "dispatch_scope": lane.dispatch_scope,
@@ -620,6 +1145,7 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
         result = record["result"]
         assert isinstance(result, HccAobExecutionResult)
         actual_fe_used = _actual_fe_used(result)
+        phase_i_fe = min(actual_fe_used, max(0, result.global_phase_fe or 0))
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -631,8 +1157,15 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                     result.seed,
                     result.max_fes,
                 ),
-                "phase_i_fe": PHASE_I_FE,
-                "phase_ii_fe": actual_fe_used - PHASE_I_FE,
+                "phase_i_fe": phase_i_fe,
+                "phase_ii_fe": actual_fe_used - phase_i_fe,
+                "cc_phase_fe": result.cc_phase_fe or 0,
+                "rescue_fe": result.rescue_fe or 0,
+                "refresh_fe": result.refresh_fe or 0,
+                "separable_continuation_fe": (
+                    result.separable_continuation_fe or 0
+                ),
+                "overhead_fe": result.overhead_fe or 0,
                 "total_fe": actual_fe_used,
                 "budget_limit": result.max_fes,
                 "configured_budget_limit": result.max_fes,
@@ -718,6 +1251,18 @@ def _overlap_relation_rows(records: list[dict[str, object]]) -> list[dict[str, o
     for record in records:
         rows.extend(
             _with_lane_prefix(record, _artifact_rows_for_record(record, "overlap_relations.csv"))
+        )
+    return rows
+
+
+def _aob_input_manifest_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        rows.extend(
+            _with_lane_prefix(
+                record,
+                _artifact_rows_for_record(record, "aob_input_manifest.csv"),
+            )
         )
     return rows
 
@@ -961,7 +1506,10 @@ def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, o
             for indexed_problem_id, seed, lane_id in indexed
             if indexed_problem_id == problem_id
             and lane_id == "relation_dispatch_rule"
+            and (problem_id, seed, "shuffled_relation_dispatch") in indexed
         )
+        if not seeds:
+            continue
         relation_errors = [
             indexed[(problem_id, seed, "relation_dispatch_rule")].final_error
             for seed in seeds
@@ -2695,6 +3243,44 @@ def _git_commit() -> str:
     return result.stdout.strip() or "unknown"
 
 
+def _dependency_version(distribution: str) -> str:
+    try:
+        return importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
+        return "missing"
+
+
+def _blas_summary() -> str:
+    try:
+        import numpy as np
+
+        config = getattr(np.__config__, "CONFIG", {})
+        blas = config.get("Build Dependencies", {}).get("blas", {})
+        if blas:
+            return json.dumps(
+                {
+                    key: blas.get(key)
+                    for key in ("name", "version", "openblas configuration")
+                    if blas.get(key) is not None
+                },
+                sort_keys=True,
+            )
+    except (AttributeError, ImportError, TypeError):
+        pass
+    return "unknown"
+
+
+def _thread_environment() -> str:
+    names = (
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
+        "VECLIB_MAXIMUM_THREADS",
+    )
+    return ";".join(f"{name}={os.environ.get(name, 'unset')}" for name in names)
+
+
 def _config_fingerprint(
     seeds: tuple[int, ...],
     problem_ids: tuple[str, ...],
@@ -2703,16 +3289,21 @@ def _config_fingerprint(
     budget_accounting: str,
     cmaes_restart: bool,
     mmes_restart: bool,
+    lanes: tuple[LaneConfig, ...] = LANES,
+    lane_profile: str = "runtime_smoke",
+    aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
 ) -> str:
     payload = {
         "budget_accounting": budget_accounting,
         "cmaes_restart": bool(cmaes_restart),
         "jobs": max(1, int(jobs)),
-        "lanes": [lane.lane_id for lane in LANES],
+        "lane_profile": lane_profile,
+        "lanes": [lane.lane_id for lane in lanes],
         "max_fes": int(max_fes),
         "mmes_restart": bool(mmes_restart),
         "problem_ids": list(problem_ids),
         "seeds": list(seeds),
+        "aob_data_root": str(Path(aob_data_root).resolve()),
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -2728,7 +3319,13 @@ def _write_manifest(
     budget_accounting: str = "strict",
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
+    lanes: tuple[LaneConfig, ...] = LANES,
+    lane_profile: str = "runtime_smoke",
+    aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
+    aob_input_rows: list[dict[str, object]] | None = None,
+    python_executable: str = sys.executable,
 ) -> None:
+    aob_input_rows = [] if aob_input_rows is None else aob_input_rows
     same_budget_status = (
         _diagnostic_observed_value(
             diagnosis_rows,
@@ -2815,6 +3412,7 @@ def _write_manifest(
         "anti_leakage_audit.csv",
         "claim_gate.csv",
         "claim_evidence_table.md",
+        "aob_input_manifest.csv",
     ]
     manifest = "\n".join(
         [
@@ -2838,23 +3436,42 @@ def _write_manifest(
             ),
             f"Budget: {max_fes} FE per lane/case",
             f"Budget accounting: {budget_accounting}",
+            f"Lane profile: {lane_profile}",
             (
                 "Optimizer restarts: "
                 f"CMAES={'enabled' if cmaes_restart else 'disabled'}, "
                 f"MMES={'enabled' if mmes_restart else 'disabled'}"
             ),
             f"Parallel jobs: {max(1, int(jobs))}",
-            f"Lanes: {', '.join(lane.lane_id for lane in LANES)}",
+            f"Lanes: {', '.join(lane.lane_id for lane in lanes)}",
+            f"AOB data root: {Path(aob_data_root).resolve()}",
+            f"Actual cwd: {Path.cwd().resolve()}",
+            f"Backend cwd: {DEFAULT_HCC_MAIN_ROOT}",
+            f"Wrapper Python executable: {Path(sys.executable).resolve()}",
+            f"Backend Python executable: {python_executable}",
+            f"Python version: {platform.python_version()}",
+            f"NumPy version: {_dependency_version('numpy')}",
+            f"SciPy version: {_dependency_version('scipy')}",
+            f"Torch version: {_dependency_version('torch')}",
+            f"BLAS: {_blas_summary()}",
+            f"Thread environment: {_thread_environment()}",
             "",
             "Freeze evidence:",
             f"- git commit: {_git_commit()}",
             (
                 "- config fingerprint: "
-                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart)}"
+                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root)}"
             ),
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
             f"- HCC smoke runner sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'arac_hcc_smoke_runner.py')}",
+            f"- MMES optimizer sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'NDAs' / 'MMES' / 'mmes.py')}",
+            f"- CMAES optimizer sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'OPT' / 'CMAES' / 'cmaes.py')}",
+            (
+                "- AOB input hashes: aob_input_manifest.csv; "
+                f"rows={len(aob_input_rows)}; "
+                f"unchanged={int(bool(aob_input_rows) and all(str(row.get('unchanged')) == '1' for row in aob_input_rows))}"
+            ),
             "",
             "Runtime boundary: final/reported/oracle values must not enter runtime dispatch.",
             "",
@@ -2887,6 +3504,7 @@ def run_hcc_runtime_consumer_smoke(
         run_hcc_aob_smoke_execution
     ),
     hcc_root: Path | str = DEFAULT_HCC_MAIN_ROOT,
+    aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
     python_executable: str = sys.executable,
     seeds: tuple[int, ...] = DEFAULT_SEEDS,
     problem_ids: tuple[str, ...] = (PROBLEM_ID,),
@@ -2895,6 +3513,7 @@ def run_hcc_runtime_consumer_smoke(
     budget_accounting: str = "strict",
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
+    lane_profile: str = "runtime_smoke",
 ) -> Path:
     worker_count = max(1, int(jobs))
     max_fes = int(max_fes)
@@ -2902,12 +3521,14 @@ def run_hcc_runtime_consumer_smoke(
         raise ValueError("max_fes must be positive")
     if budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
+    lanes = lanes_for_profile(lane_profile)
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     records = _records(
         output_dir=output,
         execution_runner=execution_runner,
         hcc_root=Path(hcc_root),
+        aob_data_root=Path(aob_data_root).resolve(),
         python_executable=python_executable,
         seeds=tuple(seeds),
         problem_ids=tuple(problem_ids),
@@ -2916,7 +3537,9 @@ def run_hcc_runtime_consumer_smoke(
         budget_accounting=budget_accounting,
         cmaes_restart=cmaes_restart,
         mmes_restart=mmes_restart,
+        lanes=lanes,
     )
+    aob_input_rows = _aob_input_manifest_rows(records)
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
     diagnosis_rows = _policy_evidence_diagnosis_rows(
@@ -2938,6 +3561,8 @@ def run_hcc_runtime_consumer_smoke(
             "hcc_smoke_fe_used",
             "hcc_smoke_status",
             "fresh_optimizer_execution",
+            "result_source",
+            "action_trace_sha256",
             "action_trace_rows",
             "runtime_dispatch_allowed",
             "dispatch_scope",
@@ -2958,6 +3583,11 @@ def run_hcc_runtime_consumer_smoke(
             "same_budget_group_id",
             "phase_i_fe",
             "phase_ii_fe",
+            "cc_phase_fe",
+            "rescue_fe",
+            "refresh_fe",
+            "separable_continuation_fe",
+            "overhead_fe",
             "total_fe",
             "budget_limit",
             "configured_budget_limit",
@@ -3031,6 +3661,22 @@ def run_hcc_runtime_consumer_smoke(
             "downstream_consumed",
             "downstream_consumption_scope",
             "optimizer_consumed",
+            "search_state_action_type",
+            "stagnation_window",
+            "delta_mean",
+            "sigma_before",
+            "sigma_after",
+            "population_before",
+            "population_after",
+            "escape_budget",
+            "bipop_restart_mode",
+            "restart_triggered",
+            "restart_accepted",
+            "best_before",
+            "restart_candidate_best",
+            "restart_relative_improvement",
+            "restart_acceptance_threshold",
+            "best_after",
         ],
     )
     _write_csv(
@@ -3182,6 +3828,21 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_claim_evidence_table(output, diagnosis_rows)
     _write_csv(
+        output / "aob_input_manifest.csv",
+        aob_input_rows,
+        [
+            "run_id",
+            "lane_id",
+            "seed",
+            "problem_id",
+            "file",
+            "path",
+            "sha256_before",
+            "sha256_after",
+            "unchanged",
+        ],
+    )
+    _write_csv(
         output / "anti_leakage_audit.csv",
         _anti_leakage_rows(records),
         [
@@ -3223,6 +3884,11 @@ def run_hcc_runtime_consumer_smoke(
         budget_accounting,
         cmaes_restart,
         mmes_restart,
+        lanes,
+        lane_profile,
+        Path(aob_data_root).resolve(),
+        aob_input_rows,
+        python_executable,
     )
     return output
 
@@ -3231,6 +3897,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run exp_003 HCC runtime consumer smoke.")
     parser.add_argument("--output-dir", default="results/exp_003_hcc_runtime_consumer_smoke")
     parser.add_argument("--hcc-root", default=str(DEFAULT_HCC_MAIN_ROOT))
+    parser.add_argument("--aob-data-root", default=str(DEFAULT_AOB_DATA_ROOT))
     parser.add_argument("--python-executable", default=sys.executable)
     parser.add_argument("--seeds", nargs="+", type=int, default=list(DEFAULT_SEEDS))
     parser.add_argument("--problems", nargs="+", default=[PROBLEM_ID])
@@ -3241,6 +3908,44 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
     parser.add_argument("--mmes-restart", dest="mmes_restart", action="store_true", default=True)
     parser.add_argument("--no-mmes-restart", dest="mmes_restart", action="store_false")
+    parser.add_argument(
+        "--lane-profile",
+        default="runtime_smoke",
+        choices=[
+            "runtime_smoke",
+            "targeted_ablation",
+            "focused_core",
+            "focused_compare",
+            "landscape_escape",
+            "repair_landscape_escape",
+            "repair_refine",
+            "precision_refine_push",
+            "phase_rescue_push",
+            "repair_phase_rescue_push",
+            "cc_harm_sep_refresh",
+            "separable_cmaes_push",
+            "evidence_routed_only",
+            "evidence_routed_v2_only",
+            "evidence_routed_v21_only",
+            "evidence_routed_v22_only",
+            "evidence_routed_v23_only",
+            "evidence_routed_v24_only",
+            "evidence_routed_v25_only",
+            "evidence_routed_v26_only",
+            "paper_best_win_push",
+            "paper_best_win_push_v2",
+            "historical_anchor_refine_push",
+            "historical_13_preserve_push",
+            "historical_13_fast_preserve",
+            "historical_13_runtime_composite",
+            "historical_13_runtime_composite_v2",
+            "evidence_action_controller_v1",
+            "evidence_action_controller_v2",
+            "evidence_action_controller_v3",
+            "evidence_action_controller_v31",
+            "canonical_evidence_controller_v1",
+        ],
+    )
     return parser.parse_args(argv)
 
 
@@ -3249,6 +3954,7 @@ def main(argv: list[str] | None = None) -> Path:
     return run_hcc_runtime_consumer_smoke(
         output_dir=args.output_dir,
         hcc_root=Path(args.hcc_root),
+        aob_data_root=Path(args.aob_data_root),
         python_executable=str(args.python_executable),
         seeds=tuple(args.seeds),
         problem_ids=tuple(str(problem).upper() for problem in args.problems),
@@ -3257,6 +3963,7 @@ def main(argv: list[str] | None = None) -> Path:
         budget_accounting=str(args.budget_accounting),
         cmaes_restart=bool(args.cmaes_restart),
         mmes_restart=bool(args.mmes_restart),
+        lane_profile=str(args.lane_profile),
     )
 
 

@@ -13,6 +13,15 @@ five HCC smoke lanes:
 - `shuffled_relation_dispatch`: deterministic shuffled relation-dispatch
   negative control
 
+Additional lane profiles are available for focused ablations. `focused_compare`
+keeps only fallback/repair/coordinate. `landscape_escape` adds
+`bipop_search_state_restart`, a runtime-audited search-state action that maps
+group-level stagnation evidence to BIPOP-style local restart, sigma/population
+adjustment, same-budget escape allocation, and no-harm acceptance. The BIPOP
+lane keeps shared-variable overlap handling on the conservative native blend;
+only rows with `search_state_action_type=bipop_restart` represent the search
+state intervention itself.
+
 The purpose is to prove that runtime actions reach the ARAC-owned HCC smoke
 runner, relation dispatch emits joinable `relation_id` artifacts, and
 `action_utility_audit.csv` reports utility failures plainly instead of turning
@@ -25,8 +34,9 @@ escalation. In AOB multi-problem runs, level 1 cases (`E1/R1/S1/A1`) are
 no-overlap controls; overlap-utility aggregates use levels 2-6 only.
 `claim_evidence_table.md` maps each claim/gate to its observed evidence and
 source artifact. `run_manifest.md` preserves the command shape, configured
-problems/seeds, key gates, artifact list, parallel job count, freeze hashes,
-and the anti-leakage boundary for runtime dispatch.
+problems/seeds, key gates, artifact list, parallel job count, code/environment
+hashes, explicit AOB data root, and the anti-leakage boundary for runtime
+dispatch.
 
 Run:
 
@@ -42,5 +52,6 @@ py -3 experiments\exp_003_hcc_runtime_consumer_smoke\run.py --output-dir results
 
 The source HCC project remains read-only. The subprocess executes the
 ARAC-owned wrapper in `E:\ARAC\HCC_SRC\arac_hcc_smoke_runner.py` with
-`cwd=E:\HCC-main` so HCC imports and AOB data files come from the source
-project.
+`cwd=E:\HCC-main`, but all AOB topology and objective inputs come from the
+explicit `--aob-data-root` path. The cwd is no longer an implicit benchmark
+input.

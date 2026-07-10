@@ -5,8 +5,27 @@ from arac.policy.relation_policy import (
     action_mismatch_audit_row,
     decide_action,
     decide_actions_for_relations,
+    decide_actions_for_relations_v2,
+    decide_actions_for_relations_v21,
+    decide_actions_for_relations_v22,
+    decide_actions_for_relations_v23,
+    decide_actions_for_relations_v24,
+    decide_actions_for_relations_v25,
+    decide_actions_for_relations_v26,
+    select_evidence_action_controller_v3_mode,
+    select_evidence_action_controller_v31_mode,
+    is_evidence_action_controller_v31_dense_overlap,
+    select_evidence_action_controller_v31_dense_lock_mode,
+    relation_policy_mode_for_evidence_action_controller_v31,
     score_relation_actions,
     score_actions_for_relations,
+    score_actions_for_relations_v2,
+    score_actions_for_relations_v21,
+    score_actions_for_relations_v22,
+    score_actions_for_relations_v23,
+    score_actions_for_relations_v24,
+    score_actions_for_relations_v25,
+    score_actions_for_relations_v26,
 )
 
 
@@ -38,6 +57,161 @@ def make_relation(**overrides: object) -> OverlapRelation:
     }
     values.update(overrides)
     return OverlapRelation(**values)
+
+
+def test_evidence_action_controller_v3_defaults_to_relation_first_without_evidence() -> None:
+    mode = select_evidence_action_controller_v3_mode([])
+
+    assert mode == "relation_first"
+
+
+def test_evidence_action_controller_v3_selects_relation_first_for_mid_support_instability() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_vars=(1, 2, 3, 4),
+            shared_var_count=4,
+            shared_var_support_ratio=0.16,
+            delta_ratio_gap=0.72,
+            rank_stability=0.58,
+            fallback_margin_proxy=0.84,
+        )
+    ]
+
+    mode = select_evidence_action_controller_v3_mode(relations)
+
+    assert mode == "relation_first"
+
+
+def test_evidence_action_controller_v3_selects_search_state_for_low_overlap_stable_signal() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_vars=(1,),
+            shared_var_count=1,
+            shared_var_support_ratio=0.04,
+            delta_ratio_gap=0.08,
+            rank_stability=0.92,
+            fallback_margin_proxy=0.94,
+        )
+    ]
+
+    mode = select_evidence_action_controller_v3_mode(relations)
+
+    assert mode == "search_state_assisted"
+
+
+def test_evidence_action_controller_v31_locks_relation_first_for_stable_positive_prefix() -> None:
+    relations = [
+        make_relation(
+            relation_id="O0_0_1",
+            shared_vars=(1, 2, 3, 4),
+            shared_var_count=4,
+            shared_var_support_ratio=0.16,
+            previous_delta=10.0,
+            current_delta=9.0,
+            delta_ratio_gap=0.10,
+            both_positive=True,
+            rank_stability=0.92,
+            fallback_margin_proxy=0.90,
+        ),
+        make_relation(
+            relation_id="O0_1_2",
+            shared_vars=(5, 6, 7, 8),
+            shared_var_count=4,
+            shared_var_support_ratio=0.16,
+            previous_delta=9.0,
+            current_delta=8.5,
+            delta_ratio_gap=0.06,
+            both_positive=True,
+            rank_stability=0.90,
+            fallback_margin_proxy=0.91,
+        ),
+    ]
+
+    mode = select_evidence_action_controller_v31_mode(relations)
+
+    assert mode == "relation_first"
+    assert relation_policy_mode_for_evidence_action_controller_v31(relations) == "adaptive_v24"
+
+
+def test_evidence_action_controller_v31_allows_search_state_only_for_repeated_low_gain_without_relation_lock() -> None:
+    relations = [
+        make_relation(
+            relation_id=f"O0_{index}_{index + 1}",
+            shared_vars=(index,),
+            shared_var_count=1,
+            shared_var_support_ratio=0.04,
+            previous_delta=0.0,
+            current_delta=0.0,
+            delta_ratio_gap=0.0,
+            both_positive=False,
+            one_side_zero=False,
+            rank_stability=0.20,
+            fallback_margin_proxy=0.90,
+        )
+        for index in range(3)
+    ]
+
+    mode = select_evidence_action_controller_v31_mode(relations)
+
+    assert mode == "search_state_assisted"
+    assert relation_policy_mode_for_evidence_action_controller_v31(relations) == "adaptive_v26"
+
+
+def test_evidence_action_controller_v31_dense_overlap_threshold_is_inclusive() -> None:
+    assert is_evidence_action_controller_v31_dense_overlap(0.18) is True
+    assert is_evidence_action_controller_v31_dense_overlap(0.179999) is False
+
+
+def test_evidence_action_controller_v31_dense_lock_waits_for_three_relations() -> None:
+    relations = [
+        make_relation(
+            relation_id=f"O0_{index}_{index + 1}",
+            shared_var_count=10,
+        )
+        for index in range(2)
+    ]
+
+    mode = select_evidence_action_controller_v31_dense_lock_mode(relations)
+
+    assert mode is None
+
+
+def test_evidence_action_controller_v31_dense_lock_selects_v24_for_early_chain_instability() -> None:
+    relations = [
+        make_relation(
+            relation_id=f"O0_{index}_{index + 1}",
+            shared_var_count=10,
+            both_positive=True,
+            delta_ratio_gap=0.10 if index < 2 else 0.75,
+            rank_stability=0.0 if index < 2 else 0.33,
+            fallback_margin_proxy=0.90 if index < 2 else 0.79,
+        )
+        for index in range(3)
+    ]
+
+    mode = select_evidence_action_controller_v31_dense_lock_mode(relations)
+
+    assert mode == "adaptive_v24"
+
+
+def test_evidence_action_controller_v31_dense_lock_selects_v26_without_early_chain_instability() -> None:
+    relations = [
+        make_relation(
+            relation_id=f"O0_{index}_{index + 1}",
+            shared_var_count=10,
+            both_positive=True,
+            delta_ratio_gap=0.10 if index < 2 else 0.58,
+            rank_stability=0.0 if index < 2 else 0.67,
+            fallback_margin_proxy=0.90 if index < 2 else 0.83,
+        )
+        for index in range(3)
+    ]
+
+    mode = select_evidence_action_controller_v31_dense_lock_mode(relations)
+
+    assert mode == "adaptive_v26"
 
 
 def test_relation_policy_coordinates_stable_high_overlap_relation() -> None:
@@ -95,6 +269,635 @@ def test_relation_policy_abstains_on_mid_dense_repair_signal() -> None:
 
     assert decision.relation_action_name == "fallback"
     assert decision.trigger_reason == "mid_dense_support_blocks_repair"
+
+
+def test_relation_policy_v2_repairs_mid_dense_stable_evidence() -> None:
+    relation = make_relation(
+        shared_var_support_ratio=0.21875,
+        delta_ratio_gap=0.404862,
+        delta_signed_gap=49_847.312436,
+        rank_signal=0.888889,
+        rank_stability=0.888889,
+        fallback_margin_proxy=0.911436,
+    )
+
+    v1_decision = decide_action(relation)
+    v2_decision = decide_actions_for_relations_v2([relation])[0]
+
+    assert v1_decision.relation_action_name == "fallback"
+    assert v2_decision.relation_action_name == "reassign_repair"
+    assert v2_decision.canonical_action_name == "repair_shared_variable_binding"
+    assert v2_decision.trigger_reason == "adaptive_v2_mid_dense_repair_evidence"
+
+
+def test_relation_policy_v2_coordinates_supported_conflict_evidence() -> None:
+    relation = make_relation(
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.60,
+        rank_stability=0.60,
+        shared_var_support_ratio=0.16,
+        fallback_margin_proxy=0.90,
+    )
+
+    v1_decision = decide_action(relation)
+    v2_decision = decide_actions_for_relations_v2([relation])[0]
+
+    assert v1_decision.relation_action_name == "fallback"
+    assert v2_decision.relation_action_name == "coordinate"
+    assert v2_decision.canonical_action_name == "allow_beneficial_coordination"
+    assert v2_decision.trigger_reason == "adaptive_v2_conflict_coordinate_evidence"
+
+
+def test_relation_policy_v2_keeps_one_side_zero_fallback() -> None:
+    relation = make_relation(
+        previous_delta=10.0,
+        current_delta=0.0,
+        delta_signal=10.0,
+        delta_abs_gap=10.0,
+        delta_signed_gap=-10.0,
+        delta_ratio_gap=1.0,
+        both_positive=False,
+        one_side_zero=True,
+        rank_signal=0.90,
+        rank_stability=0.90,
+        shared_var_support_ratio=0.20,
+        fallback_margin_proxy=0.95,
+    )
+
+    v2_decision = decide_actions_for_relations_v2([relation])[0]
+
+    assert v2_decision.relation_action_name == "fallback"
+    assert v2_decision.canonical_action_name == "conservative_no_action"
+
+
+def test_relation_policy_v2_scored_action_reports_override_margin() -> None:
+    relation = make_relation(
+        shared_var_support_ratio=0.21875,
+        delta_ratio_gap=0.404862,
+        delta_signed_gap=49_847.312436,
+        rank_signal=0.888889,
+        rank_stability=0.888889,
+        fallback_margin_proxy=0.911436,
+    )
+
+    scored = score_actions_for_relations_v2([relation])[0]
+
+    assert scored.final_action.relation_action_name == "reassign_repair"
+    assert scored.best_action_name == "reassign_repair"
+    assert scored.margin >= 0.05
+
+
+def test_relation_policy_v21_coordinates_after_repeated_conflict_context() -> None:
+    relations = [
+        make_relation(
+            relation_id="O1_0_1",
+            previous_delta=10.0,
+            current_delta=4.0,
+            delta_signal=6.0,
+            delta_abs_gap=6.0,
+            delta_signed_gap=-6.0,
+            delta_ratio_gap=0.60,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.60,
+            rank_stability=0.60,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.90,
+        ),
+        make_relation(
+            relation_id="O1_1_2",
+            previous_delta=9.0,
+            current_delta=4.0,
+            delta_signal=5.0,
+            delta_abs_gap=5.0,
+            delta_signed_gap=-5.0,
+            delta_ratio_gap=0.55,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.62,
+            rank_stability=0.62,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.90,
+        ),
+        make_relation(
+            relation_id="O1_2_3",
+            previous_delta=3.0,
+            current_delta=2.8,
+            delta_signal=0.2,
+            delta_abs_gap=0.2,
+            delta_signed_gap=-0.2,
+            delta_ratio_gap=0.066667,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.58,
+            rank_stability=0.58,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.85,
+        ),
+    ]
+
+    v2_actions = decide_actions_for_relations_v2(relations)
+    v21_actions = decide_actions_for_relations_v21(relations)
+
+    assert [action.relation_action_name for action in v2_actions] == [
+        "coordinate",
+        "coordinate",
+        "fallback",
+    ]
+    assert [action.relation_action_name for action in v21_actions] == [
+        "coordinate",
+        "coordinate",
+        "coordinate",
+    ]
+    assert v21_actions[-1].trigger_reason == "adaptive_v21_coordinate_context"
+
+
+def test_relation_policy_v22_early_locks_coordinate_before_repair() -> None:
+    relations = [
+        make_relation(
+            relation_id="O1_0_1",
+            previous_delta=10.0,
+            current_delta=4.0,
+            delta_signal=6.0,
+            delta_abs_gap=6.0,
+            delta_signed_gap=-6.0,
+            delta_ratio_gap=0.60,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.60,
+            rank_stability=0.60,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.90,
+        ),
+        make_relation(
+            relation_id="O1_1_2",
+            previous_delta=3.0,
+            current_delta=1.1,
+            delta_signal=1.9,
+            delta_abs_gap=1.9,
+            delta_signed_gap=-1.9,
+            delta_ratio_gap=0.6333333333,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.80,
+            rank_stability=0.80,
+            shared_var_support_ratio=0.22,
+            fallback_margin_proxy=0.88,
+        ),
+    ]
+
+    v2_actions = decide_actions_for_relations_v2(relations)
+    v22_actions = decide_actions_for_relations_v22(relations)
+
+    assert [action.relation_action_name for action in v2_actions] == [
+        "coordinate",
+        "reassign_repair",
+    ]
+    assert [action.relation_action_name for action in v22_actions] == [
+        "coordinate",
+        "coordinate",
+    ]
+    assert v22_actions[-1].trigger_reason == "adaptive_v22_coordinate_early_lock"
+
+
+def test_relation_policy_v22_keeps_repair_when_repair_evidence_comes_first() -> None:
+    relations = [
+        make_relation(
+            relation_id="O1_0_1",
+            previous_delta=3.0,
+            current_delta=1.1,
+            delta_signal=1.9,
+            delta_abs_gap=1.9,
+            delta_signed_gap=-1.9,
+            delta_ratio_gap=0.6333333333,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.80,
+            rank_stability=0.80,
+            shared_var_support_ratio=0.22,
+            fallback_margin_proxy=0.88,
+        ),
+        make_relation(
+            relation_id="O1_1_2",
+            previous_delta=10.0,
+            current_delta=4.0,
+            delta_signal=6.0,
+            delta_abs_gap=6.0,
+            delta_signed_gap=-6.0,
+            delta_ratio_gap=0.60,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.60,
+            rank_stability=0.60,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.90,
+        ),
+    ]
+
+    v22_actions = decide_actions_for_relations_v22(relations)
+
+    assert [action.relation_action_name for action in v22_actions] == [
+        "reassign_repair",
+        "coordinate",
+    ]
+    assert v22_actions[0].trigger_reason == "adaptive_v2_mid_dense_repair_evidence"
+
+
+def test_relation_policy_v23_preserves_repair_after_coordinate_lock() -> None:
+    relations = [
+        make_relation(
+            relation_id="O1_0_1",
+            previous_delta=10.0,
+            current_delta=4.0,
+            delta_signal=6.0,
+            delta_abs_gap=6.0,
+            delta_signed_gap=-6.0,
+            delta_ratio_gap=0.60,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.60,
+            rank_stability=0.60,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.90,
+        ),
+        make_relation(
+            relation_id="O1_1_2",
+            previous_delta=3.0,
+            current_delta=1.1,
+            delta_signal=1.9,
+            delta_abs_gap=1.9,
+            delta_signed_gap=-1.9,
+            delta_ratio_gap=0.6333333333,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.80,
+            rank_stability=0.80,
+            shared_var_support_ratio=0.22,
+            fallback_margin_proxy=0.88,
+        ),
+        make_relation(
+            relation_id="O1_2_3",
+            previous_delta=3.0,
+            current_delta=2.8,
+            delta_signal=0.2,
+            delta_abs_gap=0.2,
+            delta_signed_gap=-0.2,
+            delta_ratio_gap=0.066667,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.58,
+            rank_stability=0.58,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.85,
+        ),
+    ]
+
+    v22_actions = decide_actions_for_relations_v22(relations)
+    v23_actions = decide_actions_for_relations_v23(relations)
+
+    assert [action.relation_action_name for action in v22_actions] == [
+        "coordinate",
+        "coordinate",
+        "coordinate",
+    ]
+    assert [action.relation_action_name for action in v23_actions] == [
+        "coordinate",
+        "reassign_repair",
+        "coordinate",
+    ]
+    assert v23_actions[1].trigger_reason == "adaptive_v2_mid_dense_repair_evidence"
+    assert (
+        v23_actions[2].trigger_reason
+        == "adaptive_v23_repair_preserving_coordinate_context"
+    )
+
+
+def test_relation_policy_v24_repairs_chain_instability_signal() -> None:
+    relation = make_relation(
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.62,
+        rank_stability=0.62,
+        shared_var_support_ratio=0.16,
+        fallback_margin_proxy=0.90,
+    )
+
+    v23_decision = decide_actions_for_relations_v23([relation])[0]
+    v24_decision = decide_actions_for_relations_v24([relation])[0]
+
+    assert v23_decision.relation_action_name == "coordinate"
+    assert v24_decision.relation_action_name == "reassign_repair"
+    assert v24_decision.canonical_action_name == "repair_shared_variable_binding"
+    assert v24_decision.trigger_reason == "adaptive_v24_chain_instability_repair"
+
+
+def test_relation_policy_v24_gates_low_stability_coordinate_context() -> None:
+    relations = [
+        make_relation(
+            relation_id="O1_0_1",
+            previous_delta=10.0,
+            current_delta=4.0,
+            delta_signal=6.0,
+            delta_abs_gap=6.0,
+            delta_signed_gap=-6.0,
+            delta_ratio_gap=0.60,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.72,
+            rank_stability=0.72,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.90,
+        ),
+        make_relation(
+            relation_id="O1_1_2",
+            previous_delta=3.0,
+            current_delta=2.8,
+            delta_signal=0.2,
+            delta_abs_gap=0.2,
+            delta_signed_gap=-0.2,
+            delta_ratio_gap=0.066667,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.58,
+            rank_stability=0.58,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.85,
+        ),
+    ]
+
+    v23_actions = decide_actions_for_relations_v23(relations)
+    v24_actions = decide_actions_for_relations_v24(relations)
+
+    assert [action.relation_action_name for action in v23_actions] == [
+        "coordinate",
+        "coordinate",
+    ]
+    assert [action.relation_action_name for action in v24_actions] == [
+        "coordinate",
+        "fallback",
+    ]
+
+    stable_context = [
+        relations[0],
+        make_relation(
+            relation_id="O1_1_2",
+            previous_delta=3.0,
+            current_delta=2.4,
+            delta_signal=0.6,
+            delta_abs_gap=0.6,
+            delta_signed_gap=-0.6,
+            delta_ratio_gap=0.20,
+            both_positive=True,
+            one_side_zero=False,
+            rank_signal=0.70,
+            rank_stability=0.70,
+            shared_var_support_ratio=0.16,
+            fallback_margin_proxy=0.85,
+        ),
+    ]
+    stable_v24_actions = decide_actions_for_relations_v24(stable_context)
+
+    assert stable_v24_actions[-1].relation_action_name == "coordinate"
+    assert (
+        stable_v24_actions[-1].trigger_reason
+        == "adaptive_v24_stability_gated_coordinate_context"
+    )
+
+
+def test_relation_policy_v24_scored_action_reports_repair_override() -> None:
+    relation = make_relation(
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.62,
+        rank_stability=0.62,
+        shared_var_support_ratio=0.16,
+        fallback_margin_proxy=0.90,
+    )
+
+    scored = score_actions_for_relations_v24([relation])[0]
+
+    assert scored.final_action.relation_action_name == "reassign_repair"
+    assert scored.best_action_name == "reassign_repair"
+    assert scored.margin >= 0.05
+
+
+def test_relation_policy_v25_repairs_chain_instability_without_context_gate() -> None:
+    unstable_relation = make_relation(
+        relation_id="O1_0_1",
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.62,
+        rank_stability=0.62,
+        shared_var_support_ratio=0.16,
+        fallback_margin_proxy=0.90,
+    )
+    low_stability_context_relation = make_relation(
+        relation_id="O1_1_2",
+        previous_delta=3.0,
+        current_delta=2.8,
+        delta_signal=0.2,
+        delta_abs_gap=0.2,
+        delta_signed_gap=-0.2,
+        delta_ratio_gap=0.066667,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.58,
+        rank_stability=0.58,
+        shared_var_support_ratio=0.16,
+        fallback_margin_proxy=0.85,
+    )
+
+    chain_repair = decide_actions_for_relations_v25([unstable_relation])[0]
+    v24_context_actions = decide_actions_for_relations_v24(
+        [
+            make_relation(
+                relation_id="O1_0_1",
+                previous_delta=10.0,
+                current_delta=4.0,
+                delta_signal=6.0,
+                delta_abs_gap=6.0,
+                delta_signed_gap=-6.0,
+                delta_ratio_gap=0.60,
+                both_positive=True,
+                one_side_zero=False,
+                rank_signal=0.72,
+                rank_stability=0.72,
+                shared_var_support_ratio=0.16,
+                fallback_margin_proxy=0.90,
+            ),
+            low_stability_context_relation,
+        ]
+    )
+    v25_context_actions = decide_actions_for_relations_v25(
+        [
+            make_relation(
+                relation_id="O1_0_1",
+                previous_delta=10.0,
+                current_delta=4.0,
+                delta_signal=6.0,
+                delta_abs_gap=6.0,
+                delta_signed_gap=-6.0,
+                delta_ratio_gap=0.60,
+                both_positive=True,
+                one_side_zero=False,
+                rank_signal=0.72,
+                rank_stability=0.72,
+                shared_var_support_ratio=0.16,
+                fallback_margin_proxy=0.90,
+            ),
+            low_stability_context_relation,
+        ]
+    )
+
+    assert chain_repair.relation_action_name == "reassign_repair"
+    assert chain_repair.trigger_reason == "adaptive_v25_chain_instability_repair"
+    assert [action.relation_action_name for action in v24_context_actions] == [
+        "coordinate",
+        "fallback",
+    ]
+    assert [action.relation_action_name for action in v25_context_actions] == [
+        "coordinate",
+        "coordinate",
+    ]
+    assert (
+        v25_context_actions[-1].trigger_reason
+        == "adaptive_v25_chain_repair_preserving_coordinate_context"
+    )
+
+
+def test_relation_policy_v25_scored_action_reports_repair_override() -> None:
+    relation = make_relation(
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.62,
+        rank_stability=0.62,
+        shared_var_support_ratio=0.16,
+        fallback_margin_proxy=0.90,
+    )
+
+    scored = score_actions_for_relations_v25([relation])[0]
+
+    assert scored.final_action.relation_action_name == "reassign_repair"
+    assert scored.final_action.trigger_reason == "adaptive_v25_chain_instability_repair"
+    assert scored.best_action_name == "reassign_repair"
+    assert scored.margin >= 0.05
+
+
+def test_relation_policy_v26_limits_chain_repair_to_low_overlap_relations() -> None:
+    low_overlap_relation = make_relation(
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.62,
+        rank_stability=0.62,
+        shared_vars=(1, 2, 3, 4, 5),
+        shared_var_count=5,
+        overlap_strength=5.0,
+        shared_var_support_ratio=1.0 / 6.0,
+        fallback_margin_proxy=0.90,
+    )
+    higher_overlap_relation = make_relation(
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.62,
+        rank_stability=0.62,
+        shared_vars=(1, 2, 3, 4, 5, 6, 7),
+        shared_var_count=7,
+        overlap_strength=7.0,
+        shared_var_support_ratio=0.14,
+        fallback_margin_proxy=0.90,
+    )
+
+    low_overlap_action = decide_actions_for_relations_v26([low_overlap_relation])[0]
+    higher_overlap_v25 = decide_actions_for_relations_v25(
+        [higher_overlap_relation]
+    )[0]
+    higher_overlap_v26 = decide_actions_for_relations_v26(
+        [higher_overlap_relation]
+    )[0]
+
+    assert low_overlap_action.relation_action_name == "reassign_repair"
+    assert (
+        low_overlap_action.trigger_reason
+        == "adaptive_v26_low_overlap_chain_instability_repair"
+    )
+    assert higher_overlap_v25.relation_action_name == "reassign_repair"
+    assert higher_overlap_v26.relation_action_name == "coordinate"
+    assert (
+        higher_overlap_v26.trigger_reason
+        == "adaptive_v2_conflict_coordinate_evidence"
+    )
+
+
+def test_relation_policy_v26_scored_action_reports_low_overlap_repair() -> None:
+    relation = make_relation(
+        previous_delta=10.0,
+        current_delta=4.0,
+        delta_signal=6.0,
+        delta_abs_gap=6.0,
+        delta_signed_gap=-6.0,
+        delta_ratio_gap=0.60,
+        both_positive=True,
+        one_side_zero=False,
+        rank_signal=0.62,
+        rank_stability=0.62,
+        shared_vars=(1, 2, 3, 4, 5),
+        shared_var_count=5,
+        overlap_strength=5.0,
+        shared_var_support_ratio=1.0 / 6.0,
+        fallback_margin_proxy=0.90,
+    )
+
+    scored = score_actions_for_relations_v26([relation])[0]
+
+    assert scored.final_action.relation_action_name == "reassign_repair"
+    assert (
+        scored.final_action.trigger_reason
+        == "adaptive_v26_low_overlap_chain_instability_repair"
+    )
+    assert scored.best_action_name == "reassign_repair"
 
 
 def test_relation_policy_scores_candidates_and_reports_margin() -> None:

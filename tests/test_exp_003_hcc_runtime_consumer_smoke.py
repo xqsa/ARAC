@@ -34,6 +34,40 @@ def _hcc_result(
     )
 
 
+def test_exp_003_reuses_completed_lane_artifact(tmp_path: Path) -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _existing_completed_result,
+    )
+
+    (tmp_path / "evaluation_record.txt").write_text(
+        "1000 9.0\n2000 4.2\nFin: 2001 5.0\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "action_trace.csv").write_text(
+        "problem_id,seed,outer_iter,group_index,selected_action_name\n"
+        "E2,7,0,1,conservative_no_action\n",
+        encoding="utf-8",
+    )
+
+    result = _existing_completed_result(
+        HccAobExecutionRequest(
+            problem_id="E2",
+            seed=7,
+            max_fes=2000,
+            output_dir=tmp_path,
+        )
+    )
+
+    assert result is not None
+    assert result.status == "completed_existing_artifact"
+    assert result.fresh_optimizer_execution is False
+    assert result.result_source == "hcc_subprocess_smoke_execution_existing_artifact"
+    assert result.final_error == 4.2
+    assert result.fe_used == 2000
+    assert result.optimizer_final_fe_used == 2001
+    assert result.action_trace_rows == 1
+
+
 def test_exp_003_normalizes_subprocess_run_id_in_relation_artifacts(tmp_path: Path) -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import RUN_ID, _with_lane_prefix
 
@@ -276,6 +310,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "claim_gate.csv",
         "negative_control_comparison.csv",
         "policy_evidence_diagnosis.csv",
+        "aob_input_manifest.csv",
     }
     assert expected == {path.name for path in output.iterdir() if path.suffix == ".csv"}
     manifest = (output / "run_manifest.md").read_text(encoding="utf-8")
@@ -290,6 +325,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "- policy sha256:" in manifest
     assert "- experiment runner sha256:" in manifest
     assert "- HCC smoke runner sha256:" in manifest
+    assert f"Wrapper Python executable: {Path(sys.executable).resolve()}" in manifest
+    assert "Backend Python executable: python" in manifest
     claim_table = (output / "claim_evidence_table.md").read_text(encoding="utf-8")
     assert "# exp_003 Claim Evidence Table" in claim_table
     assert "| E2 | relation_dispatch_utility | blocked | 0/3 |" in claim_table
@@ -476,6 +513,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert result_by_lane["fixed_coordinate"]["utility_claim_allowed"] == "0"
     assert result_by_lane["relation_dispatch_rule"]["runtime_connected_claim_allowed"] == "1"
     assert result_by_lane["relation_dispatch_rule"]["utility_claim_allowed"] == "0"
+    assert result_by_lane["relation_dispatch_rule"]["result_source"] == "hcc_subprocess_smoke_execution"
+    assert result_by_lane["relation_dispatch_rule"]["action_trace_sha256"] != "missing"
     assert result_by_lane["shuffled_relation_dispatch"]["runtime_connected_claim_allowed"] == "1"
     assert result_by_lane["shuffled_relation_dispatch"]["utility_claim_allowed"] == "0"
 
@@ -662,6 +701,674 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "E1_seed1_2000fe",
         "E2_seed1_2000fe",
     }
+
+
+def test_exp_003_targeted_ablation_profile_adds_trajectory_lane(tmp_path: Path) -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        run_hcc_runtime_consumer_smoke,
+    )
+
+    requests: list[HccAobExecutionRequest] = []
+
+    def fake_runner(request: HccAobExecutionRequest) -> HccAobExecutionResult:
+        requests.append(request)
+        trace_path = request.output_dir / "action_trace.csv"
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        action_family = (
+            "trajectory"
+            if request.arac_action == "budget_shift_mean_blend"
+            else "fallback"
+        )
+        trace_path.write_text(
+            "problem_id,seed,outer_iter,group_index,selected_action_name,"
+            "relation_id,group_left,group_right,shared_vars_hash,action_family,"
+            "canonical_action_name,relation_policy_source,overlap_size,previous_delta,"
+            "current_delta,owner_selected,semantic_surface,state_mutated,"
+            "action_value_delta_norm,downstream_consumed,downstream_consumption_scope,"
+            "optimizer_consumed\n"
+            f"{request.problem_id},{request.seed},0,1,{request.arac_action},O0_0_1,0,1,"
+            f"hash,{action_family},{request.arac_action},fixed_lane_runtime_consumer_smoke,"
+            "1,1.000000e+00,1.000000e+00,test,test,1,0.000000e+00,0,,1\n",
+            encoding="utf-8",
+        )
+        return HccAobExecutionResult(
+            problem_id=request.problem_id,
+            seed=request.seed,
+            max_fes=request.max_fes,
+            final_error=1.0,
+            fe_used=request.max_fes,
+            time_seconds=0.1,
+            output_root=request.output_dir,
+            fresh_optimizer_execution=True,
+            status="ok",
+            result_source="test",
+            action_trace_path=trace_path,
+            action_trace_rows=1,
+        )
+
+    output = run_hcc_runtime_consumer_smoke(
+        output_dir=tmp_path / "targeted",
+        execution_runner=fake_runner,
+        seeds=(1,),
+        problem_ids=("R4",),
+        lane_profile="targeted_ablation",
+    )
+
+    result_rows = _read_csv(output / "our_result_by_case.csv")
+    lane_ids = {row["lane_id"] for row in result_rows}
+
+    assert "trajectory_budget_shift_mean_blend" in lane_ids
+    assert any(request.arac_action == "budget_shift_mean_blend" for request in requests)
+
+
+def test_exp_003_focused_compare_profile_excludes_relation_and_trajectory() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lane_ids = [lane.lane_id for lane in lanes_for_profile("focused_compare")]
+
+    assert lane_ids == [
+        "fallback",
+        "fixed_repair",
+        "fixed_coordinate",
+    ]
+
+
+def test_exp_003_focused_core_profile_excludes_trajectory_and_shuffled() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lane_ids = [lane.lane_id for lane in lanes_for_profile("focused_core")]
+
+    assert lane_ids == [
+        "fallback",
+        "fixed_repair",
+        "fixed_coordinate",
+        "relation_dispatch_rule",
+    ]
+
+
+def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _ledger_for_result,
+        _ledger_rows,
+    )
+
+    result = HccAobExecutionResult(
+        problem_id="E2",
+        seed=7,
+        max_fes=2000,
+        final_error=1.0,
+        fe_used=2000,
+        time_seconds=0.1,
+        output_root=tmp_path,
+        fresh_optimizer_execution=True,
+        status="ok",
+        result_source="test",
+        optimizer_final_fe_used=2000,
+        global_phase_fe=600,
+        cc_phase_fe=1000,
+        rescue_fe=300,
+        refresh_fe=0,
+        separable_continuation_fe=0,
+        overhead_fe=100,
+    )
+
+    ledger = _ledger_for_result(result)
+    rows = _ledger_rows(
+        [{"lane_id": "controller_v31", "result": result}]
+    )
+
+    assert ledger.phase_i_fe == 600
+    assert ledger.phase_ii_fe == 1400
+    assert rows[0]["phase_i_fe"] == 600
+    assert rows[0]["phase_ii_fe"] == 1400
+    assert rows[0]["cc_phase_fe"] == 1000
+    assert rows[0]["rescue_fe"] == 300
+    assert rows[0]["refresh_fe"] == 0
+    assert rows[0]["overhead_fe"] == 100
+
+
+def test_exp_003_evidence_routed_only_profile_runs_relation_dispatch_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_evidence_routed_v2_only_profile_runs_adaptive_policy() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_v2_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "adaptive_v2"
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_evidence_routed_v21_only_profile_runs_context_policy() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_v21_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "adaptive_v21"
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_evidence_routed_v22_only_profile_runs_early_lock_policy() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_v22_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "adaptive_v22"
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_evidence_routed_v23_only_profile_runs_repair_preserving_policy() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_v23_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "adaptive_v23"
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_evidence_routed_v24_only_profile_runs_no_harm_policy() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_v24_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "adaptive_v24"
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_evidence_routed_v25_only_profile_runs_chain_repair_policy() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_v25_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "adaptive_v25"
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_evidence_routed_v26_only_profile_runs_low_overlap_chain_repair_policy() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_routed_v26_only")
+
+    assert [lane.lane_id for lane in lanes] == ["relation_dispatch_rule"]
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "adaptive_v26"
+    assert lanes[0].runner_action_name == "conservative_no_action"
+    assert lanes[0].plan_action_name == "allow_beneficial_coordination"
+
+
+def test_exp_003_historical_13_preserve_push_profile_covers_historical_mechanisms() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("historical_13_preserve_push")
+    lane_ids = [lane.lane_id for lane in lanes]
+
+    assert lane_ids == [
+        "fallback",
+        "fixed_coordinate",
+        "relation_dispatch_rule",
+        "relation_dispatch_v24",
+        "relation_dispatch_legacy",
+        "fixed_repair",
+        "repair_protect_refine",
+        "repair_protect_deep_refine",
+        "phase_rescue_multistart",
+        "repair_phase_rescue_multistart",
+        "cc_harm_guarded_sep_refresh",
+        "bipop_search_state_restart",
+        "separable_cmaes_dispatch_action",
+    ]
+    assert lanes[1].selected_action_name == "allow_beneficial_coordination"
+    assert lanes[2].relation_policy_mode == "adaptive_v26"
+    assert lanes[3].relation_policy_mode == "adaptive_v24"
+
+
+def test_exp_003_historical_13_fast_preserve_profile_keeps_core_runtime_lanes() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("historical_13_fast_preserve")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "fixed_coordinate",
+        "relation_dispatch_rule",
+        "relation_dispatch_v24",
+        "repair_protect_refine",
+        "repair_phase_rescue_multistart",
+        "bipop_search_state_restart",
+    ]
+    assert len(lanes) < 8
+    assert lanes[1].selected_action_name == "allow_beneficial_coordination"
+    assert lanes[2].relation_dispatch_enabled is True
+    assert lanes[2].relation_policy_mode == "adaptive_v26"
+    assert lanes[3].relation_policy_mode == "adaptive_v24"
+    assert lanes[-1].runner_action_name == "bipop_search_state_restart"
+
+
+def test_exp_003_historical_13_runtime_composite_profile_is_single_runtime_method() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("historical_13_runtime_composite")
+
+    assert [lane.lane_id for lane in lanes] == ["arac_runtime_composite_v1"]
+    lane = lanes[0]
+    assert lane.selected_action_name == "repair_phase_rescue_multistart"
+    assert lane.runner_action_name == "repair_phase_rescue_multistart"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.plan_action_name == ""
+    assert lane.relation_policy_mode == "adaptive_v26"
+
+
+def test_exp_003_historical_13_runtime_composite_v2_profile_is_single_guarded_runtime_method() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("historical_13_runtime_composite_v2")
+
+    assert [lane.lane_id for lane in lanes] == ["arac_runtime_composite_v2"]
+    lane = lanes[0]
+    assert lane.selected_action_name == "cc_harm_guarded_sep_refresh"
+    assert lane.runner_action_name == "cc_harm_guarded_sep_refresh"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.plan_action_name == "allow_beneficial_coordination"
+    assert lane.relation_policy_mode == "adaptive_v26"
+
+
+def test_exp_003_evidence_action_controller_profile_is_single_runtime_method() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_action_controller_v1")
+
+    assert [lane.lane_id for lane in lanes] == ["arac_evidence_action_controller_v1"]
+    lane = lanes[0]
+    assert lane.selected_action_name == "arac_evidence_action_controller_v1"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v1"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.plan_action_name == "arac_evidence_action_controller_v1"
+    assert lane.relation_policy_mode == "adaptive_v26"
+
+
+def test_exp_003_evidence_action_controller_v2_profile_is_single_runtime_method() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_action_controller_v2")
+
+    assert [lane.lane_id for lane in lanes] == ["arac_evidence_action_controller_v2"]
+    lane = lanes[0]
+    assert lane.selected_action_name == "arac_evidence_action_controller_v2"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v2"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.plan_action_name == "arac_evidence_action_controller_v2"
+    assert lane.relation_policy_mode == "adaptive_v24"
+
+
+def test_exp_003_evidence_action_controller_v3_profile_is_single_runtime_method() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_action_controller_v3")
+
+    assert [lane.lane_id for lane in lanes] == ["arac_evidence_action_controller_v3"]
+    lane = lanes[0]
+    assert lane.selected_action_name == "arac_evidence_action_controller_v3"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v3"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.plan_action_name == "arac_evidence_action_controller_v3"
+    assert lane.relation_policy_mode == "controller_v3"
+
+
+def test_exp_003_evidence_action_controller_v31_profile_is_single_runtime_method() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_action_controller_v31")
+
+    assert [lane.lane_id for lane in lanes] == ["arac_evidence_action_controller_v31"]
+    lane = lanes[0]
+    assert lane.selected_action_name == "arac_evidence_action_controller_v31"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v31"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.plan_action_name == "arac_evidence_action_controller_v31"
+    assert lane.relation_policy_mode == "controller_v31"
+
+
+def test_exp_003_canonical_evidence_controller_profile_reuses_single_v31_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("canonical_evidence_controller_v1")
+
+    assert len(lanes) == 1
+    lane = lanes[0]
+    assert lane.lane_id == "canonical_evidence_controller_v1"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v31"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.relation_policy_mode == "controller_v31"
+
+
+def test_exp_003_records_pass_explicit_aob_data_root(tmp_path: Path) -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _records,
+        lanes_for_profile,
+    )
+
+    data_root = Path("E:/ARAC/HCC_SRC/AOB/AOBG/datafile").resolve()
+    requests: list[HccAobExecutionRequest] = []
+
+    def fake_runner(request: HccAobExecutionRequest) -> HccAobExecutionResult:
+        requests.append(request)
+        return HccAobExecutionResult(
+            problem_id=request.problem_id,
+            seed=request.seed,
+            max_fes=request.max_fes,
+            final_error=1.0,
+            fe_used=request.max_fes,
+            time_seconds=0.1,
+            output_root=request.output_dir,
+            fresh_optimizer_execution=True,
+            status="completed",
+            result_source="test",
+        )
+
+    _records(
+        output_dir=tmp_path / "canonical",
+        execution_runner=fake_runner,
+        hcc_root=Path("E:/HCC-main"),
+        aob_data_root=data_root,
+        python_executable=sys.executable,
+        seeds=(3,),
+        problem_ids=("E6",),
+        max_fes=3_000_000,
+        lanes=lanes_for_profile("canonical_evidence_controller_v1"),
+    )
+
+    assert len(requests) == 1
+    assert requests[0].aob_data_root == data_root
+
+
+def test_exp_003_evidence_routed_only_writes_results_without_fallback(tmp_path: Path) -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        run_hcc_runtime_consumer_smoke,
+    )
+
+    def fake_runner(request: HccAobExecutionRequest) -> HccAobExecutionResult:
+        trace_path = request.output_dir / "action_trace.csv"
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        trace_path.write_text(
+            "problem_id,seed,outer_iter,group_index,selected_action_name,"
+            "relation_id,group_left,group_right,shared_vars_hash,action_family,"
+            "canonical_action_name,relation_policy_source,overlap_size,previous_delta,"
+            "current_delta,owner_selected,semantic_surface,state_mutated,"
+            "action_value_delta_norm,downstream_consumed,downstream_consumption_scope,"
+            "optimizer_consumed\n"
+            f"{request.problem_id},{request.seed},0,1,allow_beneficial_coordination,"
+            "O0_0_1,0,1,hash,coordinate,allow_beneficial_coordination,"
+            "rule_based_relation_policy,1,1.0,2.0,test,test,1,0.0,0,,1\n",
+            encoding="utf-8",
+        )
+        return HccAobExecutionResult(
+            problem_id=request.problem_id,
+            seed=request.seed,
+            max_fes=request.max_fes,
+            final_error=10.0,
+            fe_used=request.max_fes,
+            time_seconds=0.1,
+            output_root=request.output_dir,
+            fresh_optimizer_execution=True,
+            status="completed",
+            result_source="test",
+            action_trace_path=trace_path,
+            action_trace_rows=1,
+        )
+
+    output = run_hcc_runtime_consumer_smoke(
+        output_dir=tmp_path / "evidence_only",
+        execution_runner=fake_runner,
+        seeds=(1,),
+        problem_ids=("E5",),
+        lane_profile="evidence_routed_only",
+    )
+
+    result_rows = _read_csv(output / "our_result_by_case.csv")
+    utility_rows = _read_csv(output / "action_utility_audit.csv")
+
+    assert [row["lane_id"] for row in result_rows] == ["relation_dispatch_rule"]
+    assert result_rows[0]["utility_claim_allowed"] == "0"
+    assert utility_rows[0]["relative_gain_vs_fallback"] == "nan"
+    assert utility_rows[0]["utility_label"] == "no_fallback_reference"
+    assert "no_fallback_reference" in utility_rows[0]["claim_blockers"]
+
+
+def test_exp_003_landscape_escape_profile_adds_bipop_search_state_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("landscape_escape")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "fixed_repair",
+        "fixed_coordinate",
+        "bipop_search_state_restart",
+    ]
+    bipop_lane = lanes[-1]
+    assert bipop_lane.selected_action_name == "bipop_search_state_restart"
+    assert bipop_lane.runner_action_name == "bipop_search_state_restart"
+
+
+def test_exp_003_repair_landscape_escape_profile_adds_repair_guarded_bipop_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("repair_landscape_escape")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "fixed_repair",
+        "repair_bipop_search_state_restart",
+    ]
+    repair_bipop_lane = lanes[-1]
+    assert repair_bipop_lane.selected_action_name == "repair_bipop_search_state_restart"
+    assert repair_bipop_lane.runner_action_name == "repair_bipop_search_state_restart"
+
+
+def test_exp_003_repair_refine_profile_adds_repair_protect_refine_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("repair_refine")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "fixed_repair",
+        "repair_protect_refine",
+    ]
+    refine_lane = lanes[-1]
+    assert refine_lane.selected_action_name == "repair_protect_refine"
+    assert refine_lane.runner_action_name == "repair_protect_refine"
+
+
+def test_exp_003_paper_best_win_push_profile_combines_near_miss_actions() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("paper_best_win_push")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "relation_dispatch_rule",
+        "fixed_repair",
+        "repair_protect_refine",
+        "bipop_search_state_restart",
+        "separable_cmaes_dispatch_action",
+    ]
+    relation_lane = lanes[1]
+    assert relation_lane.relation_dispatch_enabled is True
+    assert relation_lane.relation_policy_mode == "adaptive_v26"
+    assert relation_lane.runner_action_name == "conservative_no_action"
+    assert relation_lane.plan_action_name == "allow_beneficial_coordination"
+    assert lanes[-2].runner_action_name == "bipop_search_state_restart"
+    assert lanes[-1].runner_action_name == "separable_cmaes_dispatch_action"
+
+
+def test_exp_003_paper_best_win_push_v2_profile_adds_replay_candidate_lanes() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("paper_best_win_push_v2")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "relation_dispatch_rule",
+        "relation_dispatch_v24",
+        "relation_dispatch_legacy",
+        "fixed_repair",
+        "repair_protect_refine",
+        "bipop_search_state_restart",
+        "separable_cmaes_dispatch_action",
+    ]
+    assert lanes[1].relation_policy_mode == "adaptive_v26"
+    assert lanes[2].selected_action_name == "relation_dispatch_adaptive_v24"
+    assert lanes[2].relation_policy_mode == "adaptive_v24"
+    assert lanes[3].selected_action_name == "relation_dispatch_rule"
+    assert lanes[3].relation_policy_mode == "rule"
+    assert lanes[5].selected_action_name == "repair_protect_refine"
+
+
+def test_exp_003_historical_anchor_refine_push_profile_adds_long_refine_candidates() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("historical_anchor_refine_push")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "relation_dispatch_rule",
+        "relation_dispatch_legacy",
+        "fixed_repair",
+        "repair_protect_refine",
+        "repair_protect_deep_refine",
+        "phase_rescue_multistart",
+        "repair_phase_rescue_multistart",
+        "bipop_search_state_restart",
+        "separable_cmaes_dispatch_action",
+    ]
+    assert lanes[1].relation_policy_mode == "adaptive_v26"
+    assert lanes[2].relation_policy_mode == "rule"
+    assert lanes[5].selected_action_name == "repair_protect_deep_refine"
+    assert lanes[6].runner_action_name == "phase_rescue_multistart"
+    assert lanes[7].runner_action_name == "repair_phase_rescue_multistart"
+
+
+def test_exp_003_separable_cmaes_push_profile_adds_direct_dispatch_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("separable_cmaes_push")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "separable_cmaes_dispatch_action",
+    ]
+    sep_lane = lanes[-1]
+    assert sep_lane.selected_action_name == "separable_cmaes_dispatch_action"
+    assert sep_lane.runner_action_name == "separable_cmaes_dispatch_action"
+    assert sep_lane.relation_dispatch_enabled is False
+
+
+def test_exp_003_precision_refine_push_profile_compares_refine_depths() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("precision_refine_push")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "repair_protect_refine",
+        "repair_protect_deep_refine",
+    ]
+    deep_lane = lanes[-1]
+    assert deep_lane.selected_action_name == "repair_protect_deep_refine"
+    assert deep_lane.runner_action_name == "repair_protect_deep_refine"
+
+
+def test_exp_003_phase_rescue_push_profile_adds_multistart_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("phase_rescue_push")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "relation_dispatch_rule",
+        "repair_protect_refine",
+        "phase_rescue_multistart",
+    ]
+    phase_lane = lanes[-1]
+    assert phase_lane.selected_action_name == "phase_rescue_multistart"
+    assert phase_lane.runner_action_name == "phase_rescue_multistart"
+
+
+def test_exp_003_repair_phase_rescue_push_profile_adds_composite_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("repair_phase_rescue_push")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "repair_protect_refine",
+        "repair_phase_rescue_multistart",
+    ]
+    composite_lane = lanes[-1]
+    assert composite_lane.selected_action_name == "repair_phase_rescue_multistart"
+    assert composite_lane.runner_action_name == "repair_phase_rescue_multistart"
+
+
+def test_exp_003_cc_harm_sep_refresh_profile_adds_guarded_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("cc_harm_sep_refresh")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "relation_dispatch_rule",
+        "cc_harm_guarded_sep_refresh",
+    ]
+    relation_lane = lanes[1]
+    assert relation_lane.relation_dispatch_enabled is True
+    assert relation_lane.relation_policy_mode == "adaptive_v26"
+    guarded_lane = lanes[-1]
+    assert guarded_lane.selected_action_name == "cc_harm_guarded_sep_refresh"
+    assert guarded_lane.runner_action_name == "cc_harm_guarded_sep_refresh"
+
+
+def test_exp_003_negative_control_rows_handle_profiles_without_shuffled_lane() -> None:
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
+
+    records = [
+        {
+            "lane_id": "fallback",
+            "result": _hcc_result("R4", 1, 10.0, Path("E:/tmp")),
+        },
+        {
+            "lane_id": "relation_dispatch_rule",
+            "result": _hcc_result("R4", 1, 9.0, Path("E:/tmp")),
+        },
+    ]
+
+    assert _negative_control_rows(records) == []
 
 
 def test_multi_problem_semantics_audit_allows_fallback_only_relation_dispatch() -> None:
@@ -1711,6 +2418,55 @@ def test_backend_semantics_expectation_uses_optimizer_consumed_action_mix() -> N
     }
 
     assert _expects_backend_semantics(row) is False
+
+
+def test_phase_rescue_trace_rows_mark_search_state_backend_semantics() -> None:
+    from arac.backend_adapter import BackendSemanticsDiff
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _semantics_from_trace_rows,
+    )
+
+    semantics = _semantics_from_trace_rows(
+        [
+            {
+                "canonical_action_name": "phase_rescue_multistart",
+                "optimizer_consumed": "1",
+            }
+        ],
+        BackendSemanticsDiff(),
+    )
+
+    assert semantics.budget_allocation_changed
+    assert semantics.update_order_changed
+    assert semantics.acceptance_rule_changed
+    assert semantics.changed
+
+
+def test_repair_phase_rescue_trace_rows_mark_composite_backend_semantics() -> None:
+    from arac.backend_adapter import BackendSemanticsDiff
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+        _semantics_from_trace_rows,
+    )
+
+    semantics = _semantics_from_trace_rows(
+        [
+            {
+                "canonical_action_name": "repair_shared_variable_binding",
+                "optimizer_consumed": "1",
+            },
+            {
+                "canonical_action_name": "repair_phase_rescue_multistart",
+                "optimizer_consumed": "1",
+            },
+        ],
+        BackendSemanticsDiff(),
+    )
+
+    assert semantics.variable_owner_changed
+    assert semantics.budget_allocation_changed
+    assert semantics.update_order_changed
+    assert semantics.acceptance_rule_changed
+    assert semantics.changed
 
 
 def test_relation_dispatch_noop_trace_is_a_fallback_claim_gate_decision() -> None:

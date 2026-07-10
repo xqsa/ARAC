@@ -4,10 +4,10 @@ import yaml
 
 
 class ackley(Benchmarks):
-    def __init__(self,ID, output_path):
-        super().__init__(output_path)
+    def __init__(self,ID, output_path, data_dir=None):
+        super().__init__(output_path, data_dir=data_dir)
         self.ID = ID
-        info_file_path = f'HCC_SRC/AOB/AOBG/datafile/F{ID}-info.txt'
+        info_file_path = self.data_dir / f'F{ID}-info.txt'
 
         with open(info_file_path, "r") as file:
             data = yaml.safe_load(file)

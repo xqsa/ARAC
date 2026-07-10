@@ -60,6 +60,26 @@ def test_policy_selects_coordinate_for_stable_beneficial_evidence() -> None:
     assert decision.decision == "allow"
 
 
+def test_policy_no_harm_gate_falls_back_on_tie_band_evidence() -> None:
+    decision = decide_action(
+        make_evidence(
+            overlap_degree=0.12,
+            shared_var_support_ratio=0.10,
+            direction_disagreement=0.12,
+            harmful_coord_score=0.10,
+            group_gain_asymmetry=0.05,
+            priority_spread=0.05,
+            rank_stability=0.90,
+            budget_remaining_ratio=0.80,
+            fallback_margin_proxy=0.96,
+        )
+    )
+
+    assert decision.action_family == ActionFamily.FALLBACK
+    assert decision.action_name == "conservative_no_action"
+    assert decision.trigger_reason == "tie_band_no_harm_gate"
+
+
 def test_runtime_payload_rejects_forbidden_outcome_fields() -> None:
     with pytest.raises(ValueError, match="final_error"):
         validate_runtime_payload({"overlap_degree": 0.5, "final_error": 1.2})

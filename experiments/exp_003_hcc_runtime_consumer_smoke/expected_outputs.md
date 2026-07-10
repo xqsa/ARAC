@@ -28,6 +28,10 @@ The required smoke evidence is:
 - `action_trace.csv` contains rows with
   `semantic_surface=shared_variable_owner_rebinding` and
   `optimizer_consumed=1`.
+- For `landscape_escape`, `action_trace.csv` also records BIPOP search-state
+  audit fields such as `search_state_action_type`, `bipop_restart_mode`,
+  `sigma_before`, `sigma_after`, `population_before`, `population_after`,
+  `escape_budget`, `restart_triggered`, and `restart_accepted`.
 - `claim_gate.csv` for the repair lane does not contain
   `active_action_not_consumed_by_hcc_runtime`.
 - `relation_dispatch_rule` has matching `relation_id` rows across
@@ -43,8 +47,9 @@ The required smoke evidence is:
   same-budget, utility, catastrophic-loss, shuffled-control, and SOTA
   escalation gates.
 - `run_manifest.md` records the command shape, problem/seed set, lanes, key
-  gates, artifact list, parallel job count, git commit, code/config hashes, and the rule that
-  final/reported/oracle values must not enter runtime dispatch.
+  gates, artifact list, parallel job count, wrapper/backend Python executables,
+  git commit, code/config hashes, and the rule that final/reported/oracle values
+  must not enter runtime dispatch.
 - `claim_evidence_table.md` maps each diagnosis claim/gate to status,
   observed evidence, blockers, and source artifact.
 - Final errors are offline-only smoke outputs and must not enter runtime

@@ -1,10 +1,11 @@
 import numpy as np
 import sys
 import os
+from pathlib import Path
 
 class Benchmarks:
-    def __init__(self, output_path):
-        self.data_dir = "HCC_SRC/AOB/AOBG/datafile"  # 数据文件夹
+    def __init__(self, output_path, data_dir=None):
+        self.data_dir = Path(data_dir) if data_dir is not None else Path("HCC_SRC/AOB/AOBG/datafile")
         self.dimension = 1000  # 维度
 
 
@@ -282,7 +283,6 @@ class Benchmarks:
 
 
     
-
 
 
 

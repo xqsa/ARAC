@@ -20,6 +20,10 @@ class PolicyConfig:
     low_shared_coordinate_threshold: float = 0.35
     coordinate_rank_stability_threshold: float = 0.80
     coordinate_fallback_margin_threshold: float = 0.70
+    tie_band_conflict_threshold: float = 0.15
+    tie_band_shared_threshold: float = 0.15
+    tie_band_fallback_margin_threshold: float = 0.90
+    tie_band_utility_threshold: float = 0.70
 
 
 @dataclass(frozen=True)
@@ -57,6 +61,20 @@ def decide_action(evidence: EvidenceProfile, config: PolicyConfig | None = None)
         * evidence.rank_stability
         * evidence.fallback_margin_proxy
     )
+
+    if (
+        conflict_signal <= cfg.tie_band_conflict_threshold
+        and shared_signal <= cfg.tie_band_shared_threshold
+        and evidence.fallback_margin_proxy >= cfg.tie_band_fallback_margin_threshold
+        and coordinate_signal < cfg.tie_band_utility_threshold
+    ):
+        return ActionDecision(
+            ActionFamily.FALLBACK,
+            "conservative_no_action",
+            "fallback",
+            "tie_band_no_harm_gate",
+            0.0,
+        )
 
     if conflict_signal >= cfg.high_conflict_threshold:
         utility = conflict_signal - (1.0 - evidence.fallback_margin_proxy)
