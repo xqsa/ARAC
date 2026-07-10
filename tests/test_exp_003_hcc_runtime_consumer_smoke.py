@@ -669,7 +669,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     ]["blocker_reason"]
     multi_manifest = (multi_output / "run_manifest.md").read_text(encoding="utf-8")
     assert "- claim scope: overlap_applicable=E2;no_overlap_controls=E1" in multi_manifest
-    assert "- same-budget violations: 0/5" in multi_manifest
+    assert "- same-budget violations: 0/10" in multi_manifest
+    assert "- overlap-scope same-budget violations: 0/5" in multi_manifest
     assert (
         "- multi-problem active density: "
         "mean=1.000000;min=1.000000;low_density_cases=0/1;"

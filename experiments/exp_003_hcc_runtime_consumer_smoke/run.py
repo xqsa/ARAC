@@ -3314,6 +3314,7 @@ def _write_manifest(
     seeds: tuple[int, ...],
     problem_ids: tuple[str, ...],
     diagnosis_rows: list[dict[str, object]],
+    ledger_rows: list[dict[str, object]],
     jobs: int = 1,
     max_fes: int = MAX_FES,
     budget_accounting: str = "strict",
@@ -3326,13 +3327,18 @@ def _write_manifest(
     python_executable: str = sys.executable,
 ) -> None:
     aob_input_rows = [] if aob_input_rows is None else aob_input_rows
-    same_budget_status = (
+    overlap_scope_same_budget_status = (
         _diagnostic_observed_value(
             diagnosis_rows,
             "multi_problem_same_budget_fe_status",
         )
         or _diagnostic_observed_value(diagnosis_rows, "same_budget_fe_status")
+        or "not_applicable"
     )
+    same_budget_violations = sum(
+        str(row.get("same_budget_violation")) != "0" for row in ledger_rows
+    )
+    same_budget_status = f"{same_budget_violations}/{len(ledger_rows)}"
     multi_problem_pilot = (
         _diagnostic_observed_value(
             diagnosis_rows,
@@ -3478,6 +3484,10 @@ def _write_manifest(
             "Key gates:",
             f"- claim scope: {multi_problem_claim_scope}",
             f"- same-budget violations: {same_budget_status}",
+            (
+                "- overlap-scope same-budget violations: "
+                f"{overlap_scope_same_budget_status}"
+            ),
             f"- pilot utility: {_diagnostic_observed_value(diagnosis_rows, 'pilot_utility_evidence')}",
             f"- multi-problem pilot utility: {multi_problem_pilot}",
             f"- multi-problem active density: {multi_problem_active_density}",
@@ -3540,6 +3550,7 @@ def run_hcc_runtime_consumer_smoke(
         lanes=lanes,
     )
     aob_input_rows = _aob_input_manifest_rows(records)
+    ledger_rows = _ledger_rows(records)
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
     diagnosis_rows = _policy_evidence_diagnosis_rows(
@@ -3574,7 +3585,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "same_budget_ledger.csv",
-        _ledger_rows(records),
+        ledger_rows,
         [
             "run_id",
             "lane_id",
@@ -3879,6 +3890,7 @@ def run_hcc_runtime_consumer_smoke(
         tuple(seeds),
         tuple(problem_ids),
         diagnosis_rows,
+        ledger_rows,
         worker_count,
         max_fes,
         budget_accounting,

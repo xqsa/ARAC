@@ -115,6 +115,7 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
     assert "MMES optimizer sha256:" in manifest
     assert "CMAES optimizer sha256:" in manifest
     assert "AOB input hashes: aob_input_manifest.csv" in manifest
+    assert "- same-budget violations: 0/39" in manifest
 
     input_rows = _read_csv(output / "aob_input_manifest.csv")
     assert len(input_rows) == 39
