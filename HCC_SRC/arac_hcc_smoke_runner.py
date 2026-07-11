@@ -52,12 +52,15 @@ from src.arac.policy.relation_policy import (
     decide_actions_for_relations_v26,
 )
 from src.arac.policy.search_state_policy import (
+    RESUME_PHASE_I_SEARCH_STATE,
     SearchStateEvidence,
     SearchStateSchedulerState,
     normalized_gain_utility,
+    plan_search_state_action,
+    record_search_state_outcome,
 )
 from src.arac.backends.hcc import required_aob_data_files, validate_aob_data_root
-from HCC.NDAs.MMES.state import MMESState
+from HCC.NDAs.MMES.state import MMESBlockResult, MMESState
 
 from AOB.utils import (
     combine,
@@ -283,6 +286,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V2,
     EVIDENCE_ACTION_CONTROLLER_V3,
     EVIDENCE_ACTION_CONTROLLER_V31,
+    RESUME_PHASE_I_SEARCH_STATE,
 }
 TRAJECTORY_BUDGET_SHIFT_STRENGTH = 0.35
 TRAJECTORY_MEAN_BLEND_STRENGTH = 0.25
@@ -745,7 +749,7 @@ def uses_phase_rescue_during_run(
     evidence_controller_search_state_enabled: bool,
 ) -> bool:
     return uses_phase_rescue_controller(action_name) or (
-        is_guarded_evidence_action_controller(action_name)
+        is_evidence_action_controller_v3(action_name)
         and evidence_controller_search_state_enabled
     )
 
@@ -769,6 +773,7 @@ def is_search_state_action(action_name: str) -> bool:
         or is_bounded_late_nda_refresh_action(action_name)
         or is_cc_harm_guarded_sep_refresh_action(action_name)
         or is_separable_cmaes_dispatch_action(action_name)
+        or action_name == RESUME_PHASE_I_SEARCH_STATE
         or is_evidence_action_controller(action_name)
     )
 
@@ -782,7 +787,11 @@ def overlap_action_name_for_lane(action_name: str) -> str:
         return "conservative_no_action"
     if is_separable_cmaes_dispatch_action(action_name):
         return "conservative_no_action"
-    if action_name in {SEARCH_STATE_BIPOP_ACTION, PHASE_RESCUE_MULTISTART_ACTION}:
+    if action_name in {
+        SEARCH_STATE_BIPOP_ACTION,
+        PHASE_RESCUE_MULTISTART_ACTION,
+        RESUME_PHASE_I_SEARCH_STATE,
+    }:
         return "conservative_no_action"
     if is_evidence_action_controller(action_name):
         return "conservative_no_action"
@@ -974,6 +983,37 @@ def build_search_state_evidence(
         max_fes=int(max_fes),
         population_size=int(population_size),
     )
+
+
+def run_resumed_phase_i_state_block(
+    *,
+    optimizer,
+    state: MMESState,
+    requested_fes: int,
+    guard_individual: np.ndarray,
+    guard_fitness: float,
+    fun,
+) -> tuple[MMESState, bool, np.ndarray, float, MMESBlockResult]:
+    evaluations_before = current_fitness_evaluations(fun)
+    block = optimizer.run_block(state, requested_fes)
+    observed_fes = current_fitness_evaluations(fun) - evaluations_before
+    if observed_fes != block.actual_fes:
+        raise RuntimeError("stateful MMES FE mismatch")
+    if int(block.actual_fes) < 0 or int(block.actual_fes) > max(0, int(requested_fes)):
+        raise RuntimeError("stateful MMES exceeded requested FE budget")
+
+    candidate = np.asarray(block.state.best_so_far_x, dtype=float).reshape(-1)
+    candidate_fitness = float(block.state.best_so_far_y)
+    guard = np.asarray(guard_individual, dtype=float).reshape(-1)
+    if candidate.shape != guard.shape or not np.all(np.isfinite(candidate)):
+        raise RuntimeError("stateful MMES returned invalid candidate")
+    if not math.isfinite(candidate_fitness):
+        raise RuntimeError("stateful MMES returned non-finite fitness")
+
+    accepted = candidate_fitness < float(guard_fitness)
+    if accepted:
+        return block.state, True, candidate.copy(), candidate_fitness, block
+    return block.state, False, guard.copy(), float(guard_fitness), block
 
 
 def should_trigger_cc_harm_guard(
@@ -2422,6 +2462,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     cc_phase_fe = 0
     rescue_fe = 0
     refresh_fe = 0
+    search_state_fe = 0
     action_trace_rows: list[dict[str, str]] = []
     relations: list[OverlapRelation] = []
     action_decisions: list[RelationActionDecision] = []
@@ -2483,6 +2524,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             max_fes=config.max_fes,
             sum_fes=current_fes,
         )
+        sweep_incumbent_before = guarded_incumbent_fitness
+        sweep_fes_before = current_fitness_evaluations(fun)
         sub_num = len(grouping_result)
         sub_fes = math.ceil((config.max_fes - current_fes) / sub_num)
         population_sizes = [
@@ -2503,6 +2546,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         fitness_delta_list: list[float] = []
         overlap_writeback_norms: list[float] = []
         current_outer_relations: list[OverlapRelation] = []
+        current_outer_decisions: list[RelationActionDecision] = []
         optimized_any_group = False
         outer_stagnation_streak = 0
         for index, dims in enumerate(grouping_result):
@@ -2575,6 +2619,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if new_best_y < original_fitness:
                 best_individual[dims] = results_cc["best_so_far_x"].copy()
                 current_delta = original_fitness - new_best_y
+                if (
+                    controller_v31_run_state is not None
+                    and new_best_y < guarded_incumbent_fitness
+                ):
+                    guarded_incumbent = best_individual.copy()
+                    guarded_incumbent_fitness = new_best_y
                 if uses_trajectory_mean_blend(config.arac_action) and trajectory_credit_ready:
                     accepted_mean = np.asarray(
                         results_cc["best_so_far_x"],
@@ -3005,6 +3055,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     overlap_writeback_norms.append(action_value_delta_norm)
                     canonical_action_name = _canonical_relation_action_name(action)
                     current_outer_relations.append(relation)
+                    current_outer_decisions.append(action)
                     relations.append(relation)
                     action_decisions.append(action)
                     action_trace_rows.append(
@@ -3065,6 +3116,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     )
             if (
                 controller_v31_run_state is not None
+                and not is_evidence_action_controller_v31(config.arac_action)
                 and not controller_v31_run_state.bounded_late_nda_refresh_consumed
                 and current_outer_relations
             ):
@@ -3295,7 +3347,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     break
         if not optimized_any_group:
             break
-        previous_group_contribution_credit = fitness_delta_list
         if not config.enable_relation_dispatch:
             iteration_relations = build_overlap_relation_trace(
                 problem_id=_problem_id(fun_name, fun_id),
@@ -3306,6 +3357,169 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 budget_remaining_ratio=iteration_budget_remaining_ratio,
             )
             relations.extend(iteration_relations)
+
+        if (
+            controller_v31_run_state is not None
+            and optimized_any_group
+            and len(fitness_delta_list) == sub_num
+        ):
+            phase_state = controller_v31_run_state.phase_i_state
+            phase_optimizer = controller_v31_run_state.phase_i_optimizer
+            phase_state_available = phase_state is not None and phase_optimizer is not None
+            sweep_fes = current_fitness_evaluations(fun) - sweep_fes_before
+            cc_utility = normalized_gain_utility(
+                sweep_incumbent_before,
+                guarded_incumbent_fitness,
+                sweep_fes,
+            )
+            controller_v31_run_state.cc_utility_history.append(cc_utility)
+            phase_population_size = (
+                int(phase_state.n_individuals)
+                if phase_state is not None
+                else calculate_cmaes_population_size(int(info["dimension"]))
+            )
+            evidence = build_search_state_evidence(
+                complete_sweep=(
+                    len(current_outer_relations) == max(0, sub_num - 1)
+                    and len(current_outer_decisions) == len(current_outer_relations)
+                ),
+                overlap_degree=degree,
+                phase_rescue_enabled=(
+                    controller_v31_run_state.phase_rescue_enabled
+                    and phase_state_available
+                ),
+                repair_lock_active=controller_v31_run_state.non_dense_repair_locked,
+                phase_i_tail_utility_value=(
+                    phase_i_tail_utility(phase_state)
+                    if phase_state is not None
+                    else 0.0
+                ),
+                relations=current_outer_relations,
+                decisions=current_outer_decisions,
+                writeback_norms=overlap_writeback_norms,
+                fitness_deltas=fitness_delta_list,
+                reference_fitness=guarded_incumbent_fitness,
+                cc_utility_history=controller_v31_run_state.cc_utility_history,
+                remaining_fes=config.max_fes - current_fitness_evaluations(fun),
+                max_fes=config.max_fes,
+                population_size=phase_population_size,
+            )
+            state_plan = plan_search_state_action(
+                evidence,
+                controller_v31_run_state.search_state_scheduler_state,
+                new_complete_cc_sweep=True,
+            )
+            if (
+                state_plan.action_name == RESUME_PHASE_I_SEARCH_STATE
+                and state_plan.requested_fes > 0
+            ):
+                if not phase_state_available:
+                    raise RuntimeError(
+                        "stateful MMES action selected without a resumable Phase-I state"
+                    )
+                guard_before = guarded_incumbent_fitness
+                guard_vector = guarded_incumbent.copy()
+                (
+                    next_phase_state,
+                    accepted,
+                    state_candidate,
+                    state_candidate_fitness,
+                    block,
+                ) = run_resumed_phase_i_state_block(
+                    optimizer=phase_optimizer,
+                    state=phase_state,
+                    requested_fes=state_plan.requested_fes,
+                    guard_individual=guard_vector,
+                    guard_fitness=guard_before,
+                    fun=fun,
+                )
+                controller_v31_run_state.phase_i_state = next_phase_state
+                actual_state_fes = int(block.actual_fes)
+                search_state_fe += actual_state_fes
+                sum_fes += actual_state_fes
+                best_individual = state_candidate.copy()
+                guarded_incumbent = state_candidate.copy()
+                guarded_incumbent_fitness = state_candidate_fitness
+                state_utility = normalized_gain_utility(
+                    guard_before,
+                    state_candidate_fitness,
+                    actual_state_fes,
+                )
+                controller_v31_run_state.search_state_scheduler_state = (
+                    record_search_state_outcome(
+                        controller_v31_run_state.search_state_scheduler_state,
+                        stage=state_plan.stage,
+                        accepted=accepted,
+                        utility=state_utility,
+                        required_utility_ratio=state_plan.required_utility_ratio,
+                        cc_utility=cc_utility,
+                        used_fes=actual_state_fes,
+                    )
+                )
+                raw_candidate = np.asarray(
+                    block.state.best_so_far_x,
+                    dtype=float,
+                ).reshape(-1)
+                action_trace_rows.append(
+                    build_action_trace_row(
+                        problem_id=_problem_id(fun_name, fun_id),
+                        seed=config.seed,
+                        outer_iter=outer_iter,
+                        group_index=sub_num - 1,
+                        selected_action_name=RESUME_PHASE_I_SEARCH_STATE,
+                        overlap_size=0,
+                        previous_delta=cc_utility,
+                        current_delta=max(0.0, guard_before - state_candidate_fitness),
+                        state_mutated=accepted,
+                        action_value_delta_norm=float(
+                            np.linalg.norm(raw_candidate - guard_vector)
+                        ),
+                        downstream_consumed=True,
+                        downstream_consumption_scope="subsequent_outer_iterations",
+                        search_state_action_type=RESUME_PHASE_I_SEARCH_STATE,
+                        stagnation_window=0,
+                        delta_mean=float(np.linalg.norm(raw_candidate - guard_vector)),
+                        sigma_before=float(getattr(phase_state, "sigma", config.sigma)),
+                        sigma_after=float(
+                            getattr(next_phase_state, "sigma", config.sigma)
+                        ),
+                        population_before=int(
+                            getattr(phase_state, "n_individuals", phase_population_size)
+                        ),
+                        population_after=int(
+                            getattr(
+                                next_phase_state,
+                                "n_individuals",
+                                phase_population_size,
+                            )
+                        ),
+                        escape_budget=actual_state_fes,
+                        bipop_restart_mode=state_plan.stage,
+                        restart_triggered=True,
+                        restart_accepted=accepted,
+                        best_before=guard_before,
+                        restart_candidate_best=float(block.state.best_so_far_y),
+                        restart_relative_improvement=bipop_relative_improvement(
+                            candidate_best=float(block.state.best_so_far_y),
+                            incumbent_fitness=guard_before,
+                        ),
+                        restart_acceptance_threshold=0.0,
+                        best_after=state_candidate_fitness,
+                        trace_event=state_plan.stage,
+                        remaining_budget_ratio=(
+                            max(0, config.max_fes - current_fitness_evaluations(fun))
+                            / max(config.max_fes, 1)
+                        ),
+                        shared_var_count=0,
+                        repair_lock_active=(
+                            controller_v31_run_state.non_dense_repair_locked
+                        ),
+                        refresh_budget=state_plan.requested_fes,
+                        continuation_reserve=state_plan.cc_reserve_fes,
+                    )
+                )
+
+        previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
         if cc_harm_guard_consumed:
             break

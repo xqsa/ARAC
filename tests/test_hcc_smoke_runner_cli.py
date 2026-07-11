@@ -3526,12 +3526,19 @@ def test_run_problem_cc_harm_guarded_sep_refresh_protects_phase_i_and_runs_nda_c
     assert guarded_row["restart_candidate_best"] == "7.000000e+02"
 
 
-def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
+def test_controller_v31_runs_state_probe_then_confirmation_between_complete_cc_sweeps(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runner = _load_runner_module()
     call_order: list[str] = []
+
+    class FakeState:
+        def __init__(self, best: float, vector: np.ndarray) -> None:
+            self.best_so_far_y = best
+            self.best_so_far_x = vector.copy()
+            self.recent_best = [(0, 1000.0), (20, 900.0)]
+            self.n_individuals = 4
 
     class FakeFunction:
         def __init__(self) -> None:
@@ -3556,18 +3563,57 @@ def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
         def __init__(self, problem, options) -> None:
             self.problem = problem
             self.options = options
+            self.block_count = 0
 
         def optimize(self):
-            call_order.append("refresh")
+            raise AssertionError("controller v31 must preserve resumable MMES state")
+
+        def optimize_with_state(self):
+            call_order.append("phase_i")
             budget = self.options["max_function_evaluations"]
             self.problem["fitness_function"](
                 np.zeros((budget, self.problem["ndim_problem"]))
             )
-            return {
-                "n_function_evaluations": budget,
-                "best_so_far_y": 600.0,
-                "best_so_far_x": np.ones(self.problem["ndim_problem"]),
-            }
+            state = FakeState(900.0, np.zeros(self.problem["ndim_problem"]))
+            return (
+                {
+                    "n_function_evaluations": budget,
+                    "best_so_far_y": state.best_so_far_y,
+                    "best_so_far_x": state.best_so_far_x.copy(),
+                },
+                state,
+            )
+
+        def run_block(self, state, requested_fes):
+            self.block_count += 1
+            stage = "probe" if self.block_count == 1 else "confirmation"
+            call_order.append(stage)
+            self.problem["fitness_function"](
+                np.zeros((requested_fes, self.problem["ndim_problem"]))
+            )
+            candidate_best = 900.0 - 100.0 * self.block_count
+            next_state = FakeState(
+                candidate_best,
+                np.full(self.problem["ndim_problem"], float(self.block_count)),
+            )
+            return type(
+                "FakeBlock",
+                (),
+                {
+                    "state": next_state,
+                    "best_before": float(state.best_so_far_y),
+                    "best_after": candidate_best,
+                    "actual_fes": requested_fes,
+                    "requested_fes": requested_fes,
+                    "unused_fes": 0,
+                    "normalized_utility": max(
+                        0.0,
+                        float(state.best_so_far_y) - candidate_best,
+                    )
+                    / (max(abs(float(state.best_so_far_y)), 1.0) * requested_fes),
+                    "termination_reason": "block_complete",
+                },
+            )()
 
     class FakeCMAES:
         def __init__(self, problem, options) -> None:
@@ -3575,14 +3621,18 @@ def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
             self.options = options
 
         def optimize(self):
-            call_order.append("cc")
-            budget = self.options["max_function_evaluations"]
+            call_order.append(
+                "legacy_rescue"
+                if self.options.get("arac_search_state_action")
+                else "cc"
+            )
+            budget = min(4, self.options["max_function_evaluations"])
             self.problem["fitness_function"](
                 np.zeros((budget, self.problem["ndim_problem"]))
             )
             return {
                 "n_function_evaluations": budget,
-                "best_so_far_y": 650.0,
+                "best_so_far_y": 900.0,
                 "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
                 "mean": np.zeros(self.problem["ndim_problem"]),
             }
@@ -3609,27 +3659,34 @@ def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
             "subgroups": [2, 2, 2, 2],
         },
     )
+    controller = runner.EvidenceActionControllerV31RunState(dense_overlap=False)
     monkeypatch.setattr(
-        runner, "calculate_global_fes", lambda _max_fes, _degree: 0
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree: controller,
     )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda _max_fes, _degree: 20)
     monkeypatch.setattr(
         runner, "calculate_cmaes_population_size", lambda _dimension: 4
     )
-    planner_calls = 0
+
+    def fake_decisions(relations):
+        return [
+            runner.RelationActionDecision(
+                relation_id=relation.relation_id,
+                action_name="fallback",
+                action_family="fallback",
+                confidence=1.0,
+                trigger_reason="runtime_conflict_for_test",
+            )
+            for relation in relations
+        ]
+
+    monkeypatch.setattr(runner, "decide_actions_for_relations_v26", fake_decisions)
 
     def fake_plan(**kwargs):
-        nonlocal planner_calls
-        planner_calls += 1
-        state = kwargs["controller_v31_run_state"]
-        if state.bounded_late_nda_refresh_consumed:
-            return None
-        return runner.BoundedLateNdaRefreshPlan(
-            refresh_budget=20,
-            continuation_reserve=8,
-            remaining_budget_ratio=0.20,
-            shared_var_count=3,
-            trigger_reason="low_cc_gain+high_relation_conflict",
-        )
+        call_order.append("legacy_planner")
+        return None
 
     monkeypatch.setattr(runner, "plan_bounded_late_nda_refresh", fake_plan)
 
@@ -3638,7 +3695,7 @@ def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
         3,
         tmp_path,
         runner.SmokeConfig(
-            max_fes=160,
+            max_fes=400,
             seed=3,
             verbose=0,
             arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V31,
@@ -3647,22 +3704,98 @@ def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
         ),
     )
 
-    refresh_index = call_order.index("refresh")
-    assert "cc" in call_order[refresh_index + 1 :]
-    bounded_rows = [
+    assert call_order[:11] == [
+        "phase_i",
+        "cc",
+        "cc",
+        "cc",
+        "cc",
+        "probe",
+        "cc",
+        "cc",
+        "cc",
+        "cc",
+        "confirmation",
+    ]
+    assert "legacy_planner" not in call_order
+    assert "legacy_rescue" not in call_order
+    state_rows = [
         row
         for row in trace_rows
-        if row["selected_action_name"] == runner.BOUNDED_LATE_NDA_REFRESH_ACTION
+        if row["selected_action_name"] == "resume_phase_i_search_state"
     ]
-    assert len(bounded_rows) == 2
-    assert bounded_rows[0]["bipop_restart_mode"].startswith(
-        "bounded_late_nda_refresh:start"
+    assert [row["bipop_restart_mode"] for row in state_rows[:2]] == [
+        "probe",
+        "confirmation",
+    ]
+    assert controller.search_state_scheduler_state.intervention_fe <= 60
+
+
+def test_run_resumed_phase_i_state_block_rejects_worse_candidate_without_harming_guard() -> None:
+    runner = _load_runner_module()
+    assert hasattr(runner, "run_resumed_phase_i_state_block")
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            count = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([110.0] * count)
+            return [110.0] * count
+
+    class FakeState:
+        best_so_far_x = np.full(3, 9.0)
+        best_so_far_y = 110.0
+
+    class FakeOptimizer:
+        def __init__(self, fun) -> None:
+            self.fun = fun
+
+        def run_block(self, _state, requested_fes):
+            self.fun(np.zeros((requested_fes, 3)))
+            return type(
+                "FakeBlock",
+                (),
+                {
+                    "state": FakeState(),
+                    "actual_fes": requested_fes,
+                    "normalized_utility": 0.0,
+                },
+            )()
+
+    fun = FakeFunction()
+    guard = np.array([1.0, 2.0, 3.0])
+    next_state, accepted, candidate, fitness, block = (
+        runner.run_resumed_phase_i_state_block(
+            optimizer=FakeOptimizer(fun),
+            state=object(),
+            requested_fes=4,
+            guard_individual=guard,
+            guard_fitness=100.0,
+            fun=fun,
+        )
     )
-    assert bounded_rows[1]["bipop_restart_mode"] == (
-        "bounded_late_nda_refresh:completion"
+
+    assert isinstance(next_state, FakeState)
+    assert accepted is False
+    assert np.array_equal(candidate, guard)
+    assert fitness == 100.0
+    assert block.actual_fes == 4
+    assert np.array_equal(guard, np.array([1.0, 2.0, 3.0]))
+
+
+def test_controller_v31_does_not_use_legacy_phase_rescue_path() -> None:
+    runner = _load_runner_module()
+
+    assert runner.uses_phase_rescue_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V3,
+        evidence_controller_search_state_enabled=True,
     )
-    assert bounded_rows[0]["restart_accepted"] == "1"
-    assert planner_calls >= 1
+    assert not runner.uses_phase_rescue_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V31,
+        evidence_controller_search_state_enabled=True,
+    )
 
 
 def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
