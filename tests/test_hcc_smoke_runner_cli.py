@@ -238,6 +238,29 @@ def test_hcc_smoke_runner_parses_cc_harm_guarded_sep_refresh_action() -> None:
     assert args.arac_action == "cc_harm_guarded_sep_refresh"
 
 
+def test_hcc_smoke_runner_rejects_obsolete_bounded_late_refresh_action() -> None:
+    runner = _load_runner_module()
+
+    assert "bounded_late_nda_refresh" not in runner.TRAJECTORY_ACTION_NAMES
+    with pytest.raises(SystemExit):
+        runner.parse_args(
+            [
+                "--functions",
+                "rastrigin",
+                "--ids",
+                "3",
+                "--output-root",
+                "out",
+                "--seed",
+                "3",
+                "--max-fes",
+                "3000000",
+                "--arac-action",
+                "bounded_late_nda_refresh",
+            ]
+        )
+
+
 def test_hcc_smoke_runner_parses_separable_cmaes_dispatch_action() -> None:
     runner = _load_runner_module()
 
@@ -1353,7 +1376,7 @@ def test_controller_v31_non_dense_run_selects_v26_precision_and_rescue() -> None
     ) == pytest.approx(0.25)
 
 
-def _bounded_refresh_relation(
+def _search_state_relation(
     runner,
     *,
     index: int,
@@ -1384,117 +1407,6 @@ def _bounded_refresh_relation(
     )
 
 
-def test_controller_v31_plans_bounded_late_refresh_from_runtime_evidence() -> None:
-    runner = _load_runner_module()
-    state = runner.build_evidence_action_controller_v31_run_state(0.10)
-    relations = [_bounded_refresh_relation(runner, index=index) for index in range(2)]
-
-    plan = runner.plan_bounded_late_nda_refresh(
-        controller_v31_run_state=state,
-        current_outer_relations=relations,
-        fitness_deltas=[0.0, 0.0, 0.0],
-        overlap_writeback_norms=[0.0, 0.0],
-        reference_fitness=1_000_000.0,
-        remaining_fes=600_000,
-        max_fes=3_000_000,
-        population_size=40,
-        expected_group_count=3,
-    )
-
-    assert plan is not None
-    assert plan.refresh_budget == 450_000
-    assert plan.continuation_reserve == 150_000
-    assert plan.remaining_budget_ratio == pytest.approx(0.20)
-    assert plan.shared_var_count == 3
-    assert plan.trigger_reason == "low_cc_gain+severe_group_stagnation"
-
-
-def test_controller_v31_plans_refresh_for_group_sparse_conflict_even_with_positive_gain() -> None:
-    runner = _load_runner_module()
-    state = runner.build_evidence_action_controller_v31_run_state(0.10)
-    relations = [_bounded_refresh_relation(runner, index=index) for index in range(5)]
-    fitness_deltas = [0.0, 10.0, 0.0, 20.0, 0.0, 30.0]
-
-    plan = runner.plan_bounded_late_nda_refresh(
-        controller_v31_run_state=state,
-        current_outer_relations=relations,
-        fitness_deltas=fitness_deltas,
-        overlap_writeback_norms=[1.0, 1.0],
-        reference_fitness=1_000_000.0,
-        remaining_fes=600_000,
-        max_fes=3_000_000,
-        population_size=40,
-        expected_group_count=6,
-    )
-
-    assert plan is not None
-    assert plan.trigger_reason == (
-        "group_sparse_stagnation+high_relation_conflict"
-    )
-
-
-def test_controller_v31_rejects_partial_outer_sweep_for_bounded_refresh() -> None:
-    runner = _load_runner_module()
-    state = runner.build_evidence_action_controller_v31_run_state(0.10)
-    relations = [_bounded_refresh_relation(runner, index=index) for index in range(2)]
-
-    plan = runner.plan_bounded_late_nda_refresh(
-        controller_v31_run_state=state,
-        current_outer_relations=relations,
-        fitness_deltas=[0.0, 10.0, 0.0],
-        overlap_writeback_norms=[1.0, 1.0],
-        reference_fitness=1_000_000.0,
-        remaining_fes=600_000,
-        max_fes=3_000_000,
-        population_size=40,
-        expected_group_count=6,
-    )
-
-    assert plan is None
-
-
-@pytest.mark.parametrize(
-    ("state_overlap", "shared_count", "remaining_fes", "repair_locked", "deltas"),
-    [
-        (0.18, 3, 600_000, False, [0.0, 0.0, 0.0]),
-        (0.10, 5, 600_000, False, [0.0, 0.0, 0.0]),
-        (0.10, 1, 600_000, False, [0.0, 0.0, 0.0]),
-        (0.10, 3, 1_050_000, False, [0.0, 0.0, 0.0]),
-        (0.10, 3, 150_000, False, [0.0, 0.0, 0.0]),
-        (0.10, 3, 600_000, True, [0.0, 0.0, 0.0]),
-        (0.10, 3, 600_000, False, [100.0, 100.0, 100.0]),
-    ],
-)
-def test_controller_v31_rejects_nonmatching_bounded_refresh_evidence(
-    state_overlap: float,
-    shared_count: int,
-    remaining_fes: int,
-    repair_locked: bool,
-    deltas: list[float],
-) -> None:
-    runner = _load_runner_module()
-    state = runner.build_evidence_action_controller_v31_run_state(state_overlap)
-    state.non_dense_repair_locked = repair_locked
-    relations = [
-        _bounded_refresh_relation(runner, index=index, shared_var_count=shared_count)
-        for index in range(2)
-    ]
-
-    plan = runner.plan_bounded_late_nda_refresh(
-        controller_v31_run_state=state,
-        current_outer_relations=relations,
-        fitness_deltas=deltas,
-        overlap_writeback_norms=[0.0, 0.0],
-        reference_fitness=1_000_000.0,
-        remaining_fes=remaining_fes,
-        max_fes=3_000_000,
-        population_size=40,
-        expected_group_count=len(deltas),
-    )
-
-    assert plan is None
-
-
 def test_phase_i_tail_utility_uses_only_recent_runtime_checkpoints() -> None:
     runner = _load_runner_module()
 
@@ -1506,7 +1418,7 @@ def test_phase_i_tail_utility_uses_only_recent_runtime_checkpoints() -> None:
 
 def test_search_state_evidence_requires_complete_nonempty_relation_sweep() -> None:
     runner = _load_runner_module()
-    relations = [_bounded_refresh_relation(runner, index=index) for index in range(2)]
+    relations = [_search_state_relation(runner, index=index) for index in range(2)]
     decisions = [
         runner.RelationActionDecision(
             relation_id=relations[0].relation_id,
@@ -2126,7 +2038,7 @@ def test_build_action_trace_row_marks_runtime_consumed_repair() -> None:
     assert row["optimizer_consumed"] == "1"
 
 
-def test_build_action_trace_row_audits_bounded_refresh_runtime_state() -> None:
+def test_build_action_trace_row_audits_resumed_phase_i_runtime_state() -> None:
     runner = _load_runner_module()
 
     row = runner.build_action_trace_row(
@@ -2134,27 +2046,37 @@ def test_build_action_trace_row_audits_bounded_refresh_runtime_state() -> None:
         seed=3,
         outer_iter=4,
         group_index=2,
-        selected_action_name=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
-        overlap_size=3,
+        selected_action_name=runner.RESUME_PHASE_I_SEARCH_STATE,
+        overlap_size=0,
         previous_delta=0.0,
         current_delta=1.0,
         downstream_consumption_scope="subsequent_outer_iterations",
-        trace_event="start",
+        trace_event="probe",
         remaining_budget_ratio=0.20,
-        shared_var_count=3,
         repair_lock_active=False,
-        refresh_budget=450_000,
-        continuation_reserve=150_000,
-        optimizer_seed=12345,
+        scheduler_phase="initial_probe",
+        decision_point="complete_cc_sweep:4",
+        cc_block_fe=40_000,
+        cc_utility=1.0e-7,
+        search_state_block_fe=30_000,
+        search_state_utility=2.0e-7,
+        required_utility_ratio=1.5,
+        state_action_fe=30_000,
+        cc_reserve_fe=300_000,
+        state_fingerprint_before="before",
+        state_fingerprint_after="after",
     )
 
-    assert row["trace_event"] == "start"
+    assert row["trace_event"] == "probe"
     assert row["remaining_budget_ratio"] == "2.000000e-01"
-    assert row["shared_var_count"] == "3"
     assert row["repair_lock_active"] == "0"
-    assert row["refresh_budget"] == "450000"
-    assert row["continuation_reserve"] == "150000"
-    assert row["optimizer_seed"] == "12345"
+    assert row["scheduler_phase"] == "initial_probe"
+    assert row["decision_point"] == "complete_cc_sweep:4"
+    assert row["search_state_block_fe"] == "30000"
+    assert row["state_action_fe"] == "30000"
+    assert row["cc_reserve_fe"] == "300000"
+    assert row["state_fingerprint_before"] == "before"
+    assert row["state_fingerprint_after"] == "after"
     assert row["downstream_consumption_scope"] == "subsequent_outer_iterations"
 
 
@@ -3686,12 +3608,6 @@ def test_controller_v31_runs_state_probe_then_confirmation_between_complete_cc_s
 
     monkeypatch.setattr(runner, "decide_actions_for_relations_v26", fake_decisions)
 
-    def fake_plan(**kwargs):
-        call_order.append("legacy_planner")
-        return None
-
-    monkeypatch.setattr(runner, "plan_bounded_late_nda_refresh", fake_plan)
-
     _record, _elapsed, trace_rows = runner.run_problem(
         "rastrigin",
         3,
@@ -3719,8 +3635,16 @@ def test_controller_v31_runs_state_probe_then_confirmation_between_complete_cc_s
         "cc",
         "confirmation",
     ]
-    assert "legacy_planner" not in call_order
     assert "legacy_rescue" not in call_order
+    assert {
+        row["selected_action_name"] for row in trace_rows
+    }.isdisjoint(
+        {
+            "bounded_late_nda_refresh",
+            "cc_harm_guarded_sep_refresh",
+            "phase_rescue_multistart",
+        }
+    )
     state_rows = [
         row
         for row in trace_rows
@@ -3869,7 +3793,7 @@ def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
     assert options_seen[0]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
 
 
-def test_guarded_nda_continuation_honors_bounded_budget_and_action(
+def test_guarded_nda_continuation_honors_requested_budget_and_legacy_action(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runner = _load_runner_module()
@@ -3918,7 +3842,6 @@ def test_guarded_nda_continuation_honors_bounded_budget_and_action(
             guard_fitness=800.0,
             remaining_fes=40,
             requested_fes=20,
-            search_state_action=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
         )
     )
 
@@ -3927,9 +3850,7 @@ def test_guarded_nda_continuation_honors_bounded_budget_and_action(
     assert candidate_best == 700.0
     assert used == 17
     assert options_seen[0]["max_function_evaluations"] == 16
-    assert options_seen[0]["arac_search_state_action"] == (
-        "bounded_late_nda_refresh"
-    )
+    assert options_seen[0]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
     assert options_seen[0]["seed_rng"] == runner.derive_optimizer_seed(
         7, "rastrigin", 3, 5, 23011
     )
@@ -3969,7 +3890,6 @@ def test_guarded_nda_continuation_rejects_nonfinite_optimizer_output(
             guard_fitness=800.0,
             remaining_fes=40,
             requested_fes=20,
-            search_state_action=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
         )
 
 
@@ -4020,7 +3940,6 @@ def test_guarded_nda_continuation_uses_objective_fe_when_backend_reports_one_ext
             guard_fitness=800.0,
             remaining_fes=40,
             requested_fes=20,
-            search_state_action=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
         )
     )
 
