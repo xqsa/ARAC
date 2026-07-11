@@ -3490,10 +3490,10 @@ def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
         def optimize(self):
             options_seen.append(dict(self.options))
             budget = self.options["max_function_evaluations"]
-            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            x_batch = np.zeros((budget + 1, self.problem["ndim_problem"]))
             self.problem["fitness_function"](x_batch)
             return {
-                "n_function_evaluations": budget,
+                "n_function_evaluations": budget + 1,
                 "best_so_far_y": 900.0,
                 "best_so_far_x": np.full(self.problem["ndim_problem"], 9.0),
                 "mean": np.full(self.problem["ndim_problem"], 2.0),
@@ -3535,7 +3535,7 @@ def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
     assert np.allclose(candidate, guard)
     assert guarded_best == 800.0
     assert candidate_best == 900.0
-    assert refresh_fes == 20
+    assert refresh_fes == 17
     assert options_seen[0]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
 
 
@@ -3563,10 +3563,10 @@ def test_guarded_nda_continuation_honors_bounded_budget_and_action(
             options_seen.append(dict(self.options))
             budget = self.options["max_function_evaluations"]
             self.problem["fitness_function"](
-                np.zeros((budget, self.problem["ndim_problem"]))
+                np.zeros((budget + 1, self.problem["ndim_problem"]))
             )
             return {
-                "n_function_evaluations": budget,
+                "n_function_evaluations": budget + 1,
                 "best_so_far_y": 700.0,
                 "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
             }
@@ -3595,8 +3595,8 @@ def test_guarded_nda_continuation_honors_bounded_budget_and_action(
     assert accepted is True
     assert best == 700.0
     assert candidate_best == 700.0
-    assert used == 20
-    assert options_seen[0]["max_function_evaluations"] == 20
+    assert used == 17
+    assert options_seen[0]["max_function_evaluations"] == 16
     assert options_seen[0]["arac_search_state_action"] == (
         "bounded_late_nda_refresh"
     )
@@ -3641,6 +3641,63 @@ def test_guarded_nda_continuation_rejects_nonfinite_optimizer_output(
             requested_fes=20,
             search_state_action=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
         )
+
+
+def test_guarded_nda_continuation_uses_objective_fe_when_backend_reports_one_extra(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([700.0] * batch_size)
+            return [700.0] * batch_size
+
+    class OffByOneMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget + 1, self.problem["ndim_problem"]))
+            )
+            return {
+                "n_function_evaluations": budget + 1,
+                "best_so_far_y": 700.0,
+                "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+            }
+
+    monkeypatch.setattr(runner, "MMES", OffByOneMMES)
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+
+    accepted, _candidate, best, used, candidate_best = (
+        runner.run_guarded_nda_continuation(
+            fun=FakeFunction(),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=4,
+            guard_individual=np.ones(3),
+            guard_fitness=800.0,
+            remaining_fes=40,
+            requested_fes=20,
+            search_state_action=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
+        )
+    )
+
+    assert accepted is True
+    assert best == 700.0
+    assert candidate_best == 700.0
+    assert used == 17
 
 
 def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_worse() -> None:

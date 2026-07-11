@@ -1069,6 +1069,9 @@ def run_guarded_nda_continuation(
     )
     if refresh_budget <= 0:
         return False, guard_individual.copy(), float(guard_fitness), 0, math.inf
+    backend_budget = refresh_budget - population_size
+    if backend_budget <= 0:
+        return False, guard_individual.copy(), float(guard_fitness), 0, math.inf
 
     problem = {
         "fitness_function": fun,
@@ -1077,7 +1080,7 @@ def run_guarded_nda_continuation(
         "upper_boundary": info["upper"] * np.ones((info["dimension"],)),
     }
     options = {
-        "max_function_evaluations": refresh_budget,
+        "max_function_evaluations": backend_budget,
         "mean": (np.asarray(guard_individual, dtype=float).copy(),),
         "sigma": float(config.sigma) * CC_HARM_REFRESH_SIGMA_MULTIPLIER,
         "n_individuals": population_size,
@@ -1094,12 +1097,17 @@ def run_guarded_nda_continuation(
             outer_iter + 1,
             23011,
         )
+    evaluations_before = current_fitness_evaluations(fun)
     results = MMES(problem, options).optimize()
     candidate_best = float(results["best_so_far_y"])
     candidate = np.asarray(results["best_so_far_x"], dtype=float).reshape(-1)
-    used_fes = int(results["n_function_evaluations"])
-    if used_fes < 0 or used_fes > refresh_budget:
+    reported_fes = int(results["n_function_evaluations"])
+    if reported_fes < 0 or reported_fes > refresh_budget:
         raise RuntimeError("guarded NDA reported invalid FE usage")
+    observed_fes = current_fitness_evaluations(fun) - evaluations_before
+    if observed_fes < 0 or observed_fes > refresh_budget:
+        raise RuntimeError("guarded NDA exceeded objective FE budget")
+    used_fes = observed_fes if hasattr(fun, "fitness_record") else reported_fes
     if not math.isfinite(candidate_best):
         raise RuntimeError("guarded NDA returned non-finite fitness")
     guard_shape = np.asarray(guard_individual).reshape(-1).shape
