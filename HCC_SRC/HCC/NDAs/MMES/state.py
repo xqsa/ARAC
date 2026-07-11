@@ -84,6 +84,8 @@ class MMESState:
     printed_evaluations: int = 0
     time_function_evaluations: float = 0.0
     runtime: float = 0.0
+    pending_distribution_update: bool = False
+    pending_y_bak: np.ndarray | None = None
 
     def validate(self) -> None:
         """Reject malformed continuation state before objective evaluation."""
@@ -146,6 +148,16 @@ class MMESState:
                 raise ValueError("initial_mean shape is invalid")
             if not np.all(np.isfinite(initial_mean)):
                 raise ValueError("initial_mean contains non-finite values")
+        if self.pending_distribution_update:
+            if self.pending_y_bak is None:
+                raise ValueError("pending_y_bak is required for a pending update")
+            pending_y_bak = _as_array(self.pending_y_bak)
+            if pending_y_bak.shape != (population,):
+                raise ValueError("pending_y_bak shape is invalid")
+            if not np.all(np.isfinite(pending_y_bak)):
+                raise ValueError("pending_y_bak contains non-finite values")
+        elif self.pending_y_bak is not None:
+            raise ValueError("pending_y_bak requires pending_distribution_update")
         for index, initial_mean in enumerate(self.list_initial_mean):
             array = _as_array(initial_mean)
             if array.shape not in {(ndim,), (1, ndim)}:
@@ -216,11 +228,15 @@ class MMESState:
                     "printed_evaluations",
                     "time_function_evaluations",
                     "runtime",
+                    "pending_distribution_update",
                 )
             },
             "initial_mean": None
             if self.initial_mean is None
             else _array_payload(self.initial_mean),
+            "pending_y_bak": None
+            if self.pending_y_bak is None
+            else _array_payload(self.pending_y_bak),
             "list_generations": list(self.list_generations),
             "list_fitness": list(self.list_fitness),
             "list_initial_mean": [_array_payload(value) for value in self.list_initial_mean],

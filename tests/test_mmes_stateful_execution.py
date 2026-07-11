@@ -14,6 +14,7 @@ if str(HCC_SRC) not in sys.path:
     sys.path.insert(0, str(HCC_SRC))
 
 from HCC.NDAs.MMES.state import MMESBlockResult, MMESState
+from HCC.NDAs.MMES.mmes import MMES
 
 
 def _rng_state(seed: int) -> dict[str, object]:
@@ -145,3 +146,155 @@ def test_block_result_is_an_immutable_audit_record() -> None:
 
     with pytest.raises(FrozenInstanceError):
         result.actual_fes = 25
+
+
+class CountingSphere:
+    def __init__(self) -> None:
+        self.evaluations = 0
+
+    def __call__(self, x_batch):
+        values = np.asarray(x_batch, dtype=float)
+        if values.ndim == 1:
+            values = values.reshape(1, -1)
+        self.evaluations += len(values)
+        return np.sum(np.square(values), axis=1)
+
+
+def make_optimizer(
+    *,
+    max_fes: int,
+    objective: CountingSphere | None = None,
+    seed: int = 23,
+    restart: bool = False,
+) -> tuple[MMES, CountingSphere]:
+    sphere = objective or CountingSphere()
+    ndim = 4
+    optimizer = MMES(
+        {
+            "fitness_function": sphere,
+            "ndim_problem": ndim,
+            "lower_boundary": -5.0 * np.ones(ndim),
+            "upper_boundary": 5.0 * np.ones(ndim),
+        },
+        {
+            "max_function_evaluations": max_fes,
+            "mean": (np.ones(ndim),),
+            "sigma": 0.5,
+            "n_individuals": 4,
+            "n_parents": 2,
+            "seed_rng": seed,
+            "is_restart": restart,
+            "verbose": 0,
+        },
+    )
+    return optimizer, sphere
+
+
+def test_initialize_state_captures_the_single_initial_evaluation() -> None:
+    optimizer, objective = make_optimizer(max_fes=25)
+
+    state = optimizer.initialize_state()
+
+    state.validate()
+    assert state.n_function_evaluations == 1
+    assert objective.evaluations == 1
+    assert state.recent_best == [(1, state.best_so_far_y)]
+    assert state.pending_distribution_update is False
+
+
+def test_optimize_and_optimize_with_state_are_equivalent() -> None:
+    legacy_optimizer, _ = make_optimizer(max_fes=25)
+    stateful_optimizer, _ = make_optimizer(max_fes=25)
+
+    legacy = legacy_optimizer.optimize()
+    stateful, state = stateful_optimizer.optimize_with_state()
+
+    assert stateful["best_so_far_y"] == pytest.approx(legacy["best_so_far_y"])
+    assert np.array_equal(stateful["best_so_far_x"], legacy["best_so_far_x"])
+    assert stateful["n_function_evaluations"] == legacy["n_function_evaluations"]
+    assert stateful["termination_signal"] == legacy["termination_signal"]
+    assert np.array_equal(stateful["mean"], legacy["mean"])
+    assert np.array_equal(stateful["p"], legacy["p"])
+    assert stateful["w"] == pytest.approx(legacy["w"])
+    assert state.n_function_evaluations == 25
+    assert state.pending_distribution_update is True
+
+
+def test_run_block_never_exceeds_request_and_uses_complete_populations() -> None:
+    optimizer, objective = make_optimizer(max_fes=9)
+    _results, state = optimizer.optimize_with_state()
+    before_objective_fe = objective.evaluations
+
+    block = optimizer.run_block(state, additional_function_evaluations=10)
+
+    assert block.requested_fes == 10
+    assert block.actual_fes == 8
+    assert block.unused_fes == 2
+    assert block.actual_fes <= block.requested_fes
+    assert block.actual_fes % state.n_individuals == 0
+    assert objective.evaluations - before_objective_fe == block.actual_fes
+
+
+def test_run_block_with_less_than_population_is_a_true_noop() -> None:
+    optimizer, objective = make_optimizer(max_fes=9)
+    _results, state = optimizer.optimize_with_state()
+    before_objective_fe = objective.evaluations
+    before_fingerprint = state.fingerprint()
+
+    block = optimizer.run_block(state, additional_function_evaluations=3)
+
+    assert block.actual_fes == 0
+    assert block.termination_reason == "insufficient_population_budget"
+    assert objective.evaluations == before_objective_fe
+    assert block.state.fingerprint() == before_fingerprint
+
+
+def test_sequential_block_resumption_matches_one_continuous_run() -> None:
+    full_optimizer, _ = make_optimizer(max_fes=25)
+    full_results, full_state = full_optimizer.optimize_with_state()
+
+    phase_optimizer, _ = make_optimizer(max_fes=9)
+    _phase_results, phase_state = phase_optimizer.optimize_with_state()
+    assert phase_state.pending_distribution_update is True
+
+    resumed = phase_optimizer.run_block(
+        phase_state,
+        additional_function_evaluations=16,
+    )
+
+    assert resumed.actual_fes == 16
+    assert resumed.state.n_function_evaluations == 25
+    assert resumed.best_after == pytest.approx(full_results["best_so_far_y"])
+    assert np.array_equal(resumed.state.best_so_far_x, full_state.best_so_far_x)
+    assert np.allclose(resumed.state.mean, full_state.mean)
+    assert np.allclose(resumed.state.p, full_state.p)
+    assert np.allclose(resumed.state.q, full_state.q)
+    assert np.array_equal(resumed.state.v, full_state.v)
+    assert resumed.state.sigma == pytest.approx(full_state.sigma)
+    assert resumed.state.rng_optimization_state == full_state.rng_optimization_state
+
+
+def test_malformed_state_fails_before_objective_evaluation() -> None:
+    optimizer, objective = make_optimizer(max_fes=9)
+    _results, state = optimizer.optimize_with_state()
+    malformed = state.clone()
+    malformed.x = np.zeros((1, 4))
+    before_objective_fe = objective.evaluations
+
+    with pytest.raises(ValueError, match="x shape"):
+        optimizer.run_block(malformed, additional_function_evaluations=8)
+
+    assert objective.evaluations == before_objective_fe
+
+
+def test_state_to_result_does_not_mutate_the_checkpoint() -> None:
+    optimizer, _ = make_optimizer(max_fes=9)
+    expected, state = optimizer.optimize_with_state()
+    before = state.fingerprint()
+
+    result = optimizer.state_to_result(state)
+
+    assert state.fingerprint() == before
+    assert result["best_so_far_y"] == pytest.approx(expected["best_so_far_y"])
+    assert np.array_equal(result["best_so_far_x"], expected["best_so_far_x"])
+    assert result["n_function_evaluations"] == expected["n_function_evaluations"]

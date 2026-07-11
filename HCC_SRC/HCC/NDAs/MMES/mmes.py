@@ -1,7 +1,11 @@
+import copy
+import time
+
 import numpy as np  # engine for numerical computing
 from scipy.stats import norm  # normal continuous random variable
 
 from HCC.NDAs.MMES.es import ES  # abstract class of all Evolution Strategies (ES) classes
+from HCC.NDAs.MMES.state import MMESBlockResult, MMESState
 
 
 class MMES(ES):
@@ -188,22 +192,408 @@ class MMES(ES):
             self._print_verbose_info(fitness, y[0])
         return x, mean, p, w, q, t, v, y
 
-    def optimize(self, fitness_function=None, args=None):  # for all generations (iterations)
+    def _append_recent_best(self, recent_best):
+        checkpoint = (
+            int(self.n_function_evaluations),
+            float(self.best_so_far_y),
+        )
+        if recent_best and recent_best[-1][0] == checkpoint[0]:
+            recent_best[-1] = checkpoint
+        else:
+            recent_best.append(checkpoint)
+        del recent_best[:-3]
+
+    def _capture_state(
+        self,
+        x,
+        mean,
+        p,
+        w,
+        q,
+        t,
+        v,
+        y,
+        fitness,
+        recent_best,
+        pending_distribution_update=False,
+        pending_y_bak=None,
+    ):
+        runtime = float(self.runtime)
+        if self.start_time is not None:
+            runtime = max(runtime, time.time() - self.start_time)
+        state = MMESState(
+            x=np.copy(x),
+            mean=np.copy(mean),
+            p=np.copy(p),
+            w=float(w),
+            q=np.copy(q),
+            t=np.copy(t),
+            v=np.copy(v),
+            y=np.copy(y),
+            sigma=float(self.sigma),
+            n_individuals=int(self.n_individuals),
+            n_parents=int(self.n_parents),
+            n_mirror_sampling=int(self._n_mirror_sampling),
+            n_generations=int(self._n_generations),
+            n_restart=int(self._n_restart),
+            list_generations=list(self._list_generations),
+            list_fitness=[float(value) for value in self._list_fitness],
+            list_initial_mean=[np.copy(value) for value in self._list_initial_mean],
+            best_so_far_x=np.copy(self.best_so_far_x),
+            best_so_far_y=float(self.best_so_far_y),
+            n_function_evaluations=int(self.n_function_evaluations),
+            termination_signal=int(self.termination_signal),
+            fitness=[float(value) for value in fitness],
+            recent_best=[(int(fe), float(best)) for fe, best in recent_best[-3:]],
+            rng_initialization_state=copy.deepcopy(
+                self.rng_initialization.bit_generator.state
+            ),
+            rng_optimization_state=copy.deepcopy(
+                self.rng_optimization.bit_generator.state
+            ),
+            sigma_bak=float(self._sigma_bak),
+            initial_mean=None if self.mean is None else np.copy(self.mean),
+            counter_early_stopping=int(self._counter_early_stopping),
+            base_early_stopping=float(self._base_early_stopping),
+            printed_evaluations=int(self._printed_evaluations),
+            time_function_evaluations=float(self.time_function_evaluations),
+            runtime=runtime,
+            pending_distribution_update=bool(pending_distribution_update),
+            pending_y_bak=(
+                None if pending_y_bak is None else np.copy(pending_y_bak)
+            ),
+        )
+        state.validate()
+        return state
+
+    def _validate_state_compatibility(self, state):
+        state.validate()
+        if np.asarray(state.best_so_far_x).size != self.ndim_problem:
+            raise ValueError("state dimension does not match optimizer")
+        if np.asarray(state.q).shape[0] != self.m:
+            raise ValueError("state direction count does not match optimizer")
+
+    def _restore_state(self, state):
+        self._validate_state_compatibility(state)
+        self.sigma = float(state.sigma)
+        self._sigma_bak = float(
+            state.sigma if state.sigma_bak is None else state.sigma_bak
+        )
+        self.mean = np.copy(
+            state.mean if state.initial_mean is None else state.initial_mean
+        )
+        self.n_individuals = int(state.n_individuals)
+        self.n_parents = int(state.n_parents)
+        self._n_mirror_sampling = int(state.n_mirror_sampling)
+        self._w, self._mu_eff = self._compute_weights()
+        self._n_generations = int(state.n_generations)
+        self._n_restart = int(state.n_restart)
+        self._list_generations = list(state.list_generations)
+        self._list_fitness = [float(value) for value in state.list_fitness]
+        self._list_initial_mean = [np.copy(value) for value in state.list_initial_mean]
+        self.best_so_far_x = np.copy(state.best_so_far_x)
+        self.best_so_far_y = float(state.best_so_far_y)
+        self.n_function_evaluations = int(state.n_function_evaluations)
+        self.termination_signal = int(state.termination_signal)
+        self._counter_early_stopping = int(state.counter_early_stopping)
+        self._base_early_stopping = float(state.base_early_stopping)
+        self._printed_evaluations = int(state.printed_evaluations)
+        self.time_function_evaluations = float(state.time_function_evaluations)
+        self.runtime = float(state.runtime)
+        self.start_time = time.time() - self.runtime
+        self.rng_initialization.bit_generator.state = copy.deepcopy(
+            state.rng_initialization_state
+        )
+        self.rng_optimization.bit_generator.state = copy.deepcopy(
+            state.rng_optimization_state
+        )
+        return (
+            np.copy(state.x),
+            np.copy(state.mean),
+            np.copy(state.p),
+            float(state.w),
+            np.copy(state.q),
+            np.copy(state.t),
+            np.copy(state.v),
+            np.copy(state.y),
+            list(state.fitness),
+            list(state.recent_best),
+            bool(state.pending_distribution_update),
+            None if state.pending_y_bak is None else np.copy(state.pending_y_bak),
+        )
+
+    def initialize_state(self, fitness_function=None, args=None):
         fitness = ES.optimize(self, fitness_function)
         x, mean, p, w, q, t, v, y = self.initialize(args)
         self._print_verbose_info(fitness, y[0])
+        recent_best = []
+        self._append_recent_best(recent_best)
+        return self._capture_state(
+            x,
+            mean,
+            p,
+            w,
+            q,
+            t,
+            v,
+            y,
+            fitness,
+            recent_best,
+        )
+
+    def optimize_with_state(self, fitness_function=None, args=None):
+        fitness = ES.optimize(self, fitness_function)
+        x, mean, p, w, q, t, v, y = self.initialize(args)
+        self._print_verbose_info(fitness, y[0])
+        recent_best = []
+        self._append_recent_best(recent_best)
+        pending_distribution_update = False
+        pending_y_bak = None
         while not self.termination_signal:
             y_bak = np.copy(y)
             # sample and evaluate offspring population
+            evaluations_before = self.n_function_evaluations
             x, y = self.iterate(x, mean, q, v, args)
+            evaluated = self.n_function_evaluations > evaluations_before
+            if evaluated:
+                self._append_recent_best(recent_best)
             if self._check_terminations():
+                pending_distribution_update = evaluated
+                pending_y_bak = np.copy(y_bak) if evaluated else None
                 break
             mean, p, w, q, t, v = self._update_distribution(x, mean, p, w, q, t, v, y, y_bak)
             self._n_generations += 1
             self._print_verbose_info(fitness, y)
+            evaluations_before = self.n_function_evaluations
             x, mean, p, w, q, t, v, y = self.restart_reinitialize(
                 args, x, mean, p, w, q, t, v, y, fitness)
-        results = self._collect(fitness, y, mean)
+            if self.n_function_evaluations > evaluations_before:
+                self._append_recent_best(recent_best)
+        state = self._capture_state(
+            x,
+            mean,
+            p,
+            w,
+            q,
+            t,
+            v,
+            y,
+            fitness,
+            recent_best,
+            pending_distribution_update=pending_distribution_update,
+            pending_y_bak=pending_y_bak,
+        )
+        results = self._collect(list(fitness), y, mean)
+        results['p'] = p
+        results['w'] = w
+        return results, state
+
+    def optimize(self, fitness_function=None, args=None):  # for all generations (iterations)
+        results, _state = self.optimize_with_state(fitness_function, args)
+        return results
+
+    def _complete_pending_distribution_update(
+        self,
+        x,
+        mean,
+        p,
+        w,
+        q,
+        t,
+        v,
+        y,
+        y_bak,
+        fitness,
+        recent_best,
+        args=None,
+    ):
+        mean, p, w, q, t, v = self._update_distribution(
+            x,
+            mean,
+            p,
+            w,
+            q,
+            t,
+            v,
+            y,
+            y_bak,
+        )
+        self._n_generations += 1
+        self._print_verbose_info(fitness, y)
+        evaluations_before = self.n_function_evaluations
+        x, mean, p, w, q, t, v, y = self.restart_reinitialize(
+            args,
+            x,
+            mean,
+            p,
+            w,
+            q,
+            t,
+            v,
+            y,
+            fitness,
+        )
+        if self.n_function_evaluations > evaluations_before:
+            self._append_recent_best(recent_best)
+        return x, mean, p, w, q, t, v, y
+
+    def run_block(self, state, additional_function_evaluations, args=None):
+        self._validate_state_compatibility(state)
+        fingerprint_before = state.fingerprint()
+        requested_fes = max(0, int(additional_function_evaluations))
+        best_before = float(state.best_so_far_y)
+        if requested_fes < int(state.n_individuals):
+            return MMESBlockResult(
+                state=state.clone(),
+                best_before=best_before,
+                best_after=best_before,
+                actual_fes=0,
+                requested_fes=requested_fes,
+                unused_fes=requested_fes,
+                normalized_utility=0.0,
+                termination_reason="insufficient_population_budget",
+                state_fingerprint_before=fingerprint_before,
+                state_fingerprint_after=fingerprint_before,
+            )
+
+        (
+            x,
+            mean,
+            p,
+            w,
+            q,
+            t,
+            v,
+            y,
+            fitness,
+            recent_best,
+            pending_distribution_update,
+            pending_y_bak,
+        ) = self._restore_state(state)
+        previous_limit = self.max_function_evaluations
+        block_start = int(self.n_function_evaluations)
+        block_limit = block_start + requested_fes
+        self.max_function_evaluations = block_limit
+        self.termination_signal = self.Terminations.NO_TERMINATION
+        try:
+            if pending_distribution_update:
+                x, mean, p, w, q, t, v, y = (
+                    self._complete_pending_distribution_update(
+                        x,
+                        mean,
+                        p,
+                        w,
+                        q,
+                        t,
+                        v,
+                        y,
+                        pending_y_bak,
+                        fitness,
+                        recent_best,
+                        args,
+                    )
+                )
+                pending_distribution_update = False
+                pending_y_bak = None
+            while self.n_function_evaluations < block_limit:
+                restart_reserve = 1 if self.is_restart else 0
+                required = self.n_individuals + restart_reserve
+                if self.n_function_evaluations + required > block_limit:
+                    break
+                y_bak = np.copy(y)
+                evaluations_before = self.n_function_evaluations
+                x, y = self.iterate(x, mean, q, v, args)
+                evaluated = self.n_function_evaluations > evaluations_before
+                if evaluated:
+                    self._append_recent_best(recent_best)
+                if self._check_terminations():
+                    pending_distribution_update = evaluated
+                    pending_y_bak = np.copy(y_bak) if evaluated else None
+                    break
+                mean, p, w, q, t, v = self._update_distribution(
+                    x,
+                    mean,
+                    p,
+                    w,
+                    q,
+                    t,
+                    v,
+                    y,
+                    y_bak,
+                )
+                self._n_generations += 1
+                self._print_verbose_info(fitness, y)
+                evaluations_before = self.n_function_evaluations
+                x, mean, p, w, q, t, v, y = self.restart_reinitialize(
+                    args,
+                    x,
+                    mean,
+                    p,
+                    w,
+                    q,
+                    t,
+                    v,
+                    y,
+                    fitness,
+                )
+                if self.n_function_evaluations > evaluations_before:
+                    self._append_recent_best(recent_best)
+            next_state = self._capture_state(
+                x,
+                mean,
+                p,
+                w,
+                q,
+                t,
+                v,
+                y,
+                fitness,
+                recent_best,
+                pending_distribution_update=pending_distribution_update,
+                pending_y_bak=pending_y_bak,
+            )
+        finally:
+            self.max_function_evaluations = previous_limit
+
+        actual_fes = int(next_state.n_function_evaluations) - block_start
+        best_after = float(next_state.best_so_far_y)
+        normalized_utility = max(0.0, best_before - best_after) / (
+            max(abs(best_before), 1.0) * max(actual_fes, 1)
+        )
+        termination_reason = (
+            "block_complete"
+            if actual_fes > 0
+            else "insufficient_population_budget"
+        )
+        return MMESBlockResult(
+            state=next_state,
+            best_before=best_before,
+            best_after=best_after,
+            actual_fes=actual_fes,
+            requested_fes=requested_fes,
+            unused_fes=max(0, requested_fes - actual_fes),
+            normalized_utility=normalized_utility,
+            termination_reason=termination_reason,
+            state_fingerprint_before=fingerprint_before,
+            state_fingerprint_after=next_state.fingerprint(),
+        )
+
+    def state_to_result(self, state):
+        (
+            _x,
+            mean,
+            p,
+            w,
+            _q,
+            _t,
+            _v,
+            y,
+            fitness,
+            _recent_best,
+            _pending_distribution_update,
+            _pending_y_bak,
+        ) = self._restore_state(state)
+        results = self._collect(list(fitness), y, mean)
         results['p'] = p
         results['w'] = w
         return results
