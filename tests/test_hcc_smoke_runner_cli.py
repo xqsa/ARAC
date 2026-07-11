@@ -1495,6 +1495,172 @@ def test_controller_v31_rejects_nonmatching_bounded_refresh_evidence(
     assert plan is None
 
 
+def test_phase_i_tail_utility_uses_only_recent_runtime_checkpoints() -> None:
+    runner = _load_runner_module()
+
+    class State:
+        recent_best = [(10, 100.0), (30, 95.0), (60, 90.0)]
+
+    assert runner.phase_i_tail_utility(State()) == pytest.approx(10.0 / (100.0 * 50.0))
+
+
+def test_search_state_evidence_requires_complete_nonempty_relation_sweep() -> None:
+    runner = _load_runner_module()
+    relations = [_bounded_refresh_relation(runner, index=index) for index in range(2)]
+    decisions = [
+        runner.RelationActionDecision(
+            relation_id=relations[0].relation_id,
+            action_name="coordinate",
+            action_family="coordinate",
+            confidence=1.0,
+            trigger_reason="test",
+        ),
+        runner.RelationActionDecision(
+            relation_id=relations[1].relation_id,
+            action_name="fallback",
+            action_family="fallback",
+            confidence=0.0,
+            trigger_reason="test",
+        ),
+    ]
+
+    evidence = runner.build_search_state_evidence(
+        complete_sweep=True,
+        overlap_degree=0.10,
+        phase_rescue_enabled=True,
+        repair_lock_active=False,
+        phase_i_tail_utility_value=1.0e-6,
+        relations=relations,
+        decisions=decisions,
+        writeback_norms=[0.0, runner.CC_HARM_WRITEBACK_NORM * 2.0],
+        fitness_deltas=[0.0, 1.0, 0.0],
+        reference_fitness=100.0,
+        cc_utility_history=[1.0e-7, 2.0e-7],
+        remaining_fes=900_000,
+        max_fes=3_000_000,
+        population_size=24,
+    )
+    empty = runner.build_search_state_evidence(
+        complete_sweep=True,
+        overlap_degree=0.10,
+        phase_rescue_enabled=True,
+        repair_lock_active=False,
+        phase_i_tail_utility_value=1.0e-6,
+        relations=[],
+        decisions=[],
+        writeback_norms=[],
+        fitness_deltas=[],
+        reference_fitness=100.0,
+        cc_utility_history=[],
+        remaining_fes=900_000,
+        max_fes=3_000_000,
+        population_size=24,
+    )
+
+    assert evidence.complete_sweep is True
+    assert evidence.non_coordinate_fraction == pytest.approx(0.5)
+    assert evidence.conflict_fraction == pytest.approx(1.0)
+    assert evidence.writeback_unstable is True
+    assert evidence.recent_cc_utilities == (1.0e-7, 2.0e-7)
+    assert empty.complete_sweep is False
+
+
+def test_controller_v31_phase_i_captures_resumable_mmes_state(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    controller = runner.build_evidence_action_controller_v31_run_state(0.10)
+    sentinel_state = object()
+    stateful_calls = 0
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            values = np.asarray(vector)
+            count = 1 if values.ndim == 1 else len(values)
+            self.fitness_record.extend([10.0] * count)
+            return [10.0] * count
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, _fun_name: str, _fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, _fun_name: str, _fun_id: int):
+            return {"dimension": 4, "lower": -5.0, "upper": 5.0}
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            raise AssertionError("controller v31 must capture MMES state")
+
+        def optimize_with_state(self):
+            nonlocal stateful_calls
+            stateful_calls += 1
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget, self.problem["ndim_problem"]))
+            )
+            return (
+                {
+                    "n_function_evaluations": budget,
+                    "best_so_far_y": 10.0,
+                    "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+                },
+                sentinel_state,
+            )
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree: controller,
+    )
+    monkeypatch.setattr(runner, "decompose_problem", lambda _id, data_root=None: [[0, 1]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[0]], []),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda _id, data_root=None: {
+            "dimension": 4,
+            "overlap_degree": 1,
+            "subgroups": [2],
+        },
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, _degree: max_fes)
+
+    runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=4,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V31,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    assert stateful_calls == 1
+    assert controller.phase_i_optimizer is not None
+    assert controller.phase_i_state is sentinel_state
+
+
 def test_controller_v31_non_dense_guarded_prefix_locks_subsequent_repair() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)

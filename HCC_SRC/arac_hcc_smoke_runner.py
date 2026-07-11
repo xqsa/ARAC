@@ -51,7 +51,13 @@ from src.arac.policy.relation_policy import (
     decide_actions_for_relations_v25,
     decide_actions_for_relations_v26,
 )
+from src.arac.policy.search_state_policy import (
+    SearchStateEvidence,
+    SearchStateSchedulerState,
+    normalized_gain_utility,
+)
 from src.arac.backends.hcc import required_aob_data_files, validate_aob_data_root
+from HCC.NDAs.MMES.state import MMESState
 
 from AOB.utils import (
     combine,
@@ -375,6 +381,12 @@ class EvidenceActionControllerV31RunState:
     non_dense_repair_locked: bool = False
     non_dense_repair_lock_trigger: str = ""
     bounded_late_nda_refresh_consumed: bool = False
+    search_state_scheduler_state: SearchStateSchedulerState = field(
+        default_factory=SearchStateSchedulerState
+    )
+    phase_i_optimizer: object | None = field(default=None, repr=False)
+    phase_i_state: MMESState | None = field(default=None, repr=False)
+    cc_utility_history: list[float] = field(default_factory=list)
     _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
         default_factory=list,
         repr=False,
@@ -910,6 +922,58 @@ def cc_harm_conflict_fraction(fitness_deltas: list[float], reference_fitness: fl
         if left_active != right_active:
             conflicts += 1
     return conflicts / max(1, len(fitness_deltas) - 1)
+
+
+def phase_i_tail_utility(state: MMESState) -> float:
+    window = state.recent_best[-3:]
+    if len(window) < 2:
+        return 0.0
+    start_fe, start_best = window[0]
+    end_fe, end_best = window[-1]
+    return normalized_gain_utility(start_best, end_best, end_fe - start_fe)
+
+
+def build_search_state_evidence(
+    *,
+    complete_sweep: bool,
+    overlap_degree: float,
+    phase_rescue_enabled: bool,
+    repair_lock_active: bool,
+    phase_i_tail_utility_value: float,
+    relations: list[OverlapRelation],
+    decisions: list[RelationActionDecision],
+    writeback_norms: list[float],
+    fitness_deltas: list[float],
+    reference_fitness: float,
+    cc_utility_history: list[float],
+    remaining_fes: int,
+    max_fes: int,
+    population_size: int,
+) -> SearchStateEvidence:
+    canonical_actions = [
+        _canonical_relation_action_name(decision) for decision in decisions
+    ]
+    non_coordinate = sum(
+        action != "allow_beneficial_coordination" for action in canonical_actions
+    ) / max(1, len(canonical_actions))
+    conflict = cc_harm_conflict_fraction(fitness_deltas, reference_fitness)
+    unstable = any(
+        abs(float(norm)) > CC_HARM_WRITEBACK_NORM for norm in writeback_norms
+    )
+    return SearchStateEvidence(
+        complete_sweep=bool(complete_sweep and relations),
+        overlap_degree=float(overlap_degree),
+        phase_rescue_enabled=bool(phase_rescue_enabled),
+        repair_lock_active=bool(repair_lock_active),
+        phase_i_tail_utility=float(phase_i_tail_utility_value),
+        non_coordinate_fraction=float(non_coordinate),
+        conflict_fraction=float(conflict),
+        writeback_unstable=bool(unstable),
+        recent_cc_utilities=tuple(float(value) for value in cc_utility_history[-2:]),
+        remaining_fes=int(remaining_fes),
+        max_fes=int(max_fes),
+        population_size=int(population_size),
+    )
 
 
 def should_trigger_cc_harm_guard(
@@ -2392,7 +2456,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         }
         if config.seed is not None:
             options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
-        results = MMES(problem, options).optimize()
+        phase_i_optimizer = MMES(problem, options)
+        if controller_v31_run_state is None:
+            results = phase_i_optimizer.optimize()
+        else:
+            results, phase_i_state = phase_i_optimizer.optimize_with_state()
+            controller_v31_run_state.phase_i_optimizer = phase_i_optimizer
+            controller_v31_run_state.phase_i_state = phase_i_state
         best_individual = results["best_so_far_x"].copy()
         guarded_incumbent = best_individual.copy()
         guarded_incumbent_fitness = float(results["best_so_far_y"])
