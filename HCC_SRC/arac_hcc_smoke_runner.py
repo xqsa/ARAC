@@ -962,6 +962,7 @@ def plan_bounded_late_nda_refresh(
     remaining_fes: int,
     max_fes: int,
     population_size: int,
+    expected_group_count: int,
 ) -> BoundedLateNdaRefreshPlan | None:
     state = controller_v31_run_state
     if (
@@ -971,6 +972,9 @@ def plan_bounded_late_nda_refresh(
         or state.bounded_late_nda_refresh_consumed
         or not state.phase_rescue_enabled
         or max_fes <= 0
+        or expected_group_count < CC_HARM_MIN_GROUP_UPDATES
+        or len(fitness_deltas) != expected_group_count
+        or len(current_outer_relations) != expected_group_count - 1
         or len(fitness_deltas) < CC_HARM_MIN_GROUP_UPDATES
         or len(current_outer_relations) < CC_HARM_MIN_GROUP_UPDATES - 1
     ):
@@ -3016,6 +3020,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     remaining_fes=remaining_fes,
                     max_fes=config.max_fes,
                     population_size=full_population_size,
+                    expected_group_count=sub_num,
                 )
                 if bounded_refresh_plan is not None:
                     refresh_seed = (
