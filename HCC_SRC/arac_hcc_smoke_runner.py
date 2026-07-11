@@ -1020,10 +1020,16 @@ def run_guarded_nda_continuation(
     guard_individual: np.ndarray,
     guard_fitness: float,
     remaining_fes: int,
+    requested_fes: int | None = None,
+    search_state_action: str = CC_HARM_GUARDED_SEP_REFRESH_ACTION,
 ) -> tuple[bool, np.ndarray, float, int, float]:
     population_size = calculate_cmaes_population_size(int(info["dimension"]))
+    requested_budget = remaining_fes if requested_fes is None else min(
+        remaining_fes,
+        max(0, int(requested_fes)),
+    )
     refresh_budget = bounded_population_budget(
-        requested_fes=remaining_fes,
+        requested_fes=requested_budget,
         remaining_fes=remaining_fes,
         population_size=population_size,
     )
@@ -1043,7 +1049,7 @@ def run_guarded_nda_continuation(
         "n_individuals": population_size,
         "is_restart": config.mmes_restart,
         "verbose": config.verbose,
-        "arac_search_state_action": CC_HARM_GUARDED_SEP_REFRESH_ACTION,
+        "arac_search_state_action": search_state_action,
         "arac_guard_source": "phase_i_or_current_incumbent",
     }
     if config.seed is not None:
@@ -1056,20 +1062,31 @@ def run_guarded_nda_continuation(
         )
     results = MMES(problem, options).optimize()
     candidate_best = float(results["best_so_far_y"])
+    candidate = np.asarray(results["best_so_far_x"], dtype=float).reshape(-1)
+    used_fes = int(results["n_function_evaluations"])
+    if used_fes < 0 or used_fes > refresh_budget:
+        raise RuntimeError("guarded NDA reported invalid FE usage")
+    if not math.isfinite(candidate_best):
+        raise RuntimeError("guarded NDA returned non-finite fitness")
+    guard_shape = np.asarray(guard_individual).reshape(-1).shape
+    if candidate.shape != guard_shape:
+        raise RuntimeError("guarded NDA returned invalid candidate shape")
+    if not np.all(np.isfinite(candidate)):
+        raise RuntimeError("guarded NDA returned non-finite candidate")
     accepted = candidate_best < float(guard_fitness)
     if accepted:
         return (
             True,
-            np.asarray(results["best_so_far_x"], dtype=float).copy(),
+            candidate.copy(),
             candidate_best,
-            int(results["n_function_evaluations"]),
+            used_fes,
             candidate_best,
         )
     return (
         False,
         guard_individual.copy(),
         float(guard_fitness),
-        int(results["n_function_evaluations"]),
+        used_fes,
         candidate_best,
     )
 

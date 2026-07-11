@@ -257,7 +257,7 @@ git commit -m "Add bounded late refresh planner"
 - Modify: `HCC_SRC/arac_hcc_smoke_runner.py:925-987`
 - Test: `tests/test_hcc_smoke_runner_cli.py:3189-3250`
 
-- [ ] **Step 1: Write failing tests for explicit budget, action metadata, and invalid output**
+- [x] **Step 1: Write failing tests for explicit budget, action metadata, and invalid output**
 
 Extend the existing guarded-continuation test with:
 
@@ -360,7 +360,7 @@ def test_guarded_nda_continuation_rejects_nonfinite_optimizer_output(
         )
 ```
 
-- [ ] **Step 2: Run the two tests and verify RED**
+- [x] **Step 2: Run the two tests and verify RED**
 
 Run:
 
@@ -370,7 +370,7 @@ D:\python\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py -k "honors_bou
 
 Expected: failures because the new keyword arguments and validation do not exist.
 
-- [ ] **Step 3: Extend the existing guarded continuation without changing old defaults**
+- [x] **Step 3: Extend the existing guarded continuation without changing old defaults**
 
 Change the signature and budget/action construction:
 
@@ -421,7 +421,7 @@ if not np.all(np.isfinite(candidate)):
 Use `candidate.copy()` in the accepted return and retain the current incumbent
 for a finite but non-improving candidate.
 
-- [ ] **Step 4: Run new and existing guarded-continuation tests**
+- [x] **Step 4: Run new and existing guarded-continuation tests**
 
 Run:
 

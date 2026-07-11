@@ -3345,6 +3345,110 @@ def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
     assert options_seen[0]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
 
 
+def test_guarded_nda_continuation_honors_bounded_budget_and_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    options_seen: list[dict] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([700.0] * batch_size)
+            return [700.0] * batch_size
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            options_seen.append(dict(self.options))
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget, self.problem["ndim_problem"]))
+            )
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 700.0,
+                "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+            }
+
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+
+    accepted, _candidate, best, used, candidate_best = (
+        runner.run_guarded_nda_continuation(
+            fun=FakeFunction(),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=4,
+            guard_individual=np.ones(3),
+            guard_fitness=800.0,
+            remaining_fes=40,
+            requested_fes=20,
+            search_state_action=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
+        )
+    )
+
+    assert accepted is True
+    assert best == 700.0
+    assert candidate_best == 700.0
+    assert used == 20
+    assert options_seen[0]["max_function_evaluations"] == 20
+    assert options_seen[0]["arac_search_state_action"] == (
+        "bounded_late_nda_refresh"
+    )
+    assert options_seen[0]["seed_rng"] == runner.derive_optimizer_seed(
+        7, "rastrigin", 3, 5, 23011
+    )
+
+
+def test_guarded_nda_continuation_rejects_nonfinite_optimizer_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+
+    class InvalidMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            return {
+                "n_function_evaluations": 4,
+                "best_so_far_y": float("nan"),
+                "best_so_far_x": np.zeros(3),
+            }
+
+    monkeypatch.setattr(runner, "MMES", InvalidMMES)
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+
+    with pytest.raises(RuntimeError, match="guarded NDA returned non-finite fitness"):
+        runner.run_guarded_nda_continuation(
+            fun=lambda _vector: [1.0],
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=4,
+            guard_individual=np.ones(3),
+            guard_fitness=800.0,
+            remaining_fes=40,
+            requested_fes=20,
+            search_state_action=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
+        )
+
+
 def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_worse() -> None:
     runner = _load_runner_module()
 
