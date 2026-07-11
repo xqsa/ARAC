@@ -781,7 +781,7 @@ git commit -m "Audit bounded refresh runtime state"
 **Files:**
 - Test: `tests/`
 
-- [ ] **Step 1: Run the focused canonical suite**
+- [x] **Step 1: Run the focused canonical suite**
 
 ```powershell
 D:\python\python.exe -m pytest tests/test_relation_policy.py tests/test_hcc_smoke_runner_cli.py tests/test_exp_003_hcc_runtime_consumer_smoke.py tests/test_exp_005_hcc_final_protocol_pilot.py tests/test_exp_005_hcc_final_protocol_pilot_cli.py -q
@@ -789,7 +789,7 @@ D:\python\python.exe -m pytest tests/test_relation_policy.py tests/test_hcc_smok
 
 Expected: zero failures; the existing skipped integration marker may remain skipped.
 
-- [ ] **Step 2: Run the full test suite**
+- [x] **Step 2: Run the full test suite**
 
 ```powershell
 D:\python\python.exe -m pytest -q
@@ -797,7 +797,7 @@ D:\python\python.exe -m pytest -q
 
 Expected: zero failures.
 
-- [ ] **Step 3: Run diff and repository hygiene checks**
+- [x] **Step 3: Run diff and repository hygiene checks**
 
 ```powershell
 git diff --check
