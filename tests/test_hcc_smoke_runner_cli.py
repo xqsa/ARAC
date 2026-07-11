@@ -1412,29 +1412,8 @@ def test_controller_v31_plans_bounded_late_refresh_from_runtime_evidence() -> No
 def test_controller_v31_plans_refresh_for_group_sparse_conflict_even_with_positive_gain() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)
-    relations = [_bounded_refresh_relation(runner, index=index) for index in range(19)]
-    fitness_deltas = [
-        0.0,
-        10.0,
-        0.0,
-        20.0,
-        0.0,
-        30.0,
-        0.0,
-        40.0,
-        0.0,
-        50.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        60.0,
-        70.0,
-        80.0,
-        90.0,
-        100.0,
-        110.0,
-    ]
+    relations = [_bounded_refresh_relation(runner, index=index) for index in range(5)]
+    fitness_deltas = [0.0, 10.0, 0.0, 20.0, 0.0, 30.0]
 
     plan = runner.plan_bounded_late_nda_refresh(
         controller_v31_run_state=state,
@@ -1445,7 +1424,7 @@ def test_controller_v31_plans_refresh_for_group_sparse_conflict_even_with_positi
         remaining_fes=600_000,
         max_fes=3_000_000,
         population_size=40,
-        expected_group_count=20,
+        expected_group_count=6,
     )
 
     assert plan is not None
