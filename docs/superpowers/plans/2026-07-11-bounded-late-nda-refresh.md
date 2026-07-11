@@ -1,4 +1,9 @@
-# Bounded Late NDA Refresh Implementation Plan
+# Superseded: Bounded Late NDA Refresh Implementation Plan
+
+This historical plan is retained for auditability. Its cold-start refresh
+architecture was rejected after the pinned R3 gate showed opportunity-cost
+regression. The active design is
+`docs/superpowers/specs/2026-07-11-evidence-guided-grouping-to-action-design.md`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
