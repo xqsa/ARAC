@@ -25,7 +25,7 @@
 - Modify: `HCC_SRC/arac_hcc_smoke_runner.py:229-292,347-466,885-922`
 - Test: `tests/test_hcc_smoke_runner_cli.py:1343-1610`
 
-- [ ] **Step 1: Write failing tests for eligible and rejected runtime states**
+- [x] **Step 1: Write failing tests for eligible and rejected runtime states**
 
 Add the following helper and tests near the existing controller-v31 tests:
 
@@ -126,7 +126,7 @@ def test_controller_v31_rejects_nonmatching_bounded_refresh_evidence(
     assert plan is None
 ```
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run:
 
@@ -136,7 +136,7 @@ D:\python\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py -k "bounded_la
 
 Expected: failures because `plan_bounded_late_nda_refresh` and its plan type do not exist.
 
-- [ ] **Step 3: Implement constants, plan type, state flag, and pure planner**
+- [x] **Step 3: Implement constants, plan type, state flag, and pure planner**
 
 Add beside the current CC-harm constants and v31 state:
 
@@ -233,7 +233,7 @@ def plan_bounded_late_nda_refresh(
     )
 ```
 
-- [ ] **Step 4: Run focused and state regression tests**
+- [x] **Step 4: Run focused and state regression tests**
 
 Run:
 
@@ -244,7 +244,7 @@ D:\python\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py -k "controller
 Expected: all selected tests pass, including
 `test_controller_v31_never_enables_cc_harm_full_budget_takeover`.
 
-- [ ] **Step 5: Commit the pure planner**
+- [x] **Step 5: Commit the pure planner**
 
 ```powershell
 git add HCC_SRC/arac_hcc_smoke_runner.py tests/test_hcc_smoke_runner_cli.py
@@ -574,13 +574,14 @@ def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
         row for row in trace_rows
         if row["selected_action_name"] == runner.BOUNDED_LATE_NDA_REFRESH_ACTION
     ]
-    assert [row["trace_event"] for row in bounded_rows] == ["start", "completion"]
-    assert bounded_rows[0]["refresh_budget"] == "20"
-    assert bounded_rows[0]["continuation_reserve"] == "8"
-    assert bounded_rows[0]["restart_accepted"] == "1"
-    assert bounded_rows[0]["downstream_consumption_scope"] == (
-        "subsequent_outer_iterations"
+    assert len(bounded_rows) == 2
+    assert bounded_rows[0]["bipop_restart_mode"].startswith(
+        "bounded_late_nda_refresh:start"
     )
+    assert bounded_rows[1]["bipop_restart_mode"] == (
+        "bounded_late_nda_refresh:completion"
+    )
+    assert bounded_rows[0]["restart_accepted"] == "1"
     assert planner_calls >= 1
 ```
 
@@ -592,8 +593,7 @@ Run:
 D:\python\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py::test_controller_v31_runs_one_bounded_refresh_then_resumes_cc -q
 ```
 
-Expected: failure because the action is not connected to the run loop and the
-new trace fields do not exist.
+Expected: failure because the action is not connected to the run loop.
 
 - [ ] **Step 3: Connect the planner without enabling full CC-harm takeover**
 
@@ -654,13 +654,17 @@ guarded_incumbent_fitness = refreshed_best
 controller_v31_run_state.bounded_late_nda_refresh_consumed = True
 ```
 
-Append the start trace row, save the values needed for the completion row, and
-`break` only the current group loop. Do not set `cc_harm_guard_consumed`; the
+Append the start trace row with a `bipop_restart_mode` prefix of
+`bounded_late_nda_refresh:start`, save the values needed for the completion row,
+and `break` only the current group loop. Do not set `cc_harm_guard_consumed`; the
 outer `while` must resume CC with the reserved FE.
 
 After the `while` loop, append a completion row using
 `min(float(value) for value in fun.fitness_record)` as the post-continuation best.
-This reads existing fitness evidence and must not call the objective again.
+Set its existing `bipop_restart_mode` field to
+`bounded_late_nda_refresh:completion`. This reads existing fitness evidence and
+must not call the objective again. Task 4 enriches both rows with dedicated audit
+fields after the integration behavior is green.
 
 - [ ] **Step 4: Run integration, v31, and old CC-harm tests**
 

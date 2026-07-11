@@ -236,6 +236,11 @@ V31_NON_DENSE_LARGE_FALLBACK_NORM_MIN = 10.0
 V31_NON_DENSE_LARGE_FALLBACK_REPAIR_TRIGGER = (
     "controller_v31_non_dense_large_fallback_repair_lock"
 )
+BOUNDED_LATE_NDA_REFRESH_ACTION = "bounded_late_nda_refresh"
+BOUNDED_REFRESH_REMAINING_RATIO_MIN = 0.08
+BOUNDED_REFRESH_REMAINING_RATIO_MAX = 0.30
+BOUNDED_REFRESH_BUDGET_FRACTION = 0.15
+BOUNDED_REFRESH_CONTINUATION_FRACTION = 0.05
 SEARCH_STATE_BIPOP_ACTION = "bipop_search_state_restart"
 REPAIR_BIPOP_SEARCH_STATE_ACTION = "repair_bipop_search_state_restart"
 PHASE_RESCUE_MULTISTART_ACTION = "phase_rescue_multistart"
@@ -344,12 +349,22 @@ class BipopRestartPlan:
     escape_budget: int
 
 
+@dataclass(frozen=True)
+class BoundedLateNdaRefreshPlan:
+    refresh_budget: int
+    continuation_reserve: int
+    remaining_budget_ratio: float
+    shared_var_count: int
+    trigger_reason: str
+
+
 @dataclass
 class EvidenceActionControllerV31RunState:
     dense_overlap: bool
     locked_policy_mode: str | None = None
     non_dense_repair_locked: bool = False
     non_dense_repair_lock_trigger: str = ""
+    bounded_late_nda_refresh_consumed: bool = False
     _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
         default_factory=list,
         repr=False,
@@ -920,6 +935,78 @@ def should_trigger_cc_harm_guard(
             reasons.append("unstable_overlap_writeback")
         return True, "+".join(reasons)
     return False, "cc_harm_evidence_below_threshold"
+
+
+def plan_bounded_late_nda_refresh(
+    *,
+    controller_v31_run_state: EvidenceActionControllerV31RunState | None,
+    current_outer_relations: list[OverlapRelation],
+    fitness_deltas: list[float],
+    overlap_writeback_norms: list[float],
+    reference_fitness: float,
+    remaining_fes: int,
+    max_fes: int,
+    population_size: int,
+) -> BoundedLateNdaRefreshPlan | None:
+    state = controller_v31_run_state
+    if (
+        state is None
+        or state.dense_overlap
+        or state.non_dense_repair_locked
+        or state.bounded_late_nda_refresh_consumed
+        or not state.phase_rescue_enabled
+        or max_fes <= 0
+        or len(fitness_deltas) < CC_HARM_MIN_GROUP_UPDATES
+        or len(current_outer_relations) < CC_HARM_MIN_GROUP_UPDATES - 1
+    ):
+        return None
+
+    shared_counts = {len(relation.shared_vars) for relation in current_outer_relations}
+    if shared_counts != {V31_NON_DENSE_PREFIX_SHARED_VAR_COUNT}:
+        return None
+
+    remaining_ratio = max(0.0, remaining_fes / max_fes)
+    if not (
+        BOUNDED_REFRESH_REMAINING_RATIO_MIN
+        <= remaining_ratio
+        <= BOUNDED_REFRESH_REMAINING_RATIO_MAX
+    ):
+        return None
+
+    triggered, reason = should_trigger_cc_harm_guard(
+        fitness_deltas=fitness_deltas,
+        overlap_writeback_norms=overlap_writeback_norms,
+        reference_fitness=reference_fitness,
+        remaining_fes=remaining_fes,
+        minimum_refresh_budget=population_size,
+    )
+    if not triggered or not (
+        "high_relation_conflict" in reason
+        or "severe_group_stagnation" in reason
+    ):
+        return None
+
+    continuation_reserve = math.ceil(
+        max_fes * BOUNDED_REFRESH_CONTINUATION_FRACTION
+    )
+    available_refresh_fes = remaining_fes - continuation_reserve
+    if available_refresh_fes < population_size:
+        return None
+    refresh_cap = math.floor(max_fes * BOUNDED_REFRESH_BUDGET_FRACTION)
+    refresh_budget = bounded_population_budget(
+        requested_fes=min(refresh_cap, available_refresh_fes),
+        remaining_fes=available_refresh_fes,
+        population_size=population_size,
+    )
+    if refresh_budget <= 0:
+        return None
+    return BoundedLateNdaRefreshPlan(
+        refresh_budget=refresh_budget,
+        continuation_reserve=continuation_reserve,
+        remaining_budget_ratio=remaining_ratio,
+        shared_var_count=next(iter(shared_counts)),
+        trigger_reason=reason,
+    )
 
 
 def run_guarded_nda_continuation(

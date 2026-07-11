@@ -1353,6 +1353,102 @@ def test_controller_v31_non_dense_run_selects_v26_precision_and_rescue() -> None
     ) == pytest.approx(0.25)
 
 
+def _bounded_refresh_relation(
+    runner,
+    *,
+    index: int,
+    shared_var_count: int = 3,
+    budget_remaining_ratio: float = 0.20,
+):
+    return runner.OverlapRelation(
+        relation_id=f"O4_{index}_{index + 1}",
+        problem_id="runtime_case",
+        outer_iter=4,
+        group_left=index,
+        group_right=index + 1,
+        shared_vars=tuple(range(shared_var_count)),
+        overlap_strength=float(shared_var_count),
+        delta_signal=0.0,
+        rank_signal=0.5,
+        budget_remaining_ratio=budget_remaining_ratio,
+        previous_delta=0.0,
+        current_delta=0.0,
+        both_positive=False,
+        one_side_zero=False,
+        delta_ratio_gap=0.0,
+        rank_stability=1.0,
+        shared_var_count=shared_var_count,
+        shared_var_support_ratio=0.1,
+        feature_coverage=1.0,
+        fallback_margin_proxy=1.0,
+    )
+
+
+def test_controller_v31_plans_bounded_late_refresh_from_runtime_evidence() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.10)
+    relations = [_bounded_refresh_relation(runner, index=index) for index in range(2)]
+
+    plan = runner.plan_bounded_late_nda_refresh(
+        controller_v31_run_state=state,
+        current_outer_relations=relations,
+        fitness_deltas=[0.0, 0.0, 0.0],
+        overlap_writeback_norms=[0.0, 0.0],
+        reference_fitness=1_000_000.0,
+        remaining_fes=600_000,
+        max_fes=3_000_000,
+        population_size=40,
+    )
+
+    assert plan is not None
+    assert plan.refresh_budget == 450_000
+    assert plan.continuation_reserve == 150_000
+    assert plan.remaining_budget_ratio == pytest.approx(0.20)
+    assert plan.shared_var_count == 3
+    assert plan.trigger_reason == "low_cc_gain+severe_group_stagnation"
+
+
+@pytest.mark.parametrize(
+    ("state_overlap", "shared_count", "remaining_fes", "repair_locked", "deltas"),
+    [
+        (0.18, 3, 600_000, False, [0.0, 0.0, 0.0]),
+        (0.10, 5, 600_000, False, [0.0, 0.0, 0.0]),
+        (0.10, 1, 600_000, False, [0.0, 0.0, 0.0]),
+        (0.10, 3, 1_050_000, False, [0.0, 0.0, 0.0]),
+        (0.10, 3, 150_000, False, [0.0, 0.0, 0.0]),
+        (0.10, 3, 600_000, True, [0.0, 0.0, 0.0]),
+        (0.10, 3, 600_000, False, [100.0, 100.0, 100.0]),
+    ],
+)
+def test_controller_v31_rejects_nonmatching_bounded_refresh_evidence(
+    state_overlap: float,
+    shared_count: int,
+    remaining_fes: int,
+    repair_locked: bool,
+    deltas: list[float],
+) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(state_overlap)
+    state.non_dense_repair_locked = repair_locked
+    relations = [
+        _bounded_refresh_relation(runner, index=index, shared_var_count=shared_count)
+        for index in range(2)
+    ]
+
+    plan = runner.plan_bounded_late_nda_refresh(
+        controller_v31_run_state=state,
+        current_outer_relations=relations,
+        fitness_deltas=deltas,
+        overlap_writeback_norms=[0.0, 0.0],
+        reference_fitness=1_000_000.0,
+        remaining_fes=remaining_fes,
+        max_fes=3_000_000,
+        population_size=40,
+    )
+
+    assert plan is None
+
+
 def test_controller_v31_non_dense_guarded_prefix_locks_subsequent_repair() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)
