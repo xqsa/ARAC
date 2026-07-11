@@ -1912,6 +1912,38 @@ def test_build_action_trace_row_marks_runtime_consumed_repair() -> None:
     assert row["optimizer_consumed"] == "1"
 
 
+def test_build_action_trace_row_audits_bounded_refresh_runtime_state() -> None:
+    runner = _load_runner_module()
+
+    row = runner.build_action_trace_row(
+        problem_id="R3",
+        seed=3,
+        outer_iter=4,
+        group_index=2,
+        selected_action_name=runner.BOUNDED_LATE_NDA_REFRESH_ACTION,
+        overlap_size=3,
+        previous_delta=0.0,
+        current_delta=1.0,
+        downstream_consumption_scope="subsequent_outer_iterations",
+        trace_event="start",
+        remaining_budget_ratio=0.20,
+        shared_var_count=3,
+        repair_lock_active=False,
+        refresh_budget=450_000,
+        continuation_reserve=150_000,
+        optimizer_seed=12345,
+    )
+
+    assert row["trace_event"] == "start"
+    assert row["remaining_budget_ratio"] == "2.000000e-01"
+    assert row["shared_var_count"] == "3"
+    assert row["repair_lock_active"] == "0"
+    assert row["refresh_budget"] == "450000"
+    assert row["continuation_reserve"] == "150000"
+    assert row["optimizer_seed"] == "12345"
+    assert row["downstream_consumption_scope"] == "subsequent_outer_iterations"
+
+
 def test_build_action_trace_row_includes_relation_join_fields() -> None:
     runner = _load_runner_module()
 

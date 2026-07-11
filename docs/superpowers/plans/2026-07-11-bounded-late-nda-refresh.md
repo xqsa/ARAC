@@ -692,7 +692,7 @@ git commit -m "Integrate bounded refresh into canonical v31"
 - Test: `tests/test_hcc_smoke_runner_cli.py:1612-1645`
 - Test: `tests/test_exp_003_hcc_runtime_consumer_smoke.py:390-420`
 
-- [ ] **Step 1: Write failing schema and aggregation assertions**
+- [x] **Step 1: Write failing schema and aggregation assertions**
 
 Add these fields to the expected trace subset in both runner and exp_003 tests:
 
@@ -720,7 +720,7 @@ assert row["continuation_reserve"] == "150000"
 assert row["optimizer_seed"] == "12345"
 ```
 
-- [ ] **Step 2: Run the two schema tests and verify RED**
+- [x] **Step 2: Run the two schema tests and verify RED**
 
 Run:
 
@@ -730,7 +730,7 @@ D:\python\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py -k "action_tra
 
 Expected: failures because the new fields are absent or dropped during aggregation.
 
-- [ ] **Step 3: Extend the existing trace row and aggregator**
+- [x] **Step 3: Extend the existing trace row and aggregator**
 
 Append the seven field names to `ACTION_TRACE_FIELDS`, add keyword parameters to
 `build_action_trace_row`, and serialize them as follows:
@@ -758,7 +758,7 @@ Existing relation rows retain the default.
 Append the same names to the exp_003 `_write_csv(... action_trace.csv ...)`
 field list. Do not create another trace artifact.
 
-- [ ] **Step 4: Verify budget reconciliation and canonical gate tests**
+- [x] **Step 4: Verify budget reconciliation and canonical gate tests**
 
 Run:
 

@@ -408,6 +408,13 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "action_value_delta_norm",
         "downstream_consumed",
         "downstream_consumption_scope",
+        "trace_event",
+        "remaining_budget_ratio",
+        "shared_var_count",
+        "repair_lock_active",
+        "refresh_budget",
+        "continuation_reserve",
+        "optimizer_seed",
     }.issubset(trace_rows[0])
 
     decision_rows = _read_csv(output / "action_decision.csv")

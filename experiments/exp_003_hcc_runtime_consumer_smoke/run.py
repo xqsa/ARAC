@@ -3688,6 +3688,13 @@ def run_hcc_runtime_consumer_smoke(
             "restart_relative_improvement",
             "restart_acceptance_threshold",
             "best_after",
+            "trace_event",
+            "remaining_budget_ratio",
+            "shared_var_count",
+            "repair_lock_active",
+            "refresh_budget",
+            "continuation_reserve",
+            "optimizer_seed",
         ],
     )
     _write_csv(

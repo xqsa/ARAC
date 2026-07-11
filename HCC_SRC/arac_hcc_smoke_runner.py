@@ -139,6 +139,13 @@ ACTION_TRACE_FIELDS = [
     "restart_relative_improvement",
     "restart_acceptance_threshold",
     "best_after",
+    "trace_event",
+    "remaining_budget_ratio",
+    "shared_var_count",
+    "repair_lock_active",
+    "refresh_budget",
+    "continuation_reserve",
+    "optimizer_seed",
 ]
 OVERLAP_RELATION_FIELDS = [
     "relation_id",
@@ -1606,6 +1613,7 @@ def build_action_trace_row(
     state_mutated: bool | None = None,
     action_value_delta_norm: float = 0.0,
     downstream_consumed: bool = True,
+    downstream_consumption_scope: str = "same_outer_iteration",
     search_state_action_type: str = "",
     stagnation_window: int | None = None,
     delta_mean: float | None = None,
@@ -1622,6 +1630,13 @@ def build_action_trace_row(
     restart_relative_improvement: float | None = None,
     restart_acceptance_threshold: float | None = None,
     best_after: float | None = None,
+    trace_event: str = "",
+    remaining_budget_ratio: float | None = None,
+    shared_var_count: int | None = None,
+    repair_lock_active: bool | None = None,
+    refresh_budget: int | None = None,
+    continuation_reserve: int | None = None,
+    optimizer_seed: int | None = None,
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -1655,7 +1670,7 @@ def build_action_trace_row(
         "state_mutated": state_mutated_value,
         "action_value_delta_norm": f"{action_value_delta_norm:.6e}",
         "downstream_consumed": str(int(downstream_consumed)),
-        "downstream_consumption_scope": "same_outer_iteration",
+        "downstream_consumption_scope": downstream_consumption_scope,
         "optimizer_consumed": _optimizer_consumed(selected_action_name, downstream_consumed),
         "search_state_action_type": search_state_action_type,
         "stagnation_window": "" if stagnation_window is None else str(stagnation_window),
@@ -1677,6 +1692,21 @@ def build_action_trace_row(
         if restart_acceptance_threshold is None
         else f"{restart_acceptance_threshold:.6e}",
         "best_after": "" if best_after is None else f"{best_after:.6e}",
+        "trace_event": trace_event,
+        "remaining_budget_ratio": ""
+        if remaining_budget_ratio is None
+        else f"{remaining_budget_ratio:.6e}",
+        "shared_var_count": ""
+        if shared_var_count is None
+        else str(shared_var_count),
+        "repair_lock_active": ""
+        if repair_lock_active is None
+        else str(int(repair_lock_active)),
+        "refresh_budget": "" if refresh_budget is None else str(refresh_budget),
+        "continuation_reserve": ""
+        if continuation_reserve is None
+        else str(continuation_reserve),
+        "optimizer_seed": "" if optimizer_seed is None else str(optimizer_seed),
     }
 
 
@@ -2959,6 +2989,17 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     population_size=full_population_size,
                 )
                 if bounded_refresh_plan is not None:
+                    refresh_seed = (
+                        derive_optimizer_seed(
+                            config.seed,
+                            fun_name,
+                            fun_id,
+                            outer_iter + 1,
+                            23011,
+                        )
+                        if config.seed is not None
+                        else None
+                    )
                     (
                         accepted,
                         refreshed_individual,
@@ -3001,6 +3042,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 np.linalg.norm(refreshed_individual - guard_individual)
                             ),
                             downstream_consumed=True,
+                            downstream_consumption_scope=(
+                                "subsequent_outer_iterations"
+                            ),
                             search_state_action_type=BOUNDED_LATE_NDA_REFRESH_ACTION,
                             stagnation_window=sum(
                                 1
@@ -3030,12 +3074,37 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             ),
                             restart_acceptance_threshold=0.0,
                             best_after=refreshed_best,
+                            trace_event="start",
+                            remaining_budget_ratio=(
+                                bounded_refresh_plan.remaining_budget_ratio
+                            ),
+                            shared_var_count=bounded_refresh_plan.shared_var_count,
+                            repair_lock_active=(
+                                controller_v31_run_state.non_dense_repair_locked
+                            ),
+                            refresh_budget=bounded_refresh_plan.refresh_budget,
+                            continuation_reserve=(
+                                bounded_refresh_plan.continuation_reserve
+                            ),
+                            optimizer_seed=refresh_seed,
                         )
                     )
                     bounded_refresh_completion = {
                         "outer_iter": outer_iter,
                         "group_index": index,
                         "best_after_refresh": refreshed_best,
+                        "remaining_budget_ratio": (
+                            bounded_refresh_plan.remaining_budget_ratio
+                        ),
+                        "shared_var_count": bounded_refresh_plan.shared_var_count,
+                        "repair_lock_active": (
+                            controller_v31_run_state.non_dense_repair_locked
+                        ),
+                        "refresh_budget": bounded_refresh_plan.refresh_budget,
+                        "continuation_reserve": (
+                            bounded_refresh_plan.continuation_reserve
+                        ),
+                        "optimizer_seed": refresh_seed,
                     }
                     break
             if uses_cc_harm_guard_during_run(
@@ -3157,6 +3226,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 state_mutated=False,
                 action_value_delta_norm=0.0,
                 downstream_consumed=True,
+                downstream_consumption_scope="run_completion",
                 search_state_action_type=BOUNDED_LATE_NDA_REFRESH_ACTION,
                 bipop_restart_mode="bounded_late_nda_refresh:completion",
                 restart_triggered=False,
@@ -3169,6 +3239,27 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 ),
                 restart_acceptance_threshold=0.0,
                 best_after=min(best_after_refresh, completion_best),
+                trace_event="completion",
+                remaining_budget_ratio=float(
+                    bounded_refresh_completion["remaining_budget_ratio"]
+                ),
+                shared_var_count=int(
+                    bounded_refresh_completion["shared_var_count"]
+                ),
+                repair_lock_active=bool(
+                    bounded_refresh_completion["repair_lock_active"]
+                ),
+                refresh_budget=int(
+                    bounded_refresh_completion["refresh_budget"]
+                ),
+                continuation_reserve=int(
+                    bounded_refresh_completion["continuation_reserve"]
+                ),
+                optimizer_seed=(
+                    None
+                    if bounded_refresh_completion["optimizer_seed"] is None
+                    else int(bounded_refresh_completion["optimizer_seed"])
+                ),
             )
         )
     _write_overlap_relation_trace(
