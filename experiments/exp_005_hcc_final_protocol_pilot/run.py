@@ -41,6 +41,9 @@ DEFAULT_PROBLEMS = (
     "A5",
 )
 DEFAULT_OUTPUT_DIR = Path("results/exp_005_hcc_final_protocol_pilot")
+DEFAULT_PAPER_BEST_MATRIX = (
+    ARAC_REPO_ROOT / "references" / "aob_paper_best_win_replay_matrix.csv"
+)
 AOB_AUDIT_FILES = (
     "Benchmarks.py",
     "elliptic.py",
@@ -180,6 +183,67 @@ def _read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _write_best_of_three_vs_paper_best(
+    output_dir: Path,
+    paper_best_matrix: Path,
+) -> Path:
+    thresholds = _read_csv(paper_best_matrix)
+    if not thresholds:
+        raise FileNotFoundError(
+            f"offline paper-best matrix is missing or empty: {paper_best_matrix}"
+        )
+    threshold_by_case = {
+        row["case"]: float(row["paper_best"])
+        for row in thresholds
+        if row.get("case") and row.get("paper_best")
+    }
+    result_rows = _read_csv(output_dir / "our_result_by_case.csv")
+    canonical_rows = [
+        row
+        for row in result_rows
+        if row.get("lane_id") == "canonical_evidence_controller_v1"
+    ]
+    if not canonical_rows:
+        raise RuntimeError("canonical execution rows are required for offline comparison")
+
+    grouped: dict[str, list[dict[str, str]]] = {}
+    for row in canonical_rows:
+        grouped.setdefault(row["problem_id"], []).append(row)
+    output_path = output_dir / "best_of_three_vs_paper_best.csv"
+    rows: list[dict[str, str]] = []
+    for problem_id in sorted(grouped):
+        if problem_id not in threshold_by_case:
+            raise KeyError(f"missing offline paper-best threshold for {problem_id}")
+        case_rows = grouped[problem_id]
+        errors = [float(row["hcc_smoke_final_error"]) for row in case_rows]
+        best_error = min(errors)
+        seed_count = len({row["seed"] for row in case_rows})
+        paper_best = threshold_by_case[problem_id]
+        rows.append(
+            {
+                "problem_id": problem_id,
+                "seed_count": str(seed_count),
+                "best_error": f"{best_error:.6e}",
+                "paper_best": f"{paper_best:.6e}",
+                "best_of_three_win": str(int(seed_count >= 3 and best_error < paper_best)),
+            }
+        )
+    with output_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "problem_id",
+                "seed_count",
+                "best_error",
+                "paper_best",
+                "best_of_three_win",
+            ],
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+    return output_path
+
+
 def _canonical_protocol_gate_failures(
     *,
     aob_input_rows: list[dict[str, str]],
@@ -223,6 +287,7 @@ def run_hcc_final_protocol_pilot(
     mmes_restart: bool = True,
     lane_profile: str = "canonical_evidence_controller_v1",
     environment_probe: EnvironmentProbe | None = None,
+    paper_best_matrix: Path | str = DEFAULT_PAPER_BEST_MATRIX,
 ) -> Path:
     observed_environment = (environment_probe or _probe_final_protocol_environment)(
         python_executable
@@ -295,6 +360,15 @@ def run_hcc_final_protocol_pilot(
             raise RuntimeError(
                 "canonical final protocol gate failed: " + ",".join(gate_failures)
             )
+        comparison_path = _write_best_of_three_vs_paper_best(
+            Path(output),
+            Path(paper_best_matrix),
+        )
+        manifest += (
+            "Offline best-of-three comparison: "
+            f"{comparison_path.name}; source={Path(paper_best_matrix)}; "
+            "runtime_dispatch_used=0\n"
+        )
     manifest_path.write_text(manifest, encoding="utf-8")
     return output
 

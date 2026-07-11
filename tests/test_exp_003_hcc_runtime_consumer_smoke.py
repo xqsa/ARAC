@@ -415,6 +415,18 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "refresh_budget",
         "continuation_reserve",
         "optimizer_seed",
+        "scheduler_phase",
+        "decision_point",
+        "cc_block_fe",
+        "cc_utility",
+        "search_state_block_fe",
+        "search_state_utility",
+        "required_utility_ratio",
+        "state_action_fe",
+        "cc_reserve_fe",
+        "state_fingerprint_before",
+        "state_fingerprint_after",
+        "abstain_reason",
     }.issubset(trace_rows[0])
 
     decision_rows = _read_csv(output / "action_decision.csv")
@@ -800,6 +812,8 @@ def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
         _ledger_rows,
     )
 
+    assert "search_state_fe" in HccAobExecutionResult.__dataclass_fields__
+
     result = HccAobExecutionResult(
         problem_id="E2",
         seed=7,
@@ -813,11 +827,12 @@ def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
         result_source="test",
         optimizer_final_fe_used=2000,
         global_phase_fe=600,
-        cc_phase_fe=1000,
-        rescue_fe=300,
-        refresh_fe=0,
+        cc_phase_fe=900,
+        rescue_fe=200,
+        refresh_fe=50,
+        search_state_fe=100,
         separable_continuation_fe=0,
-        overhead_fe=100,
+        overhead_fe=150,
     )
 
     ledger = _ledger_for_result(result)
@@ -829,10 +844,21 @@ def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
     assert ledger.phase_ii_fe == 1400
     assert rows[0]["phase_i_fe"] == 600
     assert rows[0]["phase_ii_fe"] == 1400
-    assert rows[0]["cc_phase_fe"] == 1000
-    assert rows[0]["rescue_fe"] == 300
-    assert rows[0]["refresh_fe"] == 0
-    assert rows[0]["overhead_fe"] == 100
+    assert rows[0]["cc_phase_fe"] == 900
+    assert rows[0]["rescue_fe"] == 200
+    assert rows[0]["refresh_fe"] == 50
+    assert rows[0]["search_state_fe"] == 100
+    assert rows[0]["overhead_fe"] == 150
+    assert (
+        rows[0]["phase_i_fe"]
+        + rows[0]["cc_phase_fe"]
+        + rows[0]["rescue_fe"]
+        + rows[0]["refresh_fe"]
+        + rows[0]["search_state_fe"]
+        + rows[0]["separable_continuation_fe"]
+        + rows[0]["overhead_fe"]
+        == rows[0]["total_fe"]
+    )
 
 
 def test_exp_003_evidence_routed_only_profile_runs_relation_dispatch_lane() -> None:

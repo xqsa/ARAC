@@ -179,6 +179,7 @@ class HccAobExecutionResult:
     cc_phase_fe: int | None = None
     rescue_fe: int | None = None
     refresh_fe: int | None = None
+    search_state_fe: int | None = None
     separable_continuation_fe: int | None = None
     overhead_fe: int | None = None
 
@@ -271,6 +272,17 @@ HCC_ACTION_EFFECTS = {
         "optimizer_search_state_restart",
         {"runtime_hook": "bipop_search_state_restart"},
         "hcc_search_state_runtime_consumed",
+        True,
+        "",
+    ),
+    "resume_phase_i_search_state": (
+        "resumable_mmes_state_block",
+        {
+            "runtime_hook": "resume_phase_i_search_state",
+            "backend": "saved_phase_i_mmes_state",
+            "acceptance_rule": "strict_global_incumbent_improvement",
+        },
+        "hcc_stateful_search_action",
         True,
         "",
     ),
@@ -369,8 +381,7 @@ HCC_ACTION_EFFECTS = {
             "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
             "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
             "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-                "cc_harm_guarded_sep_refresh",
+                "resume_phase_i_search_state",
             ],
             "guard": "stable_relation_first_no_harm_gate",
             "dispatch_boundary": "runtime_evidence_only",
@@ -744,6 +755,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         cc_phase_fe=budget_breakdown.get("cc_phase_fe"),
         rescue_fe=budget_breakdown.get("rescue_fe"),
         refresh_fe=budget_breakdown.get("refresh_fe"),
+        search_state_fe=budget_breakdown.get("search_state_fe", 0),
         separable_continuation_fe=budget_breakdown.get(
             "separable_continuation_fe"
         ),
@@ -823,12 +835,14 @@ def _parse_hcc_budget_summary(output_dir: Path) -> dict[str, int]:
         "cc_phase_fe",
         "rescue_fe",
         "refresh_fe",
+        "search_state_fe",
         "separable_continuation_fe",
         "overhead_fe",
     ):
         value = row.get(field)
         if value not in (None, ""):
             parsed[field] = int(float(value))
+    parsed.setdefault("search_state_fe", 0)
     return parsed
 
 

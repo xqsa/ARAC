@@ -52,6 +52,7 @@ from src.arac.policy.relation_policy import (
     decide_actions_for_relations_v26,
 )
 from src.arac.policy.search_state_policy import (
+    CONTINUE_CANONICAL_CC,
     RESUME_PHASE_I_SEARCH_STATE,
     SearchStateEvidence,
     SearchStateSchedulerState,
@@ -155,6 +156,18 @@ ACTION_TRACE_FIELDS = [
     "refresh_budget",
     "continuation_reserve",
     "optimizer_seed",
+    "scheduler_phase",
+    "decision_point",
+    "cc_block_fe",
+    "cc_utility",
+    "search_state_block_fe",
+    "search_state_utility",
+    "required_utility_ratio",
+    "state_action_fe",
+    "cc_reserve_fe",
+    "state_fingerprint_before",
+    "state_fingerprint_after",
+    "abstain_reason",
 ]
 OVERLAP_RELATION_FIELDS = [
     "relation_id",
@@ -231,6 +244,7 @@ BUDGET_SUMMARY_FIELDS = [
     "cc_phase_fe",
     "rescue_fe",
     "refresh_fe",
+    "search_state_fe",
     "separable_continuation_fe",
     "overhead_fe",
 ]
@@ -1774,6 +1788,18 @@ def build_action_trace_row(
     refresh_budget: int | None = None,
     continuation_reserve: int | None = None,
     optimizer_seed: int | None = None,
+    scheduler_phase: str = "",
+    decision_point: str = "",
+    cc_block_fe: int | None = None,
+    cc_utility: float | None = None,
+    search_state_block_fe: int | None = None,
+    search_state_utility: float | None = None,
+    required_utility_ratio: float | None = None,
+    state_action_fe: int | None = None,
+    cc_reserve_fe: int | None = None,
+    state_fingerprint_before: str = "",
+    state_fingerprint_after: str = "",
+    abstain_reason: str = "",
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -1844,6 +1870,24 @@ def build_action_trace_row(
         if continuation_reserve is None
         else str(continuation_reserve),
         "optimizer_seed": "" if optimizer_seed is None else str(optimizer_seed),
+        "scheduler_phase": scheduler_phase,
+        "decision_point": decision_point,
+        "cc_block_fe": "" if cc_block_fe is None else str(cc_block_fe),
+        "cc_utility": "" if cc_utility is None else f"{cc_utility:.6e}",
+        "search_state_block_fe": ""
+        if search_state_block_fe is None
+        else str(search_state_block_fe),
+        "search_state_utility": ""
+        if search_state_utility is None
+        else f"{search_state_utility:.6e}",
+        "required_utility_ratio": ""
+        if required_utility_ratio is None
+        else f"{required_utility_ratio:.6e}",
+        "state_action_fe": "" if state_action_fe is None else str(state_action_fe),
+        "cc_reserve_fe": "" if cc_reserve_fe is None else str(cc_reserve_fe),
+        "state_fingerprint_before": state_fingerprint_before,
+        "state_fingerprint_after": state_fingerprint_after,
+        "abstain_reason": abstain_reason,
     }
 
 
@@ -2266,6 +2310,7 @@ def _write_budget_summary(
     cc_phase_fe: int = 0,
     rescue_fe: int = 0,
     refresh_fe: int = 0,
+    search_state_fe: int = 0,
     separable_continuation_fe: int = 0,
 ) -> None:
     budget_aligned_fe = min(max_fes, fitness_record_fe)
@@ -2274,6 +2319,7 @@ def _write_budget_summary(
         + cc_phase_fe
         + rescue_fe
         + refresh_fe
+        + search_state_fe
         + separable_continuation_fe
     )
     overhead_fe = max(0, fitness_record_fe - stage_fe)
@@ -2289,6 +2335,7 @@ def _write_budget_summary(
         "cc_phase_fe": str(cc_phase_fe),
         "rescue_fe": str(rescue_fe),
         "refresh_fe": str(refresh_fe),
+        "search_state_fe": str(search_state_fe),
         "separable_continuation_fe": str(separable_continuation_fe),
         "overhead_fe": str(overhead_fe),
     }
@@ -3404,6 +3451,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 max_fes=config.max_fes,
                 population_size=phase_population_size,
             )
+            scheduler_state_before = (
+                controller_v31_run_state.search_state_scheduler_state
+            )
             state_plan = plan_search_state_action(
                 evidence,
                 controller_v31_run_state.search_state_scheduler_state,
@@ -3516,6 +3566,65 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         ),
                         refresh_budget=state_plan.requested_fes,
                         continuation_reserve=state_plan.cc_reserve_fes,
+                        scheduler_phase=scheduler_state_before.phase,
+                        decision_point=f"complete_cc_sweep:{outer_iter}",
+                        cc_block_fe=sweep_fes,
+                        cc_utility=cc_utility,
+                        search_state_block_fe=actual_state_fes,
+                        search_state_utility=state_utility,
+                        required_utility_ratio=state_plan.required_utility_ratio,
+                        state_action_fe=(
+                            controller_v31_run_state.search_state_scheduler_state.intervention_fe
+                        ),
+                        cc_reserve_fe=state_plan.cc_reserve_fes,
+                        state_fingerprint_before=str(
+                            getattr(block, "state_fingerprint_before", "")
+                        ),
+                        state_fingerprint_after=str(
+                            getattr(block, "state_fingerprint_after", "")
+                        ),
+                    )
+                )
+            else:
+                action_trace_rows.append(
+                    build_action_trace_row(
+                        problem_id=_problem_id(fun_name, fun_id),
+                        seed=config.seed,
+                        outer_iter=outer_iter,
+                        group_index=sub_num - 1,
+                        selected_action_name=CONTINUE_CANONICAL_CC,
+                        overlap_size=0,
+                        previous_delta=cc_utility,
+                        current_delta=0.0,
+                        state_mutated=False,
+                        action_value_delta_norm=0.0,
+                        downstream_consumed=False,
+                        downstream_consumption_scope="scheduler_abstention",
+                        search_state_action_type=CONTINUE_CANONICAL_CC,
+                        restart_triggered=False,
+                        restart_accepted=False,
+                        best_before=guarded_incumbent_fitness,
+                        restart_candidate_best=guarded_incumbent_fitness,
+                        restart_relative_improvement=0.0,
+                        restart_acceptance_threshold=0.0,
+                        best_after=guarded_incumbent_fitness,
+                        trace_event="decision",
+                        remaining_budget_ratio=(
+                            max(0, config.max_fes - current_fitness_evaluations(fun))
+                            / max(config.max_fes, 1)
+                        ),
+                        repair_lock_active=(
+                            controller_v31_run_state.non_dense_repair_locked
+                        ),
+                        scheduler_phase=scheduler_state_before.phase,
+                        decision_point=f"complete_cc_sweep:{outer_iter}",
+                        cc_block_fe=sweep_fes,
+                        cc_utility=cc_utility,
+                        search_state_block_fe=0,
+                        required_utility_ratio=state_plan.required_utility_ratio,
+                        state_action_fe=scheduler_state_before.intervention_fe,
+                        cc_reserve_fe=state_plan.cc_reserve_fes,
+                        abstain_reason=state_plan.trigger_reason,
                     )
                 )
 
@@ -3622,6 +3731,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         cc_phase_fe=cc_phase_fe,
         rescue_fe=rescue_fe,
         refresh_fe=refresh_fe,
+        search_state_fe=search_state_fe,
     )
     print(f"{problem_id} overlap relations extracted: {len(relations)}")
     return fun.fitness_record, time.time() - time_start, action_trace_rows

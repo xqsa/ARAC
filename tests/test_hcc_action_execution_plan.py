@@ -341,8 +341,7 @@ def test_hcc_action_execution_plan_marks_evidence_action_controller_v31_as_runti
         "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
         "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
         "search_state_runtime_hooks": [
-            "phase_rescue_multistart",
-            "cc_harm_guarded_sep_refresh",
+            "resume_phase_i_search_state",
         ],
         "guard": "stable_relation_first_no_harm_gate",
         "dispatch_boundary": "runtime_evidence_only",

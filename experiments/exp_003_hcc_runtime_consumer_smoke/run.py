@@ -668,6 +668,7 @@ def _ledger_for_result(result: HccAobExecutionResult) -> SameBudgetLedger:
         phase_ii_fe=actual_fe_used - phase_i_fe,
         budget_limit=result.max_fes,
         fresh_execution=result.fresh_optimizer_execution,
+        search_state_fe=max(0, result.search_state_fe or 0),
     )
 
 
@@ -716,6 +717,7 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
         cc_phase_fe=budget_breakdown.get("cc_phase_fe"),
         rescue_fe=budget_breakdown.get("rescue_fe"),
         refresh_fe=budget_breakdown.get("refresh_fe"),
+        search_state_fe=budget_breakdown.get("search_state_fe", 0),
         separable_continuation_fe=budget_breakdown.get(
             "separable_continuation_fe"
         ),
@@ -1146,6 +1148,32 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
         assert isinstance(result, HccAobExecutionResult)
         actual_fe_used = _actual_fe_used(result)
         phase_i_fe = min(actual_fe_used, max(0, result.global_phase_fe or 0))
+        cc_phase_fe = max(0, result.cc_phase_fe or 0)
+        rescue_fe = max(0, result.rescue_fe or 0)
+        refresh_fe = max(0, result.refresh_fe or 0)
+        search_state_fe = max(0, result.search_state_fe or 0)
+        separable_continuation_fe = max(
+            0,
+            result.separable_continuation_fe or 0,
+        )
+        known_stage_fe = (
+            phase_i_fe
+            + cc_phase_fe
+            + rescue_fe
+            + refresh_fe
+            + search_state_fe
+            + separable_continuation_fe
+        )
+        overhead_fe = (
+            max(0, actual_fe_used - known_stage_fe)
+            if result.overhead_fe is None
+            else max(0, result.overhead_fe)
+        )
+        if known_stage_fe + overhead_fe != actual_fe_used:
+            raise RuntimeError(
+                f"stage FE mismatch for {result.problem_id} seed {result.seed}: "
+                f"stages={known_stage_fe + overhead_fe}, total={actual_fe_used}"
+            )
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -1159,13 +1187,12 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 ),
                 "phase_i_fe": phase_i_fe,
                 "phase_ii_fe": actual_fe_used - phase_i_fe,
-                "cc_phase_fe": result.cc_phase_fe or 0,
-                "rescue_fe": result.rescue_fe or 0,
-                "refresh_fe": result.refresh_fe or 0,
-                "separable_continuation_fe": (
-                    result.separable_continuation_fe or 0
-                ),
-                "overhead_fe": result.overhead_fe or 0,
+                "cc_phase_fe": cc_phase_fe,
+                "rescue_fe": rescue_fe,
+                "refresh_fe": refresh_fe,
+                "search_state_fe": search_state_fe,
+                "separable_continuation_fe": separable_continuation_fe,
+                "overhead_fe": overhead_fe,
                 "total_fe": actual_fe_used,
                 "budget_limit": result.max_fes,
                 "configured_budget_limit": result.max_fes,
@@ -3469,9 +3496,11 @@ def _write_manifest(
                 f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root)}"
             ),
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
+            f"- search-state policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'search_state_policy.py')}",
             f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
             f"- HCC smoke runner sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'arac_hcc_smoke_runner.py')}",
             f"- MMES optimizer sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'NDAs' / 'MMES' / 'mmes.py')}",
+            f"- MMES state model sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'NDAs' / 'MMES' / 'state.py')}",
             f"- CMAES optimizer sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'OPT' / 'CMAES' / 'cmaes.py')}",
             (
                 "- AOB input hashes: aob_input_manifest.csv; "
@@ -3597,6 +3626,7 @@ def run_hcc_runtime_consumer_smoke(
             "cc_phase_fe",
             "rescue_fe",
             "refresh_fe",
+            "search_state_fe",
             "separable_continuation_fe",
             "overhead_fe",
             "total_fe",
@@ -3695,6 +3725,18 @@ def run_hcc_runtime_consumer_smoke(
             "refresh_budget",
             "continuation_reserve",
             "optimizer_seed",
+            "scheduler_phase",
+            "decision_point",
+            "cc_block_fe",
+            "cc_utility",
+            "search_state_block_fe",
+            "search_state_utility",
+            "required_utility_ratio",
+            "state_action_fe",
+            "cc_reserve_fe",
+            "state_fingerprint_before",
+            "state_fingerprint_after",
+            "abstain_reason",
         ],
     )
     _write_csv(

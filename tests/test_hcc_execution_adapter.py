@@ -218,6 +218,33 @@ def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -
         build_hcc_aob_smoke_command(request)
 
 
+def test_hcc_budget_parser_reads_search_state_fe_and_legacy_defaults_to_zero(
+    tmp_path: Path,
+) -> None:
+    summary = tmp_path / "R3_budget_summary.csv"
+    summary.write_text(
+        "problem_id,budget_accounting,max_fes,optimizer_reported_fe,"
+        "fitness_record_fe,budget_aligned_fe,same_budget_violation,global_phase_fe,"
+        "cc_phase_fe,rescue_fe,refresh_fe,search_state_fe,separable_continuation_fe,"
+        "overhead_fe\n"
+        "R3,strict,3000000,3000000,3000000,3000000,0,1200000,1500000,0,0,30000,0,270000\n",
+        encoding="utf-8",
+    )
+
+    parsed = hcc_backend._parse_hcc_budget_summary(tmp_path)
+
+    assert parsed["search_state_fe"] == 30000
+
+    legacy_dir = tmp_path / "legacy"
+    legacy_dir.mkdir()
+    (legacy_dir / "R3_budget_summary.csv").write_text(
+        "problem_id,fitness_record_fe\nR3,100\n",
+        encoding="utf-8",
+    )
+    legacy = hcc_backend._parse_hcc_budget_summary(legacy_dir)
+    assert legacy["search_state_fe"] == 0
+
+
 def test_hcc_execution_result_fields_are_offline_only() -> None:
     result = HccAobExecutionResult(
         problem_id="E1",

@@ -6,6 +6,7 @@ from arac.action_space import ActionFamily
 from arac.backends.hcc import (
     HccBackboneSnapshot,
     HccGroupSignal,
+    build_hcc_action_execution_plan,
     build_hcc_evidence_profile,
     hcc_backend_semantics_for,
     load_hcc_aob_topology,
@@ -216,6 +217,24 @@ def test_hcc_backend_semantics_stay_empty_without_optimizer_consumption() -> Non
     diff = hcc_backend_semantics_for(decision, optimizer_consumed=False)
 
     assert not diff.changed
+
+
+def test_hcc_backend_binds_resumed_phase_i_state_action() -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        "resume_phase_i_search_state",
+        "allow",
+        "runtime_state_evidence",
+        0.9,
+    )
+
+    plan = build_hcc_action_execution_plan("R3", decision)
+
+    assert plan.selected_action_family == "trajectory"
+    assert plan.backend_effect_kind == "resumable_mmes_state_block"
+    assert plan.optimizer_consumed is True
+    assert plan.execution_mode == "hcc_stateful_search_action"
+    assert plan.runtime_dispatch_allowed is True
 
 
 def test_hcc_snapshot_rejects_forbidden_outcome_fields() -> None:

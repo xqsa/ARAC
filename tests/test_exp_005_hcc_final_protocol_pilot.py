@@ -113,6 +113,8 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
     assert "BLAS:" in manifest
     assert "Thread environment:" in manifest
     assert "MMES optimizer sha256:" in manifest
+    assert "search-state policy sha256:" in manifest
+    assert "MMES state model sha256:" in manifest
     assert "CMAES optimizer sha256:" in manifest
     assert "AOB input hashes: aob_input_manifest.csv" in manifest
     assert "- same-budget violations: 0/39" in manifest
@@ -120,6 +122,17 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
     input_rows = _read_csv(output / "aob_input_manifest.csv")
     assert len(input_rows) == 39
     assert {row["unchanged"] for row in input_rows} == {"1"}
+
+    best_rows = _read_csv(output / "best_of_three_vs_paper_best.csv")
+    assert best_rows
+    assert set(best_rows[0]) == {
+        "problem_id",
+        "seed_count",
+        "best_error",
+        "paper_best",
+        "best_of_three_win",
+    }
+    assert {row["seed_count"] for row in best_rows} == {"3"}
 
 
 def test_final_protocol_environment_gate_reports_every_mismatch() -> None:

@@ -1932,6 +1932,7 @@ def test_budget_summary_records_runtime_stage_breakdown(tmp_path: Path) -> None:
         cc_phase_fe=50,
         rescue_fe=20,
         refresh_fe=0,
+        search_state_fe=5,
         separable_continuation_fe=0,
     )
 
@@ -1942,8 +1943,9 @@ def test_budget_summary_records_runtime_stage_breakdown(tmp_path: Path) -> None:
     assert row["cc_phase_fe"] == "50"
     assert row["rescue_fe"] == "20"
     assert row["refresh_fe"] == "0"
+    assert row["search_state_fe"] == "5"
     assert row["separable_continuation_fe"] == "0"
-    assert row["overhead_fe"] == "10"
+    assert row["overhead_fe"] == "5"
 
 
 def test_shuffled_relation_policy_keeps_empty_overlap_fallback() -> None:
@@ -3728,6 +3730,12 @@ def test_controller_v31_runs_state_probe_then_confirmation_between_complete_cc_s
         "probe",
         "confirmation",
     ]
+    assert state_rows[0]["scheduler_phase"] == "initial_probe"
+    assert state_rows[0]["decision_point"] == "complete_cc_sweep:0"
+    assert state_rows[0]["search_state_block_fe"] == "4"
+    assert state_rows[0]["state_action_fe"] == "4"
+    assert state_rows[0]["cc_reserve_fe"] == "40"
+    assert state_rows[0]["abstain_reason"] == ""
     assert controller.search_state_scheduler_state.intervention_fe <= 60
 
 
@@ -4730,6 +4738,7 @@ def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
             "cc_phase_fe": "21",
             "rescue_fe": "0",
             "refresh_fe": "0",
+            "search_state_fe": "0",
             "separable_continuation_fe": "0",
             "overhead_fe": "3",
         }
