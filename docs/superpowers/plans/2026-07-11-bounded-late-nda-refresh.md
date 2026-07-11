@@ -432,7 +432,7 @@ D:\python\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py -k "guarded_nd
 Expected: all selected tests pass; the existing full-budget action still uses all
 remaining FE because its new arguments use defaults.
 
-- [ ] **Step 5: Commit the bounded optimizer call**
+- [x] **Step 5: Commit the bounded optimizer call**
 
 ```powershell
 git add HCC_SRC/arac_hcc_smoke_runner.py tests/test_hcc_smoke_runner_cli.py
@@ -445,7 +445,7 @@ git commit -m "Bound guarded NDA continuation budget"
 - Modify: `HCC_SRC/arac_hcc_smoke_runner.py:251-267,2177-2962`
 - Test: `tests/test_hcc_smoke_runner_cli.py:3070-3250`
 
-- [ ] **Step 1: Write a failing integration test for one refresh followed by CC**
+- [x] **Step 1: Write a failing integration test for one refresh followed by CC**
 
 Add a compact fake-run test that forces the pure planner once and records the
 optimizer call order:
@@ -585,7 +585,7 @@ def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
     assert planner_calls >= 1
 ```
 
-- [ ] **Step 2: Run the integration test and verify RED**
+- [x] **Step 2: Run the integration test and verify RED**
 
 Run:
 
@@ -595,7 +595,7 @@ D:\python\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py::test_controll
 
 Expected: failure because the action is not connected to the run loop.
 
-- [ ] **Step 3: Connect the planner without enabling full CC-harm takeover**
+- [x] **Step 3: Connect the planner without enabling full CC-harm takeover**
 
 Add `BOUNDED_LATE_NDA_REFRESH_ACTION` to `TRAJECTORY_ACTION_NAMES`. Keep
 `uses_cc_harm_guard_during_run(EVIDENCE_ACTION_CONTROLLER_V31, ...)` returning
@@ -666,7 +666,7 @@ Set its existing `bipop_restart_mode` field to
 must not call the objective again. Task 4 enriches both rows with dedicated audit
 fields after the integration behavior is green.
 
-- [ ] **Step 4: Run integration, v31, and old CC-harm tests**
+- [x] **Step 4: Run integration, v31, and old CC-harm tests**
 
 Run:
 

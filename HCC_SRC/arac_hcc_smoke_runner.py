@@ -261,6 +261,7 @@ TRAJECTORY_ACTION_NAMES = {
     REPAIR_BIPOP_SEARCH_STATE_ACTION,
     PHASE_RESCUE_MULTISTART_ACTION,
     REPAIR_PHASE_RESCUE_MULTISTART_ACTION,
+    BOUNDED_LATE_NDA_REFRESH_ACTION,
     CC_HARM_GUARDED_SEP_REFRESH_ACTION,
     SEPARABLE_CMAES_DISPATCH_ACTION,
     REPAIR_PROTECT_REFINE_ACTION,
@@ -732,6 +733,10 @@ def is_cc_harm_guarded_sep_refresh_action(action_name: str) -> bool:
     return action_name == CC_HARM_GUARDED_SEP_REFRESH_ACTION
 
 
+def is_bounded_late_nda_refresh_action(action_name: str) -> bool:
+    return action_name == BOUNDED_LATE_NDA_REFRESH_ACTION
+
+
 def is_separable_cmaes_dispatch_action(action_name: str) -> bool:
     return action_name == SEPARABLE_CMAES_DISPATCH_ACTION
 
@@ -740,6 +745,7 @@ def is_search_state_action(action_name: str) -> bool:
     return (
         is_bipop_search_state_action(action_name)
         or is_phase_rescue_multistart_action(action_name)
+        or is_bounded_late_nda_refresh_action(action_name)
         or is_cc_harm_guarded_sep_refresh_action(action_name)
         or is_separable_cmaes_dispatch_action(action_name)
         or is_evidence_action_controller(action_name)
@@ -1387,6 +1393,8 @@ def _problem_id(fun_name: str, fun_id: int) -> str:
 def _owner_selected(action_name: str, previous_delta: float, current_delta: float) -> str:
     if is_separable_cmaes_dispatch_action(action_name):
         return "full_space_diagonal_search"
+    if is_bounded_late_nda_refresh_action(action_name):
+        return "bounded_guarded_incumbent_refresh"
     if is_cc_harm_guarded_sep_refresh_action(action_name):
         return "guarded_incumbent_refresh"
     if is_bipop_search_state_action(action_name):
@@ -1411,6 +1419,8 @@ def _owner_selected(action_name: str, previous_delta: float, current_delta: floa
 def _semantic_surface(action_name: str) -> str:
     if is_separable_cmaes_dispatch_action(action_name):
         return "full_space_diagonal_separable_search_takeover"
+    if is_bounded_late_nda_refresh_action(action_name):
+        return "bounded_late_nda_refresh_and_cc_continuation"
     if is_cc_harm_guarded_sep_refresh_action(action_name):
         return "cc_harm_guarded_sep_or_nda_refresh"
     if is_bipop_search_state_action(action_name):
@@ -2296,6 +2306,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     guarded_incumbent = best_individual.copy()
     guarded_incumbent_fitness = math.inf
     cc_harm_guard_consumed = False
+    bounded_refresh_completion: dict[str, object] | None = None
     evidence_controller_search_state_enabled = (
         controller_v31_run_state.phase_rescue_enabled
         if controller_v31_run_state is not None
@@ -2919,6 +2930,114 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             downstream_consumed=index < sub_num - 1,
                         )
                     )
+            if (
+                controller_v31_run_state is not None
+                and not controller_v31_run_state.bounded_late_nda_refresh_consumed
+                and current_outer_relations
+            ):
+                post_cc_fitness = original_fitness - current_delta
+                if guarded_incumbent_fitness <= post_cc_fitness:
+                    guard_individual = guarded_incumbent.copy()
+                    guard_fitness = guarded_incumbent_fitness
+                    guard_source = "phase_i_incumbent"
+                else:
+                    guard_individual = best_individual.copy()
+                    guard_fitness = post_cc_fitness
+                    guard_source = "current_cc_incumbent"
+                remaining_fes = config.max_fes - current_fitness_evaluations(fun)
+                full_population_size = calculate_cmaes_population_size(
+                    int(info["dimension"])
+                )
+                bounded_refresh_plan = plan_bounded_late_nda_refresh(
+                    controller_v31_run_state=controller_v31_run_state,
+                    current_outer_relations=current_outer_relations,
+                    fitness_deltas=fitness_delta_list,
+                    overlap_writeback_norms=overlap_writeback_norms,
+                    reference_fitness=guard_fitness,
+                    remaining_fes=remaining_fes,
+                    max_fes=config.max_fes,
+                    population_size=full_population_size,
+                )
+                if bounded_refresh_plan is not None:
+                    (
+                        accepted,
+                        refreshed_individual,
+                        refreshed_best,
+                        used_fes,
+                        candidate_best,
+                    ) = run_guarded_nda_continuation(
+                        fun=fun,
+                        info=info,
+                        config=config,
+                        fun_name=fun_name,
+                        fun_id=fun_id,
+                        outer_iter=outer_iter,
+                        guard_individual=guard_individual,
+                        guard_fitness=guard_fitness,
+                        remaining_fes=remaining_fes,
+                        requested_fes=bounded_refresh_plan.refresh_budget,
+                        search_state_action=BOUNDED_LATE_NDA_REFRESH_ACTION,
+                    )
+                    sum_fes += used_fes
+                    refresh_fe += used_fes
+                    best_individual = refreshed_individual.copy()
+                    guarded_incumbent = best_individual.copy()
+                    guarded_incumbent_fitness = refreshed_best
+                    controller_v31_run_state.bounded_late_nda_refresh_consumed = True
+                    action_trace_rows.append(
+                        build_action_trace_row(
+                            problem_id=_problem_id(fun_name, fun_id),
+                            seed=config.seed,
+                            outer_iter=outer_iter,
+                            group_index=index,
+                            selected_action_name=BOUNDED_LATE_NDA_REFRESH_ACTION,
+                            overlap_size=bounded_refresh_plan.shared_var_count,
+                            previous_delta=sum(
+                                max(0.0, delta) for delta in fitness_delta_list
+                            ),
+                            current_delta=max(0.0, guard_fitness - refreshed_best),
+                            state_mutated=accepted,
+                            action_value_delta_norm=float(
+                                np.linalg.norm(refreshed_individual - guard_individual)
+                            ),
+                            downstream_consumed=True,
+                            search_state_action_type=BOUNDED_LATE_NDA_REFRESH_ACTION,
+                            stagnation_window=sum(
+                                1
+                                for delta in fitness_delta_list
+                                if group_delta_stagnated(delta, guard_fitness)
+                            ),
+                            delta_mean=0.0,
+                            sigma_before=config.sigma,
+                            sigma_after=(
+                                float(config.sigma)
+                                * CC_HARM_REFRESH_SIGMA_MULTIPLIER
+                            ),
+                            population_before=full_population_size,
+                            population_after=full_population_size,
+                            escape_budget=used_fes,
+                            bipop_restart_mode=(
+                                "bounded_late_nda_refresh:start:"
+                                f"{guard_source}:{bounded_refresh_plan.trigger_reason}"
+                            ),
+                            restart_triggered=True,
+                            restart_accepted=accepted,
+                            best_before=guard_fitness,
+                            restart_candidate_best=candidate_best,
+                            restart_relative_improvement=bipop_relative_improvement(
+                                candidate_best=candidate_best,
+                                incumbent_fitness=guard_fitness,
+                            ),
+                            restart_acceptance_threshold=0.0,
+                            best_after=refreshed_best,
+                        )
+                    )
+                    bounded_refresh_completion = {
+                        "outer_iter": outer_iter,
+                        "group_index": index,
+                        "best_after_refresh": refreshed_best,
+                    }
+                    break
             if uses_cc_harm_guard_during_run(
                 config.arac_action,
                 evidence_controller_search_state_enabled=(
@@ -3019,6 +3138,39 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             break
 
     problem_id = _problem_id(fun_name, fun_id)
+    if bounded_refresh_completion is not None:
+        best_after_refresh = float(
+            bounded_refresh_completion["best_after_refresh"]
+        )
+        completion_best = min(float(value) for value in fun.fitness_record)
+        continuation_improved = completion_best < best_after_refresh
+        action_trace_rows.append(
+            build_action_trace_row(
+                problem_id=problem_id,
+                seed=config.seed,
+                outer_iter=int(bounded_refresh_completion["outer_iter"]),
+                group_index=int(bounded_refresh_completion["group_index"]),
+                selected_action_name=BOUNDED_LATE_NDA_REFRESH_ACTION,
+                overlap_size=0,
+                previous_delta=0.0,
+                current_delta=max(0.0, best_after_refresh - completion_best),
+                state_mutated=False,
+                action_value_delta_norm=0.0,
+                downstream_consumed=True,
+                search_state_action_type=BOUNDED_LATE_NDA_REFRESH_ACTION,
+                bipop_restart_mode="bounded_late_nda_refresh:completion",
+                restart_triggered=False,
+                restart_accepted=continuation_improved,
+                best_before=best_after_refresh,
+                restart_candidate_best=completion_best,
+                restart_relative_improvement=bipop_relative_improvement(
+                    candidate_best=completion_best,
+                    incumbent_fitness=best_after_refresh,
+                ),
+                restart_acceptance_threshold=0.0,
+                best_after=min(best_after_refresh, completion_best),
+            )
+        )
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
         relations,

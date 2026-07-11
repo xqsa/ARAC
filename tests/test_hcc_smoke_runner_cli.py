@@ -3282,6 +3282,145 @@ def test_run_problem_cc_harm_guarded_sep_refresh_protects_phase_i_and_runs_nda_c
     assert guarded_row["restart_candidate_best"] == "7.000000e+02"
 
 
+def test_controller_v31_runs_one_bounded_refresh_then_resumes_cc(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    call_order: list[str] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, _fun_name: str, _fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, _fun_name: str, _fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            call_order.append("refresh")
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget, self.problem["ndim_problem"]))
+            )
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 600.0,
+                "best_so_far_x": np.ones(self.problem["ndim_problem"]),
+            }
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            call_order.append("cc")
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget, self.problem["ndim_problem"]))
+            )
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 650.0,
+                "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+                "mean": np.zeros(self.problem["ndim_problem"]),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda _fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda _fun_id, data_root=None: {
+            "dimension": 5,
+            "overlap_degree": 1,
+            "subgroups": [2, 2, 2, 2],
+        },
+    )
+    monkeypatch.setattr(
+        runner, "calculate_global_fes", lambda _max_fes, _degree: 0
+    )
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+    planner_calls = 0
+
+    def fake_plan(**kwargs):
+        nonlocal planner_calls
+        planner_calls += 1
+        state = kwargs["controller_v31_run_state"]
+        if state.bounded_late_nda_refresh_consumed:
+            return None
+        return runner.BoundedLateNdaRefreshPlan(
+            refresh_budget=20,
+            continuation_reserve=8,
+            remaining_budget_ratio=0.20,
+            shared_var_count=3,
+            trigger_reason="low_cc_gain+high_relation_conflict",
+        )
+
+    monkeypatch.setattr(runner, "plan_bounded_late_nda_refresh", fake_plan)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "rastrigin",
+        3,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=160,
+            seed=3,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V31,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    refresh_index = call_order.index("refresh")
+    assert "cc" in call_order[refresh_index + 1 :]
+    bounded_rows = [
+        row
+        for row in trace_rows
+        if row["selected_action_name"] == runner.BOUNDED_LATE_NDA_REFRESH_ACTION
+    ]
+    assert len(bounded_rows) == 2
+    assert bounded_rows[0]["bipop_restart_mode"].startswith(
+        "bounded_late_nda_refresh:start"
+    )
+    assert bounded_rows[1]["bipop_restart_mode"] == (
+        "bounded_late_nda_refresh:completion"
+    )
+    assert bounded_rows[0]["restart_accepted"] == "1"
+    assert planner_calls >= 1
+
+
 def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
