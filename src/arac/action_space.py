@@ -34,6 +34,7 @@ DEFAULT_ACTION_SPACE = (
     ActionSpec("protect_high_margin_group", ActionFamily.PROTECT, "core_intervention"),
     ActionSpec("budget_shift_mean_blend", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("bipop_search_state_restart", ActionFamily.TRAJECTORY, "core_intervention"),
+    ActionSpec("resume_phase_i_search_state", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("phase_rescue_multistart", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("repair_phase_rescue_multistart", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("cc_harm_guarded_sep_refresh", ActionFamily.TRAJECTORY, "core_intervention"),
