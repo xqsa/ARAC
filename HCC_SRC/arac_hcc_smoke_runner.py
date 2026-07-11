@@ -303,6 +303,8 @@ CC_HARM_CONFLICT_FRACTION = 0.50
 CC_HARM_LOW_GAIN_RATIO = 1e-6
 CC_HARM_WRITEBACK_NORM = 1e-9
 CC_HARM_REFRESH_SIGMA_MULTIPLIER = 0.75
+BOUNDED_REFRESH_GROUP_SPARSE_STAGNATED_FRACTION = 0.50
+BOUNDED_REFRESH_GROUP_SPARSE_CONFLICT_FRACTION = 0.50
 SEPARABLE_CMAES_INITIAL_SIGMA = 0.5
 SEPARABLE_CMAES_SIGMA_ADAPTATION_RATE = 0.2
 SEPARABLE_CMAES_MIN_SIGMA = 1e-12
@@ -993,11 +995,30 @@ def plan_bounded_late_nda_refresh(
         remaining_fes=remaining_fes,
         minimum_refresh_budget=population_size,
     )
-    if not triggered or not (
+    if triggered and (
         "high_relation_conflict" in reason
         or "severe_group_stagnation" in reason
     ):
-        return None
+        trigger_reason = reason
+    else:
+        reference = max(abs(float(reference_fitness)), 1.0)
+        stagnated_count = sum(
+            1
+            for delta in fitness_deltas
+            if group_delta_stagnated(float(delta), reference)
+        )
+        stagnated_fraction = stagnated_count / max(1, len(fitness_deltas))
+        conflict_fraction = cc_harm_conflict_fraction(
+            fitness_deltas,
+            reference,
+        )
+        sparse_conflict = (
+            stagnated_fraction >= BOUNDED_REFRESH_GROUP_SPARSE_STAGNATED_FRACTION
+            and conflict_fraction >= BOUNDED_REFRESH_GROUP_SPARSE_CONFLICT_FRACTION
+        )
+        if not sparse_conflict:
+            return None
+        trigger_reason = "group_sparse_stagnation+high_relation_conflict"
 
     continuation_reserve = math.ceil(
         max_fes * BOUNDED_REFRESH_CONTINUATION_FRACTION
@@ -1018,7 +1039,7 @@ def plan_bounded_late_nda_refresh(
         continuation_reserve=continuation_reserve,
         remaining_budget_ratio=remaining_ratio,
         shared_var_count=next(iter(shared_counts)),
-        trigger_reason=reason,
+        trigger_reason=trigger_reason,
     )
 
 

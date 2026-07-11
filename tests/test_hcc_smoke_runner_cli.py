@@ -1408,6 +1408,29 @@ def test_controller_v31_plans_bounded_late_refresh_from_runtime_evidence() -> No
     assert plan.trigger_reason == "low_cc_gain+severe_group_stagnation"
 
 
+def test_controller_v31_plans_refresh_for_group_sparse_conflict_even_with_positive_gain() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(0.10)
+    relations = [_bounded_refresh_relation(runner, index=index) for index in range(2)]
+    fitness_deltas = [0.0, 10.0, 0.0, 20.0, 0.0, 30.0]
+
+    plan = runner.plan_bounded_late_nda_refresh(
+        controller_v31_run_state=state,
+        current_outer_relations=relations,
+        fitness_deltas=fitness_deltas,
+        overlap_writeback_norms=[1.0, 1.0],
+        reference_fitness=1_000_000.0,
+        remaining_fes=600_000,
+        max_fes=3_000_000,
+        population_size=40,
+    )
+
+    assert plan is not None
+    assert plan.trigger_reason == (
+        "group_sparse_stagnation+high_relation_conflict"
+    )
+
+
 @pytest.mark.parametrize(
     ("state_overlap", "shared_count", "remaining_fes", "repair_locked", "deltas"),
     [
