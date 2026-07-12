@@ -8,6 +8,10 @@ from dataclasses import dataclass
 
 CONTINUE_CANONICAL_CC = "continue_canonical_cc"
 RESUME_PHASE_I_SEARCH_STATE = "resume_phase_i_search_state"
+CONTINUE_DIAGONAL_SEARCH_STATE = "continue_diagonal_search_state"
+SUPPORTED_TRAJECTORY_ACTIONS = frozenset(
+    {RESUME_PHASE_I_SEARCH_STATE, CONTINUE_DIAGONAL_SEARCH_STATE}
+)
 SEARCH_STATE_PROBE = "probe"
 SEARCH_STATE_AWAITING_CONFIRMATION_CC = "awaiting_confirmation_cc"
 SEARCH_STATE_CONFIRMATION = "confirmation"
@@ -128,9 +132,14 @@ def plan_search_state_action(
     state: SearchStateSchedulerState,
     *,
     new_complete_cc_sweep: bool = False,
+    trajectory_action_name: str = RESUME_PHASE_I_SEARCH_STATE,
 ) -> SearchStateActionPlan:
     """Plan at most one bounded state action from current-run evidence."""
 
+    if trajectory_action_name not in SUPPORTED_TRAJECTORY_ACTIONS:
+        raise ValueError(
+            f"unsupported trajectory action: {trajectory_action_name}"
+        )
     if state.phase == SEARCH_STATE_BLOCKED:
         return _abstain(evidence, state, "state_action_permanently_blocked")
     if (
@@ -176,7 +185,7 @@ def plan_search_state_action(
         SEARCH_STATE_EXPANSION: "expansion_after_two_qualified_state_blocks",
     }[stage]
     return SearchStateActionPlan(
-        action_name=RESUME_PHASE_I_SEARCH_STATE,
+        action_name=trajectory_action_name,
         stage=stage,
         requested_fes=requested_fes,
         cc_reserve_fes=reserve_fes,

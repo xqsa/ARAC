@@ -45,6 +45,7 @@ DEFAULT_ACTION_SPACE = (
     ActionSpec("budget_shift_mean_blend", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("bipop_search_state_restart", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("resume_phase_i_search_state", ActionFamily.TRAJECTORY, "core_intervention"),
+    ActionSpec("continue_diagonal_search_state", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("phase_rescue_multistart", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("repair_phase_rescue_multistart", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("cc_harm_guarded_sep_refresh", ActionFamily.TRAJECTORY, "core_intervention"),

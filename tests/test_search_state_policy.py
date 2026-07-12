@@ -294,3 +294,27 @@ def test_resume_action_is_registered_as_trajectory_core_intervention() -> None:
     assert action.family == ActionFamily.TRAJECTORY
     assert action.backend_role == "core_intervention"
     assert action.requires_semantic_effect is True
+
+
+def test_policy_can_emit_configured_diagonal_trajectory_action(
+    eligible_evidence,
+) -> None:
+    plan = policy.plan_search_state_action(
+        eligible_evidence,
+        policy.SearchStateSchedulerState(),
+        trajectory_action_name=policy.CONTINUE_DIAGONAL_SEARCH_STATE,
+    )
+
+    assert plan.action_name == policy.CONTINUE_DIAGONAL_SEARCH_STATE
+    action = action_by_name(plan.action_name)
+    assert action.family == ActionFamily.TRAJECTORY
+    assert action.backend_role == "core_intervention"
+
+
+def test_policy_rejects_unknown_trajectory_action(eligible_evidence) -> None:
+    with pytest.raises(ValueError, match="unsupported trajectory action"):
+        policy.plan_search_state_action(
+            eligible_evidence,
+            policy.SearchStateSchedulerState(),
+            trajectory_action_name="unknown_search_backend",
+        )
