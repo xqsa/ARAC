@@ -25,13 +25,13 @@ catastrophic-loss audits.
 
 ## What This Folder Keeps
 
-- `docs/core-method.md`: clean research framing and contribution statements.
-- `docs/boundaries.md`: hard boundaries for runtime legality and claim levels.
+- `docs/design/core-method.md`: clean research framing and contribution statements.
+- `docs/design/boundaries.md`: hard boundaries for runtime legality and claim levels.
 - `docs/schemas.md`: truth-table schemas for evidence, decisions, execution,
   utility, and audits.
 - `docs/hcc-backbone-extraction.md`: first extraction contract between the HCC
   grouping/optimizer backbone and the ARAC evidence/action layer.
-- `docs/aob-final-evaluation-protocol.md`: AOB benchmark protocol, with the
+- `docs/protocols/aob-final-evaluation-protocol.md`: AOB benchmark protocol, with the
   current pilot fixed to 1 run and the final target left at 25 runs.
 - `references/paper_reported_table2_hcc_es.csv`: paper-reported HCC-ES Table 2
   anchor for evaluation-only comparison.
@@ -43,6 +43,9 @@ catastrophic-loss audits.
 - `docs/hcc-main-historical-results-audit.md`: audit summary showing which
   historical HCC-main rows beat paper-reported means without entering runtime
   dispatch.
+- `archive/failed-experiments/v33-late-stagnation-nda-takeover/`: concise
+  provenance record for the non-promoted v3.3 candidate; its implementation is
+  not part of stable runtime.
 - `src/arac/`: minimum Python skeleton for evidence extraction, action space,
   policy mapping, backend adapter, evaluation, and audit.
 - `configs/default.yaml`: minimal experiment contract.
