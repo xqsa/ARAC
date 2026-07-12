@@ -4,7 +4,7 @@ from dataclasses import fields, replace
 
 import pytest
 
-from arac.action_space import ActionFamily, action_by_name
+from arac.actions import ActionFamily, action_by_name
 import arac.policy.search_state_policy as policy
 
 

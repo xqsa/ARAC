@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..action_space import ActionFamily
+from ..actions import ActionDecision, ActionFamily
 from ..evidence import EvidenceProfile
 
 
@@ -24,16 +24,6 @@ class PolicyConfig:
     tie_band_shared_threshold: float = 0.15
     tie_band_fallback_margin_threshold: float = 0.90
     tie_band_utility_threshold: float = 0.70
-
-
-@dataclass(frozen=True)
-class ActionDecision:
-    action_family: ActionFamily
-    action_name: str
-    decision: str
-    trigger_reason: str
-    utility_proxy: float
-    fallback_action: str = "conservative_no_action"
 
 
 def decide_action(evidence: EvidenceProfile, config: PolicyConfig | None = None) -> ActionDecision:

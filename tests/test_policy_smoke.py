@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from arac.audit import claim_gate
-from arac.action_space import ActionFamily
+from arac.actions import ActionDecision, ActionFamily
+from arac.audits import claim_gate
 from arac.backends.hcc import build_hcc_action_execution_plan
-from arac.backend_adapter import BackendSemanticsDiff
+from arac.execution import BackendSemanticsDiff
 from arac.evaluation import SameBudgetLedger, classify_utility
 from arac.evidence import EvidenceProfile, validate_runtime_payload
-from arac.policy import ActionDecision, decide_action
+from arac.policy import decide_action
 
 
 def make_evidence(**overrides: object) -> EvidenceProfile:

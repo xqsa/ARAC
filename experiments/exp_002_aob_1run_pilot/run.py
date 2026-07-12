@@ -7,7 +7,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Callable
 
-from arac.audit import claim_gate
+from arac.actions import ActionDecision
+from arac.audits import claim_gate
 from arac.backends.hcc import (
     HCC_VENDOR_ROOT,
     HccAobExecutionRequest,
@@ -24,7 +25,7 @@ from arac.evidence import (
     EvidenceProfile,
     validate_runtime_payload,
 )
-from arac.policy import ActionDecision, decide_action
+from arac.policy import decide_action
 
 RUN_ID = "exp_002_aob_1run_pilot"
 SEED = 1

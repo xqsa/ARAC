@@ -6,12 +6,12 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Iterable
 
-from arac.action_space import ActionFamily
-from arac.audit import claim_gate
-from arac.backend_adapter import BackendSemanticsDiff, ToyBackendAdapter
+from arac.actions import ActionDecision, ActionFamily
+from arac.audits import claim_gate
+from arac.execution import BackendSemanticsDiff, ToyBackendAdapter
 from arac.evaluation import SameBudgetLedger, classify_utility, relative_gain
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS, EvidenceProfile, validate_runtime_payload
-from arac.policy import ActionDecision, decide_action
+from arac.policy import decide_action
 
 RUN_ID = "exp_001_schema_smoke"
 PROBLEM_ID = "toy_overlap_case_001"

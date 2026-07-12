@@ -1,6 +1,6 @@
-"""Compatibility exports for the moved backend execution contracts."""
+"""Stable backend execution contracts exposed by ARAC."""
 
-from .execution.backend import (
+from .backend import (
     BackendAdapter,
     BackendSemanticsDiff,
     NullBackendAdapter,

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from arac.action_space import ActionFamily
+from arac.actions import ActionFamily
 from arac.backends.hcc import build_hcc_action_execution_plan
-from arac.policy import ActionDecision
+from arac.actions import ActionDecision
 
 
 def test_hcc_action_execution_plan_marks_no_action_as_optimizer_consumed_noop() -> None:

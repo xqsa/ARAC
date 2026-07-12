@@ -1,6 +1,6 @@
-"""Compatibility exports for the moved action contracts."""
+"""Stable action contracts exposed by ARAC."""
 
-from .actions.contracts import (
+from .contracts import (
     DEFAULT_ACTION_SPACE,
     ActionDecision,
     ActionFamily,

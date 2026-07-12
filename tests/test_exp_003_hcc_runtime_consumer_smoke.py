@@ -2546,7 +2546,7 @@ def test_backend_semantics_expectation_uses_optimizer_consumed_action_mix() -> N
 
 
 def test_phase_rescue_trace_rows_mark_search_state_backend_semantics() -> None:
-    from arac.backend_adapter import BackendSemanticsDiff
+    from arac.execution import BackendSemanticsDiff
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _semantics_from_trace_rows,
     )
@@ -2568,7 +2568,7 @@ def test_phase_rescue_trace_rows_mark_search_state_backend_semantics() -> None:
 
 
 def test_repair_phase_rescue_trace_rows_mark_composite_backend_semantics() -> None:
-    from arac.backend_adapter import BackendSemanticsDiff
+    from arac.execution import BackendSemanticsDiff
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         _semantics_from_trace_rows,
     )
@@ -2595,7 +2595,7 @@ def test_repair_phase_rescue_trace_rows_mark_composite_backend_semantics() -> No
 
 
 def test_relation_dispatch_noop_trace_is_a_fallback_claim_gate_decision() -> None:
-    from arac.action_space import ActionFamily
+    from arac.actions import ActionFamily
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
         LANES,
         _decision,

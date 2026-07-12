@@ -20,8 +20,9 @@ ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
 if str(ARAC_SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(ARAC_SRC_ROOT))
 
-from arac.audit import claim_gate
-from arac.backend_adapter import BackendSemanticsDiff
+from arac.actions import ActionDecision, ActionFamily
+from arac.audits import claim_gate
+from arac.execution import BackendSemanticsDiff
 from arac.backends.hcc import (
     DEFAULT_AOB_DATA_ROOT,
     HCC_VENDOR_PATHS,
@@ -41,8 +42,6 @@ from arac.backends.hcc import (
 from arac.evaluation import SameBudgetLedger
 from arac.evaluation import classify_utility, relative_gain
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS, validate_runtime_payload
-from arac.policy import ActionDecision
-from arac.action_space import ActionFamily
 
 RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
 PROBLEM_ID = "E2"

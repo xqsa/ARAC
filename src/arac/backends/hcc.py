@@ -18,10 +18,9 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from arac.action_space import ActionFamily
-from arac.backend_adapter import BackendSemanticsDiff
+from arac.actions import ActionDecision, ActionFamily
+from arac.execution import BackendSemanticsDiff
 from arac.evidence import EvidenceProfile, validate_runtime_payload
-from arac.policy import ActionDecision
 
 
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]

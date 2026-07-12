@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from arac.action_space import ActionFamily
+from arac.actions import ActionFamily
 from arac.backends import hcc as hcc_backend
 from arac.backends.hcc import (
     HccBackboneSnapshot,
@@ -15,7 +15,7 @@ from arac.backends.hcc import (
     load_hcc_aob_topology,
 )
 from arac.evidence import validate_runtime_payload
-from arac.policy import ActionDecision
+from arac.actions import ActionDecision
 
 
 def test_explicit_vendor_root_resolves_hcc_source_boundary(tmp_path: Path) -> None:
