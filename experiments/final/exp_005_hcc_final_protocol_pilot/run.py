@@ -41,7 +41,7 @@ DEFAULT_PROBLEMS = (
 )
 DEFAULT_OUTPUT_DIR = experiment_results_dir(RUN_ID)
 DEFAULT_PAPER_BEST_MATRIX = (
-    ARAC_REPO_ROOT / "references" / "aob_paper_best_win_replay_matrix.csv"
+    ARAC_REPO_ROOT / "references" / "paper_reported_table2_best_by_case.csv"
 )
 AOB_AUDIT_FILES = (
     "Benchmarks.py",

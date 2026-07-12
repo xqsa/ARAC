@@ -1,0 +1,25 @@
+case,family,paper_best,paper_best_alg,source,comparison_role,runtime_dispatch_allowed
+E1,elliptic,2.840000e6,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+E2,elliptic,6.870000e6,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+E3,elliptic,1.600000e7,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+E4,elliptic,1.900000e7,MM-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+E5,elliptic,7.760000e6,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+E6,elliptic,2.620000e7,MM-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+S1,schwefel,1.920000e-3,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+S2,schwefel,5.580000e3,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+S3,schwefel,9.720000e3,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+S4,schwefel,1.240000e3,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+S5,schwefel,9.230000e3,HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+S6,schwefel,1.330000e4,MM-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+R1,rastrigin,1.740000e5,RDG3-CMAES/HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+R2,rastrigin,2.480000e5,Sep-CMAES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+R3,rastrigin,3.280000e5,Sep-CMAES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+R4,rastrigin,3.410000e5,Sep-CMAES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+R5,rastrigin,2.480000e5,Sep-CMAES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+R6,rastrigin,2.660000e5,Sep-CMAES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+A1,ackley,7.760000e4,DG2-CMAES/HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+A2,ackley,7.810000e4,Sep-CMAES/HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+A3,ackley,7.800000e4,Sep-CMAES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+A4,ackley,7.830000e4,RDDSM-CMAES/HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+A5,ackley,7.820000e4,Sep-CMAES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0
+A6,ackley,7.800000e4,Sep-CMAES/HCC-ES,Two-Phase CC Table 2 full algorithm comparison,paper_reported_evaluation_only,0

@@ -14,6 +14,7 @@ Default protocol:
 - lane profile: `canonical_evidence_controller_v1`
 - lane: one `arac_evidence_action_controller_v32` trajectory
 - AOB data root: `<repo>\vendor\hcc\AOB\AOBG\datafile`
+- offline paper-best source: `references/paper_reported_table2_best_by_case.csv`
 
 Run:
 
