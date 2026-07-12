@@ -441,7 +441,7 @@ Expected: 全部通过，无重复 runtime 实现，无 paper/historical runtime
 - Create: `docs/research-log/2026-07-12-restructure-validation.md`
 - Test: full repository verification
 
-- [ ] **Step 1: Run the complete verification matrix**
+- [x] **Step 1: Run the complete verification matrix**
 
 ```powershell
 pytest -q
@@ -451,19 +451,19 @@ git diff --check
 git status --short
 ```
 
-- [ ] **Step 2: Verify canonical and anti-leakage boundaries**
+- [x] **Step 2: Verify canonical and anti-leakage boundaries**
 
 确认测试代码来自 v3.2；v3.3 失败实现未被导入；runtime 不含 paper/historical/final-only 字段；HCC smoke 保持 same-budget FE。
 
-- [ ] **Step 3: Write the validation record**
+- [x] **Step 3: Write the validation record**
 
 记录命令、日期、commit、测试结果、structure audit、manifest、已知限制和“未重跑 25-run final protocol”。
 
-- [ ] **Step 4: Review Git cleanliness**
+- [x] **Step 4: Review Git cleanliness**
 
 不得暂存 `results/`、`.venv/`、缓存、`.codex/tmp/`、日志或未审阅用户材料。运行 `git diff --cached --check` 和 `git status --short --branch`。
 
-- [ ] **Step 5: Commit the handoff**
+- [x] **Step 5: Commit the handoff**
 
 提交信息：`docs: record research project restructuring validation`。推送必须另行获得用户确认。
 

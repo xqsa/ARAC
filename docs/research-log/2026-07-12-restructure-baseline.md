@@ -192,3 +192,11 @@ Task 2 及以后工作不得在本 Task 1 中执行。
 2. 当前 root 的 30 个未忽略 untracked 状态项（展开为 298 个文件）和现有 v3.3 worktree 的未提交改动均保持原状。
 3. 结果目录是本地生成产物，不进入 Git；本阶段只记录规模和路径索引。
 4. 迁移路径、归档路径和 stable runtime 入口必须经过后续任务逐项审阅；本文件和迁移 CSV 不执行材料移动。
+
+## Task 8/9 checkpoint
+
+HCC runtime 拆分已在 `codex/research-project-structure` 的 `77915c2` 完成：
+`hcc.py` 保留执行编排和可 monkeypatch 的兼容名字，纯动作计划、预算解析、trace
+读取和共享写回分别位于 `src/arac/backends/hcc_plan.py`、`hcc_budget.py`、
+`hcc_trace.py` 和 `hcc_shared_writeback.py`。完整验证记录见
+`docs/research-log/2026-07-12-restructure-validation.md`。

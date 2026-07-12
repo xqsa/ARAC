@@ -47,7 +47,9 @@ catastrophic-loss audits.
   provenance record for the non-promoted v3.3 candidate; its implementation is
   not part of stable runtime.
 - `src/arac/`: minimum Python skeleton for evidence extraction, action space,
-  policy mapping, backend adapter, evaluation, and audit.
+  policy mapping, backend adapter, evaluation, and audit. HCC execution remains
+  orchestrated by `backends/hcc.py`; pure action-plan, budget-parser, trace-reader,
+  and shared-writeback contracts live in the adjacent `hcc_*` modules.
 - `configs/default.yaml`: minimal experiment contract.
 - `configs/aob_pilot.yaml`: current AOB first-look pilot contract.
 - `experiments/README.md`: how to structure future runs without returning to
