@@ -48,12 +48,14 @@ from arac.execution import (
     ToyBackendAdapter,
 )
 from arac.evaluation.ledger import SameBudgetLedger, classify_utility, relative_gain
+from arac.policy import ActionDecision as PolicyActionDecision
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_new_package_boundaries_export_legacy_objects_by_identity() -> None:
+    assert PolicyActionDecision is ActionDecision
     assert LegacyActionFamily is ActionFamily
     assert LegacyActionDecision is ActionDecision
     assert LegacyActionSpec is ActionSpec
@@ -125,8 +127,12 @@ def test_runtime_imports_do_not_load_vendor_or_read_offline_csv() -> None:
     script = r'''
 import builtins
 import sys
+from pathlib import Path
 
 real_open = builtins.open
+repo_root = Path.cwd().resolve()
+vendor_root = repo_root / "vendor"
+modules_before_import = set(sys.modules)
 
 def guarded_open(file, *args, **kwargs):
     path = str(file).replace("\\", "/").lower()
@@ -144,7 +150,21 @@ import arac.evaluation
 import arac.execution
 import arac.policy
 import arac.evidence
-assert "vendor.hcc" not in sys.modules
+
+loaded_vendor_modules = []
+for module_name in sorted(set(sys.modules) - modules_before_import):
+    module = sys.modules.get(module_name)
+    module_file = getattr(module, "__file__", None)
+    if module_file is None:
+        continue
+    file_path = Path(module_file).resolve()
+    try:
+        file_path.relative_to(vendor_root)
+    except ValueError:
+        continue
+    loaded_vendor_modules.append((module_name, str(file_path)))
+
+assert not loaded_vendor_modules, loaded_vendor_modules
 '''
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT / "src")
