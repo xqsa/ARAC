@@ -160,6 +160,24 @@ def test_f_string_runtime_prefix_is_reported(tmp_path: Path) -> None:
     assert "src/arac/dynamic_leak.py" in _error_paths(root)
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        'from pathlib import Path\nRUN = Path("results" + "/" + run_id)\n',
+        'from pathlib import Path\nTABLE = Path("paper" + suffix)\n',
+    ],
+)
+def test_string_concatenation_static_prefix_is_reported(
+    tmp_path: Path,
+    source: str,
+) -> None:
+    root = _project_fixture(tmp_path)
+    runtime_source = root / "src" / "arac" / "concatenated_leak.py"
+    runtime_source.write_text(source, encoding="utf-8")
+
+    assert "src/arac/concatenated_leak.py" in _error_paths(root)
+
+
 def test_utf8_bom_runtime_source_is_valid_python(tmp_path: Path) -> None:
     root = _project_fixture(tmp_path)
     runtime_source = root / "src" / "arac" / "bom_source.py"
@@ -264,6 +282,44 @@ def test_external_hcc_symlink_is_fatal(tmp_path: Path, monkeypatch: pytest.Monke
 
     assert any(
         finding.path == "HCC_SRC" and "outside repository" in finding.rule
+        for finding in report.errors
+    )
+    assert not any(warning.path == "HCC_SRC" for warning in report.warnings)
+
+
+def test_hcc_lstat_error_is_fatal_and_explicit(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _project_fixture(tmp_path)
+    hcc_src = root / "HCC_SRC"
+    hcc_src.mkdir()
+    original_lstat = audit_module.os.lstat
+
+    def fail_lstat(path):
+        if Path(path).name == "HCC_SRC":
+            raise PermissionError("HCC_SRC metadata denied")
+        return original_lstat(path)
+
+    monkeypatch.setattr(audit_module.os, "lstat", fail_lstat)
+
+    report = audit_project_structure(root)
+
+    assert any(
+        finding.path == "HCC_SRC" and "cannot inspect HCC_SRC" in finding.rule
+        for finding in report.errors
+    )
+    assert not any(warning.path == "HCC_SRC" for warning in report.warnings)
+
+
+def test_hcc_src_regular_file_is_fatal_transition_path(tmp_path: Path) -> None:
+    root = _project_fixture(tmp_path)
+    (root / "HCC_SRC").write_text("not a directory\n", encoding="utf-8")
+
+    report = audit_project_structure(root)
+
+    assert any(
+        finding.path == "HCC_SRC" and "unexpected HCC_SRC transition path" in finding.rule
         for finding in report.errors
     )
     assert not any(warning.path == "HCC_SRC" for warning in report.warnings)

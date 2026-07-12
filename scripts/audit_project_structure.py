@@ -115,7 +115,7 @@ def _is_reparse_point(path: Path) -> bool:
         return True
     try:
         attributes = getattr(os.lstat(path), "st_file_attributes", 0)
-    except OSError:
+    except FileNotFoundError:
         return False
     return bool(attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
 
@@ -125,7 +125,7 @@ def _external_hcc_link_error(root: Path) -> Finding | None:
     try:
         is_link = _is_reparse_point(hcc_src)
     except OSError as exc:
-        return Finding("HCC_SRC", f"cannot inspect symbolic link/reparse point: {exc}")
+        return Finding("HCC_SRC", f"cannot inspect HCC_SRC symbolic link/reparse point: {exc}")
     if not is_link:
         return None
     try:
@@ -228,7 +228,7 @@ def _static_path_parts(
                 parts += _split_path(value.value)
         return parts
 
-    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+    if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Div)):
         left = _static_path_parts(node.left, path_constructors, path_join_functions)
         right = _static_path_parts(node.right, path_constructors, path_join_functions)
         if left is None:
@@ -300,9 +300,18 @@ def audit_project_structure(root: Path) -> AuditReport:
         errors.append(hcc_link_error)
 
     for child in root.iterdir():
-        if not child.is_dir() or child.name in IGNORED_TOP_LEVEL_DIRECTORIES:
+        if child.name in IGNORED_TOP_LEVEL_DIRECTORIES:
             continue
         if child.name == "HCC_SRC":
+            if not child.is_dir():
+                if not hcc_link_error:
+                    errors.append(
+                        Finding(
+                            "HCC_SRC",
+                            "unexpected HCC_SRC transition path; expected a directory",
+                        )
+                    )
+                continue
             if not hcc_link_error:
                 warnings.append(
                     Finding(
@@ -311,6 +320,8 @@ def audit_project_structure(root: Path) -> AuditReport:
                         "compatibility paths still resolve the HCC backend",
                     )
                 )
+            continue
+        if not child.is_dir():
             continue
         if child.name not in ALLOWED_TOP_LEVEL_DIRECTORIES:
             errors.append(Finding(child.name, "unexpected top-level directory"))

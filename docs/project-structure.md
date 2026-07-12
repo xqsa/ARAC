@@ -67,15 +67,17 @@ problem-ID special cases, or prior pilot/final outcomes. Offline analysis runs o
 and same-budget execution records have been written.
 
 The structure audit parses `src/arac/**/*.py`, resolves common module-level `Path`/`join` import
-aliases, and evaluates literal `Path` composition, `os.path.join`, f-string static prefixes, and
-slash-separated strings for exact offline path components. Runtime files are read as
-`utf-8-sig`, so a legal UTF-8 BOM is accepted. This structural guard avoids substring matching
-and is not a replacement for semantic anti-leakage tests.
+aliases, and evaluates literal `Path` composition, constant-string concatenation,
+`os.path.join`, f-string static prefixes, and slash-separated strings for exact offline path
+components. Runtime files are read as `utf-8-sig`, so a legal UTF-8 BOM is accepted. This
+structural guard avoids substring matching and is not a replacement for semantic anti-leakage
+tests.
 
 `HCC_SRC/` is allowed only as the Task 3 transitional directory. A symbolic link or Windows
 reparse point targeting outside the repository is fatal; an ordinary tracked directory, or an
-in-repository link, remains an explicit nonfatal Task 3 warning. Git executable startup failures
-are reported as audit findings with a nonzero CLI status rather than an unhandled traceback.
+in-repository link, remains an explicit nonfatal Task 3 warning. A non-directory `HCC_SRC` path
+or failure to inspect its filesystem metadata is fatal. Git executable startup failures are
+reported as audit findings with a nonzero CLI status rather than an unhandled traceback.
 
 ## Audit
 
