@@ -26,7 +26,7 @@ def _write_record(path: Path, final_fe: str, final_error: str, runtime: str) -> 
 def test_exp_004_recovers_hcc_main_historical_results_and_compares_paper(
     tmp_path: Path,
 ) -> None:
-    from experiments.exp_004_hcc_main_historical_result_recovery.run import (
+    from experiments.recovery.exp_004_hcc_main_historical_result_recovery.run import (
         run_hcc_main_historical_result_recovery,
     )
 
@@ -83,7 +83,7 @@ def test_exp_004_recovers_hcc_main_historical_results_and_compares_paper(
 
 
 def test_exp_004_emits_targeted_case_diagnostics(tmp_path: Path) -> None:
-    from experiments.exp_004_hcc_main_historical_result_recovery.run import (
+    from experiments.recovery.exp_004_hcc_main_historical_result_recovery.run import (
         run_hcc_main_historical_result_recovery,
     )
 

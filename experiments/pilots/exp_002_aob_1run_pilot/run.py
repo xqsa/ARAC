@@ -26,6 +26,10 @@ from arac.evidence import (
     validate_runtime_payload,
 )
 from arac.policy import decide_action
+from experiments.paths import (
+    experiment_results_dir,
+    repository_root,
+)
 
 RUN_ID = "exp_002_aob_1run_pilot"
 SEED = 1
@@ -38,8 +42,9 @@ SOURCE_LEVEL = "hcc_source_topology"
 
 PROBLEM_IDS = [f"{family}{idx}" for family in "ESRA" for idx in range(1, 7)]
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = repository_root()
 PAPER_REPORTED_CSV = ROOT / "references" / "paper_reported_table2_hcc_es.csv"
+DEFAULT_OUTPUT_DIR = experiment_results_dir(RUN_ID)
 
 
 def _write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) -> None:
@@ -411,7 +416,7 @@ def _write_manifest(output_dir: Path) -> None:
 
 
 def run_aob_1run_pilot(
-    output_dir: Path | str = Path("results/exp_002_aob_1run_pilot"),
+    output_dir: Path | str = DEFAULT_OUTPUT_DIR,
     smoke_execution_results: list[HccAobExecutionResult] | None = None,
 ) -> Path:
     output = Path(output_dir)
@@ -574,7 +579,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the ARAC AOB 1-run pilot artifacts.")
     parser.add_argument(
         "--output-dir",
-        default="results/exp_002_aob_1run_pilot",
+        default=str(DEFAULT_OUTPUT_DIR),
         help="Directory where exp_002 artifacts are written.",
     )
     parser.add_argument(
@@ -617,7 +622,9 @@ def _smoke_results_from_args(
 ) -> list[HccAobExecutionResult]:
     if not str(args.smoke_case).strip():
         return []
-    smoke_output = (Path(args.output_dir) / "_hcc_smoke" / str(args.smoke_case).upper()).resolve()
+    smoke_output = (
+        Path(args.output_dir) / "_hcc_smoke" / str(args.smoke_case).upper()
+    ).resolve()
     request = HccAobExecutionRequest(
         problem_id=str(args.smoke_case).upper(),
         seed=SEED,

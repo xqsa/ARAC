@@ -1,5 +1,7 @@
 # exp_005_hcc_final_protocol_pilot
 
+Stage: `final`
+
 This experiment is the auditable 3M-FE entry for the canonical ARAC runtime
 controller. It runs one optimizer trajectory per case/seed; it does not execute
 an action portfolio and select by final outcome.
@@ -16,7 +18,7 @@ Default protocol:
 Run:
 
 ```powershell
-& E:\ARAC\.venv\Scripts\python.exe experiments\exp_005_hcc_final_protocol_pilot\run.py --output-dir results\exp_005_hcc_final_protocol_pilot --aob-data-root vendor\hcc\AOB\AOBG\datafile --python-executable E:\ARAC\.venv\Scripts\python.exe --jobs 24 --budget-accounting strict
+$env:PYTHONPATH='src'; python -m experiments.final.exp_005_hcc_final_protocol_pilot.run --output-dir results\exp_005_hcc_final_protocol_pilot --aob-data-root vendor\hcc\AOB\AOBG\datafile --python-executable E:\ARAC\.venv\Scripts\python.exe --jobs 24 --budget-accounting strict
 ```
 
 The entry fails before launching any optimizer unless the backend interpreter
@@ -31,7 +33,7 @@ For Ackley/platform-escape pilots, use the same 3M-FE wrapper with
 same-budget comparison:
 
 ```powershell
-py -3 experiments\exp_005_hcc_final_protocol_pilot\run.py --output-dir results\exp_005_hcc_ackley_landscape_escape --problems A1 A2 A3 A4 A5 A6 --lane-profile landscape_escape --jobs 3 --budget-accounting strict
+$env:PYTHONPATH='src'; python -m experiments.final.exp_005_hcc_final_protocol_pilot.run --output-dir results\exp_005_hcc_ackley_landscape_escape --problems A1 A2 A3 A4 A5 A6 --lane-profile landscape_escape --jobs 3 --budget-accounting strict
 ```
 
 The canonical gate rejects missing or changed AOB inputs, same-budget

@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from experiments.exp_001_schema_smoke.run import run_schema_smoke
+from experiments.pilots.exp_001_schema_smoke.run import run_schema_smoke
 
 
 def read_rows(path: Path) -> list[dict[str, str]]:

@@ -7,10 +7,16 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from experiments.paths import (
+    experiment_results_dir,
+    repository_root,
+)
+
 RUN_ID = "exp_004_hcc_main_historical_result_recovery"
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = repository_root()
 DEFAULT_HCC_RESULT_ROOT = Path("E:/HCC-main/HCC_SRC/result")
 PAPER_REPORTED_CSV = ROOT / "references" / "paper_reported_table2_hcc_es.csv"
+DEFAULT_OUTPUT_DIR = experiment_results_dir(RUN_ID)
 CASE_PATTERN = re.compile(r"^(?P<family>[ESRA])(?P<idx>[1-6])$")
 SEED_PATTERN = re.compile(r"^seed-(?P<seed>\d+)$", re.IGNORECASE)
 TARGETED_CASES = ("S4", "S5", "R4", "R5", "R6", "A1", "A2", "A3", "A4", "A5", "A6")
@@ -351,7 +357,7 @@ def _write_audit(
 
 
 def run_hcc_main_historical_result_recovery(
-    output_dir: Path | str = Path("results/exp_004_hcc_main_historical_result_recovery"),
+    output_dir: Path | str = DEFAULT_OUTPUT_DIR,
     hcc_result_root: Path | str = DEFAULT_HCC_RESULT_ROOT,
 ) -> Path:
     output = Path(output_dir)
@@ -437,7 +443,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Recover HCC-main historical result artifacts.")
     parser.add_argument(
         "--output-dir",
-        default="results/exp_004_hcc_main_historical_result_recovery",
+        default=str(DEFAULT_OUTPUT_DIR),
     )
     parser.add_argument(
         "--hcc-result-root",

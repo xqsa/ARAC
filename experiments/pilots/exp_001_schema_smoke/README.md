@@ -1,5 +1,7 @@
 # exp_001_schema_smoke
 
+Stage: `pilots`
+
 ## Purpose
 
 Generate the first ARAC truth-table surface from a tiny synthetic trace. This
@@ -12,8 +14,8 @@ It does not claim final optimizer performance.
 ## Run
 
 ```powershell
-$env:PYTHONPATH = "E:\ARAC\src;E:\ARAC"
-py -m experiments.exp_001_schema_smoke.run
+$env:PYTHONPATH = "src"
+py -m experiments.pilots.exp_001_schema_smoke.run
 ```
 
 Default outputs are written to:

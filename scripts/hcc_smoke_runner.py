@@ -3532,7 +3532,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ],
         help=(
             "Accepted for experiment-runner CLI compatibility; lane expansion is "
-            "handled by experiments/exp_003_hcc_runtime_consumer_smoke/run.py."
+            "handled by experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py."
         ),
     )
     parser.add_argument("--enable-relation-dispatch", action="store_true")

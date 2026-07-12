@@ -15,10 +15,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-ARAC_REPO_ROOT = Path(__file__).resolve().parents[2]
+from experiments.paths import (
+    experiment_results_dir,
+    repository_root,
+    resolve_repository_path,
+)
+
+ARAC_REPO_ROOT = repository_root()
 ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
-if str(ARAC_SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(ARAC_SRC_ROOT))
 
 from arac.actions import ActionDecision, ActionFamily
 from arac.audits import claim_gate
@@ -3580,7 +3584,7 @@ def _write_manifest(
 
 
 def run_hcc_runtime_consumer_smoke(
-    output_dir: Path | str = Path("results/exp_003_hcc_runtime_consumer_smoke"),
+    output_dir: Path | str = experiment_results_dir(RUN_ID),
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult] = (
         run_hcc_aob_smoke_execution
     ),
@@ -3605,19 +3609,13 @@ def run_hcc_runtime_consumer_smoke(
     if budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
     lanes = lanes_for_profile(lane_profile)
-    output = Path(output_dir)
-    if not output.is_absolute():
-        output = ARAC_REPO_ROOT / output
-    output = output.resolve()
+    output = resolve_repository_path(output_dir).resolve()
     vendor_paths = resolve_hcc_vendor_paths(
         hcc_root,
         repo_root=hcc_repo_root,
         runner_path=hcc_runner,
     )
-    resolved_aob_data_root = Path(aob_data_root)
-    if not resolved_aob_data_root.is_absolute():
-        resolved_aob_data_root = ARAC_REPO_ROOT / resolved_aob_data_root
-    resolved_aob_data_root = resolved_aob_data_root.resolve()
+    resolved_aob_data_root = resolve_repository_path(aob_data_root).resolve()
     output.mkdir(parents=True, exist_ok=True)
     records = _records(
         output_dir=output,
@@ -4014,7 +4012,7 @@ def run_hcc_runtime_consumer_smoke(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run exp_003 HCC runtime consumer smoke.")
-    parser.add_argument("--output-dir", default="results/exp_003_hcc_runtime_consumer_smoke")
+    parser.add_argument("--output-dir", default=str(experiment_results_dir(RUN_ID)))
     parser.add_argument(
         "--hcc-root",
         default=str(HCC_VENDOR_ROOT),

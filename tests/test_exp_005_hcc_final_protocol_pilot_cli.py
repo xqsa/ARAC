@@ -7,7 +7,7 @@ import pytest
 
 
 def test_exp_005_cli_defaults_to_3m_fe_canonical_controller() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -40,7 +40,7 @@ def test_exp_005_cli_defaults_to_3m_fe_canonical_controller() -> None:
 
 
 def test_exp_005_canonical_cli_has_no_offline_threshold_arguments() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(["--output-dir", "out", "--hcc-root", "E:/HCC-main"])
 
@@ -95,7 +95,7 @@ def test_exp_005_canonical_request_and_subprocess_command_are_reference_blind(
 
 
 def test_exp_005_cli_accepts_landscape_escape_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -120,7 +120,7 @@ def test_exp_005_cli_accepts_landscape_escape_profile() -> None:
 
 
 def test_exp_005_cli_accepts_repair_landscape_escape_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -140,7 +140,7 @@ def test_exp_005_cli_accepts_repair_landscape_escape_profile() -> None:
 
 
 def test_exp_005_cli_accepts_repair_refine_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -160,7 +160,7 @@ def test_exp_005_cli_accepts_repair_refine_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -182,7 +182,7 @@ def test_exp_005_cli_accepts_evidence_routed_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_v2_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -205,7 +205,7 @@ def test_exp_005_cli_accepts_evidence_routed_v2_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_v21_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -228,7 +228,7 @@ def test_exp_005_cli_accepts_evidence_routed_v21_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_v22_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -251,7 +251,7 @@ def test_exp_005_cli_accepts_evidence_routed_v22_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_v23_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -274,7 +274,7 @@ def test_exp_005_cli_accepts_evidence_routed_v23_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_v24_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -297,7 +297,7 @@ def test_exp_005_cli_accepts_evidence_routed_v24_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_v25_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -320,7 +320,7 @@ def test_exp_005_cli_accepts_evidence_routed_v25_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_paper_best_win_push_v2_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -342,7 +342,7 @@ def test_exp_005_cli_accepts_paper_best_win_push_v2_profile() -> None:
 
 
 def test_exp_005_cli_accepts_historical_anchor_refine_push_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -364,7 +364,7 @@ def test_exp_005_cli_accepts_historical_anchor_refine_push_profile() -> None:
 
 
 def test_exp_005_cli_accepts_historical_13_preserve_push_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -387,7 +387,7 @@ def test_exp_005_cli_accepts_historical_13_preserve_push_profile() -> None:
 
 
 def test_exp_005_cli_accepts_historical_13_fast_preserve_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -410,7 +410,7 @@ def test_exp_005_cli_accepts_historical_13_fast_preserve_profile() -> None:
 
 
 def test_exp_005_cli_accepts_historical_13_runtime_composite_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -433,7 +433,7 @@ def test_exp_005_cli_accepts_historical_13_runtime_composite_profile() -> None:
 
 
 def test_exp_005_cli_accepts_historical_13_runtime_composite_v2_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -454,7 +454,7 @@ def test_exp_005_cli_accepts_historical_13_runtime_composite_v2_profile() -> Non
 
 
 def test_exp_005_cli_accepts_evidence_action_controller_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -477,7 +477,7 @@ def test_exp_005_cli_accepts_evidence_action_controller_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_action_controller_v2_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -499,7 +499,7 @@ def test_exp_005_cli_accepts_evidence_action_controller_v2_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_action_controller_v3_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -521,7 +521,7 @@ def test_exp_005_cli_accepts_evidence_action_controller_v3_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_action_controller_v31_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -543,7 +543,7 @@ def test_exp_005_cli_accepts_evidence_action_controller_v31_profile() -> None:
 
 
 def test_exp_005_cli_accepts_evidence_routed_v26_only_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -566,7 +566,7 @@ def test_exp_005_cli_accepts_evidence_routed_v26_only_profile() -> None:
 
 
 def test_exp_005_cli_accepts_paper_best_win_push_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -591,7 +591,7 @@ def test_exp_005_cli_accepts_paper_best_win_push_profile() -> None:
 
 
 def test_exp_005_cli_accepts_precision_refine_push_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -614,7 +614,7 @@ def test_exp_005_cli_accepts_precision_refine_push_profile() -> None:
 
 
 def test_exp_005_cli_accepts_phase_rescue_push_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -636,7 +636,7 @@ def test_exp_005_cli_accepts_phase_rescue_push_profile() -> None:
 
 
 def test_exp_005_cli_accepts_repair_phase_rescue_push_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -658,7 +658,7 @@ def test_exp_005_cli_accepts_repair_phase_rescue_push_profile() -> None:
 
 
 def test_exp_005_cli_accepts_cc_harm_sep_refresh_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [
@@ -681,7 +681,7 @@ def test_exp_005_cli_accepts_cc_harm_sep_refresh_profile() -> None:
 
 
 def test_exp_005_cli_accepts_separable_cmaes_push_profile() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import parse_args
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
 
     args = parse_args(
         [

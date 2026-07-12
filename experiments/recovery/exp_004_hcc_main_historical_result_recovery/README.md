@@ -1,5 +1,7 @@
 # exp_004_hcc_main_historical_result_recovery
 
+Stage: `recovery`
+
 This experiment recovers historical `evaluation_record.txt` artifacts from
 `E:\HCC-main\HCC_SRC\result` and aligns detected AOB cases with the paper
 reported HCC-ES Table 2 anchors.
@@ -12,7 +14,7 @@ Run:
 
 ```powershell
 $env:PYTHONPATH='src'
-& 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.exp_004_hcc_main_historical_result_recovery.run --output-dir results\exp_004_hcc_main_historical_result_recovery
+& 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.recovery.exp_004_hcc_main_historical_result_recovery.run --output-dir results\exp_004_hcc_main_historical_result_recovery
 ```
 
 Outputs:

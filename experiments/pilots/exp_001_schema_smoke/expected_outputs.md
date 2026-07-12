@@ -1,6 +1,6 @@
 # Expected Outputs
 
-Running `py -m experiments.exp_001_schema_smoke.run` produces:
+Running `py -m experiments.pilots.exp_001_schema_smoke.run` produces:
 
 - `evidence_profile.csv`
 - `action_decision.csv`

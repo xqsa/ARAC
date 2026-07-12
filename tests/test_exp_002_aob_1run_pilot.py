@@ -3,7 +3,7 @@ import csv
 import pytest
 
 from arac.backends.hcc import HCC_VENDOR_ROOT, HccAobExecutionRequest, HccAobExecutionResult
-from experiments.exp_002_aob_1run_pilot.run import main, parse_args, run_aob_1run_pilot
+from experiments.pilots.exp_002_aob_1run_pilot.run import main, parse_args, run_aob_1run_pilot
 
 
 def test_aob_pilot_writes_one_run_truth_tables(tmp_path: Path) -> None:

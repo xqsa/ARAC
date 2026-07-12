@@ -9,13 +9,12 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-ARAC_REPO_ROOT = Path(__file__).resolve().parents[2]
-ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
-for import_root in (ARAC_REPO_ROOT, ARAC_SRC_ROOT):
-    if str(import_root) not in sys.path:
-        sys.path.insert(0, str(import_root))
+from experiments.paths import experiment_results_dir, repository_root
 
-from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+ARAC_REPO_ROOT = repository_root()
+ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
+
+from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
     run_hcc_aob_smoke_execution,
     run_hcc_runtime_consumer_smoke,
 )
@@ -40,7 +39,7 @@ DEFAULT_PROBLEMS = (
     "A4",
     "A5",
 )
-DEFAULT_OUTPUT_DIR = Path("results/exp_005_hcc_final_protocol_pilot")
+DEFAULT_OUTPUT_DIR = experiment_results_dir(RUN_ID)
 DEFAULT_PAPER_BEST_MATRIX = (
     ARAC_REPO_ROOT / "references" / "aob_paper_best_win_replay_matrix.csv"
 )

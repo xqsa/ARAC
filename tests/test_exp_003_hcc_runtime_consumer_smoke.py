@@ -39,7 +39,7 @@ def _sha256(path: Path) -> str:
 
 def test_exp_003_config_fingerprint_tracks_actual_vendor_and_runner(tmp_path: Path) -> None:
     from arac.backends.hcc import resolve_hcc_vendor_paths
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import _config_fingerprint
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import _config_fingerprint
 
     vendor_root, runner_path = _make_vendor_snapshot(tmp_path)
     vendor_paths = resolve_hcc_vendor_paths(vendor_root, runner_path=runner_path)
@@ -65,7 +65,7 @@ def test_exp_003_cli_describes_canonical_vendor_runtime_root(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     from arac.backends.hcc import HCC_VENDOR_ROOT
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import parse_args
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import parse_args
 
     assert Path(parse_args([]).hcc_root) == HCC_VENDOR_ROOT
     with pytest.raises(SystemExit):
@@ -97,7 +97,7 @@ def _hcc_result(
 
 
 def test_exp_003_reuses_completed_lane_artifact(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _existing_completed_result,
     )
 
@@ -131,7 +131,7 @@ def test_exp_003_reuses_completed_lane_artifact(tmp_path: Path) -> None:
 
 
 def test_exp_003_normalizes_subprocess_run_id_in_relation_artifacts(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import RUN_ID, _with_lane_prefix
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import RUN_ID, _with_lane_prefix
 
     result = HccAobExecutionResult(
         problem_id="E2",
@@ -161,19 +161,19 @@ def test_exp_003_normalizes_subprocess_run_id_in_relation_artifacts(tmp_path: Pa
     ]
 
 
-def test_exp_003_cli_help_works_without_pythonpath() -> None:
-    script_path = (
-        Path(__file__).resolve().parents[1]
-        / "experiments"
-        / "exp_003_hcc_runtime_consumer_smoke"
-        / "run.py"
-    )
+def test_exp_003_cli_help_works_from_module_entrypoint() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
     env = os.environ.copy()
-    env.pop("PYTHONPATH", None)
+    env["PYTHONPATH"] = os.pathsep.join((str(repo_root / "src"), str(repo_root)))
 
     completed = subprocess.run(
-        [sys.executable, str(script_path), "--help"],
-        cwd=Path(__file__).resolve().parents[1],
+        [
+            sys.executable,
+            "-m",
+            "experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run",
+            "--help",
+        ],
+        cwd=Path.home(),
         env=env,
         capture_output=True,
         text=True,
@@ -188,7 +188,7 @@ def test_exp_003_cli_help_works_without_pythonpath() -> None:
 
 
 def test_negative_control_ignores_tiny_shuffled_advantage(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
 
     records = []
     for seed in (1, 2, 3):
@@ -213,7 +213,7 @@ def test_negative_control_ignores_tiny_shuffled_advantage(tmp_path: Path) -> Non
 
 
 def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         run_hcc_runtime_consumer_smoke,
     )
 
@@ -806,7 +806,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
 
 
 def test_exp_003_targeted_ablation_profile_adds_trajectory_lane(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         run_hcc_runtime_consumer_smoke,
     )
 
@@ -864,7 +864,7 @@ def test_exp_003_targeted_ablation_profile_adds_trajectory_lane(tmp_path: Path) 
 
 
 def test_exp_003_focused_compare_profile_excludes_relation_and_trajectory() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lane_ids = [lane.lane_id for lane in lanes_for_profile("focused_compare")]
 
@@ -876,7 +876,7 @@ def test_exp_003_focused_compare_profile_excludes_relation_and_trajectory() -> N
 
 
 def test_exp_003_focused_core_profile_excludes_trajectory_and_shuffled() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lane_ids = [lane.lane_id for lane in lanes_for_profile("focused_core")]
 
@@ -889,7 +889,7 @@ def test_exp_003_focused_core_profile_excludes_trajectory_and_shuffled() -> None
 
 
 def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _ledger_for_result,
         _ledger_rows,
     )
@@ -944,7 +944,7 @@ def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
 
 
 def test_exp_003_evidence_routed_only_profile_runs_relation_dispatch_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_only")
 
@@ -955,7 +955,7 @@ def test_exp_003_evidence_routed_only_profile_runs_relation_dispatch_lane() -> N
 
 
 def test_exp_003_evidence_routed_v2_only_profile_runs_adaptive_policy() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_v2_only")
 
@@ -967,7 +967,7 @@ def test_exp_003_evidence_routed_v2_only_profile_runs_adaptive_policy() -> None:
 
 
 def test_exp_003_evidence_routed_v21_only_profile_runs_context_policy() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_v21_only")
 
@@ -979,7 +979,7 @@ def test_exp_003_evidence_routed_v21_only_profile_runs_context_policy() -> None:
 
 
 def test_exp_003_evidence_routed_v22_only_profile_runs_early_lock_policy() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_v22_only")
 
@@ -991,7 +991,7 @@ def test_exp_003_evidence_routed_v22_only_profile_runs_early_lock_policy() -> No
 
 
 def test_exp_003_evidence_routed_v23_only_profile_runs_repair_preserving_policy() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_v23_only")
 
@@ -1003,7 +1003,7 @@ def test_exp_003_evidence_routed_v23_only_profile_runs_repair_preserving_policy(
 
 
 def test_exp_003_evidence_routed_v24_only_profile_runs_no_harm_policy() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_v24_only")
 
@@ -1015,7 +1015,7 @@ def test_exp_003_evidence_routed_v24_only_profile_runs_no_harm_policy() -> None:
 
 
 def test_exp_003_evidence_routed_v25_only_profile_runs_chain_repair_policy() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_v25_only")
 
@@ -1027,7 +1027,7 @@ def test_exp_003_evidence_routed_v25_only_profile_runs_chain_repair_policy() -> 
 
 
 def test_exp_003_evidence_routed_v26_only_profile_runs_low_overlap_chain_repair_policy() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_routed_v26_only")
 
@@ -1039,7 +1039,7 @@ def test_exp_003_evidence_routed_v26_only_profile_runs_low_overlap_chain_repair_
 
 
 def test_exp_003_historical_13_preserve_push_profile_covers_historical_mechanisms() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("historical_13_preserve_push")
     lane_ids = [lane.lane_id for lane in lanes]
@@ -1065,7 +1065,7 @@ def test_exp_003_historical_13_preserve_push_profile_covers_historical_mechanism
 
 
 def test_exp_003_historical_13_fast_preserve_profile_keeps_core_runtime_lanes() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("historical_13_fast_preserve")
 
@@ -1087,7 +1087,7 @@ def test_exp_003_historical_13_fast_preserve_profile_keeps_core_runtime_lanes() 
 
 
 def test_exp_003_historical_13_runtime_composite_profile_is_single_runtime_method() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("historical_13_runtime_composite")
 
@@ -1101,7 +1101,7 @@ def test_exp_003_historical_13_runtime_composite_profile_is_single_runtime_metho
 
 
 def test_exp_003_historical_13_runtime_composite_v2_profile_is_single_guarded_runtime_method() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("historical_13_runtime_composite_v2")
 
@@ -1115,7 +1115,7 @@ def test_exp_003_historical_13_runtime_composite_v2_profile_is_single_guarded_ru
 
 
 def test_exp_003_evidence_action_controller_profile_is_single_runtime_method() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_action_controller_v1")
 
@@ -1129,7 +1129,7 @@ def test_exp_003_evidence_action_controller_profile_is_single_runtime_method() -
 
 
 def test_exp_003_evidence_action_controller_v2_profile_is_single_runtime_method() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_action_controller_v2")
 
@@ -1143,7 +1143,7 @@ def test_exp_003_evidence_action_controller_v2_profile_is_single_runtime_method(
 
 
 def test_exp_003_evidence_action_controller_v3_profile_is_single_runtime_method() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_action_controller_v3")
 
@@ -1157,7 +1157,7 @@ def test_exp_003_evidence_action_controller_v3_profile_is_single_runtime_method(
 
 
 def test_exp_003_evidence_action_controller_v31_profile_is_single_runtime_method() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("evidence_action_controller_v31")
 
@@ -1171,7 +1171,7 @@ def test_exp_003_evidence_action_controller_v31_profile_is_single_runtime_method
 
 
 def test_exp_003_canonical_evidence_controller_profile_reuses_single_v32_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("canonical_evidence_controller_v1")
 
@@ -1186,7 +1186,7 @@ def test_exp_003_canonical_evidence_controller_profile_reuses_single_v32_lane() 
 
 
 def test_exp_003_records_pass_explicit_aob_data_root(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _records,
         lanes_for_profile,
     )
@@ -1233,7 +1233,7 @@ def test_exp_003_records_pass_explicit_aob_data_root(tmp_path: Path) -> None:
 
 
 def test_exp_003_evidence_routed_only_writes_results_without_fallback(tmp_path: Path) -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         run_hcc_runtime_consumer_smoke,
     )
 
@@ -1286,7 +1286,7 @@ def test_exp_003_evidence_routed_only_writes_results_without_fallback(tmp_path: 
 
 
 def test_exp_003_landscape_escape_profile_adds_bipop_search_state_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("landscape_escape")
 
@@ -1302,7 +1302,7 @@ def test_exp_003_landscape_escape_profile_adds_bipop_search_state_lane() -> None
 
 
 def test_exp_003_repair_landscape_escape_profile_adds_repair_guarded_bipop_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("repair_landscape_escape")
 
@@ -1317,7 +1317,7 @@ def test_exp_003_repair_landscape_escape_profile_adds_repair_guarded_bipop_lane(
 
 
 def test_exp_003_repair_refine_profile_adds_repair_protect_refine_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("repair_refine")
 
@@ -1332,7 +1332,7 @@ def test_exp_003_repair_refine_profile_adds_repair_protect_refine_lane() -> None
 
 
 def test_exp_003_paper_best_win_push_profile_combines_near_miss_actions() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("paper_best_win_push")
 
@@ -1354,7 +1354,7 @@ def test_exp_003_paper_best_win_push_profile_combines_near_miss_actions() -> Non
 
 
 def test_exp_003_paper_best_win_push_v2_profile_adds_replay_candidate_lanes() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("paper_best_win_push_v2")
 
@@ -1377,7 +1377,7 @@ def test_exp_003_paper_best_win_push_v2_profile_adds_replay_candidate_lanes() ->
 
 
 def test_exp_003_historical_anchor_refine_push_profile_adds_long_refine_candidates() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("historical_anchor_refine_push")
 
@@ -1401,7 +1401,7 @@ def test_exp_003_historical_anchor_refine_push_profile_adds_long_refine_candidat
 
 
 def test_exp_003_separable_cmaes_push_profile_adds_direct_dispatch_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("separable_cmaes_push")
 
@@ -1416,7 +1416,7 @@ def test_exp_003_separable_cmaes_push_profile_adds_direct_dispatch_lane() -> Non
 
 
 def test_exp_003_precision_refine_push_profile_compares_refine_depths() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("precision_refine_push")
 
@@ -1431,7 +1431,7 @@ def test_exp_003_precision_refine_push_profile_compares_refine_depths() -> None:
 
 
 def test_exp_003_phase_rescue_push_profile_adds_multistart_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("phase_rescue_push")
 
@@ -1447,7 +1447,7 @@ def test_exp_003_phase_rescue_push_profile_adds_multistart_lane() -> None:
 
 
 def test_exp_003_repair_phase_rescue_push_profile_adds_composite_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("repair_phase_rescue_push")
 
@@ -1462,7 +1462,7 @@ def test_exp_003_repair_phase_rescue_push_profile_adds_composite_lane() -> None:
 
 
 def test_exp_003_cc_harm_sep_refresh_profile_adds_guarded_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("cc_harm_sep_refresh")
 
@@ -1480,7 +1480,7 @@ def test_exp_003_cc_harm_sep_refresh_profile_adds_guarded_lane() -> None:
 
 
 def test_exp_003_negative_control_rows_handle_profiles_without_shuffled_lane() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
 
     records = [
         {
@@ -1497,7 +1497,7 @@ def test_exp_003_negative_control_rows_handle_profiles_without_shuffled_lane() -
 
 
 def test_multi_problem_semantics_audit_allows_fallback_only_relation_dispatch() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -1555,7 +1555,7 @@ def test_multi_problem_semantics_audit_allows_fallback_only_relation_dispatch() 
 
 
 def test_pilot_utility_evidence_is_separate_from_sota_claim_gate() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _policy_evidence_diagnosis_rows_for_problem,
     )
 
@@ -1614,7 +1614,7 @@ def test_pilot_utility_evidence_is_separate_from_sota_claim_gate() -> None:
 
 
 def test_problem_diagnostics_use_directional_gate_for_pilot_and_coordinate() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _policy_evidence_diagnosis_rows_for_problem,
     )
 
@@ -1666,7 +1666,7 @@ def test_problem_diagnostics_use_directional_gate_for_pilot_and_coordinate() -> 
 
 
 def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -1729,7 +1729,7 @@ def test_multi_problem_pilot_utility_evidence_is_separate_from_sota_gate() -> No
 
 
 def test_multi_problem_pilot_utility_allows_positive_mean_with_more_wins_than_losses() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -1791,7 +1791,7 @@ def test_multi_problem_pilot_utility_allows_positive_mean_with_more_wins_than_lo
 
 
 def test_multi_problem_sota_requires_formal_protocol_scope() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -1851,7 +1851,7 @@ def test_multi_problem_sota_requires_formal_protocol_scope() -> None:
 
 
 def test_multi_problem_diagnostics_report_action_value_delta_profile() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -1920,7 +1920,7 @@ def test_multi_problem_diagnostics_report_action_value_delta_profile() -> None:
 
 
 def test_multi_problem_baseline_diagnostics_report_lost_case_ids() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -1969,7 +1969,7 @@ def test_multi_problem_baseline_diagnostics_report_lost_case_ids() -> None:
 
 
 def test_multi_problem_fixed_coordinate_baseline_uses_directional_gate() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -2021,7 +2021,7 @@ def test_multi_problem_fixed_coordinate_baseline_uses_directional_gate() -> None
 
 
 def test_multi_problem_diagnostics_report_fixed_repair_materiality() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -2071,7 +2071,7 @@ def test_multi_problem_diagnostics_report_fixed_repair_materiality() -> None:
 
 
 def test_multi_problem_diagnostics_report_relation_dispatch_materiality() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_diagnosis_rows,
     )
 
@@ -2125,7 +2125,7 @@ def test_multi_problem_diagnostics_report_relation_dispatch_materiality() -> Non
 
 
 def test_multi_problem_trigger_outcome_profile_groups_reasons_by_case_gain() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_trigger_outcome_profile_row,
     )
 
@@ -2171,7 +2171,7 @@ def test_multi_problem_trigger_outcome_profile_groups_reasons_by_case_gain() -> 
 
 
 def test_multi_problem_trigger_baseline_gap_profile_reports_strong_baseline_gaps() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_trigger_baseline_gap_profile_row,
     )
 
@@ -2224,7 +2224,7 @@ def test_multi_problem_trigger_baseline_gap_profile_reports_strong_baseline_gaps
 
 
 def test_multi_problem_no_overlap_control_reports_unwanted_relation_activity() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_no_overlap_control_row,
     )
 
@@ -2304,7 +2304,7 @@ def test_multi_problem_no_overlap_control_reports_unwanted_relation_activity() -
 
 
 def test_multi_problem_action_baseline_gap_profile_reports_action_gaps() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_action_baseline_gap_profile_row,
     )
 
@@ -2360,7 +2360,7 @@ def test_multi_problem_action_baseline_gap_profile_reports_action_gaps() -> None
 
 
 def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_action_mismatch_profile_row,
     )
 
@@ -2413,7 +2413,7 @@ def test_multi_problem_action_mismatch_profile_summarizes_candidate_gaps() -> No
 
 
 def test_multi_problem_mismatch_baseline_gap_profile_reports_final_best_gaps() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_mismatch_baseline_gap_profile_row,
     )
 
@@ -2477,7 +2477,7 @@ def test_multi_problem_mismatch_baseline_gap_profile_reports_final_best_gaps() -
 
 
 def test_multi_problem_relation_confidence_interval_reports_baseline_deltas() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _multi_problem_relation_confidence_interval_row,
     )
 
@@ -2532,7 +2532,7 @@ def test_multi_problem_relation_confidence_interval_reports_baseline_deltas() ->
 
 
 def test_backend_semantics_expectation_uses_optimizer_consumed_action_mix() -> None:
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _expects_backend_semantics,
     )
 
@@ -2547,7 +2547,7 @@ def test_backend_semantics_expectation_uses_optimizer_consumed_action_mix() -> N
 
 def test_phase_rescue_trace_rows_mark_search_state_backend_semantics() -> None:
     from arac.execution import BackendSemanticsDiff
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _semantics_from_trace_rows,
     )
 
@@ -2569,7 +2569,7 @@ def test_phase_rescue_trace_rows_mark_search_state_backend_semantics() -> None:
 
 def test_repair_phase_rescue_trace_rows_mark_composite_backend_semantics() -> None:
     from arac.execution import BackendSemanticsDiff
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _semantics_from_trace_rows,
     )
 
@@ -2596,7 +2596,7 @@ def test_repair_phase_rescue_trace_rows_mark_composite_backend_semantics() -> No
 
 def test_relation_dispatch_noop_trace_is_a_fallback_claim_gate_decision() -> None:
     from arac.actions import ActionFamily
-    from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         LANES,
         _decision,
         _effective_claim_gate_decision,

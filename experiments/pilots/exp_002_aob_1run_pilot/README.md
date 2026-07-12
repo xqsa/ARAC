@@ -1,5 +1,7 @@
 # exp_002_aob_1run_pilot
 
+Stage: `pilots`
+
 This experiment is the first AOB pilot entrypoint for ARAC-on-HCC.
 
 It covers the 24 AOB cases from the Two-Phase CC protocol:
@@ -36,7 +38,7 @@ runtime consumer are marked `optimizer_consumed=0` with
 ## Run
 
 ```powershell
-$env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.exp_002_aob_1run_pilot.run
+$env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.pilots.exp_002_aob_1run_pilot.run
 ```
 
 The default output directory is `results/exp_002_aob_1run_pilot/`.
@@ -51,7 +53,7 @@ It must be given a Python environment that can run the vendored HCC source depen
 copying `final_error` or relative gains into runtime payloads remains forbidden.
 
 ```powershell
-$env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.exp_002_aob_1run_pilot.run --smoke-case E1 --smoke-fes 2000 --python-executable 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
+$env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -m experiments.pilots.exp_002_aob_1run_pilot.run --smoke-case E1 --smoke-fes 2000 --python-executable 'C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 ```
 
 The smoke command still writes the same eight top-level artifacts. HCC scratch

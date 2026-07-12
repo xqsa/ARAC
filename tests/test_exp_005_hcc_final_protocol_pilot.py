@@ -53,7 +53,7 @@ def _fake_result(request: HccAobExecutionRequest) -> HccAobExecutionResult:
 
 
 def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         DEFAULT_MAX_FES,
         DEFAULT_PROBLEMS,
         DEFAULT_SEEDS,
@@ -136,7 +136,7 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
 
 
 def test_final_protocol_environment_gate_reports_every_mismatch() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         PINNED_FINAL_PROTOCOL_ENVIRONMENT,
         _final_protocol_environment_failures,
     )
@@ -156,7 +156,7 @@ def test_final_protocol_environment_gate_reports_every_mismatch() -> None:
 def test_final_protocol_rejects_environment_before_optimizer_execution(
     tmp_path: Path,
 ) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         PINNED_FINAL_PROTOCOL_ENVIRONMENT,
         run_hcc_final_protocol_pilot,
     )
@@ -196,7 +196,7 @@ def test_hcc_optional_dependencies_match_the_pinned_final_environment() -> None:
 
 
 def test_canonical_protocol_gate_rejects_input_fe_leakage_and_no_harm_failures() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         _canonical_protocol_gate_failures,
     )
 
@@ -219,7 +219,7 @@ def test_offline_paper_comparison_runs_only_after_execution_and_protocol_gate(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot import run as final_protocol
+    from experiments.final.exp_005_hcc_final_protocol_pilot import run as final_protocol
 
     events: list[str] = []
     original_gate = final_protocol._canonical_protocol_gate_failures
@@ -275,7 +275,7 @@ def test_offline_paper_comparison_runs_only_after_execution_and_protocol_gate(
 
 
 def test_exp_005_writes_aob_protocol_audit(tmp_path: Path) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         PINNED_FINAL_PROTOCOL_ENVIRONMENT,
         run_hcc_final_protocol_pilot,
     )

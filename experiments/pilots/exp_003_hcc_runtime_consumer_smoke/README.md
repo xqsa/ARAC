@@ -1,5 +1,7 @@
 # exp_003_hcc_runtime_consumer_smoke
 
+Stage: `pilots`
+
 This experiment is a runtime-connected utility smoke test, not a performance
 claim.
 
@@ -41,13 +43,13 @@ dispatch.
 Run:
 
 ```powershell
-py -3 experiments\exp_003_hcc_runtime_consumer_smoke\run.py --output-dir results\exp_003_hcc_runtime_consumer_smoke
+$env:PYTHONPATH='src'; python -m experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run --output-dir results\exp_003_hcc_runtime_consumer_smoke
 ```
 
 For wider smoke runs, pass explicit problems/seeds and parallel jobs:
 
 ```powershell
-py -3 experiments\exp_003_hcc_runtime_consumer_smoke\run.py --output-dir results\exp_003_hcc_runtime_consumer_smoke --seeds 1 2 3 4 5 --problems E1 E2 S1 S2 R1 R2 A1 A2 --jobs 8
+$env:PYTHONPATH='src'; python -m experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run --output-dir results\exp_003_hcc_runtime_consumer_smoke --seeds 1 2 3 4 5 --problems E1 E2 S1 S2 R1 R2 A1 A2 --jobs 8
 ```
 
 The vendored HCC snapshot remains read-only. The subprocess executes the

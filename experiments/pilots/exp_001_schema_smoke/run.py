@@ -12,6 +12,7 @@ from arac.execution import BackendSemanticsDiff, ToyBackendAdapter
 from arac.evaluation import SameBudgetLedger, classify_utility, relative_gain
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS, EvidenceProfile, validate_runtime_payload
 from arac.policy import decide_action
+from experiments.paths import experiment_results_dir
 
 RUN_ID = "exp_001_schema_smoke"
 PROBLEM_ID = "toy_overlap_case_001"
@@ -433,7 +434,9 @@ def write_manifest(output_dir: Path) -> None:
     (output_dir / "run_manifest.md").write_text(manifest, encoding="utf-8")
 
 
-def run_schema_smoke(output_dir: Path | str = Path("results/exp_001_schema_smoke")) -> Path:
+def run_schema_smoke(
+    output_dir: Path | str = experiment_results_dir(RUN_ID),
+) -> Path:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     adapter = ToyBackendAdapter()

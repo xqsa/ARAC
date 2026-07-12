@@ -49,14 +49,16 @@ catastrophic-loss audits.
 - `configs/aob_pilot.yaml`: current AOB first-look pilot contract.
 - `experiments/README.md`: how to structure future runs without returning to
   the old Mxx clutter.
-- `experiments/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
+- `experiments/pilots/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
   emits action, semantics, same-budget, leakage, paper-comparison, negative
   control, and catastrophic-loss audit tables.
-- `experiments/exp_003_hcc_runtime_consumer_smoke/`: E2 HCC utility smoke with
+- `experiments/pilots/exp_003_hcc_runtime_consumer_smoke/`: E2 HCC utility smoke with
   fallback, fixed repair, per-overlap-relation dispatch, and shuffled negative
   control lanes.
-- `experiments/exp_004_hcc_main_historical_result_recovery/`: read-only
+- `experiments/recovery/exp_004_hcc_main_historical_result_recovery/`: read-only
   recovery of historical `E:\HCC-main` result artifacts for offline comparison.
+- `experiments/final/exp_005_hcc_final_protocol_pilot/`: canonical v3.2 3M-FE
+  final-protocol pilot entrypoint with same-budget and anti-leakage gates.
 - `references/source-index.md`: pointers to the original source evidence inside
   `E:\HCC-main`.
 
