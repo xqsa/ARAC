@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import ast
+import os
+import stat
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -79,14 +81,64 @@ class AuditReport:
 
 
 def _run_git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["git", "-C", str(root), *args],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+    command = ["git", "-C", str(root), *args]
+    try:
+        return subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        return subprocess.CompletedProcess(
+            command,
+            127,
+            stdout="",
+            stderr=f"audit error: git executable unavailable: {exc}",
+        )
+    except OSError as exc:
+        return subprocess.CompletedProcess(
+            command,
+            126,
+            stdout="",
+            stderr=f"audit error: unable to execute git: {exc}",
+        )
+
+
+def _is_reparse_point(path: Path) -> bool:
+    if path.is_symlink():
+        return True
+    is_junction = getattr(path, "is_junction", None)
+    if callable(is_junction) and is_junction():
+        return True
+    try:
+        attributes = getattr(os.lstat(path), "st_file_attributes", 0)
+    except OSError:
+        return False
+    return bool(attributes & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
+
+
+def _external_hcc_link_error(root: Path) -> Finding | None:
+    hcc_src = root / "HCC_SRC"
+    try:
+        is_link = _is_reparse_point(hcc_src)
+    except OSError as exc:
+        return Finding("HCC_SRC", f"cannot inspect symbolic link/reparse point: {exc}")
+    if not is_link:
+        return None
+    try:
+        target = hcc_src.resolve(strict=False)
+        target.relative_to(root)
+    except ValueError:
+        return Finding(
+            "HCC_SRC",
+            "external symbolic link/reparse point target is outside repository",
+        )
+    except OSError as exc:
+        return Finding("HCC_SRC", f"cannot resolve symbolic link/reparse point: {exc}")
+    return None
 
 
 def _tracked_paths(root: Path) -> tuple[list[str], Finding | None]:
@@ -132,49 +184,100 @@ def _split_path(value: str) -> tuple[str, ...]:
     return tuple(part for part in value.replace("\\", "/").split("/") if part and part != ".")
 
 
-def _static_path_parts(node: ast.expr) -> tuple[str, ...] | None:
+def _path_aliases(tree: ast.Module) -> tuple[frozenset[str], frozenset[str]]:
+    path_constructors = set(PATH_CONSTRUCTORS)
+    path_join_functions = set(PATH_JOIN_FUNCTIONS)
+    for statement in tree.body:
+        if isinstance(statement, ast.Import):
+            for alias in statement.names:
+                bound_name = alias.asname or alias.name.split(".")[0]
+                if alias.name == "pathlib":
+                    path_constructors.update(
+                        f"{bound_name}.{name}"
+                        for name in ("Path", "PurePath", "PurePosixPath", "PureWindowsPath")
+                    )
+                elif alias.name == "os.path":
+                    path_join_functions.add(f"{bound_name}.join")
+                elif alias.name == "os":
+                    path_join_functions.add(f"{bound_name}.path.join")
+        elif isinstance(statement, ast.ImportFrom):
+            module = statement.module or ""
+            if module == "pathlib":
+                for alias in statement.names:
+                    if alias.name in {"Path", "PurePath", "PurePosixPath", "PureWindowsPath"}:
+                        path_constructors.add(alias.asname or alias.name)
+            elif module == "os.path":
+                for alias in statement.names:
+                    if alias.name == "join":
+                        path_join_functions.add(alias.asname or alias.name)
+    return frozenset(path_constructors), frozenset(path_join_functions)
+
+
+def _static_path_parts(
+    node: ast.expr,
+    path_constructors: frozenset[str],
+    path_join_functions: frozenset[str],
+) -> tuple[str, ...] | None:
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         return _split_path(node.value)
 
+    if isinstance(node, ast.JoinedStr):
+        parts: tuple[str, ...] = ()
+        for value in node.values:
+            if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                parts += _split_path(value.value)
+        return parts
+
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
-        left = _static_path_parts(node.left)
-        right = _static_path_parts(node.right)
-        return left + right if left is not None and right is not None else None
+        left = _static_path_parts(node.left, path_constructors, path_join_functions)
+        right = _static_path_parts(node.right, path_constructors, path_join_functions)
+        if left is None:
+            return right
+        if right is None:
+            return left
+        return left + right
 
     if not isinstance(node, ast.Call):
         return None
 
     function_name = _dotted_name(node.func)
-    if function_name not in PATH_CONSTRUCTORS and function_name not in PATH_JOIN_FUNCTIONS:
+    if function_name not in path_constructors and function_name not in path_join_functions:
         return None
 
     parts: tuple[str, ...] = ()
     for argument in node.args:
-        argument_parts = _static_path_parts(argument)
-        if argument_parts is None:
-            return None
-        parts += argument_parts
+        argument_parts = _static_path_parts(argument, path_constructors, path_join_functions)
+        if argument_parts is not None:
+            parts += argument_parts
     return parts
 
 
-def _candidate_path_parts(node: ast.AST) -> tuple[str, ...] | None:
+def _candidate_path_parts(
+    node: ast.AST,
+    path_constructors: frozenset[str],
+    path_join_functions: frozenset[str],
+) -> tuple[str, ...] | None:
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         if "/" not in node.value and "\\" not in node.value:
             return None
         return _split_path(node.value)
-    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
-        return _static_path_parts(node)
-    if isinstance(node, ast.Call):
-        function_name = _dotted_name(node.func)
-        if function_name in PATH_CONSTRUCTORS or function_name in PATH_JOIN_FUNCTIONS:
-            return _static_path_parts(node)
+    if isinstance(node, (ast.BinOp, ast.Call, ast.JoinedStr)):
+        function_name = _dotted_name(node.func) if isinstance(node, ast.Call) else None
+        is_path_expression = isinstance(node, ast.BinOp) or (
+            isinstance(node, ast.Call)
+            and (function_name in path_constructors or function_name in path_join_functions)
+        ) or isinstance(node, ast.JoinedStr)
+        if not is_path_expression:
+            return None
+        return _static_path_parts(node, path_constructors, path_join_functions)
     return None
 
 
 def _contains_offline_path(source: str) -> bool:
     tree = ast.parse(source)
+    path_constructors, path_join_functions = _path_aliases(tree)
     for node in ast.walk(tree):
-        parts = _candidate_path_parts(node)
+        parts = _candidate_path_parts(node, path_constructors, path_join_functions)
         if parts and any(part.casefold() in OFFLINE_PATH_PARTS for part in parts):
             return True
     return False
@@ -192,17 +295,22 @@ def audit_project_structure(root: Path) -> AuditReport:
     if root_error:
         return AuditReport((root_error,), (), ())
 
+    hcc_link_error = _external_hcc_link_error(root)
+    if hcc_link_error:
+        errors.append(hcc_link_error)
+
     for child in root.iterdir():
         if not child.is_dir() or child.name in IGNORED_TOP_LEVEL_DIRECTORIES:
             continue
         if child.name == "HCC_SRC":
-            warnings.append(
-                Finding(
-                    "HCC_SRC",
-                    "warning: Task 3 pending transitional legacy source; retained because current "
-                    "compatibility paths still resolve the HCC backend",
+            if not hcc_link_error:
+                warnings.append(
+                    Finding(
+                        "HCC_SRC",
+                        "warning: Task 3 pending transitional legacy source; retained because current "
+                        "compatibility paths still resolve the HCC backend",
+                    )
                 )
-            )
             continue
         if child.name not in ALLOWED_TOP_LEVEL_DIRECTORIES:
             errors.append(Finding(child.name, "unexpected top-level directory"))
@@ -229,7 +337,7 @@ def audit_project_structure(root: Path) -> AuditReport:
             if any(part in IGNORED_SOURCE_DIRECTORY_NAMES for part in relative_parts):
                 continue
             try:
-                source = source_path.read_text(encoding="utf-8")
+                source = source_path.read_text(encoding="utf-8-sig")
             except (OSError, UnicodeError) as exc:
                 errors.append(
                     Finding(

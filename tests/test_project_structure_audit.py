@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+import scripts.audit_project_structure as audit_module
 from scripts.audit_project_structure import audit_project_structure, main
 
 
@@ -129,6 +130,44 @@ def test_similar_runtime_path_names_are_not_reported(tmp_path: Path) -> None:
     assert "src/arac/valid_paths.py" not in _error_paths(root)
 
 
+@pytest.mark.parametrize(
+    "source",
+    [
+        'from pathlib import Path as P\nRUN = P("results") / run_id\n',
+        'from os.path import join\nTABLE = join("references", "historical", name)\n',
+        'import pathlib as pl\nRUN = pl.Path("results") / run_id\n',
+    ],
+)
+def test_import_aliases_and_dynamic_prefixes_are_reported(
+    tmp_path: Path,
+    source: str,
+) -> None:
+    root = _project_fixture(tmp_path)
+    runtime_source = root / "src" / "arac" / "aliased_leak.py"
+    runtime_source.write_text(source, encoding="utf-8")
+
+    assert "src/arac/aliased_leak.py" in _error_paths(root)
+
+
+def test_f_string_runtime_prefix_is_reported(tmp_path: Path) -> None:
+    root = _project_fixture(tmp_path)
+    runtime_source = root / "src" / "arac" / "dynamic_leak.py"
+    runtime_source.write_text(
+        'from pathlib import Path\nRUN = Path(f"results/{run_id}")\n',
+        encoding="utf-8",
+    )
+
+    assert "src/arac/dynamic_leak.py" in _error_paths(root)
+
+
+def test_utf8_bom_runtime_source_is_valid_python(tmp_path: Path) -> None:
+    root = _project_fixture(tmp_path)
+    runtime_source = root / "src" / "arac" / "bom_source.py"
+    runtime_source.write_bytes("from pathlib import Path\nVALUE = Path('src')\n".encode("utf-8-sig"))
+
+    assert "src/arac/bom_source.py" not in _error_paths(root)
+
+
 def test_results_are_generated_and_payload_is_not_scanned(tmp_path: Path) -> None:
     root = _project_fixture(tmp_path)
     payload_cache = root / "results" / "run-001" / "__pycache__" / "payload.pyc"
@@ -199,6 +238,61 @@ def test_root_must_equal_git_toplevel(tmp_path: Path, root_selector: str) -> Non
     candidate = root / "src" if root_selector == "nested" else root.parent
 
     assert any("must equal Git top-level" in rule for rule in _error_rules(candidate))
+
+
+def test_external_hcc_symlink_is_fatal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    root = _project_fixture(tmp_path)
+    hcc_src = root / "HCC_SRC"
+    hcc_src.mkdir()
+    outside = (tmp_path / "outside-hcc").resolve()
+    outside.mkdir()
+    original_is_symlink = Path.is_symlink
+    original_resolve = Path.resolve
+
+    def fake_is_symlink(path: Path) -> bool:
+        return path == hcc_src or original_is_symlink(path)
+
+    def fake_resolve(path: Path, strict: bool = False) -> Path:
+        if path == hcc_src:
+            return outside
+        return original_resolve(path, strict=strict)
+
+    monkeypatch.setattr(Path, "is_symlink", fake_is_symlink)
+    monkeypatch.setattr(Path, "resolve", fake_resolve)
+
+    report = audit_project_structure(root)
+
+    assert any(
+        finding.path == "HCC_SRC" and "outside repository" in finding.rule
+        for finding in report.errors
+    )
+    assert not any(warning.path == "HCC_SRC" for warning in report.warnings)
+
+
+@pytest.mark.parametrize(
+    "git_failure",
+    [FileNotFoundError("git executable missing"), OSError("git cannot start")],
+    ids=["file-not-found", "os-error"],
+)
+def test_cli_reports_git_execution_error_without_traceback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys,
+    git_failure: OSError,
+) -> None:
+    root = _project_fixture(tmp_path)
+
+    def fail_git(*args, **kwargs):
+        raise git_failure
+
+    monkeypatch.setattr(audit_module.subprocess, "run", fail_git)
+
+    exit_code = main(["--root", str(root)])
+
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert "audit error" in output
+    assert "Traceback" not in output
 
 
 def test_hcc_src_is_an_explicit_nonfatal_task3_transition(tmp_path: Path) -> None:
