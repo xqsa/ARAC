@@ -7,6 +7,7 @@ dependencies = []
 
 [project.optional-dependencies]
 hcc = [
+    "cma==4.4.4",
     "matplotlib==3.11.0",
     "numpy==2.3.5",
     "PyYAML==6.0.3",
