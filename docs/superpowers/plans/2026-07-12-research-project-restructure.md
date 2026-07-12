@@ -403,23 +403,23 @@ python scripts/build_results_manifest.py --root $RepoRoot --results $ResultsRoot
 - Create: focused policy and HCC execution modules from the approved design
 - Test: policy/HCC suites and `tests/test_runtime_module_boundaries.py`
 
-- [ ] **Step 1: Capture v3.2 behavior**
+- [x] **Step 1: Capture v3.2 behavior**
 
 运行现有 policy/HCC tests，在 research log 记录命令、commit 和测试摘要，不提交 generated results。
 
-- [ ] **Step 2: Write responsibility-boundary tests**
+- [x] **Step 2: Write responsibility-boundary tests**
 
 验证 evidence model 不执行 optimizer；policy 不读 final/paper；budget 只负责 FE；shared writeback 接收显式 decision 而非 case label。
 
-- [ ] **Step 3: Extract one responsibility at a time**
+- [x] **Step 3: Extract one responsibility at a time**
 
 只移动定义，不改语义；每次提取后运行对应窄测试；旧模块先做 re-export。
 
-- [ ] **Step 4: Remove duplicate implementations**
+- [x] **Step 4: Remove duplicate implementations**
 
 调用方迁移后，兼容模块只保留 re-export；测试验证旧新 public contract object identity。
 
-- [ ] **Step 5: Run full regression and audit**
+- [x] **Step 5: Run full regression and audit**
 
 Run:
 
@@ -430,7 +430,7 @@ python scripts/audit_project_structure.py --root $RepoRoot
 
 Expected: 全部通过，无重复 runtime 实现，无 paper/historical runtime 引用。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 提交信息：`refactor: split policy and HCC execution responsibilities`。
 

@@ -9,18 +9,27 @@ HCC baseline.
 from __future__ import annotations
 
 import ast
-import csv
-import json
-import re
 import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from arac.actions import ActionDecision, ActionFamily
-from arac.execution import BackendSemanticsDiff
 from arac.evidence import EvidenceProfile, validate_runtime_payload
+
+from .hcc_budget import (
+    _parse_hcc_budget_summary,
+    _parse_hcc_budget_summary_final_fe,
+    _parse_hcc_evaluation_record,
+    _parse_hcc_evaluation_record_with_optimizer_final_fe,
+)
+from .hcc_plan import (
+    HCC_ACTION_EFFECTS,
+    HccActionExecutionPlan,
+    build_hcc_action_execution_plan,
+)
+from .hcc_shared_writeback import hcc_backend_semantics_for
+from .hcc_trace import _find_hcc_action_trace, _tail
 
 
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -85,8 +94,6 @@ def resolve_hcc_vendor_paths(
         aob_data_root=root / "AOB" / "AOBG" / "datafile",
         runner=runner,
     )
-
-
 HCC_VENDOR_PATHS = resolve_hcc_vendor_paths(HCC_VENDOR_ROOT)
 ARAC_HCC_SMOKE_RUNNER = HCC_VENDOR_PATHS.runner
 DEFAULT_AOB_DATA_ROOT = HCC_VENDOR_PATHS.aob_data_root
@@ -274,248 +281,6 @@ class HccAobExecutionResult:
         }
 
 
-@dataclass(frozen=True)
-class HccActionExecutionPlan:
-    """Audit row describing whether an ARAC action reaches HCC runtime."""
-
-    problem_id: str
-    selected_action_name: str
-    selected_action_family: str
-    backend_effect_kind: str
-    optimizer_consumed: bool
-    optimizer_consumed_parameters: dict[str, object]
-    execution_mode: str
-    blocker_reason: str
-    runtime_dispatch_allowed: bool
-
-    def to_csv_row(self) -> dict[str, str]:
-        return {
-            "problem_id": self.problem_id,
-            "selected_action_name": self.selected_action_name,
-            "selected_action_family": self.selected_action_family,
-            "backend_effect_kind": self.backend_effect_kind,
-            "optimizer_consumed": "1" if self.optimizer_consumed else "0",
-            "optimizer_consumed_parameters": _format_json_parameters(
-                self.optimizer_consumed_parameters
-            ),
-            "execution_mode": self.execution_mode,
-            "blocker_reason": self.blocker_reason,
-            "runtime_dispatch_allowed": "1" if self.runtime_dispatch_allowed else "0",
-        }
-
-
-HCC_ACTION_EFFECTS = {
-    "conservative_no_action": (
-        "no_op_safe_fallback",
-        {"backend": "repo_default_hcc_no_action"},
-        "hcc_noop_baseline",
-        True,
-        "",
-    ),
-    "isolate_conflicting_relation": (
-        "shared_variable_value_selection",
-        {"runtime_hook": "overlap_value_selection_rule"},
-        "hcc_relation_value_selection_consumed",
-        True,
-        "",
-    ),
-    "protect_high_margin_group": (
-        "protect_resource_priority",
-        {},
-        "audit_only_not_executed",
-        False,
-        "no_hcc_runtime_consumer_yet",
-    ),
-    "budget_shift_mean_blend": (
-        "optimizer_budget_and_mean_trajectory",
-        {"runtime_hook": "budget_shift_mean_blend"},
-        "hcc_trajectory_runtime_consumed",
-        True,
-        "",
-    ),
-    "bipop_search_state_restart": (
-        "optimizer_search_state_restart",
-        {"runtime_hook": "bipop_search_state_restart"},
-        "hcc_search_state_runtime_consumed",
-        True,
-        "",
-    ),
-    "resume_phase_i_search_state": (
-        "resumable_mmes_state_block",
-        {
-            "runtime_hook": "resume_phase_i_search_state",
-            "backend": "saved_phase_i_mmes_state",
-            "acceptance_rule": "strict_global_incumbent_improvement",
-        },
-        "hcc_stateful_search_action",
-        True,
-        "",
-    ),
-    "phase_rescue_multistart": (
-        "optimizer_phase_rescue_multistart",
-        {
-            "runtime_hook": "phase_rescue_multistart",
-            "acceptance_rule": "best_improving_candidate_only",
-        },
-        "hcc_phase_rescue_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_phase_rescue_multistart": (
-        "repair_guided_phase_rescue_multistart",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "search_state_runtime_hook": "phase_rescue_multistart",
-            "acceptance_rule": "best_improving_candidate_only",
-        },
-        "hcc_repair_phase_rescue_runtime_consumed",
-        True,
-        "",
-    ),
-    "cc_harm_guarded_sep_refresh": (
-        "cc_harm_guarded_sep_or_nda_refresh",
-        {
-            "runtime_hook": "cc_harm_guarded_sep_refresh",
-            "guard": "phase_i_or_current_incumbent_no_harm",
-            "refresh_backend": "full_space_mmes_nda_continuation",
-            "acceptance_rule": "guarded_incumbent_improving_candidate_only",
-        },
-        "hcc_cc_harm_guarded_refresh_runtime_consumed",
-        True,
-        "",
-    ),
-    "separable_cmaes_dispatch_action": (
-        "full_space_diagonal_separable_search_takeover",
-        {
-            "runtime_hook": "separable_cmaes_dispatch_action",
-            "backend": "direct_separable_cmaes",
-            "search_distribution": "diagonal_sigma_full_space",
-            "acceptance_rule": "optimizer_best_so_far",
-        },
-        "hcc_direct_separable_cmaes_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v1": (
-        "evidence_action_runtime_controller",
-        {
-            "relation_runtime_hook": "adaptive_v26_relation_dispatch",
-            "overlap_runtime_hook": "evidence_triggered_overlap_action",
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-                "cc_harm_guarded_sep_refresh",
-            ],
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v2": (
-        "evidence_action_runtime_controller_v2",
-        {
-            "relation_runtime_hook": "adaptive_v24_relation_dispatch",
-            "overlap_runtime_hook": "relation_first_evidence_triggered_overlap_action",
-            "search_state_runtime_hooks": [],
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v2_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v3": (
-        "evidence_action_runtime_controller_v3",
-        {
-            "relation_runtime_hook": "controller_v3_relation_dispatch",
-            "mode_selector": "early_runtime_overlap_relation_evidence",
-            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-                "cc_harm_guarded_sep_refresh",
-            ],
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v3_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v31": (
-        "evidence_action_runtime_controller_v31",
-        {
-            "relation_runtime_hook": "controller_v31_guarded_relation_dispatch",
-            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
-            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
-            "search_state_runtime_hooks": [
-                "resume_phase_i_search_state",
-            ],
-            "guard": "stable_relation_first_no_harm_gate",
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v31_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v32": (
-        "evidence_action_runtime_controller_v32",
-        {
-            "relation_runtime_hook": "controller_v31_guarded_relation_dispatch",
-            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
-            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-            ],
-            "guard": "stable_relation_first_no_harm_gate",
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v32_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_bipop_search_state_restart": (
-        "repair_guided_optimizer_search_state_restart",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "search_state_runtime_hook": "bipop_search_state_restart",
-        },
-        "hcc_repair_bipop_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_protect_refine": (
-        "repair_guided_local_refinement",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "optimizer_runtime_hook": "protected_small_sigma_refine",
-        },
-        "hcc_repair_refine_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_protect_deep_refine": (
-        "repair_guided_deep_local_refinement",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "optimizer_runtime_hook": "protected_deep_sigma_refine",
-        },
-        "hcc_repair_deep_refine_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_shared_variable_binding": (
-        "shared_variable_owner_rebinding",
-        {"runtime_hook": "overlap_repair_rule"},
-        "hcc_smoke_runtime_consumed",
-        True,
-        "",
-    ),
-    "allow_beneficial_coordination": (
-        "coordination_mode_switch",
-        {"runtime_hook": "overlap_clipped_consensus_blend"},
-        "hcc_relation_runtime_consumed",
-        True,
-        "",
-    ),
-}
 
 
 def _clamp_ratio(value: float) -> float:
@@ -689,36 +454,6 @@ def load_hcc_aob_topology(
         groups=group_signals,
     )
 
-
-def build_hcc_action_execution_plan(
-    problem_id: str,
-    decision: ActionDecision,
-) -> HccActionExecutionPlan:
-    """Describe whether an ARAC action is optimizer-consumed by HCC today."""
-
-    effect = HCC_ACTION_EFFECTS.get(decision.action_name)
-    if effect is None:
-        backend_effect_kind = "unknown_action"
-        parameters: dict[str, object] = {}
-        execution_mode = "audit_only_not_executed"
-        optimizer_consumed = False
-        blocker = "unknown_hcc_action_binding"
-    else:
-        backend_effect_kind, parameters, execution_mode, optimizer_consumed, blocker = effect
-
-    return HccActionExecutionPlan(
-        problem_id=_problem_parts(problem_id)[0],
-        selected_action_name=decision.action_name,
-        selected_action_family=decision.action_family.value,
-        backend_effect_kind=backend_effect_kind,
-        optimizer_consumed=bool(optimizer_consumed),
-        optimizer_consumed_parameters=dict(parameters),
-        execution_mode=execution_mode,
-        blocker_reason=blocker,
-        runtime_dispatch_allowed=bool(optimizer_consumed),
-    )
-
-
 def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeCommand:
     """Build the subprocess command from the canonical HCC vendor boundary."""
 
@@ -882,107 +617,6 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
     )
 
 
-def _parse_hcc_evaluation_record(
-    output_dir: Path,
-    budget_limit: int | None = None,
-) -> tuple[float, int]:
-    final_error, fe_used, _optimizer_final_fe_used = (
-        _parse_hcc_evaluation_record_with_optimizer_final_fe(
-            output_dir,
-            budget_limit=budget_limit,
-        )
-    )
-    return final_error, fe_used
-
-
-def _parse_hcc_evaluation_record_with_optimizer_final_fe(
-    output_dir: Path,
-    budget_limit: int | None = None,
-) -> tuple[float, int, int]:
-    records = sorted(Path(output_dir).rglob("evaluation_record.txt"))
-    if not records:
-        raise FileNotFoundError(f"missing HCC evaluation_record.txt under {output_dir}")
-    text = records[-1].read_text(encoding="utf-8", errors="replace")
-    final_match = re.search(
-        r"Fin:\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
-        text,
-    )
-    if not final_match:
-        raise ValueError(f"could not parse final HCC error from {records[-1]}")
-    optimizer_final_fe_used = _parse_hcc_budget_summary_final_fe(output_dir)
-    if optimizer_final_fe_used is None:
-        optimizer_final_fe_used = int(float(final_match.group("fe")))
-    if budget_limit is not None:
-        for checkpoint in re.finditer(
-            r"^\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
-            text,
-            flags=re.MULTILINE,
-        ):
-            fe = int(float(checkpoint.group("fe")))
-            if fe == budget_limit:
-                return float(checkpoint.group("value")), fe, optimizer_final_fe_used
-
-    return (
-        float(final_match.group("value")),
-        optimizer_final_fe_used,
-        optimizer_final_fe_used,
-    )
-
-
-def _parse_hcc_budget_summary_final_fe(output_dir: Path) -> int | None:
-    summary = _parse_hcc_budget_summary(output_dir)
-    for field in ("fitness_record_fe", "optimizer_reported_fe"):
-        if field in summary:
-            return summary[field]
-    return None
-
-
-def _parse_hcc_budget_summary(output_dir: Path) -> dict[str, int]:
-    summaries = sorted(Path(output_dir).rglob("*budget_summary.csv"))
-    if not summaries:
-        return {}
-    with summaries[-1].open(newline="", encoding="utf-8") as handle:
-        rows = list(csv.DictReader(handle))
-    if not rows:
-        return {}
-    row = rows[-1]
-    parsed: dict[str, int] = {}
-    for field in (
-        "fitness_record_fe",
-        "optimizer_reported_fe",
-        "global_phase_fe",
-        "cc_phase_fe",
-        "rescue_fe",
-        "refresh_fe",
-        "search_state_fe",
-        "separable_continuation_fe",
-        "overhead_fe",
-    ):
-        value = row.get(field)
-        if value not in (None, ""):
-            parsed[field] = int(float(value))
-    parsed.setdefault("search_state_fe", 0)
-    return parsed
-
-
-def _find_hcc_action_trace(output_dir: Path) -> tuple[Path | None, int]:
-    traces = sorted(Path(output_dir).rglob("action_trace.csv"))
-    if not traces:
-        return None, 0
-    trace_path = traces[-1]
-    with trace_path.open(newline="", encoding="utf-8") as handle:
-        row_count = max(0, sum(1 for _ in handle) - 1)
-    return trace_path, row_count
-
-
-def _tail(text: str, max_chars: int = 2000) -> str:
-    return (text or "")[-max_chars:]
-
-
-def _format_json_parameters(parameters: dict[str, object]) -> str:
-    if not parameters:
-        return ""
-    return json.dumps(parameters, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
 def _rank_stability(groups: tuple[HccGroupSignal, ...]) -> float:
@@ -1065,95 +699,3 @@ def build_hcc_evidence_profile(snapshot: HccBackboneSnapshot) -> EvidenceProfile
         budget_remaining_ratio=_clamp_ratio(snapshot.budget_remaining_ratio),
         fallback_margin_proxy=_clamp_ratio(1.0 - harmful_coord_score),
     )
-
-
-def hcc_backend_semantics_for(
-    decision: ActionDecision,
-    *,
-    optimizer_consumed: bool,
-) -> BackendSemanticsDiff:
-    """Map clean ARAC actions onto HCC optimizer-consumed semantic surfaces."""
-
-    if not optimizer_consumed:
-        return BackendSemanticsDiff()
-    if decision.action_family == ActionFamily.ISOLATE:
-        return BackendSemanticsDiff(relation_handling_changed=True)
-    if decision.action_family == ActionFamily.PROTECT:
-        return BackendSemanticsDiff(budget_allocation_changed=True)
-    if decision.action_family == ActionFamily.REASSIGN_REPAIR:
-        return BackendSemanticsDiff(variable_owner_changed=True)
-    if decision.action_family == ActionFamily.COORDINATE:
-        return BackendSemanticsDiff(coordination_mode_changed=True)
-    if decision.action_family == ActionFamily.TRAJECTORY:
-        if decision.action_name in {"repair_protect_refine", "repair_protect_deep_refine"}:
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                budget_allocation_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name in {
-            "repair_bipop_search_state_restart",
-            "repair_phase_rescue_multistart",
-        }:
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "cc_harm_guarded_sep_refresh":
-            return BackendSemanticsDiff(
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "separable_cmaes_dispatch_action":
-            return BackendSemanticsDiff(
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "arac_evidence_action_controller_v1":
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "arac_evidence_action_controller_v2":
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-            )
-        if decision.action_name == "arac_evidence_action_controller_v3":
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name in {
-            "arac_evidence_action_controller_v31",
-            "arac_evidence_action_controller_v32",
-        }:
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name in {"bipop_search_state_restart", "phase_rescue_multistart"}:
-            return BackendSemanticsDiff(
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        return BackendSemanticsDiff(budget_allocation_changed=True)
-    return BackendSemanticsDiff()
