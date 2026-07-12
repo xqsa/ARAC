@@ -150,7 +150,7 @@ class HccAobCaseTopology:
 
 @dataclass(frozen=True)
 class HccAobSmokeCommand:
-    """Subprocess command for a bounded HCC-main smoke execution."""
+    """Subprocess command for a bounded canonical HCC vendor smoke execution."""
 
     argv: tuple[str, ...]
     cwd: Path
@@ -161,7 +161,7 @@ class HccAobExecutionRequest:
     """Request for a single AOB/HCC smoke execution.
 
     Full 3M-FE, 24-case pilots should be scheduled explicitly by experiment
-    code. This request is intentionally single-case to keep HCC-main execution
+    code. This request is intentionally single-case to keep canonical HCC vendor execution
     bridged through a narrow, auditable boundary.
     """
 
@@ -723,7 +723,7 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
 
 
 def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecutionResult:
-    """Run one bounded HCC-main smoke execution and parse its offline result.
+    """Run one bounded canonical HCC vendor smoke execution and parse its offline result.
 
     The subprocess runs from the canonical ``vendor/hcc`` root. All executable
     and AOB input paths are absolute, so execution does not depend on the caller's

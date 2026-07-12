@@ -46,7 +46,7 @@ The default output directory is `results/exp_002_aob_1run_pilot/`.
 `arac.backends.hcc.run_hcc_aob_smoke_execution(...)` builds a single-case,
 small-budget subprocess call into `scripts/hcc_smoke_runner.py` with
 `cwd=vendor/hcc`.
-It must be given a Python environment that can run the HCC source dependencies
+It must be given a Python environment that can run the vendored HCC source dependencies
 (`PyYAML`, `torch`, `matplotlib`, and `numpy`). Smoke results are offline-only;
 copying `final_error` or relative gains into runtime payloads remains forbidden.
 

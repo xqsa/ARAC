@@ -400,7 +400,7 @@ def _write_manifest(output_dir: Path) -> None:
             "relative gains, and prior outcomes must not enter runtime dispatch.",
             "Paper Table 2 values are joined only in paper_reported_comparison.csv for offline evaluation.",
             f"Pilot result source: {PILOT_RESULT_SOURCE}; this is not a real full optimizer performance run.",
-            f"Source level: {SOURCE_LEVEL}; AOB metadata and grouping topology are read from E:\\HCC-main.",
+            f"Source level: {SOURCE_LEVEL}; AOB metadata and grouping topology are read from the canonical vendor/hcc snapshot.",
             "Optional HCC smoke execution overlays are offline-only and must not enter runtime dispatch.",
             "Negative controls and catastrophic-loss checks are explicit audit surfaces.",
             "",
@@ -579,7 +579,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--smoke-case",
         default="",
-        help="Optional single AOB case, such as E1, to execute through HCC-main.",
+        help="Optional single AOB case, such as E1, to execute through the canonical HCC vendor smoke runner.",
     )
     parser.add_argument(
         "--smoke-fes",
