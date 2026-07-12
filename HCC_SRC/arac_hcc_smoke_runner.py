@@ -278,6 +278,7 @@ EVIDENCE_ACTION_CONTROLLER_V1 = "arac_evidence_action_controller_v1"
 EVIDENCE_ACTION_CONTROLLER_V2 = "arac_evidence_action_controller_v2"
 EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
 EVIDENCE_ACTION_CONTROLLER_V31 = "arac_evidence_action_controller_v31"
+EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -294,6 +295,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V2,
     EVIDENCE_ACTION_CONTROLLER_V3,
     EVIDENCE_ACTION_CONTROLLER_V31,
+    EVIDENCE_ACTION_CONTROLLER_V32,
     RESUME_PHASE_I_SEARCH_STATE,
 }
 TRAJECTORY_BUDGET_SHIFT_STRENGTH = 0.35
@@ -705,8 +707,16 @@ def is_evidence_action_controller_v31(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V31
 
 
+def is_evidence_action_controller_v32(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V32
+
+
 def is_guarded_evidence_action_controller(action_name: str) -> bool:
-    return is_evidence_action_controller_v3(action_name) or is_evidence_action_controller_v31(action_name)
+    return (
+        is_evidence_action_controller_v3(action_name)
+        or is_evidence_action_controller_v31(action_name)
+        or is_evidence_action_controller_v32(action_name)
+    )
 
 
 def is_evidence_action_controller(action_name: str) -> bool:
@@ -715,6 +725,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v2(action_name)
         or is_evidence_action_controller_v3(action_name)
         or is_evidence_action_controller_v31(action_name)
+        or is_evidence_action_controller_v32(action_name)
     )
 
 
@@ -745,9 +756,16 @@ def uses_phase_rescue_during_run(
     evidence_controller_search_state_enabled: bool,
 ) -> bool:
     return uses_phase_rescue_controller(action_name) or (
-        is_evidence_action_controller_v3(action_name)
+        (
+            is_evidence_action_controller_v3(action_name)
+            or is_evidence_action_controller_v32(action_name)
+        )
         and evidence_controller_search_state_enabled
     )
+
+
+def uses_resumable_phase_i_state_during_run(action_name: str) -> bool:
+    return is_evidence_action_controller_v31(action_name)
 
 
 def is_cc_harm_guarded_sep_refresh_action(action_name: str) -> bool:
@@ -800,7 +818,10 @@ def refine_sigma_for_action(
     if action_name in {REPAIR_PROTECT_REFINE_ACTION, REPAIR_PHASE_RESCUE_MULTISTART_ACTION}:
         return float(base_sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
     if (
-        is_evidence_action_controller_v31(action_name)
+        (
+            is_evidence_action_controller_v31(action_name)
+            or is_evidence_action_controller_v32(action_name)
+        )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
     ):
@@ -2268,7 +2289,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     global_fes = calculate_global_fes(config.max_fes, degree)
     controller_v31_run_state = (
         build_evidence_action_controller_v31_run_state(degree)
-        if is_evidence_action_controller_v31(config.arac_action)
+        if (
+            is_evidence_action_controller_v31(config.arac_action)
+            or is_evidence_action_controller_v32(config.arac_action)
+        )
         else None
     )
     if is_separable_cmaes_dispatch_action(config.arac_action):
@@ -2422,7 +2446,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         if config.seed is not None:
             options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
         phase_i_optimizer = MMES(problem, options)
-        if controller_v31_run_state is None:
+        if not uses_resumable_phase_i_state_during_run(config.arac_action):
             results = phase_i_optimizer.optimize()
         else:
             results, phase_i_state = phase_i_optimizer.optimize_with_state()
@@ -3135,6 +3159,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
         if (
             controller_v31_run_state is not None
+            and uses_resumable_phase_i_state_during_run(config.arac_action)
             and optimized_any_group
             and len(fitness_delta_list) == sub_num
         ):
@@ -3510,6 +3535,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V2,
             EVIDENCE_ACTION_CONTROLLER_V3,
             EVIDENCE_ACTION_CONTROLLER_V31,
+            EVIDENCE_ACTION_CONTROLLER_V32,
         ],
     )
     args = parser.parse_args(argv)

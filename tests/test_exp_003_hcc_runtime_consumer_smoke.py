@@ -1088,7 +1088,7 @@ def test_exp_003_evidence_action_controller_v31_profile_is_single_runtime_method
     assert lane.relation_policy_mode == "controller_v31"
 
 
-def test_exp_003_canonical_evidence_controller_profile_reuses_single_v31_lane() -> None:
+def test_exp_003_canonical_evidence_controller_profile_reuses_single_v32_lane() -> None:
     from experiments.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 
     lanes = lanes_for_profile("canonical_evidence_controller_v1")
@@ -1096,7 +1096,9 @@ def test_exp_003_canonical_evidence_controller_profile_reuses_single_v31_lane() 
     assert len(lanes) == 1
     lane = lanes[0]
     assert lane.lane_id == "canonical_evidence_controller_v1"
-    assert lane.runner_action_name == "arac_evidence_action_controller_v31"
+    assert lane.selected_action_name == "arac_evidence_action_controller_v32"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v32"
+    assert lane.plan_action_name == "arac_evidence_action_controller_v32"
     assert lane.relation_dispatch_enabled is True
     assert lane.relation_policy_mode == "controller_v31"
 

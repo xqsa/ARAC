@@ -488,6 +488,34 @@ def test_hcc_smoke_runner_parses_evidence_action_controller_v31() -> None:
     assert args.relation_policy == "controller_v31"
 
 
+def test_hcc_smoke_runner_parses_evidence_action_controller_v32() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "3",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "arac_evidence_action_controller_v32",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v32"
+    assert args.enable_relation_dispatch is True
+    assert args.relation_policy == "controller_v31"
+
+
 @pytest.mark.parametrize("action_name", ["budget_shift_only", "mean_blend_only"])
 def test_hcc_smoke_runner_parses_trajectory_diagnostic_actions(action_name: str) -> None:
     runner = _load_runner_module()
@@ -3727,6 +3755,18 @@ def test_controller_v31_does_not_use_legacy_phase_rescue_path() -> None:
     assert not runner.uses_phase_rescue_during_run(
         runner.EVIDENCE_ACTION_CONTROLLER_V31,
         evidence_controller_search_state_enabled=True,
+    )
+
+
+def test_controller_v32_uses_group_local_phase_rescue_without_stale_state_resume() -> None:
+    runner = _load_runner_module()
+
+    assert runner.uses_phase_rescue_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V32,
+        evidence_controller_search_state_enabled=True,
+    )
+    assert not runner.uses_resumable_phase_i_state_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V32,
     )
 
 

@@ -471,15 +471,27 @@ EVIDENCE_ACTION_CONTROLLER_V31_LANES = (
         relation_policy_mode="controller_v31",
     ),
 )
+EVIDENCE_ACTION_CONTROLLER_V32_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v32",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v32",
+        "arac_evidence_action_controller_v32",
+        "single_run_guarded_runtime_evidence_controller_v32",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v32",
+        relation_policy_mode="controller_v31",
+    ),
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
         ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v31",
-        "arac_evidence_action_controller_v31",
+        "arac_evidence_action_controller_v32",
+        "arac_evidence_action_controller_v32",
         "single_run_canonical_runtime_evidence_controller",
         relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v31",
+        plan_action_name="arac_evidence_action_controller_v32",
         relation_policy_mode="controller_v31",
     ),
 )
@@ -548,6 +560,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return EVIDENCE_ACTION_CONTROLLER_V3_LANES
     if lane_profile == "evidence_action_controller_v31":
         return EVIDENCE_ACTION_CONTROLLER_V31_LANES
+    if lane_profile == "evidence_action_controller_v32":
+        return EVIDENCE_ACTION_CONTROLLER_V32_LANES
     if lane_profile == "canonical_evidence_controller_v1":
         return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
     raise ValueError(f"unsupported lane profile: {lane_profile}")
@@ -4004,6 +4018,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v2",
             "evidence_action_controller_v3",
             "evidence_action_controller_v31",
+            "evidence_action_controller_v32",
             "canonical_evidence_controller_v1",
         ],
     )

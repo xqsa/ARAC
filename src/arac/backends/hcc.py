@@ -390,6 +390,22 @@ HCC_ACTION_EFFECTS = {
         True,
         "",
     ),
+    "arac_evidence_action_controller_v32": (
+        "evidence_action_runtime_controller_v32",
+        {
+            "relation_runtime_hook": "controller_v31_guarded_relation_dispatch",
+            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
+            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
+            "search_state_runtime_hooks": [
+                "phase_rescue_multistart",
+            ],
+            "guard": "stable_relation_first_no_harm_gate",
+            "dispatch_boundary": "runtime_evidence_only",
+        },
+        "hcc_evidence_action_controller_v32_runtime_consumed",
+        True,
+        "",
+    ),
     "repair_bipop_search_state_restart": (
         "repair_guided_optimizer_search_state_restart",
         {
@@ -1018,7 +1034,10 @@ def hcc_backend_semantics_for(
                 update_order_changed=True,
                 acceptance_rule_changed=True,
             )
-        if decision.action_name == "arac_evidence_action_controller_v31":
+        if decision.action_name in {
+            "arac_evidence_action_controller_v31",
+            "arac_evidence_action_controller_v32",
+        }:
             return BackendSemanticsDiff(
                 variable_owner_changed=True,
                 relation_handling_changed=True,

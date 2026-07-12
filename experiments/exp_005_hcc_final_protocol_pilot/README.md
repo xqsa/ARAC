@@ -10,7 +10,7 @@ Default protocol:
 - seeds: `1 2 3`
 - budget: `3,000,000` FE per case
 - lane profile: `canonical_evidence_controller_v1`
-- lane: one `arac_evidence_action_controller_v31` trajectory
+- lane: one `arac_evidence_action_controller_v32` trajectory
 - AOB data root: `E:\ARAC\HCC_SRC\AOB\AOBG\datafile`
 
 Run:

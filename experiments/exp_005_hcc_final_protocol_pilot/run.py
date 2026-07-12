@@ -424,6 +424,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v2",
             "evidence_action_controller_v3",
             "evidence_action_controller_v31",
+            "evidence_action_controller_v32",
             "canonical_evidence_controller_v1",
         ],
     )
