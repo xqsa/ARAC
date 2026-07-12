@@ -15,11 +15,11 @@ remains under `HCC_SRC/` until the separately tested Task 3 migration.
 
 ## Git And Modification Policy
 
-Approved source and provenance notes are tracked; `__pycache__`, `.pyc`, logs, plots, and run
-results are not. Vendor code is read-only application code: ARAC evidence, policy, claim gates,
-and paper comparisons belong outside this directory. Required fixes must be explicit, reviewed,
-tested for source equivalence, and documented as patches rather than silently mixed into the
-snapshot.
+Approved source, provenance notes, and `result/README.md` are tracked. Generated files under
+`result/`, `__pycache__`, and `.pyc` files are ignored and must not be tracked. Vendor code is
+read-only application code: ARAC evidence, policy, claim gates, and paper comparisons belong
+outside this directory. Required fixes must be explicit, reviewed, tested for source
+equivalence, and documented as patches rather than silently mixed into the snapshot.
 
 The current `HCC_SRC/` compatibility path is a nonfatal, explicit Task 3 warning. It exists to
 avoid changing runtime behavior in Task 2 and must not weaken cache, results-ignore, or
