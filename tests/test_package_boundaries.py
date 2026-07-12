@@ -126,21 +126,50 @@ def test_compatibility_modules_contain_only_reexports() -> None:
 def test_runtime_imports_do_not_load_vendor_or_read_offline_csv() -> None:
     script = r'''
 import builtins
+import io
 import sys
 from pathlib import Path
 
 real_open = builtins.open
+real_io_open = io.open
 repo_root = Path.cwd().resolve()
 vendor_root = repo_root / "vendor"
+offline_components = {"paper", "references", "archive", "historical"}
 modules_before_import = set(sys.modules)
 
+def is_offline_path(file):
+    if isinstance(file, int):
+        return False
+    try:
+        path = Path(file).resolve()
+    except (TypeError, ValueError):
+        return False
+    return bool(offline_components.intersection(part.casefold() for part in path.parts))
+
 def guarded_open(file, *args, **kwargs):
-    path = str(file).replace("\\", "/").lower()
-    if path.endswith(".csv") and ("/paper/" in path or "/references/" in path):
-        raise AssertionError(f"runtime opened offline CSV: {file}")
+    if is_offline_path(file):
+        raise AssertionError(f"runtime opened offline file: {file}")
     return real_open(file, *args, **kwargs)
 
+def guarded_io_open(file, *args, **kwargs):
+    if is_offline_path(file):
+        raise AssertionError(f"runtime opened offline file: {file}")
+    return real_io_open(file, *args, **kwargs)
+
 builtins.open = guarded_open
+io.open = guarded_io_open
+
+for offline_reader in (
+    lambda: open(repo_root / "paper" / "probe.txt"),
+    lambda: (repo_root / "references" / "probe.txt").read_text(),
+):
+    try:
+        offline_reader()
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("offline file guard did not intercept a read")
+
 import arac.actions
 import arac.audit
 import arac.audits
