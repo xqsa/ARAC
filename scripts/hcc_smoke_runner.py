@@ -14,7 +14,8 @@ import yaml
 
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[1]
 ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
-for import_root in (ARAC_REPO_ROOT, ARAC_SRC_ROOT):
+HCC_VENDOR_ROOT = ARAC_REPO_ROOT / "vendor" / "hcc"
+for import_root in (ARAC_REPO_ROOT, ARAC_SRC_ROOT, HCC_VENDOR_ROOT):
     if str(import_root) not in sys.path:
         sys.path.insert(0, str(import_root))
 
@@ -107,7 +108,7 @@ def plot_evaluation_curve_best_so_far(*args, **kwargs):
     return _plot_evaluation_curve_best_so_far(*args, **kwargs)
 
 
-DATA_DIR = ARAC_REPO_ROOT / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+DATA_DIR = HCC_VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
 FUNCTION_NAMES = ("elliptic", "schwefel", "rastrigin", "ackley")
 PROBLEM_IDS = (1, 2, 3, 4, 5, 6)
 ACTION_TRACE_FIELDS = [

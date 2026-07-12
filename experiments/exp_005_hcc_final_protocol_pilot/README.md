@@ -11,12 +11,12 @@ Default protocol:
 - budget: `3,000,000` FE per case
 - lane profile: `canonical_evidence_controller_v1`
 - lane: one `arac_evidence_action_controller_v32` trajectory
-- AOB data root: `E:\ARAC\HCC_SRC\AOB\AOBG\datafile`
+- AOB data root: `<repo>\vendor\hcc\AOB\AOBG\datafile`
 
 Run:
 
 ```powershell
-& E:\ARAC\.venv\Scripts\python.exe experiments\exp_005_hcc_final_protocol_pilot\run.py --output-dir results\exp_005_hcc_final_protocol_pilot --aob-data-root E:\ARAC\HCC_SRC\AOB\AOBG\datafile --python-executable E:\ARAC\.venv\Scripts\python.exe --jobs 24 --budget-accounting strict
+& E:\ARAC\.venv\Scripts\python.exe experiments\exp_005_hcc_final_protocol_pilot\run.py --output-dir results\exp_005_hcc_final_protocol_pilot --aob-data-root vendor\hcc\AOB\AOBG\datafile --python-executable E:\ARAC\.venv\Scripts\python.exe --jobs 24 --budget-accounting strict
 ```
 
 The entry fails before launching any optimizer unless the backend interpreter

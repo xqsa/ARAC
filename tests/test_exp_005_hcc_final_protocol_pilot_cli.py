@@ -36,7 +36,7 @@ def test_exp_005_cli_defaults_to_3m_fe_canonical_controller() -> None:
         "A4",
         "A5",
     ]
-    assert str(args.aob_data_root).endswith("HCC_SRC\\AOB\\AOBG\\datafile")
+    assert str(args.aob_data_root).endswith("vendor\\hcc\\AOB\\AOBG\\datafile")
 
 
 def test_exp_005_canonical_cli_has_no_offline_threshold_arguments() -> None:

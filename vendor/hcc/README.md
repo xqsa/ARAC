@@ -1,26 +1,35 @@
 # HCC Vendor Boundary
 
-`vendor/hcc/` is reserved for the reviewed HCC/AOB source snapshot used by ARAC's backend
-adapter. During Task 2 this directory intentionally contains only this contract; tracked source
-remains under `HCC_SRC/` until the separately tested Task 3 migration.
+`vendor/hcc/` is the canonical HCC/AOB source boundary for ARAC v3.2. It is a reviewed snapshot
+of the patched runtime source extracted from the read-only provenance repository
+`E:\HCC-main`; it is not a live mirror of that workspace. The original HCC project README is
+preserved as `UPSTREAM_README.md`.
 
-## Provenance, Inputs, And Outputs
+## Ownership
 
-- Provenance input: the read-only source/evidence repository `E:\HCC-main`, reviewed against the
-  v3.2 canonical ARAC baseline rooted at commit `b88a4d9`.
-- Runtime input after migration: explicit backend root, AOB benchmark data, ARAC action plan,
-  seed, and FE budget.
-- Output: optimizer traces and same-budget records written outside the vendor tree to
-  `results/` through the adapter boundary.
+- `AOB/`, `HCC/`, and `HCC-ES.py` are vendored upstream-derived source and are read-only by
+  default.
+- The ARAC-owned runner lives at `scripts/hcc_smoke_runner.py`; no ARAC runner is kept inside
+  the vendor tree.
+- Runtime adapters pass an explicit vendor root and AOB data root. They do not depend on the
+  process working directory or on `E:\HCC-main`.
+- Generated optimizer payload under `result/` is ignored. Only `result/README.md` is tracked.
 
-## Git And Modification Policy
+## Smoke Command
 
-Approved source, provenance notes, and `result/README.md` are tracked. Generated files under
-`result/`, `__pycache__`, and `.pyc` files are ignored and must not be tracked. Vendor code is
-read-only application code: ARAC evidence, policy, claim gates, and paper comparisons belong
-outside this directory. Required fixes must be explicit, reviewed, tested for source
-equivalence, and documented as patches rather than silently mixed into the snapshot.
+Run from any working directory by using absolute paths, or from the repository root with:
 
-The current `HCC_SRC/` compatibility path is a nonfatal, explicit Task 3 warning. It exists to
-avoid changing runtime behavior in Task 2 and must not weaken cache, results-ignore, or
-reference-blind audit failures.
+```powershell
+py scripts/hcc_smoke_runner.py --functions elliptic --ids 1 --seed 1 --max-fes 2000 --output-root results/hcc-smoke --aob-data-root vendor/hcc/AOB/AOBG/datafile --skip-plots
+```
+
+The selected interpreter must provide the optional HCC dependencies declared in
+`pyproject.toml`.
+
+## Patch Rules
+
+Do not edit vendor optimizer behavior as part of ARAC policy or experiment work. A required HCC
+patch must be isolated, justified against `E:\HCC-main`, covered by focused regression tests,
+and documented in the commit that introduces it. Changes to optimizer semantics, random-number
+flow, or FE accounting require an explicit protocol task; path and packaging work must remain
+behavior-preserving.

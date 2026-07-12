@@ -23,8 +23,9 @@ if str(ARAC_SRC_ROOT) not in sys.path:
 from arac.audit import claim_gate
 from arac.backend_adapter import BackendSemanticsDiff
 from arac.backends.hcc import (
+    ARAC_HCC_SMOKE_RUNNER,
     DEFAULT_AOB_DATA_ROOT,
-    DEFAULT_HCC_MAIN_ROOT,
+    HCC_VENDOR_ROOT,
     HccActionExecutionPlan,
     HccAobExecutionRequest,
     HccAobExecutionResult,
@@ -3493,7 +3494,7 @@ def _write_manifest(
             f"Lanes: {', '.join(lane.lane_id for lane in lanes)}",
             f"AOB data root: {Path(aob_data_root).resolve()}",
             f"Actual cwd: {Path.cwd().resolve()}",
-            f"Backend cwd: {DEFAULT_HCC_MAIN_ROOT}",
+            f"Backend cwd: {HCC_VENDOR_ROOT}",
             f"Wrapper Python executable: {Path(sys.executable).resolve()}",
             f"Backend Python executable: {python_executable}",
             f"Python version: {platform.python_version()}",
@@ -3512,10 +3513,10 @@ def _write_manifest(
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- search-state policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'search_state_policy.py')}",
             f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
-            f"- HCC smoke runner sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'arac_hcc_smoke_runner.py')}",
-            f"- MMES optimizer sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'NDAs' / 'MMES' / 'mmes.py')}",
-            f"- MMES state model sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'NDAs' / 'MMES' / 'state.py')}",
-            f"- CMAES optimizer sha256: {_sha256_file(ARAC_REPO_ROOT / 'HCC_SRC' / 'HCC' / 'OPT' / 'CMAES' / 'cmaes.py')}",
+            f"- HCC smoke runner sha256: {_sha256_file(ARAC_HCC_SMOKE_RUNNER)}",
+            f"- MMES optimizer sha256: {_sha256_file(HCC_VENDOR_ROOT / 'HCC' / 'NDAs' / 'MMES' / 'mmes.py')}",
+            f"- MMES state model sha256: {_sha256_file(HCC_VENDOR_ROOT / 'HCC' / 'NDAs' / 'MMES' / 'state.py')}",
+            f"- CMAES optimizer sha256: {_sha256_file(HCC_VENDOR_ROOT / 'HCC' / 'OPT' / 'CMAES' / 'cmaes.py')}",
             (
                 "- AOB input hashes: aob_input_manifest.csv; "
                 f"rows={len(aob_input_rows)}; "
@@ -3556,7 +3557,7 @@ def run_hcc_runtime_consumer_smoke(
     execution_runner: Callable[[HccAobExecutionRequest], HccAobExecutionResult] = (
         run_hcc_aob_smoke_execution
     ),
-    hcc_root: Path | str = DEFAULT_HCC_MAIN_ROOT,
+    hcc_root: Path | str = HCC_VENDOR_ROOT,
     aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
     python_executable: str = sys.executable,
     seeds: tuple[int, ...] = DEFAULT_SEEDS,
@@ -3971,7 +3972,7 @@ def run_hcc_runtime_consumer_smoke(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run exp_003 HCC runtime consumer smoke.")
     parser.add_argument("--output-dir", default="results/exp_003_hcc_runtime_consumer_smoke")
-    parser.add_argument("--hcc-root", default=str(DEFAULT_HCC_MAIN_ROOT))
+    parser.add_argument("--hcc-root", default=str(HCC_VENDOR_ROOT))
     parser.add_argument("--aob-data-root", default=str(DEFAULT_AOB_DATA_ROOT))
     parser.add_argument("--python-executable", default=sys.executable)
     parser.add_argument("--seeds", nargs="+", type=int, default=list(DEFAULT_SEEDS))

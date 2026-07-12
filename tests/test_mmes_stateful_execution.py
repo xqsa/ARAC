@@ -9,9 +9,9 @@ import numpy as np
 import pytest
 
 
-HCC_SRC = Path(__file__).resolve().parents[1] / "HCC_SRC"
-if str(HCC_SRC) not in sys.path:
-    sys.path.insert(0, str(HCC_SRC))
+HCC_VENDOR_ROOT = Path(__file__).resolve().parents[1] / "vendor" / "hcc"
+if str(HCC_VENDOR_ROOT) not in sys.path:
+    sys.path.insert(0, str(HCC_VENDOR_ROOT))
 
 from HCC.NDAs.MMES.state import MMESBlockResult, MMESState
 from HCC.NDAs.MMES.mmes import MMES

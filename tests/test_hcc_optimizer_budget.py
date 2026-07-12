@@ -7,8 +7,8 @@ import numpy as np
 
 
 def test_optimizer_evaluate_fitness_clips_batch_to_remaining_budget() -> None:
-    hcc_src = Path(__file__).resolve().parents[1] / "HCC_SRC"
-    sys.path.insert(0, str(hcc_src))
+    vendor_root = Path(__file__).resolve().parents[1] / "vendor" / "hcc"
+    sys.path.insert(0, str(vendor_root))
     from HCC.OPT.CMAES.optimizer import Optimizer
 
     seen_shapes: list[tuple[int, ...]] = []

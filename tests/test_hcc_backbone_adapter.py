@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from arac.action_space import ActionFamily
+from arac.backends import hcc as hcc_backend
 from arac.backends.hcc import (
     HccBackboneSnapshot,
     HccGroupSignal,
@@ -13,6 +16,18 @@ from arac.backends.hcc import (
 )
 from arac.evidence import validate_runtime_payload
 from arac.policy import ActionDecision
+
+
+def test_explicit_vendor_root_resolves_hcc_source_boundary(tmp_path: Path) -> None:
+    vendor_root = tmp_path / "repo" / "vendor" / "hcc"
+
+    paths = hcc_backend.resolve_hcc_vendor_paths(vendor_root)
+
+    assert paths.vendor_root == vendor_root.resolve()
+    assert paths.aob_root == vendor_root.resolve() / "AOB"
+    assert paths.hcc_root == vendor_root.resolve() / "HCC"
+    assert paths.aob_data_root == vendor_root.resolve() / "AOB" / "AOBG" / "datafile"
+    assert paths.runner == vendor_root.resolve().parents[1] / "scripts" / "hcc_smoke_runner.py"
 
 
 def test_hcc_snapshot_builds_reference_blind_evidence_profile() -> None:

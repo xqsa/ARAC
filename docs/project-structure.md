@@ -23,10 +23,8 @@ participate in runtime dispatch; moving a file does not relax the reference-blin
 | `logs/` | Runtime and maintenance command events | Disposable diagnostic logs | Ignore all log payload; evidence required for claims belongs in auditable result tables |
 | `archive/` | Superseded or failed material with provenance | Non-runtime historical record | Track concise records or approved source only; large payload stays in `results/` |
 
-`HCC_SRC/` is a visible Task 3 transition. It remains in place because current v3.2
-compatibility paths resolve the HCC runner and AOB data there. The structure audit emits a
-nonfatal warning until Task 3 migrates it; cache, leakage, and results-ignore violations remain
-fatal during this transition.
+`vendor/hcc/` is the sole canonical v3.2 HCC source tree. The ARAC-owned smoke runner lives in
+`scripts/hcc_smoke_runner.py`; a top-level `HCC_SRC/` path is a fatal structure violation.
 
 ## Raw, Generated, And Reference Evidence
 
@@ -73,11 +71,10 @@ components. Runtime files are read as `utf-8-sig`, so a legal UTF-8 BOM is accep
 structural guard avoids substring matching and is not a replacement for semantic anti-leakage
 tests.
 
-`HCC_SRC/` is allowed only as the Task 3 transitional directory. A symbolic link or Windows
-reparse point targeting outside the repository is fatal; an ordinary tracked directory, or an
-in-repository link, remains an explicit nonfatal Task 3 warning. A non-directory `HCC_SRC` path
-or failure to inspect its filesystem metadata is fatal. Git executable startup failures are
-reported as audit findings with a nonzero CLI status rather than an unhandled traceback.
+Any top-level `HCC_SRC/` directory, file, symbolic link, or Windows reparse point is fatal.
+Links targeting outside the repository and filesystem metadata inspection failures receive
+more specific findings. Git executable startup failures are reported as audit findings with a
+nonzero CLI status rather than an unhandled traceback.
 
 ## Audit
 
@@ -89,6 +86,6 @@ python scripts/audit_project_structure.py --root <repo-root>
 
 The CLI uses only the Python standard library and Git. It skips `.git`, `.venv`,
 `.pytest_cache`, and generated `results/` payload traversal. Each violation is emitted as
-`path: rule` and returns a nonzero status. Generated paths and transitional warnings are printed
-explicitly; they are never silently accepted. `--root` must resolve exactly to
+`path: rule` and returns a nonzero status. Generated paths are printed explicitly and never
+silently treated as source. `--root` must resolve exactly to
 `git rev-parse --show-toplevel`; parent and nested paths are rejected.

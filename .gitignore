@@ -15,8 +15,6 @@ results/*
 !data/processed/.gitkeep
 !results/.gitkeep
 !results/README.md
-HCC_SRC/result/*
-!HCC_SRC/result/README.md
 vendor/hcc/result/*
 !vendor/hcc/result/README.md
 vendor/hcc/**/__pycache__/

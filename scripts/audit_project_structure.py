@@ -51,18 +51,15 @@ PATH_CONSTRUCTORS = frozenset(
 PATH_JOIN_FUNCTIONS = frozenset({"ntpath.join", "os.path.join", "posixpath.join"})
 TRACKED_RESULT_POLICIES = (
     ("results/", frozenset({"results/.gitkeep", "results/README.md"})),
-    ("HCC_SRC/result/", frozenset({"HCC_SRC/result/README.md"})),
     ("vendor/hcc/result/", frozenset({"vendor/hcc/result/README.md"})),
 )
 GENERATED_IGNORE_PROBES = (
     ("results", "results/__arac_structure_audit_probe__.tmp"),
-    ("HCC_SRC/result", "HCC_SRC/result/__arac_structure_audit_probe__.tmp"),
     ("vendor/hcc/result", "vendor/hcc/result/__arac_structure_audit_probe__.tmp"),
 )
 TRACKABLE_RESULT_FILES = (
     "results/.gitkeep",
     "results/README.md",
-    "HCC_SRC/result/README.md",
     "vendor/hcc/result/README.md",
 )
 
@@ -308,16 +305,15 @@ def audit_project_structure(root: Path) -> AuditReport:
                     errors.append(
                         Finding(
                             "HCC_SRC",
-                            "unexpected HCC_SRC transition path; expected a directory",
+                            "legacy top-level source path is forbidden; canonical HCC source is vendor/hcc",
                         )
                     )
                 continue
             if not hcc_link_error:
-                warnings.append(
+                errors.append(
                     Finding(
                         "HCC_SRC",
-                        "warning: Task 3 pending transitional legacy source; retained because current "
-                        "compatibility paths still resolve the HCC backend",
+                        "legacy top-level source is forbidden; canonical HCC source is vendor/hcc",
                     )
                 )
             continue

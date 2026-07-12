@@ -50,8 +50,8 @@ For wider smoke runs, pass explicit problems/seeds and parallel jobs:
 py -3 experiments\exp_003_hcc_runtime_consumer_smoke\run.py --output-dir results\exp_003_hcc_runtime_consumer_smoke --seeds 1 2 3 4 5 --problems E1 E2 S1 S2 R1 R2 A1 A2 --jobs 8
 ```
 
-The source HCC project remains read-only. The subprocess executes the
-ARAC-owned wrapper in `E:\ARAC\HCC_SRC\arac_hcc_smoke_runner.py` with
-`cwd=E:\HCC-main`, but all AOB topology and objective inputs come from the
-explicit `--aob-data-root` path. The cwd is no longer an implicit benchmark
-input.
+The vendored HCC snapshot remains read-only. The subprocess executes the
+ARAC-owned wrapper at `scripts/hcc_smoke_runner.py` with `cwd=vendor/hcc`; all
+AOB topology and objective inputs come from the explicit `--aob-data-root`
+path. Neither runtime source resolution nor benchmark input selection depends
+on the caller's cwd.

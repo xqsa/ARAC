@@ -33,8 +33,8 @@ $env:PYTHONPATH='src'; & 'C:\Users\83718\.cache\codex-runtimes\codex-primary-run
 
 `exp_002_aob_1run_pilot` writes eight table-backed artifacts, keeps
 paper-reported Table 2 values offline-only, and labels its own result rows as
-`hcc_source_grounded_grouping_probe`. It reads source AOB topology from
-`E:\HCC-main` but does not yet run MMES/CMAES optimizer execution.
+`hcc_source_grounded_grouping_probe`. It reads source AOB topology from the
+canonical `vendor/hcc/` snapshot but does not yet run MMES/CMAES optimizer execution.
 
 `exp_003_hcc_runtime_consumer_smoke` runs HCC smoke through fallback, fixed
 repair, fixed coordinate, per-overlap-relation dispatch, and shuffled negative

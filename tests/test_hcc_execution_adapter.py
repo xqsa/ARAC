@@ -14,7 +14,7 @@ from arac.backends.hcc import (
 from arac.evidence import validate_runtime_payload
 
 
-def test_hcc_aob_smoke_command_targets_hcc_main_subprocess(tmp_path: Path) -> None:
+def test_hcc_aob_smoke_command_targets_canonical_vendor_subprocess(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
         problem_id="E1",
         seed=1,
@@ -24,10 +24,12 @@ def test_hcc_aob_smoke_command_targets_hcc_main_subprocess(tmp_path: Path) -> No
 
     command = build_hcc_aob_smoke_command(request)
 
-    assert command.cwd == Path("E:/HCC-main")
+    assert command.cwd == hcc_backend.HCC_VENDOR_ROOT
     assert command.argv[0] == "python"
-    assert Path(command.argv[1]).name == "arac_hcc_smoke_runner.py"
+    assert Path(command.argv[1]) == hcc_backend.ARAC_HCC_SMOKE_RUNNER
+    assert Path(command.argv[1]).name == "hcc_smoke_runner.py"
     assert Path(command.argv[1]).is_absolute()
+    assert command.cwd.is_absolute()
     assert "--functions" in command.argv
     assert "elliptic" in command.argv
     assert "--ids" in command.argv
@@ -40,7 +42,7 @@ def test_hcc_aob_smoke_command_targets_hcc_main_subprocess(tmp_path: Path) -> No
 
 
 def test_hcc_aob_smoke_command_passes_explicit_aob_data_root(tmp_path: Path) -> None:
-    data_root = Path("E:/ARAC/HCC_SRC/AOB/AOBG/datafile")
+    data_root = hcc_backend.HCC_VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
     request = HccAobExecutionRequest(
         problem_id="E6",
         seed=3,
@@ -53,6 +55,28 @@ def test_hcc_aob_smoke_command_passes_explicit_aob_data_root(tmp_path: Path) -> 
 
     data_root_index = command.argv.index("--aob-data-root")
     assert command.argv[data_root_index + 1] == str(data_root.resolve())
+
+
+def test_hcc_aob_smoke_command_is_independent_of_process_cwd(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    request = HccAobExecutionRequest(
+        problem_id="E1",
+        seed=1,
+        max_fes=2_000,
+        output_dir=tmp_path / "hcc-smoke",
+    )
+
+    monkeypatch.chdir(hcc_backend.ARAC_REPO_ROOT)
+    from_repo_root = build_hcc_aob_smoke_command(request)
+    unrelated_cwd = tmp_path / "unrelated"
+    unrelated_cwd.mkdir()
+    monkeypatch.chdir(unrelated_cwd)
+    from_unrelated_cwd = build_hcc_aob_smoke_command(request)
+
+    assert from_unrelated_cwd == from_repo_root
+    assert from_repo_root.cwd == hcc_backend.HCC_VENDOR_ROOT
 
 
 def test_hcc_execution_rejects_incomplete_aob_data_root_before_subprocess(

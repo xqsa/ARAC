@@ -19,7 +19,7 @@ from experiments.exp_003_hcc_runtime_consumer_smoke.run import (
     run_hcc_aob_smoke_execution,
     run_hcc_runtime_consumer_smoke,
 )
-from arac.backends.hcc import DEFAULT_AOB_DATA_ROOT
+from arac.backends.hcc import DEFAULT_AOB_DATA_ROOT, HCC_VENDOR_ROOT
 
 RUN_ID = "exp_005_hcc_final_protocol_pilot"
 DEFAULT_EXECUTION_RUNNER = run_hcc_aob_smoke_execution
@@ -130,7 +130,7 @@ def _match_flag(left_hash: str, right_hash: str) -> str:
 
 
 def _write_aob_protocol_audit(output_dir: Path, hcc_root: Path) -> Path:
-    runtime_source = ARAC_REPO_ROOT / "HCC_SRC" / "AOB"
+    runtime_source = HCC_VENDOR_ROOT / "AOB"
     canonical_source = hcc_root / "2025_HCC_GECCO-main" / "HCC_SRC" / "AOB"
     mutable_source = hcc_root / "HCC_SRC" / "AOB"
     audit_path = output_dir / "aob_protocol_audit.csv"
@@ -300,7 +300,7 @@ def run_hcc_final_protocol_pilot(
     output = run_hcc_runtime_consumer_smoke(
         output_dir=output_dir,
         execution_runner=execution_runner or DEFAULT_EXECUTION_RUNNER,
-        hcc_root=hcc_root,
+        hcc_root=HCC_VENDOR_ROOT,
         aob_data_root=aob_data_root,
         python_executable=python_executable,
         seeds=tuple(seeds),

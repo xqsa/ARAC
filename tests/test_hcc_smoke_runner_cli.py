@@ -12,10 +12,11 @@ import pytest
 
 
 def _load_runner_module():
-    hcc_src = Path(__file__).resolve().parents[1] / "HCC_SRC"
-    sys.path.insert(0, str(hcc_src))
-    runner_path = hcc_src / "arac_hcc_smoke_runner.py"
-    spec = importlib.util.spec_from_file_location("arac_hcc_smoke_runner_for_test", runner_path)
+    repo_root = Path(__file__).resolve().parents[1]
+    vendor_root = repo_root / "vendor" / "hcc"
+    sys.path.insert(0, str(vendor_root))
+    runner_path = repo_root / "scripts" / "hcc_smoke_runner.py"
+    spec = importlib.util.spec_from_file_location("hcc_smoke_runner_for_test", runner_path)
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -77,7 +78,14 @@ def test_runner_aob_loaders_ignore_cwd_when_data_root_is_explicit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runner = _load_runner_module()
-    data_root = Path(__file__).resolve().parents[1] / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+    data_root = (
+        Path(__file__).resolve().parents[1]
+        / "vendor"
+        / "hcc"
+        / "AOB"
+        / "AOBG"
+        / "datafile"
+    )
     monkeypatch.chdir(tmp_path)
 
     metadata = runner.load_aob_metadata(6, data_root)
@@ -111,6 +119,28 @@ def test_aob_benchmark_forwards_explicit_data_root(
     benchmark.get_function("elliptic", 6)
 
     assert captured["data_dir"] == data_root
+
+
+def test_vendor_benchmark_default_data_root_is_independent_of_cwd(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _load_runner_module()
+    from AOB.Benchmarks import Benchmarks
+
+    monkeypatch.chdir(tmp_path)
+    benchmark = Benchmarks(None)
+
+    expected = (
+        Path(__file__).resolve().parents[1]
+        / "vendor"
+        / "hcc"
+        / "AOB"
+        / "AOBG"
+        / "datafile"
+    )
+    assert benchmark.data_dir == expected
+    assert benchmark.data_dir.is_dir()
 
 
 def _write_minimal_aob_data_root(root: Path, function_id: int = 6) -> None:
@@ -786,7 +816,7 @@ def test_bipop_rejected_restart_uses_sweep_level_backoff() -> None:
 
 
 def test_hcc_smoke_runner_help_works_without_pythonpath() -> None:
-    runner_path = Path(__file__).resolve().parents[1] / "HCC_SRC" / "arac_hcc_smoke_runner.py"
+    runner_path = Path(__file__).resolve().parents[1] / "scripts" / "hcc_smoke_runner.py"
     env = os.environ.copy()
     env.pop("PYTHONPATH", None)
 

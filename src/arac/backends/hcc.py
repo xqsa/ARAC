@@ -23,10 +23,38 @@ from arac.backend_adapter import BackendSemanticsDiff
 from arac.evidence import EvidenceProfile, validate_runtime_payload
 from arac.policy import ActionDecision
 
-DEFAULT_HCC_MAIN_ROOT = Path("E:/HCC-main")
+
+@dataclass(frozen=True)
+class HccVendorPaths:
+    """Canonical HCC source paths derived from one explicit vendor root."""
+
+    vendor_root: Path
+    aob_root: Path
+    hcc_root: Path
+    aob_data_root: Path
+    runner: Path
+
+
+def resolve_hcc_vendor_paths(vendor_root: Path | str) -> HccVendorPaths:
+    root = Path(vendor_root)
+    if not root.is_absolute():
+        root = Path(__file__).resolve().parents[3] / root
+    root = root.resolve()
+    repo_root = root.parents[1]
+    return HccVendorPaths(
+        vendor_root=root,
+        aob_root=root / "AOB",
+        hcc_root=root / "HCC",
+        aob_data_root=root / "AOB" / "AOBG" / "datafile",
+        runner=repo_root / "scripts" / "hcc_smoke_runner.py",
+    )
+
+
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
-ARAC_HCC_SMOKE_RUNNER = ARAC_REPO_ROOT / "HCC_SRC" / "arac_hcc_smoke_runner.py"
-DEFAULT_AOB_DATA_ROOT = ARAC_REPO_ROOT / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+HCC_VENDOR_ROOT = (ARAC_REPO_ROOT / "vendor" / "hcc").resolve()
+HCC_VENDOR_PATHS = resolve_hcc_vendor_paths(HCC_VENDOR_ROOT)
+ARAC_HCC_SMOKE_RUNNER = HCC_VENDOR_PATHS.runner
+DEFAULT_AOB_DATA_ROOT = HCC_VENDOR_PATHS.aob_data_root
 TOTAL_AOB_FE = 3_000_000
 AOB_FUNCTION_NAMES = {
     "E": "elliptic",
@@ -141,7 +169,7 @@ class HccAobExecutionRequest:
     seed: int
     max_fes: int
     output_dir: Path
-    hcc_root: Path = DEFAULT_HCC_MAIN_ROOT
+    hcc_root: Path = HCC_VENDOR_ROOT
     aob_data_root: Path = DEFAULT_AOB_DATA_ROOT
     python_executable: str = "python"
     timestamp: str = "arac-hcc-smoke"
@@ -464,7 +492,7 @@ def _safe_divide(numerator: float, denominator: float) -> float:
 
 
 def _datafile_dir(hcc_root: Path) -> Path:
-    return hcc_root / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+    return resolve_hcc_vendor_paths(hcc_root).aob_data_root
 
 
 def _parse_aob_info(path: Path) -> dict[str, object]:
@@ -569,7 +597,7 @@ def _problem_parts(problem_id: str) -> tuple[str, str, int]:
 
 def load_hcc_aob_topology(
     problem_id: str,
-    hcc_root: Path | str = DEFAULT_HCC_MAIN_ROOT,
+    hcc_root: Path | str = HCC_VENDOR_ROOT,
     total_fes: int = TOTAL_AOB_FE,
 ) -> HccAobCaseTopology:
     """Read source-grounded AOB/HCC grouping topology without optimizer execution."""
@@ -639,7 +667,7 @@ def build_hcc_action_execution_plan(
 
 
 def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeCommand:
-    """Build the subprocess command used to run HCC-main from its own cwd."""
+    """Build the subprocess command from the canonical HCC vendor boundary."""
 
     problem, function_name, function_id = _problem_parts(request.problem_id)
     if request.max_fes <= 0:
@@ -650,11 +678,18 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError("arac_action_file is not supported by the HCC smoke runner yet")
     if request.budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
-    aob_data_root = validate_aob_data_root(request.aob_data_root, function_id)
+    vendor_paths = resolve_hcc_vendor_paths(request.hcc_root)
+    requested_data_root = Path(request.aob_data_root)
+    if not requested_data_root.is_absolute():
+        requested_data_root = ARAC_REPO_ROOT / requested_data_root
+    aob_data_root = validate_aob_data_root(requested_data_root, function_id)
+    output_dir = Path(request.output_dir)
+    if not output_dir.is_absolute():
+        output_dir = (ARAC_REPO_ROOT / output_dir).resolve()
 
     argv = [
         request.python_executable,
-        str(ARAC_HCC_SMOKE_RUNNER),
+        str(vendor_paths.runner),
         "--functions",
         function_name,
         "--ids",
@@ -664,7 +699,7 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         "--max-fes",
         str(request.max_fes),
         "--output-root",
-        str(request.output_dir),
+        str(output_dir),
         "--aob-data-root",
         str(aob_data_root),
         "--timestamp",
@@ -684,15 +719,16 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         argv.append("--no-mmes-restart")
     if request.skip_plots:
         argv.append("--skip-plots")
-    return HccAobSmokeCommand(argv=tuple(argv), cwd=Path(request.hcc_root))
+    return HccAobSmokeCommand(argv=tuple(argv), cwd=vendor_paths.vendor_root)
 
 
 def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecutionResult:
     """Run one bounded HCC-main smoke execution and parse its offline result.
 
-    The subprocess is run with ``cwd=E:\\HCC-main`` because the historical AOB
-    benchmark uses relative data-file paths. Returned final-error fields are
-    offline evaluation outputs and must not be copied into runtime evidence.
+    The subprocess runs from the canonical ``vendor/hcc`` root. All executable
+    and AOB input paths are absolute, so execution does not depend on the caller's
+    current working directory. Returned final-error fields are offline evaluation
+    outputs and must not be copied into runtime evidence.
     """
 
     command = build_hcc_aob_smoke_command(

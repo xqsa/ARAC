@@ -5,7 +5,11 @@ from pathlib import Path
 
 class Benchmarks:
     def __init__(self, output_path, data_dir=None):
-        self.data_dir = Path(data_dir) if data_dir is not None else Path("HCC_SRC/AOB/AOBG/datafile")
+        self.data_dir = (
+            Path(data_dir)
+            if data_dir is not None
+            else Path(__file__).resolve().parent / "AOBG" / "datafile"
+        )
         self.dimension = 1000  # 维度
 
 

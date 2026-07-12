@@ -1,4 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
+
 from AOB.AOB import Benchmark
 from HCC.RDDSM import Decomposition
 import numpy as np
@@ -7,6 +9,8 @@ import time
 import math
 from HCC.NDAs.MMES.mmes import MMES
 from HCC.OPT.CMAES.cmaes import CMAES
+
+VENDOR_ROOT = Path(__file__).resolve().parent
 
 def optimization_task(fun_name, fun_id, best_individual, MaxFEs, grouping_result, info, overlapping_elements, overlap_groups):
     time_start = time.time()
@@ -121,7 +125,7 @@ cycle_num = 5
 
 timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
 for fun_name in fun_name_list:
-    output_path = f'HCC_SRC/result/{timestamp}/{fun_name}/'
+    output_path = str(VENDOR_ROOT / 'result' / timestamp / fun_name) + '/'
     bench = Benchmark(output_path)
     original_fitness_list = []
     output_data = output_data_map[fun_name]
@@ -129,7 +133,7 @@ for fun_name in fun_name_list:
         fun_id += 1
 
         # decomposition initialization
-        file_path = f'HCC_SRC/AOB/AOBG/datafile/F{fun_id}-design.txt'
+        file_path = VENDOR_ROOT / 'AOB' / 'AOBG' / 'datafile' / f'F{fun_id}-design.txt'
         design_matrix = load_design_matrix(file_path)
         decomposition = Decomposition(design_matrix)
         grouping_result = decomposition.decomposition()

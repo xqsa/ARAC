@@ -47,8 +47,6 @@ def _project_fixture(tmp_path: Path) -> Path:
         "!results/.gitkeep\n"
         "!results/README.md\n"
         "analysis/generated/\n"
-        "HCC_SRC/result/*\n"
-        "!HCC_SRC/result/README.md\n"
         "vendor/hcc/result/*\n"
         "!vendor/hcc/result/README.md\n",
         encoding="utf-8",
@@ -219,15 +217,9 @@ def test_vendor_result_generated_payload_must_be_ignored_by_git(tmp_path: Path) 
     assert any("vendor/hcc/result" in rule for rule in _error_rules(root))
 
 
-@pytest.mark.parametrize(
-    "payload_path",
-    ["HCC_SRC/result/run.csv", "vendor/hcc/result/run.csv"],
-)
-def test_tracked_hcc_result_payload_is_reported(
-    tmp_path: Path,
-    payload_path: str,
-) -> None:
+def test_tracked_hcc_result_payload_is_reported(tmp_path: Path) -> None:
     root = _project_fixture(tmp_path)
+    payload_path = "vendor/hcc/result/run.csv"
     payload = root / payload_path
     payload.parent.mkdir(parents=True, exist_ok=True)
     payload.write_text("generated\n", encoding="utf-8")
@@ -236,18 +228,26 @@ def test_tracked_hcc_result_payload_is_reported(
     assert payload_path in _error_paths(root)
 
 
-@pytest.mark.parametrize(
-    "readme_path",
-    ["HCC_SRC/result/README.md", "vendor/hcc/result/README.md"],
-)
-def test_hcc_result_readme_is_allowed(tmp_path: Path, readme_path: str) -> None:
+def test_hcc_result_readme_is_allowed(tmp_path: Path) -> None:
     root = _project_fixture(tmp_path)
+    readme_path = "vendor/hcc/result/README.md"
     readme = root / readme_path
     readme.parent.mkdir(parents=True, exist_ok=True)
     readme.write_text("generated result contract\n", encoding="utf-8")
     _git(root, "add", readme_path)
 
     assert readme_path not in _error_paths(root)
+
+
+def test_canonical_hcc_tree_has_one_external_runner_and_no_legacy_root() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    vendor_root = repo_root / "vendor" / "hcc"
+    source = (repo_root / "vendor" / "hcc" / "HCC-ES.py").read_text(encoding="utf-8")
+
+    assert not (repo_root / "HCC_SRC").exists()
+    assert (repo_root / "scripts" / "hcc_smoke_runner.py").is_file()
+    assert list(vendor_root.glob("*runner*.py")) == []
+    assert "HCC_SRC/" not in source
 
 
 @pytest.mark.parametrize("root_selector", ["nested", "parent"])
@@ -312,14 +312,14 @@ def test_hcc_lstat_error_is_fatal_and_explicit(
     assert not any(warning.path == "HCC_SRC" for warning in report.warnings)
 
 
-def test_hcc_src_regular_file_is_fatal_transition_path(tmp_path: Path) -> None:
+def test_hcc_src_regular_file_is_fatal_legacy_path(tmp_path: Path) -> None:
     root = _project_fixture(tmp_path)
     (root / "HCC_SRC").write_text("not a directory\n", encoding="utf-8")
 
     report = audit_project_structure(root)
 
     assert any(
-        finding.path == "HCC_SRC" and "unexpected HCC_SRC transition path" in finding.rule
+        finding.path == "HCC_SRC" and "legacy" in finding.rule
         for finding in report.errors
     )
     assert not any(warning.path == "HCC_SRC" for warning in report.warnings)
@@ -351,25 +351,23 @@ def test_cli_reports_git_execution_error_without_traceback(
     assert "Traceback" not in output
 
 
-def test_hcc_src_is_an_explicit_nonfatal_task3_transition(tmp_path: Path) -> None:
+def test_hcc_src_directory_is_fatal_after_vendor_migration(tmp_path: Path) -> None:
     root = _project_fixture(tmp_path)
     legacy_readme = root / "HCC_SRC" / "README.md"
     legacy_readme.parent.mkdir()
-    legacy_readme.write_text("Task 3 will migrate this source.\n", encoding="utf-8")
+    legacy_readme.write_text("legacy source\n", encoding="utf-8")
     _git(root, "add", "HCC_SRC/README.md")
 
     report = audit_project_structure(root)
 
-    assert report.errors == ()
     assert any(
-        warning.path == "HCC_SRC"
-        and "Task 3" in warning.rule
-        and "compatibility" in warning.rule
-        for warning in report.warnings
+        finding.path == "HCC_SRC" and "legacy" in finding.rule
+        for finding in report.errors
     )
+    assert not any(warning.path == "HCC_SRC" for warning in report.warnings)
 
 
-def test_hcc_transition_does_not_hide_unknown_top_level_directory(
+def test_hcc_src_does_not_hide_unknown_top_level_directory(
     tmp_path: Path,
     capsys,
 ) -> None:
@@ -381,11 +379,11 @@ def test_hcc_transition_does_not_hide_unknown_top_level_directory(
 
     output = capsys.readouterr().out
     assert exit_code == 1
-    assert "HCC_SRC: warning:" in output
+    assert "HCC_SRC: legacy" in output
     assert "unexpected-output: unexpected top-level directory" in output
 
 
-def test_cli_with_only_hcc_warning_returns_zero_and_prints_warning(
+def test_cli_with_hcc_src_returns_nonzero_and_prints_fatal_error(
     tmp_path: Path,
     capsys,
 ) -> None:
@@ -395,8 +393,8 @@ def test_cli_with_only_hcc_warning_returns_zero_and_prints_warning(
     exit_code = main(["--root", str(root)])
 
     output = capsys.readouterr().out
-    assert exit_code == 0
-    assert "HCC_SRC: warning:" in output
+    assert exit_code == 1
+    assert "HCC_SRC: legacy" in output
 
 
 def test_cli_prints_path_rule_and_returns_nonzero(

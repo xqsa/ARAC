@@ -9,7 +9,7 @@ from typing import Callable
 
 from arac.audit import claim_gate
 from arac.backends.hcc import (
-    DEFAULT_HCC_MAIN_ROOT,
+    HCC_VENDOR_ROOT,
     HccAobExecutionRequest,
     HccAobExecutionResult,
     build_hcc_evidence_profile,
@@ -589,13 +589,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--hcc-root",
-        default=str(DEFAULT_HCC_MAIN_ROOT),
-        help="Read-only HCC-main source root used by the subprocess bridge.",
+        default=str(HCC_VENDOR_ROOT),
+        help="Read-only canonical HCC vendor root used by the subprocess bridge.",
     )
     parser.add_argument(
         "--python-executable",
         default=sys.executable,
-        help="Python interpreter used to run HCC-main smoke execution.",
+        help="Python interpreter used to run the HCC smoke execution.",
     )
     return parser.parse_args(argv)
 

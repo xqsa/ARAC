@@ -1109,7 +1109,14 @@ def test_exp_003_records_pass_explicit_aob_data_root(tmp_path: Path) -> None:
         lanes_for_profile,
     )
 
-    data_root = Path("E:/ARAC/HCC_SRC/AOB/AOBG/datafile").resolve()
+    data_root = (
+        Path(__file__).resolve().parents[1]
+        / "vendor"
+        / "hcc"
+        / "AOB"
+        / "AOBG"
+        / "datafile"
+    ).resolve()
     requests: list[HccAobExecutionRequest] = []
 
     def fake_runner(request: HccAobExecutionRequest) -> HccAobExecutionResult:
@@ -1130,7 +1137,7 @@ def test_exp_003_records_pass_explicit_aob_data_root(tmp_path: Path) -> None:
     _records(
         output_dir=tmp_path / "canonical",
         execution_runner=fake_runner,
-        hcc_root=Path("E:/HCC-main"),
+        hcc_root=Path(__file__).resolve().parents[1] / "vendor" / "hcc",
         aob_data_root=data_root,
         python_executable=sys.executable,
         seeds=(3,),
