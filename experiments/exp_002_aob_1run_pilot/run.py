@@ -593,6 +593,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Read-only canonical HCC vendor root used by the subprocess bridge.",
     )
     parser.add_argument(
+        "--hcc-repo-root",
+        default=None,
+        help="Repository root that owns scripts/hcc_smoke_runner.py for a vendor override.",
+    )
+    parser.add_argument(
+        "--hcc-runner",
+        default=None,
+        help="Explicit ARAC-owned HCC smoke runner path for a vendor override.",
+    )
+    parser.add_argument(
         "--python-executable",
         default=sys.executable,
         help="Python interpreter used to run the HCC smoke execution.",
@@ -613,6 +623,10 @@ def _smoke_results_from_args(
         max_fes=int(args.smoke_fes),
         output_dir=smoke_output,
         hcc_root=Path(args.hcc_root),
+        hcc_repo_root=(
+            None if args.hcc_repo_root is None else Path(args.hcc_repo_root)
+        ),
+        hcc_runner=None if args.hcc_runner is None else Path(args.hcc_runner),
         python_executable=str(args.python_executable),
         timestamp="arac-exp-002-smoke",
     )

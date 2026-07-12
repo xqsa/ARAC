@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import os
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 from arac.backends.hcc import HccAobExecutionRequest, HccAobExecutionResult
 
@@ -12,6 +15,65 @@ from arac.backends.hcc import HccAobExecutionRequest, HccAobExecutionResult
 def _read_csv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def _make_vendor_snapshot(tmp_path: Path) -> tuple[Path, Path]:
+    vendor_root = tmp_path / "vendor-override"
+    (vendor_root / "AOB").mkdir(parents=True)
+    for relative_path, content in (
+        (Path("HCC/NDAs/MMES/mmes.py"), "MMES_OVERRIDE = 1\n"),
+        (Path("HCC/NDAs/MMES/state.py"), "STATE_OVERRIDE = 1\n"),
+        (Path("HCC/OPT/CMAES/cmaes.py"), "CMAES_OVERRIDE = 1\n"),
+    ):
+        path = vendor_root / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+    runner = tmp_path / "custom-hcc-smoke-runner.py"
+    runner.write_text("RUNNER_OVERRIDE = 1\n", encoding="utf-8")
+    return vendor_root, runner
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_exp_003_config_fingerprint_tracks_actual_vendor_and_runner(tmp_path: Path) -> None:
+    from arac.backends.hcc import resolve_hcc_vendor_paths
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import _config_fingerprint
+
+    vendor_root, runner_path = _make_vendor_snapshot(tmp_path)
+    vendor_paths = resolve_hcc_vendor_paths(vendor_root, runner_path=runner_path)
+    kwargs = {
+        "seeds": (1,),
+        "problem_ids": ("E2",),
+        "jobs": 1,
+        "max_fes": 2_000,
+        "budget_accounting": "strict",
+        "cmaes_restart": True,
+        "mmes_restart": True,
+        "vendor_paths": vendor_paths,
+    }
+
+    before = _config_fingerprint(**kwargs)
+    runner_path.write_text("RUNNER_OVERRIDE = 2\n", encoding="utf-8")
+    after = _config_fingerprint(**kwargs)
+
+    assert before != after
+
+
+def test_exp_003_cli_describes_canonical_vendor_runtime_root(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    from arac.backends.hcc import HCC_VENDOR_ROOT
+    from experiments.exp_003_hcc_runtime_consumer_smoke.run import parse_args
+
+    assert Path(parse_args([]).hcc_root) == HCC_VENDOR_ROOT
+    with pytest.raises(SystemExit):
+        parse_args(["--help"])
+
+    help_text = capsys.readouterr().out
+    assert "canonical vendor/hcc runtime root" in help_text
+    assert "HCC-main runtime" not in help_text
 
 
 def _hcc_result(
@@ -289,9 +351,12 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
             action_trace_rows=1,
         )
 
+    vendor_root, runner_path = _make_vendor_snapshot(tmp_path)
     output = run_hcc_runtime_consumer_smoke(
         output_dir=tmp_path / "exp003",
         execution_runner=fake_runner,
+        hcc_root=vendor_root,
+        hcc_runner=runner_path,
         python_executable="python",
     )
 
@@ -324,7 +389,22 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "- config fingerprint:" in manifest
     assert "- policy sha256:" in manifest
     assert "- experiment runner sha256:" in manifest
-    assert "- HCC smoke runner sha256:" in manifest
+    assert f"HCC vendor root: {vendor_root.resolve()}" in manifest
+    assert f"Backend cwd: {vendor_root.resolve()}" in manifest
+    assert f"HCC smoke runner: {runner_path.resolve()}" in manifest
+    assert f"- HCC smoke runner sha256: {_sha256(runner_path)}" in manifest
+    assert (
+        f"- MMES optimizer sha256: "
+        f"{_sha256(vendor_root / 'HCC' / 'NDAs' / 'MMES' / 'mmes.py')}"
+    ) in manifest
+    assert (
+        f"- MMES state model sha256: "
+        f"{_sha256(vendor_root / 'HCC' / 'NDAs' / 'MMES' / 'state.py')}"
+    ) in manifest
+    assert (
+        f"- CMAES optimizer sha256: "
+        f"{_sha256(vendor_root / 'HCC' / 'OPT' / 'CMAES' / 'cmaes.py')}"
+    ) in manifest
     assert f"Wrapper Python executable: {Path(sys.executable).resolve()}" in manifest
     assert "Backend Python executable: python" in manifest
     claim_table = (output / "claim_evidence_table.md").read_text(encoding="utf-8")
@@ -335,6 +415,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert len(requests) == 15
     assert {request.seed for request in requests} == {1, 2, 3}
     assert {request.skip_plots for request in requests} == {True}
+    assert {request.hcc_root for request in requests} == {vendor_root.resolve()}
+    assert {request.hcc_runner for request in requests} == {runner_path.resolve()}
     assert {
         (request.output_dir.name, request.arac_action, request.enable_relation_dispatch, request.relation_policy_mode)
         for request in requests

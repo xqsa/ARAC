@@ -24,6 +24,10 @@ from arac.evidence import EvidenceProfile, validate_runtime_payload
 from arac.policy import ActionDecision
 
 
+ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
+HCC_VENDOR_ROOT = (ARAC_REPO_ROOT / "vendor" / "hcc").resolve()
+
+
 @dataclass(frozen=True)
 class HccVendorPaths:
     """Canonical HCC source paths derived from one explicit vendor root."""
@@ -35,23 +39,55 @@ class HccVendorPaths:
     runner: Path
 
 
-def resolve_hcc_vendor_paths(vendor_root: Path | str) -> HccVendorPaths:
+def resolve_hcc_vendor_paths(
+    vendor_root: Path | str,
+    *,
+    repo_root: Path | str | None = None,
+    runner_path: Path | str | None = None,
+) -> HccVendorPaths:
     root = Path(vendor_root)
     if not root.is_absolute():
-        root = Path(__file__).resolve().parents[3] / root
+        root = ARAC_REPO_ROOT / root
     root = root.resolve()
-    repo_root = root.parents[1]
+    if root.name.casefold() == "hcc-main":
+        raise ValueError(
+            f"external HCC-main roots are offline-only and are not a vendor root: {root}"
+        )
+    for required_dir in ("AOB", "HCC"):
+        path = root / required_dir
+        if not path.is_dir():
+            raise FileNotFoundError(
+                f"not a valid HCC vendor root: {root}; missing {required_dir} directory"
+            )
+
+    if runner_path is not None:
+        runner = Path(runner_path)
+        if not runner.is_absolute():
+            runner = ARAC_REPO_ROOT / runner
+    elif repo_root is not None:
+        resolved_repo_root = Path(repo_root)
+        if not resolved_repo_root.is_absolute():
+            resolved_repo_root = ARAC_REPO_ROOT / resolved_repo_root
+        runner = resolved_repo_root / "scripts" / "hcc_smoke_runner.py"
+    elif root == HCC_VENDOR_ROOT:
+        runner = ARAC_REPO_ROOT / "scripts" / "hcc_smoke_runner.py"
+    else:
+        raise ValueError(
+            "non-canonical HCC vendor roots require an explicit repo_root or runner_path"
+        )
+    runner = runner.resolve()
+    if not runner.is_file():
+        raise FileNotFoundError(f"HCC smoke runner does not exist: {runner}")
+
     return HccVendorPaths(
         vendor_root=root,
         aob_root=root / "AOB",
         hcc_root=root / "HCC",
         aob_data_root=root / "AOB" / "AOBG" / "datafile",
-        runner=repo_root / "scripts" / "hcc_smoke_runner.py",
+        runner=runner,
     )
 
 
-ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
-HCC_VENDOR_ROOT = (ARAC_REPO_ROOT / "vendor" / "hcc").resolve()
 HCC_VENDOR_PATHS = resolve_hcc_vendor_paths(HCC_VENDOR_ROOT)
 ARAC_HCC_SMOKE_RUNNER = HCC_VENDOR_PATHS.runner
 DEFAULT_AOB_DATA_ROOT = HCC_VENDOR_PATHS.aob_data_root
@@ -182,6 +218,8 @@ class HccAobExecutionRequest:
     cmaes_restart: bool = True
     mmes_restart: bool = True
     skip_plots: bool = False
+    hcc_repo_root: Path | None = None
+    hcc_runner: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -491,8 +529,17 @@ def _safe_divide(numerator: float, denominator: float) -> float:
     return numerator / denominator
 
 
-def _datafile_dir(hcc_root: Path) -> Path:
-    return resolve_hcc_vendor_paths(hcc_root).aob_data_root
+def _datafile_dir(
+    hcc_root: Path,
+    *,
+    hcc_repo_root: Path | None = None,
+    hcc_runner: Path | None = None,
+) -> Path:
+    return resolve_hcc_vendor_paths(
+        hcc_root,
+        repo_root=hcc_repo_root,
+        runner_path=hcc_runner,
+    ).aob_data_root
 
 
 def _parse_aob_info(path: Path) -> dict[str, object]:
@@ -599,11 +646,18 @@ def load_hcc_aob_topology(
     problem_id: str,
     hcc_root: Path | str = HCC_VENDOR_ROOT,
     total_fes: int = TOTAL_AOB_FE,
+    *,
+    hcc_repo_root: Path | str | None = None,
+    hcc_runner: Path | str | None = None,
 ) -> HccAobCaseTopology:
     """Read source-grounded AOB/HCC grouping topology without optimizer execution."""
 
     problem, function_name, function_id = _problem_parts(problem_id)
-    data_dir = _datafile_dir(Path(hcc_root))
+    data_dir = _datafile_dir(
+        Path(hcc_root),
+        hcc_repo_root=None if hcc_repo_root is None else Path(hcc_repo_root),
+        hcc_runner=None if hcc_runner is None else Path(hcc_runner),
+    )
     info = _parse_aob_info(data_dir / f"F{function_id}-info.txt")
     permutation = _read_permutation(data_dir / f"F{function_id}-p.txt")
     topology_groups = _topology_groups(info, permutation)
@@ -678,14 +732,16 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError("arac_action_file is not supported by the HCC smoke runner yet")
     if request.budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
-    vendor_paths = resolve_hcc_vendor_paths(request.hcc_root)
+    vendor_paths = resolve_hcc_vendor_paths(
+        request.hcc_root,
+        repo_root=request.hcc_repo_root,
+        runner_path=request.hcc_runner,
+    )
     requested_data_root = Path(request.aob_data_root)
     if not requested_data_root.is_absolute():
         requested_data_root = ARAC_REPO_ROOT / requested_data_root
     aob_data_root = validate_aob_data_root(requested_data_root, function_id)
-    output_dir = Path(request.output_dir)
-    if not output_dir.is_absolute():
-        output_dir = (ARAC_REPO_ROOT / output_dir).resolve()
+    output_dir = _normalize_hcc_output_dir(request.output_dir)
 
     argv = [
         request.python_executable,
@@ -722,6 +778,13 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
     return HccAobSmokeCommand(argv=tuple(argv), cwd=vendor_paths.vendor_root)
 
 
+def _normalize_hcc_output_dir(output_dir: Path | str) -> Path:
+    path = Path(output_dir)
+    if not path.is_absolute():
+        path = ARAC_REPO_ROOT / path
+    return path.resolve()
+
+
 def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecutionResult:
     """Run one bounded canonical HCC vendor smoke execution and parse its offline result.
 
@@ -731,13 +794,18 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
     outputs and must not be copied into runtime evidence.
     """
 
+    output_dir = _normalize_hcc_output_dir(request.output_dir)
     command = build_hcc_aob_smoke_command(
         HccAobExecutionRequest(
             problem_id=request.problem_id,
             seed=request.seed,
             max_fes=request.max_fes,
-            output_dir=Path(request.output_dir),
+            output_dir=output_dir,
             hcc_root=Path(request.hcc_root),
+            hcc_repo_root=(
+                None if request.hcc_repo_root is None else Path(request.hcc_repo_root)
+            ),
+            hcc_runner=None if request.hcc_runner is None else Path(request.hcc_runner),
             aob_data_root=Path(request.aob_data_root),
             python_executable=request.python_executable or sys.executable,
             timestamp=request.timestamp,
@@ -769,7 +837,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             final_error=float("nan"),
             fe_used=0,
             time_seconds=elapsed,
-            output_root=Path(request.output_dir),
+            output_root=output_dir,
             fresh_optimizer_execution=False,
             status=f"failed_returncode_{completed.returncode}",
             result_source="hcc_subprocess_smoke_execution",
@@ -781,12 +849,12 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
 
     final_error, fe_used, optimizer_final_fe_used = (
         _parse_hcc_evaluation_record_with_optimizer_final_fe(
-            Path(request.output_dir),
+            output_dir,
             budget_limit=request.max_fes,
         )
     )
-    action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
-    budget_breakdown = _parse_hcc_budget_summary(Path(request.output_dir))
+    action_trace_path, action_trace_rows = _find_hcc_action_trace(output_dir)
+    budget_breakdown = _parse_hcc_budget_summary(output_dir)
     return HccAobExecutionResult(
         problem_id=_problem_parts(request.problem_id)[0],
         seed=request.seed,
@@ -794,7 +862,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         final_error=final_error,
         fe_used=fe_used,
         time_seconds=elapsed,
-        output_root=Path(request.output_dir),
+        output_root=output_dir,
         fresh_optimizer_execution=True,
         status="completed",
         result_source="hcc_subprocess_smoke_execution",

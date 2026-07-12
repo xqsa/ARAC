@@ -229,6 +229,62 @@ def test_hcc_execution_runner_passes_skip_plots_to_subprocess(
     assert "--skip-plots" in captured["argv"]
 
 
+def test_hcc_execution_normalizes_relative_output_once_for_all_consumers(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    relative_output = Path("results") / "relative-hcc-smoke"
+    expected_output = (hcc_backend.ARAC_REPO_ROOT / relative_output).resolve()
+    observed: dict[str, Path] = {}
+
+    def fake_run(argv, **_kwargs):
+        output_index = argv.index("--output-root")
+        observed["argv"] = Path(argv[output_index + 1])
+        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+
+    def fake_parse(output_dir: Path, budget_limit: int):
+        observed["evaluation"] = output_dir
+        return 0.0, budget_limit, budget_limit
+
+    def fake_trace(output_dir: Path):
+        observed["trace"] = output_dir
+        return output_dir / "action_trace.csv", 1
+
+    def fake_budget(output_dir: Path):
+        observed["budget"] = output_dir
+        return {}
+
+    unrelated_cwd = tmp_path / "unrelated"
+    unrelated_cwd.mkdir()
+    monkeypatch.chdir(unrelated_cwd)
+    monkeypatch.setattr(hcc_backend.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        hcc_backend,
+        "_parse_hcc_evaluation_record_with_optimizer_final_fe",
+        fake_parse,
+    )
+    monkeypatch.setattr(hcc_backend, "_find_hcc_action_trace", fake_trace)
+    monkeypatch.setattr(hcc_backend, "_parse_hcc_budget_summary", fake_budget)
+
+    result = hcc_backend.run_hcc_aob_smoke_execution(
+        HccAobExecutionRequest(
+            problem_id="E1",
+            seed=1,
+            max_fes=2_000,
+            output_dir=relative_output,
+        )
+    )
+
+    assert observed == {
+        "argv": expected_output,
+        "evaluation": expected_output,
+        "trace": expected_output,
+        "budget": expected_output,
+    }
+    assert result.output_root == expected_output
+    assert result.action_trace_path == expected_output / "action_trace.csv"
+
+
 def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
         problem_id="E2",

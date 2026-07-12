@@ -23,17 +23,19 @@ if str(ARAC_SRC_ROOT) not in sys.path:
 from arac.audit import claim_gate
 from arac.backend_adapter import BackendSemanticsDiff
 from arac.backends.hcc import (
-    ARAC_HCC_SMOKE_RUNNER,
     DEFAULT_AOB_DATA_ROOT,
+    HCC_VENDOR_PATHS,
     HCC_VENDOR_ROOT,
     HccActionExecutionPlan,
     HccAobExecutionRequest,
     HccAobExecutionResult,
+    HccVendorPaths,
     _find_hcc_action_trace,
     _parse_hcc_budget_summary,
     _parse_hcc_evaluation_record_with_optimizer_final_fe,
     build_hcc_action_execution_plan,
     hcc_backend_semantics_for,
+    resolve_hcc_vendor_paths,
     run_hcc_aob_smoke_execution,
 )
 from arac.evaluation import SameBudgetLedger
@@ -919,6 +921,8 @@ def _records(
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
     lanes: tuple[LaneConfig, ...] = LANES,
+    hcc_repo_root: Path | None = None,
+    hcc_runner: Path | None = None,
 ) -> list[dict[str, object]]:
     contexts: list[dict[str, object]] = []
     for problem_id in problem_ids:
@@ -958,6 +962,8 @@ def _records(
                             max_fes=max_fes,
                             output_dir=lane_output,
                             hcc_root=hcc_root,
+                            hcc_repo_root=hcc_repo_root,
+                            hcc_runner=hcc_runner,
                             aob_data_root=aob_data_root,
                             python_executable=python_executable,
                             timestamp=f"{RUN_ID}-{problem_id}-seed{seed}-{lane.lane_id}",
@@ -3334,7 +3340,11 @@ def _config_fingerprint(
     lanes: tuple[LaneConfig, ...] = LANES,
     lane_profile: str = "runtime_smoke",
     aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
+    vendor_paths: HccVendorPaths = HCC_VENDOR_PATHS,
 ) -> str:
+    mmes_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "mmes.py"
+    mmes_state_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "state.py"
+    cmaes_path = vendor_paths.hcc_root / "OPT" / "CMAES" / "cmaes.py"
     payload = {
         "budget_accounting": budget_accounting,
         "cmaes_restart": bool(cmaes_restart),
@@ -3346,6 +3356,14 @@ def _config_fingerprint(
         "problem_ids": list(problem_ids),
         "seeds": list(seeds),
         "aob_data_root": str(Path(aob_data_root).resolve()),
+        "hcc_vendor_root": str(vendor_paths.vendor_root),
+        "hcc_aob_root": str(vendor_paths.aob_root),
+        "hcc_source_root": str(vendor_paths.hcc_root),
+        "hcc_smoke_runner": str(vendor_paths.runner),
+        "hcc_smoke_runner_sha256": _sha256_file(vendor_paths.runner),
+        "mmes_optimizer_sha256": _sha256_file(mmes_path),
+        "mmes_state_sha256": _sha256_file(mmes_state_path),
+        "cmaes_optimizer_sha256": _sha256_file(cmaes_path),
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -3367,8 +3385,12 @@ def _write_manifest(
     aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
     aob_input_rows: list[dict[str, object]] | None = None,
     python_executable: str = sys.executable,
+    vendor_paths: HccVendorPaths = HCC_VENDOR_PATHS,
 ) -> None:
     aob_input_rows = [] if aob_input_rows is None else aob_input_rows
+    mmes_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "mmes.py"
+    mmes_state_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "state.py"
+    cmaes_path = vendor_paths.hcc_root / "OPT" / "CMAES" / "cmaes.py"
     overlap_scope_same_budget_status = (
         _diagnostic_observed_value(
             diagnosis_rows,
@@ -3478,7 +3500,9 @@ def _write_manifest(
                 "--output-dir <output_dir> --seeds "
                 f"{' '.join(str(seed) for seed in seeds)} --problems "
                 f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))} "
-                f"--max-fes {max_fes} --budget-accounting {budget_accounting}"
+                f"--max-fes {max_fes} --budget-accounting {budget_accounting} "
+                f"--hcc-root {vendor_paths.vendor_root} "
+                f"--hcc-runner {vendor_paths.runner}"
                 f"{'' if cmaes_restart else ' --no-cmaes-restart'}"
                 f"{'' if mmes_restart else ' --no-mmes-restart'}"
             ),
@@ -3493,8 +3517,12 @@ def _write_manifest(
             f"Parallel jobs: {max(1, int(jobs))}",
             f"Lanes: {', '.join(lane.lane_id for lane in lanes)}",
             f"AOB data root: {Path(aob_data_root).resolve()}",
+            f"HCC vendor root: {vendor_paths.vendor_root}",
+            f"HCC AOB root: {vendor_paths.aob_root}",
+            f"HCC source root: {vendor_paths.hcc_root}",
+            f"HCC smoke runner: {vendor_paths.runner}",
             f"Actual cwd: {Path.cwd().resolve()}",
-            f"Backend cwd: {HCC_VENDOR_ROOT}",
+            f"Backend cwd: {vendor_paths.vendor_root}",
             f"Wrapper Python executable: {Path(sys.executable).resolve()}",
             f"Backend Python executable: {python_executable}",
             f"Python version: {platform.python_version()}",
@@ -3508,15 +3536,15 @@ def _write_manifest(
             f"- git commit: {_git_commit()}",
             (
                 "- config fingerprint: "
-                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root)}"
+                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root, vendor_paths)}"
             ),
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- search-state policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'search_state_policy.py')}",
             f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
-            f"- HCC smoke runner sha256: {_sha256_file(ARAC_HCC_SMOKE_RUNNER)}",
-            f"- MMES optimizer sha256: {_sha256_file(HCC_VENDOR_ROOT / 'HCC' / 'NDAs' / 'MMES' / 'mmes.py')}",
-            f"- MMES state model sha256: {_sha256_file(HCC_VENDOR_ROOT / 'HCC' / 'NDAs' / 'MMES' / 'state.py')}",
-            f"- CMAES optimizer sha256: {_sha256_file(HCC_VENDOR_ROOT / 'HCC' / 'OPT' / 'CMAES' / 'cmaes.py')}",
+            f"- HCC smoke runner sha256: {_sha256_file(vendor_paths.runner)}",
+            f"- MMES optimizer sha256: {_sha256_file(mmes_path)}",
+            f"- MMES state model sha256: {_sha256_file(mmes_state_path)}",
+            f"- CMAES optimizer sha256: {_sha256_file(cmaes_path)}",
             (
                 "- AOB input hashes: aob_input_manifest.csv; "
                 f"rows={len(aob_input_rows)}; "
@@ -3558,6 +3586,8 @@ def run_hcc_runtime_consumer_smoke(
         run_hcc_aob_smoke_execution
     ),
     hcc_root: Path | str = HCC_VENDOR_ROOT,
+    hcc_repo_root: Path | str | None = None,
+    hcc_runner: Path | str | None = None,
     aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
     python_executable: str = sys.executable,
     seeds: tuple[int, ...] = DEFAULT_SEEDS,
@@ -3577,12 +3607,24 @@ def run_hcc_runtime_consumer_smoke(
         raise ValueError("budget_accounting must be 'strict' or 'source'")
     lanes = lanes_for_profile(lane_profile)
     output = Path(output_dir)
+    if not output.is_absolute():
+        output = ARAC_REPO_ROOT / output
+    output = output.resolve()
+    vendor_paths = resolve_hcc_vendor_paths(
+        hcc_root,
+        repo_root=hcc_repo_root,
+        runner_path=hcc_runner,
+    )
+    resolved_aob_data_root = Path(aob_data_root)
+    if not resolved_aob_data_root.is_absolute():
+        resolved_aob_data_root = ARAC_REPO_ROOT / resolved_aob_data_root
+    resolved_aob_data_root = resolved_aob_data_root.resolve()
     output.mkdir(parents=True, exist_ok=True)
     records = _records(
         output_dir=output,
         execution_runner=execution_runner,
-        hcc_root=Path(hcc_root),
-        aob_data_root=Path(aob_data_root).resolve(),
+        hcc_root=vendor_paths.vendor_root,
+        aob_data_root=resolved_aob_data_root,
         python_executable=python_executable,
         seeds=tuple(seeds),
         problem_ids=tuple(problem_ids),
@@ -3592,6 +3634,7 @@ def run_hcc_runtime_consumer_smoke(
         cmaes_restart=cmaes_restart,
         mmes_restart=mmes_restart,
         lanes=lanes,
+        hcc_runner=vendor_paths.runner,
     )
     aob_input_rows = _aob_input_manifest_rows(records)
     ledger_rows = _ledger_rows(records)
@@ -3962,9 +4005,10 @@ def run_hcc_runtime_consumer_smoke(
         mmes_restart,
         lanes,
         lane_profile,
-        Path(aob_data_root).resolve(),
+        resolved_aob_data_root,
         aob_input_rows,
         python_executable,
+        vendor_paths,
     )
     return output
 
@@ -3972,7 +4016,21 @@ def run_hcc_runtime_consumer_smoke(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run exp_003 HCC runtime consumer smoke.")
     parser.add_argument("--output-dir", default="results/exp_003_hcc_runtime_consumer_smoke")
-    parser.add_argument("--hcc-root", default=str(HCC_VENDOR_ROOT))
+    parser.add_argument(
+        "--hcc-root",
+        default=str(HCC_VENDOR_ROOT),
+        help="canonical vendor/hcc runtime root, or a valid vendor snapshot with explicit runner context.",
+    )
+    parser.add_argument(
+        "--hcc-repo-root",
+        default=None,
+        help="Repository root that owns scripts/hcc_smoke_runner.py for a vendor override.",
+    )
+    parser.add_argument(
+        "--hcc-runner",
+        default=None,
+        help="Explicit ARAC-owned HCC smoke runner path for a vendor override.",
+    )
     parser.add_argument("--aob-data-root", default=str(DEFAULT_AOB_DATA_ROOT))
     parser.add_argument("--python-executable", default=sys.executable)
     parser.add_argument("--seeds", nargs="+", type=int, default=list(DEFAULT_SEEDS))
@@ -4031,6 +4089,10 @@ def main(argv: list[str] | None = None) -> Path:
     return run_hcc_runtime_consumer_smoke(
         output_dir=args.output_dir,
         hcc_root=Path(args.hcc_root),
+        hcc_repo_root=(
+            None if args.hcc_repo_root is None else Path(args.hcc_repo_root)
+        ),
+        hcc_runner=None if args.hcc_runner is None else Path(args.hcc_runner),
         aob_data_root=Path(args.aob_data_root),
         python_executable=str(args.python_executable),
         seeds=tuple(args.seeds),

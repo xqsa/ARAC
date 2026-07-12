@@ -4922,7 +4922,11 @@ def test_conservative_fallback_matches_default_hcc_smoke_behavior(tmp_path: Path
     if os.environ.get("ARAC_RUN_HCC_SMOKE") != "1":
         pytest.skip("set ARAC_RUN_HCC_SMOKE=1 to run the HCC subprocess smoke")
 
-    from arac.backends.hcc import HccAobExecutionRequest, run_hcc_aob_smoke_execution
+    from arac.backends.hcc import (
+        HCC_VENDOR_ROOT,
+        HccAobExecutionRequest,
+        run_hcc_aob_smoke_execution,
+    )
 
     python_executable = (
         r"C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies"
@@ -4932,7 +4936,7 @@ def test_conservative_fallback_matches_default_hcc_smoke_behavior(tmp_path: Path
         "problem_id": "E2",
         "seed": 1,
         "max_fes": 2_000,
-        "hcc_root": Path("E:/HCC-main"),
+        "hcc_root": HCC_VENDOR_ROOT,
         "python_executable": python_executable,
     }
     default_result = run_hcc_aob_smoke_execution(
