@@ -3770,6 +3770,29 @@ def test_controller_v32_uses_group_local_phase_rescue_without_stale_state_resume
     )
 
 
+def test_stage_fe_uses_objective_observed_count_when_fitness_record_exists() -> None:
+    runner = _load_runner_module()
+
+    class Objective:
+        fitness_record = [1.0] * 17
+
+    assert runner.observed_optimizer_fe(
+        Objective(),
+        evaluations_before=10,
+        optimizer_reported_fe=500,
+    ) == 7
+
+
+def test_stage_fe_falls_back_to_optimizer_report_without_fitness_record() -> None:
+    runner = _load_runner_module()
+
+    assert runner.observed_optimizer_fe(
+        object(),
+        evaluations_before=0,
+        optimizer_reported_fe=23,
+    ) == 23
+
+
 def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

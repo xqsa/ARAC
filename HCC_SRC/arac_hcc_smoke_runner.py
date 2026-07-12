@@ -669,6 +669,23 @@ def current_fitness_evaluations(fun) -> int:
     return len(getattr(fun, "fitness_record", []))
 
 
+def observed_optimizer_fe(
+    fun,
+    *,
+    evaluations_before: int,
+    optimizer_reported_fe: int,
+) -> int:
+    """Prefer objective-observed FE so partial final batches are not overcounted."""
+
+    reported = max(0, int(optimizer_reported_fe))
+    if not hasattr(fun, "fitness_record"):
+        return reported
+    observed = current_fitness_evaluations(fun) - max(0, int(evaluations_before))
+    if observed < 0:
+        raise RuntimeError("objective FE counter moved backwards")
+    return observed
+
+
 def bounded_population_budget(
     requested_fes: int,
     remaining_fes: int,
@@ -2318,10 +2335,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             }
             if config.seed is not None:
                 options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
+            phase_i_evaluations_before = current_fitness_evaluations(fun)
             phase_i_results = MMES(problem, options).optimize()
             best_individual = np.asarray(phase_i_results["best_so_far_x"], dtype=float).copy()
             phase_i_fitness = float(phase_i_results["best_so_far_y"])
-            global_phase_fe = int(phase_i_results["n_function_evaluations"])
+            global_phase_fe = observed_optimizer_fe(
+                fun,
+                evaluations_before=phase_i_evaluations_before,
+                optimizer_reported_fe=phase_i_results["n_function_evaluations"],
+            )
             sum_fes += global_phase_fe
         else:
             phase_i_fitness = float(fun(best_individual)[0])
@@ -2446,6 +2468,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         if config.seed is not None:
             options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
         phase_i_optimizer = MMES(problem, options)
+        phase_i_evaluations_before = current_fitness_evaluations(fun)
         if not uses_resumable_phase_i_state_during_run(config.arac_action):
             results = phase_i_optimizer.optimize()
         else:
@@ -2455,7 +2478,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         best_individual = results["best_so_far_x"].copy()
         guarded_incumbent = best_individual.copy()
         guarded_incumbent_fitness = float(results["best_so_far_y"])
-        global_phase_fe = int(results["n_function_evaluations"])
+        global_phase_fe = observed_optimizer_fe(
+            fun,
+            evaluations_before=phase_i_evaluations_before,
+            optimizer_reported_fe=results["n_function_evaluations"],
+        )
         sum_fes += global_phase_fe
     elif is_cc_harm_guarded_sep_refresh_action(config.arac_action):
         guarded_incumbent_fitness = float(fun(best_individual)[0])
@@ -2558,9 +2585,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     0,
                     stage_index,
                 )
+            primary_evaluations_before = current_fitness_evaluations(fun)
             results_cc = CMAES(problem_cc, options_cc).optimize()
             optimized_any_group = True
-            primary_cc_fe = int(results_cc["n_function_evaluations"])
+            primary_cc_fe = observed_optimizer_fe(
+                fun,
+                evaluations_before=primary_evaluations_before,
+                optimizer_reported_fe=results_cc["n_function_evaluations"],
+            )
             cc_phase_fe += primary_cc_fe
             sum_fes += primary_cc_fe
             new_best_y = float(results_cc["best_so_far_y"])
@@ -2648,9 +2680,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             outer_iter + 1,
                             (index + 1) * 7919 + bipop_restart_count,
                         )
+                    restart_evaluations_before = current_fitness_evaluations(fun)
                     restart_results = CMAES(problem_cc, restart_options).optimize()
                     bipop_restart_count += 1
-                    restart_fe = int(restart_results["n_function_evaluations"])
+                    restart_fe = observed_optimizer_fe(
+                        fun,
+                        evaluations_before=restart_evaluations_before,
+                        optimizer_reported_fe=restart_results["n_function_evaluations"],
+                    )
                     rescue_fe += restart_fe
                     sum_fes += restart_fe
                     restart_best = float(restart_results["best_so_far_y"])
@@ -2806,8 +2843,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 outer_iter + 1,
                                 (index + 1) * 17011 + candidate_index,
                             )
+                        rescue_evaluations_before = current_fitness_evaluations(fun)
                         rescue_results = CMAES(problem_cc, rescue_options).optimize()
-                        total_rescue_fes += int(rescue_results["n_function_evaluations"])
+                        total_rescue_fes += observed_optimizer_fe(
+                            fun,
+                            evaluations_before=rescue_evaluations_before,
+                            optimizer_reported_fe=rescue_results[
+                                "n_function_evaluations"
+                            ],
+                        )
                         rescue_best = float(rescue_results["best_so_far_y"])
                         if rescue_best < best_candidate_y:
                             best_candidate_y = rescue_best
