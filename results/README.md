@@ -20,3 +20,19 @@ Run payload is generated and ignored by `results/*`. Only `results/README.md` an
 single local run, or large output tables. Schemas and reusable generators belong under `docs/`
 or `scripts/` and remain trackable. Paper and historical values may be joined only by offline
 analysis after reference-blind runtime execution finishes.
+
+## Manifest Index
+
+Build a deterministic index without changing any result payload:
+
+```powershell
+python scripts/build_results_manifest.py `
+  --root <repo-root> `
+  --results E:\ARAC\results `
+  --output <repo-root>\.codex\tmp\results-manifest.csv
+```
+
+The index records experiment identity, protocol metadata, commit/config
+provenance, case/seed, FE budget, claim level, and output path. Missing run
+metadata is marked `partial`; the generator does not infer completeness from
+folder names or paper comparisons.
