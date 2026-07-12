@@ -125,6 +125,31 @@ $children = @(Get-ChildItem results -Directory -Force -ErrorAction SilentlyConti
 - `legacy_root(E:/ARAC)`：当前 root 中尚未审阅或迁移的用户材料。
 - `results_root(E:/ARAC/results)`：只读索引的 ignored results payload；不包括已跟踪的 `results/.gitkeep`。
 
+## Migration preflight
+
+迁移表中的 `verification` 是 preflight，不执行移动：不运行 `Move-Item`、`git mv`，不写入目标目录，不修改 results payload。每条命令同时检查 source_root 下源路径存在、`source_state` 的精确 Git 状态，以及目标路径当前不存在或明确允许同一绝对路径。`review-only` 和 `defer-to-task-*` 行同样执行目标冲突检查。
+
+实际执行命令：
+
+```powershell
+$rows = Import-Csv docs/migrations/2026-07-12-path-migration.csv
+foreach ($row in $rows) {
+    & pwsh -NoProfile -Command $row.verification
+    if ($LASTEXITCODE -ne 0) { exit 1 }
+}
+```
+
+本轮四批次复跑记录：
+
+| 批次 | 开始 | 结束 | 通过 |
+| --- | --- | --- | ---: |
+| 1-10 | `2026-07-12T16:19:42.3441980+08:00` | `2026-07-12T16:19:54.9971725+08:00` | 10/10 |
+| 11-20 | `2026-07-12T16:19:55.8369216+08:00` | `2026-07-12T16:20:08.5006816+08:00` | 10/10 |
+| 21-30 | `2026-07-12T16:20:09.3538109+08:00` | `2026-07-12T16:20:22.0166890+08:00` | 10/10 |
+| 31-40 | `2026-07-12T16:20:22.8598779+08:00` | `2026-07-12T16:20:35.2287443+08:00` | 10/10 |
+
+总计：**40/40 verification 通过，失败 0**。
+
 ## 当前 root 的未提交 v3.3/待审材料
 
 以下材料在本次盘点时存在于 `E:\ARAC`，全部保持原路径，不因本任务自动加入 Git：

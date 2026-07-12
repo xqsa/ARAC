@@ -62,6 +62,7 @@ E:/ARAC/
 ├── vendor/hcc/                只读 HCC 源码快照
 ├── experiments/
 │   ├── pilots/                 schema、1-run 和 runtime smoke
+│   ├── infrastructure/         benchmark、build 和外部 runner 基础设施
 │   ├── recovery/               历史结果恢复
 │   ├── ablations/              消融和机制实验
 │   ├── final/                  正式协议入口

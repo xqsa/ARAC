@@ -41,8 +41,8 @@
 - `experiments/exp_003_hcc_runtime_consumer_smoke/` → `experiments/pilots/exp_003_hcc_runtime_consumer_smoke/`。
 - `experiments/exp_004_hcc_main_historical_result_recovery/` → `experiments/recovery/exp_004_hcc_main_historical_result_recovery/`。
 - `experiments/exp_005_hcc_final_protocol_pilot/` → `experiments/final/exp_005_hcc_final_protocol_pilot/`。
-- `experiments/exp_006_flyki_adapter_smoke/` → `experiments/ablations/exp_006_flyki_adapter_smoke/`。
-- `experiments/exp_007_flyki_cbocco_runner/` → `experiments/ablations/exp_007_flyki_cbocco_runner/`。
+- `experiments/exp_006_flyki_adapter_smoke/` → `experiments/pilots/exp_006_flyki_adapter_smoke/`。
+- `experiments/exp_007_flyki_cbocco_runner/` → `experiments/infrastructure/exp_007_flyki_cbocco_runner/`。
 - `experiments/exp_008_arac_guarded_final_protocol/` → `experiments/final/exp_008_arac_guarded_final_protocol/`。
 - 论文草稿 → `paper/drafts/`；论文表格文档 → `paper/tables/`。
 - 历史审计 Markdown/CSV → `docs/audits/` 和 `references/historical/`。
@@ -127,7 +127,7 @@ Run from `E:\ARAC` after the plan commit exists on `main`:
 
 ```powershell
 git worktree add C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure -b codex/research-project-structure b88a4d9
-git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure restore --source main -- docs/superpowers/specs/2026-07-12-research-project-restructure-design.md docs/superpowers/plans/2026-07-12-research-project-restructure.md docs/research-log/2026-07-12-restructure-baseline.md docs/migrations/2026-07-12-path-migration.csv
+git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure restore --source 95bbbaa -- docs/superpowers/specs/2026-07-12-research-project-restructure-design.md docs/superpowers/plans/2026-07-12-research-project-restructure.md docs/research-log/2026-07-12-restructure-baseline.md docs/migrations/2026-07-12-path-migration.csv
 git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure add -- docs/superpowers/specs/2026-07-12-research-project-restructure-design.md docs/superpowers/plans/2026-07-12-research-project-restructure.md docs/research-log/2026-07-12-restructure-baseline.md docs/migrations/2026-07-12-path-migration.csv
 git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure commit -m "docs: seed restructuring worktree"
 git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure merge-base --is-ancestor b88a4d9 HEAD
@@ -135,7 +135,7 @@ git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-
 git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure status --short
 ```
 
-Expected: 新 worktree 分支以 `b88a4d9` 为祖先基线，四份文档已 tracked 并提交，`status --short` 无输出。提交后的 HEAD 是 `b88a4d9` 的后代，不要求 HEAD 永远等于 `b88a4d9`。当前 `E:\ARAC` 未跟踪材料和原 v3.3 dirty worktree 均保持原状。后续 Tasks 2-9 在该干净 worktree 执行。
+Expected: 新 worktree 分支以 `b88a4d9` 为祖先基线；固定提交 `95bbbaa` 是四份交接文档的快照来源，不是新的算法基线。四份文档已 tracked 并提交，`status --short` 无输出。提交后的 HEAD 是 `b88a4d9` 的后代，不要求 HEAD 永远等于 `b88a4d9`。后续文档修订直接在 `codex/research-project-structure` 继续提交，不依赖重新读取可变的 `main`。当前 `E:\ARAC` 未跟踪材料和原 v3.3 dirty worktree 均保持原状。后续 Tasks 2-9 在该干净 worktree 执行。
 
 后续命令统一使用：
 
@@ -285,13 +285,13 @@ Expected: 全部通过，导入过程不访问 paper/historical files。
 ## Task 5: Organize experiments by research stage
 
 **Files:**
-- Move: `experiments/exp_001` through `exp_008` into approved stage folders
+- Move: `experiments/exp_001` through `exp_008` into approved stage folders; `exp_006` is a pilot smoke and `exp_007` is infrastructure, not an ablation
 - Modify: `experiments/README.md`, moved runners and tests
 - Test: `tests/test_experiment_layout.py` and all `test_exp_*` files
 
 - [ ] **Step 1: Write the experiment-layout test**
 
-每个非 archive 实验必须有 README、入口和明确阶段；archive 不被默认 runner 导入；输出仍位于 `results/`。
+每个非 archive 实验必须有 README、入口和明确阶段；阶段包括 `pilots`、`infrastructure`、`recovery`、`ablations` 和 `final`；archive 不被默认 runner 导入；输出仍位于 `results/`。
 
 - [ ] **Step 2: Add explicit repository-root resolution**
 
@@ -299,11 +299,11 @@ Expected: 全部通过，导入过程不访问 paper/historical files。
 
 - [ ] **Step 3: Move all experiment packages**
 
-保持 `exp_00N_*` ID、输出 schema、claim level 和 runtime 参数不变；本步不重命名现有结果目录。
+保持 `exp_00N_*` ID、输出 schema、claim level 和 runtime 参数不变；`exp_006_flyki_adapter_smoke` 归入 `pilots`，`exp_007_flyki_cbocco_runner` 归入 `infrastructure`（benchmark/build/外部 runner 基础设施），二者不归入 `ablations`；本步不重命名现有结果目录。
 
 - [ ] **Step 4: Update imports and commands**
 
-更新 `test_exp_*`、README 和模块调用命令；每个 README 标明 pilot/recovery/ablation/final。
+更新 `test_exp_*`、README 和模块调用命令；每个 README 标明 pilot/infrastructure/recovery/ablation/final。
 
 - [ ] **Step 5: Run experiment tests in three batches**
 
