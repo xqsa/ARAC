@@ -112,7 +112,13 @@ runtime gates.
   cumulative cap in `plan_search_state_action`; do not use it as a hold.
 - [x] Run the focused runner and policy tests, compile the modified modules,
   run the full test suite, and run `git diff --check`.
-- [ ] Run R3 seeds 1/2/3 at 3M FE with `diagonal_cma`. Compare only offline
+- [x] Run R3 seeds 1/2/3 at 3M FE with `diagonal_cma`. Compare only offline
   against the frozen v32 baseline and paper-best.
-- [ ] If R3 remains useful and has no catastrophic loss, run E6/S6/R2/A4
-  seeds 1/2/3. Adoption requires all four best-of-three wins to remain.
+- [x] Run E6/S6/R2/A4 seeds 1/2/3 after the R3 pilot. The adoption gate
+  failed: A4 and S6 retained their best-of-three wins, while E6 and R2 did
+  not. Do not expand this backend to the twelve protected winners.
+
+**Task 5 runtime result:** R3 improved to `3.340394e5`, which is 1.84% above
+the offline paper-best `3.28e5`. Strict FE accounting and anti-leakage passed,
+but the backend remains experimental because the preservation gate was only
+2/4.

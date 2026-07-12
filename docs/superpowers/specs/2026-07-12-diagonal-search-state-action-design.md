@@ -138,6 +138,12 @@ while E6, S6, and R2 lost their best-of-three wins. The backend remains
 experimental until the corrected next-block hold passes R3 and all four
 preservation controls.
 
+The corrected next-block hold pilot also remained below the adoption gate.
+R3 improved from `3.718323e5` to `3.340394e5`, but did not beat the offline
+paper-best `3.28e5`. A4 and S6 retained their best-of-three wins; E6 and R2
+did not. Therefore the diagonal backend must remain opt-in and must not be
+expanded to the full protected case set.
+
 Adoption requires preserving the existing 12/12 best-of-three wins, no FE
 overrun, clean anti-leakage, and no catastrophic loss. R3 improvement is
 reported separately and cannot compensate for a lost protected win.
