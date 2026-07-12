@@ -8,6 +8,10 @@
 
 **Tech Stack:** Python 3.12, NumPy 2.3.5, cma 4.4.4, pytest, existing HCC/AOB runner.
 
+**Implementation status (2026-07-12):** Tasks 1-3 are implemented and the
+full test suite is green. Task 4 remains the fresh 3M-FE R3 pilot and its
+preservation gate.
+
 ---
 
 ## File Map
@@ -89,4 +93,3 @@
   paper-best offline; do not feed either value into runtime dispatch.
 - [ ] Run preservation controls only if R3 action execution is valid and has no
   catastrophic loss.
-

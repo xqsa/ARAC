@@ -318,3 +318,23 @@ def test_policy_rejects_unknown_trajectory_action(eligible_evidence) -> None:
             policy.SearchStateSchedulerState(),
             trajectory_action_name="unknown_search_backend",
         )
+
+
+def test_diagonal_trajectory_can_probe_under_repair_lock_with_conflict_evidence(
+    eligible_evidence,
+) -> None:
+    evidence = replace(eligible_evidence, repair_lock_active=True)
+
+    diagonal_plan = policy.plan_search_state_action(
+        evidence,
+        policy.SearchStateSchedulerState(),
+        trajectory_action_name=policy.CONTINUE_DIAGONAL_SEARCH_STATE,
+    )
+    mmes_plan = policy.plan_search_state_action(
+        evidence,
+        policy.SearchStateSchedulerState(),
+        trajectory_action_name=policy.RESUME_PHASE_I_SEARCH_STATE,
+    )
+
+    assert diagonal_plan.action_name == policy.CONTINUE_DIAGONAL_SEARCH_STATE
+    assert mmes_plan.action_name == policy.CONTINUE_CANONICAL_CC

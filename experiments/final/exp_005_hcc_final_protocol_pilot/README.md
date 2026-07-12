@@ -22,9 +22,21 @@ Run:
 $env:PYTHONPATH='src'; python -m experiments.final.exp_005_hcc_final_protocol_pilot.run --output-dir results\exp_005_hcc_final_protocol_pilot --aob-data-root vendor\hcc\AOB\AOBG\datafile --python-executable E:\ARAC\.venv\Scripts\python.exe --jobs 24 --budget-accounting strict
 ```
 
+R3 diagonal search-state candidate, still using the same single canonical
+trajectory and the same runtime evidence policy:
+
+```powershell
+$env:PYTHONPATH='src'; python -m experiments.final.exp_005_hcc_final_protocol_pilot.run --output-dir results\exp_005_r3_diagonal_seed123 --aob-data-root vendor\hcc\AOB\AOBG\datafile --python-executable E:\ARAC\.venv\Scripts\python.exe --problems R3 --seeds 1 2 3 --jobs 3 --search-state-backend diagonal_cma --budget-accounting strict
+```
+
+`--search-state-backend diagonal_cma` configures the available trajectory
+executor. It does not force execution: the reference-blind runtime evidence
+gate still decides whether the bounded probe runs.
+
 The entry fails before launching any optimizer unless the backend interpreter
 matches the validated Python 3.12.13, NumPy 2.3.5, matplotlib 3.11.0,
-SciPy 1.18.0, Torch 2.12.1, PyYAML 6.0.3, and OpenBLAS 0.3.30 environment.
+SciPy 1.18.0, Torch 2.12.1, PyYAML 6.0.3, cma 4.4.4, and OpenBLAS 0.3.30
+environment.
 Successful runs write the observed and expected values to
 `final_protocol_environment.json`.
 

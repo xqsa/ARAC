@@ -57,6 +57,7 @@ PINNED_FINAL_PROTOCOL_ENVIRONMENT = {
     "PyYAML": "6.0.3",
     "scipy": "1.18.0",
     "torch": "2.12.1",
+    "cma": "4.4.4",
     "blas_name": "scipy-openblas",
     "blas_version": "0.3.30",
 }
@@ -76,6 +77,7 @@ print(json.dumps({
     "PyYAML": metadata.version("PyYAML"),
     "scipy": metadata.version("scipy"),
     "torch": metadata.version("torch"),
+    "cma": metadata.version("cma"),
     "blas_name": str(blas.get("name", "missing")),
     "blas_version": str(blas.get("version", "missing")),
 }, sort_keys=True))
@@ -285,6 +287,7 @@ def run_hcc_final_protocol_pilot(
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
     lane_profile: str = "canonical_evidence_controller_v1",
+    search_state_backend: str = "phase_i_mmes",
     environment_probe: EnvironmentProbe | None = None,
     paper_best_matrix: Path | str = DEFAULT_PAPER_BEST_MATRIX,
 ) -> Path:
@@ -310,6 +313,7 @@ def run_hcc_final_protocol_pilot(
         cmaes_restart=cmaes_restart,
         mmes_restart=mmes_restart,
         lane_profile=lane_profile,
+        search_state_backend=search_state_backend,
     )
     manifest_path = Path(output) / "run_manifest.md"
     manifest = manifest_path.read_text(encoding="utf-8")
@@ -387,6 +391,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--max-fes", type=int, default=DEFAULT_MAX_FES)
     parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
+    parser.add_argument(
+        "--search-state-backend",
+        default="phase_i_mmes",
+        choices=["phase_i_mmes", "diagonal_cma"],
+    )
     parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
     parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
     parser.add_argument("--mmes-restart", dest="mmes_restart", action="store_true", default=True)
@@ -445,6 +454,7 @@ def main(argv: list[str] | None = None) -> Path:
         cmaes_restart=bool(args.cmaes_restart),
         mmes_restart=bool(args.mmes_restart),
         lane_profile=str(args.lane_profile),
+        search_state_backend=str(args.search_state_backend),
     )
 
 

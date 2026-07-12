@@ -699,3 +699,20 @@ def test_exp_005_cli_accepts_separable_cmaes_push_profile() -> None:
 
     assert args.lane_profile == "separable_cmaes_push"
     assert args.problems == ["R5", "R6"]
+
+
+def test_exp_005_cli_accepts_diagonal_search_state_backend() -> None:
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import parse_args
+
+    args = parse_args(
+        [
+            "--output-dir",
+            "out",
+            "--problems",
+            "R3",
+            "--search-state-backend",
+            "diagonal_cma",
+        ]
+    )
+
+    assert args.search_state_backend == "diagonal_cma"

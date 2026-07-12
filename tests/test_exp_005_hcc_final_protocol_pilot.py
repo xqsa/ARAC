@@ -187,6 +187,7 @@ def test_hcc_optional_dependencies_match_the_pinned_final_environment() -> None:
         pyproject = tomllib.load(handle)
 
     assert pyproject["project"]["optional-dependencies"]["hcc"] == [
+        "cma==4.4.4",
         "matplotlib==3.11.0",
         "numpy==2.3.5",
         "PyYAML==6.0.3",

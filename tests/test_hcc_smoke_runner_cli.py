@@ -546,6 +546,212 @@ def test_hcc_smoke_runner_parses_evidence_action_controller_v32() -> None:
     assert args.relation_policy == "controller_v31"
 
 
+def test_hcc_smoke_runner_parses_diagonal_search_state_backend() -> None:
+    runner = _load_runner_module()
+
+    default_args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "3",
+            "--output-root",
+            "out",
+            "--max-fes",
+            "3000000",
+        ]
+    )
+    diagonal_args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "3",
+            "--output-root",
+            "out",
+            "--max-fes",
+            "3000000",
+            "--search-state-backend",
+            "diagonal_cma",
+        ]
+    )
+
+    assert default_args.search_state_backend == "phase_i_mmes"
+    assert diagonal_args.search_state_backend == "diagonal_cma"
+
+
+def test_diagonal_search_state_block_uses_protected_incumbent_and_audits_fe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    initialized = {}
+
+    class FakeState:
+        best_x = np.array([0.5, 0.5, 0.5])
+        best_y = 0.75
+        population_size = 4
+
+    class FakeBlock:
+        state = FakeState()
+        best_before = 3.0
+        best_after = 0.75
+        candidate_best = 0.75
+        accepted = True
+        requested_fes = 8
+        actual_fes = 8
+        unused_fes = 0
+        population_size = 4
+        sigma_before = 0.5
+        sigma_after = 0.4
+        state_fingerprint_before = "before"
+        state_fingerprint_after = "after"
+
+    def fake_initialize(**kwargs):
+        initialized.update(kwargs)
+        return FakeState()
+
+    monkeypatch.setattr(runner, "initialize_diagonal_cma_state", fake_initialize)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda _dimension: 4)
+    monkeypatch.setattr(
+        runner,
+        "run_diagonal_cma_block",
+        lambda state, objective, requested_fes: FakeBlock(),
+    )
+
+    guard = np.ones(3)
+    state, accepted, candidate, fitness, block, optimizer_seed = (
+        runner.run_diagonal_search_state_block(
+            state=None,
+            requested_fes=8,
+            guard_individual=guard,
+            guard_fitness=3.0,
+            fun=lambda batch: np.sum(np.asarray(batch) ** 2, axis=1),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=2,
+        )
+    )
+
+    np.testing.assert_allclose(initialized["initial_mean"], guard)
+    assert initialized["incumbent_fitness"] == 3.0
+    assert initialized["population_size"] == 4
+    assert initialized["seed"] == optimizer_seed
+    assert state is block.state
+    assert accepted is True
+    np.testing.assert_allclose(candidate, FakeState.best_x)
+    assert fitness == 0.75
+    assert block.actual_fes == 8
+
+
+def test_diagonal_search_start_projects_mean_but_preserves_out_of_bounds_guard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    initialized = {}
+
+    class FakeState:
+        best_x = np.zeros(3)
+        best_y = 3.0
+        population_size = 4
+
+    def fake_initialize(**kwargs):
+        initialized.update(kwargs)
+        return FakeState()
+
+    monkeypatch.setattr(runner, "initialize_diagonal_cma_state", fake_initialize)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda _dimension: 4)
+    def fake_run(state, objective, requested_fes):
+        return type(
+            "FakeBlock",
+            (),
+            {"state": state, "best_after": 3.0, "actual_fes": 4},
+        )()
+
+    monkeypatch.setattr(runner, "run_diagonal_cma_block", fake_run)
+
+    guard = np.array([9.0, 0.0, -8.0])
+    state, accepted, candidate, fitness, _block, _seed = (
+        runner.run_diagonal_search_state_block(
+            state=None,
+            requested_fes=4,
+            guard_individual=guard,
+            guard_fitness=3.0,
+            fun=lambda batch: np.sum(np.asarray(batch) ** 2, axis=1),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=2,
+        )
+    )
+
+    np.testing.assert_allclose(initialized["initial_mean"], [5.0, 0.0, -5.0])
+    np.testing.assert_allclose(state.best_x, guard)
+    assert accepted is False
+    np.testing.assert_allclose(candidate, guard)
+    assert fitness == 3.0
+
+
+def test_controller_v32_enables_scheduler_only_for_explicit_diagonal_backend() -> None:
+    runner = _load_runner_module()
+
+    default_config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+    )
+    diagonal_config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+        search_state_backend="diagonal_cma",
+    )
+
+    assert runner.uses_scheduled_search_state(default_config) is False
+    assert runner.uses_scheduled_search_state(diagonal_config) is True
+    assert (
+        runner.trajectory_action_name_for_backend(diagonal_config)
+        == runner.CONTINUE_DIAGONAL_SEARCH_STATE
+    )
+
+
+def test_action_trace_records_search_state_backend() -> None:
+    runner = _load_runner_module()
+
+    row = runner.build_action_trace_row(
+        problem_id="R3",
+        seed=3,
+        outer_iter=1,
+        group_index=4,
+        selected_action_name=runner.CONTINUE_DIAGONAL_SEARCH_STATE,
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=1.0,
+        search_state_backend="diagonal_cma",
+    )
+
+    assert row["search_state_backend"] == "diagonal_cma"
+    assert "search_state_backend" in runner.ACTION_TRACE_FIELDS
+
+
+def test_diagonal_scheduler_holds_action_budget_before_first_complete_sweep() -> None:
+    runner = _load_runner_module()
+    config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+        search_state_backend="diagonal_cma",
+    )
+
+    initial = runner.SearchStateSchedulerState()
+    blocked = runner.SearchStateSchedulerState(phase=runner.SEARCH_STATE_BLOCKED)
+
+    assert runner.scheduled_search_state_hold_fes(config, initial) == 750_000
+    assert runner.scheduled_search_state_hold_fes(config, blocked) == 0
+
+
 @pytest.mark.parametrize("action_name", ["budget_shift_only", "mean_blend_only"])
 def test_hcc_smoke_runner_parses_trajectory_diagnostic_actions(action_name: str) -> None:
     runner = _load_runner_module()
@@ -4061,7 +4267,7 @@ def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_wor
         fun=WorseFunction(),
         info={"dimension": 3, "lower": -5.0, "upper": 5.0},
         config=runner.SmokeConfig(
-            max_fes=8,
+            max_fes=20,
             seed=1,
             verbose=0,
             arac_action="separable_cmaes_dispatch_action",
@@ -4070,12 +4276,12 @@ def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_wor
         fun_id=5,
         initial_mean=initial_mean,
         incumbent_fitness=1.0,
-        max_function_evaluations=8,
+        max_function_evaluations=20,
     )
 
     assert result["best_so_far_y"] == 1.0
     np.testing.assert_allclose(result["best_so_far_x"], initial_mean)
-    assert result["n_function_evaluations"] == 8
+    assert result["n_function_evaluations"] == 20
 
 
 def test_run_problem_separable_cmaes_dispatch_uses_full_space_diagonal_backend(

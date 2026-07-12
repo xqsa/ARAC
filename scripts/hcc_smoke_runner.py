@@ -53,13 +53,23 @@ from src.arac.policy.relation_policy import (
     decide_actions_for_relations_v26,
 )
 from src.arac.policy.search_state_policy import (
+    CC_RESERVE_FRACTION,
     CONTINUE_CANONICAL_CC,
+    CONTINUE_DIAGONAL_SEARCH_STATE,
+    CUMULATIVE_INTERVENTION_FRACTION,
     RESUME_PHASE_I_SEARCH_STATE,
+    SEARCH_STATE_BLOCKED,
+    SEARCH_STATE_INITIAL_PROBE,
     SearchStateEvidence,
     SearchStateSchedulerState,
     normalized_gain_utility,
     plan_search_state_action,
     record_search_state_outcome,
+)
+from src.arac.backends.diagonal_cma import (
+    DiagonalCMAState,
+    initialize_diagonal_cma_state,
+    run_diagonal_cma_block,
 )
 from src.arac.backends.hcc import required_aob_data_files, validate_aob_data_root
 from HCC.NDAs.MMES.state import MMESBlockResult, MMESState
@@ -135,6 +145,7 @@ ACTION_TRACE_FIELDS = [
     "downstream_consumption_scope",
     "optimizer_consumed",
     "search_state_action_type",
+    "search_state_backend",
     "stagnation_window",
     "delta_mean",
     "sigma_before",
@@ -298,6 +309,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V31,
     EVIDENCE_ACTION_CONTROLLER_V32,
     RESUME_PHASE_I_SEARCH_STATE,
+    CONTINUE_DIAGONAL_SEARCH_STATE,
 }
 TRAJECTORY_BUDGET_SHIFT_STRENGTH = 0.35
 TRAJECTORY_MEAN_BLEND_STRENGTH = 0.25
@@ -325,8 +337,6 @@ CC_HARM_LOW_GAIN_RATIO = 1e-6
 CC_HARM_WRITEBACK_NORM = 1e-9
 CC_HARM_REFRESH_SIGMA_MULTIPLIER = 0.75
 SEPARABLE_CMAES_INITIAL_SIGMA = 0.5
-SEPARABLE_CMAES_SIGMA_ADAPTATION_RATE = 0.2
-SEPARABLE_CMAES_MIN_SIGMA = 1e-12
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
 RELATION_ACTION_FAMILIES = {
     "coordinate": "coordinate",
@@ -359,6 +369,7 @@ class SmokeConfig:
     budget_accounting: str = "strict"
     skip_plots: bool = False
     aob_data_root: Path = DATA_DIR
+    search_state_backend: str = "phase_i_mmes"
 
 
 @dataclass(frozen=True)
@@ -389,6 +400,8 @@ class EvidenceActionControllerV31RunState:
     )
     phase_i_optimizer: object | None = field(default=None, repr=False)
     phase_i_state: MMESState | None = field(default=None, repr=False)
+    diagonal_cma_state: DiagonalCMAState | None = field(default=None, repr=False)
+    phase_i_runtime_tail_utility: float = 0.0
     cc_utility_history: list[float] = field(default_factory=list)
     _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
         default_factory=list,
@@ -786,6 +799,39 @@ def uses_resumable_phase_i_state_during_run(action_name: str) -> bool:
     return is_evidence_action_controller_v31(action_name)
 
 
+def uses_scheduled_search_state(config: SmokeConfig) -> bool:
+    if config.search_state_backend == "diagonal_cma":
+        return bool(
+            is_evidence_action_controller_v31(config.arac_action)
+            or is_evidence_action_controller_v32(config.arac_action)
+        )
+    return uses_resumable_phase_i_state_during_run(config.arac_action)
+
+
+def trajectory_action_name_for_backend(config: SmokeConfig) -> str:
+    if config.search_state_backend == "diagonal_cma":
+        return CONTINUE_DIAGONAL_SEARCH_STATE
+    if config.search_state_backend == "phase_i_mmes":
+        return RESUME_PHASE_I_SEARCH_STATE
+    raise ValueError(f"unsupported search_state_backend: {config.search_state_backend}")
+
+
+def scheduled_search_state_hold_fes(
+    config: SmokeConfig,
+    state: SearchStateSchedulerState,
+) -> int:
+    if not uses_scheduled_search_state(config) or state.phase == SEARCH_STATE_BLOCKED:
+        return 0
+    action_fraction = (
+        CUMULATIVE_INTERVENTION_FRACTION
+        if state.phase == SEARCH_STATE_INITIAL_PROBE
+        else 0.01
+    )
+    return int(
+        math.ceil(config.max_fes * (CC_RESERVE_FRACTION + action_fraction))
+    )
+
+
 def is_cc_harm_guarded_sep_refresh_action(action_name: str) -> bool:
     return action_name == CC_HARM_GUARDED_SEP_REFRESH_ACTION
 
@@ -800,7 +846,8 @@ def is_search_state_action(action_name: str) -> bool:
         or is_phase_rescue_multistart_action(action_name)
         or is_cc_harm_guarded_sep_refresh_action(action_name)
         or is_separable_cmaes_dispatch_action(action_name)
-        or action_name == RESUME_PHASE_I_SEARCH_STATE
+        or action_name
+        in {RESUME_PHASE_I_SEARCH_STATE, CONTINUE_DIAGONAL_SEARCH_STATE}
         or is_evidence_action_controller(action_name)
     )
 
@@ -818,6 +865,7 @@ def overlap_action_name_for_lane(action_name: str) -> str:
         SEARCH_STATE_BIPOP_ACTION,
         PHASE_RESCUE_MULTISTART_ACTION,
         RESUME_PHASE_I_SEARCH_STATE,
+        CONTINUE_DIAGONAL_SEARCH_STATE,
     }:
         return "conservative_no_action"
     if is_evidence_action_controller(action_name):
@@ -970,6 +1018,25 @@ def phase_i_tail_utility(state: MMESState) -> float:
     start_fe, start_best = window[0]
     end_fe, end_best = window[-1]
     return normalized_gain_utility(start_best, end_best, end_fe - start_fe)
+
+
+def runtime_tail_utility(
+    fitness_record: list[float],
+    start_index: int,
+    population_size: int,
+) -> float:
+    values = np.asarray(fitness_record[int(start_index):], dtype=float).reshape(-1)
+    values = values[np.isfinite(values)]
+    if values.size < 2:
+        return 0.0
+    best_so_far = np.minimum.accumulate(values)
+    window_size = min(values.size, max(2, 3 * int(population_size)))
+    tail = best_so_far[-window_size:]
+    return normalized_gain_utility(
+        float(tail[0]),
+        float(tail[-1]),
+        int(window_size - 1),
+    )
 
 
 def build_search_state_evidence(
@@ -1199,68 +1266,120 @@ def run_direct_separable_cmaes_dispatch(
                 f"initial_mean dimension mismatch: expected {dimension}, got {raw_mean.size}"
             )
         mean = np.clip(raw_mean, lower, upper)
-    sigma = np.full((dimension,), SEPARABLE_CMAES_INITIAL_SIGMA, dtype=float)
     population_size = calculate_cmaes_population_size(dimension)
-    parents = max(1, population_size // 2)
-    raw_weights = np.log(parents + 0.5) - np.log(np.arange(1, parents + 1))
-    weights = raw_weights / np.sum(raw_weights)
-    rng = np.random.default_rng(
-        derive_optimizer_seed(
-            config.seed if config.seed is not None else 0,
-            fun_name,
-            fun_id,
-            0,
-            47011,
-        )
-    )
-
-    best_x = np.copy(mean)
-    best_y = math.inf if incumbent_fitness is None else float(incumbent_fitness)
-    evaluations = 0
     evaluation_budget = int(
         config.max_fes if max_function_evaluations is None else max_function_evaluations
     )
-    while evaluations < evaluation_budget:
-        batch_size = min(population_size, evaluation_budget - evaluations)
-        z = rng.standard_normal((batch_size, dimension))
-        candidates = np.clip(mean + sigma * z, lower, upper)
-        y = np.asarray(fun(candidates), dtype=float).reshape(-1)
-        evaluations += int(len(candidates))
-
-        finite = np.isfinite(y)
-        if not np.any(finite):
-            continue
-        finite_indices = np.where(finite)[0]
-        local_best = finite_indices[int(np.argmin(y[finite_indices]))]
-        if float(y[local_best]) < best_y:
-            best_y = float(y[local_best])
-            best_x = np.copy(candidates[local_best])
-
-        if batch_size < parents:
-            continue
-        order = np.argsort(np.where(finite, y, math.inf))[:parents]
-        selected = candidates[order]
-        selected_z = z[order]
-        mean = np.dot(weights, selected)
-        variance_signal = np.sqrt(np.dot(weights, np.square(selected_z)))
-        sigma *= np.exp(
-            SEPARABLE_CMAES_SIGMA_ADAPTATION_RATE * (variance_signal - 1.0)
-        )
-        sigma = np.clip(
-            sigma,
-            SEPARABLE_CMAES_MIN_SIGMA,
-            np.maximum(upper - lower, 1.0),
-        )
+    if incumbent_fitness is None or not math.isfinite(float(incumbent_fitness)):
+        raise ValueError("direct separable CMA dispatch requires a finite incumbent")
+    optimizer_seed = derive_optimizer_seed(
+        config.seed if config.seed is not None else 0,
+        fun_name,
+        fun_id,
+        0,
+        47011,
+    )
+    state = initialize_diagonal_cma_state(
+        initial_mean=mean,
+        sigma=SEPARABLE_CMAES_INITIAL_SIGMA,
+        lower=lower,
+        upper=upper,
+        seed=optimizer_seed,
+        population_size=population_size,
+        incumbent_fitness=float(incumbent_fitness),
+    )
+    block = run_diagonal_cma_block(
+        state,
+        fun,
+        requested_fes=evaluation_budget,
+    )
+    strategy_stds = np.asarray(state.strategy.stds, dtype=float).reshape(-1)
 
     return {
-        "best_so_far_x": best_x,
-        "best_so_far_y": best_y,
-        "n_function_evaluations": evaluations,
+        "best_so_far_x": state.best_x.copy(),
+        "best_so_far_y": float(state.best_y),
+        "n_function_evaluations": int(block.actual_fes),
         "population_size": population_size,
-        "sigma_mean": float(np.mean(sigma)),
-        "sigma_max": float(np.max(sigma)),
-        "success": bool(np.isfinite(best_y)),
+        "sigma_mean": float(np.mean(strategy_stds)),
+        "sigma_max": float(np.max(strategy_stds)),
+        "success": bool(np.isfinite(state.best_y)),
+        "optimizer_seed": optimizer_seed,
+        "state_fingerprint_before": block.state_fingerprint_before,
+        "state_fingerprint_after": block.state_fingerprint_after,
     }
+
+
+def run_diagonal_search_state_block(
+    *,
+    state: DiagonalCMAState | None,
+    requested_fes: int,
+    guard_individual: np.ndarray,
+    guard_fitness: float,
+    fun,
+    info: dict,
+    config: SmokeConfig,
+    fun_name: str,
+    fun_id: int,
+    outer_iter: int,
+):
+    dimension = int(info["dimension"])
+    guard = np.asarray(guard_individual, dtype=float).reshape(-1)
+    if guard.shape != (dimension,):
+        raise ValueError("guard_individual dimension mismatch")
+    optimizer_seed = derive_optimizer_seed(
+        config.seed if config.seed is not None else 0,
+        fun_name,
+        fun_id,
+        outer_iter,
+        32011,
+    )
+    if state is None:
+        lower = float(info["lower"]) * np.ones(dimension)
+        upper = float(info["upper"]) * np.ones(dimension)
+        search_mean = np.clip(guard, lower, upper)
+        state = initialize_diagonal_cma_state(
+            initial_mean=search_mean,
+            sigma=float(config.sigma),
+            lower=lower,
+            upper=upper,
+            seed=optimizer_seed,
+            population_size=calculate_cmaes_population_size(dimension),
+            incumbent_fitness=float(guard_fitness),
+        )
+        state.best_x = guard.copy()
+        state.best_y = float(guard_fitness)
+    elif float(guard_fitness) < float(state.best_y):
+        state.best_x = guard.copy()
+        state.best_y = float(guard_fitness)
+
+    evaluations_before = current_fitness_evaluations(fun)
+    block = run_diagonal_cma_block(
+        state,
+        fun,
+        requested_fes=requested_fes,
+    )
+    if hasattr(fun, "fitness_record"):
+        observed_fes = current_fitness_evaluations(fun) - evaluations_before
+        if observed_fes != int(block.actual_fes):
+            raise RuntimeError(
+                "diagonal search-state FE mismatch: "
+                f"observed={observed_fes}, reported={block.actual_fes}"
+            )
+    accepted = float(block.best_after) < float(guard_fitness)
+    if accepted:
+        candidate = np.asarray(block.state.best_x, dtype=float).reshape(-1).copy()
+        candidate_fitness = float(block.best_after)
+    else:
+        candidate = guard.copy()
+        candidate_fitness = float(guard_fitness)
+    return (
+        block.state,
+        accepted,
+        candidate,
+        candidate_fitness,
+        block,
+        optimizer_seed,
+    )
 
 
 def is_trajectory_action(action_name: str) -> bool:
@@ -1683,6 +1802,7 @@ def build_action_trace_row(
     downstream_consumed: bool = True,
     downstream_consumption_scope: str = "same_outer_iteration",
     search_state_action_type: str = "",
+    search_state_backend: str = "",
     stagnation_window: int | None = None,
     delta_mean: float | None = None,
     sigma_before: float | None = None,
@@ -1753,6 +1873,7 @@ def build_action_trace_row(
         "downstream_consumption_scope": downstream_consumption_scope,
         "optimizer_consumed": _optimizer_consumed(selected_action_name, downstream_consumed),
         "search_state_action_type": search_state_action_type,
+        "search_state_backend": search_state_backend,
         "stagnation_window": "" if stagnation_window is None else str(stagnation_window),
         "delta_mean": "" if delta_mean is None else f"{delta_mean:.6e}",
         "sigma_before": "" if sigma_before is None else f"{sigma_before:.6e}",
@@ -2470,7 +2591,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
         phase_i_optimizer = MMES(problem, options)
         phase_i_evaluations_before = current_fitness_evaluations(fun)
-        if not uses_resumable_phase_i_state_during_run(config.arac_action):
+        capture_phase_i_state = (
+            config.search_state_backend == "phase_i_mmes"
+            and uses_resumable_phase_i_state_during_run(config.arac_action)
+        )
+        if not capture_phase_i_state:
             results = phase_i_optimizer.optimize()
         else:
             results, phase_i_state = phase_i_optimizer.optimize_with_state()
@@ -2485,6 +2610,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             optimizer_reported_fe=results["n_function_evaluations"],
         )
         sum_fes += global_phase_fe
+        if controller_v31_run_state is not None:
+            controller_v31_run_state.phase_i_runtime_tail_utility = (
+                runtime_tail_utility(
+                    fun.fitness_record,
+                    phase_i_evaluations_before,
+                    calculate_cmaes_population_size(int(info["dimension"])),
+                )
+            )
     elif is_cc_harm_guarded_sep_refresh_action(config.arac_action):
         guarded_incumbent_fitness = float(fun(best_individual)[0])
 
@@ -2503,7 +2636,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         sweep_incumbent_before = guarded_incumbent_fitness
         sweep_fes_before = current_fitness_evaluations(fun)
         sub_num = len(grouping_result)
-        sub_fes = math.ceil((config.max_fes - current_fes) / sub_num)
+        held_search_state_fes = (
+            scheduled_search_state_hold_fes(
+                config,
+                controller_v31_run_state.search_state_scheduler_state,
+            )
+            if controller_v31_run_state is not None
+            else 0
+        )
+        cc_budget_limit_fes = max(
+            current_fes,
+            config.max_fes - held_search_state_fes,
+        )
+        sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)
         population_sizes = [
             calculate_cmaes_population_size(len(dims)) for dims in grouping_result
         ]
@@ -2529,7 +2674,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             population_size = population_sizes[index]
             if (
                 config.budget_accounting == "strict"
-                and config.max_fes - current_fitness_evaluations(fun) <= population_size
+                and cc_budget_limit_fes - current_fitness_evaluations(fun)
+                <= population_size
             ):
                 break
             original_best = best_individual.copy()
@@ -2542,7 +2688,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     requested_fes = max(trajectory_budgets[index], population_size)
                 optimizer_budget = bounded_population_budget(
                     requested_fes=requested_fes,
-                    remaining_fes=config.max_fes - current_fitness_evaluations(fun),
+                    remaining_fes=(
+                        cc_budget_limit_fes - current_fitness_evaluations(fun)
+                    ),
                     population_size=population_size,
                 )
             if optimizer_budget <= 0:
@@ -2746,7 +2894,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             best_after=restart_best if restart_accepted else post_primary_fitness,
                         )
                     )
-            if uses_phase_rescue_during_run(
+            if config.search_state_backend != "diagonal_cma" and uses_phase_rescue_during_run(
                 config.arac_action,
                 evidence_controller_search_state_enabled=(
                     evidence_controller_search_state_enabled
@@ -3107,7 +3255,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             downstream_consumed=index < sub_num - 1,
                         )
                     )
-            if uses_cc_harm_guard_during_run(
+            if config.search_state_backend != "diagonal_cma" and uses_cc_harm_guard_during_run(
                 config.arac_action,
                 evidence_controller_search_state_enabled=(
                     evidence_controller_search_state_enabled
@@ -3204,13 +3352,17 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
         if (
             controller_v31_run_state is not None
-            and uses_resumable_phase_i_state_during_run(config.arac_action)
+            and uses_scheduled_search_state(config)
             and optimized_any_group
             and len(fitness_delta_list) == sub_num
         ):
             phase_state = controller_v31_run_state.phase_i_state
             phase_optimizer = controller_v31_run_state.phase_i_optimizer
             phase_state_available = phase_state is not None and phase_optimizer is not None
+            search_state_available = (
+                config.search_state_backend == "diagonal_cma"
+                or phase_state_available
+            )
             sweep_fes = current_fitness_evaluations(fun) - sweep_fes_before
             cc_utility = normalized_gain_utility(
                 sweep_incumbent_before,
@@ -3230,14 +3382,23 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 ),
                 overlap_degree=degree,
                 phase_rescue_enabled=(
-                    controller_v31_run_state.phase_rescue_enabled
-                    and phase_state_available
+                    (
+                        controller_v31_run_state.phase_rescue_enabled
+                        or config.search_state_backend == "diagonal_cma"
+                    )
+                    and search_state_available
                 ),
                 repair_lock_active=controller_v31_run_state.non_dense_repair_locked,
                 phase_i_tail_utility_value=(
-                    phase_i_tail_utility(phase_state)
+                    max(
+                        phase_i_tail_utility(phase_state),
+                        cc_utility,
+                    )
                     if phase_state is not None
-                    else 0.0
+                    else max(
+                        controller_v31_run_state.phase_i_runtime_tail_utility,
+                        cc_utility,
+                    )
                 ),
                 relations=current_outer_relations,
                 decisions=current_outer_decisions,
@@ -3256,32 +3417,88 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 evidence,
                 controller_v31_run_state.search_state_scheduler_state,
                 new_complete_cc_sweep=True,
+                trajectory_action_name=trajectory_action_name_for_backend(config),
             )
             if (
-                state_plan.action_name == RESUME_PHASE_I_SEARCH_STATE
+                state_plan.action_name
+                in {RESUME_PHASE_I_SEARCH_STATE, CONTINUE_DIAGONAL_SEARCH_STATE}
                 and state_plan.requested_fes > 0
             ):
-                if not phase_state_available:
+                if (
+                    state_plan.action_name == RESUME_PHASE_I_SEARCH_STATE
+                    and not phase_state_available
+                ):
                     raise RuntimeError(
                         "stateful MMES action selected without a resumable Phase-I state"
                     )
                 guard_before = guarded_incumbent_fitness
                 guard_vector = guarded_incumbent.copy()
-                (
-                    next_phase_state,
-                    accepted,
-                    state_candidate,
-                    state_candidate_fitness,
-                    block,
-                ) = run_resumed_phase_i_state_block(
-                    optimizer=phase_optimizer,
-                    state=phase_state,
-                    requested_fes=state_plan.requested_fes,
-                    guard_individual=guard_vector,
-                    guard_fitness=guard_before,
-                    fun=fun,
-                )
-                controller_v31_run_state.phase_i_state = next_phase_state
+                optimizer_seed = None
+                if state_plan.action_name == CONTINUE_DIAGONAL_SEARCH_STATE:
+                    (
+                        next_search_state,
+                        accepted,
+                        state_candidate,
+                        state_candidate_fitness,
+                        block,
+                        optimizer_seed,
+                    ) = run_diagonal_search_state_block(
+                        state=controller_v31_run_state.diagonal_cma_state,
+                        requested_fes=state_plan.requested_fes,
+                        guard_individual=guard_vector,
+                        guard_fitness=guard_before,
+                        fun=fun,
+                        info=info,
+                        config=config,
+                        fun_name=fun_name,
+                        fun_id=fun_id,
+                        outer_iter=outer_iter,
+                    )
+                    controller_v31_run_state.diagonal_cma_state = next_search_state
+                    raw_candidate = np.asarray(
+                        block.state.best_x,
+                        dtype=float,
+                    ).reshape(-1)
+                    sigma_before = float(block.sigma_before)
+                    sigma_after = float(block.sigma_after)
+                    population_before = int(block.population_size)
+                    population_after = int(block.population_size)
+                    raw_candidate_fitness = float(block.candidate_best)
+                else:
+                    (
+                        next_phase_state,
+                        accepted,
+                        state_candidate,
+                        state_candidate_fitness,
+                        block,
+                    ) = run_resumed_phase_i_state_block(
+                        optimizer=phase_optimizer,
+                        state=phase_state,
+                        requested_fes=state_plan.requested_fes,
+                        guard_individual=guard_vector,
+                        guard_fitness=guard_before,
+                        fun=fun,
+                    )
+                    controller_v31_run_state.phase_i_state = next_phase_state
+                    raw_candidate = np.asarray(
+                        block.state.best_so_far_x,
+                        dtype=float,
+                    ).reshape(-1)
+                    sigma_before = float(getattr(phase_state, "sigma", config.sigma))
+                    sigma_after = float(
+                        getattr(next_phase_state, "sigma", config.sigma)
+                    )
+                    population_before = int(
+                        getattr(phase_state, "n_individuals", phase_population_size)
+                    )
+                    population_after = int(
+                        getattr(
+                            next_phase_state,
+                            "n_individuals",
+                            phase_population_size,
+                        )
+                    )
+                    raw_candidate_fitness = float(block.state.best_so_far_y)
                 actual_state_fes = int(block.actual_fes)
                 search_state_fe += actual_state_fes
                 sum_fes += actual_state_fes
@@ -3304,17 +3521,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         used_fes=actual_state_fes,
                     )
                 )
-                raw_candidate = np.asarray(
-                    block.state.best_so_far_x,
-                    dtype=float,
-                ).reshape(-1)
                 action_trace_rows.append(
                     build_action_trace_row(
                         problem_id=_problem_id(fun_name, fun_id),
                         seed=config.seed,
                         outer_iter=outer_iter,
                         group_index=sub_num - 1,
-                        selected_action_name=RESUME_PHASE_I_SEARCH_STATE,
+                        selected_action_name=state_plan.action_name,
                         overlap_size=0,
                         previous_delta=cc_utility,
                         current_delta=max(0.0, guard_before - state_candidate_fitness),
@@ -3324,31 +3537,22 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         ),
                         downstream_consumed=True,
                         downstream_consumption_scope="subsequent_outer_iterations",
-                        search_state_action_type=RESUME_PHASE_I_SEARCH_STATE,
+                        search_state_action_type=state_plan.action_name,
+                        search_state_backend=config.search_state_backend,
                         stagnation_window=0,
                         delta_mean=float(np.linalg.norm(raw_candidate - guard_vector)),
-                        sigma_before=float(getattr(phase_state, "sigma", config.sigma)),
-                        sigma_after=float(
-                            getattr(next_phase_state, "sigma", config.sigma)
-                        ),
-                        population_before=int(
-                            getattr(phase_state, "n_individuals", phase_population_size)
-                        ),
-                        population_after=int(
-                            getattr(
-                                next_phase_state,
-                                "n_individuals",
-                                phase_population_size,
-                            )
-                        ),
+                        sigma_before=sigma_before,
+                        sigma_after=sigma_after,
+                        population_before=population_before,
+                        population_after=population_after,
                         escape_budget=actual_state_fes,
                         bipop_restart_mode=state_plan.stage,
                         restart_triggered=True,
                         restart_accepted=accepted,
                         best_before=guard_before,
-                        restart_candidate_best=float(block.state.best_so_far_y),
+                        restart_candidate_best=raw_candidate_fitness,
                         restart_relative_improvement=bipop_relative_improvement(
-                            candidate_best=float(block.state.best_so_far_y),
+                            candidate_best=raw_candidate_fitness,
                             incumbent_fitness=guard_before,
                         ),
                         restart_acceptance_threshold=0.0,
@@ -3364,6 +3568,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         ),
                         refresh_budget=state_plan.requested_fes,
                         continuation_reserve=state_plan.cc_reserve_fes,
+                        optimizer_seed=optimizer_seed,
                         scheduler_phase=scheduler_state_before.phase,
                         decision_point=f"complete_cc_sweep:{outer_iter}",
                         cc_block_fe=sweep_fes,
@@ -3399,6 +3604,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         downstream_consumed=False,
                         downstream_consumption_scope="scheduler_abstention",
                         search_state_action_type=CONTINUE_CANONICAL_CC,
+                        search_state_backend=config.search_state_backend,
                         restart_triggered=False,
                         restart_accepted=False,
                         best_before=guarded_incumbent_fitness,
@@ -3425,6 +3631,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         abstain_reason=state_plan.trigger_reason,
                     )
                 )
+                if config.search_state_backend == "diagonal_cma":
+                    controller_v31_run_state.search_state_scheduler_state = (
+                        SearchStateSchedulerState(
+                            phase=SEARCH_STATE_BLOCKED,
+                            probe_utilities=scheduler_state_before.probe_utilities,
+                            intervention_fe=scheduler_state_before.intervention_fe,
+                        )
+                    )
 
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
@@ -3500,6 +3714,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
     parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
     parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
+    parser.add_argument(
+        "--search-state-backend",
+        default="phase_i_mmes",
+        choices=["phase_i_mmes", "diagonal_cma"],
+    )
     parser.add_argument(
         "--lane-profile",
         default="runtime_smoke",
@@ -3608,6 +3827,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         budget_accounting=args.budget_accounting,
         skip_plots=args.skip_plots,
         aob_data_root=args.aob_data_root,
+        search_state_backend=args.search_state_backend,
     )
     output_paths = []
     for fun_name in args.functions:

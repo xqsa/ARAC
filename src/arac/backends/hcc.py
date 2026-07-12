@@ -224,6 +224,7 @@ class HccAobExecutionRequest:
     cmaes_restart: bool = True
     mmes_restart: bool = True
     skip_plots: bool = False
+    search_state_backend: str = "phase_i_mmes"
     hcc_repo_root: Path | None = None
     hcc_runner: Path | None = None
 
@@ -466,6 +467,10 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError("arac_action_file is not supported by the HCC smoke runner yet")
     if request.budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
+    if request.search_state_backend not in {"phase_i_mmes", "diagonal_cma"}:
+        raise ValueError(
+            "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
+        )
     vendor_paths = resolve_hcc_vendor_paths(
         request.hcc_root,
         repo_root=request.hcc_repo_root,
@@ -498,6 +503,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         request.arac_action,
         "--budget-accounting",
         request.budget_accounting,
+        "--search-state-backend",
+        request.search_state_backend,
     ]
     if request.enable_relation_dispatch:
         argv.append("--enable-relation-dispatch")
@@ -552,6 +559,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             cmaes_restart=request.cmaes_restart,
             mmes_restart=request.mmes_restart,
             skip_plots=request.skip_plots,
+            search_state_backend=request.search_state_backend,
         )
     )
     start = time.time()

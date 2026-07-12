@@ -926,6 +926,7 @@ def _records(
     lanes: tuple[LaneConfig, ...] = LANES,
     hcc_repo_root: Path | None = None,
     hcc_runner: Path | None = None,
+    search_state_backend: str = "phase_i_mmes",
 ) -> list[dict[str, object]]:
     contexts: list[dict[str, object]] = []
     for problem_id in problem_ids:
@@ -976,6 +977,7 @@ def _records(
                             budget_accounting=budget_accounting,
                             cmaes_restart=cmaes_restart,
                             mmes_restart=mmes_restart,
+                            search_state_backend=search_state_backend,
                             skip_plots=True,
                         ),
                     }
@@ -3389,6 +3391,7 @@ def _write_manifest(
     aob_input_rows: list[dict[str, object]] | None = None,
     python_executable: str = sys.executable,
     vendor_paths: HccVendorPaths = HCC_VENDOR_PATHS,
+    search_state_backend: str = "phase_i_mmes",
 ) -> None:
     aob_input_rows = [] if aob_input_rows is None else aob_input_rows
     mmes_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "mmes.py"
@@ -3528,10 +3531,12 @@ def _write_manifest(
             f"Backend cwd: {vendor_paths.vendor_root}",
             f"Wrapper Python executable: {Path(sys.executable).resolve()}",
             f"Backend Python executable: {python_executable}",
+            f"Search-state backend: {search_state_backend}",
             f"Python version: {platform.python_version()}",
             f"NumPy version: {_dependency_version('numpy')}",
             f"SciPy version: {_dependency_version('scipy')}",
             f"Torch version: {_dependency_version('torch')}",
+            f"cma version: {_dependency_version('cma')}",
             f"BLAS: {_blas_summary()}",
             f"Thread environment: {_thread_environment()}",
             "",
@@ -3543,6 +3548,7 @@ def _write_manifest(
             ),
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- search-state policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'search_state_policy.py')}",
+            f"- diagonal backend sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'backends' / 'diagonal_cma.py')}",
             f"- experiment runner sha256: {_sha256_file(Path(__file__).resolve())}",
             f"- HCC smoke runner sha256: {_sha256_file(vendor_paths.runner)}",
             f"- MMES optimizer sha256: {_sha256_file(mmes_path)}",
@@ -3601,6 +3607,7 @@ def run_hcc_runtime_consumer_smoke(
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
     lane_profile: str = "runtime_smoke",
+    search_state_backend: str = "phase_i_mmes",
 ) -> Path:
     worker_count = max(1, int(jobs))
     max_fes = int(max_fes)
@@ -3608,6 +3615,10 @@ def run_hcc_runtime_consumer_smoke(
         raise ValueError("max_fes must be positive")
     if budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
+    if search_state_backend not in {"phase_i_mmes", "diagonal_cma"}:
+        raise ValueError(
+            "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
+        )
     lanes = lanes_for_profile(lane_profile)
     output = resolve_repository_path(output_dir).resolve()
     vendor_paths = resolve_hcc_vendor_paths(
@@ -3632,6 +3643,7 @@ def run_hcc_runtime_consumer_smoke(
         mmes_restart=mmes_restart,
         lanes=lanes,
         hcc_runner=vendor_paths.runner,
+        search_state_backend=search_state_backend,
     )
     aob_input_rows = _aob_input_manifest_rows(records)
     ledger_rows = _ledger_rows(records)
@@ -4006,6 +4018,7 @@ def run_hcc_runtime_consumer_smoke(
         aob_input_rows,
         python_executable,
         vendor_paths,
+        search_state_backend,
     )
     return output
 
@@ -4035,6 +4048,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--max-fes", type=int, default=MAX_FES)
     parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
+    parser.add_argument(
+        "--search-state-backend",
+        default="phase_i_mmes",
+        choices=["phase_i_mmes", "diagonal_cma"],
+    )
     parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
     parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
     parser.add_argument("--mmes-restart", dest="mmes_restart", action="store_true", default=True)
@@ -4100,6 +4118,7 @@ def main(argv: list[str] | None = None) -> Path:
         cmaes_restart=bool(args.cmaes_restart),
         mmes_restart=bool(args.mmes_restart),
         lane_profile=str(args.lane_profile),
+        search_state_backend=str(args.search_state_backend),
     )
 
 

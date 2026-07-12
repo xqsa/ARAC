@@ -73,6 +73,16 @@ For the diagonal executor:
 
 The existing policy caps remain unchanged: 1% FE per block, 15% cumulative
 state-action FE, 10% canonical CC reserve, and the 1.5x/2.0x utility gate.
+Because one complete CC sweep otherwise consumes nearly all remaining FE, the
+runner reserves the 15% intervention cap plus the 10% CC reserve before the
+first diagonal decision. A failed or ineligible probe blocks further diagonal
+spending and immediately returns the unused reserve to canonical CC.
+
+An active shared-variable repair lock continues to block MMES state resumption.
+It does not block the full-space diagonal action when the same current-run
+conflict evidence supports the action: diagonal search does not write a group
+owner directly, starts from a bounded projection of the protected incumbent,
+and can update the incumbent only by strict global improvement.
 
 ## Configuration And Audit
 
@@ -117,4 +127,3 @@ Runtime gates:
 Adoption requires preserving the existing 12/12 best-of-three wins, no FE
 overrun, clean anti-leakage, and no catastrophic loss. R3 improvement is
 reported separately and cannot compensate for a lost protected win.
-

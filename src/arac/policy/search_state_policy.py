@@ -111,7 +111,10 @@ def _abstain(
     )
 
 
-def _eligible(evidence: SearchStateEvidence) -> bool:
+def _eligible(
+    evidence: SearchStateEvidence,
+    trajectory_action_name: str,
+) -> bool:
     structural_support = (
         evidence.non_coordinate_fraction >= MINIMUM_CONFLICT_FRACTION
         or evidence.conflict_fraction >= MINIMUM_CONFLICT_FRACTION
@@ -121,7 +124,10 @@ def _eligible(evidence: SearchStateEvidence) -> bool:
         evidence.complete_sweep
         and evidence.overlap_degree > 0.0
         and evidence.phase_rescue_enabled
-        and not evidence.repair_lock_active
+        and (
+            not evidence.repair_lock_active
+            or trajectory_action_name == CONTINUE_DIAGONAL_SEARCH_STATE
+        )
         and evidence.phase_i_tail_utility > 0.0
         and structural_support
     )
@@ -153,7 +159,7 @@ def plan_search_state_action(
         SEARCH_STATE_EXPANSION,
     }:
         return _abstain(evidence, state, "state_action_phase_not_ready")
-    if not _eligible(evidence):
+    if not _eligible(evidence, trajectory_action_name):
         return _abstain(evidence, state, "runtime_evidence_ineligible")
 
     max_fes = max(0, int(evidence.max_fes))

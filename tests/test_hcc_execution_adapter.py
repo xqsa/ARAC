@@ -121,6 +121,38 @@ def test_hcc_aob_smoke_command_passes_arac_action(tmp_path: Path) -> None:
     assert command.argv[action_arg_index + 1] == "repair_shared_variable_binding"
 
 
+def test_hcc_aob_smoke_command_passes_diagonal_search_state_backend(
+    tmp_path: Path,
+) -> None:
+    command = build_hcc_aob_smoke_command(
+        HccAobExecutionRequest(
+            problem_id="R3",
+            seed=3,
+            max_fes=3_000_000,
+            output_dir=tmp_path,
+            search_state_backend="diagonal_cma",
+        )
+    )
+
+    option_index = command.argv.index("--search-state-backend")
+    assert command.argv[option_index + 1] == "diagonal_cma"
+
+
+def test_hcc_aob_smoke_command_rejects_unknown_search_state_backend(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(ValueError, match="search_state_backend"):
+        build_hcc_aob_smoke_command(
+            HccAobExecutionRequest(
+                problem_id="R3",
+                seed=3,
+                max_fes=3_000_000,
+                output_dir=tmp_path,
+                search_state_backend="oracle_backend",
+            )
+        )
+
+
 def test_hcc_aob_smoke_command_passes_relation_dispatch_options(tmp_path: Path) -> None:
     request = HccAobExecutionRequest(
         problem_id="E2",
