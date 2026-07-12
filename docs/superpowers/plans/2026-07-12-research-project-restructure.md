@@ -103,10 +103,10 @@ Expected: 第一条输出 `commit`；v3.3 的已知未提交文件仍在原 work
 
 - [ ] **Step 4: Write the baseline record and migration table**
 
-基线记录写明当前 root HEAD、canonical SHA、v3.3 dirty-file list、结果目录规模和“仅 v3.2 可进入稳定 runtime”。CSV 固定列为：
+基线记录写明执行前和 Task 1 提交后两个快照、canonical SHA、v3.3 dirty-file list、结果目录规模和“仅 v3.2 可进入稳定 runtime”。CSV 保留原七列并增加 `source_root`，固定列为：
 
 ```text
-old_path,new_path,category,source_state,action,git_policy,verification
+old_path,new_path,category,source_root,source_state,action,git_policy,verification
 ```
 
 - [ ] **Step 5: Validate and commit the inventory artifacts**
@@ -127,10 +127,15 @@ Run from `E:\ARAC` after the plan commit exists on `main`:
 
 ```powershell
 git worktree add C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure -b codex/research-project-structure b88a4d9
-git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure restore --source main -- docs/superpowers/specs/2026-07-12-research-project-restructure-design.md docs/superpowers/plans/2026-07-12-research-project-restructure.md
+git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure restore --source main -- docs/superpowers/specs/2026-07-12-research-project-restructure-design.md docs/superpowers/plans/2026-07-12-research-project-restructure.md docs/research-log/2026-07-12-restructure-baseline.md docs/migrations/2026-07-12-path-migration.csv
+git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure add -- docs/superpowers/specs/2026-07-12-research-project-restructure-design.md docs/superpowers/plans/2026-07-12-research-project-restructure.md docs/research-log/2026-07-12-restructure-baseline.md docs/migrations/2026-07-12-path-migration.csv
+git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure commit -m "docs: seed restructuring worktree"
+git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure merge-base --is-ancestor b88a4d9 HEAD
+git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure ls-files --error-unmatch -- docs/superpowers/specs/2026-07-12-research-project-restructure-design.md docs/superpowers/plans/2026-07-12-research-project-restructure.md docs/research-log/2026-07-12-restructure-baseline.md docs/migrations/2026-07-12-path-migration.csv
+git -C C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure status --short
 ```
 
-Expected: 新 worktree 的 HEAD 基于 `b88a4d9`，只带入已确认的 design/plan；当前 `E:\ARAC` 未跟踪材料和原 v3.3 dirty worktree 均保持原状。后续 Tasks 2-9 在该干净 worktree 执行。
+Expected: 新 worktree 分支以 `b88a4d9` 为祖先基线，四份文档已 tracked 并提交，`status --short` 无输出。提交后的 HEAD 是 `b88a4d9` 的后代，不要求 HEAD 永远等于 `b88a4d9`。当前 `E:\ARAC` 未跟踪材料和原 v3.3 dirty worktree 均保持原状。后续 Tasks 2-9 在该干净 worktree 执行。
 
 后续命令统一使用：
 

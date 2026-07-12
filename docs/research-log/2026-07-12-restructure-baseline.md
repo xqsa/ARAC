@@ -8,16 +8,30 @@
 
 - 当前 root：`E:\ARAC`
 - 当前 branch：`main`
-- root HEAD：`30d2517f062165f379be0de3361698eaf796920b`（`docs: plan research project restructuring`）
 - canonical v3.2：`b88a4d9a68edd823b217ffa70ee06e7c10d00c73`（对象类型为 `commit`）
-- 当前 root 相对 `origin/main`：ahead 2、behind 3
 - 稳定 runtime 规则：**只允许 v3.2（`b88a4d9`）进入 stable runtime。** 当前 root 的未提交 v3.3 材料、现有 v3.3 worktree 改动和历史结果均不改变该规则。
 
 `b88a4d9` 是本次重构唯一稳定算法基线。论文 reported values、历史结果、relative gain、problem family、final outcome 和 v3.3 实现不得作为 runtime dispatch 输入。
 
+### 执行前快照
+
+- 采集时间：`2026-07-12T15:34:34.2275330+08:00`
+- root HEAD：`30d2517f062165f379be0de3361698eaf796920b`（`docs: plan research project restructuring`）
+- root 相对 `origin/main`：ahead 2、behind 3
+- 时间依据：第一份 workspace 清单 `.codex/tmp/tracked-files.txt` 的创建时间；此时尚未写入或提交 Task 1 盘点文件。
+
+### Task 1 提交后快照
+
+- 采集时间：`2026-07-12T15:38:53+08:00`
+- root HEAD：`7fdb3d8bf5537cc8765b4d604d8a03bec52b2105`（`docs: record restructuring baseline and path inventory`）
+- root 相对 `origin/main`：ahead 3、behind 3
+- 时间依据：`git reflog --date=iso-strict` 中该提交最终 amend 的时间。
+
+上述两个状态是不同时间点的事实，不能把执行前的 `30d2517`/ahead 2 与提交后的 `7fdb3d8`/ahead 3 混写为同一“当前状态”。
+
 ## Git 与 worktree 事实
 
-采集命令：
+执行前采集命令：
 
 ```text
 git status --short --branch
@@ -38,7 +52,7 @@ git cat-file -t b88a4d9
 80cece9 Design canonical runtime action controller
 ```
 
-当前已存在的 worktree：
+执行前已存在的 worktree：
 
 ```text
 E:/ARAC                                                     30d2517  main
@@ -59,14 +73,57 @@ origin  https://github.com/xqsa/ARAC.git (push)
 
 ## Workspace 盘点
 
-盘点基于当前 root，临时明细位于 `.codex/tmp/`，不提交：
+盘点基于执行前快照 `30d2517` 和当时的未跟踪 workspace。临时明细位于 `.codex/tmp/`，不提交：
 
-- tracked 文件：159 个（`.codex/tmp/tracked-files.txt`）
-- 未忽略 untracked 状态项：30 个；按 `git ls-files --others --exclude-standard` 展开的未跟踪文件：298 个（`.codex/tmp/untracked-files.txt`）
-- `results/`：22,265 个文件，168 个直接子目录，1,182,392,766 bytes，约 1.101 GiB（`.codex/tmp/results-inventory.csv`）
+| 临时文件 | 生成时间 | SHA256 | 行数 | 记录数 |
+| --- | --- | --- | ---: | ---: |
+| `.codex/tmp/tracked-files.txt` | `2026-07-12T15:34:34.2311043+08:00` | `61AE31F1E812A78230CF91C1DD810323DA8A886AEE00194CBF8F6481D86791F6` | 159 | 159 |
+| `.codex/tmp/untracked-files.txt` | `2026-07-12T15:34:34.3233959+08:00` | `28374EE476E5BCA8D11FFA5AEED0E51B4CC6D91B2BCD226EFF52599E2258520E` | 298 | 298 |
+| `.codex/tmp/results-inventory.csv` | `2026-07-12T15:34:39.5087700+08:00` | `7A298E548988628F253348CF719F8C4E39168DCFA078D5896E8FB6AAB7CE6C21` | 170 | 169（不含 header） |
+
+生成命令如下；复核 tracked 清单时必须使用执行前提交 `30d2517`，复核 untracked/results 时还必须保持当时的本地材料和 results payload：
+
+```powershell
+git ls-files | Set-Content -Encoding utf8 .codex/tmp/tracked-files.txt
+git ls-files --others --exclude-standard | Sort-Object | Set-Content -Encoding utf8 .codex/tmp/untracked-files.txt
+
+$rows = @(Get-ChildItem results -Recurse -File -ErrorAction SilentlyContinue)
+$summary = [PSCustomObject]@{
+    path = 'results'
+    file_count = $rows.Count
+    bytes = (($rows | Measure-Object -Property Length -Sum).Sum)
+    gib = [math]::Round((($rows | Measure-Object -Property Length -Sum).Sum) / 1GB, 3)
+}
+$children = @(Get-ChildItem results -Directory -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    $files = @(Get-ChildItem $_.FullName -Recurse -File -ErrorAction SilentlyContinue)
+    [PSCustomObject]@{
+        path = $_.FullName.Replace((Get-Location).Path + '\', '')
+        file_count = $files.Count
+        bytes = (($files | Measure-Object -Property Length -Sum).Sum)
+    }
+})
+@($summary) + $children | Export-Csv -NoTypeInformation -Encoding utf8 .codex/tmp/results-inventory.csv
+```
+
+可复核统计：tracked 159 个；未忽略 untracked 状态项 30 个、展开文件 298 个；`results/` 有 22,265 个文件、168 个直接子目录、1,182,392,766 bytes，约 1.101 GiB。
+
 - `results/` 已由 `.gitignore` 忽略；本任务不移动、不删除、不加入 Git
 
 结果目录的最大单文件是 `results/exp_005_hcc_ackley_landscape_escape/action_trace.csv`，18,903,229 bytes。结果规模说明本阶段只建立索引，不做批量重排。
+
+## Canonical tracked 内容边界
+
+`git ls-tree -r --name-only b88a4d9 -- HCC_SRC results/.gitkeep` 证明：
+
+- `HCC_SRC/` 是 `b88a4d9` 已跟踪的 canonical 内容，必须保留到 Task 3 再迁移到 `vendor/hcc/`。
+- `results/.gitkeep` 是 `b88a4d9` 已跟踪的目录占位文件，必须保留。
+- 二者都不是 v3.3 泄漏。只有 `results/.gitkeep` 之外的本地 results payload 属于 ignored/generated 结果，并继续留在 `E:\ARAC\results`。
+
+迁移 CSV 的 `source_root` 取值含义固定为：
+
+- `canonical_worktree`：`C:/Users/83718/.config/superpowers/worktrees/ARAC/codex-research-project-structure`，即从 `b88a4d9` 建立的重构分支。
+- `legacy_root(E:/ARAC)`：当前 root 中尚未审阅或迁移的用户材料。
+- `results_root(E:/ARAC/results)`：只读索引的 ignored results payload；不包括已跟踪的 `results/.gitkeep`。
 
 ## 当前 root 的未提交 v3.3/待审材料
 
@@ -93,10 +150,14 @@ branch: codex/research-project-structure
 start:  b88a4d9
 ```
 
-该 worktree 只从当前 `main` 恢复已提交的 design/plan 文件：
+该 worktree 从当前 `main` 恢复并提交以下四份交接文档：
 
 - `docs/superpowers/specs/2026-07-12-research-project-restructure-design.md`
 - `docs/superpowers/plans/2026-07-12-research-project-restructure.md`
+- `docs/research-log/2026-07-12-restructure-baseline.md`
+- `docs/migrations/2026-07-12-path-migration.csv`
+
+分支以 `b88a4d9` 为祖先基线；四文档提交后 HEAD 是 `b88a4d9` 的后代，不要求也不应继续等于 `b88a4d9`。
 
 Task 2 及以后工作不得在本 Task 1 中执行。
 
