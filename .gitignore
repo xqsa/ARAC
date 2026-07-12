@@ -7,10 +7,15 @@ __pycache__/
 data/raw/*
 data/interim/*
 data/processed/*
+analysis/generated/
+logs/
 results/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 !results/.gitkeep
+!results/README.md
 HCC_SRC/result/*
 !HCC_SRC/result/README.md
+vendor/hcc/**/__pycache__/
+*.manifest.tmp
