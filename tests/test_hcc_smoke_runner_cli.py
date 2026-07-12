@@ -736,7 +736,7 @@ def test_action_trace_records_search_state_backend() -> None:
     assert "search_state_backend" in runner.ACTION_TRACE_FIELDS
 
 
-def test_diagonal_scheduler_holds_action_budget_before_first_complete_sweep() -> None:
+def test_diagonal_scheduler_holds_only_next_action_block_and_cc_reserve() -> None:
     runner = _load_runner_module()
     config = runner.SmokeConfig(
         max_fes=3_000_000,
@@ -748,7 +748,7 @@ def test_diagonal_scheduler_holds_action_budget_before_first_complete_sweep() ->
     initial = runner.SearchStateSchedulerState()
     blocked = runner.SearchStateSchedulerState(phase=runner.SEARCH_STATE_BLOCKED)
 
-    assert runner.scheduled_search_state_hold_fes(config, initial) == 750_000
+    assert runner.scheduled_search_state_hold_fes(config, initial) == 330_000
     assert runner.scheduled_search_state_hold_fes(config, blocked) == 0
 
 

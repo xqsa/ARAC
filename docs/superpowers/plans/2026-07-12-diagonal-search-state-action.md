@@ -8,9 +8,10 @@
 
 **Tech Stack:** Python 3.12, NumPy 2.3.5, cma 4.4.4, pytest, existing HCC/AOB runner.
 
-**Implementation status (2026-07-12):** Tasks 1-3 are implemented and the
-full test suite is green. Task 4 remains the fresh 3M-FE R3 pilot and its
-preservation gate.
+**Implementation status (2026-07-13):** Tasks 1-3 are implemented. Task 4
+found that the 25% initial hold altered canonical CC allocation and failed the
+E6/S6/R2 preservation gate. Task 5 corrects the hold before repeating the
+runtime gates.
 
 ---
 
@@ -93,3 +94,25 @@ preservation gate.
   paper-best offline; do not feed either value into runtime dispatch.
 - [ ] Run preservation controls only if R3 action execution is valid and has no
   catastrophic loss.
+
+## Task 5: Correct Initial Search-State Budget Hold
+
+**Files:**
+
+- Modify: `tests/test_hcc_smoke_runner_cli.py`
+- Modify: `scripts/hcc_smoke_runner.py`
+- Modify: `docs/superpowers/specs/2026-07-12-diagonal-search-state-action-design.md`
+
+- [x] Change the existing hold test to require `330_000` FE at a 3M budget:
+  one `30_000` FE executable block plus the `300_000` FE CC reserve.
+- [x] Run the focused test and verify that it fails with the current `750_000`
+  FE result.
+- [x] Change `scheduled_search_state_hold_fes` to use
+  `FIRST_PROBE_FRACTION` for every ready scheduler phase. Keep the 15%
+  cumulative cap in `plan_search_state_action`; do not use it as a hold.
+- [x] Run the focused runner and policy tests, compile the modified modules,
+  run the full test suite, and run `git diff --check`.
+- [ ] Run R3 seeds 1/2/3 at 3M FE with `diagonal_cma`. Compare only offline
+  against the frozen v32 baseline and paper-best.
+- [ ] If R3 remains useful and has no catastrophic loss, run E6/S6/R2/A4
+  seeds 1/2/3. Adoption requires all four best-of-three wins to remain.

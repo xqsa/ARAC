@@ -74,9 +74,18 @@ For the diagonal executor:
 The existing policy caps remain unchanged: 1% FE per block, 15% cumulative
 state-action FE, 10% canonical CC reserve, and the 1.5x/2.0x utility gate.
 Because one complete CC sweep otherwise consumes nearly all remaining FE, the
-runner reserves the 15% intervention cap plus the 10% CC reserve before the
-first diagonal decision. A failed or ineligible probe blocks further diagonal
-spending and immediately returns the unused reserve to canonical CC.
+runner reserves exactly the next executable 1% state-action block plus the 10%
+CC reserve before each decision. The 15% value is only a cumulative spending
+cap; unapproved future blocks must not be withheld from canonical CC. A failed
+or ineligible probe blocks further diagonal spending and immediately returns
+the unused reserve to canonical CC.
+
+This rule was tightened after the 2026-07-13 preservation pilot. The previous
+implementation withheld 25% before the first decision even though the first
+probe could spend only 1%. Rejected probes left the incumbent unchanged but
+still changed CC group budgets enough to lose the E6, S6, and R2 preservation
+controls. At 3M FE, the corrected initial hold is therefore 330,000 FE rather
+than 750,000 FE.
 
 An active shared-variable repair lock continues to block MMES state resumption.
 It does not block the full-space diagonal action when the same current-run
@@ -123,6 +132,11 @@ Runtime gates:
 3. If R3 shows useful action reachability, run E6, S6, R2, and A4 preservation
    controls.
 4. Only then rerun all existing twelve winning cases.
+
+The 2026-07-13 preservation pilot is a failed adoption gate: A4 was retained,
+while E6, S6, and R2 lost their best-of-three wins. The backend remains
+experimental until the corrected next-block hold passes R3 and all four
+preservation controls.
 
 Adoption requires preserving the existing 12/12 best-of-three wins, no FE
 overrun, clean anti-leakage, and no catastrophic loss. R3 improvement is

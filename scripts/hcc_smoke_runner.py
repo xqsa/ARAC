@@ -56,10 +56,9 @@ from src.arac.policy.search_state_policy import (
     CC_RESERVE_FRACTION,
     CONTINUE_CANONICAL_CC,
     CONTINUE_DIAGONAL_SEARCH_STATE,
-    CUMULATIVE_INTERVENTION_FRACTION,
+    FIRST_PROBE_FRACTION,
     RESUME_PHASE_I_SEARCH_STATE,
     SEARCH_STATE_BLOCKED,
-    SEARCH_STATE_INITIAL_PROBE,
     SearchStateEvidence,
     SearchStateSchedulerState,
     normalized_gain_utility,
@@ -822,13 +821,10 @@ def scheduled_search_state_hold_fes(
 ) -> int:
     if not uses_scheduled_search_state(config) or state.phase == SEARCH_STATE_BLOCKED:
         return 0
-    action_fraction = (
-        CUMULATIVE_INTERVENTION_FRACTION
-        if state.phase == SEARCH_STATE_INITIAL_PROBE
-        else 0.01
-    )
     return int(
-        math.ceil(config.max_fes * (CC_RESERVE_FRACTION + action_fraction))
+        math.ceil(
+            config.max_fes * (CC_RESERVE_FRACTION + FIRST_PROBE_FRACTION)
+        )
     )
 
 
