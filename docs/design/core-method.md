@@ -2,8 +2,9 @@
 
 ## One-Line Definition
 
-`ARAC` studies how to map uncertain overlapping structure evidence into
-backend intervention actions under a reference-blind and same-budget protocol.
+`ARAC` studies how to turn grouping and overlap evidence from the first stage
+of cooperative coevolution into runtime intervention actions in the second
+stage, under a reference-blind and same-budget protocol.
 
 The method moves cooperative coevolution from:
 
@@ -40,6 +41,26 @@ Reference-blind Phase-I trace features can provide enough evidence to select
 safe and useful backend interventions, provided that the policy explicitly
 models gain, cost, fallback safety, and catastrophic risk.
 
+## Canonical Innovation Chain
+
+```text
+Phase I: structure recognition and evidence collection
+  -> groups, shared variables, overlap relations, group contribution,
+     conflict, budget state, and search state
+  -> Phase II: action decision and optimization intervention
+  -> coordinate / isolate / repair / protect / fallback / trajectory
+  -> change shared-variable writeback, inter-group coordination,
+     subproblem resource allocation, and search starting state
+  -> change the subsequent optimization trajectory
+  -> change the final optimization result
+```
+
+Grouping is therefore not the endpoint of the method. It is runtime decision
+evidence. The contribution is the closed loop from grouping evidence to an
+executed and audited optimization action. A new optimizer, by itself, is not
+the contribution; an optimizer is an action executor only when the controller
+selects and configures it from admissible current-run evidence.
+
 ## Main Pipeline
 
 1. Phase-I evidence collection
@@ -63,6 +84,7 @@ models gain, cost, fallback safety, and catastrophic risk.
    - `protect`
    - `reassign_repair`
    - `fallback`
+   - `trajectory`
 
    The policy must be allowed to abstain.
 
@@ -70,7 +92,8 @@ models gain, cost, fallback safety, and catastrophic risk.
 
    Bind the selected action to optimizer-consumed backend semantics, such as
    variable ownership, coordination mode, relation handling, budget allocation,
-   update ordering, or conservative fallback.
+   update ordering, search starting state, trajectory continuation, or
+   conservative fallback.
 
 5. Same-budget utility evaluation
 
@@ -135,12 +158,12 @@ utility.
 
 ## Chinese Short Version
 
-核心创新不是提出新的底层优化器，也不是单纯改进变量分解，而是提出一套
-面向大规模重叠优化的 reference-blind evidence-to-intervention mapping。
-该方法从 Phase-I 优化 trace 中提取 shared-variable、overlap relation、
-group behavior 和 resource state 等动态证据，在不使用 final error、oracle、
-reported baseline 或 problem-specific label 的前提下，将不确定结构证据映射为
-coordinate、isolate、protect、reassign/repair 或 fallback 等后端干预动作。
-每个动作必须通过同预算执行、负控审计、后端语义差异审计和 catastrophic-loss
-gate 验证其真实效用。
+核心创新不是提出新的底层优化器，也不是单纯改进变量分解，而是在两阶段协同
+进化中，把第一阶段得到的分组、共享变量、重叠关系、组贡献、冲突和预算状态等
+运行时证据，映射为第二阶段的 coordinate、isolate、repair、protect、fallback
+或 trajectory 动作。动作通过改变共享变量写回、组间协调、子问题资源分配和搜索
+起点来干预后续优化轨迹。分组不是方法的终点，而是动作决策的依据；优化器不是
+贡献本身，而是动作的执行器。整个映射必须 reference-blind，不得使用 final error、
+oracle、reported baseline、历史结果或 problem-specific label，并通过同预算执行、
+负控审计、后端语义差异审计和 catastrophic-loss gate 验证真实效用。
 
