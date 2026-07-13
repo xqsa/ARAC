@@ -595,6 +595,113 @@ Verify `trajectory_guard_summary.csv` covers all 24 case/seed runs, has no
 pending rows, and reports commit/restore/preempt counts. Cross-check a sample of
 summary counts against `action_trace.csv`.
 
+### Task 6A: Preserve Local CC Evidence On Recovery Commit
+
+**Files:**
+- Modify: `scripts/hcc_smoke_runner.py`
+- Modify: `tests/test_hcc_smoke_runner_cli.py`
+- Modify: `docs/superpowers/specs/2026-07-14-downstream-recovery-checkpoint-design.md`
+
+- [ ] **Step 1: Write the failing context reconciliation test**
+
+Add a focused test that resolves one committed and one restored checkpoint,
+then calls this wished-for runner helper:
+
+```python
+best, original, fitness, delta = runner.reconcile_trajectory_recovery_context(
+    resolution=committed,
+    checkpoint_candidate=np.array([1.0, 2.0]),
+    original_best=np.array([2.0, 2.0]),
+    original_fitness=12.0,
+    current_delta=4.0,
+)
+np.testing.assert_allclose(best, np.array([3.0, 4.0]))
+np.testing.assert_allclose(original, np.array([2.0, 2.0]))
+assert fitness == 12.0
+assert delta == 4.0
+```
+
+For the restored resolution, assert both candidates equal the checkpoint,
+fitness equals the checkpoint fitness, and delta is zero. Mutating returned
+arrays must not mutate the inputs.
+
+- [ ] **Step 2: Run the test and observe RED**
+
+```powershell
+E:\ARAC\.venv\Scripts\python.exe -m pytest tests/test_hcc_smoke_runner_cli.py -k "recovery_context" -q
+```
+
+Expected: `AttributeError` because
+`reconcile_trajectory_recovery_context` does not exist.
+
+- [ ] **Step 3: Implement the pure runner reconciliation helper**
+
+Add the following helper beside the v34 run-state lifecycle:
+
+```python
+def reconcile_trajectory_recovery_context(
+    *,
+    resolution: RecoveryResolution,
+    checkpoint_candidate: np.ndarray,
+    original_best: np.ndarray,
+    original_fitness: float,
+    current_delta: float,
+) -> tuple[np.ndarray, np.ndarray, float, float]:
+    best = resolution.candidate.copy()
+    if not resolution.restored:
+        return (
+            best,
+            np.asarray(original_best, dtype=float).copy(),
+            float(original_fitness),
+            float(current_delta),
+        )
+    return (
+        best,
+        np.asarray(checkpoint_candidate, dtype=float).copy(),
+        float(resolution.fitness),
+        0.0,
+    )
+```
+
+Replace the unconditional checkpoint-baseline rewrite in `run_problem` with
+this helper. Do not change checkpoint resolution, trust credit, FE accounting,
+or trace fields.
+
+- [ ] **Step 4: Run focused tests GREEN**
+
+```powershell
+E:\ARAC\.venv\Scripts\python.exe -m pytest tests/test_trajectory_guard.py tests/test_action_trust_policy.py tests/test_hcc_smoke_runner_cli.py tests/test_exp_003_hcc_runtime_consumer_smoke.py -q
+```
+
+Expected: all focused tests pass, including unchanged v33 and no-extra-FE
+assertions.
+
+- [ ] **Step 5: Commit the isolated correction**
+
+```powershell
+git add -- scripts/hcc_smoke_runner.py tests/test_hcc_smoke_runner_cli.py docs/superpowers/specs/2026-07-14-downstream-recovery-checkpoint-design.md docs/superpowers/plans/2026-07-14-downstream-recovery-checkpoint.md
+git diff --cached --check
+git commit -m "fix: preserve local CC evidence on recovery commit"
+```
+
+- [ ] **Step 6: Run real-HCC 5k verification**
+
+```powershell
+E:\ARAC\.venv\Scripts\python.exe experiments\pilots\exp_003_hcc_runtime_consumer_smoke\run.py --output-dir results\controller_v34_recovery_local_evidence_5k_20260714 --seeds 1 2 3 --problems R2 S6 --jobs 6 --max-fes 5000 --budget-accounting strict --hcc-root E:\ARAC\vendor\hcc --hcc-runner E:\ARAC\scripts\hcc_smoke_runner.py --lane-profile evidence_action_controller_v34
+```
+
+Require 6/6 fresh, zero FE violations, unchanged AOB inputs, anti-leakage pass,
+and no pending recovery rows.
+
+- [ ] **Step 7: Rerun the protected gate in a new directory**
+
+```powershell
+E:\ARAC\.venv\Scripts\python.exe experiments\pilots\exp_003_hcc_runtime_consumer_smoke\run.py --output-dir results\controller_v34_recovery_local_evidence_8case_seed123_3m_20260714 --seeds 1 2 3 --problems E2 E4 E6 S6 R1 R2 A4 A5 --jobs 24 --max-fes 3000000 --budget-accounting strict --hcc-root E:\ARAC\vendor\hcc --hcc-runner E:\ARAC\scripts\hcc_smoke_runner.py --lane-profile evidence_action_controller_v34
+```
+
+Preserve the first failed v34 directory. Continue to Task 7 only if the new
+run is 24/24 fresh, protocol-clean, and strict best-of-three `8/8`.
+
 ### Task 7: Full-24 3M Stability Gate
 
 **Files:**
