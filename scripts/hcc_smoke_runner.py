@@ -221,6 +221,12 @@ ACTION_TRACE_FIELDS = [
     "trust_pre_writeback_fitness",
     "trust_post_writeback_fitness",
     "fallback_route",
+    "trajectory_guard_status",
+    "trajectory_guard_pre_fitness",
+    "trajectory_guard_post_writeback_fitness",
+    "trajectory_guard_downstream_fitness",
+    "trajectory_guard_recovery_credit",
+    "trajectory_guard_restored",
 ]
 V33_TRUST_TRACE_FIELDS = [
     "trust_key",
@@ -235,8 +241,22 @@ V33_TRUST_TRACE_FIELDS = [
     "trust_post_writeback_fitness",
     "fallback_route",
 ]
+V34_RECOVERY_TRACE_FIELDS = [
+    "trajectory_guard_status",
+    "trajectory_guard_pre_fitness",
+    "trajectory_guard_post_writeback_fitness",
+    "trajectory_guard_downstream_fitness",
+    "trajectory_guard_recovery_credit",
+    "trajectory_guard_restored",
+]
+V33_ACTION_TRACE_FIELDS = [
+    field for field in ACTION_TRACE_FIELDS if field not in V34_RECOVERY_TRACE_FIELDS
+]
+V34_ACTION_TRACE_FIELDS = list(ACTION_TRACE_FIELDS)
 LEGACY_ACTION_TRACE_FIELDS = [
-    field for field in ACTION_TRACE_FIELDS if field not in V33_TRUST_TRACE_FIELDS
+    field
+    for field in V33_ACTION_TRACE_FIELDS
+    if field not in V33_TRUST_TRACE_FIELDS
 ]
 OVERLAP_RELATION_FIELDS = [
     "relation_id",
@@ -350,6 +370,7 @@ EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
 EVIDENCE_ACTION_CONTROLLER_V31 = "arac_evidence_action_controller_v31"
 EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
 EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
+EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -368,6 +389,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V31,
     EVIDENCE_ACTION_CONTROLLER_V32,
     EVIDENCE_ACTION_CONTROLLER_V33,
+    EVIDENCE_ACTION_CONTROLLER_V34,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -462,6 +484,7 @@ class PendingActionTrustObservation:
 class EvidenceActionControllerV31RunState:
     dense_overlap: bool
     action_trust_policy: ActionTrustPolicy | None = field(default=None, repr=False)
+    trajectory_guard_enabled: bool = False
     pending_action_trust: PendingActionTrustObservation | None = field(
         default=None,
         repr=False,
@@ -658,9 +681,13 @@ def build_evidence_action_controller_v31_run_state(
         dense_overlap=is_evidence_action_controller_v31_dense_overlap(degree_of_overlap),
         action_trust_policy=(
             ActionTrustPolicy()
-            if action_name == EVIDENCE_ACTION_CONTROLLER_V33
+            if action_name in {
+                EVIDENCE_ACTION_CONTROLLER_V33,
+                EVIDENCE_ACTION_CONTROLLER_V34,
+            }
             else None
         ),
+        trajectory_guard_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V34,
     )
 
 
@@ -908,12 +935,22 @@ def is_evidence_action_controller_v33(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V33
 
 
+def is_evidence_action_controller_v34(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V34
+
+
+def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
+    return is_evidence_action_controller_v33(
+        action_name
+    ) or is_evidence_action_controller_v34(action_name)
+
+
 def relation_downstream_consumption_scope(
     *,
     action_name: str,
     writeback_active: bool,
 ) -> str:
-    if not is_evidence_action_controller_v33(action_name):
+    if not is_risk_aware_evidence_action_controller(action_name):
         return "same_outer_iteration"
     return "same_outer_iteration" if writeback_active else "no_state_change"
 
@@ -942,6 +979,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v31(action_name)
         or is_evidence_action_controller_v32(action_name)
         or is_evidence_action_controller_v33(action_name)
+        or is_evidence_action_controller_v34(action_name)
     )
 
 
@@ -953,6 +991,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v31(action_name)
         or is_evidence_action_controller_v32(action_name)
         or is_evidence_action_controller_v33(action_name)
+        or is_evidence_action_controller_v34(action_name)
     )
 
 
@@ -987,6 +1026,7 @@ def uses_phase_rescue_during_run(
             is_evidence_action_controller_v3(action_name)
             or is_evidence_action_controller_v32(action_name)
             or is_evidence_action_controller_v33(action_name)
+            or is_evidence_action_controller_v34(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1002,6 +1042,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             is_evidence_action_controller_v31(config.arac_action)
             or is_evidence_action_controller_v32(config.arac_action)
             or is_evidence_action_controller_v33(config.arac_action)
+            or is_evidence_action_controller_v34(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -1089,6 +1130,7 @@ def refine_sigma_for_action(
             is_evidence_action_controller_v31(action_name)
             or is_evidence_action_controller_v32(action_name)
             or is_evidence_action_controller_v33(action_name)
+            or is_evidence_action_controller_v34(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
@@ -2268,8 +2310,14 @@ def _write_action_trace(
     rows: list[dict[str, str]],
     *,
     include_trust_fields: bool = True,
+    include_recovery_fields: bool = False,
 ) -> None:
-    fields = ACTION_TRACE_FIELDS if include_trust_fields else LEGACY_ACTION_TRACE_FIELDS
+    if include_recovery_fields:
+        fields = V34_ACTION_TRACE_FIELDS
+    elif include_trust_fields:
+        fields = V33_ACTION_TRACE_FIELDS
+    else:
+        fields = LEGACY_ACTION_TRACE_FIELDS
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(
             handle,
@@ -2911,7 +2959,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             degree,
             action_name=config.arac_action,
         )
-        if is_evidence_action_controller_v33(config.arac_action)
+        if is_risk_aware_evidence_action_controller(config.arac_action)
         else build_evidence_action_controller_v31_run_state(degree)
         if (
             is_evidence_action_controller_v31(config.arac_action)
@@ -3701,7 +3749,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     )
                     trust_decision: ActionTrustDecision | None = None
                     fallback_route = ""
-                    if is_evidence_action_controller_v33(config.arac_action):
+                    if is_risk_aware_evidence_action_controller(config.arac_action):
                         (
                             action,
                             adjusted_values,
@@ -3775,12 +3823,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 adjusted_values is not None
                                 and trust_writeback_active
                             )
-                            if is_evidence_action_controller_v33(config.arac_action)
+                            if is_risk_aware_evidence_action_controller(config.arac_action)
                             else adjusted_values is not None,
                             action_value_delta_norm=action_value_delta_norm,
                             downstream_consumed=(
                                 index < sub_num - 1 and trust_writeback_active
-                                if is_evidence_action_controller_v33(config.arac_action)
+                                if is_risk_aware_evidence_action_controller(config.arac_action)
                                 else index < sub_num - 1
                             ),
                             downstream_consumption_scope=(
@@ -4418,6 +4466,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V31,
             EVIDENCE_ACTION_CONTROLLER_V32,
             EVIDENCE_ACTION_CONTROLLER_V33,
+            EVIDENCE_ACTION_CONTROLLER_V34,
         ],
     )
     args = parser.parse_args(argv)
@@ -4482,7 +4531,10 @@ def main(argv: list[str] | None = None) -> list[Path]:
             _write_action_trace(
                 case_artifact_path(output_path, problem_id, "action_trace.csv"),
                 trace_rows,
-                include_trust_fields=is_evidence_action_controller_v33(
+                include_trust_fields=is_risk_aware_evidence_action_controller(
+                    config.arac_action
+                ),
+                include_recovery_fields=is_evidence_action_controller_v34(
                     config.arac_action
                 ),
             )
@@ -4506,7 +4558,10 @@ def main(argv: list[str] | None = None) -> list[Path]:
         _write_action_trace(
             output_path / "action_trace.csv",
             function_trace_rows,
-            include_trust_fields=is_evidence_action_controller_v33(
+            include_trust_fields=is_risk_aware_evidence_action_controller(
+                config.arac_action
+            ),
+            include_recovery_fields=is_evidence_action_controller_v34(
                 config.arac_action
             ),
         )

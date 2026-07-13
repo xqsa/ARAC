@@ -231,6 +231,24 @@ HCC_ACTION_EFFECTS = {
         True,
         "",
     ),
+    "arac_evidence_action_controller_v34": (
+        "evidence_action_runtime_controller_v34",
+        {
+            "relation_runtime_hook": "controller_v33_risk_aware_action_guard",
+            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
+            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
+            "search_state_runtime_hooks": [
+                "phase_rescue_multistart",
+            ],
+            "guard": "probation_trust_quarantine_and_exposure_cap",
+            "writeback": "topology_scoped_fallback_and_bounded_active_damping",
+            "trajectory_guard": "downstream_recovery_checkpoint",
+            "dispatch_boundary": "runtime_evidence_only",
+        },
+        "hcc_evidence_action_controller_v34_runtime_consumed",
+        True,
+        "",
+    ),
     "repair_bipop_search_state_restart": (
         "repair_guided_optimizer_search_state_restart",
         {

@@ -79,6 +79,7 @@ def hcc_backend_semantics_for(
             "arac_evidence_action_controller_v31",
             "arac_evidence_action_controller_v32",
             "arac_evidence_action_controller_v33",
+            "arac_evidence_action_controller_v34",
         }:
             return BackendSemanticsDiff(
                 variable_owner_changed=True,

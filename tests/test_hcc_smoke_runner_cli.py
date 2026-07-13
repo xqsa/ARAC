@@ -574,6 +574,34 @@ def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v33() -> No
     assert runner.is_evidence_action_controller(args.arac_action)
 
 
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v34() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "6",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--arac-action",
+            "arac_evidence_action_controller_v34",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v34"
+    assert runner.is_evidence_action_controller_v34(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+
+
 def test_v33_trust_state_is_opt_in_and_v32_has_no_trust_state() -> None:
     runner = _load_runner_module()
 
@@ -585,6 +613,24 @@ def test_v33_trust_state_is_opt_in_and_v32_has_no_trust_state() -> None:
 
     assert v32.action_trust_policy is None
     assert v33.action_trust_policy is not None
+
+
+def test_v34_enables_trust_and_recovery_without_changing_v33() -> None:
+    runner = _load_runner_module()
+
+    v33 = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    v34 = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V34,
+    )
+
+    assert v33.action_trust_policy is not None
+    assert v33.trajectory_guard_enabled is False
+    assert v34.action_trust_policy is not None
+    assert v34.trajectory_guard_enabled is True
 
 
 def test_hcc_smoke_runner_parses_diagonal_search_state_backend() -> None:
@@ -776,6 +822,22 @@ def test_action_trace_contains_v33_trust_audit_fields() -> None:
     }.issubset(set(runner.ACTION_TRACE_FIELDS))
 
 
+def test_action_trace_contains_v34_recovery_audit_fields() -> None:
+    runner = _load_runner_module()
+
+    assert {
+        "trajectory_guard_status",
+        "trajectory_guard_pre_fitness",
+        "trajectory_guard_post_writeback_fitness",
+        "trajectory_guard_downstream_fitness",
+        "trajectory_guard_recovery_credit",
+        "trajectory_guard_restored",
+    } == set(runner.V34_RECOVERY_TRACE_FIELDS)
+    assert set(runner.V34_RECOVERY_TRACE_FIELDS).issubset(
+        set(runner.ACTION_TRACE_FIELDS)
+    )
+
+
 def test_legacy_action_trace_writer_omits_v33_trust_fields(tmp_path: Path) -> None:
     runner = _load_runner_module()
 
@@ -798,6 +860,45 @@ def test_legacy_action_trace_writer_omits_v33_trust_fields(tmp_path: Path) -> No
     assert "trust_key" not in header
     assert "trust_post_writeback_fitness" not in header
     assert "fallback_route" not in header
+
+
+def test_v33_and_v34_action_trace_writers_keep_versioned_headers(
+    tmp_path: Path,
+) -> None:
+    runner = _load_runner_module()
+    row = runner.build_action_trace_row(
+        problem_id="E2",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=1.0,
+        current_delta=1.0,
+    )
+    v33_path = tmp_path / "v33.csv"
+    v34_path = tmp_path / "v34.csv"
+
+    runner._write_action_trace(
+        v33_path,
+        [row],
+        include_trust_fields=True,
+        include_recovery_fields=False,
+    )
+    runner._write_action_trace(
+        v34_path,
+        [row],
+        include_trust_fields=True,
+        include_recovery_fields=True,
+    )
+
+    with v33_path.open(newline="", encoding="utf-8") as handle:
+        v33_header = next(csv.reader(handle))
+    with v34_path.open(newline="", encoding="utf-8") as handle:
+        v34_header = next(csv.reader(handle))
+    assert set(runner.V33_TRUST_TRACE_FIELDS).issubset(v33_header)
+    assert not set(runner.V34_RECOVERY_TRACE_FIELDS).intersection(v33_header)
+    assert set(runner.V34_RECOVERY_TRACE_FIELDS).issubset(v34_header)
 
 
 def test_relation_downstream_scope_preserves_v32_zero_norm_semantics() -> None:
