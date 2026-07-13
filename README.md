@@ -45,6 +45,10 @@ catastrophic-loss audits.
   dispatch.
 - `src/arac/`: minimum Python skeleton for evidence extraction, action space,
   policy mapping, backend adapter, evaluation, and audit.
+- `src/arac/benchmarks/binary_lsgo.py`: deterministic binary overlapping LSGO
+  generator, objective evaluator, topology metadata, and the inherited 18-case
+  standard suite. It is an independent binary benchmark and is not connected to
+  the continuous HCC CMA-ES/MMES runner.
 - `configs/default.yaml`: minimal experiment contract.
 - `configs/aob_pilot.yaml`: current AOB first-look pilot contract.
 - `experiments/README.md`: how to structure future runs without returning to
