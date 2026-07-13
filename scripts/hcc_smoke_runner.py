@@ -173,6 +173,12 @@ ACTION_TRACE_FIELDS = [
     "decision_point",
     "cc_block_fe",
     "cc_utility",
+    "search_state_non_coordinate_fraction",
+    "search_state_active_intervention_fraction",
+    "search_state_conflict_fraction",
+    "search_state_writeback_unstable",
+    "search_state_relative_writeback_max",
+    "search_state_relative_writeback_unstable",
     "search_state_block_fe",
     "search_state_utility",
     "required_utility_ratio",
@@ -350,6 +356,7 @@ CC_HARM_STAGNATED_FRACTION = 0.67
 CC_HARM_CONFLICT_FRACTION = 0.50
 CC_HARM_LOW_GAIN_RATIO = 1e-6
 CC_HARM_WRITEBACK_NORM = 1e-9
+RELATIVE_WRITEBACK_UNSTABLE_THRESHOLD = 0.10
 CC_HARM_REFRESH_SIGMA_MULTIPLIER = 0.75
 SEPARABLE_CMAES_INITIAL_SIGMA = 0.5
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
@@ -726,6 +733,23 @@ def bounded_population_budget(
     return (usable_fes // population_size) * population_size
 
 
+def scale_free_writeback_norm(
+    *,
+    delta_norm: float,
+    shared_count: int,
+    lower: float,
+    upper: float,
+) -> float:
+    """Normalize a shared-variable writeback by its bounded subspace span."""
+
+    delta_norm = abs(float(delta_norm))
+    shared_count = max(1, int(shared_count))
+    span = abs(float(upper) - float(lower))
+    if not all(math.isfinite(value) for value in (delta_norm, span)) or span <= 0.0:
+        return 0.0
+    return delta_norm / (math.sqrt(shared_count) * span)
+
+
 def is_bipop_search_state_action(action_name: str) -> bool:
     return action_name in {SEARCH_STATE_BIPOP_ACTION, REPAIR_BIPOP_SEARCH_STATE_ACTION}
 
@@ -1067,6 +1091,7 @@ def build_search_state_evidence(
     relations: list[OverlapRelation],
     decisions: list[RelationActionDecision],
     writeback_norms: list[float],
+    relative_writeback_norms: list[float],
     fitness_deltas: list[float],
     reference_fitness: float,
     cc_utility_history: list[float],
@@ -1080,9 +1105,21 @@ def build_search_state_evidence(
     non_coordinate = sum(
         action != "allow_beneficial_coordination" for action in canonical_actions
     ) / max(1, len(canonical_actions))
+    active_intervention_actions = {
+        "isolate_conflicting_relation",
+        "repair_shared_variable_binding",
+        "protect_high_margin_group",
+    }
+    active_intervention = sum(
+        action in active_intervention_actions for action in canonical_actions
+    ) / max(1, len(canonical_actions))
     conflict = cc_harm_conflict_fraction(fitness_deltas, reference_fitness)
     unstable = any(
         abs(float(norm)) > CC_HARM_WRITEBACK_NORM for norm in writeback_norms
+    )
+    relative_max = max(
+        (max(0.0, float(norm)) for norm in relative_writeback_norms),
+        default=0.0,
     )
     return SearchStateEvidence(
         complete_sweep=bool(complete_sweep and relations),
@@ -1097,6 +1134,11 @@ def build_search_state_evidence(
         remaining_fes=int(remaining_fes),
         max_fes=int(max_fes),
         population_size=int(population_size),
+        active_intervention_fraction=float(active_intervention),
+        relative_writeback_max=float(relative_max),
+        relative_writeback_unstable=(
+            relative_max >= RELATIVE_WRITEBACK_UNSTABLE_THRESHOLD
+        ),
     )
 
 
@@ -1855,6 +1897,7 @@ def build_action_trace_row(
     state_fingerprint_before: str = "",
     state_fingerprint_after: str = "",
     abstain_reason: str = "",
+    search_state_evidence: SearchStateEvidence | None = None,
     pre_hold_evidence: PreHoldEvidence | None = None,
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
@@ -1945,6 +1988,36 @@ def build_action_trace_row(
         "state_fingerprint_before": state_fingerprint_before,
         "state_fingerprint_after": state_fingerprint_after,
         "abstain_reason": abstain_reason,
+        "search_state_non_coordinate_fraction": (
+            ""
+            if search_state_evidence is None
+            else f"{search_state_evidence.non_coordinate_fraction:.6e}"
+        ),
+        "search_state_active_intervention_fraction": (
+            ""
+            if search_state_evidence is None
+            else f"{search_state_evidence.active_intervention_fraction:.6e}"
+        ),
+        "search_state_conflict_fraction": (
+            ""
+            if search_state_evidence is None
+            else f"{search_state_evidence.conflict_fraction:.6e}"
+        ),
+        "search_state_writeback_unstable": (
+            ""
+            if search_state_evidence is None
+            else str(int(search_state_evidence.writeback_unstable))
+        ),
+        "search_state_relative_writeback_max": (
+            ""
+            if search_state_evidence is None
+            else f"{search_state_evidence.relative_writeback_max:.6e}"
+        ),
+        "search_state_relative_writeback_unstable": (
+            ""
+            if search_state_evidence is None
+            else str(int(search_state_evidence.relative_writeback_unstable))
+        ),
     }
     pre_hold_values = {
         "phase_i_tail_utility": "{:.6e}",
@@ -2737,6 +2810,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
         fitness_delta_list: list[float] = []
         overlap_writeback_norms: list[float] = []
+        relative_writeback_norms: list[float] = []
         current_outer_relations: list[OverlapRelation] = []
         current_outer_decisions: list[RelationActionDecision] = []
         optimized_any_group = False
@@ -3265,6 +3339,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     overlap_writeback_norms.append(action_value_delta_norm)
+                    relative_writeback_norms.append(
+                        scale_free_writeback_norm(
+                            delta_norm=action_value_delta_norm,
+                            shared_count=len(context.overlap_indices),
+                            lower=float(info["lower"]),
+                            upper=float(info["upper"]),
+                        )
+                    )
                     canonical_action_name = _canonical_relation_action_name(action)
                     current_outer_relations.append(relation)
                     current_outer_decisions.append(action)
@@ -3311,6 +3393,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         np.linalg.norm(adjusted_values - current_overlap_values)
                     )
                     overlap_writeback_norms.append(overlap_writeback_norm)
+                    relative_writeback_norms.append(
+                        scale_free_writeback_norm(
+                            delta_norm=overlap_writeback_norm,
+                            shared_count=len(overlap_indices),
+                            lower=float(info["lower"]),
+                            upper=float(info["upper"]),
+                        )
+                    )
                     action_trace_rows.append(
                         build_action_trace_row(
                             problem_id=_problem_id(fun_name, fun_id),
@@ -3474,6 +3564,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 relations=current_outer_relations,
                 decisions=current_outer_decisions,
                 writeback_norms=overlap_writeback_norms,
+                relative_writeback_norms=relative_writeback_norms,
                 fitness_deltas=fitness_delta_list,
                 reference_fitness=guarded_incumbent_fitness,
                 cc_utility_history=controller_v31_run_state.cc_utility_history,
@@ -3661,6 +3752,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         pre_hold_evidence=(
                             pre_hold_evidence_snapshot if outer_iter == 0 else None
                         ),
+                        search_state_evidence=evidence,
                     )
                 )
             else:
@@ -3707,6 +3799,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         pre_hold_evidence=(
                             pre_hold_evidence_snapshot if outer_iter == 0 else None
                         ),
+                        search_state_evidence=evidence,
                     )
                 )
                 if config.search_state_backend == "diagonal_cma":

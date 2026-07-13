@@ -168,6 +168,29 @@ namely distinguishing cases where a terminal diagonal action improves the
 trajectory from cases where canonical continuation should be protected. No
 wider rollout is allowed from this result.
 
+## Corrected Evidence Shadow Audit
+
+The legacy admission evidence had two semantic defects. It counted fallback
+relations as non-coordinate conflict, and it classified any absolute
+writeback norm above `1e-9` as unstable. Fresh 3M traces confirmed that the
+absolute writeback flag was true for all 15 audited lanes.
+
+The shadow model adds an active-intervention fraction that excludes fallback,
+and normalizes writeback magnitude by
+`sqrt(shared_count) * (upper_bound - lower_bound)`. Both legacy and corrected
+values are recorded in the action trace while the selector continues to use
+the legacy fields. This keeps the shadow audit behaviorally neutral.
+
+Across E6/S6/R2/R3/A4 seeds 1/2/3, corrected relative instability was true in
+8/15 lanes and active intervention ranged from zero to `0.1579`. Neither
+signal, alone or as a simple OR, separated paired improvements without
+case-slice fitting. A more important pattern was candidate-context coupling:
+large accepted diagonal improvements frequently preceded worse final paired
+results, whereas A4/E6 often retained performance with rejected or tiny
+candidates. The next behavior change should quarantine a protected diagonal
+incumbent from immediate CC-context replacement and test that mechanism
+directly.
+
 ## Pre-Hold Evidence Audit
 
 Before changing admission behavior again, the runner must capture a

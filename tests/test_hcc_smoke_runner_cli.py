@@ -1732,6 +1732,7 @@ def test_search_state_evidence_requires_complete_nonempty_relation_sweep() -> No
         relations=relations,
         decisions=decisions,
         writeback_norms=[0.0, runner.CC_HARM_WRITEBACK_NORM * 2.0],
+        relative_writeback_norms=[0.0, 0.05],
         fitness_deltas=[0.0, 1.0, 0.0],
         reference_fitness=100.0,
         cc_utility_history=[1.0e-7, 2.0e-7],
@@ -1748,6 +1749,7 @@ def test_search_state_evidence_requires_complete_nonempty_relation_sweep() -> No
         relations=[],
         decisions=[],
         writeback_norms=[],
+        relative_writeback_norms=[],
         fitness_deltas=[],
         reference_fitness=100.0,
         cc_utility_history=[],
@@ -1758,10 +1760,33 @@ def test_search_state_evidence_requires_complete_nonempty_relation_sweep() -> No
 
     assert evidence.complete_sweep is True
     assert evidence.non_coordinate_fraction == pytest.approx(0.5)
+    assert evidence.active_intervention_fraction == 0.0
     assert evidence.conflict_fraction == pytest.approx(1.0)
     assert evidence.writeback_unstable is True
+    assert evidence.relative_writeback_max == pytest.approx(0.05)
+    assert evidence.relative_writeback_unstable is False
     assert evidence.recent_cc_utilities == (1.0e-7, 2.0e-7)
     assert empty.complete_sweep is False
+
+
+def test_scale_free_writeback_norm_uses_variable_span_and_shared_width() -> None:
+    runner = _load_runner_module()
+
+    one_variable = runner.scale_free_writeback_norm(
+        delta_norm=10.0,
+        shared_count=1,
+        lower=-100.0,
+        upper=100.0,
+    )
+    four_variables = runner.scale_free_writeback_norm(
+        delta_norm=20.0,
+        shared_count=4,
+        lower=-100.0,
+        upper=100.0,
+    )
+
+    assert one_variable == pytest.approx(0.05)
+    assert four_variables == pytest.approx(0.05)
 
 
 def test_controller_v31_phase_i_captures_resumable_mmes_state(
@@ -2327,6 +2352,23 @@ def test_build_action_trace_row_marks_runtime_consumed_repair() -> None:
 
 def test_build_action_trace_row_audits_resumed_phase_i_runtime_state() -> None:
     runner = _load_runner_module()
+    evidence = runner.SearchStateEvidence(
+        complete_sweep=True,
+        overlap_degree=0.1,
+        phase_rescue_enabled=True,
+        repair_lock_active=False,
+        phase_i_tail_utility=2.0e-6,
+        non_coordinate_fraction=0.75,
+        conflict_fraction=0.25,
+        writeback_unstable=True,
+        recent_cc_utilities=(1.0e-7,),
+        remaining_fes=600_000,
+        max_fes=3_000_000,
+        population_size=24,
+        active_intervention_fraction=0.10,
+        relative_writeback_max=0.05,
+        relative_writeback_unstable=False,
+    )
 
     row = runner.build_action_trace_row(
         problem_id="R3",
@@ -2352,6 +2394,7 @@ def test_build_action_trace_row_audits_resumed_phase_i_runtime_state() -> None:
         cc_reserve_fe=300_000,
         state_fingerprint_before="before",
         state_fingerprint_after="after",
+        search_state_evidence=evidence,
     )
 
     assert row["trace_event"] == "probe"
@@ -2364,6 +2407,12 @@ def test_build_action_trace_row_audits_resumed_phase_i_runtime_state() -> None:
     assert row["cc_reserve_fe"] == "300000"
     assert row["state_fingerprint_before"] == "before"
     assert row["state_fingerprint_after"] == "after"
+    assert row["search_state_non_coordinate_fraction"] == "7.500000e-01"
+    assert row["search_state_active_intervention_fraction"] == "1.000000e-01"
+    assert row["search_state_conflict_fraction"] == "2.500000e-01"
+    assert row["search_state_writeback_unstable"] == "1"
+    assert row["search_state_relative_writeback_max"] == "5.000000e-02"
+    assert row["search_state_relative_writeback_unstable"] == "0"
     assert row["downstream_consumption_scope"] == "subsequent_outer_iterations"
 
 

@@ -41,6 +41,9 @@ class SearchStateEvidence:
     remaining_fes: int
     max_fes: int
     population_size: int
+    active_intervention_fraction: float = 0.0
+    relative_writeback_max: float = 0.0
+    relative_writeback_unstable: bool = False
 
 
 @dataclass(frozen=True)

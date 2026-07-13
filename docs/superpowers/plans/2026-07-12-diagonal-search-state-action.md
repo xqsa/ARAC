@@ -214,3 +214,31 @@ and E6 (`2.318760e7 < 2.62e7`), but lost R2
 only 2/4. Do not expand this backend to the twelve protected winners. The next
 design must improve runtime admission evidence rather than reserve another
 budget variant.
+
+## Task 9: Corrected Search-State Evidence Shadow Audit
+
+**Files:**
+
+- Modify: `src/arac/policy/search_state_policy.py`
+- Modify: `scripts/hcc_smoke_runner.py`
+- Modify: `experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py`
+- Modify: `tests/test_hcc_smoke_runner_cli.py`
+
+- [x] Prove that fallback relations must not count as active interventions.
+- [x] Add a scale-free writeback norm based on bounded shared-subspace span.
+- [x] Record legacy and corrected evidence together without changing the
+  current selector.
+- [x] Run a 5k real-HCC smoke and verify populated evidence with clean FE.
+- [x] Run E6/S6/R2/R3/A4 seeds 1/2/3 at 3M FE as a shadow audit.
+
+**Task 9 result:** legacy absolute writeback instability was true for 15/15
+lanes. Corrected relative instability was true for 8/15 and no longer
+degenerate, but its range overlapped useful and harmful cases. Active
+intervention fraction excluded R2/R3 but overlapped A4/E6/S6. No corrected
+single threshold safely separated the cases, so the selector is unchanged.
+
+The paired trace exposed a stronger mechanism. A4/E6 mostly retained their
+results when the diagonal candidate was rejected or tiny, while R2/S6/R3
+usually accepted large immediate improvements before later diverging. The
+next design should protect an accepted diagonal incumbent while isolating it
+from immediate replacement of the canonical CC context.
