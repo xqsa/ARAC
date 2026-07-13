@@ -521,7 +521,8 @@ Expected: all tests pass.
 Run:
 
 ```powershell
-python -m experiments.exp_009_binary_lsgo_arac_pilot.run `
+$env:PYTHONPATH='src'
+& 'E:\ARAC\.venv\Scripts\python.exe' -m experiments.exp_009_binary_lsgo_arac_pilot.run `
   --output-dir results/exp_009_binary_lsgo_arac_pilot `
   --total-fes 2000
 ```
@@ -554,7 +555,8 @@ not final performance evidence.
 Append this command and artifact summary to `experiments/README.md`:
 
 ```powershell
-python -m experiments.exp_009_binary_lsgo_arac_pilot.run `
+$env:PYTHONPATH='src'
+& 'E:\ARAC\.venv\Scripts\python.exe' -m experiments.exp_009_binary_lsgo_arac_pilot.run `
   --output-dir results/exp_009_binary_lsgo_arac_pilot `
   --total-fes 2000
 ```

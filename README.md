@@ -47,8 +47,9 @@ catastrophic-loss audits.
   policy mapping, backend adapter, evaluation, and audit.
 - `src/arac/benchmarks/binary_lsgo.py`: deterministic binary overlapping LSGO
   generator, objective evaluator, topology metadata, and the inherited 18-case
-  standard suite. It is an independent binary benchmark and is not connected to
-  the continuous HCC CMA-ES/MMES runner.
+  standard suite. It remains independent of the continuous HCC CMA-ES/MMES
+  runner and is executed by the native backend in
+  `src/arac/backends/binary_lsgo.py`.
 - `configs/default.yaml`: minimal experiment contract.
 - `configs/aob_pilot.yaml`: current AOB first-look pilot contract.
 - `experiments/README.md`: how to structure future runs without returning to
@@ -61,6 +62,10 @@ catastrophic-loss audits.
   control lanes.
 - `experiments/exp_004_hcc_main_historical_result_recovery/`: read-only
   recovery of historical `E:\HCC-main` result artifacts for offline comparison.
+- `experiments/exp_009_binary_lsgo_arac_pilot/`: single-seed, same-budget
+  execution of all 18 binary LSGO cases through native baseline, ARAC policy,
+  and shuffled-evidence negative-control lanes. It is pilot evidence, not a
+  final performance claim.
 - `references/source-index.md`: pointers to the original source evidence inside
   `E:\HCC-main`.
 

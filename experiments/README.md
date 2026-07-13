@@ -10,6 +10,7 @@ experiments/
   exp_002_aob_1run_pilot/
   exp_003_hcc_runtime_consumer_smoke/
   exp_004_hcc_main_historical_result_recovery/
+  exp_009_binary_lsgo_arac_pilot/
 ```
 
 Each experiment should contain:
@@ -51,6 +52,23 @@ scope. SOTA escalation is gated by `policy_evidence_diagnosis.csv`.
 inventory, and joins detected AOB cases to the paper-reported Table 2 anchors.
 These recovered results are preserved as offline evidence only and must not
 enter runtime dispatch.
+
+Run the native binary LSGO ARAC pilot with:
+
+```powershell
+$env:PYTHONPATH='src'
+& 'E:\ARAC\.venv\Scripts\python.exe' -m experiments.exp_009_binary_lsgo_arac_pilot.run `
+  --output-dir results/exp_009_binary_lsgo_arac_pilot `
+  --total-fes 2000
+```
+
+`exp_009_binary_lsgo_arac_pilot` executes 18 cases across native baseline,
+ARAC policy, and shuffled-evidence negative-control lanes. Each lane uses 20%
+of its 2000-FE budget for Phase I and the remainder for action execution. Its
+CSV and JSON outputs are generated under `results/` and stay out of Git. This
+single-seed run verifies runtime connection, action semantics, reproducibility,
+same-budget accounting, and leakage boundaries; it is not final performance
+evidence.
 
 ## Minimum Gates
 
