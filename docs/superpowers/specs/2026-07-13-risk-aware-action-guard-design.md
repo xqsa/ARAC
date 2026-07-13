@@ -259,3 +259,43 @@ The runtime trace confirms the intended split. R2 recorded 685 non-dense
 fallback rows with maximum norm `0.5`; S6 recorded 300 dense-run fallback rows,
 including 111 above `0.5` with a maximum norm of `84.06751`. This is an 8-case
 three-seed pilot result, not a 25-run statistical performance claim.
+
+## Full 24-Case 3M Replay Result
+
+The S02 replay expanded the same reference-blind v33 selector to all 24 AOB
+cases without changing its runtime inputs or action mapping. All `72/72`
+case/seed trajectories were fresh, same-budget violations were `0/72`, AOB
+inputs were `708/708` unchanged, and all `16/16` anti-leakage checks passed.
+Every run used the same tracked code at commit `8cf16ae` and the same strict
+3M-FE protocol; paper-best values were joined only after runtime completion.
+
+The offline comparison reached the requested best-of-three pilot threshold:
+
+- best-of-three wins: `13/24` (`E1`, `E2`, `E3`, `E4`, `E6`, `S2`, `S3`,
+  `S5`, `S6`, `R1`, `R2`, `A4`, `A5`);
+- three-seed mean wins: `4/24` (`E1`, `E3`, `E4`, `S2`);
+- worst-seed wins: `2/24` (`E1`, `E3`);
+- per-seed wins: `21/72`;
+- catastrophic seeds: `31/72`, using the existing relative-gain threshold
+  `<= -20%` against the offline paper-best value.
+
+The runtime trace explains why the best-of-three count is not a robust success
+claim. Of 1,238 objective-paired credit rows, 1,080 were negative and only 158
+were positive. Across 1,478 trust-state rows, only 7 reached `trusted`, while
+241 were quarantined and 469 were probation-limited. The protected fallback
+remained topology-scoped: 1,352 non-dense rows were bounded at maximum norm
+`0.5`, while 327 dense rows preserved v31 behavior with maximum norm
+`457.486`. No trust or writeback instability flags were raised. The no-overlap
+controls `A1`, `E1`, `R1`, and `S1` correctly had no trust rows, so their mixed
+performance reflects the underlying optimizer path rather than a hidden
+case-specific action branch.
+
+These trace statistics are runtime credit proxies, not causal effect estimates.
+The result supports claim level 6 (full configured evaluation completed) and
+meets the registered `13/24` best-of-three pilot target, but the mean, worst
+seed, and catastrophic-loss gates block a robust final-success or SOTA claim.
+The auditable derived reports are:
+
+- `results/controller_v338_full24_seed123_3m_20260713/offline_paper_best_comparison.csv`;
+- `results/controller_v338_full24_seed123_3m_20260713/offline_paper_best_comparison.md`;
+- `results/controller_v338_full24_seed123_3m_20260713/runtime_evidence_case_summary.csv`.

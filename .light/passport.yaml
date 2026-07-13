@@ -1,0 +1,38 @@
+project: arac
+pipeline: v338-evidence-replay-full24
+created: "2026-07-13T23:59"
+updated: "2026-07-14T02:02"
+current_stage: 5
+stages:
+  - stage: 1
+    skill: orchestrator/runtime-smoke
+    input: v33.8 tracked code at 8cf16ae; R2/S6 seeds 1/2/3; strict 5k FE
+    output: CLI and focused tests pass; 6/6 fresh smoke with topology routes audited
+    artifacts: [results/controller_v338_replay_5k_smoke_20260713]
+    gate: {type: confirm, result: PASS, notes: 227 passed, 1 skipped; FE 0/6; AOB 60/60 unchanged; anti-leakage 16/16; R2 max norm 0.5; S6 max norm 7.450186}
+  - stage: 2
+    skill: light-result-analysis
+    input: E2/E4/E6/S6/R1/R2/A4/A5 seeds 1/2/3; strict 3M FE; v33 selector
+    output: 8/8 best-of-three replayed; 24 raw trajectories and audit artifacts recovered
+    artifacts: [results/controller_v338_replay_8case_seed123_3m_20260713]
+    gate: {type: confirm, result: WARN, notes: 8/8 best; 24/24 fresh; FE 0/24; AOB 237/237 unchanged; anti-leakage 16/16; seed wins 11/24; mean wins 1/8; worst wins 0/8; catastrophic vs paper-best 7/24}
+    gaps: [Three-seed pilot is unstable; catastrophic losses must remain explicit and block a stable-success claim]
+  - stage: 3
+    skill: orchestrator/full24-runtime
+    input: E1-E6/S1-S6/R1-R6/A1-A6; seeds 1/2/3; strict 3M FE; jobs 24; v33 selector
+    output: 72/72 fresh full-24 trajectories completed; best-of-three 13/24
+    artifacts: [results/controller_v338_full24_seed123_3m_20260713]
+    gate: {type: confirm, result: PASS, notes: FE 0/72; AOB 708/708 unchanged; anti-leakage 16/16; backend semantics changed 72/72; best target 13/24}
+  - stage: 4
+    skill: light-result-analysis
+    input: Fresh full-24 our_result_by_case.csv joined offline to frozen paper-best reference
+    output: Per-case best/mean/worst/seed wins/catastrophic and runtime-evidence summaries
+    artifacts: [results/controller_v338_full24_seed123_3m_20260713/offline_paper_best_comparison.csv, results/controller_v338_full24_seed123_3m_20260713/offline_paper_best_comparison.md, results/controller_v338_full24_seed123_3m_20260713/runtime_evidence_case_summary.csv]
+    gate: {type: confirm, result: WARN, notes: best 13/24; mean 4/24; worst 2/24; seed wins 21/72; catastrophic 31/72; runtime connected but utility/performance claim remains blocked}
+    gaps: [Three seeds are pilot-level only; high seed variance and catastrophic losses block a robust success claim]
+  - stage: 5
+    skill: verification-before-completion
+    input: Tracked spec, S02 handoff, passport, and fresh full-24 artifacts
+    output: Delivery verification completed and tracked status prepared for commit
+    artifacts: [docs/superpowers/specs/2026-07-13-risk-aware-action-guard-design.md, .light/handoff/S02-arac-v338-full24-result.md, .light/passport.yaml]
+    gate: {type: confirm, result: PASS, notes: 564 passed, 1 skipped; compileall pass; passport valid; diff check pass; static case dispatch branches 0}
