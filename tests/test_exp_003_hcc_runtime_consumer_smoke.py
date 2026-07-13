@@ -187,6 +187,32 @@ def test_exp_003_cli_help_works_from_module_entrypoint() -> None:
     assert "--max-fes" in completed.stdout
 
 
+def test_exp_003_cli_help_works_from_direct_script_entrypoint() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    script = (
+        repo_root
+        / "experiments"
+        / "pilots"
+        / "exp_003_hcc_runtime_consumer_smoke"
+        / "run.py"
+    )
+    env = os.environ.copy()
+    env.pop("PYTHONPATH", None)
+
+    completed = subprocess.run(
+        [sys.executable, str(script), "--help"],
+        cwd=repo_root,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert "Run exp_003 HCC runtime consumer smoke" in completed.stdout
+
+
 def test_negative_control_ignores_tiny_shuffled_advantage(tmp_path: Path) -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
 

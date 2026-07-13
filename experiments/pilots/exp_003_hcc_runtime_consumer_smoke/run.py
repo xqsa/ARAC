@@ -15,6 +15,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
+ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
+ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
+for import_root in (ARAC_REPO_ROOT, ARAC_SRC_ROOT):
+    if str(import_root) not in sys.path:
+        sys.path.insert(0, str(import_root))
+
 from experiments.paths import (
     experiment_results_dir,
     repository_root,
