@@ -16,6 +16,9 @@ from arac.evidence import EvidenceProfile, validate_runtime_payload
 from arac.policy import ActionDecision, decide_action
 
 
+PROPOSAL_OPERATORS = frozenset({"single_bit", "group_block"})
+
+
 @dataclass(frozen=True)
 class BinaryLsgoGroupStats:
     group_index: int
@@ -50,6 +53,7 @@ class BinaryLsgoExecutionRequest:
     phase_one_fraction: float = 0.20
     run_id: str = "binary_lsgo_arac"
     lane_id: str = "arac_policy"
+    phase_two_operator: str = "single_bit"
 
     def __post_init__(self) -> None:
         if isinstance(self.optimizer_seed, bool) or not isinstance(self.optimizer_seed, int):
@@ -70,6 +74,14 @@ class BinaryLsgoExecutionRequest:
             raise ValueError("run_id must be non-empty")
         if not self.lane_id.strip():
             raise ValueError("lane_id must be non-empty")
+        if (
+            not isinstance(self.phase_two_operator, str)
+            or self.phase_two_operator not in PROPOSAL_OPERATORS
+        ):
+            raise ValueError(
+                "phase_two_operator must be one of: "
+                + ", ".join(sorted(PROPOSAL_OPERATORS))
+            )
 
     @property
     def phase_one_fes(self) -> int:
@@ -186,6 +198,16 @@ class BinaryLsgoActionTrace:
 
 
 @dataclass(frozen=True)
+class BinaryLsgoProposalTrace:
+    operator: str
+    proposed_count: int
+    accepted_count: int
+    multi_bit_proposed_count: int
+    multi_bit_accepted_count: int
+    maximum_accepted_flip_width: int
+
+
+@dataclass(frozen=True)
 class BinaryLsgoExecutionResult:
     run_id: str
     lane_id: str
@@ -200,6 +222,7 @@ class BinaryLsgoExecutionResult:
     semantics: BinaryBackendSemanticsDiff
     ledger: SameBudgetLedger
     action_trace: BinaryLsgoActionTrace
+    proposal_trace: BinaryLsgoProposalTrace
     optimizer_consumed: bool
 
 
@@ -508,6 +531,14 @@ def run_binary_lsgo(
         semantics=semantics,
         ledger=ledger,
         action_trace=action_trace,
+        proposal_trace=BinaryLsgoProposalTrace(
+            operator=request.phase_two_operator,
+            proposed_count=0,
+            accepted_count=0,
+            multi_bit_proposed_count=0,
+            multi_bit_accepted_count=0,
+            maximum_accepted_flip_width=0,
+        ),
         optimizer_consumed=semantics.changed,
     )
 
@@ -518,7 +549,9 @@ __all__ = [
     "BinaryLsgoSnapshot",
     "BinaryBackendSemanticsDiff",
     "BinaryLsgoActionTrace",
+    "BinaryLsgoProposalTrace",
     "BinaryLsgoExecutionResult",
+    "PROPOSAL_OPERATORS",
     "SUPPORTED_ACTIONS",
     "build_binary_lsgo_evidence_profile",
     "run_binary_lsgo",

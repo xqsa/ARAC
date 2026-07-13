@@ -31,6 +31,22 @@ def test_request_rejects_invalid_budget_or_seed():
         BinaryLsgoExecutionRequest(problem, optimizer_seed=-1)
 
 
+@pytest.mark.parametrize("operator", ["", "bit", "group", 1, True, None])
+def test_request_rejects_unsupported_phase_two_operator(operator):
+    with pytest.raises(ValueError, match="phase_two_operator"):
+        BinaryLsgoExecutionRequest(
+            small_problem(),
+            optimizer_seed=1,
+            total_fes=40,
+            phase_two_operator=operator,
+        )
+
+
+def test_request_defaults_to_single_bit_operator():
+    request = BinaryLsgoExecutionRequest(small_problem(), optimizer_seed=1, total_fes=40)
+    assert request.phase_two_operator == "single_bit"
+
+
 def test_snapshot_converts_to_runtime_legal_evidence():
     problem = small_problem()
     stats = tuple(
