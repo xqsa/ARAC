@@ -7,8 +7,16 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
-from arac.backends.binary_lsgo import BinaryLsgoExecutionRequest, run_binary_lsgo
-from arac.benchmarks.binary_lsgo import BinaryLsgoProblem, generate_binary_lsgo, standard_binary_lsgo_specs
+from arac.backends.binary_lsgo import (
+    BinaryLsgoExecutionRequest,
+    BinaryLsgoExecutionResult,
+    run_binary_lsgo,
+)
+from arac.benchmarks.binary_lsgo import (
+    BinaryLsgoProblem,
+    generate_binary_lsgo,
+    standard_binary_lsgo_specs,
+)
 from arac.evaluation import classify_utility, relative_gain
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS
 
@@ -42,7 +50,11 @@ def _problem_hash(problem: BinaryLsgoProblem) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _evidence_row(result) -> dict[str, object]:
+def _file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _evidence_row(result: BinaryLsgoExecutionResult) -> dict[str, object]:
     evidence = asdict(result.evidence)
     forbidden = sorted(FORBIDDEN_RUNTIME_FIELDS.intersection(evidence))
     return {
@@ -55,7 +67,7 @@ def _evidence_row(result) -> dict[str, object]:
     }
 
 
-def _trace_row(result) -> dict[str, object]:
+def _trace_row(result: BinaryLsgoExecutionResult) -> dict[str, object]:
     trace = asdict(result.action_trace)
     semantics = asdict(result.semantics)
     return {
@@ -68,7 +80,7 @@ def _trace_row(result) -> dict[str, object]:
     }
 
 
-def _ledger_row(result) -> dict[str, object]:
+def _ledger_row(result: BinaryLsgoExecutionResult) -> dict[str, object]:
     return {
         "run_id": result.run_id,
         "lane_id": result.lane_id,
@@ -83,7 +95,9 @@ def _ledger_row(result) -> dict[str, object]:
     }
 
 
-def _result_rows(results_by_case: dict[str, list]) -> list[dict[str, object]]:
+def _result_rows(
+    results_by_case: dict[str, list[BinaryLsgoExecutionResult]],
+) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for problem_id, results in results_by_case.items():
         baseline = next(result for result in results if result.lane_id == "native_baseline")
@@ -121,6 +135,7 @@ def _manifest(
 ) -> None:
     payload = {
         "run_id": RUN_ID,
+        "date": "2026-07-13",
         "executor": "Codex",
         "benchmark": "deterministic binary overlapping LSGO",
         "benchmark_case_count": len(input_hashes),
@@ -128,9 +143,20 @@ def _manifest(
         "lanes": list(LANES),
         "total_fes": total_fes,
         "phase_one_fraction": PHASE_ONE_FRACTION,
+        "phase_one_fes": round(total_fes * PHASE_ONE_FRACTION),
+        "phase_two_fes": total_fes - round(total_fes * PHASE_ONE_FRACTION),
         "optimizer_seed_base": OPTIMIZER_SEED_BASE,
+        "optimizer_seeds": {
+            problem_id: OPTIMIZER_SEED_BASE + case_index
+            for case_index, problem_id in enumerate(input_hashes, start=1)
+        },
         "claim_level": "single-seed same-budget pilot; offline evidence only",
         "input_hashes": input_hashes,
+        "code_hashes": {
+            "benchmark": _file_hash(ROOT / "src/arac/benchmarks/binary_lsgo.py"),
+            "backend": _file_hash(ROOT / "src/arac/backends/binary_lsgo.py"),
+            "runner": _file_hash(Path(__file__)),
+        },
         "artifacts": [
             "execution_results.csv",
             "action_trace.csv",
@@ -154,7 +180,7 @@ def run_pilot(
         raise ValueError("total_fes must be an integer >= 2")
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
-    results_by_case: dict[str, list] = {}
+    results_by_case: dict[str, list[BinaryLsgoExecutionResult]] = {}
     input_hashes: dict[str, str] = {}
 
     for case_index, spec in enumerate(standard_binary_lsgo_specs(), start=1):

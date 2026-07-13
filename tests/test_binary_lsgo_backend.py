@@ -12,7 +12,7 @@ from arac.backends.binary_lsgo import (
 from arac.action_space import ActionFamily
 from arac.benchmarks.binary_lsgo import BinaryLsgoSpec, generate_binary_lsgo
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS
-from arac.policy import ActionDecision
+from arac.policy import ActionDecision, decide_action
 
 
 def small_problem():
@@ -56,6 +56,34 @@ def test_snapshot_converts_to_runtime_legal_evidence():
     assert evidence.budget_remaining_ratio == pytest.approx(0.8)
     assert evidence.harmful_coord_score == pytest.approx(0.25)
     assert set(asdict(evidence)).isdisjoint(FORBIDDEN_RUNTIME_FIELDS)
+
+
+def test_reliable_high_conflict_evidence_can_trigger_isolation():
+    problem = small_problem()
+    stats = tuple(
+        BinaryLsgoGroupStats(group_index=index, proposed=2, accepted=1, gain=1.0)
+        for index in range(len(problem.topology.groups))
+    )
+    evidence = build_binary_lsgo_evidence_profile(
+        BinaryLsgoSnapshot(
+            run_id="test",
+            lane_id="arac_policy",
+            problem_id=problem.spec.problem_id,
+            optimizer_seed=9,
+            consumed_fes=16,
+            total_fes=80,
+            group_stats=stats,
+            shared_proposals=10,
+            rejected_shared_proposals=8,
+            conflicting_shared_variables=0,
+            rank_stability=0.8,
+            topology=problem.topology,
+        )
+    )
+    decision = decide_action(evidence)
+    assert evidence.fallback_margin_proxy == pytest.approx(0.9)
+    assert decision.action_name == "isolate_conflicting_relation"
+    assert decision.decision == "allow"
 
 
 def decision(family: ActionFamily, name: str) -> ActionDecision:

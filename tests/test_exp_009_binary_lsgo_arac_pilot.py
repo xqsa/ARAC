@@ -53,6 +53,22 @@ def test_pilot_is_byte_deterministic_and_keeps_runtime_boundary(tmp_path: Path):
     assert field_names.isdisjoint(FORBIDDEN_RUNTIME_FIELDS)
     result_rows = read_csv(first / "execution_results.csv")
     assert all(row["claim_allowed"] == "0" for row in result_rows)
-    assert all(row["lane_id"] != "shuffled_evidence_negative_control" or row["claim_allowed"] == "0" for row in result_rows)
+    assert all(
+        row["lane_id"] != "shuffled_evidence_negative_control"
+        or row["claim_allowed"] == "0"
+        for row in result_rows
+    )
+    evidence_rows = read_csv(first / "runtime_evidence.csv")
+    evidence_by_lane = {
+        (row["problem_id"], row["lane_id"]): row for row in evidence_rows
+    }
+    assert any(
+        evidence_by_lane[(problem_id, "arac_policy")]["priority_spread"]
+        != evidence_by_lane[(problem_id, "shuffled_evidence_negative_control")][
+            "priority_spread"
+        ]
+        for problem_id in {row["problem_id"] for row in evidence_rows}
+    )
     manifest = json.loads((first / "manifest.json").read_text(encoding="utf-8"))
     assert len(set(manifest["input_hashes"].values())) == 18
+    assert set(manifest["code_hashes"]) == {"benchmark", "backend", "runner"}

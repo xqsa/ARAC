@@ -60,7 +60,9 @@ class BinaryLsgoExecutionRequest:
             raise ValueError("total_fes must be an integer")
         if self.total_fes < 2:
             raise ValueError("total_fes must be at least 2")
-        if isinstance(self.phase_one_fraction, bool) or not isinstance(self.phase_one_fraction, Real):
+        if isinstance(self.phase_one_fraction, bool) or not isinstance(
+            self.phase_one_fraction, Real
+        ):
             raise ValueError("phase_one_fraction must be a real number")
         if not 0.0 < self.phase_one_fraction < 1.0:
             raise ValueError("phase_one_fraction must be in (0, 1)")
@@ -107,6 +109,28 @@ def build_binary_lsgo_evidence_profile(snapshot: BinaryLsgoSnapshot) -> Evidence
         snapshot.topology.shared_variable_count,
     )
     covered_groups = sum(item.proposed > 0 for item in snapshot.group_stats)
+    feature_coverage = _ratio(covered_groups, group_count)
+    rank_stability = _ratio(snapshot.rank_stability, 1.0)
+    shared_group_indices = {
+        group_index
+        for group_indices in snapshot.topology.shared_variable_groups.values()
+        for group_index in group_indices
+    }
+    shared_gains = [
+        item.gain for item in snapshot.group_stats if item.group_index in shared_group_indices
+    ]
+    unshared_gains = [
+        item.gain for item in snapshot.group_stats if item.group_index not in shared_group_indices
+    ]
+    if shared_gains and unshared_gains:
+        shared_mean = sum(shared_gains) / len(shared_gains)
+        unshared_mean = sum(unshared_gains) / len(unshared_gains)
+        priority_spread = _ratio(
+            abs(shared_mean - unshared_mean),
+            max(shared_mean, unshared_mean) + 1e-12,
+        )
+    else:
+        priority_spread = gain_asymmetry
 
     return EvidenceProfile(
         run_id=snapshot.run_id,
@@ -114,19 +138,19 @@ def build_binary_lsgo_evidence_profile(snapshot: BinaryLsgoSnapshot) -> Evidence
         seed=snapshot.optimizer_seed,
         unit_type="problem",
         unit_id=f"binary_lsgo_backend:{snapshot.problem_id}",
-        feature_coverage=_ratio(covered_groups, group_count),
+        feature_coverage=feature_coverage,
         overlap_degree=overlap_degree,
         shared_var_support_ratio=shared_support,
         direction_disagreement=conflict,
         harmful_coord_score=harmful,
         group_gain_asymmetry=gain_asymmetry,
-        priority_spread=gain_asymmetry,
-        rank_stability=_ratio(snapshot.rank_stability, 1.0),
+        priority_spread=priority_spread,
+        rank_stability=rank_stability,
         budget_remaining_ratio=_ratio(
             snapshot.total_fes - snapshot.consumed_fes,
             snapshot.total_fes,
         ),
-        fallback_margin_proxy=1.0 - harmful,
+        fallback_margin_proxy=(feature_coverage + rank_stability) / 2.0,
     )
 
 
@@ -202,12 +226,14 @@ def _rank_stability(stats: list[_MutableGroupStats]) -> float:
         return 1.0
     early_order = sorted(range(len(stats)), key=lambda index: (-stats[index].early_gain, index))
     late_order = sorted(range(len(stats)), key=lambda index: (-stats[index].late_gain, index))
+    early_rank = {group_index: rank for rank, group_index in enumerate(early_order)}
+    late_rank = {group_index: rank for rank, group_index in enumerate(late_order)}
     concordant = 0
     total = 0
     for left in range(len(stats)):
         for right in range(left + 1, len(stats)):
-            early_sign = early_order.index(left) < early_order.index(right)
-            late_sign = late_order.index(left) < late_order.index(right)
+            early_sign = early_rank[left] < early_rank[right]
+            late_sign = late_rank[left] < late_rank[right]
             concordant += early_sign == late_sign
             total += 1
     return _ratio(concordant, total)
@@ -269,13 +295,16 @@ def _choose_group_variable(
     return None if not eligible else rng.choice(eligible)
 
 
-def _protected_schedule(stats: list[_MutableGroupStats]) -> list[int]:
+def _protected_groups(stats: list[_MutableGroupStats]) -> list[int]:
     if not stats:
         return []
     ranked = sorted(range(len(stats)), key=lambda index: (-stats[index].gain, index))
     protected_count = max(1, (len(ranked) + 3) // 4)
-    protected = ranked[:protected_count]
-    return protected + list(range(len(stats)))
+    return ranked[:protected_count]
+
+
+def _protected_schedule(stats: list[_MutableGroupStats]) -> list[int]:
+    return _protected_groups(stats) + list(range(len(stats)))
 
 
 def run_binary_lsgo(
@@ -356,7 +385,13 @@ def run_binary_lsgo(
         shuffle_rng = random.Random(request.optimizer_seed + 1_000_003)
         shuffled = list(snapshot.group_stats)
         shuffle_rng.shuffle(shuffled)
-        snapshot = replace(snapshot, group_stats=tuple(shuffled))
+        snapshot = replace(
+            snapshot,
+            group_stats=tuple(
+                replace(item, group_index=group_index)
+                for group_index, item in enumerate(shuffled)
+            ),
+        )
     evidence = build_binary_lsgo_evidence_profile(snapshot)
 
     if decision_override is not None:
@@ -425,7 +460,10 @@ def run_binary_lsgo(
         if candidate_objective < current_objective:
             vector = candidate
             current_objective = candidate_objective
-            if decision.action_name == "allow_beneficial_coordination" and variable in shared_variables:
+            if (
+                decision.action_name == "allow_beneficial_coordination"
+                and variable in shared_variables
+            ):
                 coordinated_queue.extend(
                     other for other in shared_variables[variable] if other != group_index
                 )
@@ -444,7 +482,7 @@ def run_binary_lsgo(
         trigger_reason=decision.trigger_reason,
         phase="phase_ii",
         affected_group_count=(
-            len(_protected_schedule(stats))
+            len(_protected_groups(stats))
             if decision.action_name == "protect_high_margin_group"
             else group_count
         ),
