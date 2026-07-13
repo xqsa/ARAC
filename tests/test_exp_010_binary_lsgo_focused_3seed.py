@@ -15,6 +15,8 @@ from experiments.exp_010_binary_lsgo_focused_3seed.run import (
     build_case_summaries,
     build_promotion_gate,
     execute_focused_matrix,
+    main,
+    parse_args,
     run_focused_pilot,
 )
 
@@ -187,3 +189,30 @@ def test_each_promotion_gate_fails_independently(failure: str, gate_name: str):
     )
     assert gate[gate_name]["passed"] is False
     assert gate["overall_pass"] is False
+
+
+def test_focused_pilot_artifacts_are_byte_deterministic(tmp_path: Path):
+    first = run_focused_pilot(tmp_path / "first", total_fes=40)
+    second = run_focused_pilot(tmp_path / "second", total_fes=40)
+    for filename in (
+        "run_results.csv",
+        "case_summary.csv",
+        "promotion_gate.json",
+        "manifest.json",
+    ):
+        assert (first / filename).read_bytes() == (second / filename).read_bytes()
+
+
+def test_cli_parses_output_and_runs_test_budget(tmp_path: Path):
+    output = tmp_path / "cli"
+    args = parse_args(["--output-dir", str(output), "--total-fes", "40"])
+    assert Path(args.output_dir) == output
+    assert args.total_fes == 40
+    assert main(["--output-dir", str(output), "--total-fes", "40"]) == output
+    assert (output / "promotion_gate.json").is_file()
+
+
+@pytest.mark.parametrize("invalid_budget", [0, 1, True, 1.5, "40"])
+def test_runner_rejects_invalid_budget(tmp_path: Path, invalid_budget):
+    with pytest.raises(ValueError, match="total_fes"):
+        run_focused_pilot(tmp_path / "invalid", total_fes=invalid_budget)

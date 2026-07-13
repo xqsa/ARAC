@@ -2,7 +2,7 @@
 
 日期：2026-07-13
 执行者：Codex
-状态：待用户复核
+状态：已实现并验证；晋级门未通过
 
 ## 1. 目标与边界
 
@@ -155,3 +155,20 @@ $env:PYTHONPATH='src'
 
 claim level 固定为 focused 3-seed pilot。生成的 `results/` 只作为可重生成离线产物，
 不提交 Git；只有代码、测试、文档和 manifest schema 进入版本控制。
+
+## 9. Canonical 验证结果
+
+2026-07-13 使用固定协议完成 45 次 execution：
+
+- `run_results.csv`：45 行；
+- `case_summary.csv`：5 行；
+- 所有 execution 均为 2000 FE，预算违规为 0；
+- runtime forbidden-field 记录为 0；
+- catastrophic loss 为 0；
+- 15 条 negative control 均存在、禁止用于 claim，且 evidence 均发生预期变化；
+- F08 action consumed 为 0/3，F15 为 1/3；
+- `target_action_frequency` 和 `target_action_median_gain` 未通过；
+- `overall_pass=false`。
+
+因此本轮只能得出“动作触发跨 seed 不稳定，暂不进入更大规模实验”的结论。该失败结果
+保留原阈值和固定 seed，不做事后调参。

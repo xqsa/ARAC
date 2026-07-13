@@ -11,6 +11,7 @@ experiments/
   exp_003_hcc_runtime_consumer_smoke/
   exp_004_hcc_main_historical_result_recovery/
   exp_009_binary_lsgo_arac_pilot/
+  exp_010_binary_lsgo_focused_3seed/
 ```
 
 Each experiment should contain:
@@ -69,6 +70,23 @@ CSV and JSON outputs are generated under `results/` and stay out of Git. This
 single-seed run verifies runtime connection, action semantics, reproducibility,
 same-budget accounting, and leakage boundaries; it is not final performance
 evidence.
+
+Run the focused binary LSGO three-seed pilot with:
+
+```powershell
+$env:PYTHONPATH='src'
+& 'E:\ARAC\.venv\Scripts\python.exe' -m experiments.exp_010_binary_lsgo_focused_3seed.run `
+  --output-dir results/exp_010_binary_lsgo_focused_3seed `
+  --total-fes 2000
+```
+
+`exp_010_binary_lsgo_focused_3seed` is fixed to BLSGO-F07, F08, F09, F14,
+and F15; optimizer seeds 20260713-20260715; and native baseline, ARAC policy,
+and shuffled-evidence negative-control lanes. The canonical protocol performs
+45 executions at 2000 FE each and writes `run_results.csv`, `case_summary.csv`,
+`promotion_gate.json`, and `manifest.json`. Passing its pre-registered gate
+only permits escalation to a larger experiment; it is not final performance
+evidence. Generated artifacts stay under `results/` and out of Git.
 
 ## Minimum Gates
 

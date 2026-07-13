@@ -66,6 +66,9 @@ catastrophic-loss audits.
   execution of all 18 binary LSGO cases through native baseline, ARAC policy,
   and shuffled-evidence negative-control lanes. It is pilot evidence, not a
   final performance claim.
+- `experiments/exp_010_binary_lsgo_focused_3seed/`: focused three-seed binary
+  LSGO protocol for F07-F09 and F14-F15. It evaluates pre-registered action
+  frequency, no-harm, same-budget, runtime-boundary, and negative-control gates.
 - `references/source-index.md`: pointers to the original source evidence inside
   `E:\HCC-main`.
 
