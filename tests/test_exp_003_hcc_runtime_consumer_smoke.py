@@ -1341,6 +1341,40 @@ def test_exp_003_trajectory_guard_summary_counts_resolved_statuses() -> None:
     ]
 
 
+def test_exp_003_trajectory_guard_summary_keeps_zero_recovery_runs() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        RUN_ID,
+        _trajectory_guard_summary_rows,
+    )
+
+    rows = _trajectory_guard_summary_rows(
+        [
+            {
+                "run_id": RUN_ID,
+                "lane_id": "arac_evidence_action_controller_v34",
+                "problem_id": "R1",
+                "seed": "2",
+                "trajectory_guard_status": "",
+            }
+        ]
+    )
+
+    assert rows == [
+        {
+            "run_id": RUN_ID,
+            "lane_id": "arac_evidence_action_controller_v34",
+            "problem_id": "R1",
+            "seed": "2",
+            "pending_count": 0,
+            "committed_count": 0,
+            "restored_count": 0,
+            "preempted_restored_count": 0,
+            "total_resolved_count": 0,
+            "restore_rate": "",
+        }
+    ]
+
+
 def test_exp_003_canonical_evidence_controller_profile_reuses_single_v32_lane() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 

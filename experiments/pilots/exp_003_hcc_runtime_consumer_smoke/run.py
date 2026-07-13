@@ -1380,10 +1380,6 @@ def _trajectory_guard_summary_rows(
     summaries: dict[tuple[str, str, str, str], dict[str, object]] = {}
     for trace_row in action_trace_rows:
         status = str(trace_row.get("trajectory_guard_status", "")).strip()
-        if not status:
-            continue
-        if status not in status_fields:
-            raise ValueError(f"unsupported trajectory guard status: {status}")
         key = tuple(
             str(trace_row.get(field, ""))
             for field in ("run_id", "lane_id", "problem_id", "seed")
@@ -1401,6 +1397,10 @@ def _trajectory_guard_summary_rows(
                 "preempted_restored_count": 0,
             },
         )
+        if not status:
+            continue
+        if status not in status_fields:
+            raise ValueError(f"unsupported trajectory guard status: {status}")
         count_field = status_fields[status]
         row[count_field] = int(row[count_field]) + 1
 
