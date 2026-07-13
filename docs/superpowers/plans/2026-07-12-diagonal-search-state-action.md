@@ -169,3 +169,39 @@ budget-retention ratio 1.0 with clean FE and anti-leakage audits. E1 improved
 from `3.106604e6` under the unreachable hold to `2.207863e6`, matching the
 canonical v32 seed1 value `2.208219e6` within normal numerical variation. R1
 was unchanged at `1.704316e5` in this audit run.
+
+## Task 8: Terminal Diagonal Probe Without CC Reserve
+
+**Files:**
+
+- Modify: `src/arac/policy/search_state_policy.py`
+- Modify: `scripts/hcc_smoke_runner.py`
+- Modify: `tests/test_search_state_policy.py`
+- Modify: `tests/test_hcc_smoke_runner_cli.py`
+
+- [x] Add failing tests proving the diagonal runtime holds only 1% FE, emits
+  zero CC reserve, and cannot schedule confirmation or expansion.
+- [x] Preserve the existing 11% staged hold and state machine for the default
+  `phase_i_mmes` backend.
+- [x] Execute one diagonal probe only after canonical CC reaches the terminal
+  1% window; keep strict incumbent acceptance and complete-population FE
+  accounting.
+- [x] Run focused tests, the full suite, compilation, and `git diff --check`.
+- [x] Run a small-budget R3 smoke and verify one probe, zero CC reserve, exact
+  FE reconciliation, populated fingerprints, and clean anti-leakage.
+- [x] If the smoke gate passes, run R3 seeds 1/2/3 at 3M FE.
+- [ ] Run E6/S6/R2/A4 preservation controls because the R3 execution was
+  runtime-valid and non-catastrophic relative to frozen canonical v32.
+
+**Adoption gate:** diagonal remains opt-in unless all four preservation
+controls retain their frozen best-of-three wins. R3 improvement cannot offset
+a lost protected win.
+
+**Task 8 R3 result:** the 5k smoke executed exactly one 50-FE probe with zero
+CC reserve. The 3M-FE run executed exactly one 30k-FE probe for each seed with
+clean FE and anti-leakage audits. Final R3 errors were `4.505813e5`,
+`5.835945e5`, and `3.552121e5`; the best remained above the offline paper-best
+`3.28e5`. This is better than the frozen canonical v32 R3 best
+`3.974568e5`, but worse than the previous 11% hold pilot best `3.340394e5`.
+The protocol is runtime-valid but has not passed the performance gate.
+E6/S6/R2/A4 preservation controls remain required before adoption.

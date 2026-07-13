@@ -71,14 +71,19 @@ For the diagonal executor:
 4. Only a strict candidate improvement replaces the global incumbent.
 5. A rejected block still consumes and reports actual FE.
 
-The existing policy caps remain unchanged: 1% FE per block, 15% cumulative
-state-action FE, 10% canonical CC reserve, and the 1.5x/2.0x utility gate.
-Because one complete CC sweep otherwise consumes nearly all remaining FE, the
-runner reserves exactly the next executable 1% state-action block plus the 10%
-CC reserve before each decision. The 15% value is only a cumulative spending
-cap; unapproved future blocks must not be withheld from canonical CC. A failed
-or ineligible probe blocks further diagonal spending and immediately returns
-the unused reserve to canonical CC.
+The default Phase-I MMES scheduler retains the existing staged policy: 1% FE
+per block, 15% cumulative state-action FE, 10% canonical CC reserve, and the
+1.5x/2.0x utility gate. Its initial hold therefore remains 11%.
+
+The opt-in diagonal backend instead uses the
+`terminal_probe_no_cc_reserve` protocol. Canonical CC receives the budget up
+to the final 1% window. The controller then makes one reference-blind decision
+from the completed CC sweep and, when eligible, spends at most that final 1%
+on one diagonal probe. The probe has zero CC continuation reserve, no
+confirmation, and no expansion. It starts from the protected incumbent and
+may replace it only by strict objective improvement. Ineligible or rejected
+probes cannot trigger a second attempt. This limits diagonal opportunity cost
+to 1% while preserving the canonical trajectory for the preceding 99%.
 
 This rule was tightened after the 2026-07-13 preservation pilot. The previous
 implementation withheld 25% before the first decision even though the first
@@ -143,6 +148,17 @@ R3 improved from `3.718323e5` to `3.340394e5`, but did not beat the offline
 paper-best `3.28e5`. A4 and S6 retained their best-of-three wins; E6 and R2
 did not. Therefore the diagonal backend must remain opt-in and must not be
 expanded to the full protected case set.
+
+The next pilot replaces that 11% diagonal hold with the terminal 1% protocol.
+R3 is tested first. E6, S6, R2, and A4 are preservation controls and all four
+must retain their frozen best-of-three wins before any wider expansion.
+
+The terminal R3 pilot was runtime-valid but did not pass the performance gate.
+Across seeds 1/2/3, each trajectory used one 30k-FE probe, zero CC reserve,
+clean FE accounting, and clean anti-leakage. The final errors were
+`4.505813e5`, `5.835945e5`, and `3.552121e5`; best-of-three did not beat the
+offline paper-best `3.28e5`. The protocol remains experimental pending the
+four preservation controls.
 
 ## Pre-Hold Evidence Audit
 

@@ -170,7 +170,9 @@ def _required_utility_ratio(evidence: SearchStateEvidence) -> float:
     return BASE_UTILITY_RATIO
 
 
-def _reserve_fes(max_fes: int) -> int:
+def _reserve_fes(max_fes: int, *, terminal_probe: bool = False) -> int:
+    if terminal_probe:
+        return 0
     return int(math.ceil(max(0, int(max_fes)) * CC_RESERVE_FRACTION))
 
 
@@ -178,12 +180,17 @@ def _abstain(
     evidence: SearchStateEvidence,
     state: SearchStateSchedulerState,
     reason: str,
+    *,
+    terminal_probe: bool = False,
 ) -> SearchStateActionPlan:
     return SearchStateActionPlan(
         action_name=CONTINUE_CANONICAL_CC,
         stage=state.phase,
         requested_fes=0,
-        cc_reserve_fes=_reserve_fes(evidence.max_fes),
+        cc_reserve_fes=_reserve_fes(
+            evidence.max_fes,
+            terminal_probe=terminal_probe,
+        ),
         required_utility_ratio=_required_utility_ratio(evidence),
         trigger_reason=reason,
     )
@@ -217,6 +224,7 @@ def plan_search_state_action(
     *,
     new_complete_cc_sweep: bool = False,
     trajectory_action_name: str = RESUME_PHASE_I_SEARCH_STATE,
+    terminal_probe: bool = False,
 ) -> SearchStateActionPlan:
     """Plan at most one bounded state action from current-run evidence."""
 
@@ -224,24 +232,51 @@ def plan_search_state_action(
         raise ValueError(
             f"unsupported trajectory action: {trajectory_action_name}"
         )
+    if terminal_probe and state.intervention_fe > 0:
+        return _abstain(
+            evidence,
+            state,
+            "terminal_probe_already_consumed",
+            terminal_probe=True,
+        )
     if state.phase == SEARCH_STATE_BLOCKED:
-        return _abstain(evidence, state, "state_action_permanently_blocked")
+        return _abstain(
+            evidence,
+            state,
+            "state_action_permanently_blocked",
+            terminal_probe=terminal_probe,
+        )
     if (
         state.phase == SEARCH_STATE_AWAITING_CONFIRMATION_CC
         and not new_complete_cc_sweep
     ):
-        return _abstain(evidence, state, "awaiting_new_complete_cc_sweep")
+        return _abstain(
+            evidence,
+            state,
+            "awaiting_new_complete_cc_sweep",
+            terminal_probe=terminal_probe,
+        )
     if state.phase not in {
         SEARCH_STATE_INITIAL_PROBE,
         SEARCH_STATE_AWAITING_CONFIRMATION_CC,
         SEARCH_STATE_EXPANSION,
     }:
-        return _abstain(evidence, state, "state_action_phase_not_ready")
+        return _abstain(
+            evidence,
+            state,
+            "state_action_phase_not_ready",
+            terminal_probe=terminal_probe,
+        )
     if not _eligible(evidence, trajectory_action_name):
-        return _abstain(evidence, state, "runtime_evidence_ineligible")
+        return _abstain(
+            evidence,
+            state,
+            "runtime_evidence_ineligible",
+            terminal_probe=terminal_probe,
+        )
 
     max_fes = max(0, int(evidence.max_fes))
-    reserve_fes = _reserve_fes(max_fes)
+    reserve_fes = _reserve_fes(max_fes, terminal_probe=terminal_probe)
     cumulative_cap = int(math.floor(max_fes * CUMULATIVE_INTERVENTION_FRACTION))
     block_cap = int(math.floor(max_fes * FIRST_PROBE_FRACTION))
     remaining_action_fes = min(
@@ -254,7 +289,12 @@ def plan_search_state_action(
         evidence.population_size,
     )
     if requested_fes <= 0:
-        return _abstain(evidence, state, "state_action_budget_unfunded")
+        return _abstain(
+            evidence,
+            state,
+            "state_action_budget_unfunded",
+            terminal_probe=terminal_probe,
+        )
 
     stage = (
         SEARCH_STATE_CONFIRMATION
@@ -268,6 +308,8 @@ def plan_search_state_action(
         SEARCH_STATE_CONFIRMATION: "confirmation_after_new_complete_cc_sweep",
         SEARCH_STATE_EXPANSION: "expansion_after_two_qualified_state_blocks",
     }[stage]
+    if terminal_probe:
+        reason = "terminal_probe_from_runtime_evidence"
     return SearchStateActionPlan(
         action_name=trajectory_action_name,
         stage=stage,

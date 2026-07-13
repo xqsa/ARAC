@@ -337,6 +337,51 @@ def test_policy_can_emit_configured_diagonal_trajectory_action(
     assert action.backend_role == "core_intervention"
 
 
+def test_terminal_diagonal_probe_has_no_cc_reserve_and_runs_only_once(
+    eligible_evidence,
+) -> None:
+    initial = policy.SearchStateSchedulerState()
+    probe = policy.plan_search_state_action(
+        eligible_evidence,
+        initial,
+        trajectory_action_name=policy.CONTINUE_DIAGONAL_SEARCH_STATE,
+        terminal_probe=True,
+    )
+
+    assert probe.action_name == policy.CONTINUE_DIAGONAL_SEARCH_STATE
+    assert probe.stage == policy.SEARCH_STATE_PROBE
+    assert probe.requested_fes == 30_000
+    assert probe.cc_reserve_fes == 0
+
+    after_probe = _successful_outcome(initial, policy.SEARCH_STATE_PROBE)
+    later = policy.plan_search_state_action(
+        eligible_evidence,
+        after_probe,
+        new_complete_cc_sweep=True,
+        trajectory_action_name=policy.CONTINUE_DIAGONAL_SEARCH_STATE,
+        terminal_probe=True,
+    )
+
+    assert later.action_name == policy.CONTINUE_CANONICAL_CC
+    assert later.requested_fes == 0
+    assert later.cc_reserve_fes == 0
+    assert later.trigger_reason == "terminal_probe_already_consumed"
+
+
+def test_ineligible_terminal_probe_reports_zero_cc_reserve(
+    eligible_evidence,
+) -> None:
+    plan = policy.plan_search_state_action(
+        replace(eligible_evidence, conflict_fraction=0.0, non_coordinate_fraction=0.0),
+        policy.SearchStateSchedulerState(),
+        trajectory_action_name=policy.CONTINUE_DIAGONAL_SEARCH_STATE,
+        terminal_probe=True,
+    )
+
+    assert plan.action_name == policy.CONTINUE_CANONICAL_CC
+    assert plan.cc_reserve_fes == 0
+
+
 def test_policy_rejects_unknown_trajectory_action(eligible_evidence) -> None:
     with pytest.raises(ValueError, match="unsupported trajectory action"):
         policy.plan_search_state_action(

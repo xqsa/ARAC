@@ -841,6 +841,8 @@ def scheduled_search_state_hold_fes(
         return 0
     if overlap_edge_count is not None and int(overlap_edge_count) <= 0:
         return 0
+    if config.search_state_backend == "diagonal_cma":
+        return int(math.ceil(config.max_fes * FIRST_PROBE_FRACTION))
     return int(
         math.ceil(
             config.max_fes * (CC_RESERVE_FRACTION + FIRST_PROBE_FRACTION)
@@ -3487,6 +3489,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 controller_v31_run_state.search_state_scheduler_state,
                 new_complete_cc_sweep=True,
                 trajectory_action_name=trajectory_action_name_for_backend(config),
+                terminal_probe=(config.search_state_backend == "diagonal_cma"),
             )
             if (
                 state_plan.action_name

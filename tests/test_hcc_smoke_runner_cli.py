@@ -738,20 +738,27 @@ def test_action_trace_records_search_state_backend() -> None:
 
 def test_diagonal_scheduler_holds_only_next_action_block_and_cc_reserve() -> None:
     runner = _load_runner_module()
-    config = runner.SmokeConfig(
+    diagonal_config = runner.SmokeConfig(
         max_fes=3_000_000,
         seed=3,
         arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V32,
         search_state_backend="diagonal_cma",
     )
+    staged_config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V31,
+        search_state_backend="phase_i_mmes",
+    )
 
     initial = runner.SearchStateSchedulerState()
     blocked = runner.SearchStateSchedulerState(phase=runner.SEARCH_STATE_BLOCKED)
 
-    assert runner.scheduled_search_state_hold_fes(config, initial) == 330_000
+    assert runner.scheduled_search_state_hold_fes(diagonal_config, initial) == 30_000
+    assert runner.scheduled_search_state_hold_fes(staged_config, initial) == 330_000
     assert (
         runner.scheduled_search_state_hold_fes(
-            config,
+            diagonal_config,
             initial,
             overlap_edge_count=0,
         )
@@ -759,13 +766,13 @@ def test_diagonal_scheduler_holds_only_next_action_block_and_cc_reserve() -> Non
     )
     assert (
         runner.scheduled_search_state_hold_fes(
-            config,
+            diagonal_config,
             initial,
             overlap_edge_count=19,
         )
-        == 330_000
+        == 30_000
     )
-    assert runner.scheduled_search_state_hold_fes(config, blocked) == 0
+    assert runner.scheduled_search_state_hold_fes(diagonal_config, blocked) == 0
 
 
 @pytest.mark.parametrize("action_name", ["budget_shift_only", "mean_blend_only"])
