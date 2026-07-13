@@ -7,11 +7,11 @@ dependencies = []
 
 [project.optional-dependencies]
 hcc = [
-    "matplotlib>=3.11",
-    "numpy>=2.0",
-    "PyYAML>=6.0",
-    "scipy>=1.18",
-    "torch>=2.12",
+    "matplotlib==3.11.0",
+    "numpy==2.3.5",
+    "PyYAML==6.0.3",
+    "scipy==1.18.0",
+    "torch==2.12.1",
 ]
 
 [tool.pytest.ini_options]

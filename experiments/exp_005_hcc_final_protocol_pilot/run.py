@@ -3,7 +3,10 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import json
+import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -45,6 +48,66 @@ AOB_AUDIT_FILES = (
     "rastrigin.py",
     "ackley.py",
 )
+PINNED_FINAL_PROTOCOL_ENVIRONMENT = {
+    "python": "3.12.13",
+    "numpy": "2.3.5",
+    "matplotlib": "3.11.0",
+    "PyYAML": "6.0.3",
+    "scipy": "1.18.0",
+    "torch": "2.12.1",
+    "blas_name": "scipy-openblas",
+    "blas_version": "0.3.30",
+}
+EnvironmentProbe = Callable[[str], dict[str, str]]
+_ENVIRONMENT_PROBE_SOURCE = """
+import importlib.metadata as metadata
+import json
+import platform
+
+import numpy as np
+
+blas = getattr(np.__config__, "CONFIG", {}).get("Build Dependencies", {}).get("blas", {})
+print(json.dumps({
+    "python": platform.python_version(),
+    "numpy": metadata.version("numpy"),
+    "matplotlib": metadata.version("matplotlib"),
+    "PyYAML": metadata.version("PyYAML"),
+    "scipy": metadata.version("scipy"),
+    "torch": metadata.version("torch"),
+    "blas_name": str(blas.get("name", "missing")),
+    "blas_version": str(blas.get("version", "missing")),
+}, sort_keys=True))
+"""
+
+
+def _probe_final_protocol_environment(python_executable: str) -> dict[str, str]:
+    try:
+        completed = subprocess.run(
+            [python_executable, "-c", _ENVIRONMENT_PROBE_SOURCE],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        observed = json.loads(completed.stdout)
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            f"unable to audit final protocol environment via {python_executable}: {exc}"
+        ) from exc
+    if not isinstance(observed, dict) or any(
+        not isinstance(key, str) or not isinstance(value, str)
+        for key, value in observed.items()
+    ):
+        raise RuntimeError("final protocol environment probe returned an invalid payload")
+    return observed
+
+
+def _final_protocol_environment_failures(observed: dict[str, str]) -> list[str]:
+    return [
+        f"{name}:expected={expected},observed={observed.get(name, 'missing')}"
+        for name, expected in PINNED_FINAL_PROTOCOL_ENVIRONMENT.items()
+        if observed.get(name) != expected
+    ]
 
 
 def _sha256_file(path: Path) -> str:
@@ -159,7 +222,16 @@ def run_hcc_final_protocol_pilot(
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
     lane_profile: str = "canonical_evidence_controller_v1",
+    environment_probe: EnvironmentProbe | None = None,
 ) -> Path:
+    observed_environment = (environment_probe or _probe_final_protocol_environment)(
+        python_executable
+    )
+    environment_failures = _final_protocol_environment_failures(observed_environment)
+    if environment_failures:
+        raise RuntimeError(
+            "final protocol environment gate failed: " + ";".join(environment_failures)
+        )
     output = run_hcc_runtime_consumer_smoke(
         output_dir=output_dir,
         execution_runner=execution_runner or DEFAULT_EXECUTION_RUNNER,
@@ -183,6 +255,19 @@ def run_hcc_final_protocol_pilot(
             "# exp_005_hcc_final_protocol_pilot Run Manifest",
         )
         .replace("Evidence posture: runtime dispatch + utility evidence", "Final protocol pilot wrapper: exp_005_hcc_final_protocol_pilot")
+    )
+    environment_audit = {
+        "status": "pass",
+        "expected": PINNED_FINAL_PROTOCOL_ENVIRONMENT,
+        "observed": observed_environment,
+    }
+    (Path(output) / "final_protocol_environment.json").write_text(
+        json.dumps(environment_audit, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    manifest += (
+        "\nFinal protocol environment gate: pass; "
+        "details=final_protocol_environment.json\n"
     )
     audit_path = _write_aob_protocol_audit(Path(output), Path(hcc_root))
     audit_rows = _read_aob_protocol_audit(audit_path)
