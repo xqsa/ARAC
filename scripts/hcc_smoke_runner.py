@@ -807,6 +807,30 @@ def build_evidence_action_controller_v31_run_state(
     )
 
 
+def reconcile_trajectory_recovery_context(
+    *,
+    resolution: RecoveryResolution,
+    checkpoint_candidate: np.ndarray,
+    original_best: np.ndarray,
+    original_fitness: float,
+    current_delta: float,
+) -> tuple[np.ndarray, np.ndarray, float, float]:
+    best = resolution.candidate.copy()
+    if not resolution.restored:
+        return (
+            best,
+            np.asarray(original_best, dtype=float).copy(),
+            float(original_fitness),
+            float(current_delta),
+        )
+    return (
+        best,
+        np.asarray(checkpoint_candidate, dtype=float).copy(),
+        float(resolution.fitness),
+        0.0,
+    )
+
+
 def _resolved_aob_data_root(data_root: Path | str | None = None) -> Path:
     return Path(DATA_DIR if data_root is None else data_root).resolve()
 
@@ -3766,13 +3790,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     )
                 )
                 if resolved_recovery is not None:
-                    best_individual = resolved_recovery.candidate.copy()
-                    original_best = checkpoint_candidate
-                    original_fitness = (
-                        resolved_recovery.fitness
-                        + resolved_recovery.effective_delta
+                    (
+                        best_individual,
+                        original_best,
+                        original_fitness,
+                        current_delta,
+                    ) = reconcile_trajectory_recovery_context(
+                        resolution=resolved_recovery,
+                        checkpoint_candidate=checkpoint_candidate,
+                        original_best=original_best,
+                        original_fitness=original_fitness,
+                        current_delta=current_delta,
                     )
-                    current_delta = resolved_recovery.effective_delta
             fitness_delta_list.append(current_delta)
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]

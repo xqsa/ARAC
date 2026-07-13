@@ -2911,6 +2911,56 @@ def test_v33_trajectory_guard_remains_disabled() -> None:
     assert not trace_row
 
 
+def test_recovery_context_preserves_local_evidence_only_on_commit() -> None:
+    runner = _load_runner_module()
+    checkpoint = runner.make_recovery_checkpoint(np.array([1.0, 2.0]), 10.0)
+    committed = runner.resolve_recovery_checkpoint(
+        checkpoint,
+        downstream_candidate=np.array([3.0, 4.0]),
+        downstream_fitness=8.0,
+    )
+    restored = runner.resolve_recovery_checkpoint(
+        checkpoint,
+        downstream_candidate=np.array([5.0, 6.0]),
+        downstream_fitness=11.0,
+    )
+    checkpoint_candidate = np.array([1.0, 2.0])
+    local_original = np.array([2.0, 2.0])
+
+    best, original, fitness, delta = runner.reconcile_trajectory_recovery_context(
+        resolution=committed,
+        checkpoint_candidate=checkpoint_candidate,
+        original_best=local_original,
+        original_fitness=12.0,
+        current_delta=4.0,
+    )
+
+    np.testing.assert_allclose(best, np.array([3.0, 4.0]))
+    np.testing.assert_allclose(original, local_original)
+    assert fitness == 12.0
+    assert delta == 4.0
+    best[0] = -1.0
+    original[0] = -1.0
+    np.testing.assert_allclose(committed.candidate, np.array([3.0, 4.0]))
+    np.testing.assert_allclose(local_original, np.array([2.0, 2.0]))
+
+    best, original, fitness, delta = runner.reconcile_trajectory_recovery_context(
+        resolution=restored,
+        checkpoint_candidate=checkpoint_candidate,
+        original_best=local_original,
+        original_fitness=12.0,
+        current_delta=4.0,
+    )
+
+    np.testing.assert_allclose(best, checkpoint_candidate)
+    np.testing.assert_allclose(original, checkpoint_candidate)
+    assert fitness == 10.0
+    assert delta == 0.0
+    best[0] = -1.0
+    original[0] = -1.0
+    np.testing.assert_allclose(checkpoint_candidate, np.array([1.0, 2.0]))
+
+
 def test_controller_v31_non_dense_large_unstable_fallback_locks_repair_immediately() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)
