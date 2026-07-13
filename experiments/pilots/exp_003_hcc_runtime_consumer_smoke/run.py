@@ -3803,6 +3803,8 @@ def run_hcc_runtime_consumer_smoke(
             "downstream_consumption_scope",
             "optimizer_consumed",
             "search_state_action_type",
+            "candidate_protected",
+            "cc_context_replaced",
             "stagnation_window",
             "delta_mean",
             "sigma_before",

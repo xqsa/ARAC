@@ -242,3 +242,40 @@ results when the diagonal candidate was rejected or tiny, while R2/S6/R3
 usually accepted large immediate improvements before later diverging. The
 next design should protect an accepted diagonal incumbent while isolating it
 from immediate replacement of the canonical CC context.
+
+## Task 10: Quarantine Protected Diagonal Candidates
+
+**Files:**
+
+- Modify: `scripts/hcc_smoke_runner.py`
+- Modify: `tests/test_hcc_smoke_runner_cli.py`
+- Modify: `docs/superpowers/specs/2026-07-12-diagonal-search-state-action-design.md`
+
+- [x] Add failing pure-state tests for accepted diagonal, accepted MMES, and
+  rejected search-state candidates.
+- [x] Update the protected incumbent without replacing the CC context for an
+  accepted diagonal candidate.
+- [x] Preserve MMES context replacement and rejected-candidate semantics.
+- [x] Record `candidate_protected` and `cc_context_replaced` in action traces.
+- [x] Run focused tests, full pytest, compilation, and `git diff --check`.
+- [x] Run a real-HCC 5k R3 smoke and verify candidate protection, context
+  quarantine, exact FE accounting, unchanged AOB input, and anti-leakage.
+- [x] If the smoke passes, run E6/S6/R2/R3/A4 seeds 1/2/3 at 3M FE.
+
+**Adoption gate:** A4/E6/R2/S6 must retain all four frozen best-of-three
+paper-best wins. R3 is compared separately with canonical v32 and paper-best;
+it cannot compensate for a lost protected win.
+
+**Task 10 result:** the 5k R3 smoke recorded one accepted 50-FE candidate
+with `candidate_protected=1`, `cc_context_replaced=0`, zero CC reserve, clean
+FE accounting, unchanged AOB hashes, and clean anti-leakage. The 3M pilot also
+passed all runtime audits: 15/15 lanes completed, 9 accepted candidates were
+protected, and zero diagonal candidates replaced the CC context.
+
+The performance gate failed at 2/4. A4 (`7.829752e4 < 7.83e4`) and E6
+(`2.362753e7 < 2.62e7`) retained paper-best wins; S6
+(`1.562901e4 > 1.33e4`) and R2 (`2.758647e5 > 2.48e5`) did not. R3 best was
+`4.890703e5`, above both canonical v32 best `3.974568e5` and paper-best
+`3.28e5`. Compared with canonical v32 best-of-three, quarantine degraded E6,
+S6, R2, and R3 by 10.25%, 29.96%, 15.57%, and 23.05%; A4 differed only at
+numerical-noise scale. Do not adopt or expand this backend.

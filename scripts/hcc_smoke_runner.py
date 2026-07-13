@@ -147,6 +147,8 @@ ACTION_TRACE_FIELDS = [
     "optimizer_consumed",
     "search_state_action_type",
     "search_state_backend",
+    "candidate_protected",
+    "cc_context_replaced",
     "stagnation_window",
     "delta_mean",
     "sigma_before",
@@ -1579,6 +1581,30 @@ def derive_optimizer_seed(
     return int.from_bytes(digest, byteorder="big") & ((1 << 63) - 1)
 
 
+def apply_search_state_candidate(
+    *,
+    context_individual: np.ndarray,
+    guard_individual: np.ndarray,
+    guard_fitness: float,
+    candidate: np.ndarray,
+    candidate_fitness: float,
+    accepted: bool,
+    quarantine_context: bool,
+) -> tuple[np.ndarray, np.ndarray, float, bool, bool]:
+    next_context = np.asarray(context_individual, dtype=float).copy()
+    next_guard = np.asarray(guard_individual, dtype=float).copy()
+    next_guard_fitness = float(guard_fitness)
+    if not accepted:
+        return next_context, next_guard, next_guard_fitness, False, False
+
+    protected_candidate = np.asarray(candidate, dtype=float).copy()
+    next_guard = protected_candidate.copy()
+    next_guard_fitness = float(candidate_fitness)
+    if quarantine_context:
+        return next_context, next_guard, next_guard_fitness, True, False
+    return protected_candidate, next_guard, next_guard_fitness, True, True
+
+
 def blend_overlap_values(
     previous_values: np.ndarray,
     current_values: np.ndarray,
@@ -1863,6 +1889,8 @@ def build_action_trace_row(
     downstream_consumption_scope: str = "same_outer_iteration",
     search_state_action_type: str = "",
     search_state_backend: str = "",
+    candidate_protected: bool | None = None,
+    cc_context_replaced: bool | None = None,
     stagnation_window: int | None = None,
     delta_mean: float | None = None,
     sigma_before: float | None = None,
@@ -1936,6 +1964,12 @@ def build_action_trace_row(
         "optimizer_consumed": _optimizer_consumed(selected_action_name, downstream_consumed),
         "search_state_action_type": search_state_action_type,
         "search_state_backend": search_state_backend,
+        "candidate_protected": ""
+        if candidate_protected is None
+        else str(int(candidate_protected)),
+        "cc_context_replaced": ""
+        if cc_context_replaced is None
+        else str(int(cc_context_replaced)),
         "stagnation_window": "" if stagnation_window is None else str(stagnation_window),
         "delta_mean": "" if delta_mean is None else f"{delta_mean:.6e}",
         "sigma_before": "" if sigma_before is None else f"{sigma_before:.6e}",
@@ -3665,9 +3699,23 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 actual_state_fes = int(block.actual_fes)
                 search_state_fe += actual_state_fes
                 sum_fes += actual_state_fes
-                best_individual = state_candidate.copy()
-                guarded_incumbent = state_candidate.copy()
-                guarded_incumbent_fitness = state_candidate_fitness
+                (
+                    best_individual,
+                    guarded_incumbent,
+                    guarded_incumbent_fitness,
+                    candidate_protected,
+                    cc_context_replaced,
+                ) = apply_search_state_candidate(
+                    context_individual=best_individual,
+                    guard_individual=guarded_incumbent,
+                    guard_fitness=guarded_incumbent_fitness,
+                    candidate=state_candidate,
+                    candidate_fitness=state_candidate_fitness,
+                    accepted=accepted,
+                    quarantine_context=(
+                        state_plan.action_name == CONTINUE_DIAGONAL_SEARCH_STATE
+                    ),
+                )
                 state_utility = normalized_gain_utility(
                     guard_before,
                     state_candidate_fitness,
@@ -3702,6 +3750,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         downstream_consumption_scope="subsequent_outer_iterations",
                         search_state_action_type=state_plan.action_name,
                         search_state_backend=config.search_state_backend,
+                        candidate_protected=candidate_protected,
+                        cc_context_replaced=cc_context_replaced,
                         stagnation_window=0,
                         delta_mean=float(np.linalg.norm(raw_candidate - guard_vector)),
                         sigma_before=sigma_before,

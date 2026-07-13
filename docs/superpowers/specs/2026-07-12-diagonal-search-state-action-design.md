@@ -191,6 +191,37 @@ candidates. The next behavior change should quarantine a protected diagonal
 incumbent from immediate CC-context replacement and test that mechanism
 directly.
 
+## Candidate Quarantine
+
+An accepted diagonal candidate now has two distinct roles. It becomes the
+protected full-space incumbent, so its evaluated objective value cannot be
+lost, but it does not immediately replace the vector used as the context for
+subsequent CC subproblems. CC therefore continues from the pre-probe context
+while competing against the protected candidate through the existing guard.
+
+This quarantine applies only to the explicit `diagonal_cma` trajectory. The
+default `phase_i_mmes` trajectory keeps its existing behavior: an accepted
+candidate updates both the guard and CC context. Rejected candidates update
+neither. Runtime traces record `candidate_protected` and
+`cc_context_replaced` separately so the distinction is auditable without
+paper values, problem labels, function-family labels, or historical outcomes.
+
+The behavior remains experimental until a real-HCC 5k smoke confirms that an
+accepted diagonal candidate is protected while the CC context is unchanged.
+The subsequent 3M-FE adoption gate is unchanged: A4, E6, R2, and S6 must all
+retain their frozen best-of-three paper-best wins, while R3 is reported
+separately. A failed preservation gate blocks wider rollout.
+
+The 2026-07-13 candidate-quarantine pilot passed the runtime mechanism audit
+but failed the adoption gate. All nine accepted candidates were protected,
+none replaced the CC context, all 15 lanes respected the FE budget, and the
+anti-leakage and AOB-input audits passed. Best-of-three retained only A4 and
+E6; R2 and S6 lost their paper-best wins, and R3 remained above paper-best.
+Relative to canonical v32, quarantine degraded the best-of-three result on
+E6, S6, R2, and R3 and changed A4 only at numerical-noise scale. Immediate
+candidate-context replacement is therefore not the primary failure mechanism
+for the terminal protocol. The backend remains opt-in and cannot be expanded.
+
 ## Pre-Hold Evidence Audit
 
 Before changing admission behavior again, the runner must capture a

@@ -730,10 +730,90 @@ def test_action_trace_records_search_state_backend() -> None:
         previous_delta=0.0,
         current_delta=1.0,
         search_state_backend="diagonal_cma",
+        candidate_protected=True,
+        cc_context_replaced=False,
     )
 
     assert row["search_state_backend"] == "diagonal_cma"
+    assert row["candidate_protected"] == "1"
+    assert row["cc_context_replaced"] == "0"
     assert "search_state_backend" in runner.ACTION_TRACE_FIELDS
+    assert "candidate_protected" in runner.ACTION_TRACE_FIELDS
+    assert "cc_context_replaced" in runner.ACTION_TRACE_FIELDS
+
+
+def test_diagonal_candidate_is_protected_without_replacing_cc_context() -> None:
+    runner = _load_runner_module()
+    context = np.array([1.0, 2.0])
+    guard = np.array([3.0, 4.0])
+    candidate = np.array([5.0, 6.0])
+
+    (
+        next_context,
+        next_guard,
+        next_guard_fitness,
+        candidate_protected,
+        cc_context_replaced,
+    ) = runner.apply_search_state_candidate(
+        context_individual=context,
+        guard_individual=guard,
+        guard_fitness=10.0,
+        candidate=candidate,
+        candidate_fitness=5.0,
+        accepted=True,
+        quarantine_context=True,
+    )
+
+    np.testing.assert_allclose(next_context, context)
+    np.testing.assert_allclose(next_guard, candidate)
+    assert next_guard_fitness == 5.0
+    assert candidate_protected is True
+    assert cc_context_replaced is False
+
+
+def test_mmes_candidate_updates_guard_and_cc_context() -> None:
+    runner = _load_runner_module()
+    candidate = np.array([5.0, 6.0])
+
+    result = runner.apply_search_state_candidate(
+        context_individual=np.array([1.0, 2.0]),
+        guard_individual=np.array([3.0, 4.0]),
+        guard_fitness=10.0,
+        candidate=candidate,
+        candidate_fitness=5.0,
+        accepted=True,
+        quarantine_context=False,
+    )
+
+    next_context, next_guard, next_guard_fitness, protected, replaced = result
+    np.testing.assert_allclose(next_context, candidate)
+    np.testing.assert_allclose(next_guard, candidate)
+    assert next_guard_fitness == 5.0
+    assert protected is True
+    assert replaced is True
+
+
+def test_rejected_search_state_candidate_changes_neither_guard_nor_context() -> None:
+    runner = _load_runner_module()
+    context = np.array([1.0, 2.0])
+    guard = np.array([3.0, 4.0])
+
+    result = runner.apply_search_state_candidate(
+        context_individual=context,
+        guard_individual=guard,
+        guard_fitness=10.0,
+        candidate=np.array([5.0, 6.0]),
+        candidate_fitness=12.0,
+        accepted=False,
+        quarantine_context=True,
+    )
+
+    next_context, next_guard, next_guard_fitness, protected, replaced = result
+    np.testing.assert_allclose(next_context, context)
+    np.testing.assert_allclose(next_guard, guard)
+    assert next_guard_fitness == 10.0
+    assert protected is False
+    assert replaced is False
 
 
 def test_diagonal_scheduler_holds_only_next_action_block_and_cc_reserve() -> None:

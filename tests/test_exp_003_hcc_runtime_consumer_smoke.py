@@ -491,6 +491,8 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "action_value_delta_norm",
         "downstream_consumed",
         "downstream_consumption_scope",
+        "candidate_protected",
+        "cc_context_replaced",
         "trace_event",
         "remaining_budget_ratio",
         "shared_var_count",
