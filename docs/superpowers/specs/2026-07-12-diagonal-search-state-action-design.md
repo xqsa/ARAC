@@ -160,6 +160,14 @@ clean FE accounting, and clean anti-leakage. The final errors were
 offline paper-best `3.28e5`. The protocol remains experimental pending the
 four preservation controls.
 
+The four-case preservation gate also failed at 2/4. A4 and E6 retained their
+best-of-three wins, while R2 and S6 did not. All runs were protocol-valid, so
+the failure is not an FE-ledger or leakage defect. Reducing opportunity cost
+from 11% to 1% was insufficient: the unresolved issue is runtime admission,
+namely distinguishing cases where a terminal diagonal action improves the
+trajectory from cases where canonical continuation should be protected. No
+wider rollout is allowed from this result.
+
 ## Pre-Hold Evidence Audit
 
 Before changing admission behavior again, the runner must capture a

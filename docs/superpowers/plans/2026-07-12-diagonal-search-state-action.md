@@ -190,7 +190,7 @@ was unchanged at `1.704316e5` in this audit run.
 - [x] Run a small-budget R3 smoke and verify one probe, zero CC reserve, exact
   FE reconciliation, populated fingerprints, and clean anti-leakage.
 - [x] If the smoke gate passes, run R3 seeds 1/2/3 at 3M FE.
-- [ ] Run E6/S6/R2/A4 preservation controls because the R3 execution was
+- [x] Run E6/S6/R2/A4 preservation controls because the R3 execution was
   runtime-valid and non-catastrophic relative to frozen canonical v32.
 
 **Adoption gate:** diagonal remains opt-in unless all four preservation
@@ -205,3 +205,12 @@ clean FE and anti-leakage audits. Final R3 errors were `4.505813e5`,
 `3.974568e5`, but worse than the previous 11% hold pilot best `3.340394e5`.
 The protocol is runtime-valid but has not passed the performance gate.
 E6/S6/R2/A4 preservation controls remain required before adoption.
+
+**Task 8 preservation result:** all twelve control trajectories used one
+terminal probe, zero CC reserve, clean FE accounting, unchanged AOB inputs,
+and clean anti-leakage. Best-of-three retained A4 (`7.829752e4 < 7.83e4`)
+and E6 (`2.318760e7 < 2.62e7`), but lost R2
+(`2.927030e5 > 2.48e5`) and S6 (`1.448072e4 > 1.33e4`). The adoption gate was
+only 2/4. Do not expand this backend to the twelve protected winners. The next
+design must improve runtime admission evidence rather than reserve another
+budget variant.
