@@ -1,12 +1,14 @@
 # exp_003 Expected Outputs
 
-The experiment writes fourteen CSV artifacts and two Markdown audit files:
+The experiment writes seventeen CSV artifacts and two Markdown audit files:
 
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
 - `backend_semantics_diff.csv`
 - `action_execution_plan.csv`
 - `action_trace.csv`
+- `trajectory_guard_summary.csv`
+- `pre_hold_evidence.csv`
 - `action_decision.csv`
 - `action_mismatch_audit.csv`
 - `overlap_relations.csv`
@@ -16,6 +18,7 @@ The experiment writes fourteen CSV artifacts and two Markdown audit files:
 - `policy_evidence_diagnosis.csv`
 - `anti_leakage_audit.csv`
 - `claim_gate.csv`
+- `aob_input_manifest.csv`
 - `run_manifest.md`
 - `claim_evidence_table.md`
 
@@ -35,6 +38,11 @@ The required smoke evidence is:
   controller profiles omit these columns and retain their original schema.
   `fallback_route` identifies `dense_preserve_v31` or
   `non_dense_bounded_0_5` for protected fallback rows.
+- The opt-in `evidence_action_controller_v34` profile retains the v33 trust
+  fields and adds `trajectory_guard_status`, checkpoint/post-writeback/
+  downstream fitness, recovery credit, and restore status.
+  `trajectory_guard_summary.csv` reports pending, committed, restored, and
+  preempted-restore counts plus restore rate per case and seed.
 - For `landscape_escape`, `action_trace.csv` also records BIPOP search-state
   audit fields such as `search_state_action_type`, `bipop_restart_mode`,
   `sigma_before`, `sigma_after`, `population_before`, `population_after`,

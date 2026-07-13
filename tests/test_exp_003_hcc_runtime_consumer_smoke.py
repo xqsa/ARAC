@@ -366,6 +366,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "backend_semantics_diff.csv",
         "action_execution_plan.csv",
         "action_trace.csv",
+        "trajectory_guard_summary.csv",
         "pre_hold_evidence.csv",
         "action_decision.csv",
         "action_mismatch_audit.csv",
@@ -386,6 +387,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "multi-problem pilot utility: not_applicable" in manifest
     assert "- claim_evidence_table.md" in manifest
     assert "- pre_hold_evidence.csv" in manifest
+    assert "- trajectory_guard_summary.csv" in manifest
     assert "Freeze evidence:" in manifest
     assert "- git commit:" in manifest
     assert "- config fingerprint:" in manifest
@@ -1234,6 +1236,83 @@ def test_exp_003_action_trace_schema_preserves_v33_trust_fields() -> None:
     assert set(V33_TRUST_TRACE_FIELDS).issubset(
         action_trace_fields_for_lanes(lanes_for_profile("evidence_action_controller_v33"))
     )
+
+
+def test_exp_003_evidence_action_controller_v34_is_one_recovery_lane() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_action_controller_v34")
+
+    assert len(lanes) == 1
+    lane = lanes[0]
+    assert lane.lane_id == "arac_evidence_action_controller_v34"
+    assert lane.selected_action_name == "arac_evidence_action_controller_v34"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v34"
+    assert lane.plan_action_name == "arac_evidence_action_controller_v34"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.relation_policy_mode == "controller_v31"
+
+
+def test_exp_003_cli_accepts_evidence_action_controller_v34_profile() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import parse_args
+
+    args = parse_args(["--lane-profile", "evidence_action_controller_v34"])
+
+    assert args.lane_profile == "evidence_action_controller_v34"
+
+
+def test_exp_003_v34_trace_schema_adds_recovery_fields_without_changing_v33() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        V33_TRUST_TRACE_FIELDS,
+        V34_RECOVERY_TRACE_FIELDS,
+        action_trace_fields_for_lanes,
+        lanes_for_profile,
+    )
+
+    v33_fields = action_trace_fields_for_lanes(
+        lanes_for_profile("evidence_action_controller_v33")
+    )
+    v34_fields = action_trace_fields_for_lanes(
+        lanes_for_profile("evidence_action_controller_v34")
+    )
+
+    assert not set(V34_RECOVERY_TRACE_FIELDS).intersection(v33_fields)
+    assert set(V33_TRUST_TRACE_FIELDS).issubset(v34_fields)
+    assert set(V34_RECOVERY_TRACE_FIELDS).issubset(v34_fields)
+
+
+def test_exp_003_trajectory_guard_summary_counts_resolved_statuses() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        RUN_ID,
+        _trajectory_guard_summary_rows,
+    )
+
+    shared = {
+        "run_id": RUN_ID,
+        "lane_id": "arac_evidence_action_controller_v34",
+        "problem_id": "E2",
+        "seed": "1",
+    }
+    rows = _trajectory_guard_summary_rows(
+        [
+            {**shared, "trajectory_guard_status": "committed"},
+            {**shared, "trajectory_guard_status": "restored"},
+            {**shared, "trajectory_guard_status": "preempted_restored"},
+            {**shared, "trajectory_guard_status": ""},
+        ]
+    )
+
+    assert rows == [
+        {
+            **shared,
+            "pending_count": 0,
+            "committed_count": 1,
+            "restored_count": 1,
+            "preempted_restored_count": 1,
+            "total_resolved_count": 3,
+            "restore_rate": pytest.approx(2.0 / 3.0),
+        }
+    ]
 
 
 def test_exp_003_canonical_evidence_controller_profile_reuses_single_v32_lane() -> None:

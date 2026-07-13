@@ -501,6 +501,18 @@ EVIDENCE_ACTION_CONTROLLER_V33_LANES = (
         relation_policy_mode="controller_v31",
     ),
 )
+EVIDENCE_ACTION_CONTROLLER_V34_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v34",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v34",
+        "arac_evidence_action_controller_v34",
+        "single_run_downstream_recovery_runtime_evidence_controller_v34",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v34",
+        relation_policy_mode="controller_v31",
+    ),
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
@@ -582,6 +594,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return EVIDENCE_ACTION_CONTROLLER_V32_LANES
     if lane_profile == "evidence_action_controller_v33":
         return EVIDENCE_ACTION_CONTROLLER_V33_LANES
+    if lane_profile == "evidence_action_controller_v34":
+        return EVIDENCE_ACTION_CONTROLLER_V34_LANES
     if lane_profile == "canonical_evidence_controller_v1":
         return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
     raise ValueError(f"unsupported lane profile: {lane_profile}")
@@ -1305,15 +1319,104 @@ V33_TRUST_TRACE_FIELDS = [
     "trust_post_writeback_fitness",
     "fallback_route",
 ]
+V34_RECOVERY_TRACE_FIELDS = [
+    "trajectory_guard_status",
+    "trajectory_guard_pre_fitness",
+    "trajectory_guard_post_writeback_fitness",
+    "trajectory_guard_downstream_fitness",
+    "trajectory_guard_recovery_credit",
+    "trajectory_guard_restored",
+]
 
 
 def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
+    fields: list[str] = []
     if any(
-        lane.runner_action_name == "arac_evidence_action_controller_v33"
+        lane.runner_action_name
+        in {
+            "arac_evidence_action_controller_v33",
+            "arac_evidence_action_controller_v34",
+        }
         for lane in lanes
     ):
-        return list(V33_TRUST_TRACE_FIELDS)
-    return []
+        fields.extend(V33_TRUST_TRACE_FIELDS)
+    if any(
+        lane.runner_action_name == "arac_evidence_action_controller_v34"
+        for lane in lanes
+    ):
+        fields.extend(V34_RECOVERY_TRACE_FIELDS)
+    return fields
+
+
+TRAJECTORY_GUARD_SUMMARY_FIELDS = [
+    "run_id",
+    "lane_id",
+    "problem_id",
+    "seed",
+    "pending_count",
+    "committed_count",
+    "restored_count",
+    "preempted_restored_count",
+    "total_resolved_count",
+    "restore_rate",
+]
+
+
+def _trajectory_guard_summary_rows(
+    action_trace_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    status_fields = {
+        "pending": "pending_count",
+        "committed": "committed_count",
+        "restored": "restored_count",
+        "preempted_restored": "preempted_restored_count",
+    }
+    summaries: dict[tuple[str, str, str, str], dict[str, object]] = {}
+    for trace_row in action_trace_rows:
+        status = str(trace_row.get("trajectory_guard_status", "")).strip()
+        if not status:
+            continue
+        if status not in status_fields:
+            raise ValueError(f"unsupported trajectory guard status: {status}")
+        key = tuple(
+            str(trace_row.get(field, ""))
+            for field in ("run_id", "lane_id", "problem_id", "seed")
+        )
+        row = summaries.setdefault(
+            key,
+            {
+                "run_id": key[0],
+                "lane_id": key[1],
+                "problem_id": key[2],
+                "seed": key[3],
+                "pending_count": 0,
+                "committed_count": 0,
+                "restored_count": 0,
+                "preempted_restored_count": 0,
+            },
+        )
+        count_field = status_fields[status]
+        row[count_field] = int(row[count_field]) + 1
+
+    rows: list[dict[str, object]] = []
+    for row in summaries.values():
+        total_resolved = sum(
+            int(row[field])
+            for field in (
+                "committed_count",
+                "restored_count",
+                "preempted_restored_count",
+            )
+        )
+        restored = int(row["restored_count"]) + int(
+            row["preempted_restored_count"]
+        )
+        row["total_resolved_count"] = total_resolved
+        row["restore_rate"] = (
+            restored / total_resolved if total_resolved else ""
+        )
+        rows.append(row)
+    return rows
 
 
 PRE_HOLD_EVIDENCE_FIELDS = [
@@ -3548,6 +3651,7 @@ def _write_manifest(
         "backend_semantics_diff.csv",
         "action_execution_plan.csv",
         "action_trace.csv",
+        "trajectory_guard_summary.csv",
         "pre_hold_evidence.csv",
         "action_decision.csv",
         "action_mismatch_audit.csv",
@@ -3720,6 +3824,7 @@ def run_hcc_runtime_consumer_smoke(
     ledger_rows = _ledger_rows(records)
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
+    action_trace_rows = _action_trace_rows(records)
     diagnosis_rows = _policy_evidence_diagnosis_rows(
         records,
         utility_rows,
@@ -3814,7 +3919,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "action_trace.csv",
-        _action_trace_rows(records),
+        action_trace_rows,
         [
             "run_id",
             "lane_id",
@@ -3901,8 +4006,13 @@ def run_hcc_runtime_consumer_smoke(
         ],
     )
     _write_csv(
+        output / "trajectory_guard_summary.csv",
+        _trajectory_guard_summary_rows(action_trace_rows),
+        TRAJECTORY_GUARD_SUMMARY_FIELDS,
+    )
+    _write_csv(
         output / "pre_hold_evidence.csv",
-        _pre_hold_evidence_rows(_action_trace_rows(records)),
+        _pre_hold_evidence_rows(action_trace_rows),
         PRE_HOLD_EVIDENCE_FIELDS,
     )
     _write_csv(
@@ -4193,6 +4303,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v31",
             "evidence_action_controller_v32",
             "evidence_action_controller_v33",
+            "evidence_action_controller_v34",
             "canonical_evidence_controller_v1",
         ],
     )
