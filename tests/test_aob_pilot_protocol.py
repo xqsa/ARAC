@@ -34,7 +34,7 @@ def test_paper_reported_hcc_es_anchor_covers_aob_24_cases() -> None:
 
 def test_aob_pilot_config_is_one_run_against_final_25_run_protocol() -> None:
     config = (ROOT / "configs" / "aob_pilot.yaml").read_text(encoding="utf-8")
-    protocol = (ROOT / "docs" / "aob-final-evaluation-protocol.md").read_text(
+    protocol = (ROOT / "docs" / "protocols" / "aob-final-evaluation-protocol.md").read_text(
         encoding="utf-8"
     )
 

@@ -12,10 +12,11 @@ import pytest
 
 
 def _load_runner_module():
-    hcc_src = Path(__file__).resolve().parents[1] / "HCC_SRC"
-    sys.path.insert(0, str(hcc_src))
-    runner_path = hcc_src / "arac_hcc_smoke_runner.py"
-    spec = importlib.util.spec_from_file_location("arac_hcc_smoke_runner_for_test", runner_path)
+    repo_root = Path(__file__).resolve().parents[1]
+    vendor_root = repo_root / "vendor" / "hcc"
+    sys.path.insert(0, str(vendor_root))
+    runner_path = repo_root / "scripts" / "hcc_smoke_runner.py"
+    spec = importlib.util.spec_from_file_location("hcc_smoke_runner_for_test", runner_path)
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -77,7 +78,14 @@ def test_runner_aob_loaders_ignore_cwd_when_data_root_is_explicit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runner = _load_runner_module()
-    data_root = Path(__file__).resolve().parents[1] / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+    data_root = (
+        Path(__file__).resolve().parents[1]
+        / "vendor"
+        / "hcc"
+        / "AOB"
+        / "AOBG"
+        / "datafile"
+    )
     monkeypatch.chdir(tmp_path)
 
     metadata = runner.load_aob_metadata(6, data_root)
@@ -111,6 +119,28 @@ def test_aob_benchmark_forwards_explicit_data_root(
     benchmark.get_function("elliptic", 6)
 
     assert captured["data_dir"] == data_root
+
+
+def test_vendor_benchmark_default_data_root_is_independent_of_cwd(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _load_runner_module()
+    from AOB.Benchmarks import Benchmarks
+
+    monkeypatch.chdir(tmp_path)
+    benchmark = Benchmarks(None)
+
+    expected = (
+        Path(__file__).resolve().parents[1]
+        / "vendor"
+        / "hcc"
+        / "AOB"
+        / "AOBG"
+        / "datafile"
+    )
+    assert benchmark.data_dir == expected
+    assert benchmark.data_dir.is_dir()
 
 
 def _write_minimal_aob_data_root(root: Path, function_id: int = 6) -> None:
@@ -236,6 +266,29 @@ def test_hcc_smoke_runner_parses_cc_harm_guarded_sep_refresh_action() -> None:
     )
 
     assert args.arac_action == "cc_harm_guarded_sep_refresh"
+
+
+def test_hcc_smoke_runner_rejects_obsolete_bounded_late_refresh_action() -> None:
+    runner = _load_runner_module()
+
+    assert "bounded_late_nda_refresh" not in runner.TRAJECTORY_ACTION_NAMES
+    with pytest.raises(SystemExit):
+        runner.parse_args(
+            [
+                "--functions",
+                "rastrigin",
+                "--ids",
+                "3",
+                "--output-root",
+                "out",
+                "--seed",
+                "3",
+                "--max-fes",
+                "3000000",
+                "--arac-action",
+                "bounded_late_nda_refresh",
+            ]
+        )
 
 
 def test_hcc_smoke_runner_parses_separable_cmaes_dispatch_action() -> None:
@@ -463,6 +516,479 @@ def test_hcc_smoke_runner_parses_evidence_action_controller_v31() -> None:
     assert args.arac_action == "arac_evidence_action_controller_v31"
     assert args.enable_relation_dispatch is True
     assert args.relation_policy == "controller_v31"
+
+
+def test_hcc_smoke_runner_parses_evidence_action_controller_v32() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "2",
+            "--output-root",
+            "out",
+            "--seed",
+            "3",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "arac_evidence_action_controller_v32",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v32"
+    assert args.enable_relation_dispatch is True
+    assert args.relation_policy == "controller_v31"
+
+
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v33() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "6",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--arac-action",
+            "arac_evidence_action_controller_v33",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v33"
+    assert runner.is_evidence_action_controller_v33(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+
+
+def test_v33_trust_state_is_opt_in_and_v32_has_no_trust_state() -> None:
+    runner = _load_runner_module()
+
+    v32 = runner.build_evidence_action_controller_v31_run_state(0.10)
+    v33 = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+
+    assert v32.action_trust_policy is None
+    assert v33.action_trust_policy is not None
+
+
+def test_hcc_smoke_runner_parses_diagonal_search_state_backend() -> None:
+    runner = _load_runner_module()
+
+    default_args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "3",
+            "--output-root",
+            "out",
+            "--max-fes",
+            "3000000",
+        ]
+    )
+    diagonal_args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "3",
+            "--output-root",
+            "out",
+            "--max-fes",
+            "3000000",
+            "--search-state-backend",
+            "diagonal_cma",
+        ]
+    )
+
+    assert default_args.search_state_backend == "phase_i_mmes"
+    assert diagonal_args.search_state_backend == "diagonal_cma"
+
+
+def test_diagonal_search_state_block_uses_protected_incumbent_and_audits_fe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    initialized = {}
+
+    class FakeState:
+        best_x = np.array([0.5, 0.5, 0.5])
+        best_y = 0.75
+        population_size = 4
+
+    class FakeBlock:
+        state = FakeState()
+        best_before = 3.0
+        best_after = 0.75
+        candidate_best = 0.75
+        accepted = True
+        requested_fes = 8
+        actual_fes = 8
+        unused_fes = 0
+        population_size = 4
+        sigma_before = 0.5
+        sigma_after = 0.4
+        state_fingerprint_before = "before"
+        state_fingerprint_after = "after"
+
+    def fake_initialize(**kwargs):
+        initialized.update(kwargs)
+        return FakeState()
+
+    monkeypatch.setattr(runner, "initialize_diagonal_cma_state", fake_initialize)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda _dimension: 4)
+    monkeypatch.setattr(
+        runner,
+        "run_diagonal_cma_block",
+        lambda state, objective, requested_fes: FakeBlock(),
+    )
+
+    guard = np.ones(3)
+    state, accepted, candidate, fitness, block, optimizer_seed = (
+        runner.run_diagonal_search_state_block(
+            state=None,
+            requested_fes=8,
+            guard_individual=guard,
+            guard_fitness=3.0,
+            fun=lambda batch: np.sum(np.asarray(batch) ** 2, axis=1),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=2,
+        )
+    )
+
+    np.testing.assert_allclose(initialized["initial_mean"], guard)
+    assert initialized["incumbent_fitness"] == 3.0
+    assert initialized["population_size"] == 4
+    assert initialized["seed"] == optimizer_seed
+    assert state is block.state
+    assert accepted is True
+    np.testing.assert_allclose(candidate, FakeState.best_x)
+    assert fitness == 0.75
+    assert block.actual_fes == 8
+
+
+def test_diagonal_search_start_projects_mean_but_preserves_out_of_bounds_guard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    initialized = {}
+
+    class FakeState:
+        best_x = np.zeros(3)
+        best_y = 3.0
+        population_size = 4
+
+    def fake_initialize(**kwargs):
+        initialized.update(kwargs)
+        return FakeState()
+
+    monkeypatch.setattr(runner, "initialize_diagonal_cma_state", fake_initialize)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda _dimension: 4)
+    def fake_run(state, objective, requested_fes):
+        return type(
+            "FakeBlock",
+            (),
+            {"state": state, "best_after": 3.0, "actual_fes": 4},
+        )()
+
+    monkeypatch.setattr(runner, "run_diagonal_cma_block", fake_run)
+
+    guard = np.array([9.0, 0.0, -8.0])
+    state, accepted, candidate, fitness, _block, _seed = (
+        runner.run_diagonal_search_state_block(
+            state=None,
+            requested_fes=4,
+            guard_individual=guard,
+            guard_fitness=3.0,
+            fun=lambda batch: np.sum(np.asarray(batch) ** 2, axis=1),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=2,
+        )
+    )
+
+    np.testing.assert_allclose(initialized["initial_mean"], [5.0, 0.0, -5.0])
+    np.testing.assert_allclose(state.best_x, guard)
+    assert accepted is False
+    np.testing.assert_allclose(candidate, guard)
+    assert fitness == 3.0
+
+
+def test_controller_v32_enables_scheduler_only_for_explicit_diagonal_backend() -> None:
+    runner = _load_runner_module()
+
+    default_config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+    )
+    diagonal_config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+        search_state_backend="diagonal_cma",
+    )
+
+    assert runner.uses_scheduled_search_state(default_config) is False
+    assert runner.uses_scheduled_search_state(diagonal_config) is True
+    assert (
+        runner.trajectory_action_name_for_backend(diagonal_config)
+        == runner.CONTINUE_DIAGONAL_SEARCH_STATE
+    )
+
+
+def test_action_trace_contains_v33_trust_audit_fields() -> None:
+    runner = _load_runner_module()
+
+    assert {
+        "trust_key",
+        "trust_phase",
+        "trust_reason",
+        "trust_score",
+        "trust_exposure",
+        "trust_cooldown",
+        "trust_credit",
+        "trust_unstable",
+        "trust_pre_writeback_fitness",
+        "trust_post_writeback_fitness",
+        "fallback_route",
+    }.issubset(set(runner.ACTION_TRACE_FIELDS))
+
+
+def test_legacy_action_trace_writer_omits_v33_trust_fields(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+
+    row = runner.build_action_trace_row(
+        problem_id="E2",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=1.0,
+        current_delta=1.0,
+    )
+    path = tmp_path / "action_trace.csv"
+
+    runner._write_action_trace(path, [row], include_trust_fields=False)
+
+    with path.open(newline="", encoding="utf-8") as handle:
+        header = next(csv.reader(handle))
+    assert "trust_key" not in header
+    assert "trust_post_writeback_fitness" not in header
+    assert "fallback_route" not in header
+
+
+def test_relation_downstream_scope_preserves_v32_zero_norm_semantics() -> None:
+    runner = _load_runner_module()
+
+    assert (
+        runner.relation_downstream_consumption_scope(
+            action_name=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+            writeback_active=False,
+        )
+        == "same_outer_iteration"
+    )
+    assert (
+        runner.relation_downstream_consumption_scope(
+            action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+            writeback_active=False,
+        )
+        == "no_state_change"
+    )
+
+
+def test_controller_v33_fallback_route_is_runtime_topology_auditable() -> None:
+    runner = _load_runner_module()
+    dense = runner.build_evidence_action_controller_v31_run_state(
+        0.20,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    non_dense = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+
+    assert (
+        runner.controller_v33_fallback_route(
+            canonical_action_name="conservative_no_action",
+            controller_run_state=dense,
+        )
+        == "dense_preserve_v31"
+    )
+    assert (
+        runner.controller_v33_fallback_route(
+            canonical_action_name="conservative_no_action",
+            controller_run_state=non_dense,
+        )
+        == "non_dense_bounded_0_5"
+    )
+    assert (
+        runner.controller_v33_fallback_route(
+            canonical_action_name="allow_beneficial_coordination",
+            controller_run_state=dense,
+        )
+        == ""
+    )
+
+
+def test_action_trace_records_search_state_backend() -> None:
+    runner = _load_runner_module()
+
+    row = runner.build_action_trace_row(
+        problem_id="R3",
+        seed=3,
+        outer_iter=1,
+        group_index=4,
+        selected_action_name=runner.CONTINUE_DIAGONAL_SEARCH_STATE,
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=1.0,
+        search_state_backend="diagonal_cma",
+        candidate_protected=True,
+        cc_context_replaced=False,
+    )
+
+    assert row["search_state_backend"] == "diagonal_cma"
+    assert row["candidate_protected"] == "1"
+    assert row["cc_context_replaced"] == "0"
+    assert "search_state_backend" in runner.ACTION_TRACE_FIELDS
+    assert "candidate_protected" in runner.ACTION_TRACE_FIELDS
+    assert "cc_context_replaced" in runner.ACTION_TRACE_FIELDS
+
+
+def test_diagonal_candidate_is_protected_without_replacing_cc_context() -> None:
+    runner = _load_runner_module()
+    context = np.array([1.0, 2.0])
+    guard = np.array([3.0, 4.0])
+    candidate = np.array([5.0, 6.0])
+
+    (
+        next_context,
+        next_guard,
+        next_guard_fitness,
+        candidate_protected,
+        cc_context_replaced,
+    ) = runner.apply_search_state_candidate(
+        context_individual=context,
+        guard_individual=guard,
+        guard_fitness=10.0,
+        candidate=candidate,
+        candidate_fitness=5.0,
+        accepted=True,
+        quarantine_context=True,
+    )
+
+    np.testing.assert_allclose(next_context, context)
+    np.testing.assert_allclose(next_guard, candidate)
+    assert next_guard_fitness == 5.0
+    assert candidate_protected is True
+    assert cc_context_replaced is False
+
+
+def test_mmes_candidate_updates_guard_and_cc_context() -> None:
+    runner = _load_runner_module()
+    candidate = np.array([5.0, 6.0])
+
+    result = runner.apply_search_state_candidate(
+        context_individual=np.array([1.0, 2.0]),
+        guard_individual=np.array([3.0, 4.0]),
+        guard_fitness=10.0,
+        candidate=candidate,
+        candidate_fitness=5.0,
+        accepted=True,
+        quarantine_context=False,
+    )
+
+    next_context, next_guard, next_guard_fitness, protected, replaced = result
+    np.testing.assert_allclose(next_context, candidate)
+    np.testing.assert_allclose(next_guard, candidate)
+    assert next_guard_fitness == 5.0
+    assert protected is True
+    assert replaced is True
+
+
+def test_rejected_search_state_candidate_changes_neither_guard_nor_context() -> None:
+    runner = _load_runner_module()
+    context = np.array([1.0, 2.0])
+    guard = np.array([3.0, 4.0])
+
+    result = runner.apply_search_state_candidate(
+        context_individual=context,
+        guard_individual=guard,
+        guard_fitness=10.0,
+        candidate=np.array([5.0, 6.0]),
+        candidate_fitness=12.0,
+        accepted=False,
+        quarantine_context=True,
+    )
+
+    next_context, next_guard, next_guard_fitness, protected, replaced = result
+    np.testing.assert_allclose(next_context, context)
+    np.testing.assert_allclose(next_guard, guard)
+    assert next_guard_fitness == 10.0
+    assert protected is False
+    assert replaced is False
+
+
+def test_diagonal_scheduler_holds_only_next_action_block_and_cc_reserve() -> None:
+    runner = _load_runner_module()
+    diagonal_config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+        search_state_backend="diagonal_cma",
+    )
+    staged_config = runner.SmokeConfig(
+        max_fes=3_000_000,
+        seed=3,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V31,
+        search_state_backend="phase_i_mmes",
+    )
+
+    initial = runner.SearchStateSchedulerState()
+    blocked = runner.SearchStateSchedulerState(phase=runner.SEARCH_STATE_BLOCKED)
+
+    assert runner.scheduled_search_state_hold_fes(diagonal_config, initial) == 30_000
+    assert runner.scheduled_search_state_hold_fes(staged_config, initial) == 330_000
+    assert (
+        runner.scheduled_search_state_hold_fes(
+            diagonal_config,
+            initial,
+            overlap_edge_count=0,
+        )
+        == 0
+    )
+    assert (
+        runner.scheduled_search_state_hold_fes(
+            diagonal_config,
+            initial,
+            overlap_edge_count=19,
+        )
+        == 30_000
+    )
+    assert runner.scheduled_search_state_hold_fes(diagonal_config, blocked) == 0
 
 
 @pytest.mark.parametrize("action_name", ["budget_shift_only", "mean_blend_only"])
@@ -735,7 +1261,7 @@ def test_bipop_rejected_restart_uses_sweep_level_backoff() -> None:
 
 
 def test_hcc_smoke_runner_help_works_without_pythonpath() -> None:
-    runner_path = Path(__file__).resolve().parents[1] / "HCC_SRC" / "arac_hcc_smoke_runner.py"
+    runner_path = Path(__file__).resolve().parents[1] / "scripts" / "hcc_smoke_runner.py"
     env = os.environ.copy()
     env.pop("PYTHONPATH", None)
 
@@ -1353,6 +1879,228 @@ def test_controller_v31_non_dense_run_selects_v26_precision_and_rescue() -> None
     ) == pytest.approx(0.25)
 
 
+def _search_state_relation(
+    runner,
+    *,
+    index: int,
+    shared_var_count: int = 3,
+    budget_remaining_ratio: float = 0.20,
+):
+    return runner.OverlapRelation(
+        relation_id=f"O4_{index}_{index + 1}",
+        problem_id="runtime_case",
+        outer_iter=4,
+        group_left=index,
+        group_right=index + 1,
+        shared_vars=tuple(range(shared_var_count)),
+        overlap_strength=float(shared_var_count),
+        delta_signal=0.0,
+        rank_signal=0.5,
+        budget_remaining_ratio=budget_remaining_ratio,
+        previous_delta=0.0,
+        current_delta=0.0,
+        both_positive=False,
+        one_side_zero=False,
+        delta_ratio_gap=0.0,
+        rank_stability=1.0,
+        shared_var_count=shared_var_count,
+        shared_var_support_ratio=0.1,
+        feature_coverage=1.0,
+        fallback_margin_proxy=1.0,
+    )
+
+
+def test_phase_i_tail_utility_uses_only_recent_runtime_checkpoints() -> None:
+    runner = _load_runner_module()
+
+    class State:
+        recent_best = [(10, 100.0), (30, 95.0), (60, 90.0)]
+
+    assert runner.phase_i_tail_utility(State()) == pytest.approx(10.0 / (100.0 * 50.0))
+
+
+def test_search_state_evidence_requires_complete_nonempty_relation_sweep() -> None:
+    runner = _load_runner_module()
+    relations = [_search_state_relation(runner, index=index) for index in range(2)]
+    decisions = [
+        runner.RelationActionDecision(
+            relation_id=relations[0].relation_id,
+            action_name="coordinate",
+            action_family="coordinate",
+            confidence=1.0,
+            trigger_reason="test",
+        ),
+        runner.RelationActionDecision(
+            relation_id=relations[1].relation_id,
+            action_name="fallback",
+            action_family="fallback",
+            confidence=0.0,
+            trigger_reason="test",
+        ),
+    ]
+
+    evidence = runner.build_search_state_evidence(
+        complete_sweep=True,
+        overlap_degree=0.10,
+        phase_rescue_enabled=True,
+        repair_lock_active=False,
+        phase_i_tail_utility_value=1.0e-6,
+        relations=relations,
+        decisions=decisions,
+        writeback_norms=[0.0, runner.CC_HARM_WRITEBACK_NORM * 2.0],
+        relative_writeback_norms=[0.0, 0.05],
+        fitness_deltas=[0.0, 1.0, 0.0],
+        reference_fitness=100.0,
+        cc_utility_history=[1.0e-7, 2.0e-7],
+        remaining_fes=900_000,
+        max_fes=3_000_000,
+        population_size=24,
+    )
+    empty = runner.build_search_state_evidence(
+        complete_sweep=True,
+        overlap_degree=0.10,
+        phase_rescue_enabled=True,
+        repair_lock_active=False,
+        phase_i_tail_utility_value=1.0e-6,
+        relations=[],
+        decisions=[],
+        writeback_norms=[],
+        relative_writeback_norms=[],
+        fitness_deltas=[],
+        reference_fitness=100.0,
+        cc_utility_history=[],
+        remaining_fes=900_000,
+        max_fes=3_000_000,
+        population_size=24,
+    )
+
+    assert evidence.complete_sweep is True
+    assert evidence.non_coordinate_fraction == pytest.approx(0.5)
+    assert evidence.active_intervention_fraction == 0.0
+    assert evidence.conflict_fraction == pytest.approx(1.0)
+    assert evidence.writeback_unstable is True
+    assert evidence.relative_writeback_max == pytest.approx(0.05)
+    assert evidence.relative_writeback_unstable is False
+    assert evidence.recent_cc_utilities == (1.0e-7, 2.0e-7)
+    assert empty.complete_sweep is False
+
+
+def test_scale_free_writeback_norm_uses_variable_span_and_shared_width() -> None:
+    runner = _load_runner_module()
+
+    one_variable = runner.scale_free_writeback_norm(
+        delta_norm=10.0,
+        shared_count=1,
+        lower=-100.0,
+        upper=100.0,
+    )
+    four_variables = runner.scale_free_writeback_norm(
+        delta_norm=20.0,
+        shared_count=4,
+        lower=-100.0,
+        upper=100.0,
+    )
+
+    assert one_variable == pytest.approx(0.05)
+    assert four_variables == pytest.approx(0.05)
+
+
+def test_controller_v31_phase_i_captures_resumable_mmes_state(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    controller = runner.build_evidence_action_controller_v31_run_state(0.10)
+    sentinel_state = object()
+    stateful_calls = 0
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            values = np.asarray(vector)
+            count = 1 if values.ndim == 1 else len(values)
+            self.fitness_record.extend([10.0] * count)
+            return [10.0] * count
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, _fun_name: str, _fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, _fun_name: str, _fun_id: int):
+            return {"dimension": 4, "lower": -5.0, "upper": 5.0}
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            raise AssertionError("controller v31 must capture MMES state")
+
+        def optimize_with_state(self):
+            nonlocal stateful_calls
+            stateful_calls += 1
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget, self.problem["ndim_problem"]))
+            )
+            return (
+                {
+                    "n_function_evaluations": budget,
+                    "best_so_far_y": 10.0,
+                    "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+                },
+                sentinel_state,
+            )
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree: controller,
+    )
+    monkeypatch.setattr(runner, "decompose_problem", lambda _id, data_root=None: [[0, 1]])
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[0]], []),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda _id, data_root=None: {
+            "dimension": 4,
+            "overlap_degree": 1,
+            "subgroups": [2],
+        },
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, _degree: max_fes)
+
+    runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=4,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V31,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    assert stateful_calls == 1
+    assert controller.phase_i_optimizer is not None
+    assert controller.phase_i_state is sentinel_state
+
+
 def test_controller_v31_non_dense_guarded_prefix_locks_subsequent_repair() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)
@@ -1442,6 +2190,491 @@ def test_controller_v31_non_dense_guarded_prefix_locks_subsequent_repair() -> No
         "adaptive_v26",
         action=forced_action,
     ).endswith(":non_dense_prefix_repair_lock")
+
+
+def test_controller_v33_first_probation_action_shadows_v32_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "coordinate"
+    np.testing.assert_allclose(adjusted, np.array([0.5]))
+    assert delta_norm == pytest.approx(0.5)
+    assert trust is not None
+    assert trust.phase == "probation"
+    assert trust.blend_strength == pytest.approx(1.0)
+    assert trust.reason == "probation_shadow"
+    assert fallback_route == ""
+
+
+def test_controller_v33_preserves_v31_protected_fallback_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.20,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.dense_overlap is True
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    assert adjusted is not None
+    assert delta_norm == pytest.approx(10.0)
+    np.testing.assert_allclose(adjusted, np.array([10.0]))
+    assert trust is None
+    assert fallback_route == "dense_preserve_v31"
+
+
+def test_controller_v33_bounds_non_dense_protected_fallback_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.dense_overlap is False
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    assert adjusted is not None
+    assert delta_norm == pytest.approx(0.5)
+    np.testing.assert_allclose(adjusted, np.array([0.5]))
+    assert trust is None
+    assert fallback_route == "non_dense_bounded_0_5"
+
+
+def test_controller_v33_noop_writeback_does_not_consume_trust_exposure() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([1.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert executed.relation_action_name == "coordinate"
+    np.testing.assert_allclose(adjusted, np.array([1.0]))
+    assert delta_norm == 0.0
+    assert trust is None
+    assert fallback_route == ""
+    assert state.action_trust_policy is not None
+    trust_state = state.action_trust_policy.state_for(key)
+    assert trust_state.attempt_count == 0
+    assert trust_state.exposure == 0.0
+
+
+def test_controller_v33_damped_noop_rolls_back_trust_exposure() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert state.action_trust_policy is not None
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+    before = state.action_trust_policy.state_for(key)
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([4e-12]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    after = state.action_trust_policy.state_for(key)
+    assert executed.relation_action_name == "coordinate"
+    np.testing.assert_allclose(adjusted, np.array([0.0]), atol=0.0)
+    assert delta_norm == 0.0
+    assert trust is None
+    assert fallback_route == ""
+    assert after.attempt_count == before.attempt_count
+    assert after.exposure == pytest.approx(before.exposure)
+
+
+def test_controller_v33_weak_credit_damps_next_coordinate_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert state.action_trust_policy is not None
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+
+    _executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    np.testing.assert_allclose(adjusted, np.array([0.9]))
+    assert delta_norm == pytest.approx(0.1)
+    assert trust is not None
+    assert trust.reason == "probation_limited"
+    assert fallback_route == ""
+
+
+def test_controller_v33_quarantine_preserves_current_values() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert state.action_trust_policy is not None
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    assert executed.trigger_reason == "controller_v33_cooldown_active"
+    np.testing.assert_allclose(adjusted, np.array([1.0]))
+    assert delta_norm == 0.0
+    assert trust is not None
+    assert trust.allow_intervention is False
+    assert fallback_route == ""
+
+
+def test_controller_v33_credits_pending_action_from_next_evaluated_group() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.action_trust_policy is not None
+    decision = state.action_trust_policy.decide("0:1:shared:coordinate")
+    trace_row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=8.0,
+        current_delta=10.0,
+        trust_decision=decision,
+    )
+
+    state.register_pending_action_trust(
+        decision=decision,
+        pre_writeback_fitness=15.0,
+        unstable=True,
+        trace_row=trace_row,
+    )
+    credit = state.observe_pending_action_trust(post_writeback_fitness=10.0)
+
+    assert credit == pytest.approx(1.0 / 3.0)
+    assert trace_row["trust_credit"] == f"{credit:.6e}"
+    assert trace_row["downstream_consumed"] == "1"
+    assert trace_row["downstream_consumption_scope"] == "next_group_original_fitness"
+    assert trace_row["optimizer_consumed"] == "1"
+    assert trace_row["trust_pre_writeback_fitness"] == "1.50000000000000000e+01"
+    assert trace_row["trust_post_writeback_fitness"] == "1.00000000000000000e+01"
+    assert trace_row["trust_unstable"] == "1"
+    trust_state = state.action_trust_policy.state_for(decision.key)
+    assert trust_state.last_credit == pytest.approx(credit)
+    assert trust_state.last_unstable is True
+
+
+def test_controller_v33_trace_objectives_recompute_small_credit() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.action_trust_policy is not None
+    decision = state.action_trust_policy.decide("0:1:shared:coordinate")
+    trace_row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=8.0,
+        current_delta=10.0,
+        trust_decision=decision,
+    )
+    state.register_pending_action_trust(
+        decision=decision,
+        pre_writeback_fitness=78444.01,
+        unstable=False,
+        trace_row=trace_row,
+    )
+
+    credit = state.observe_pending_action_trust(
+        post_writeback_fitness=78444.011,
+    )
+    recomputed = runner.normalized_objective_credit(
+        float(trace_row["trust_pre_writeback_fitness"]),
+        float(trace_row["trust_post_writeback_fitness"]),
+    )
+
+    assert credit == pytest.approx(recomputed, abs=1e-15)
+
+
+def test_controller_v33_invalidates_pending_credit_before_search_state_change() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.action_trust_policy is not None
+    decision = state.action_trust_policy.decide("0:1:shared:coordinate")
+    trace_row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=8.0,
+        current_delta=10.0,
+        trust_decision=decision,
+    )
+    state.register_pending_action_trust(
+        decision=decision,
+        pre_writeback_fitness=15.0,
+        unstable=False,
+        trace_row=trace_row,
+    )
+
+    state.invalidate_pending_action_trust("search_state_intervened_before_credit")
+
+    assert state.pending_action_trust is None
+    assert trace_row["trust_reason"] == "search_state_intervened_before_credit"
+    assert trace_row["trust_credit"] == ""
 
 
 def test_controller_v31_non_dense_large_unstable_fallback_locks_repair_immediately() -> None:
@@ -1624,6 +2857,7 @@ def test_budget_summary_records_runtime_stage_breakdown(tmp_path: Path) -> None:
         cc_phase_fe=50,
         rescue_fe=20,
         refresh_fe=0,
+        search_state_fe=5,
         separable_continuation_fe=0,
     )
 
@@ -1634,8 +2868,9 @@ def test_budget_summary_records_runtime_stage_breakdown(tmp_path: Path) -> None:
     assert row["cc_phase_fe"] == "50"
     assert row["rescue_fe"] == "20"
     assert row["refresh_fe"] == "0"
+    assert row["search_state_fe"] == "5"
     assert row["separable_continuation_fe"] == "0"
-    assert row["overhead_fe"] == "10"
+    assert row["overhead_fe"] == "5"
 
 
 def test_shuffled_relation_policy_keeps_empty_overlap_fallback() -> None:
@@ -1814,6 +3049,104 @@ def test_build_action_trace_row_marks_runtime_consumed_repair() -> None:
     assert row["downstream_consumed"] == "1"
     assert row["downstream_consumption_scope"] == "same_outer_iteration"
     assert row["optimizer_consumed"] == "1"
+
+
+def test_build_action_trace_row_audits_resumed_phase_i_runtime_state() -> None:
+    runner = _load_runner_module()
+    evidence = runner.SearchStateEvidence(
+        complete_sweep=True,
+        overlap_degree=0.1,
+        phase_rescue_enabled=True,
+        repair_lock_active=False,
+        phase_i_tail_utility=2.0e-6,
+        non_coordinate_fraction=0.75,
+        conflict_fraction=0.25,
+        writeback_unstable=True,
+        recent_cc_utilities=(1.0e-7,),
+        remaining_fes=600_000,
+        max_fes=3_000_000,
+        population_size=24,
+        active_intervention_fraction=0.10,
+        relative_writeback_max=0.05,
+        relative_writeback_unstable=False,
+    )
+
+    row = runner.build_action_trace_row(
+        problem_id="R3",
+        seed=3,
+        outer_iter=4,
+        group_index=2,
+        selected_action_name=runner.RESUME_PHASE_I_SEARCH_STATE,
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=1.0,
+        downstream_consumption_scope="subsequent_outer_iterations",
+        trace_event="probe",
+        remaining_budget_ratio=0.20,
+        repair_lock_active=False,
+        scheduler_phase="initial_probe",
+        decision_point="complete_cc_sweep:4",
+        cc_block_fe=40_000,
+        cc_utility=1.0e-7,
+        search_state_block_fe=30_000,
+        search_state_utility=2.0e-7,
+        required_utility_ratio=1.5,
+        state_action_fe=30_000,
+        cc_reserve_fe=300_000,
+        state_fingerprint_before="before",
+        state_fingerprint_after="after",
+        search_state_evidence=evidence,
+    )
+
+    assert row["trace_event"] == "probe"
+    assert row["remaining_budget_ratio"] == "2.000000e-01"
+    assert row["repair_lock_active"] == "0"
+    assert row["scheduler_phase"] == "initial_probe"
+    assert row["decision_point"] == "complete_cc_sweep:4"
+    assert row["search_state_block_fe"] == "30000"
+    assert row["state_action_fe"] == "30000"
+    assert row["cc_reserve_fe"] == "300000"
+    assert row["state_fingerprint_before"] == "before"
+    assert row["state_fingerprint_after"] == "after"
+    assert row["search_state_non_coordinate_fraction"] == "7.500000e-01"
+    assert row["search_state_active_intervention_fraction"] == "1.000000e-01"
+    assert row["search_state_conflict_fraction"] == "2.500000e-01"
+    assert row["search_state_writeback_unstable"] == "1"
+    assert row["search_state_relative_writeback_max"] == "5.000000e-02"
+    assert row["search_state_relative_writeback_unstable"] == "0"
+    assert row["downstream_consumption_scope"] == "subsequent_outer_iterations"
+
+
+def test_build_action_trace_row_serializes_pre_hold_evidence_once() -> None:
+    runner = _load_runner_module()
+    evidence = runner.build_pre_hold_evidence(
+        phase_i_tail_utility=2.0e-6,
+        group_sizes=(3, 4, 5),
+        overlapping_elements=((1, 2), (2, 3), ()),
+        dimension=10,
+        remaining_fes=900_000,
+        max_fes=3_000_000,
+        scheduled_hold_fes=330_000,
+    )
+
+    row = runner.build_action_trace_row(
+        problem_id="R3",
+        seed=3,
+        outer_iter=0,
+        group_index=2,
+        selected_action_name=runner.CONTINUE_CANONICAL_CC,
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=0.0,
+        trace_event="decision",
+        pre_hold_evidence=evidence,
+    )
+
+    assert row["pre_hold_group_count"] == "3"
+    assert row["pre_hold_shared_variable_count"] == "3"
+    assert row["pre_hold_remaining_fes"] == "900000"
+    assert row["pre_hold_scheduled_hold_fes"] == "330000"
+    assert row["pre_hold_projected_held_group_fes"] == "190000"
 
 
 def test_build_action_trace_row_includes_relation_join_fields() -> None:
@@ -2515,6 +3848,143 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     assert policy_batch_sizes[:2] == [1, 2]
 
 
+def test_controller_v33_credits_writeback_before_next_group_optimizer(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    optimize_calls = {"count": 0}
+    registered_baselines: list[float] = []
+    observed_contexts: list[tuple[int, float]] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 4, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            optimize_calls["count"] += 1
+            self.problem["fitness_function"](
+                np.zeros((1, self.problem["ndim_problem"]))
+            )
+            best_by_call = {1: 500.0, 2: 900.0, 3: 950.0}
+            best_x = (
+                np.array([2.0, 0.0])
+                if optimize_calls["count"] == 2
+                else np.zeros(self.problem["ndim_problem"])
+            )
+            return {
+                "n_function_evaluations": 1,
+                "best_so_far_y": best_by_call.get(optimize_calls["count"], 1000.0),
+                "best_so_far_x": best_x,
+            }
+
+    original_register = (
+        runner.EvidenceActionControllerV31RunState.register_pending_action_trust
+    )
+    original_observe = (
+        runner.EvidenceActionControllerV31RunState.observe_pending_action_trust
+    )
+
+    def capture_register(self, **kwargs):
+        if kwargs["decision"] is not None:
+            registered_baselines.append(float(kwargs["pre_writeback_fitness"]))
+        return original_register(self, **kwargs)
+
+    def capture_observe(self, **kwargs):
+        fitness = kwargs.get(
+            "post_writeback_fitness",
+            kwargs.get("downstream_fitness"),
+        )
+        if self.pending_action_trust is not None:
+            observed_contexts.append((optimize_calls["count"], float(fitness)))
+        return original_observe(self, **kwargs)
+
+    def force_coordinate(*, relation, **_kwargs):
+        return runner.RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name="coordinate",
+            action_family="coordinate",
+            confidence=1.0,
+            trigger_reason="test_coordinate",
+        )
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2]], [[1], [2]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {
+            "dimension": 4,
+            "overlap_degree": 1,
+            "subgroups": [2, 2, 2],
+        },
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 1)
+    monkeypatch.setattr(runner, "uses_phase_rescue_during_run", lambda *args, **kwargs: False)
+    monkeypatch.setattr(runner, "select_relation_action_for_policy", force_coordinate)
+    monkeypatch.setattr(
+        runner.EvidenceActionControllerV31RunState,
+        "register_pending_action_trust",
+        capture_register,
+    )
+    monkeypatch.setattr(
+        runner.EvidenceActionControllerV31RunState,
+        "observe_pending_action_trust",
+        capture_observe,
+    )
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    trust_rows = [row for row in trace_rows if row["trust_key"]]
+    assert trust_rows
+    assert registered_baselines[0] == pytest.approx(900.0)
+    assert observed_contexts[0] == pytest.approx((2, 1000.0))
+    assert float(trust_rows[0]["trust_credit"]) == pytest.approx(-0.1)
+
+
 def test_run_problem_caps_aob_fitness_record_at_max_fes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -3186,6 +4656,327 @@ def test_run_problem_cc_harm_guarded_sep_refresh_protects_phase_i_and_runs_nda_c
     assert guarded_row["restart_candidate_best"] == "7.000000e+02"
 
 
+def test_controller_v31_runs_state_probe_then_confirmation_between_complete_cc_sweeps(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    call_order: list[str] = []
+
+    class FakeState:
+        def __init__(self, best: float, vector: np.ndarray) -> None:
+            self.best_so_far_y = best
+            self.best_so_far_x = vector.copy()
+            self.recent_best = [(0, 1000.0), (20, 900.0)]
+            self.n_individuals = 4
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, _fun_name: str, _fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, _fun_name: str, _fun_id: int):
+            return {"dimension": 5, "lower": -5.0, "upper": 5.0}
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+            self.block_count = 0
+
+        def optimize(self):
+            raise AssertionError("controller v31 must preserve resumable MMES state")
+
+        def optimize_with_state(self):
+            call_order.append("phase_i")
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget, self.problem["ndim_problem"]))
+            )
+            state = FakeState(900.0, np.zeros(self.problem["ndim_problem"]))
+            return (
+                {
+                    "n_function_evaluations": budget,
+                    "best_so_far_y": state.best_so_far_y,
+                    "best_so_far_x": state.best_so_far_x.copy(),
+                },
+                state,
+            )
+
+        def run_block(self, state, requested_fes):
+            self.block_count += 1
+            stage = "probe" if self.block_count == 1 else "confirmation"
+            call_order.append(stage)
+            self.problem["fitness_function"](
+                np.zeros((requested_fes, self.problem["ndim_problem"]))
+            )
+            candidate_best = 900.0 - 100.0 * self.block_count
+            next_state = FakeState(
+                candidate_best,
+                np.full(self.problem["ndim_problem"], float(self.block_count)),
+            )
+            return type(
+                "FakeBlock",
+                (),
+                {
+                    "state": next_state,
+                    "best_before": float(state.best_so_far_y),
+                    "best_after": candidate_best,
+                    "actual_fes": requested_fes,
+                    "requested_fes": requested_fes,
+                    "unused_fes": 0,
+                    "normalized_utility": max(
+                        0.0,
+                        float(state.best_so_far_y) - candidate_best,
+                    )
+                    / (max(abs(float(state.best_so_far_y)), 1.0) * requested_fes),
+                    "termination_reason": "block_complete",
+                },
+            )()
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            call_order.append(
+                "legacy_rescue"
+                if self.options.get("arac_search_state_action")
+                else "cc"
+            )
+            budget = min(4, self.options["max_function_evaluations"])
+            self.problem["fitness_function"](
+                np.zeros((budget, self.problem["ndim_problem"]))
+            )
+            return {
+                "n_function_evaluations": budget,
+                "best_so_far_y": 900.0,
+                "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+                "mean": np.zeros(self.problem["ndim_problem"]),
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda _fun_id, data_root=None: [[0, 1], [1, 2], [2, 3], [3, 4]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2], [3]], [[1], [2], [3]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda _fun_id, data_root=None: {
+            "dimension": 5,
+            "overlap_degree": 1,
+            "subgroups": [2, 2, 2, 2],
+        },
+    )
+    controller = runner.EvidenceActionControllerV31RunState(dense_overlap=False)
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree: controller,
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda _max_fes, _degree: 20)
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+
+    def fake_decisions(relations):
+        return [
+            runner.RelationActionDecision(
+                relation_id=relation.relation_id,
+                action_name="fallback",
+                action_family="fallback",
+                confidence=1.0,
+                trigger_reason="runtime_conflict_for_test",
+            )
+            for relation in relations
+        ]
+
+    monkeypatch.setattr(runner, "decide_actions_for_relations_v26", fake_decisions)
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "rastrigin",
+        3,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=400,
+            seed=3,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V31,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    assert call_order[:11] == [
+        "phase_i",
+        "cc",
+        "cc",
+        "cc",
+        "cc",
+        "probe",
+        "cc",
+        "cc",
+        "cc",
+        "cc",
+        "confirmation",
+    ]
+    assert "legacy_rescue" not in call_order
+    assert {
+        row["selected_action_name"] for row in trace_rows
+    }.isdisjoint(
+        {
+            "bounded_late_nda_refresh",
+            "cc_harm_guarded_sep_refresh",
+            "phase_rescue_multistart",
+        }
+    )
+    state_rows = [
+        row
+        for row in trace_rows
+        if row["selected_action_name"] == "resume_phase_i_search_state"
+    ]
+    assert [row["bipop_restart_mode"] for row in state_rows[:2]] == [
+        "probe",
+        "confirmation",
+    ]
+    assert state_rows[0]["scheduler_phase"] == "initial_probe"
+    assert state_rows[0]["decision_point"] == "complete_cc_sweep:0"
+    assert state_rows[0]["search_state_block_fe"] == "4"
+    assert state_rows[0]["state_action_fe"] == "4"
+    assert state_rows[0]["cc_reserve_fe"] == "40"
+    assert state_rows[0]["abstain_reason"] == ""
+    assert state_rows[0]["pre_hold_group_count"] == "4"
+    assert state_rows[0]["pre_hold_remaining_fes"] == "380"
+    assert state_rows[0]["pre_hold_scheduled_hold_fes"] == "44"
+    assert state_rows[0]["pre_hold_projected_unheld_group_fes"] == "95"
+    assert state_rows[0]["pre_hold_projected_held_group_fes"] == "84"
+    assert state_rows[1]["pre_hold_group_count"] == ""
+    assert controller.search_state_scheduler_state.intervention_fe <= 60
+
+
+def test_run_resumed_phase_i_state_block_rejects_worse_candidate_without_harming_guard() -> None:
+    runner = _load_runner_module()
+    assert hasattr(runner, "run_resumed_phase_i_state_block")
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            count = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([110.0] * count)
+            return [110.0] * count
+
+    class FakeState:
+        best_so_far_x = np.full(3, 9.0)
+        best_so_far_y = 110.0
+
+    class FakeOptimizer:
+        def __init__(self, fun) -> None:
+            self.fun = fun
+
+        def run_block(self, _state, requested_fes):
+            self.fun(np.zeros((requested_fes, 3)))
+            return type(
+                "FakeBlock",
+                (),
+                {
+                    "state": FakeState(),
+                    "actual_fes": requested_fes,
+                    "normalized_utility": 0.0,
+                },
+            )()
+
+    fun = FakeFunction()
+    guard = np.array([1.0, 2.0, 3.0])
+    next_state, accepted, candidate, fitness, block = (
+        runner.run_resumed_phase_i_state_block(
+            optimizer=FakeOptimizer(fun),
+            state=object(),
+            requested_fes=4,
+            guard_individual=guard,
+            guard_fitness=100.0,
+            fun=fun,
+        )
+    )
+
+    assert isinstance(next_state, FakeState)
+    assert accepted is False
+    assert np.array_equal(candidate, guard)
+    assert fitness == 100.0
+    assert block.actual_fes == 4
+    assert np.array_equal(guard, np.array([1.0, 2.0, 3.0]))
+
+
+def test_controller_v31_does_not_use_legacy_phase_rescue_path() -> None:
+    runner = _load_runner_module()
+
+    assert runner.uses_phase_rescue_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V3,
+        evidence_controller_search_state_enabled=True,
+    )
+    assert not runner.uses_phase_rescue_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V31,
+        evidence_controller_search_state_enabled=True,
+    )
+
+
+def test_controller_v32_uses_group_local_phase_rescue_without_stale_state_resume() -> None:
+    runner = _load_runner_module()
+
+    assert runner.uses_phase_rescue_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V32,
+        evidence_controller_search_state_enabled=True,
+    )
+    assert not runner.uses_resumable_phase_i_state_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V32,
+    )
+
+
+def test_stage_fe_uses_objective_observed_count_when_fitness_record_exists() -> None:
+    runner = _load_runner_module()
+
+    class Objective:
+        fitness_record = [1.0] * 17
+
+    assert runner.observed_optimizer_fe(
+        Objective(),
+        evaluations_before=10,
+        optimizer_reported_fe=500,
+    ) == 7
+
+
+def test_stage_fe_falls_back_to_optimizer_report_without_fitness_record() -> None:
+    runner = _load_runner_module()
+
+    assert runner.observed_optimizer_fe(
+        object(),
+        evaluations_before=0,
+        optimizer_reported_fe=23,
+    ) == 23
+
+
 def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -3200,10 +4991,10 @@ def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
         def optimize(self):
             options_seen.append(dict(self.options))
             budget = self.options["max_function_evaluations"]
-            x_batch = np.zeros((budget, self.problem["ndim_problem"]))
+            x_batch = np.zeros((budget + 1, self.problem["ndim_problem"]))
             self.problem["fitness_function"](x_batch)
             return {
-                "n_function_evaluations": budget,
+                "n_function_evaluations": budget + 1,
                 "best_so_far_y": 900.0,
                 "best_so_far_x": np.full(self.problem["ndim_problem"], 9.0),
                 "mean": np.full(self.problem["ndim_problem"], 2.0),
@@ -3245,8 +5036,164 @@ def test_cc_harm_guarded_nda_continuation_rejects_worse_candidate(
     assert np.allclose(candidate, guard)
     assert guarded_best == 800.0
     assert candidate_best == 900.0
-    assert refresh_fes == 20
+    assert refresh_fes == 17
     assert options_seen[0]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
+
+
+def test_guarded_nda_continuation_honors_requested_budget_and_legacy_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    options_seen: list[dict] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([700.0] * batch_size)
+            return [700.0] * batch_size
+
+    class FakeMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            options_seen.append(dict(self.options))
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget + 1, self.problem["ndim_problem"]))
+            )
+            return {
+                "n_function_evaluations": budget + 1,
+                "best_so_far_y": 700.0,
+                "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+            }
+
+    monkeypatch.setattr(runner, "MMES", FakeMMES)
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+
+    accepted, _candidate, best, used, candidate_best = (
+        runner.run_guarded_nda_continuation(
+            fun=FakeFunction(),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=4,
+            guard_individual=np.ones(3),
+            guard_fitness=800.0,
+            remaining_fes=40,
+            requested_fes=20,
+        )
+    )
+
+    assert accepted is True
+    assert best == 700.0
+    assert candidate_best == 700.0
+    assert used == 17
+    assert options_seen[0]["max_function_evaluations"] == 16
+    assert options_seen[0]["arac_search_state_action"] == "cc_harm_guarded_sep_refresh"
+    assert options_seen[0]["seed_rng"] == runner.derive_optimizer_seed(
+        7, "rastrigin", 3, 5, 23011
+    )
+
+
+def test_guarded_nda_continuation_rejects_nonfinite_optimizer_output(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+
+    class InvalidMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            return {
+                "n_function_evaluations": 4,
+                "best_so_far_y": float("nan"),
+                "best_so_far_x": np.zeros(3),
+            }
+
+    monkeypatch.setattr(runner, "MMES", InvalidMMES)
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+
+    with pytest.raises(RuntimeError, match="guarded NDA returned non-finite fitness"):
+        runner.run_guarded_nda_continuation(
+            fun=lambda _vector: [1.0],
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=4,
+            guard_individual=np.ones(3),
+            guard_fitness=800.0,
+            remaining_fes=40,
+            requested_fes=20,
+        )
+
+
+def test_guarded_nda_continuation_uses_objective_fe_when_backend_reports_one_extra(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([700.0] * batch_size)
+            return [700.0] * batch_size
+
+    class OffByOneMMES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            budget = self.options["max_function_evaluations"]
+            self.problem["fitness_function"](
+                np.zeros((budget + 1, self.problem["ndim_problem"]))
+            )
+            return {
+                "n_function_evaluations": budget + 1,
+                "best_so_far_y": 700.0,
+                "best_so_far_x": np.zeros(self.problem["ndim_problem"]),
+            }
+
+    monkeypatch.setattr(runner, "MMES", OffByOneMMES)
+    monkeypatch.setattr(
+        runner, "calculate_cmaes_population_size", lambda _dimension: 4
+    )
+
+    accepted, _candidate, best, used, candidate_best = (
+        runner.run_guarded_nda_continuation(
+            fun=FakeFunction(),
+            info={"dimension": 3, "lower": -5.0, "upper": 5.0},
+            config=runner.SmokeConfig(max_fes=100, seed=7, verbose=0),
+            fun_name="rastrigin",
+            fun_id=3,
+            outer_iter=4,
+            guard_individual=np.ones(3),
+            guard_fitness=800.0,
+            remaining_fes=40,
+            requested_fes=20,
+        )
+    )
+
+    assert accepted is True
+    assert best == 700.0
+    assert candidate_best == 700.0
+    assert used == 17
 
 
 def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_worse() -> None:
@@ -3268,7 +5215,7 @@ def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_wor
         fun=WorseFunction(),
         info={"dimension": 3, "lower": -5.0, "upper": 5.0},
         config=runner.SmokeConfig(
-            max_fes=8,
+            max_fes=20,
             seed=1,
             verbose=0,
             arac_action="separable_cmaes_dispatch_action",
@@ -3277,12 +5224,12 @@ def test_direct_separable_cmaes_dispatch_keeps_incumbent_when_candidates_are_wor
         fun_id=5,
         initial_mean=initial_mean,
         incumbent_fitness=1.0,
-        max_function_evaluations=8,
+        max_function_evaluations=20,
     )
 
     assert result["best_so_far_y"] == 1.0
     np.testing.assert_allclose(result["best_so_far_x"], initial_mean)
-    assert result["n_function_evaluations"] == 8
+    assert result["n_function_evaluations"] == 20
 
 
 def test_run_problem_separable_cmaes_dispatch_uses_full_space_diagonal_backend(
@@ -3957,6 +5904,7 @@ def test_run_problem_source_budget_accounting_matches_hcc_reported_fes(
             "cc_phase_fe": "21",
             "rescue_fe": "0",
             "refresh_fe": "0",
+            "search_state_fe": "0",
             "separable_continuation_fe": "0",
             "overhead_fe": "3",
         }
@@ -4128,7 +6076,11 @@ def test_conservative_fallback_matches_default_hcc_smoke_behavior(tmp_path: Path
     if os.environ.get("ARAC_RUN_HCC_SMOKE") != "1":
         pytest.skip("set ARAC_RUN_HCC_SMOKE=1 to run the HCC subprocess smoke")
 
-    from arac.backends.hcc import HccAobExecutionRequest, run_hcc_aob_smoke_execution
+    from arac.backends.hcc import (
+        HCC_VENDOR_ROOT,
+        HccAobExecutionRequest,
+        run_hcc_aob_smoke_execution,
+    )
 
     python_executable = (
         r"C:\Users\83718\.cache\codex-runtimes\codex-primary-runtime\dependencies"
@@ -4138,7 +6090,7 @@ def test_conservative_fallback_matches_default_hcc_smoke_behavior(tmp_path: Path
         "problem_id": "E2",
         "seed": 1,
         "max_fes": 2_000,
-        "hcc_root": Path("E:/HCC-main"),
+        "hcc_root": HCC_VENDOR_ROOT,
         "python_executable": python_executable,
     }
     default_result = run_hcc_aob_smoke_execution(

@@ -1,17 +1,84 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
-from arac.action_space import ActionFamily
+from arac.actions import ActionFamily
+from arac.backends import hcc as hcc_backend
 from arac.backends.hcc import (
     HccBackboneSnapshot,
     HccGroupSignal,
+    build_hcc_action_execution_plan,
     build_hcc_evidence_profile,
     hcc_backend_semantics_for,
     load_hcc_aob_topology,
 )
 from arac.evidence import validate_runtime_payload
-from arac.policy import ActionDecision
+from arac.actions import ActionDecision
+
+
+def test_explicit_vendor_root_resolves_hcc_source_boundary(tmp_path: Path) -> None:
+    vendor_root = tmp_path / "repo" / "vendor" / "hcc"
+    (vendor_root / "AOB").mkdir(parents=True)
+    (vendor_root / "HCC").mkdir()
+    runner = tmp_path / "repo" / "scripts" / "hcc_smoke_runner.py"
+    runner.parent.mkdir()
+    runner.write_text("# test runner\n", encoding="utf-8")
+
+    paths = hcc_backend.resolve_hcc_vendor_paths(
+        vendor_root,
+        repo_root=tmp_path / "repo",
+    )
+
+    assert paths.vendor_root == vendor_root.resolve()
+    assert paths.aob_root == vendor_root.resolve() / "AOB"
+    assert paths.hcc_root == vendor_root.resolve() / "HCC"
+    assert paths.aob_data_root == vendor_root.resolve() / "AOB" / "AOBG" / "datafile"
+    assert paths.runner == runner.resolve()
+
+
+def test_vendor_root_requires_aob_hcc_and_explicit_runner_context(tmp_path: Path) -> None:
+    vendor_root = tmp_path / "vendor-copy"
+    vendor_root.mkdir()
+
+    with pytest.raises(FileNotFoundError, match="valid HCC vendor root.*AOB"):
+        hcc_backend.resolve_hcc_vendor_paths(
+            vendor_root,
+            runner_path=tmp_path / "runner.py",
+        )
+
+    (vendor_root / "AOB").mkdir()
+    with pytest.raises(FileNotFoundError, match="valid HCC vendor root.*HCC"):
+        hcc_backend.resolve_hcc_vendor_paths(
+            vendor_root,
+            runner_path=tmp_path / "runner.py",
+        )
+
+    (vendor_root / "HCC").mkdir()
+    with pytest.raises(ValueError, match="repo_root or runner_path"):
+        hcc_backend.resolve_hcc_vendor_paths(vendor_root)
+
+
+def test_external_hcc_main_root_is_rejected_as_offline_only(tmp_path: Path) -> None:
+    external_root = tmp_path / "HCC-main"
+    (external_root / "AOB").mkdir(parents=True)
+    (external_root / "HCC").mkdir()
+
+    with pytest.raises(ValueError, match="offline-only.*vendor root"):
+        hcc_backend.resolve_hcc_vendor_paths(
+            external_root,
+            runner_path=tmp_path / "hcc_smoke_runner.py",
+        )
+
+
+def test_shallow_invalid_vendor_root_never_leaks_index_error(tmp_path: Path) -> None:
+    shallow_root = tmp_path.anchor
+
+    with pytest.raises((ValueError, FileNotFoundError)) as exc_info:
+        hcc_backend.resolve_hcc_vendor_paths(shallow_root)
+
+    assert not isinstance(exc_info.value, IndexError)
 
 
 def test_hcc_snapshot_builds_reference_blind_evidence_profile() -> None:
@@ -216,6 +283,24 @@ def test_hcc_backend_semantics_stay_empty_without_optimizer_consumption() -> Non
     diff = hcc_backend_semantics_for(decision, optimizer_consumed=False)
 
     assert not diff.changed
+
+
+def test_hcc_backend_binds_resumed_phase_i_state_action() -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        "resume_phase_i_search_state",
+        "allow",
+        "runtime_state_evidence",
+        0.9,
+    )
+
+    plan = build_hcc_action_execution_plan("R3", decision)
+
+    assert plan.selected_action_family == "trajectory"
+    assert plan.backend_effect_kind == "resumable_mmes_state_block"
+    assert plan.optimizer_consumed is True
+    assert plan.execution_mode == "hcc_stateful_search_action"
+    assert plan.runtime_dispatch_allowed is True
 
 
 def test_hcc_snapshot_rejects_forbidden_outcome_fields() -> None:

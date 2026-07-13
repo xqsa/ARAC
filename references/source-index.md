@@ -32,7 +32,10 @@ Use these source files only as references, not as code to copy wholesale.
 
 - `C:\Users\83718\Desktop\前沿\Two-Phase CC.pdf`
   - Source of the AOB protocol and Table 2 paper-reported baselines. The current
-    clean anchor is `references/paper_reported_table2_hcc_es.csv`.
+    HCC-ES anchor is `references/paper_reported_table2_hcc_es.csv`. The complete
+    24-case best mean across all Table 2 algorithms is
+    `references/paper_reported_table2_best_by_case.csv`; both files are strictly
+    offline evaluation inputs.
 
 - `E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt`
   - Historical HCC-main run evidence recovered by

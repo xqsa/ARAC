@@ -53,7 +53,7 @@ def _fake_result(request: HccAobExecutionRequest) -> HccAobExecutionResult:
 
 
 def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         DEFAULT_MAX_FES,
         DEFAULT_PROBLEMS,
         DEFAULT_SEEDS,
@@ -113,6 +113,8 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
     assert "BLAS:" in manifest
     assert "Thread environment:" in manifest
     assert "MMES optimizer sha256:" in manifest
+    assert "search-state policy sha256:" in manifest
+    assert "MMES state model sha256:" in manifest
     assert "CMAES optimizer sha256:" in manifest
     assert "AOB input hashes: aob_input_manifest.csv" in manifest
     assert "- same-budget violations: 0/39" in manifest
@@ -121,9 +123,20 @@ def test_exp_005_defaults_to_3m_fe_3_seed_canonical_single_lane(tmp_path: Path) 
     assert len(input_rows) == 39
     assert {row["unchanged"] for row in input_rows} == {"1"}
 
+    best_rows = _read_csv(output / "best_of_three_vs_paper_best.csv")
+    assert best_rows
+    assert set(best_rows[0]) == {
+        "problem_id",
+        "seed_count",
+        "best_error",
+        "paper_best",
+        "best_of_three_win",
+    }
+    assert {row["seed_count"] for row in best_rows} == {"3"}
+
 
 def test_final_protocol_environment_gate_reports_every_mismatch() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         PINNED_FINAL_PROTOCOL_ENVIRONMENT,
         _final_protocol_environment_failures,
     )
@@ -143,7 +156,7 @@ def test_final_protocol_environment_gate_reports_every_mismatch() -> None:
 def test_final_protocol_rejects_environment_before_optimizer_execution(
     tmp_path: Path,
 ) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         PINNED_FINAL_PROTOCOL_ENVIRONMENT,
         run_hcc_final_protocol_pilot,
     )
@@ -174,6 +187,7 @@ def test_hcc_optional_dependencies_match_the_pinned_final_environment() -> None:
         pyproject = tomllib.load(handle)
 
     assert pyproject["project"]["optional-dependencies"]["hcc"] == [
+        "cma==4.4.4",
         "matplotlib==3.11.0",
         "numpy==2.3.5",
         "PyYAML==6.0.3",
@@ -183,7 +197,7 @@ def test_hcc_optional_dependencies_match_the_pinned_final_environment() -> None:
 
 
 def test_canonical_protocol_gate_rejects_input_fe_leakage_and_no_harm_failures() -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         _canonical_protocol_gate_failures,
     )
 
@@ -202,8 +216,67 @@ def test_canonical_protocol_gate_rejects_input_fe_leakage_and_no_harm_failures()
     ]
 
 
+def test_offline_paper_comparison_runs_only_after_execution_and_protocol_gate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from experiments.final.exp_005_hcc_final_protocol_pilot import run as final_protocol
+
+    events: list[str] = []
+    original_gate = final_protocol._canonical_protocol_gate_failures
+
+    def tracked_runner(request: HccAobExecutionRequest) -> HccAobExecutionResult:
+        events.append(f"execute:{request.seed}")
+        return _fake_result(request)
+
+    def tracked_gate(**kwargs):
+        events.append("protocol_gate")
+        return original_gate(**kwargs)
+
+    def tracked_offline_comparison(output_dir: Path, _matrix: Path) -> Path:
+        events.append("offline_comparison")
+        output_path = output_dir / "best_of_three_vs_paper_best.csv"
+        output_path.write_text(
+            "problem_id,seed_count,best_error,paper_best,best_of_three_win\n",
+            encoding="utf-8",
+        )
+        return output_path
+
+    monkeypatch.setattr(
+        final_protocol,
+        "_canonical_protocol_gate_failures",
+        tracked_gate,
+    )
+    monkeypatch.setattr(
+        final_protocol,
+        "_write_best_of_three_vs_paper_best",
+        tracked_offline_comparison,
+    )
+
+    final_protocol.run_hcc_final_protocol_pilot(
+        output_dir=tmp_path / "ordered",
+        execution_runner=tracked_runner,
+        environment_probe=lambda _python: dict(
+            final_protocol.PINNED_FINAL_PROTOCOL_ENVIRONMENT
+        ),
+        problem_ids=("R3",),
+        seeds=(1, 2, 3),
+        jobs=1,
+        paper_best_matrix=tmp_path / "offline-only.csv",
+    )
+
+    gate_index = events.index("protocol_gate")
+    comparison_index = events.index("offline_comparison")
+    assert all(
+        index < gate_index
+        for index, event in enumerate(events)
+        if event.startswith("execute:")
+    )
+    assert gate_index < comparison_index
+
+
 def test_exp_005_writes_aob_protocol_audit(tmp_path: Path) -> None:
-    from experiments.exp_005_hcc_final_protocol_pilot.run import (
+    from experiments.final.exp_005_hcc_final_protocol_pilot.run import (
         PINNED_FINAL_PROTOCOL_ENVIRONMENT,
         run_hcc_final_protocol_pilot,
     )

@@ -25,13 +25,13 @@ catastrophic-loss audits.
 
 ## What This Folder Keeps
 
-- `docs/core-method.md`: clean research framing and contribution statements.
-- `docs/boundaries.md`: hard boundaries for runtime legality and claim levels.
+- `docs/design/core-method.md`: clean research framing and contribution statements.
+- `docs/design/boundaries.md`: hard boundaries for runtime legality and claim levels.
 - `docs/schemas.md`: truth-table schemas for evidence, decisions, execution,
   utility, and audits.
 - `docs/hcc-backbone-extraction.md`: first extraction contract between the HCC
   grouping/optimizer backbone and the ARAC evidence/action layer.
-- `docs/aob-final-evaluation-protocol.md`: AOB benchmark protocol, with the
+- `docs/protocols/aob-final-evaluation-protocol.md`: AOB benchmark protocol, with the
   current pilot fixed to 1 run and the final target left at 25 runs.
 - `references/paper_reported_table2_hcc_es.csv`: paper-reported HCC-ES Table 2
   anchor for evaluation-only comparison.
@@ -43,25 +43,31 @@ catastrophic-loss audits.
 - `docs/hcc-main-historical-results-audit.md`: audit summary showing which
   historical HCC-main rows beat paper-reported means without entering runtime
   dispatch.
+- `archive/failed-experiments/v33-late-stagnation-nda-takeover/`: concise
+  provenance record for the non-promoted v3.3 candidate; its implementation is
+  not part of stable runtime.
 - `src/arac/`: minimum Python skeleton for evidence extraction, action space,
-  policy mapping, backend adapter, evaluation, and audit.
+  policy mapping, backend adapter, evaluation, and audit. HCC execution remains
+  orchestrated by `backends/hcc.py`; pure action-plan, budget-parser, trace-reader,
+  and shared-writeback contracts live in the adjacent `hcc_*` modules.
 - `src/arac/benchmarks/binary_lsgo.py`: deterministic binary overlapping LSGO
   generator, objective evaluator, topology metadata, and the inherited 18-case
   standard suite. It remains independent of the continuous HCC CMA-ES/MMES
-  runner and is executed by the native backend in
-  `src/arac/backends/binary_lsgo.py`.
+  runner and is executed by `src/arac/backends/binary_lsgo.py`.
 - `configs/default.yaml`: minimal experiment contract.
 - `configs/aob_pilot.yaml`: current AOB first-look pilot contract.
 - `experiments/README.md`: how to structure future runs without returning to
   the old Mxx clutter.
-- `experiments/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
+- `experiments/pilots/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
   emits action, semantics, same-budget, leakage, paper-comparison, negative
   control, and catastrophic-loss audit tables.
-- `experiments/exp_003_hcc_runtime_consumer_smoke/`: E2 HCC utility smoke with
+- `experiments/pilots/exp_003_hcc_runtime_consumer_smoke/`: E2 HCC utility smoke with
   fallback, fixed repair, per-overlap-relation dispatch, and shuffled negative
   control lanes.
-- `experiments/exp_004_hcc_main_historical_result_recovery/`: read-only
+- `experiments/recovery/exp_004_hcc_main_historical_result_recovery/`: read-only
   recovery of historical `E:\HCC-main` result artifacts for offline comparison.
+- `experiments/final/exp_005_hcc_final_protocol_pilot/`: canonical v3.2 3M-FE
+  final-protocol pilot entrypoint with same-budget and anti-leakage gates.
 - `experiments/exp_009_binary_lsgo_arac_pilot/`: single-seed, same-budget
   execution of all 18 binary LSGO cases through native baseline, ARAC policy,
   and shuffled-evidence negative-control lanes. It is pilot evidence, not a
@@ -69,6 +75,8 @@ catastrophic-loss audits.
 - `experiments/exp_010_binary_lsgo_focused_3seed/`: focused three-seed binary
   LSGO protocol for F07-F09 and F14-F15. It evaluates pre-registered action
   frequency, no-harm, same-budget, runtime-boundary, and negative-control gates.
+- `experiments/exp_011_binary_lsgo_diagnostic/`: offline mechanism diagnosis
+  that separates proposal-operator capacity from policy triggering.
 - `references/source-index.md`: pointers to the original source evidence inside
   `E:\HCC-main`.
 

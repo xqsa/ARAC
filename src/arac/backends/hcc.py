@@ -9,24 +9,94 @@ HCC baseline.
 from __future__ import annotations
 
 import ast
-import csv
-import json
-import re
 import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from arac.action_space import ActionFamily
-from arac.backend_adapter import BackendSemanticsDiff
 from arac.evidence import EvidenceProfile, validate_runtime_payload
-from arac.policy import ActionDecision
 
-DEFAULT_HCC_MAIN_ROOT = Path("E:/HCC-main")
+from .hcc_budget import (
+    _parse_hcc_budget_summary,
+    _parse_hcc_budget_summary_final_fe,
+    _parse_hcc_evaluation_record,
+    _parse_hcc_evaluation_record_with_optimizer_final_fe,
+)
+from .hcc_plan import (
+    HCC_ACTION_EFFECTS,
+    HccActionExecutionPlan,
+    build_hcc_action_execution_plan,
+)
+from .hcc_shared_writeback import hcc_backend_semantics_for
+from .hcc_trace import _find_hcc_action_trace, _tail
+
+
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
-ARAC_HCC_SMOKE_RUNNER = ARAC_REPO_ROOT / "HCC_SRC" / "arac_hcc_smoke_runner.py"
-DEFAULT_AOB_DATA_ROOT = ARAC_REPO_ROOT / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+HCC_VENDOR_ROOT = (ARAC_REPO_ROOT / "vendor" / "hcc").resolve()
+
+
+@dataclass(frozen=True)
+class HccVendorPaths:
+    """Canonical HCC source paths derived from one explicit vendor root."""
+
+    vendor_root: Path
+    aob_root: Path
+    hcc_root: Path
+    aob_data_root: Path
+    runner: Path
+
+
+def resolve_hcc_vendor_paths(
+    vendor_root: Path | str,
+    *,
+    repo_root: Path | str | None = None,
+    runner_path: Path | str | None = None,
+) -> HccVendorPaths:
+    root = Path(vendor_root)
+    if not root.is_absolute():
+        root = ARAC_REPO_ROOT / root
+    root = root.resolve()
+    if root.name.casefold() == "hcc-main":
+        raise ValueError(
+            f"external HCC-main roots are offline-only and are not a vendor root: {root}"
+        )
+    for required_dir in ("AOB", "HCC"):
+        path = root / required_dir
+        if not path.is_dir():
+            raise FileNotFoundError(
+                f"not a valid HCC vendor root: {root}; missing {required_dir} directory"
+            )
+
+    if runner_path is not None:
+        runner = Path(runner_path)
+        if not runner.is_absolute():
+            runner = ARAC_REPO_ROOT / runner
+    elif repo_root is not None:
+        resolved_repo_root = Path(repo_root)
+        if not resolved_repo_root.is_absolute():
+            resolved_repo_root = ARAC_REPO_ROOT / resolved_repo_root
+        runner = resolved_repo_root / "scripts" / "hcc_smoke_runner.py"
+    elif root == HCC_VENDOR_ROOT:
+        runner = ARAC_REPO_ROOT / "scripts" / "hcc_smoke_runner.py"
+    else:
+        raise ValueError(
+            "non-canonical HCC vendor roots require an explicit repo_root or runner_path"
+        )
+    runner = runner.resolve()
+    if not runner.is_file():
+        raise FileNotFoundError(f"HCC smoke runner does not exist: {runner}")
+
+    return HccVendorPaths(
+        vendor_root=root,
+        aob_root=root / "AOB",
+        hcc_root=root / "HCC",
+        aob_data_root=root / "AOB" / "AOBG" / "datafile",
+        runner=runner,
+    )
+HCC_VENDOR_PATHS = resolve_hcc_vendor_paths(HCC_VENDOR_ROOT)
+ARAC_HCC_SMOKE_RUNNER = HCC_VENDOR_PATHS.runner
+DEFAULT_AOB_DATA_ROOT = HCC_VENDOR_PATHS.aob_data_root
 TOTAL_AOB_FE = 3_000_000
 AOB_FUNCTION_NAMES = {
     "E": "elliptic",
@@ -122,7 +192,7 @@ class HccAobCaseTopology:
 
 @dataclass(frozen=True)
 class HccAobSmokeCommand:
-    """Subprocess command for a bounded HCC-main smoke execution."""
+    """Subprocess command for a bounded canonical HCC vendor smoke execution."""
 
     argv: tuple[str, ...]
     cwd: Path
@@ -133,7 +203,7 @@ class HccAobExecutionRequest:
     """Request for a single AOB/HCC smoke execution.
 
     Full 3M-FE, 24-case pilots should be scheduled explicitly by experiment
-    code. This request is intentionally single-case to keep HCC-main execution
+    code. This request is intentionally single-case to keep canonical HCC vendor execution
     bridged through a narrow, auditable boundary.
     """
 
@@ -141,7 +211,7 @@ class HccAobExecutionRequest:
     seed: int
     max_fes: int
     output_dir: Path
-    hcc_root: Path = DEFAULT_HCC_MAIN_ROOT
+    hcc_root: Path = HCC_VENDOR_ROOT
     aob_data_root: Path = DEFAULT_AOB_DATA_ROOT
     python_executable: str = "python"
     timestamp: str = "arac-hcc-smoke"
@@ -154,6 +224,9 @@ class HccAobExecutionRequest:
     cmaes_restart: bool = True
     mmes_restart: bool = True
     skip_plots: bool = False
+    search_state_backend: str = "phase_i_mmes"
+    hcc_repo_root: Path | None = None
+    hcc_runner: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -179,6 +252,7 @@ class HccAobExecutionResult:
     cc_phase_fe: int | None = None
     rescue_fe: int | None = None
     refresh_fe: int | None = None
+    search_state_fe: int | None = None
     separable_continuation_fe: int | None = None
     overhead_fe: int | None = None
 
@@ -208,222 +282,6 @@ class HccAobExecutionResult:
         }
 
 
-@dataclass(frozen=True)
-class HccActionExecutionPlan:
-    """Audit row describing whether an ARAC action reaches HCC runtime."""
-
-    problem_id: str
-    selected_action_name: str
-    selected_action_family: str
-    backend_effect_kind: str
-    optimizer_consumed: bool
-    optimizer_consumed_parameters: dict[str, object]
-    execution_mode: str
-    blocker_reason: str
-    runtime_dispatch_allowed: bool
-
-    def to_csv_row(self) -> dict[str, str]:
-        return {
-            "problem_id": self.problem_id,
-            "selected_action_name": self.selected_action_name,
-            "selected_action_family": self.selected_action_family,
-            "backend_effect_kind": self.backend_effect_kind,
-            "optimizer_consumed": "1" if self.optimizer_consumed else "0",
-            "optimizer_consumed_parameters": _format_json_parameters(
-                self.optimizer_consumed_parameters
-            ),
-            "execution_mode": self.execution_mode,
-            "blocker_reason": self.blocker_reason,
-            "runtime_dispatch_allowed": "1" if self.runtime_dispatch_allowed else "0",
-        }
-
-
-HCC_ACTION_EFFECTS = {
-    "conservative_no_action": (
-        "no_op_safe_fallback",
-        {"backend": "repo_default_hcc_no_action"},
-        "hcc_noop_baseline",
-        True,
-        "",
-    ),
-    "isolate_conflicting_relation": (
-        "shared_variable_value_selection",
-        {"runtime_hook": "overlap_value_selection_rule"},
-        "hcc_relation_value_selection_consumed",
-        True,
-        "",
-    ),
-    "protect_high_margin_group": (
-        "protect_resource_priority",
-        {},
-        "audit_only_not_executed",
-        False,
-        "no_hcc_runtime_consumer_yet",
-    ),
-    "budget_shift_mean_blend": (
-        "optimizer_budget_and_mean_trajectory",
-        {"runtime_hook": "budget_shift_mean_blend"},
-        "hcc_trajectory_runtime_consumed",
-        True,
-        "",
-    ),
-    "bipop_search_state_restart": (
-        "optimizer_search_state_restart",
-        {"runtime_hook": "bipop_search_state_restart"},
-        "hcc_search_state_runtime_consumed",
-        True,
-        "",
-    ),
-    "phase_rescue_multistart": (
-        "optimizer_phase_rescue_multistart",
-        {
-            "runtime_hook": "phase_rescue_multistart",
-            "acceptance_rule": "best_improving_candidate_only",
-        },
-        "hcc_phase_rescue_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_phase_rescue_multistart": (
-        "repair_guided_phase_rescue_multistart",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "search_state_runtime_hook": "phase_rescue_multistart",
-            "acceptance_rule": "best_improving_candidate_only",
-        },
-        "hcc_repair_phase_rescue_runtime_consumed",
-        True,
-        "",
-    ),
-    "cc_harm_guarded_sep_refresh": (
-        "cc_harm_guarded_sep_or_nda_refresh",
-        {
-            "runtime_hook": "cc_harm_guarded_sep_refresh",
-            "guard": "phase_i_or_current_incumbent_no_harm",
-            "refresh_backend": "full_space_mmes_nda_continuation",
-            "acceptance_rule": "guarded_incumbent_improving_candidate_only",
-        },
-        "hcc_cc_harm_guarded_refresh_runtime_consumed",
-        True,
-        "",
-    ),
-    "separable_cmaes_dispatch_action": (
-        "full_space_diagonal_separable_search_takeover",
-        {
-            "runtime_hook": "separable_cmaes_dispatch_action",
-            "backend": "direct_separable_cmaes",
-            "search_distribution": "diagonal_sigma_full_space",
-            "acceptance_rule": "optimizer_best_so_far",
-        },
-        "hcc_direct_separable_cmaes_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v1": (
-        "evidence_action_runtime_controller",
-        {
-            "relation_runtime_hook": "adaptive_v26_relation_dispatch",
-            "overlap_runtime_hook": "evidence_triggered_overlap_action",
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-                "cc_harm_guarded_sep_refresh",
-            ],
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v2": (
-        "evidence_action_runtime_controller_v2",
-        {
-            "relation_runtime_hook": "adaptive_v24_relation_dispatch",
-            "overlap_runtime_hook": "relation_first_evidence_triggered_overlap_action",
-            "search_state_runtime_hooks": [],
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v2_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v3": (
-        "evidence_action_runtime_controller_v3",
-        {
-            "relation_runtime_hook": "controller_v3_relation_dispatch",
-            "mode_selector": "early_runtime_overlap_relation_evidence",
-            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-                "cc_harm_guarded_sep_refresh",
-            ],
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v3_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v31": (
-        "evidence_action_runtime_controller_v31",
-        {
-            "relation_runtime_hook": "controller_v31_guarded_relation_dispatch",
-            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
-            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-                "cc_harm_guarded_sep_refresh",
-            ],
-            "guard": "stable_relation_first_no_harm_gate",
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v31_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_bipop_search_state_restart": (
-        "repair_guided_optimizer_search_state_restart",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "search_state_runtime_hook": "bipop_search_state_restart",
-        },
-        "hcc_repair_bipop_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_protect_refine": (
-        "repair_guided_local_refinement",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "optimizer_runtime_hook": "protected_small_sigma_refine",
-        },
-        "hcc_repair_refine_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_protect_deep_refine": (
-        "repair_guided_deep_local_refinement",
-        {
-            "overlap_runtime_hook": "overlap_repair_rule",
-            "optimizer_runtime_hook": "protected_deep_sigma_refine",
-        },
-        "hcc_repair_deep_refine_runtime_consumed",
-        True,
-        "",
-    ),
-    "repair_shared_variable_binding": (
-        "shared_variable_owner_rebinding",
-        {"runtime_hook": "overlap_repair_rule"},
-        "hcc_smoke_runtime_consumed",
-        True,
-        "",
-    ),
-    "allow_beneficial_coordination": (
-        "coordination_mode_switch",
-        {"runtime_hook": "overlap_clipped_consensus_blend"},
-        "hcc_relation_runtime_consumed",
-        True,
-        "",
-    ),
-}
 
 
 def _clamp_ratio(value: float) -> float:
@@ -436,8 +294,17 @@ def _safe_divide(numerator: float, denominator: float) -> float:
     return numerator / denominator
 
 
-def _datafile_dir(hcc_root: Path) -> Path:
-    return hcc_root / "HCC_SRC" / "AOB" / "AOBG" / "datafile"
+def _datafile_dir(
+    hcc_root: Path,
+    *,
+    hcc_repo_root: Path | None = None,
+    hcc_runner: Path | None = None,
+) -> Path:
+    return resolve_hcc_vendor_paths(
+        hcc_root,
+        repo_root=hcc_repo_root,
+        runner_path=hcc_runner,
+    ).aob_data_root
 
 
 def _parse_aob_info(path: Path) -> dict[str, object]:
@@ -542,13 +409,20 @@ def _problem_parts(problem_id: str) -> tuple[str, str, int]:
 
 def load_hcc_aob_topology(
     problem_id: str,
-    hcc_root: Path | str = DEFAULT_HCC_MAIN_ROOT,
+    hcc_root: Path | str = HCC_VENDOR_ROOT,
     total_fes: int = TOTAL_AOB_FE,
+    *,
+    hcc_repo_root: Path | str | None = None,
+    hcc_runner: Path | str | None = None,
 ) -> HccAobCaseTopology:
     """Read source-grounded AOB/HCC grouping topology without optimizer execution."""
 
     problem, function_name, function_id = _problem_parts(problem_id)
-    data_dir = _datafile_dir(Path(hcc_root))
+    data_dir = _datafile_dir(
+        Path(hcc_root),
+        hcc_repo_root=None if hcc_repo_root is None else Path(hcc_repo_root),
+        hcc_runner=None if hcc_runner is None else Path(hcc_runner),
+    )
     info = _parse_aob_info(data_dir / f"F{function_id}-info.txt")
     permutation = _read_permutation(data_dir / f"F{function_id}-p.txt")
     topology_groups = _topology_groups(info, permutation)
@@ -581,38 +455,8 @@ def load_hcc_aob_topology(
         groups=group_signals,
     )
 
-
-def build_hcc_action_execution_plan(
-    problem_id: str,
-    decision: ActionDecision,
-) -> HccActionExecutionPlan:
-    """Describe whether an ARAC action is optimizer-consumed by HCC today."""
-
-    effect = HCC_ACTION_EFFECTS.get(decision.action_name)
-    if effect is None:
-        backend_effect_kind = "unknown_action"
-        parameters: dict[str, object] = {}
-        execution_mode = "audit_only_not_executed"
-        optimizer_consumed = False
-        blocker = "unknown_hcc_action_binding"
-    else:
-        backend_effect_kind, parameters, execution_mode, optimizer_consumed, blocker = effect
-
-    return HccActionExecutionPlan(
-        problem_id=_problem_parts(problem_id)[0],
-        selected_action_name=decision.action_name,
-        selected_action_family=decision.action_family.value,
-        backend_effect_kind=backend_effect_kind,
-        optimizer_consumed=bool(optimizer_consumed),
-        optimizer_consumed_parameters=dict(parameters),
-        execution_mode=execution_mode,
-        blocker_reason=blocker,
-        runtime_dispatch_allowed=bool(optimizer_consumed),
-    )
-
-
 def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeCommand:
-    """Build the subprocess command used to run HCC-main from its own cwd."""
+    """Build the subprocess command from the canonical HCC vendor boundary."""
 
     problem, function_name, function_id = _problem_parts(request.problem_id)
     if request.max_fes <= 0:
@@ -623,11 +467,24 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError("arac_action_file is not supported by the HCC smoke runner yet")
     if request.budget_accounting not in {"strict", "source"}:
         raise ValueError("budget_accounting must be 'strict' or 'source'")
-    aob_data_root = validate_aob_data_root(request.aob_data_root, function_id)
+    if request.search_state_backend not in {"phase_i_mmes", "diagonal_cma"}:
+        raise ValueError(
+            "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
+        )
+    vendor_paths = resolve_hcc_vendor_paths(
+        request.hcc_root,
+        repo_root=request.hcc_repo_root,
+        runner_path=request.hcc_runner,
+    )
+    requested_data_root = Path(request.aob_data_root)
+    if not requested_data_root.is_absolute():
+        requested_data_root = ARAC_REPO_ROOT / requested_data_root
+    aob_data_root = validate_aob_data_root(requested_data_root, function_id)
+    output_dir = _normalize_hcc_output_dir(request.output_dir)
 
     argv = [
         request.python_executable,
-        str(ARAC_HCC_SMOKE_RUNNER),
+        str(vendor_paths.runner),
         "--functions",
         function_name,
         "--ids",
@@ -637,7 +494,7 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         "--max-fes",
         str(request.max_fes),
         "--output-root",
-        str(request.output_dir),
+        str(output_dir),
         "--aob-data-root",
         str(aob_data_root),
         "--timestamp",
@@ -646,6 +503,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         request.arac_action,
         "--budget-accounting",
         request.budget_accounting,
+        "--search-state-backend",
+        request.search_state_backend,
     ]
     if request.enable_relation_dispatch:
         argv.append("--enable-relation-dispatch")
@@ -657,24 +516,37 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         argv.append("--no-mmes-restart")
     if request.skip_plots:
         argv.append("--skip-plots")
-    return HccAobSmokeCommand(argv=tuple(argv), cwd=Path(request.hcc_root))
+    return HccAobSmokeCommand(argv=tuple(argv), cwd=vendor_paths.vendor_root)
+
+
+def _normalize_hcc_output_dir(output_dir: Path | str) -> Path:
+    path = Path(output_dir)
+    if not path.is_absolute():
+        path = ARAC_REPO_ROOT / path
+    return path.resolve()
 
 
 def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecutionResult:
-    """Run one bounded HCC-main smoke execution and parse its offline result.
+    """Run one bounded canonical HCC vendor smoke execution and parse its offline result.
 
-    The subprocess is run with ``cwd=E:\\HCC-main`` because the historical AOB
-    benchmark uses relative data-file paths. Returned final-error fields are
-    offline evaluation outputs and must not be copied into runtime evidence.
+    The subprocess runs from the canonical ``vendor/hcc`` root. All executable
+    and AOB input paths are absolute, so execution does not depend on the caller's
+    current working directory. Returned final-error fields are offline evaluation
+    outputs and must not be copied into runtime evidence.
     """
 
+    output_dir = _normalize_hcc_output_dir(request.output_dir)
     command = build_hcc_aob_smoke_command(
         HccAobExecutionRequest(
             problem_id=request.problem_id,
             seed=request.seed,
             max_fes=request.max_fes,
-            output_dir=Path(request.output_dir),
+            output_dir=output_dir,
             hcc_root=Path(request.hcc_root),
+            hcc_repo_root=(
+                None if request.hcc_repo_root is None else Path(request.hcc_repo_root)
+            ),
+            hcc_runner=None if request.hcc_runner is None else Path(request.hcc_runner),
             aob_data_root=Path(request.aob_data_root),
             python_executable=request.python_executable or sys.executable,
             timestamp=request.timestamp,
@@ -687,6 +559,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             cmaes_restart=request.cmaes_restart,
             mmes_restart=request.mmes_restart,
             skip_plots=request.skip_plots,
+            search_state_backend=request.search_state_backend,
         )
     )
     start = time.time()
@@ -706,7 +579,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             final_error=float("nan"),
             fe_used=0,
             time_seconds=elapsed,
-            output_root=Path(request.output_dir),
+            output_root=output_dir,
             fresh_optimizer_execution=False,
             status=f"failed_returncode_{completed.returncode}",
             result_source="hcc_subprocess_smoke_execution",
@@ -718,12 +591,12 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
 
     final_error, fe_used, optimizer_final_fe_used = (
         _parse_hcc_evaluation_record_with_optimizer_final_fe(
-            Path(request.output_dir),
+            output_dir,
             budget_limit=request.max_fes,
         )
     )
-    action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
-    budget_breakdown = _parse_hcc_budget_summary(Path(request.output_dir))
+    action_trace_path, action_trace_rows = _find_hcc_action_trace(output_dir)
+    budget_breakdown = _parse_hcc_budget_summary(output_dir)
     return HccAobExecutionResult(
         problem_id=_problem_parts(request.problem_id)[0],
         seed=request.seed,
@@ -731,7 +604,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         final_error=final_error,
         fe_used=fe_used,
         time_seconds=elapsed,
-        output_root=Path(request.output_dir),
+        output_root=output_dir,
         fresh_optimizer_execution=True,
         status="completed",
         result_source="hcc_subprocess_smoke_execution",
@@ -744,6 +617,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         cc_phase_fe=budget_breakdown.get("cc_phase_fe"),
         rescue_fe=budget_breakdown.get("rescue_fe"),
         refresh_fe=budget_breakdown.get("refresh_fe"),
+        search_state_fe=budget_breakdown.get("search_state_fe", 0),
         separable_continuation_fe=budget_breakdown.get(
             "separable_continuation_fe"
         ),
@@ -751,105 +625,6 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
     )
 
 
-def _parse_hcc_evaluation_record(
-    output_dir: Path,
-    budget_limit: int | None = None,
-) -> tuple[float, int]:
-    final_error, fe_used, _optimizer_final_fe_used = (
-        _parse_hcc_evaluation_record_with_optimizer_final_fe(
-            output_dir,
-            budget_limit=budget_limit,
-        )
-    )
-    return final_error, fe_used
-
-
-def _parse_hcc_evaluation_record_with_optimizer_final_fe(
-    output_dir: Path,
-    budget_limit: int | None = None,
-) -> tuple[float, int, int]:
-    records = sorted(Path(output_dir).rglob("evaluation_record.txt"))
-    if not records:
-        raise FileNotFoundError(f"missing HCC evaluation_record.txt under {output_dir}")
-    text = records[-1].read_text(encoding="utf-8", errors="replace")
-    final_match = re.search(
-        r"Fin:\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
-        text,
-    )
-    if not final_match:
-        raise ValueError(f"could not parse final HCC error from {records[-1]}")
-    optimizer_final_fe_used = _parse_hcc_budget_summary_final_fe(output_dir)
-    if optimizer_final_fe_used is None:
-        optimizer_final_fe_used = int(float(final_match.group("fe")))
-    if budget_limit is not None:
-        for checkpoint in re.finditer(
-            r"^\s*(?P<fe>[0-9.eE+-]+)\s+(?P<value>[0-9.eE+-]+)",
-            text,
-            flags=re.MULTILINE,
-        ):
-            fe = int(float(checkpoint.group("fe")))
-            if fe == budget_limit:
-                return float(checkpoint.group("value")), fe, optimizer_final_fe_used
-
-    return (
-        float(final_match.group("value")),
-        optimizer_final_fe_used,
-        optimizer_final_fe_used,
-    )
-
-
-def _parse_hcc_budget_summary_final_fe(output_dir: Path) -> int | None:
-    summary = _parse_hcc_budget_summary(output_dir)
-    for field in ("fitness_record_fe", "optimizer_reported_fe"):
-        if field in summary:
-            return summary[field]
-    return None
-
-
-def _parse_hcc_budget_summary(output_dir: Path) -> dict[str, int]:
-    summaries = sorted(Path(output_dir).rglob("*budget_summary.csv"))
-    if not summaries:
-        return {}
-    with summaries[-1].open(newline="", encoding="utf-8") as handle:
-        rows = list(csv.DictReader(handle))
-    if not rows:
-        return {}
-    row = rows[-1]
-    parsed: dict[str, int] = {}
-    for field in (
-        "fitness_record_fe",
-        "optimizer_reported_fe",
-        "global_phase_fe",
-        "cc_phase_fe",
-        "rescue_fe",
-        "refresh_fe",
-        "separable_continuation_fe",
-        "overhead_fe",
-    ):
-        value = row.get(field)
-        if value not in (None, ""):
-            parsed[field] = int(float(value))
-    return parsed
-
-
-def _find_hcc_action_trace(output_dir: Path) -> tuple[Path | None, int]:
-    traces = sorted(Path(output_dir).rglob("action_trace.csv"))
-    if not traces:
-        return None, 0
-    trace_path = traces[-1]
-    with trace_path.open(newline="", encoding="utf-8") as handle:
-        row_count = max(0, sum(1 for _ in handle) - 1)
-    return trace_path, row_count
-
-
-def _tail(text: str, max_chars: int = 2000) -> str:
-    return (text or "")[-max_chars:]
-
-
-def _format_json_parameters(parameters: dict[str, object]) -> str:
-    if not parameters:
-        return ""
-    return json.dumps(parameters, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
 
 def _rank_stability(groups: tuple[HccGroupSignal, ...]) -> float:
@@ -932,92 +707,3 @@ def build_hcc_evidence_profile(snapshot: HccBackboneSnapshot) -> EvidenceProfile
         budget_remaining_ratio=_clamp_ratio(snapshot.budget_remaining_ratio),
         fallback_margin_proxy=_clamp_ratio(1.0 - harmful_coord_score),
     )
-
-
-def hcc_backend_semantics_for(
-    decision: ActionDecision,
-    *,
-    optimizer_consumed: bool,
-) -> BackendSemanticsDiff:
-    """Map clean ARAC actions onto HCC optimizer-consumed semantic surfaces."""
-
-    if not optimizer_consumed:
-        return BackendSemanticsDiff()
-    if decision.action_family == ActionFamily.ISOLATE:
-        return BackendSemanticsDiff(relation_handling_changed=True)
-    if decision.action_family == ActionFamily.PROTECT:
-        return BackendSemanticsDiff(budget_allocation_changed=True)
-    if decision.action_family == ActionFamily.REASSIGN_REPAIR:
-        return BackendSemanticsDiff(variable_owner_changed=True)
-    if decision.action_family == ActionFamily.COORDINATE:
-        return BackendSemanticsDiff(coordination_mode_changed=True)
-    if decision.action_family == ActionFamily.TRAJECTORY:
-        if decision.action_name in {"repair_protect_refine", "repair_protect_deep_refine"}:
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                budget_allocation_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name in {
-            "repair_bipop_search_state_restart",
-            "repair_phase_rescue_multistart",
-        }:
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "cc_harm_guarded_sep_refresh":
-            return BackendSemanticsDiff(
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "separable_cmaes_dispatch_action":
-            return BackendSemanticsDiff(
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "arac_evidence_action_controller_v1":
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "arac_evidence_action_controller_v2":
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-            )
-        if decision.action_name == "arac_evidence_action_controller_v3":
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name == "arac_evidence_action_controller_v31":
-            return BackendSemanticsDiff(
-                variable_owner_changed=True,
-                relation_handling_changed=True,
-                coordination_mode_changed=True,
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        if decision.action_name in {"bipop_search_state_restart", "phase_rescue_multistart"}:
-            return BackendSemanticsDiff(
-                budget_allocation_changed=True,
-                update_order_changed=True,
-                acceptance_rule_changed=True,
-            )
-        return BackendSemanticsDiff(budget_allocation_changed=True)
-    return BackendSemanticsDiff()

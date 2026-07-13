@@ -1,8 +1,9 @@
 from pathlib import Path
 import csv
+import pytest
 
-from arac.backends.hcc import HccAobExecutionRequest, HccAobExecutionResult
-from experiments.exp_002_aob_1run_pilot.run import main, run_aob_1run_pilot
+from arac.backends.hcc import HCC_VENDOR_ROOT, HccAobExecutionRequest, HccAobExecutionResult
+from experiments.pilots.exp_002_aob_1run_pilot.run import main, parse_args, run_aob_1run_pilot
 
 
 def test_aob_pilot_writes_one_run_truth_tables(tmp_path: Path) -> None:
@@ -30,6 +31,24 @@ def test_aob_pilot_marks_oracle_and_reported_baselines_offline_only(tmp_path: Pa
 
     assert 'paper-reported evaluation-only baselines' in comparison
     assert 'must not enter runtime dispatch' in manifest
+
+
+def test_exp_002_manifest_and_help_name_canonical_vendor_source(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    output_dir = run_aob_1run_pilot(tmp_path / 'pilot')
+    manifest = (output_dir / 'pilot_run_manifest.md').read_text(encoding='utf-8')
+
+    assert 'canonical vendor/hcc' in manifest
+    assert 'E:\\HCC-main' not in manifest
+
+    with pytest.raises(SystemExit):
+        parse_args(['--help'])
+    help_text = capsys.readouterr().out
+    assert 'canonical HCC vendor root' in help_text
+    assert 'through HCC-main' not in help_text
+    assert Path(parse_args([]).hcc_root) == HCC_VENDOR_ROOT
 
 
 def test_aob_pilot_writes_action_execution_plan_audit(tmp_path: Path) -> None:
@@ -148,6 +167,8 @@ def test_exp_002_cli_smoke_mode_runs_single_case_execution_overlay(
             '2000',
             '--python-executable',
             'python-test',
+            '--hcc-runner',
+            str(tmp_path / 'custom-runner.py'),
         ],
         execution_runner=fake_runner,
     )
@@ -157,6 +178,7 @@ def test_exp_002_cli_smoke_mode_runs_single_case_execution_overlay(
     assert requests[0].problem_id == 'E1'
     assert requests[0].max_fes == 2000
     assert requests[0].python_executable == 'python-test'
+    assert requests[0].hcc_runner == tmp_path / 'custom-runner.py'
     assert requests[0].output_dir.is_absolute()
     assert str(requests[0].output_dir).startswith(str((tmp_path / output_dir).resolve()))
 
