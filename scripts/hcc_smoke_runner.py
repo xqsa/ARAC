@@ -834,8 +834,12 @@ def trajectory_action_name_for_backend(config: SmokeConfig) -> str:
 def scheduled_search_state_hold_fes(
     config: SmokeConfig,
     state: SearchStateSchedulerState,
+    *,
+    overlap_edge_count: int | None = None,
 ) -> int:
     if not uses_scheduled_search_state(config) or state.phase == SEARCH_STATE_BLOCKED:
+        return 0
+    if overlap_edge_count is not None and int(overlap_edge_count) <= 0:
         return 0
     return int(
         math.ceil(
@@ -2658,6 +2662,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         guarded_incumbent_fitness = float(fun(best_individual)[0])
 
     pre_hold_evidence_snapshot: PreHoldEvidence | None = None
+    overlap_edge_count = sum(1 for shared in overlapping_elements if shared)
     if controller_v31_run_state is not None:
         pre_hold_current_fes = (
             sum_fes
@@ -2680,6 +2685,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             scheduled_hold_fes=scheduled_search_state_hold_fes(
                 config,
                 controller_v31_run_state.search_state_scheduler_state,
+                overlap_edge_count=overlap_edge_count,
             ),
         )
 
@@ -2702,6 +2708,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             scheduled_search_state_hold_fes(
                 config,
                 controller_v31_run_state.search_state_scheduler_state,
+                overlap_edge_count=overlap_edge_count,
             )
             if controller_v31_run_state is not None
             else 0

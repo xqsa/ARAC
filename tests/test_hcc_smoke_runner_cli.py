@@ -749,6 +749,22 @@ def test_diagonal_scheduler_holds_only_next_action_block_and_cc_reserve() -> Non
     blocked = runner.SearchStateSchedulerState(phase=runner.SEARCH_STATE_BLOCKED)
 
     assert runner.scheduled_search_state_hold_fes(config, initial) == 330_000
+    assert (
+        runner.scheduled_search_state_hold_fes(
+            config,
+            initial,
+            overlap_edge_count=0,
+        )
+        == 0
+    )
+    assert (
+        runner.scheduled_search_state_hold_fes(
+            config,
+            initial,
+            overlap_edge_count=19,
+        )
+        == 330_000
+    )
     assert runner.scheduled_search_state_hold_fes(config, blocked) == 0
 
 

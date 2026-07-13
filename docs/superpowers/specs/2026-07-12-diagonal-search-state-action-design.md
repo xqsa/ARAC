@@ -160,6 +160,18 @@ outcomes, final error, and relative gain. A later admission rule may be
 proposed only if the evidence separates useful and harmful interventions
 across seeds without relying on final paper comparisons at runtime.
 
+The first audit establishes one hard structural gate without fitted
+thresholds: when Phase-I topology contains no overlap edge, no overlap-driven
+search-state intervention is reachable, so the scheduler must reserve zero FE.
+This prevents a structurally impossible action from changing the canonical CC
+allocation on separable cases. Positive-overlap cases keep the existing hold
+and remain under audit.
+
+The 3M-FE seed1 verification recorded zero hold and zero search-state FE for
+E1/R1. E1 recovered from `3.106604e6` with the unreachable hold to
+`2.207863e6`, while R1 remained `1.704316e5`. This gate is retained; it does
+not justify any positive-overlap admission threshold.
+
 Adoption requires preserving the existing 12/12 best-of-three wins, no FE
 overrun, clean anti-leakage, and no catastrophic loss. R3 improvement is
 reported separately and cannot compensate for a lost protected win.

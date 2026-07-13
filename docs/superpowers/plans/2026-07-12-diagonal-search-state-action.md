@@ -144,5 +144,28 @@ but the backend remains experimental because the preservation gate was only
   a focused experiment artifact test.
 - [x] Run focused tests, compile modified modules, run the full suite, and
   run `git diff --check`.
-- [ ] Run the protected 13-case set for one seed at 3M FE with parallel jobs,
+- [x] Run the protected 13-case set for one seed at 3M FE with parallel jobs,
   then inspect the audit fields offline before proposing an admission rule.
+
+**Task 6 runtime result:** all 13 seed1 lanes produced pre-hold evidence with
+clean FE and anti-leakage audits. E1/R1 had zero overlap edges but still held
+330k before this structural gate was added; positive-overlap cases remain
+unresolved and no fitted admission threshold is adopted.
+
+## Task 7: Gate Structurally Unreachable Holds
+
+**Files:**
+
+- Modify: `scripts/hcc_smoke_runner.py`
+- Modify: `tests/test_hcc_smoke_runner_cli.py`
+
+- [x] Add a failing test that zero overlap edges produce zero scheduled hold.
+- [x] Pass the Phase-I overlap-edge count into the hold boundary and preserve
+  the existing 330k hold for positive-overlap cases.
+- [x] Run the full test suite and verify E1/R1 at 3M FE with one seed.
+
+**Task 7 runtime result:** E1/R1 recorded zero hold, zero search-state FE, and
+budget-retention ratio 1.0 with clean FE and anti-leakage audits. E1 improved
+from `3.106604e6` under the unreachable hold to `2.207863e6`, matching the
+canonical v32 seed1 value `2.208219e6` within normal numerical variation. R1
+was unchanged at `1.704316e5` in this audit run.
