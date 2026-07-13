@@ -74,6 +74,13 @@ from src.arac.policy.action_trust_policy import (
     normalized_objective_credit,
     robust_damped_writeback,
 )
+from src.arac.policy.trajectory_guard import (
+    RecoveryCheckpoint,
+    RecoveryResolution,
+    make_recovery_checkpoint,
+    preempt_recovery_checkpoint,
+    resolve_recovery_checkpoint,
+)
 from src.arac.backends.diagonal_cma import (
     DiagonalCMAState,
     initialize_diagonal_cma_state,
@@ -481,10 +488,21 @@ class PendingActionTrustObservation:
 
 
 @dataclass
+class PendingTrajectoryRecovery:
+    checkpoint: RecoveryCheckpoint
+    trace_row: dict[str, str]
+    post_writeback_fitness: float | None = None
+
+
+@dataclass
 class EvidenceActionControllerV31RunState:
     dense_overlap: bool
     action_trust_policy: ActionTrustPolicy | None = field(default=None, repr=False)
     trajectory_guard_enabled: bool = False
+    pending_trajectory_recovery: PendingTrajectoryRecovery | None = field(
+        default=None,
+        repr=False,
+    )
     pending_action_trust: PendingActionTrustObservation | None = field(
         default=None,
         repr=False,
@@ -670,6 +688,104 @@ class EvidenceActionControllerV31RunState:
         pending.trace_row["trust_credit"] = ""
         pending.trace_row["trust_post_writeback_fitness"] = ""
         self.pending_action_trust = None
+
+    def register_pending_trajectory_guard(
+        self,
+        *,
+        candidate: np.ndarray,
+        pre_writeback_fitness: float,
+        trace_row: dict[str, str],
+    ) -> RecoveryCheckpoint | None:
+        if not self.trajectory_guard_enabled:
+            return None
+        if self.pending_trajectory_recovery is not None:
+            raise RuntimeError("trajectory recovery checkpoint is already pending")
+        checkpoint = make_recovery_checkpoint(candidate, pre_writeback_fitness)
+        self.pending_trajectory_recovery = PendingTrajectoryRecovery(
+            checkpoint=checkpoint,
+            trace_row=trace_row,
+        )
+        trace_row.update(
+            {
+                "trajectory_guard_status": "pending",
+                "trajectory_guard_pre_fitness": (
+                    f"{checkpoint.fitness:.17e}"
+                ),
+                "trajectory_guard_post_writeback_fitness": "",
+                "trajectory_guard_downstream_fitness": "",
+                "trajectory_guard_recovery_credit": "",
+                "trajectory_guard_restored": "",
+            }
+        )
+        return checkpoint
+
+    def observe_pending_trajectory_guard(
+        self,
+        *,
+        post_writeback_fitness: float,
+    ) -> float | None:
+        pending = self.pending_trajectory_recovery
+        if not self.trajectory_guard_enabled or pending is None:
+            return None
+        fitness = float(post_writeback_fitness)
+        if not math.isfinite(fitness):
+            raise ValueError("post-writeback fitness must be finite")
+        pending.post_writeback_fitness = fitness
+        pending.trace_row["trajectory_guard_post_writeback_fitness"] = (
+            f"{fitness:.17e}"
+        )
+        return fitness
+
+    def resolve_pending_trajectory_guard(
+        self,
+        *,
+        downstream_candidate: np.ndarray,
+        downstream_fitness: float,
+    ) -> RecoveryResolution | None:
+        pending = self.pending_trajectory_recovery
+        if not self.trajectory_guard_enabled or pending is None:
+            return None
+        if pending.post_writeback_fitness is None:
+            raise RuntimeError(
+                "trajectory recovery requires a post-writeback observation"
+            )
+        resolved = resolve_recovery_checkpoint(
+            pending.checkpoint,
+            downstream_candidate=downstream_candidate,
+            downstream_fitness=downstream_fitness,
+        )
+        pending.trace_row.update(
+            {
+                "trajectory_guard_status": resolved.status,
+                "trajectory_guard_downstream_fitness": (
+                    f"{float(downstream_fitness):.17e}"
+                ),
+                "trajectory_guard_recovery_credit": (
+                    ""
+                    if resolved.recovery_credit is None
+                    else f"{resolved.recovery_credit:.6e}"
+                ),
+                "trajectory_guard_restored": str(int(resolved.restored)),
+            }
+        )
+        self.pending_trajectory_recovery = None
+        return resolved
+
+    def preempt_pending_trajectory_guard(self) -> RecoveryResolution | None:
+        pending = self.pending_trajectory_recovery
+        if not self.trajectory_guard_enabled or pending is None:
+            return None
+        resolved = preempt_recovery_checkpoint(pending.checkpoint)
+        pending.trace_row.update(
+            {
+                "trajectory_guard_status": resolved.status,
+                "trajectory_guard_downstream_fitness": "",
+                "trajectory_guard_recovery_credit": "",
+                "trajectory_guard_restored": "1",
+            }
+        )
+        self.pending_trajectory_recovery = None
+        return resolved
 
 
 def build_evidence_action_controller_v31_run_state(
@@ -3247,6 +3363,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 controller_v31_run_state.observe_pending_action_trust(
                     post_writeback_fitness=original_fitness,
                 )
+                controller_v31_run_state.observe_pending_trajectory_guard(
+                    post_writeback_fitness=original_fitness,
+                )
             if config.budget_accounting == "source":
                 optimizer_budget = sub_fes
             else:
@@ -3632,6 +3751,28 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             best_after=best_candidate_y if rescue_accepted else post_primary_fitness,
                         )
                     )
+            if (
+                controller_v31_run_state is not None
+                and controller_v31_run_state.pending_trajectory_recovery is not None
+            ):
+                checkpoint_candidate = (
+                    controller_v31_run_state.pending_trajectory_recovery
+                    .checkpoint.candidate.copy()
+                )
+                resolved_recovery = (
+                    controller_v31_run_state.resolve_pending_trajectory_guard(
+                        downstream_candidate=best_individual,
+                        downstream_fitness=original_fitness - current_delta,
+                    )
+                )
+                if resolved_recovery is not None:
+                    best_individual = resolved_recovery.candidate.copy()
+                    original_best = checkpoint_candidate
+                    original_fitness = (
+                        resolved_recovery.fitness
+                        + resolved_recovery.effective_delta
+                    )
+                    current_delta = resolved_recovery.effective_delta
             fitness_delta_list.append(current_delta)
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
@@ -3777,6 +3918,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 controller_v31_run_state=controller_v31_run_state,
                             )
                         )
+                    trajectory_checkpoint_candidate = best_individual.copy()
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     overlap_writeback_norms.append(action_value_delta_norm)
@@ -3853,6 +3995,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             unstable=trust_unstable,
                             trace_row=action_trace_row,
                         )
+                        if trust_writeback_active:
+                            controller_v31_run_state.register_pending_trajectory_guard(
+                                candidate=trajectory_checkpoint_candidate,
+                                pre_writeback_fitness=(
+                                    original_fitness - current_delta
+                                ),
+                                trace_row=action_trace_row,
+                            )
                 else:
                     overlap_action_name = overlap_action_name_for_lane(config.arac_action)
                     current_overlap_values = best_individual[overlap_indices].copy()
@@ -4062,6 +4212,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 in {RESUME_PHASE_I_SEARCH_STATE, CONTINUE_DIAGONAL_SEARCH_STATE}
                 and state_plan.requested_fes > 0
             ):
+                preempted_recovery = (
+                    controller_v31_run_state.preempt_pending_trajectory_guard()
+                )
+                if preempted_recovery is not None:
+                    best_individual = preempted_recovery.candidate.copy()
                 controller_v31_run_state.invalidate_pending_action_trust(
                     "search_state_intervened_before_credit"
                 )
@@ -4309,6 +4464,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         outer_iter += 1
         if cc_harm_guard_consumed:
             break
+
+    if controller_v31_run_state is not None:
+        preempted_recovery = (
+            controller_v31_run_state.preempt_pending_trajectory_guard()
+        )
+        if preempted_recovery is not None:
+            best_individual = preempted_recovery.candidate.copy()
 
     problem_id = _problem_id(fun_name, fun_id)
     _write_overlap_relation_trace(

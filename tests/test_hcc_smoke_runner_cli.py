@@ -2778,6 +2778,139 @@ def test_controller_v33_invalidates_pending_credit_before_search_state_change() 
     assert trace_row["trust_credit"] == ""
 
 
+def test_v34_trajectory_guard_commits_after_downstream_recovery() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V34,
+    )
+    trace_row: dict[str, str] = {}
+
+    state.register_pending_trajectory_guard(
+        candidate=np.array([1.0, 2.0]),
+        pre_writeback_fitness=10.0,
+        trace_row=trace_row,
+    )
+    assert trace_row["trajectory_guard_status"] == "pending"
+    state.observe_pending_trajectory_guard(post_writeback_fitness=12.0)
+    resolved = state.resolve_pending_trajectory_guard(
+        downstream_candidate=np.array([3.0, 4.0]),
+        downstream_fitness=9.0,
+    )
+
+    assert resolved is not None
+    assert resolved.status == "committed"
+    assert resolved.restored is False
+    assert state.pending_trajectory_recovery is None
+    assert trace_row["trajectory_guard_status"] == "committed"
+    assert trace_row["trajectory_guard_pre_fitness"] == "1.00000000000000000e+01"
+    assert trace_row["trajectory_guard_post_writeback_fitness"] == (
+        "1.20000000000000000e+01"
+    )
+    assert trace_row["trajectory_guard_downstream_fitness"] == (
+        "9.00000000000000000e+00"
+    )
+    assert trace_row["trajectory_guard_recovery_credit"] == "1.000000e-01"
+    assert trace_row["trajectory_guard_restored"] == "0"
+
+
+def test_v34_trajectory_guard_restores_degraded_downstream_candidate() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V34,
+    )
+    trace_row: dict[str, str] = {}
+
+    state.register_pending_trajectory_guard(
+        candidate=np.array([1.0, 2.0]),
+        pre_writeback_fitness=10.0,
+        trace_row=trace_row,
+    )
+    state.observe_pending_trajectory_guard(post_writeback_fitness=12.0)
+    resolved = state.resolve_pending_trajectory_guard(
+        downstream_candidate=np.array([3.0, 4.0]),
+        downstream_fitness=11.0,
+    )
+
+    assert resolved is not None
+    assert resolved.status == "restored"
+    assert resolved.restored is True
+    assert resolved.fitness == 10.0
+    np.testing.assert_allclose(resolved.candidate, np.array([1.0, 2.0]))
+    assert trace_row["trajectory_guard_status"] == "restored"
+    assert trace_row["trajectory_guard_recovery_credit"] == "-9.090909e-02"
+    assert trace_row["trajectory_guard_restored"] == "1"
+
+
+def test_v34_trajectory_guard_rejects_invalid_lifecycle_order() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V34,
+    )
+    state.register_pending_trajectory_guard(
+        candidate=np.array([1.0]),
+        pre_writeback_fitness=10.0,
+        trace_row={},
+    )
+
+    with pytest.raises(RuntimeError, match="already pending"):
+        state.register_pending_trajectory_guard(
+            candidate=np.array([2.0]),
+            pre_writeback_fitness=9.0,
+            trace_row={},
+        )
+    with pytest.raises(RuntimeError, match="post-writeback"):
+        state.resolve_pending_trajectory_guard(
+            downstream_candidate=np.array([2.0]),
+            downstream_fitness=8.0,
+        )
+
+
+def test_v34_trajectory_guard_preemption_restores_and_completes_trace() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V34,
+    )
+    trace_row: dict[str, str] = {}
+    state.register_pending_trajectory_guard(
+        candidate=np.array([1.0, 2.0]),
+        pre_writeback_fitness=10.0,
+        trace_row=trace_row,
+    )
+
+    resolved = state.preempt_pending_trajectory_guard()
+
+    assert resolved is not None
+    assert resolved.status == "preempted_restored"
+    assert resolved.restored is True
+    assert state.pending_trajectory_recovery is None
+    assert trace_row["trajectory_guard_status"] == "preempted_restored"
+    assert trace_row["trajectory_guard_recovery_credit"] == ""
+    assert trace_row["trajectory_guard_restored"] == "1"
+
+
+def test_v33_trajectory_guard_remains_disabled() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    trace_row: dict[str, str] = {}
+
+    registered = state.register_pending_trajectory_guard(
+        candidate=np.array([1.0]),
+        pre_writeback_fitness=10.0,
+        trace_row=trace_row,
+    )
+
+    assert registered is None
+    assert state.pending_trajectory_recovery is None
+    assert not trace_row
+
+
 def test_controller_v31_non_dense_large_unstable_fallback_locks_repair_immediately() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)
@@ -3957,12 +4090,15 @@ def test_controller_v33_credits_writeback_before_next_group_optimizer(
     optimize_calls = {"count": 0}
     registered_baselines: list[float] = []
     observed_contexts: list[tuple[int, float]] = []
+    function_instances: list[FakeFunction] = []
 
     class FakeFunction:
         def __init__(self) -> None:
             self.fitness_record: list[float] = []
+            self.objective_calls = 0
 
         def __call__(self, vector):
+            self.objective_calls += 1
             batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
             self.fitness_record.extend([1000.0] * batch_size)
             return [1000.0] * batch_size
@@ -3972,7 +4108,9 @@ def test_controller_v33_credits_writeback_before_next_group_optimizer(
             self.output_dir = output_dir
 
         def get_function(self, fun_name: str, fun_id: int):
-            return FakeFunction()
+            function = FakeFunction()
+            function_instances.append(function)
+            return function
 
         def get_info(self, fun_name: str, fun_id: int):
             return {"dimension": 4, "lower": -5.0, "upper": 5.0}
@@ -4065,7 +4203,7 @@ def test_controller_v33_credits_writeback_before_next_group_optimizer(
         capture_observe,
     )
 
-    _record, _elapsed, trace_rows = runner.run_problem(
+    v33_record, _elapsed, v33_trace_rows = runner.run_problem(
         "elliptic",
         1,
         tmp_path,
@@ -4079,11 +4217,53 @@ def test_controller_v33_credits_writeback_before_next_group_optimizer(
         ),
     )
 
-    trust_rows = [row for row in trace_rows if row["trust_key"]]
+    trust_rows = [row for row in v33_trace_rows if row["trust_key"]]
     assert trust_rows
     assert registered_baselines[0] == pytest.approx(900.0)
     assert observed_contexts[0] == pytest.approx((2, 1000.0))
     assert float(trust_rows[0]["trust_credit"]) == pytest.approx(-0.1)
+
+    v33_function = function_instances[-1]
+    v33_optimizer_calls = optimize_calls["count"]
+    v33_objective_calls = v33_function.objective_calls
+    v33_fes = runner.current_fitness_evaluations(v33_function)
+    optimize_calls["count"] = 0
+    registered_baselines.clear()
+    observed_contexts.clear()
+    v34_output = tmp_path / "v34"
+    v34_output.mkdir()
+
+    v34_record, _elapsed, v34_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v34_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V34,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v34_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v34_function.objective_calls == v33_objective_calls
+    assert runner.current_fitness_evaluations(v34_function) == v33_fes
+    assert len(v34_record) == len(v33_record)
+    resolved_positions = [
+        position
+        for position, row in enumerate(v34_trace_rows)
+        if row.get("trajectory_guard_status") in {"committed", "restored"}
+    ]
+    assert resolved_positions
+    next_relation_position = next(
+        position
+        for position, row in enumerate(v34_trace_rows)
+        if position > resolved_positions[0] and row["relation_id"]
+    )
+    assert resolved_positions[0] < next_relation_position
 
 
 def test_run_problem_caps_aob_fitness_record_at_max_fes(
