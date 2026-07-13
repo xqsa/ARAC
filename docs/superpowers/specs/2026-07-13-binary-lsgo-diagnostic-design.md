@@ -115,16 +115,20 @@ maximum accepted flip width。trace 只记录优化器在线行为，不包含 f
 以及 proposal trace。诊断报告同时给出每个 case 的五 seed 计数和中位数，不以单次
 win 作结论。
 
-报告使用以下可解释标签：
+报告先计算两个彼此独立的信号：
 
-- `optimizer_limited`：`native_group_block` 在至少 3/5 个 seed 上严格优于
-  `native_single_bit`，且至少 3/5 个 seed 接受过多 bit proposal；同时
-  `forced_isolate` 没有达到同样的改善频率；
-- `policy_limited`：`forced_isolate` 在至少 3/5 个 seed 上严格优于
+- optimizer signal：`native_group_block` 在至少 3/5 个 seed 上严格优于
+  `native_single_bit`，且至少 3/5 个 seed 接受过多 bit proposal；
+- policy signal：`forced_isolate` 在至少 3/5 个 seed 上严格优于
   `native_single_bit`，而 `arac_policy` 在至少 3/5 个 seed 没有消费 isolate
-  动作；
-- `mixed`：上述两个条件同时成立；
-- `inconclusive`：两者均不成立，或样本无法区分。
+  动作。
+
+再由两个信号组合成可解释标签：
+
+- `optimizer_limited`：只有 optimizer signal 成立；
+- `policy_limited`：只有 policy signal 成立；
+- `mixed`：两个信号都成立；
+- `inconclusive`：两个信号均不成立。
 
 这些标签是本实验的 offline blocker classification，不是总体性能声明。若 block
 lane 改善但没有被 ARAC policy 消费，仍只能说明联合变化对当前 scaffold 有帮助，不能
