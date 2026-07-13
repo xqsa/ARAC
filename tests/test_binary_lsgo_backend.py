@@ -21,6 +21,12 @@ def small_problem():
     )
 
 
+def fixed_group_problem():
+    return generate_binary_lsgo(
+        BinaryLsgoSpec("fixed", 40, 8, 5, 5, True, 0.8, 0.5, 0.5, 0.5, 19)
+    )
+
+
 def test_request_rejects_invalid_budget_or_seed():
     problem = small_problem()
     with pytest.raises(ValueError, match="total_fes"):
@@ -106,6 +112,16 @@ def decision(family: ActionFamily, name: str) -> ActionDecision:
     return ActionDecision(family, name, "allow", "test_override", 1.0)
 
 
+def fallback_decision() -> ActionDecision:
+    return ActionDecision(
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "fallback",
+        "test_native_lane",
+        0.0,
+    )
+
+
 def test_execution_is_reproducible_and_exact_budget():
     request = BinaryLsgoExecutionRequest(small_problem(), optimizer_seed=17, total_fes=80)
     first = run_binary_lsgo(request)
@@ -115,6 +131,45 @@ def test_execution_is_reproducible_and_exact_budget():
     assert first.ledger.phase_ii_fe == 64
     assert first.ledger.total_fe == 80
     assert not first.ledger.violation
+
+
+def test_explicit_single_bit_preserves_default_execution():
+    default = run_binary_lsgo(
+        BinaryLsgoExecutionRequest(fixed_group_problem(), 23, total_fes=80),
+        decision_override=fallback_decision(),
+    )
+    explicit = run_binary_lsgo(
+        BinaryLsgoExecutionRequest(
+            fixed_group_problem(),
+            23,
+            total_fes=80,
+            phase_two_operator="single_bit",
+        ),
+        decision_override=fallback_decision(),
+    )
+    assert default == explicit
+    assert explicit.proposal_trace.proposed_count == 64
+    assert explicit.proposal_trace.multi_bit_proposed_count == 0
+    assert explicit.proposal_trace.maximum_accepted_flip_width in {0, 1}
+
+
+def test_group_block_uses_one_fe_per_multi_bit_proposal():
+    result = run_binary_lsgo(
+        BinaryLsgoExecutionRequest(
+            fixed_group_problem(),
+            23,
+            total_fes=80,
+            phase_two_operator="group_block",
+        ),
+        decision_override=fallback_decision(),
+    )
+    trace = result.proposal_trace
+    assert result.ledger.phase_ii_fe == 64
+    assert trace.operator == "group_block"
+    assert trace.proposed_count == 64
+    assert trace.multi_bit_proposed_count == 64
+    assert trace.accepted_count == trace.multi_bit_accepted_count
+    assert trace.maximum_accepted_flip_width in {0, 5}
 
 
 @pytest.mark.parametrize(

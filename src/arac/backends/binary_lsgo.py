@@ -298,24 +298,38 @@ def _action_semantics(action_name: str) -> BinaryBackendSemanticsDiff:
     raise ValueError(f"unsupported binary LSGO action: {action_name}")
 
 
-def _choose_group_variable(
+def _eligible_group_variables(
     group: tuple[int, ...],
     *,
     action_name: str,
     group_index: int,
     owners: dict[int, int],
     shared_variables: dict[int, tuple[int, ...]],
-    rng: random.Random,
-) -> int | None:
+) -> tuple[int, ...]:
     if action_name not in {"isolate_conflicting_relation", "repair_shared_variable_binding"}:
-        eligible = list(group)
-    else:
-        eligible = [
-            variable
-            for variable in group
-            if variable not in shared_variables or owners[variable] == group_index
-        ]
-    return None if not eligible else rng.choice(eligible)
+        return group
+    return tuple(
+        variable
+        for variable in group
+        if variable not in shared_variables or owners[variable] == group_index
+    )
+
+
+def _proposal_variables(
+    eligible: tuple[int, ...],
+    *,
+    operator: str,
+    rng: random.Random,
+) -> tuple[int, ...]:
+    if not eligible and operator == "group_block":
+        raise ValueError("group_block proposal has no eligible variables")
+    if not eligible:
+        return ()
+    if operator == "single_bit":
+        return (rng.choice(eligible),)
+    if operator == "group_block":
+        return eligible
+    raise ValueError(f"unsupported phase_two_operator: {operator}")
 
 
 def _protected_groups(stats: list[_MutableGroupStats]) -> list[int]:
@@ -455,6 +469,11 @@ def run_binary_lsgo(
     schedule_cursor = 0
     empty_scans = 0
     coordinated_queue: deque[int] = deque()
+    proposed_count = 0
+    accepted_count = 0
+    multi_bit_proposed_count = 0
+    multi_bit_accepted_count = 0
+    maximum_accepted_flip_width = 0
     while consumed_fes < request.total_fes:
         if coordinated_queue:
             group_index = coordinated_queue.popleft()
@@ -462,34 +481,48 @@ def run_binary_lsgo(
             group_index = group_schedule[schedule_cursor % len(group_schedule)]
             schedule_cursor += 1
         group = topology.groups[group_index]
-        variable = _choose_group_variable(
+        eligible = _eligible_group_variables(
             group,
             action_name=decision.action_name,
             group_index=group_index,
             owners=owners,
             shared_variables=shared_variables,
+        )
+        proposal_variables = _proposal_variables(
+            eligible,
+            operator=request.phase_two_operator,
             rng=rng,
         )
-        if variable is None:
+        if not proposal_variables:
             empty_scans += 1
             if empty_scans >= len(group_schedule) and not coordinated_queue:
                 raise ValueError("binary LSGO action left no eligible variables")
             continue
         empty_scans = 0
         candidate = list(vector)
-        candidate[variable] = 1 - candidate[variable]
+        for variable in proposal_variables:
+            candidate[variable] = 1 - candidate[variable]
         candidate_objective = problem.evaluate(tuple(candidate))
         consumed_fes += 1
+        proposed_count += 1
+        proposal_width = len(proposal_variables)
+        if proposal_width > 1:
+            multi_bit_proposed_count += 1
         if candidate_objective < current_objective:
             vector = candidate
             current_objective = candidate_objective
-            if (
-                decision.action_name == "allow_beneficial_coordination"
-                and variable in shared_variables
-            ):
-                coordinated_queue.extend(
-                    other for other in shared_variables[variable] if other != group_index
-                )
+            accepted_count += 1
+            maximum_accepted_flip_width = max(maximum_accepted_flip_width, proposal_width)
+            if proposal_width > 1:
+                multi_bit_accepted_count += 1
+            if decision.action_name == "allow_beneficial_coordination":
+                for variable in proposal_variables:
+                    if variable in shared_variables:
+                        coordinated_queue.extend(
+                            other
+                            for other in shared_variables[variable]
+                            if other != group_index
+                        )
 
     ledger = SameBudgetLedger(
         phase_i_fe=phase_one_target,
@@ -533,11 +566,11 @@ def run_binary_lsgo(
         action_trace=action_trace,
         proposal_trace=BinaryLsgoProposalTrace(
             operator=request.phase_two_operator,
-            proposed_count=0,
-            accepted_count=0,
-            multi_bit_proposed_count=0,
-            multi_bit_accepted_count=0,
-            maximum_accepted_flip_width=0,
+            proposed_count=proposed_count,
+            accepted_count=accepted_count,
+            multi_bit_proposed_count=multi_bit_proposed_count,
+            multi_bit_accepted_count=multi_bit_accepted_count,
+            maximum_accepted_flip_width=maximum_accepted_flip_width,
         ),
         optimizer_consumed=semantics.changed,
     )
