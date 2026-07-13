@@ -160,8 +160,11 @@ downstream_fitness < checkpoint_fitness
 On commit:
 
 - the downstream candidate remains active;
-- the effective group delta is measured against the checkpoint fitness;
-- subsequent relation evidence sees the committed trajectory.
+- recovery credit remains measured against the checkpoint fitness;
+- the next group's original candidate, original fitness, and local optimizer
+  delta remain unchanged;
+- subsequent relation evidence therefore keeps the same local CC meaning as
+  v33.8 instead of consuming a checkpoint-to-downstream composite delta.
 
 On restore:
 
@@ -223,7 +226,8 @@ Pure unit tests must prove:
 
 1. strict downstream improvement commits;
 2. equality or degradation restores the exact checkpoint candidate;
-3. committed and restored deltas are measured from the checkpoint baseline;
+3. commit preserves the next group's local CC evidence while restore returns
+   the checkpoint candidate and zeroes the discarded group delta;
 4. no-op writebacks do not open checkpoints;
 5. preemption restores unresolved state;
 6. non-finite and shape-mismatched values fail explicitly;
@@ -233,6 +237,42 @@ Pure unit tests must prove:
 
 Integration tests must prove that checkpoint finalization occurs before the
 next relation decision and does not add FE.
+
+## First Protected Result And Commit-Evidence Correction
+
+The first v34 protected protocol completed on 2026-07-14 at commit `13569ac`.
+All 24 case/seed trajectories were fresh, FE violations were `0/24`, AOB rows
+were `237/237` unchanged, and anti-leakage checks were `16/16` pass. The
+candidate failed the preservation gate:
+
+- best-of-three wins: `5/8` (`E4`, `E6`, `R1`, `R2`, `A5`);
+- three-seed mean wins: `1/8` (`E4`);
+- worst-seed wins: `1/8` (`E4`);
+- seed wins: `8/24`;
+- catastrophic seeds: `8/24` at relative gain `<= -20%`;
+- failed best-of-three cases: `E2`, `S6`, and `A4`.
+
+The failed candidate is preserved under
+`results/controller_v34_recovery_8case_seed123_3m_20260714/`. Paper values
+were joined only after all runtime artifacts completed.
+
+Runtime evidence identified a semantic confound in the CC integration. The
+pure checkpoint decision was correct, but the runner also rewrote
+`original_best`, `original_fitness`, and `current_delta` after every commit.
+That replaced the next group's local optimizer delta with a composite
+checkpoint-to-downstream delta. Of the committed recovery rows, most had an
+immediately harmful writeback followed by downstream recovery, including
+`94/111` for E2 and `74/81` for S6. The composite delta therefore
+systematically changed the scale and meaning of subsequent relation evidence.
+
+The effect was observable without paper or case labels. Relative to the v33.8
+trace, all overlap-bearing runs changed relation decisions, while the
+no-recovery R1 control matched all `705/705` decisions and reproduced the same
+three final errors exactly. The correction is therefore not a case-specific
+exception: a committed checkpoint must be transparent to the existing local
+CC evidence. Only a restore may replace the candidate, restore the checkpoint
+baseline, and zero the discarded delta. Recovery credit remains separately
+auditable against the checkpoint.
 
 ## Experimental Gates
 
