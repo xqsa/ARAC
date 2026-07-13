@@ -2,7 +2,7 @@
 
 Date: 2026-07-14
 Executor: Codex
-Status: approved by user for autonomous implementation
+Status: protected candidate failed; not adopted
 
 ## Purpose
 
@@ -273,6 +273,70 @@ exception: a committed checkpoint must be transparent to the existing local
 CC evidence. Only a restore may replace the candidate, restore the checkpoint
 baseline, and zero the discarded delta. Recovery credit remains separately
 auditable against the checkpoint.
+
+## Corrected Protected Result And Disposition
+
+The local-evidence correction at commit `52a3b0d` passed the focused contract
+tests and the real-HCC 5k smoke before a second protected run was started. The
+fresh protected artifacts are preserved under
+`results/controller_v34_recovery_local_evidence_8case_seed123_3m_20260714/`.
+The runtime protocol was complete and clean:
+
+- `24/24` case/seed runs completed as fresh optimizer executions;
+- FE violations and overspends were `0/24`, with maximum charged FE exactly
+  `3,000,000`;
+- AOB input hashes were `237/237` unchanged;
+- anti-leakage checks were `16/16` pass with no forbidden field found;
+- raw evaluation, budget, action-trace, action-decision, and AOB artifacts were
+  present for all `24/24` runs;
+- the trajectory audit covered `24/24` runs with zero pending checkpoints,
+  `467` commits, `226` restores, and `1` preempted restore.
+
+The static `backend_semantics_diff.csv` surface changed in `22/24` runs. The
+two zero rows, E6 seed 1 and S6 seed 3, still resolved respectively `25` and
+`35` trajectory checkpoints. This is an audit-schema boundary: the static
+table records ownership, relation handling, coordination, allocation, update
+order, and acceptance-rule fields, while v34 recovery is recorded in
+`trajectory_guard_summary.csv` and the action trace.
+
+The frozen paper-best table was joined only after runtime completion. The
+corrected candidate still failed the mandatory protected gate:
+
+- best-of-three wins: `6/8` (`E2`, `E4`, `E6`, `R1`, `A4`, and `A5`);
+- three-seed mean wins: `1/8` (`E4`);
+- worst-seed wins: `0/8`;
+- seed wins: `9/24`;
+- catastrophic seeds: `5/24` at relative gain `<= -20%`;
+- failed best-of-three cases: `S6` and `R2`.
+
+The correction improved the first v34 result from `5/8` to `6/8` and reduced
+catastrophic seeds from `8/24` to `5/24`, but it did not preserve the v33.8
+protected result of `8/8`. Full-24 execution was therefore not authorized by
+the registered ladder and was not started.
+
+The runtime traces explain why threshold tuning is not justified. The R1
+no-recovery control reproduced all `705/705` relation decisions and all three
+final errors exactly. Across the overlap-bearing protected runs, recovery
+changed `364` actions among `6,465` relation ids shared with v33.8, with another
+`140` new-only and `65` old-only ids. On S6, the first restore and first action
+divergence both occurred in outer iteration zero; relative to v33.8, seed 2
+degraded by `200.33%` while seed 3 improved by `22.76%`. On R2, restored rows
+had nearly identical tiny mean recovery credits for seed 1 (`-9.7e-5`) and
+seed 3 (`-1.01e-4`), yet their final changes relative to v33.8 had opposite
+signs: `-63.82%` and `+18.07%` respectively.
+
+Thus the one-downstream-group credit is locally auditable but not identifiable
+as long-horizon optimizer utility. A restore can prevent propagation of an
+unrecovered local loss while also changing all later candidate and relation
+evidence. The available runtime signal does not separate the harmful and
+helpful long-horizon branches. Choosing a tolerance from S6/R2 final outcomes
+would use offline labels indirectly and violate the reference-blind boundary.
+
+v34 is consequently a failed candidate. The existing v33.8 full-24 result
+remains the canonical fresh evidence: best-of-three `13/24`, mean `4/24`,
+worst-seed `2/24`, seed wins `21/72`, and catastrophic seeds `31/72`. Those
+stability limitations remain explicit and still block a robust performance or
+SOTA claim.
 
 ## Experimental Gates
 

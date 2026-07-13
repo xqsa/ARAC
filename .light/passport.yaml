@@ -1,8 +1,8 @@
 project: arac
-pipeline: v338-evidence-replay-full24
+pipeline: v338-evidence-replay-v34-recovery-audit
 created: "2026-07-13T23:59"
-updated: "2026-07-14T02:02"
-current_stage: 5
+updated: "2026-07-14T07:35"
+current_stage: 8
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -36,3 +36,23 @@ stages:
     output: Delivery verification completed and tracked status prepared for commit
     artifacts: [docs/superpowers/specs/2026-07-13-risk-aware-action-guard-design.md, .light/handoff/S02-arac-v338-full24-result.md, .light/passport.yaml]
     gate: {type: confirm, result: PASS, notes: 564 passed, 1 skipped; compileall pass; passport valid; diff check pass; static case dispatch branches 0}
+  - stage: 6
+    skill: runtime-checkpoint-implementation
+    input: v33.8 current-run relation writeback, next-group optimizer evidence, and strict same-budget ledger
+    output: Opt-in v34 downstream recovery checkpoint with isolated trace schema and no extra FE
+    artifacts: [scripts/hcc_smoke_runner.py, src/arac/policy/trajectory_guard.py, docs/superpowers/specs/2026-07-14-downstream-recovery-checkpoint-design.md]
+    gate: {type: confirm, result: PASS, notes: focused contracts and real-HCC 5k smoke passed; v33 behavior remains isolated}
+  - stage: 7
+    skill: light-result-analysis
+    input: First v34 protected E2/E4/E6/S6/R1/R2/A4/A5 seeds 1/2/3 at strict 3M FE
+    output: Fresh raw evidence plus diagnosis of committed-checkpoint evidence semantic confound
+    artifacts: [results/controller_v34_recovery_8case_seed123_3m_20260714]
+    gate: {type: confirm, result: FAIL, notes: 24/24 fresh; FE 0/24; AOB 237/237 unchanged; anti-leakage 16/16; best 5/8; mean 1/8; worst 1/8; seed wins 8/24; catastrophic 8/24}
+    gaps: [Committed recovery rewrote next-group local CC evidence; protected 8/8 gate failed]
+  - stage: 8
+    skill: light-result-analysis
+    input: Local-evidence correction at 52a3b0d plus second protected 8-case seeds 1/2/3 at strict 3M FE
+    output: Corrected fresh raw evidence, offline comparison, and reference-blind runtime failure diagnosis
+    artifacts: [results/controller_v34_recovery_local_evidence_5k_20260714, results/controller_v34_recovery_local_evidence_8case_seed123_3m_20260714, docs/superpowers/specs/2026-07-14-downstream-recovery-checkpoint-design.md, .light/handoff/S03-arac-v34-recovery-failed-candidate.md]
+    gate: {type: confirm, result: FAIL, notes: 24/24 fresh; FE overspends 0/24; AOB 237/237 unchanged; anti-leakage 16/16; pending 0; best 6/8; mean 1/8; worst 0/8; seed wins 9/24; catastrophic 5/24; full-24 not started by gate}
+    gaps: [One-group recovery credit is not identifiable as long-horizon utility; v34 is not adopted]
