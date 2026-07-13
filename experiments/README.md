@@ -12,6 +12,7 @@ experiments/
   exp_004_hcc_main_historical_result_recovery/
   exp_009_binary_lsgo_arac_pilot/
   exp_010_binary_lsgo_focused_3seed/
+  exp_011_binary_lsgo_diagnostic/
 ```
 
 Each experiment should contain:
@@ -87,6 +88,23 @@ and shuffled-evidence negative-control lanes. The canonical protocol performs
 `promotion_gate.json`, and `manifest.json`. Passing its pre-registered gate
 only permits escalation to a larger experiment; it is not final performance
 evidence. Generated artifacts stay under `results/` and out of Git.
+
+Run the binary LSGO mechanism diagnosis with:
+
+```powershell
+$env:PYTHONPATH='src'
+& 'E:\ARAC\.venv\Scripts\python.exe' -m experiments.exp_011_binary_lsgo_diagnostic.run `
+  --output-dir results/exp_011_binary_lsgo_diagnostic `
+  --total-fes 2000
+```
+
+`exp_011_binary_lsgo_diagnostic` runs BLSGO-F08 and F15 with optimizer seeds
+20260713-20260717 across native single-bit, native group-block, forced isolate,
+and current ARAC-policy lanes. The canonical protocol performs 40 executions
+at 2000 FE each. It separates proposal-operator capacity from policy triggering
+under identical initial and Phase-I states. Its outputs are offline mechanism
+diagnosis only: group-block is not an ARAC action, and no lane is eligible for
+promotion or performance claims.
 
 ## Minimum Gates
 
