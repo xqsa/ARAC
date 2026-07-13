@@ -59,8 +59,10 @@ from src.arac.policy.search_state_policy import (
     FIRST_PROBE_FRACTION,
     RESUME_PHASE_I_SEARCH_STATE,
     SEARCH_STATE_BLOCKED,
+    PreHoldEvidence,
     SearchStateEvidence,
     SearchStateSchedulerState,
+    build_pre_hold_evidence,
     normalized_gain_utility,
     plan_search_state_action,
     record_search_state_outcome,
@@ -179,6 +181,20 @@ ACTION_TRACE_FIELDS = [
     "state_fingerprint_before",
     "state_fingerprint_after",
     "abstain_reason",
+    "pre_hold_phase_i_tail_utility",
+    "pre_hold_group_count",
+    "pre_hold_mean_group_size",
+    "pre_hold_overlap_edge_count",
+    "pre_hold_overlap_edge_fraction",
+    "pre_hold_shared_variable_count",
+    "pre_hold_shared_variable_ratio",
+    "pre_hold_mean_overlap_width",
+    "pre_hold_remaining_fes",
+    "pre_hold_remaining_ratio",
+    "pre_hold_scheduled_hold_fes",
+    "pre_hold_projected_unheld_group_fes",
+    "pre_hold_projected_held_group_fes",
+    "pre_hold_budget_retention_ratio",
 ]
 OVERLAP_RELATION_FIELDS = [
     "relation_id",
@@ -1833,6 +1849,7 @@ def build_action_trace_row(
     state_fingerprint_before: str = "",
     state_fingerprint_after: str = "",
     abstain_reason: str = "",
+    pre_hold_evidence: PreHoldEvidence | None = None,
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -1841,7 +1858,7 @@ def build_action_trace_row(
         if state_mutated is None
         else str(int(state_mutated))
     )
-    return {
+    row = {
         "problem_id": problem_id,
         "seed": "" if seed is None else str(seed),
         "outer_iter": str(outer_iter),
@@ -1923,6 +1940,29 @@ def build_action_trace_row(
         "state_fingerprint_after": state_fingerprint_after,
         "abstain_reason": abstain_reason,
     }
+    pre_hold_values = {
+        "phase_i_tail_utility": "{:.6e}",
+        "group_count": "{}",
+        "mean_group_size": "{:.6e}",
+        "overlap_edge_count": "{}",
+        "overlap_edge_fraction": "{:.6e}",
+        "shared_variable_count": "{}",
+        "shared_variable_ratio": "{:.6e}",
+        "mean_overlap_width": "{:.6e}",
+        "remaining_fes": "{}",
+        "remaining_ratio": "{:.6e}",
+        "scheduled_hold_fes": "{}",
+        "projected_unheld_group_fes": "{}",
+        "projected_held_group_fes": "{}",
+        "budget_retention_ratio": "{:.6e}",
+    }
+    for name, value_format in pre_hold_values.items():
+        row[f"pre_hold_{name}"] = (
+            ""
+            if pre_hold_evidence is None
+            else value_format.format(getattr(pre_hold_evidence, name))
+        )
+    return row
 
 
 def _write_action_trace(path: Path, rows: list[dict[str, str]]) -> None:
@@ -2616,6 +2656,32 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
     elif is_cc_harm_guarded_sep_refresh_action(config.arac_action):
         guarded_incumbent_fitness = float(fun(best_individual)[0])
+
+    pre_hold_evidence_snapshot: PreHoldEvidence | None = None
+    if controller_v31_run_state is not None:
+        pre_hold_current_fes = (
+            sum_fes
+            if config.budget_accounting == "source"
+            else current_fitness_evaluations(fun)
+        )
+        pre_hold_remaining_fes = max(0, config.max_fes - pre_hold_current_fes)
+        pre_hold_evidence_snapshot = build_pre_hold_evidence(
+            phase_i_tail_utility=(
+                controller_v31_run_state.phase_i_runtime_tail_utility
+            ),
+            group_sizes=tuple(len(group) for group in grouping_result),
+            overlapping_elements=tuple(
+                tuple(int(variable) for variable in shared)
+                for shared in overlapping_elements
+            ),
+            dimension=int(info["dimension"]),
+            remaining_fes=pre_hold_remaining_fes,
+            max_fes=config.max_fes,
+            scheduled_hold_fes=scheduled_search_state_hold_fes(
+                config,
+                controller_v31_run_state.search_state_scheduler_state,
+            ),
+        )
 
     outer_iter = 0
     previous_rule_relation_action: RelationActionDecision | None = None
@@ -3582,6 +3648,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         state_fingerprint_after=str(
                             getattr(block, "state_fingerprint_after", "")
                         ),
+                        pre_hold_evidence=(
+                            pre_hold_evidence_snapshot if outer_iter == 0 else None
+                        ),
                     )
                 )
             else:
@@ -3625,6 +3694,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         state_action_fe=scheduler_state_before.intervention_fe,
                         cc_reserve_fe=state_plan.cc_reserve_fes,
                         abstain_reason=state_plan.trigger_reason,
+                        pre_hold_evidence=(
+                            pre_hold_evidence_snapshot if outer_iter == 0 else None
+                        ),
                     )
                 )
                 if config.search_state_backend == "diagonal_cma":

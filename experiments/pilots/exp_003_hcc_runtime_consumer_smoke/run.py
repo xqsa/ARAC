@@ -1278,6 +1278,38 @@ def _action_trace_rows(records: list[dict[str, object]]) -> list[dict[str, objec
     return rows
 
 
+PRE_HOLD_EVIDENCE_FIELDS = [
+    "run_id",
+    "lane_id",
+    "problem_id",
+    "seed",
+    "pre_hold_phase_i_tail_utility",
+    "pre_hold_group_count",
+    "pre_hold_mean_group_size",
+    "pre_hold_overlap_edge_count",
+    "pre_hold_overlap_edge_fraction",
+    "pre_hold_shared_variable_count",
+    "pre_hold_shared_variable_ratio",
+    "pre_hold_mean_overlap_width",
+    "pre_hold_remaining_fes",
+    "pre_hold_remaining_ratio",
+    "pre_hold_scheduled_hold_fes",
+    "pre_hold_projected_unheld_group_fes",
+    "pre_hold_projected_held_group_fes",
+    "pre_hold_budget_retention_ratio",
+]
+
+
+def _pre_hold_evidence_rows(
+    trace_rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    return [
+        dict(row)
+        for row in trace_rows
+        if str(row.get("pre_hold_group_count", "")).strip()
+    ]
+
+
 def _action_decision_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
@@ -3478,6 +3510,7 @@ def _write_manifest(
         "backend_semantics_diff.csv",
         "action_execution_plan.csv",
         "action_trace.csv",
+        "pre_hold_evidence.csv",
         "action_decision.csv",
         "action_mismatch_audit.csv",
         "overlap_relations.csv",
@@ -3804,7 +3837,26 @@ def run_hcc_runtime_consumer_smoke(
             "state_fingerprint_before",
             "state_fingerprint_after",
             "abstain_reason",
+            "pre_hold_phase_i_tail_utility",
+            "pre_hold_group_count",
+            "pre_hold_mean_group_size",
+            "pre_hold_overlap_edge_count",
+            "pre_hold_overlap_edge_fraction",
+            "pre_hold_shared_variable_count",
+            "pre_hold_shared_variable_ratio",
+            "pre_hold_mean_overlap_width",
+            "pre_hold_remaining_fes",
+            "pre_hold_remaining_ratio",
+            "pre_hold_scheduled_hold_fes",
+            "pre_hold_projected_unheld_group_fes",
+            "pre_hold_projected_held_group_fes",
+            "pre_hold_budget_retention_ratio",
         ],
+    )
+    _write_csv(
+        output / "pre_hold_evidence.csv",
+        _pre_hold_evidence_rows(_action_trace_rows(records)),
+        PRE_HOLD_EVIDENCE_FIELDS,
     )
     _write_csv(
         output / "action_decision.csv",

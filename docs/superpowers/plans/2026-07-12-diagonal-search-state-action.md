@@ -122,3 +122,27 @@ runtime gates.
 the offline paper-best `3.28e5`. Strict FE accounting and anti-leakage passed,
 but the backend remains experimental because the preservation gate was only
 2/4.
+
+## Task 6: Add Pre-Hold Evidence Audit
+
+**Files:**
+
+- Modify: `src/arac/policy/search_state_policy.py`
+- Modify: `scripts/hcc_smoke_runner.py`
+- Modify: `experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py`
+- Modify: `tests/test_search_state_policy.py`
+- Modify: `tests/test_hcc_smoke_runner_cli.py`
+- Modify: `tests/test_exp_003_hcc_runtime_consumer_smoke.py`
+
+- [x] Add failing tests for a pure `PreHoldEvidence` snapshot and verify that
+  its dataclass excludes all forbidden offline fields.
+- [x] Add failing trace tests proving that only the first scheduler decision
+  carries the snapshot and that serialization is deterministic.
+- [x] Implement scale-free topology and budget-compression calculations
+  without changing the scheduler decision or FE ledger.
+- [x] Aggregate populated trace snapshots into `pre_hold_evidence.csv` and add
+  a focused experiment artifact test.
+- [x] Run focused tests, compile modified modules, run the full suite, and
+  run `git diff --check`.
+- [ ] Run the protected 13-case set for one seed at 3M FE with parallel jobs,
+  then inspect the audit fields offline before proposing an admission rule.

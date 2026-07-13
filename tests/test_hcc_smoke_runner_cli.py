@@ -2344,6 +2344,38 @@ def test_build_action_trace_row_audits_resumed_phase_i_runtime_state() -> None:
     assert row["downstream_consumption_scope"] == "subsequent_outer_iterations"
 
 
+def test_build_action_trace_row_serializes_pre_hold_evidence_once() -> None:
+    runner = _load_runner_module()
+    evidence = runner.build_pre_hold_evidence(
+        phase_i_tail_utility=2.0e-6,
+        group_sizes=(3, 4, 5),
+        overlapping_elements=((1, 2), (2, 3), ()),
+        dimension=10,
+        remaining_fes=900_000,
+        max_fes=3_000_000,
+        scheduled_hold_fes=330_000,
+    )
+
+    row = runner.build_action_trace_row(
+        problem_id="R3",
+        seed=3,
+        outer_iter=0,
+        group_index=2,
+        selected_action_name=runner.CONTINUE_CANONICAL_CC,
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=0.0,
+        trace_event="decision",
+        pre_hold_evidence=evidence,
+    )
+
+    assert row["pre_hold_group_count"] == "3"
+    assert row["pre_hold_shared_variable_count"] == "3"
+    assert row["pre_hold_remaining_fes"] == "900000"
+    assert row["pre_hold_scheduled_hold_fes"] == "330000"
+    assert row["pre_hold_projected_held_group_fes"] == "190000"
+
+
 def test_build_action_trace_row_includes_relation_join_fields() -> None:
     runner = _load_runner_module()
 
@@ -3924,6 +3956,12 @@ def test_controller_v31_runs_state_probe_then_confirmation_between_complete_cc_s
     assert state_rows[0]["state_action_fe"] == "4"
     assert state_rows[0]["cc_reserve_fe"] == "40"
     assert state_rows[0]["abstain_reason"] == ""
+    assert state_rows[0]["pre_hold_group_count"] == "4"
+    assert state_rows[0]["pre_hold_remaining_fes"] == "380"
+    assert state_rows[0]["pre_hold_scheduled_hold_fes"] == "44"
+    assert state_rows[0]["pre_hold_projected_unheld_group_fes"] == "95"
+    assert state_rows[0]["pre_hold_projected_held_group_fes"] == "84"
+    assert state_rows[1]["pre_hold_group_count"] == ""
     assert controller.search_state_scheduler_state.intervention_fe <= 60
 
 

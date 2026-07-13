@@ -366,6 +366,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "backend_semantics_diff.csv",
         "action_execution_plan.csv",
         "action_trace.csv",
+        "pre_hold_evidence.csv",
         "action_decision.csv",
         "action_mismatch_audit.csv",
         "overlap_relations.csv",
@@ -384,6 +385,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert "SOTA claim allowed: 0" in manifest
     assert "multi-problem pilot utility: not_applicable" in manifest
     assert "- claim_evidence_table.md" in manifest
+    assert "- pre_hold_evidence.csv" in manifest
     assert "Freeze evidence:" in manifest
     assert "- git commit:" in manifest
     assert "- config fingerprint:" in manifest
@@ -427,7 +429,6 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         ("relation_dispatch_rule", "conservative_no_action", True, "rule"),
         ("shuffled_relation_dispatch", "conservative_no_action", True, "shuffled"),
     }
-
     plan_rows = _read_csv(output / "action_execution_plan.csv")
     repair_plan = next(
         row
@@ -803,6 +804,27 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
         "E1_seed1_2000fe",
         "E2_seed1_2000fe",
     }
+
+
+def test_pre_hold_evidence_rows_filter_unpopulated_trace_rows() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _pre_hold_evidence_rows,
+    )
+
+    populated = {
+        "run_id": "run",
+        "lane_id": "canonical",
+        "problem_id": "R3",
+        "seed": "3",
+        "pre_hold_group_count": "20",
+        "pre_hold_phase_i_tail_utility": "2.000000e-06",
+        "pre_hold_scheduled_hold_fes": "330000",
+    }
+    rows = _pre_hold_evidence_rows(
+        [populated, {**populated, "pre_hold_group_count": ""}]
+    )
+
+    assert rows == [populated]
 
 
 def test_exp_003_targeted_ablation_profile_adds_trajectory_lane(tmp_path: Path) -> None:

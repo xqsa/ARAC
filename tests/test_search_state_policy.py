@@ -194,8 +194,34 @@ def test_policy_dataclasses_exclude_forbidden_dispatch_fields() -> None:
         policy.SearchStateEvidence,
         policy.SearchStateSchedulerState,
         policy.SearchStateActionPlan,
+        policy.PreHoldEvidence,
     ):
         assert not forbidden.intersection(field.name for field in fields(dataclass_type))
+
+
+def test_pre_hold_evidence_is_scale_free_and_auditable() -> None:
+    evidence = policy.build_pre_hold_evidence(
+        phase_i_tail_utility=2.0e-6,
+        group_sizes=(3, 4, 5),
+        overlapping_elements=((1, 2), (2, 3), ()),
+        dimension=10,
+        remaining_fes=900_000,
+        max_fes=3_000_000,
+        scheduled_hold_fes=330_000,
+    )
+
+    assert evidence.group_count == 3
+    assert evidence.mean_group_size == pytest.approx(4.0)
+    assert evidence.overlap_edge_count == 2
+    assert evidence.overlap_edge_fraction == pytest.approx(2.0 / 3.0)
+    assert evidence.shared_variable_count == 3
+    assert evidence.shared_variable_ratio == pytest.approx(0.3)
+    assert evidence.mean_overlap_width == pytest.approx(2.0)
+    assert evidence.remaining_fes == 900_000
+    assert evidence.remaining_ratio == pytest.approx(0.3)
+    assert evidence.projected_unheld_group_fes == 300_000
+    assert evidence.projected_held_group_fes == 190_000
+    assert evidence.budget_retention_ratio == pytest.approx(190_000 / 300_000)
 
 
 def test_awaiting_confirmation_requires_a_new_cc_sweep(eligible_evidence) -> None:

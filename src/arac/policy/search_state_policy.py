@@ -60,6 +60,84 @@ class SearchStateActionPlan:
     trigger_reason: str
 
 
+@dataclass(frozen=True)
+class PreHoldEvidence:
+    phase_i_tail_utility: float
+    group_count: int
+    mean_group_size: float
+    overlap_edge_count: int
+    overlap_edge_fraction: float
+    shared_variable_count: int
+    shared_variable_ratio: float
+    mean_overlap_width: float
+    remaining_fes: int
+    remaining_ratio: float
+    scheduled_hold_fes: int
+    projected_unheld_group_fes: int
+    projected_held_group_fes: int
+    budget_retention_ratio: float
+
+
+def build_pre_hold_evidence(
+    *,
+    phase_i_tail_utility: float,
+    group_sizes: tuple[int, ...],
+    overlapping_elements: tuple[tuple[int, ...], ...],
+    dimension: int,
+    remaining_fes: int,
+    max_fes: int,
+    scheduled_hold_fes: int,
+) -> PreHoldEvidence:
+    """Build a reference-blind snapshot before CC budget is withheld."""
+
+    group_count = len(group_sizes)
+    overlap_widths = tuple(len(shared) for shared in overlapping_elements)
+    nonempty_widths = tuple(width for width in overlap_widths if width > 0)
+    shared_variables = {
+        int(variable)
+        for shared in overlapping_elements
+        for variable in shared
+    }
+    remaining_fes = max(0, int(remaining_fes))
+    max_fes = max(0, int(max_fes))
+    scheduled_hold_fes = min(remaining_fes, max(0, int(scheduled_hold_fes)))
+    projected_unheld = (
+        int(math.ceil(remaining_fes / group_count)) if group_count else 0
+    )
+    projected_held = (
+        int(math.ceil((remaining_fes - scheduled_hold_fes) / group_count))
+        if group_count
+        else 0
+    )
+    tail_utility = float(phase_i_tail_utility)
+    if not math.isfinite(tail_utility) or tail_utility < 0.0:
+        tail_utility = 0.0
+    return PreHoldEvidence(
+        phase_i_tail_utility=tail_utility,
+        group_count=group_count,
+        mean_group_size=(sum(max(0, int(size)) for size in group_sizes) / group_count)
+        if group_count
+        else 0.0,
+        overlap_edge_count=len(nonempty_widths),
+        overlap_edge_fraction=(len(nonempty_widths) / len(overlap_widths))
+        if overlap_widths
+        else 0.0,
+        shared_variable_count=len(shared_variables),
+        shared_variable_ratio=(len(shared_variables) / max(1, int(dimension))),
+        mean_overlap_width=(sum(nonempty_widths) / len(nonempty_widths))
+        if nonempty_widths
+        else 0.0,
+        remaining_fes=remaining_fes,
+        remaining_ratio=(remaining_fes / max_fes) if max_fes else 0.0,
+        scheduled_hold_fes=scheduled_hold_fes,
+        projected_unheld_group_fes=projected_unheld,
+        projected_held_group_fes=projected_held,
+        budget_retention_ratio=(projected_held / projected_unheld)
+        if projected_unheld
+        else 0.0,
+    )
+
+
 def normalized_gain_utility(
     incumbent_before: float,
     incumbent_after: float,

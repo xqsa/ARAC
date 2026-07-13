@@ -144,6 +144,22 @@ paper-best `3.28e5`. A4 and S6 retained their best-of-three wins; E6 and R2
 did not. Therefore the diagonal backend must remain opt-in and must not be
 expanded to the full protected case set.
 
+## Pre-Hold Evidence Audit
+
+Before changing admission behavior again, the runner must capture a
+reference-blind snapshot before the first CC hold is applied. The snapshot
+contains Phase-I tail utility, group count and mean size, overlap-edge and
+shared-variable density, remaining FE, scheduled hold FE, projected per-group
+budget with and without the hold, and the resulting budget-retention ratio.
+
+The snapshot is attached to the first complete-sweep scheduler trace and
+aggregated by the experiment entry into `pre_hold_evidence.csv`. It is audit
+only: it cannot alter the current dispatch, FE allocation, or incumbent. The
+schema excludes case labels, function-family labels, paper values, historical
+outcomes, final error, and relative gain. A later admission rule may be
+proposed only if the evidence separates useful and harmful interventions
+across seeds without relying on final paper comparisons at runtime.
+
 Adoption requires preserving the existing 12/12 best-of-three wins, no FE
 overrun, clean anti-leakage, and no catastrophic loss. R3 improvement is
 reported separately and cannot compensate for a lost protected win.
