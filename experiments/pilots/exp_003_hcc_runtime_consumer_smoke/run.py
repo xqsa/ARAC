@@ -489,6 +489,18 @@ EVIDENCE_ACTION_CONTROLLER_V32_LANES = (
         relation_policy_mode="controller_v31",
     ),
 )
+EVIDENCE_ACTION_CONTROLLER_V33_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v33",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v33",
+        "arac_evidence_action_controller_v33",
+        "single_run_risk_aware_runtime_evidence_controller_v33",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v33",
+        relation_policy_mode="controller_v31",
+    ),
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
@@ -568,6 +580,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return EVIDENCE_ACTION_CONTROLLER_V31_LANES
     if lane_profile == "evidence_action_controller_v32":
         return EVIDENCE_ACTION_CONTROLLER_V32_LANES
+    if lane_profile == "evidence_action_controller_v33":
+        return EVIDENCE_ACTION_CONTROLLER_V33_LANES
     if lane_profile == "canonical_evidence_controller_v1":
         return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
     raise ValueError(f"unsupported lane profile: {lane_profile}")
@@ -1276,6 +1290,30 @@ def _action_trace_rows(records: list[dict[str, object]]) -> list[dict[str, objec
     for record in records:
         rows.extend(_with_lane_prefix(record, _trace_rows_for_record(record)))
     return rows
+
+
+V33_TRUST_TRACE_FIELDS = [
+    "trust_key",
+    "trust_phase",
+    "trust_reason",
+    "trust_score",
+    "trust_exposure",
+    "trust_cooldown",
+    "trust_credit",
+    "trust_unstable",
+    "trust_pre_writeback_fitness",
+    "trust_post_writeback_fitness",
+    "fallback_route",
+]
+
+
+def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
+    if any(
+        lane.runner_action_name == "arac_evidence_action_controller_v33"
+        for lane in lanes
+    ):
+        return list(V33_TRUST_TRACE_FIELDS)
+    return []
 
 
 PRE_HOLD_EVIDENCE_FIELDS = [
@@ -3859,6 +3897,7 @@ def run_hcc_runtime_consumer_smoke(
             "pre_hold_projected_unheld_group_fes",
             "pre_hold_projected_held_group_fes",
             "pre_hold_budget_retention_ratio",
+            *action_trace_fields_for_lanes(lanes),
         ],
     )
     _write_csv(
@@ -4153,6 +4192,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v3",
             "evidence_action_controller_v31",
             "evidence_action_controller_v32",
+            "evidence_action_controller_v33",
             "canonical_evidence_controller_v1",
         ],
     )

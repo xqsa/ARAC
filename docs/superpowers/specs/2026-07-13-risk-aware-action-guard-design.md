@@ -99,7 +99,9 @@ Existing action trace rows gain v33 fields for:
 - trust score;
 - action exposure and cooldown;
 - downstream credit and instability flag;
-- objective values immediately before and after the shared-variable writeback.
+- objective values immediately before and after the shared-variable writeback;
+- the v33-only topology fallback route: `dense_preserve_v31` or
+  `non_dense_bounded_0_5`.
 
 The v33 fields are emitted only in the v33 action trace; the legacy v1-v32
 trace schema remains unchanged. `action_decision.csv` remains the original
@@ -234,3 +236,26 @@ Acceptance requires:
 3. unchanged AOB input hashes and a passing anti-leakage audit;
 4. no v32 regression, action portfolio, or additional FE consumption;
 5. trace evidence identifies the topology branch and its writeback norm.
+
+## Topology-Scoped 3M Result
+
+The topology-scoped route passed the protected gate on 2026-07-13. All 24
+case/seed trajectories were fresh, same-budget violations were `0/24`, AOB
+inputs were `237/237` unchanged, and all `16/16` anti-leakage checks passed.
+The best-of-three comparison against the frozen paper-best table was:
+
+| Case | v33 best | Paper best | Relative gain |
+|---|---:|---:|---:|
+| E2 | 3,885,968.0 | 6,870,000.0 | 43.44% |
+| E4 | 12,913,830.0 | 19,000,000.0 | 32.03% |
+| E6 | 21,431,810.0 | 26,200,000.0 | 18.20% |
+| S6 | 12,026.0 | 13,300.0 | 9.58% |
+| R1 | 169,214.2 | 174,000.0 | 2.75% |
+| R2 | 227,665.2 | 248,000.0 | 8.20% |
+| A4 | 78,299.33 | 78,300.0 | <0.01% |
+| A5 | 78,149.10 | 78,200.0 | 0.07% |
+
+The runtime trace confirms the intended split. R2 recorded 685 non-dense
+fallback rows with maximum norm `0.5`; S6 recorded 300 dense-run fallback rows,
+including 111 above `0.5` with a maximum norm of `84.06751`. This is an 8-case
+three-seed pilot result, not a 25-run statistical performance claim.

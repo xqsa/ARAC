@@ -1194,6 +1194,48 @@ def test_exp_003_evidence_action_controller_v31_profile_is_single_runtime_method
     assert lane.relation_policy_mode == "controller_v31"
 
 
+def test_exp_003_evidence_action_controller_v33_is_one_opt_in_runtime_lane() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
+
+    lanes = lanes_for_profile("evidence_action_controller_v33")
+
+    assert len(lanes) == 1
+    lane = lanes[0]
+    assert lane.lane_id == "arac_evidence_action_controller_v33"
+    assert lane.selected_action_name == "arac_evidence_action_controller_v33"
+    assert lane.runner_action_name == "arac_evidence_action_controller_v33"
+    assert lane.plan_action_name == "arac_evidence_action_controller_v33"
+    assert lane.relation_dispatch_enabled is True
+    assert lane.relation_policy_mode == "controller_v31"
+
+
+def test_exp_003_action_trace_schema_preserves_v33_trust_fields() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        V33_TRUST_TRACE_FIELDS,
+        action_trace_fields_for_lanes,
+        lanes_for_profile,
+    )
+
+    assert {
+        "trust_key",
+        "trust_phase",
+        "trust_reason",
+        "trust_score",
+        "trust_exposure",
+        "trust_cooldown",
+        "trust_credit",
+        "trust_unstable",
+        "trust_pre_writeback_fitness",
+        "trust_post_writeback_fitness",
+    }.issubset(set(V33_TRUST_TRACE_FIELDS))
+    assert not set(V33_TRUST_TRACE_FIELDS).intersection(
+        action_trace_fields_for_lanes(lanes_for_profile("evidence_action_controller_v32"))
+    )
+    assert set(V33_TRUST_TRACE_FIELDS).issubset(
+        action_trace_fields_for_lanes(lanes_for_profile("evidence_action_controller_v33"))
+    )
+
+
 def test_exp_003_canonical_evidence_controller_profile_reuses_single_v32_lane() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import lanes_for_profile
 

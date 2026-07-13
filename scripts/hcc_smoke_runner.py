@@ -67,6 +67,13 @@ from src.arac.policy.search_state_policy import (
     plan_search_state_action,
     record_search_state_outcome,
 )
+from src.arac.policy.action_trust_policy import (
+    ActionTrustDecision,
+    ActionTrustPolicy,
+    make_action_key,
+    normalized_objective_credit,
+    robust_damped_writeback,
+)
 from src.arac.backends.diagonal_cma import (
     DiagonalCMAState,
     initialize_diagonal_cma_state,
@@ -203,6 +210,33 @@ ACTION_TRACE_FIELDS = [
     "pre_hold_projected_unheld_group_fes",
     "pre_hold_projected_held_group_fes",
     "pre_hold_budget_retention_ratio",
+    "trust_key",
+    "trust_phase",
+    "trust_reason",
+    "trust_score",
+    "trust_exposure",
+    "trust_cooldown",
+    "trust_credit",
+    "trust_unstable",
+    "trust_pre_writeback_fitness",
+    "trust_post_writeback_fitness",
+    "fallback_route",
+]
+V33_TRUST_TRACE_FIELDS = [
+    "trust_key",
+    "trust_phase",
+    "trust_reason",
+    "trust_score",
+    "trust_exposure",
+    "trust_cooldown",
+    "trust_credit",
+    "trust_unstable",
+    "trust_pre_writeback_fitness",
+    "trust_post_writeback_fitness",
+    "fallback_route",
+]
+LEGACY_ACTION_TRACE_FIELDS = [
+    field for field in ACTION_TRACE_FIELDS if field not in V33_TRUST_TRACE_FIELDS
 ]
 OVERLAP_RELATION_FIELDS = [
     "relation_id",
@@ -293,6 +327,7 @@ AOB_INPUT_MANIFEST_FIELDS = [
 ]
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
+ACTION_TRUST_MIN_WRITEBACK_NORM = 1e-12
 V31_NON_DENSE_PREFIX_RELATION_COUNT = 3
 V31_NON_DENSE_PREFIX_SHARED_VAR_COUNT = 3
 V31_NON_DENSE_PREFIX_REPAIR_TRIGGER = "controller_v31_non_dense_prefix_repair_lock"
@@ -314,6 +349,7 @@ EVIDENCE_ACTION_CONTROLLER_V2 = "arac_evidence_action_controller_v2"
 EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
 EVIDENCE_ACTION_CONTROLLER_V31 = "arac_evidence_action_controller_v31"
 EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
+EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -331,6 +367,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V3,
     EVIDENCE_ACTION_CONTROLLER_V31,
     EVIDENCE_ACTION_CONTROLLER_V32,
+    EVIDENCE_ACTION_CONTROLLER_V33,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -414,8 +451,21 @@ class BipopRestartPlan:
 
 
 @dataclass
+class PendingActionTrustObservation:
+    decision: ActionTrustDecision
+    pre_writeback_fitness: float
+    unstable: bool
+    trace_row: dict[str, str]
+
+
+@dataclass
 class EvidenceActionControllerV31RunState:
     dense_overlap: bool
+    action_trust_policy: ActionTrustPolicy | None = field(default=None, repr=False)
+    pending_action_trust: PendingActionTrustObservation | None = field(
+        default=None,
+        repr=False,
+    )
     locked_policy_mode: str | None = None
     non_dense_repair_locked: bool = False
     non_dense_repair_lock_trigger: str = ""
@@ -532,14 +582,85 @@ class EvidenceActionControllerV31RunState:
             trigger_reason=self.non_dense_repair_lock_trigger,
         )
 
+    def register_pending_action_trust(
+        self,
+        *,
+        decision: ActionTrustDecision | None,
+        pre_writeback_fitness: float,
+        unstable: bool,
+        trace_row: dict[str, str],
+    ) -> None:
+        if (
+            self.action_trust_policy is None
+            or decision is None
+            or not decision.allow_intervention
+        ):
+            self.pending_action_trust = None
+            return
+        self.pending_action_trust = PendingActionTrustObservation(
+            decision=decision,
+            pre_writeback_fitness=float(pre_writeback_fitness),
+            unstable=bool(unstable),
+            trace_row=trace_row,
+        )
+        trace_row["trust_pre_writeback_fitness"] = (
+            f"{float(pre_writeback_fitness):.17e}"
+        )
+
+    def observe_pending_action_trust(
+        self,
+        *,
+        post_writeback_fitness: float,
+    ) -> float | None:
+        pending = self.pending_action_trust
+        if self.action_trust_policy is None or pending is None:
+            return None
+        self.pending_action_trust = None
+        credit = normalized_objective_credit(
+            pending.pre_writeback_fitness,
+            post_writeback_fitness,
+        )
+        self.action_trust_policy.observe(
+            pending.decision.key,
+            credit=credit,
+            unstable=pending.unstable,
+        )
+        pending.trace_row["trust_credit"] = f"{credit:.6e}"
+        pending.trace_row["trust_unstable"] = str(int(pending.unstable))
+        pending.trace_row["trust_post_writeback_fitness"] = (
+            f"{float(post_writeback_fitness):.17e}"
+        )
+        pending.trace_row["downstream_consumed"] = "1"
+        pending.trace_row["downstream_consumption_scope"] = (
+            "next_group_original_fitness"
+        )
+        pending.trace_row["optimizer_consumed"] = "1"
+        return credit
+
+    def invalidate_pending_action_trust(self, reason: str) -> None:
+        pending = self.pending_action_trust
+        if pending is None:
+            return
+        if not reason:
+            raise ValueError("pending action invalidation reason must not be empty")
+        pending.trace_row["trust_reason"] = reason
+        pending.trace_row["trust_credit"] = ""
+        pending.trace_row["trust_post_writeback_fitness"] = ""
+        self.pending_action_trust = None
+
 
 def build_evidence_action_controller_v31_run_state(
     degree_of_overlap: float,
+    *,
+    action_name: str | None = None,
 ) -> EvidenceActionControllerV31RunState:
     return EvidenceActionControllerV31RunState(
-        dense_overlap=is_evidence_action_controller_v31_dense_overlap(
-            degree_of_overlap
-        )
+        dense_overlap=is_evidence_action_controller_v31_dense_overlap(degree_of_overlap),
+        action_trust_policy=(
+            ActionTrustPolicy()
+            if action_name == EVIDENCE_ACTION_CONTROLLER_V33
+            else None
+        ),
     )
 
 
@@ -783,11 +904,44 @@ def is_evidence_action_controller_v32(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V32
 
 
+def is_evidence_action_controller_v33(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V33
+
+
+def relation_downstream_consumption_scope(
+    *,
+    action_name: str,
+    writeback_active: bool,
+) -> str:
+    if not is_evidence_action_controller_v33(action_name):
+        return "same_outer_iteration"
+    return "same_outer_iteration" if writeback_active else "no_state_change"
+
+
+def controller_v33_fallback_route(
+    *,
+    canonical_action_name: str,
+    controller_run_state: EvidenceActionControllerV31RunState | None,
+) -> str:
+    if canonical_action_name in {
+        "allow_beneficial_coordination",
+        "repair_shared_variable_binding",
+        "isolate_conflicting_relation",
+    }:
+        return ""
+    if controller_run_state is None:
+        return ""
+    if controller_run_state.dense_overlap:
+        return "dense_preserve_v31"
+    return "non_dense_bounded_0_5"
+
+
 def is_guarded_evidence_action_controller(action_name: str) -> bool:
     return (
         is_evidence_action_controller_v3(action_name)
         or is_evidence_action_controller_v31(action_name)
         or is_evidence_action_controller_v32(action_name)
+        or is_evidence_action_controller_v33(action_name)
     )
 
 
@@ -798,6 +952,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v3(action_name)
         or is_evidence_action_controller_v31(action_name)
         or is_evidence_action_controller_v32(action_name)
+        or is_evidence_action_controller_v33(action_name)
     )
 
 
@@ -831,6 +986,7 @@ def uses_phase_rescue_during_run(
         (
             is_evidence_action_controller_v3(action_name)
             or is_evidence_action_controller_v32(action_name)
+            or is_evidence_action_controller_v33(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -845,6 +1001,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
         return bool(
             is_evidence_action_controller_v31(config.arac_action)
             or is_evidence_action_controller_v32(config.arac_action)
+            or is_evidence_action_controller_v33(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -931,6 +1088,7 @@ def refine_sigma_for_action(
         (
             is_evidence_action_controller_v31(action_name)
             or is_evidence_action_controller_v32(action_name)
+            or is_evidence_action_controller_v33(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
@@ -1927,6 +2085,10 @@ def build_action_trace_row(
     abstain_reason: str = "",
     search_state_evidence: SearchStateEvidence | None = None,
     pre_hold_evidence: PreHoldEvidence | None = None,
+    trust_decision: ActionTrustDecision | None = None,
+    trust_credit: float | None = None,
+    trust_unstable: bool | None = None,
+    fallback_route: str = "",
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -2075,12 +2237,45 @@ def build_action_trace_row(
             if pre_hold_evidence is None
             else value_format.format(getattr(pre_hold_evidence, name))
         )
+    row.update(
+        {
+            "trust_key": "" if trust_decision is None else trust_decision.key,
+            "trust_phase": "" if trust_decision is None else trust_decision.phase,
+            "trust_reason": "" if trust_decision is None else trust_decision.reason,
+            "trust_score": ""
+            if trust_decision is None
+            else f"{trust_decision.trust_score:.6e}",
+            "trust_exposure": ""
+            if trust_decision is None
+            else f"{trust_decision.exposure:.6e}",
+            "trust_cooldown": ""
+            if trust_decision is None
+            else str(trust_decision.cooldown_remaining),
+            "trust_credit": "" if trust_credit is None else f"{trust_credit:.6e}",
+            "trust_unstable": ""
+            if trust_unstable is None
+            else str(int(trust_unstable)),
+            "trust_pre_writeback_fitness": "",
+            "trust_post_writeback_fitness": "",
+            "fallback_route": fallback_route,
+        }
+    )
     return row
 
 
-def _write_action_trace(path: Path, rows: list[dict[str, str]]) -> None:
+def _write_action_trace(
+    path: Path,
+    rows: list[dict[str, str]],
+    *,
+    include_trust_fields: bool = True,
+) -> None:
+    fields = ACTION_TRACE_FIELDS if include_trust_fields else LEGACY_ACTION_TRACE_FIELDS
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=ACTION_TRACE_FIELDS)
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=fields,
+            extrasaction="ignore",
+        )
         writer.writeheader()
         writer.writerows(rows)
 
@@ -2254,6 +2449,142 @@ def apply_relation_action_with_controller_v31(
                 else float(np.linalg.norm(adjusted_values - current_values))
             )
     return executed_action, adjusted_values, action_value_delta_norm
+
+
+def apply_relation_action_with_controller_v33(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    previous_values: np.ndarray | None = None,
+    current_values: np.ndarray | None = None,
+    previous_delta: float = 0.0,
+    current_delta: float = 0.0,
+    controller_run_state: EvidenceActionControllerV31RunState | None = None,
+) -> tuple[
+    RelationActionDecision,
+    np.ndarray | None,
+    float,
+    ActionTrustDecision | None,
+    str,
+]:
+    """Apply v31 guards followed by v33 runtime-only trust damping."""
+
+    executed_action, adjusted_values, action_value_delta_norm = (
+        apply_relation_action_with_controller_v31(
+            relation=relation,
+            action=action,
+            previous_values=previous_values,
+            current_values=current_values,
+            previous_delta=previous_delta,
+            current_delta=current_delta,
+            controller_v31_run_state=controller_run_state,
+        )
+    )
+    policy = (
+        None
+        if controller_run_state is None
+        else controller_run_state.action_trust_policy
+    )
+    if policy is None or current_values is None or adjusted_values is None:
+        return executed_action, adjusted_values, action_value_delta_norm, None, ""
+
+    canonical_action_name = _canonical_relation_action_name(executed_action)
+    fallback_route = controller_v33_fallback_route(
+        canonical_action_name=canonical_action_name,
+        controller_run_state=controller_run_state,
+    )
+    if fallback_route:
+        if action_value_delta_norm <= ACTION_TRUST_MIN_WRITEBACK_NORM:
+            return (
+                executed_action,
+                np.asarray(current_values, dtype=float).copy(),
+                0.0,
+                None,
+                "",
+            )
+        if fallback_route == "dense_preserve_v31":
+            # Dense overlap keeps the original v31 fallback semantics because
+            # the topology itself is the runtime evidence for preserving it.
+            return (
+                executed_action,
+                adjusted_values,
+                action_value_delta_norm,
+                None,
+                fallback_route,
+            )
+        adjusted_values = robust_damped_writeback(
+            current_values=np.asarray(current_values, dtype=float),
+            proposed_values=np.asarray(adjusted_values, dtype=float),
+            blend_strength=1.0,
+            max_delta_norm=ACTION_VALUE_DELTA_GUARD_THRESHOLD,
+        )
+        return (
+            executed_action,
+            adjusted_values,
+            float(
+                np.linalg.norm(
+                    adjusted_values - np.asarray(current_values, dtype=float)
+                )
+            ),
+            None,
+            fallback_route,
+        )
+    if action_value_delta_norm <= ACTION_TRUST_MIN_WRITEBACK_NORM:
+        return (
+            executed_action,
+            np.asarray(current_values, dtype=float).copy(),
+            0.0,
+            None,
+            "",
+        )
+
+    trust_key = make_action_key(
+        group_left=relation.group_left,
+        group_right=relation.group_right,
+        shared_vars=relation.shared_vars,
+        canonical_action_name=canonical_action_name,
+    )
+    trust_decision = policy.decide(trust_key)
+    if not trust_decision.allow_intervention:
+        executed_action = RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name="fallback",
+            action_family="fallback",
+            confidence=0.0,
+            trigger_reason=f"controller_v33_{trust_decision.reason}",
+        )
+        adjusted_values = np.asarray(current_values, dtype=float).copy()
+        return executed_action, adjusted_values, 0.0, trust_decision, ""
+
+    guard_threshold = (
+        COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD
+        if canonical_action_name == "allow_beneficial_coordination"
+        else ACTION_VALUE_DELTA_GUARD_THRESHOLD
+    )
+    adjusted_values = robust_damped_writeback(
+        current_values=np.asarray(current_values, dtype=float),
+        proposed_values=np.asarray(adjusted_values, dtype=float),
+        blend_strength=trust_decision.blend_strength,
+        max_delta_norm=guard_threshold,
+    )
+    action_value_delta_norm = float(
+        np.linalg.norm(adjusted_values - np.asarray(current_values, dtype=float))
+    )
+    if action_value_delta_norm <= ACTION_TRUST_MIN_WRITEBACK_NORM:
+        policy.rollback_decision(trust_decision)
+        return (
+            executed_action,
+            np.asarray(current_values, dtype=float).copy(),
+            0.0,
+            None,
+            "",
+        )
+    return (
+        executed_action,
+        adjusted_values,
+        action_value_delta_norm,
+        trust_decision,
+        "",
+    )
 
 
 def _format_shared_vars(shared_vars: tuple[int, ...]) -> str:
@@ -2576,7 +2907,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     degree = calculate_degree_of_overlap(overlap_groups, metadata["dimension"])
     global_fes = calculate_global_fes(config.max_fes, degree)
     controller_v31_run_state = (
-        build_evidence_action_controller_v31_run_state(degree)
+        build_evidence_action_controller_v31_run_state(
+            degree,
+            action_name=config.arac_action,
+        )
+        if is_evidence_action_controller_v33(config.arac_action)
+        else build_evidence_action_controller_v31_run_state(degree)
         if (
             is_evidence_action_controller_v31(config.arac_action)
             or is_evidence_action_controller_v32(config.arac_action)
@@ -2859,6 +3195,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 break
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
+            if controller_v31_run_state is not None:
+                controller_v31_run_state.observe_pending_action_trust(
+                    post_writeback_fitness=original_fitness,
+                )
             if config.budget_accounting == "source":
                 optimizer_budget = sub_fes
             else:
@@ -3359,35 +3699,59 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         else config.relation_policy_mode,
                         shuffled_source_action=shuffled_source_action,
                     )
-                    action, adjusted_values, action_value_delta_norm = (
-                        apply_relation_action_with_controller_v31(
+                    trust_decision: ActionTrustDecision | None = None
+                    fallback_route = ""
+                    if is_evidence_action_controller_v33(config.arac_action):
+                        (
+                            action,
+                            adjusted_values,
+                            action_value_delta_norm,
+                            trust_decision,
+                            fallback_route,
+                        ) = apply_relation_action_with_controller_v33(
                             relation=relation,
                             action=action,
                             previous_values=context.previous_values,
                             current_values=context.current_values,
                             previous_delta=context.previous_delta,
                             current_delta=context.current_delta,
-                            controller_v31_run_state=controller_v31_run_state,
+                            controller_run_state=controller_v31_run_state,
                         )
-                    )
+                    else:
+                        action, adjusted_values, action_value_delta_norm = (
+                            apply_relation_action_with_controller_v31(
+                                relation=relation,
+                                action=action,
+                                previous_values=context.previous_values,
+                                current_values=context.current_values,
+                                previous_delta=context.previous_delta,
+                                current_delta=context.current_delta,
+                                controller_v31_run_state=controller_v31_run_state,
+                            )
+                        )
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     overlap_writeback_norms.append(action_value_delta_norm)
-                    relative_writeback_norms.append(
-                        scale_free_writeback_norm(
-                            delta_norm=action_value_delta_norm,
-                            shared_count=len(context.overlap_indices),
-                            lower=float(info["lower"]),
-                            upper=float(info["upper"]),
-                        )
+                    relative_writeback_norm = scale_free_writeback_norm(
+                        delta_norm=action_value_delta_norm,
+                        shared_count=len(context.overlap_indices),
+                        lower=float(info["lower"]),
+                        upper=float(info["upper"]),
+                    )
+                    relative_writeback_norms.append(relative_writeback_norm)
+                    trust_unstable = (
+                        relative_writeback_norm
+                        >= RELATIVE_WRITEBACK_UNSTABLE_THRESHOLD
                     )
                     canonical_action_name = _canonical_relation_action_name(action)
                     current_outer_relations.append(relation)
                     current_outer_decisions.append(action)
                     relations.append(relation)
                     action_decisions.append(action)
-                    action_trace_rows.append(
-                        build_action_trace_row(
+                    trust_writeback_active = (
+                        action_value_delta_norm > ACTION_TRUST_MIN_WRITEBACK_NORM
+                    )
+                    action_trace_row = build_action_trace_row(
                             problem_id=_problem_id(fun_name, fun_id),
                             seed=config.seed,
                             outer_iter=outer_iter,
@@ -3407,11 +3771,40 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 effective_policy_mode,
                                 action=action,
                             ),
-                            state_mutated=adjusted_values is not None,
+                            state_mutated=(
+                                adjusted_values is not None
+                                and trust_writeback_active
+                            )
+                            if is_evidence_action_controller_v33(config.arac_action)
+                            else adjusted_values is not None,
                             action_value_delta_norm=action_value_delta_norm,
-                            downstream_consumed=index < sub_num - 1,
-                        )
+                            downstream_consumed=(
+                                index < sub_num - 1 and trust_writeback_active
+                                if is_evidence_action_controller_v33(config.arac_action)
+                                else index < sub_num - 1
+                            ),
+                            downstream_consumption_scope=(
+                                relation_downstream_consumption_scope(
+                                    action_name=config.arac_action,
+                                    writeback_active=trust_writeback_active,
+                                )
+                            ),
+                            trust_decision=trust_decision,
+                            trust_unstable=(
+                                trust_unstable
+                                if trust_decision is not None
+                                else None
+                            ),
+                            fallback_route=fallback_route,
                     )
+                    action_trace_rows.append(action_trace_row)
+                    if controller_v31_run_state is not None:
+                        controller_v31_run_state.register_pending_action_trust(
+                            decision=trust_decision,
+                            pre_writeback_fitness=original_fitness - current_delta,
+                            unstable=trust_unstable,
+                            trace_row=action_trace_row,
+                        )
                 else:
                     overlap_action_name = overlap_action_name_for_lane(config.arac_action)
                     current_overlap_values = best_individual[overlap_indices].copy()
@@ -3621,6 +4014,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 in {RESUME_PHASE_I_SEARCH_STATE, CONTINUE_DIAGONAL_SEARCH_STATE}
                 and state_plan.requested_fes > 0
             ):
+                controller_v31_run_state.invalidate_pending_action_trust(
+                    "search_state_intervened_before_credit"
+                )
                 if (
                     state_plan.action_name == RESUME_PHASE_I_SEARCH_STATE
                     and not phase_state_available
@@ -4021,6 +4417,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V3,
             EVIDENCE_ACTION_CONTROLLER_V31,
             EVIDENCE_ACTION_CONTROLLER_V32,
+            EVIDENCE_ACTION_CONTROLLER_V33,
         ],
     )
     args = parser.parse_args(argv)
@@ -4085,6 +4482,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
             _write_action_trace(
                 case_artifact_path(output_path, problem_id, "action_trace.csv"),
                 trace_rows,
+                include_trust_fields=is_evidence_action_controller_v33(
+                    config.arac_action
+                ),
             )
             function_trace_rows.extend(trace_rows)
             if config.enable_relation_dispatch:
@@ -4103,7 +4503,13 @@ def main(argv: list[str] | None = None) -> list[Path]:
                     )
                 )
             print(f"{algorithm} average time: {elapsed}")
-        _write_action_trace(output_path / "action_trace.csv", function_trace_rows)
+        _write_action_trace(
+            output_path / "action_trace.csv",
+            function_trace_rows,
+            include_trust_fields=is_evidence_action_controller_v33(
+                config.arac_action
+            ),
+        )
         _write_aob_input_manifest(
             output_path / "aob_input_manifest.csv",
             function_aob_input_rows,

@@ -70,7 +70,7 @@
 - Modify: `scripts/hcc_smoke_runner.py:apply_relation_action_with_controller_v33`
 - Modify: `tests/test_hcc_smoke_runner_cli.py`
 
-- [ ] **Step 1: Write the dense-overlap preservation test**
+- [x] **Step 1: Write the dense-overlap preservation test**
 
 Change `test_controller_v33_preserves_v31_protected_fallback_writeback` to
 construct v33 state with degree `0.20`. Keep the expected fallback proposal and
@@ -86,7 +86,7 @@ assert delta_norm == pytest.approx(10.0)
 np.testing.assert_allclose(adjusted, np.array([10.0]))
 ```
 
-- [ ] **Step 2: Write the non-dense bounded-fallback test**
+- [x] **Step 2: Write the non-dense bounded-fallback test**
 
 Add a separate test using degree `0.10` and the same fallback-producing
 relation. The existing `0.5` guard must be restored only for this topology:
@@ -99,7 +99,7 @@ assert delta_norm == pytest.approx(0.5)
 np.testing.assert_allclose(adjusted, np.array([0.5]))
 ```
 
-- [ ] **Step 3: Run both tests and verify RED**
+- [x] **Step 3: Run both tests and verify RED**
 
 Run:
 
@@ -110,7 +110,7 @@ E:\ARAC\.venv\Scripts\python.exe -m pytest tests\test_hcc_smoke_runner_cli.py -k
 Expected: the dense test passes under v33.7 and the new non-dense test fails
 with a `10.0` norm, proving the missing topology branch.
 
-- [ ] **Step 4: Implement the minimal topology branch**
+- [x] **Step 4: Implement the minimal topology branch**
 
 Keep active coordinate/repair/isolate actions unchanged. For every other v31
 result, preserve dense fallback exactly and apply the previous bounded route
@@ -137,19 +137,19 @@ if canonical_action_name not in {
     ), None
 ```
 
-- [ ] **Step 5: Run focused and full verification**
+- [x] **Step 5: Run focused and full verification**
 
 Run the two topology tests, then the runner, trust-policy, exp003, and full
 pytest suites. Run `compileall` and `git diff --check`. Expected: all tests pass
 and legacy v32 trace/schema tests remain unchanged.
 
-- [ ] **Step 6: Run the real-HCC 5k topology smoke**
+- [x] **Step 6: Run the real-HCC 5k topology smoke**
 
 Run R2/S6, seeds 1/2/3, strict 5k FE, jobs 6. Verify `6/6` fresh runs,
 same-budget violations `0/6`, anti-leakage `16/16`, unchanged AOB hashes, R2
 non-dense fallback norm at most `0.5`, and S6 dense fallback norms above `0.5`.
 
-- [ ] **Step 7: Run the protected 3M gate**
+- [x] **Step 7: Run the protected 3M gate**
 
 Run E2/E4/E6/S6/R1/R2/A4/A5, seeds 1/2/3, strict 3M FE, jobs 24. Compare
 best-of-three offline with `references/paper_reported_table2_best_by_case.csv`.
@@ -161,6 +161,6 @@ inputs, and a clean anti-leakage audit.
 **Files:**
 - Stage only source, tests, and design/plan documentation
 
-- [ ] Inspect `git diff` for hidden fallback, duplicate route, forbidden runtime input, and unintended v32 changes.
-- [ ] Commit with `feat: add risk-aware v33 action guard`.
-- [ ] Report test and pilot evidence; do not push without explicit user request.
+- [x] Inspect `git diff` for hidden fallback, duplicate route, forbidden runtime input, and unintended v32 changes.
+- [x] Commit with `feat: add risk-aware v33 action guard`.
+- [x] Report test and pilot evidence; do not push without explicit user request.

@@ -28,6 +28,13 @@ The required smoke evidence is:
 - `action_trace.csv` contains rows with
   `semantic_surface=shared_variable_owner_rebinding` and
   `optimizer_consumed=1`.
+- The opt-in `evidence_action_controller_v33` profile also records
+  `trust_key`, `trust_phase`, `trust_reason`, `trust_score`, `trust_exposure`,
+  `trust_cooldown`, `trust_credit`, `trust_unstable`,
+  `trust_pre_writeback_fitness`, and `trust_post_writeback_fitness`. Legacy
+  controller profiles omit these columns and retain their original schema.
+  `fallback_route` identifies `dense_preserve_v31` or
+  `non_dense_bounded_0_5` for protected fallback rows.
 - For `landscape_escape`, `action_trace.csv` also records BIPOP search-state
   audit fields such as `search_state_action_type`, `bipop_restart_mode`,
   `sigma_before`, `sigma_after`, `population_before`, `population_after`,

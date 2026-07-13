@@ -78,6 +78,7 @@ def hcc_backend_semantics_for(
         if decision.action_name in {
             "arac_evidence_action_controller_v31",
             "arac_evidence_action_controller_v32",
+            "arac_evidence_action_controller_v33",
         }:
             return BackendSemanticsDiff(
                 variable_owner_changed=True,

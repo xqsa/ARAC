@@ -376,6 +376,33 @@ def test_hcc_action_execution_plan_marks_evidence_action_controller_v32_as_group
     assert plan.runtime_dispatch_allowed is True
 
 
+def test_hcc_action_execution_plan_marks_v33_as_risk_aware_runtime_guard() -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v33",
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("E2", decision)
+
+    assert plan.selected_action_name == "arac_evidence_action_controller_v33"
+    assert plan.backend_effect_kind == "evidence_action_runtime_controller_v33"
+    assert plan.optimizer_consumed is True
+    assert plan.optimizer_consumed_parameters == {
+        "relation_runtime_hook": "controller_v33_risk_aware_action_guard",
+        "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
+        "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
+        "search_state_runtime_hooks": ["phase_rescue_multistart"],
+        "guard": "probation_trust_quarantine_and_exposure_cap",
+        "writeback": "topology_scoped_fallback_and_bounded_active_damping",
+        "dispatch_boundary": "runtime_evidence_only",
+    }
+    assert plan.execution_mode == "hcc_evidence_action_controller_v33_runtime_consumed"
+    assert plan.runtime_dispatch_allowed is True
+
+
 def test_hcc_action_execution_plan_marks_isolate_as_runtime_consumed() -> None:
     decision = ActionDecision(
         ActionFamily.ISOLATE,

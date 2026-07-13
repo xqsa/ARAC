@@ -546,6 +546,47 @@ def test_hcc_smoke_runner_parses_evidence_action_controller_v32() -> None:
     assert args.relation_policy == "controller_v31"
 
 
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v33() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "6",
+            "--output-root",
+            "out",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--arac-action",
+            "arac_evidence_action_controller_v33",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == "arac_evidence_action_controller_v33"
+    assert runner.is_evidence_action_controller_v33(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+
+
+def test_v33_trust_state_is_opt_in_and_v32_has_no_trust_state() -> None:
+    runner = _load_runner_module()
+
+    v32 = runner.build_evidence_action_controller_v31_run_state(0.10)
+    v33 = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+
+    assert v32.action_trust_policy is None
+    assert v33.action_trust_policy is not None
+
+
 def test_hcc_smoke_runner_parses_diagonal_search_state_backend() -> None:
     runner = _load_runner_module()
 
@@ -714,6 +755,101 @@ def test_controller_v32_enables_scheduler_only_for_explicit_diagonal_backend() -
     assert (
         runner.trajectory_action_name_for_backend(diagonal_config)
         == runner.CONTINUE_DIAGONAL_SEARCH_STATE
+    )
+
+
+def test_action_trace_contains_v33_trust_audit_fields() -> None:
+    runner = _load_runner_module()
+
+    assert {
+        "trust_key",
+        "trust_phase",
+        "trust_reason",
+        "trust_score",
+        "trust_exposure",
+        "trust_cooldown",
+        "trust_credit",
+        "trust_unstable",
+        "trust_pre_writeback_fitness",
+        "trust_post_writeback_fitness",
+        "fallback_route",
+    }.issubset(set(runner.ACTION_TRACE_FIELDS))
+
+
+def test_legacy_action_trace_writer_omits_v33_trust_fields(tmp_path: Path) -> None:
+    runner = _load_runner_module()
+
+    row = runner.build_action_trace_row(
+        problem_id="E2",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=1.0,
+        current_delta=1.0,
+    )
+    path = tmp_path / "action_trace.csv"
+
+    runner._write_action_trace(path, [row], include_trust_fields=False)
+
+    with path.open(newline="", encoding="utf-8") as handle:
+        header = next(csv.reader(handle))
+    assert "trust_key" not in header
+    assert "trust_post_writeback_fitness" not in header
+    assert "fallback_route" not in header
+
+
+def test_relation_downstream_scope_preserves_v32_zero_norm_semantics() -> None:
+    runner = _load_runner_module()
+
+    assert (
+        runner.relation_downstream_consumption_scope(
+            action_name=runner.EVIDENCE_ACTION_CONTROLLER_V32,
+            writeback_active=False,
+        )
+        == "same_outer_iteration"
+    )
+    assert (
+        runner.relation_downstream_consumption_scope(
+            action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+            writeback_active=False,
+        )
+        == "no_state_change"
+    )
+
+
+def test_controller_v33_fallback_route_is_runtime_topology_auditable() -> None:
+    runner = _load_runner_module()
+    dense = runner.build_evidence_action_controller_v31_run_state(
+        0.20,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    non_dense = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+
+    assert (
+        runner.controller_v33_fallback_route(
+            canonical_action_name="conservative_no_action",
+            controller_run_state=dense,
+        )
+        == "dense_preserve_v31"
+    )
+    assert (
+        runner.controller_v33_fallback_route(
+            canonical_action_name="conservative_no_action",
+            controller_run_state=non_dense,
+        )
+        == "non_dense_bounded_0_5"
+    )
+    assert (
+        runner.controller_v33_fallback_route(
+            canonical_action_name="allow_beneficial_coordination",
+            controller_run_state=dense,
+        )
+        == ""
     )
 
 
@@ -2056,6 +2192,491 @@ def test_controller_v31_non_dense_guarded_prefix_locks_subsequent_repair() -> No
     ).endswith(":non_dense_prefix_repair_lock")
 
 
+def test_controller_v33_first_probation_action_shadows_v32_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "coordinate"
+    np.testing.assert_allclose(adjusted, np.array([0.5]))
+    assert delta_norm == pytest.approx(0.5)
+    assert trust is not None
+    assert trust.phase == "probation"
+    assert trust.blend_strength == pytest.approx(1.0)
+    assert trust.reason == "probation_shadow"
+    assert fallback_route == ""
+
+
+def test_controller_v33_preserves_v31_protected_fallback_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.20,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.dense_overlap is True
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    assert adjusted is not None
+    assert delta_norm == pytest.approx(10.0)
+    np.testing.assert_allclose(adjusted, np.array([10.0]))
+    assert trust is None
+    assert fallback_route == "dense_preserve_v31"
+
+
+def test_controller_v33_bounds_non_dense_protected_fallback_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.dense_overlap is False
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    assert adjusted is not None
+    assert delta_norm == pytest.approx(0.5)
+    np.testing.assert_allclose(adjusted, np.array([0.5]))
+    assert trust is None
+    assert fallback_route == "non_dense_bounded_0_5"
+
+
+def test_controller_v33_noop_writeback_does_not_consume_trust_exposure() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([1.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert executed.relation_action_name == "coordinate"
+    np.testing.assert_allclose(adjusted, np.array([1.0]))
+    assert delta_norm == 0.0
+    assert trust is None
+    assert fallback_route == ""
+    assert state.action_trust_policy is not None
+    trust_state = state.action_trust_policy.state_for(key)
+    assert trust_state.attempt_count == 0
+    assert trust_state.exposure == 0.0
+
+
+def test_controller_v33_damped_noop_rolls_back_trust_exposure() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert state.action_trust_policy is not None
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+    before = state.action_trust_policy.state_for(key)
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([4e-12]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    after = state.action_trust_policy.state_for(key)
+    assert executed.relation_action_name == "coordinate"
+    np.testing.assert_allclose(adjusted, np.array([0.0]), atol=0.0)
+    assert delta_norm == 0.0
+    assert trust is None
+    assert fallback_route == ""
+    assert after.attempt_count == before.attempt_count
+    assert after.exposure == pytest.approx(before.exposure)
+
+
+def test_controller_v33_weak_credit_damps_next_coordinate_writeback() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert state.action_trust_policy is not None
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+
+    _executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    np.testing.assert_allclose(adjusted, np.array([0.9]))
+    assert delta_norm == pytest.approx(0.1)
+    assert trust is not None
+    assert trust.reason == "probation_limited"
+    assert fallback_route == ""
+
+
+def test_controller_v33_quarantine_preserves_current_values() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+    key = runner.make_action_key(
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert state.action_trust_policy is not None
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+    state.action_trust_policy.decide(key)
+    state.action_trust_policy.observe(key, credit=0.0, unstable=False)
+
+    executed, adjusted, delta_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v33(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    assert executed.trigger_reason == "controller_v33_cooldown_active"
+    np.testing.assert_allclose(adjusted, np.array([1.0]))
+    assert delta_norm == 0.0
+    assert trust is not None
+    assert trust.allow_intervention is False
+    assert fallback_route == ""
+
+
+def test_controller_v33_credits_pending_action_from_next_evaluated_group() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.action_trust_policy is not None
+    decision = state.action_trust_policy.decide("0:1:shared:coordinate")
+    trace_row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=8.0,
+        current_delta=10.0,
+        trust_decision=decision,
+    )
+
+    state.register_pending_action_trust(
+        decision=decision,
+        pre_writeback_fitness=15.0,
+        unstable=True,
+        trace_row=trace_row,
+    )
+    credit = state.observe_pending_action_trust(post_writeback_fitness=10.0)
+
+    assert credit == pytest.approx(1.0 / 3.0)
+    assert trace_row["trust_credit"] == f"{credit:.6e}"
+    assert trace_row["downstream_consumed"] == "1"
+    assert trace_row["downstream_consumption_scope"] == "next_group_original_fitness"
+    assert trace_row["optimizer_consumed"] == "1"
+    assert trace_row["trust_pre_writeback_fitness"] == "1.50000000000000000e+01"
+    assert trace_row["trust_post_writeback_fitness"] == "1.00000000000000000e+01"
+    assert trace_row["trust_unstable"] == "1"
+    trust_state = state.action_trust_policy.state_for(decision.key)
+    assert trust_state.last_credit == pytest.approx(credit)
+    assert trust_state.last_unstable is True
+
+
+def test_controller_v33_trace_objectives_recompute_small_credit() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.action_trust_policy is not None
+    decision = state.action_trust_policy.decide("0:1:shared:coordinate")
+    trace_row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=8.0,
+        current_delta=10.0,
+        trust_decision=decision,
+    )
+    state.register_pending_action_trust(
+        decision=decision,
+        pre_writeback_fitness=78444.01,
+        unstable=False,
+        trace_row=trace_row,
+    )
+
+    credit = state.observe_pending_action_trust(
+        post_writeback_fitness=78444.011,
+    )
+    recomputed = runner.normalized_objective_credit(
+        float(trace_row["trust_pre_writeback_fitness"]),
+        float(trace_row["trust_post_writeback_fitness"]),
+    )
+
+    assert credit == pytest.approx(recomputed, abs=1e-15)
+
+
+def test_controller_v33_invalidates_pending_credit_before_search_state_change() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    assert state.action_trust_policy is not None
+    decision = state.action_trust_policy.decide("0:1:shared:coordinate")
+    trace_row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=0,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=8.0,
+        current_delta=10.0,
+        trust_decision=decision,
+    )
+    state.register_pending_action_trust(
+        decision=decision,
+        pre_writeback_fitness=15.0,
+        unstable=False,
+        trace_row=trace_row,
+    )
+
+    state.invalidate_pending_action_trust("search_state_intervened_before_credit")
+
+    assert state.pending_action_trust is None
+    assert trace_row["trust_reason"] == "search_state_intervened_before_credit"
+    assert trace_row["trust_credit"] == ""
+
+
 def test_controller_v31_non_dense_large_unstable_fallback_locks_repair_immediately() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(0.10)
@@ -3225,6 +3846,143 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     assert bases_seen_by_combine
     assert bases_seen_by_combine[0][1] == 100.0
     assert policy_batch_sizes[:2] == [1, 2]
+
+
+def test_controller_v33_credits_writeback_before_next_group_optimizer(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    optimize_calls = {"count": 0}
+    registered_baselines: list[float] = []
+    observed_contexts: list[tuple[int, float]] = []
+
+    class FakeFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, vector):
+            batch_size = 1 if np.asarray(vector).ndim == 1 else len(vector)
+            self.fitness_record.extend([1000.0] * batch_size)
+            return [1000.0] * batch_size
+
+    class FakeBenchmark:
+        def __init__(self, output_dir: str, data_dir=None) -> None:
+            self.output_dir = output_dir
+
+        def get_function(self, fun_name: str, fun_id: int):
+            return FakeFunction()
+
+        def get_info(self, fun_name: str, fun_id: int):
+            return {"dimension": 4, "lower": -5.0, "upper": 5.0}
+
+    class FakeCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            optimize_calls["count"] += 1
+            self.problem["fitness_function"](
+                np.zeros((1, self.problem["ndim_problem"]))
+            )
+            best_by_call = {1: 500.0, 2: 900.0, 3: 950.0}
+            best_x = (
+                np.array([2.0, 0.0])
+                if optimize_calls["count"] == 2
+                else np.zeros(self.problem["ndim_problem"])
+            )
+            return {
+                "n_function_evaluations": 1,
+                "best_so_far_y": best_by_call.get(optimize_calls["count"], 1000.0),
+                "best_so_far_x": best_x,
+            }
+
+    original_register = (
+        runner.EvidenceActionControllerV31RunState.register_pending_action_trust
+    )
+    original_observe = (
+        runner.EvidenceActionControllerV31RunState.observe_pending_action_trust
+    )
+
+    def capture_register(self, **kwargs):
+        if kwargs["decision"] is not None:
+            registered_baselines.append(float(kwargs["pre_writeback_fitness"]))
+        return original_register(self, **kwargs)
+
+    def capture_observe(self, **kwargs):
+        fitness = kwargs.get(
+            "post_writeback_fitness",
+            kwargs.get("downstream_fitness"),
+        )
+        if self.pending_action_trust is not None:
+            observed_contexts.append((optimize_calls["count"], float(fitness)))
+        return original_observe(self, **kwargs)
+
+    def force_coordinate(*, relation, **_kwargs):
+        return runner.RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name="coordinate",
+            action_family="coordinate",
+            confidence=1.0,
+            trigger_reason="test_coordinate",
+        )
+
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [1, 2], [2, 3]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [[1], [2]], [[1], [2]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {
+            "dimension": 4,
+            "overlap_degree": 1,
+            "subgroups": [2, 2, 2],
+        },
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+    monkeypatch.setattr(runner, "calculate_cmaes_population_size", lambda dimension: 1)
+    monkeypatch.setattr(runner, "uses_phase_rescue_during_run", lambda *args, **kwargs: False)
+    monkeypatch.setattr(runner, "select_relation_action_for_policy", force_coordinate)
+    monkeypatch.setattr(
+        runner.EvidenceActionControllerV31RunState,
+        "register_pending_action_trust",
+        capture_register,
+    )
+    monkeypatch.setattr(
+        runner.EvidenceActionControllerV31RunState,
+        "observe_pending_action_trust",
+        capture_observe,
+    )
+
+    _record, _elapsed, trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    trust_rows = [row for row in trace_rows if row["trust_key"]]
+    assert trust_rows
+    assert registered_baselines[0] == pytest.approx(900.0)
+    assert observed_contexts[0] == pytest.approx((2, 1000.0))
+    assert float(trust_rows[0]["trust_credit"]) == pytest.approx(-0.1)
 
 
 def test_run_problem_caps_aob_fitness_record_at_max_fes(
