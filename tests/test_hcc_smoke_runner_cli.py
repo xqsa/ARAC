@@ -2773,6 +2773,182 @@ def test_controller_v35_keeps_topology_scoped_fallback(
     assert fallback_route == expected_route
 
 
+def test_controller_v36_transparently_executes_repair_lock() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    state.non_dense_repair_locked = True
+    state.non_dense_repair_lock_trigger = (
+        runner.V31_NON_DENSE_PREFIX_REPAIR_TRIGGER
+    )
+    relation, action = _v35_relation_fixture(runner)
+
+    executed, adjusted, norm, trust, fallback_route, maturity_route = (
+        runner.apply_relation_action_with_controller_v36(
+            relation=relation,
+            action=action,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=2.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "reassign_repair"
+    np.testing.assert_allclose(adjusted, np.array([10.0]))
+    assert norm == pytest.approx(10.0)
+    assert trust is None
+    assert fallback_route == ""
+    assert maturity_route == "repair_lock_transparent"
+
+
+def test_controller_v36_mature_coordinate_matches_v35_transparency() -> None:
+    runner = _load_runner_module()
+    relation, action = _v35_relation_fixture(runner)
+    v35_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V35,
+    )
+    v36_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    v36_state.coordinate_maturity_latched = True
+
+    expected = runner.apply_relation_action_with_controller_v35(
+        relation=relation,
+        action=action,
+        previous_values=np.array([0.0]),
+        current_values=np.array([1.0]),
+        previous_delta=1.0,
+        current_delta=1.0,
+        controller_run_state=v35_state,
+    )
+    actual = runner.apply_relation_action_with_controller_v36(
+        relation=relation,
+        action=action,
+        previous_values=np.array([0.0]),
+        current_values=np.array([1.0]),
+        previous_delta=1.0,
+        current_delta=1.0,
+        controller_run_state=v36_state,
+    )
+
+    expected_action, expected_values, expected_norm, expected_trust, expected_fallback = (
+        expected
+    )
+    actual_action, actual_values, actual_norm, actual_trust, actual_fallback, route = (
+        actual
+    )
+    assert actual_action == expected_action
+    np.testing.assert_allclose(actual_values, expected_values)
+    assert actual_norm == pytest.approx(expected_norm)
+    assert actual_trust == expected_trust
+    assert actual_fallback == expected_fallback
+    assert route == "first_sweep_sparse_coordinate_mature"
+
+
+def _observe_negative_trust_for_relation(runner, state, relation) -> None:
+    key = runner.make_action_key(
+        group_left=relation.group_left,
+        group_right=relation.group_right,
+        shared_vars=relation.shared_vars,
+        canonical_action_name="allow_beneficial_coordination",
+    )
+    assert state.action_trust_policy is not None
+    state.action_trust_policy.observe(key, credit=-0.1, unstable=False)
+
+
+def test_controller_v36_unmatured_coordinate_matches_v33_protection() -> None:
+    runner = _load_runner_module()
+    relation, action = _v35_relation_fixture(runner)
+    v33_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+    v36_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    _observe_negative_trust_for_relation(runner, v33_state, relation)
+    _observe_negative_trust_for_relation(runner, v36_state, relation)
+
+    expected = runner.apply_relation_action_with_controller_v33(
+        relation=relation,
+        action=action,
+        previous_values=np.array([0.0]),
+        current_values=np.array([1.0]),
+        previous_delta=1.0,
+        current_delta=1.0,
+        controller_run_state=v33_state,
+    )
+    actual = runner.apply_relation_action_with_controller_v36(
+        relation=relation,
+        action=action,
+        previous_values=np.array([0.0]),
+        current_values=np.array([1.0]),
+        previous_delta=1.0,
+        current_delta=1.0,
+        controller_run_state=v36_state,
+    )
+
+    expected_action, expected_values, expected_norm, expected_trust, expected_fallback = (
+        expected
+    )
+    actual_action, actual_values, actual_norm, actual_trust, actual_fallback, route = (
+        actual
+    )
+    assert actual_action == expected_action
+    np.testing.assert_allclose(actual_values, expected_values)
+    assert actual_norm == pytest.approx(expected_norm)
+    assert actual_trust == expected_trust
+    assert actual_fallback == expected_fallback
+    assert route == ""
+
+
+@pytest.mark.parametrize(
+    ("overlap", "expected_values", "expected_norm", "expected_route"),
+    [
+        (0.20, np.array([10.0]), 10.0, "dense_preserve_v31"),
+        (0.10, np.array([0.5]), 0.5, "non_dense_bounded_0_5"),
+    ],
+)
+def test_controller_v36_keeps_topology_scoped_fallback(
+    overlap: float,
+    expected_values: np.ndarray,
+    expected_norm: float,
+    expected_route: str,
+) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        overlap,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    relation, action = _v35_relation_fixture(runner)
+
+    executed, adjusted, norm, trust, fallback_route, maturity_route = (
+        runner.apply_relation_action_with_controller_v36(
+            relation=relation,
+            action=action,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    np.testing.assert_allclose(adjusted, expected_values)
+    assert norm == pytest.approx(expected_norm)
+    assert trust is None
+    assert fallback_route == expected_route
+    assert maturity_route == ""
+
+
 def test_controller_v33_noop_writeback_does_not_consume_trust_exposure() -> None:
     runner = _load_runner_module()
     state = runner.build_evidence_action_controller_v31_run_state(

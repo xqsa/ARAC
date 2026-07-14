@@ -2751,14 +2751,14 @@ def apply_relation_action_with_controller_v31(
     return executed_action, adjusted_values, action_value_delta_norm
 
 
-def apply_relation_action_with_controller_v33(
+def apply_v33_guard_to_executed_relation(
+    *,
     relation: OverlapRelation,
-    action: RelationActionDecision,
-    previous_values: np.ndarray | None = None,
-    current_values: np.ndarray | None = None,
-    previous_delta: float = 0.0,
-    current_delta: float = 0.0,
-    controller_run_state: EvidenceActionControllerV31RunState | None = None,
+    executed_action: RelationActionDecision,
+    adjusted_values: np.ndarray | None,
+    action_value_delta_norm: float,
+    current_values: np.ndarray | None,
+    controller_run_state: EvidenceActionControllerV31RunState | None,
 ) -> tuple[
     RelationActionDecision,
     np.ndarray | None,
@@ -2766,19 +2766,6 @@ def apply_relation_action_with_controller_v33(
     ActionTrustDecision | None,
     str,
 ]:
-    """Apply v31 guards followed by v33 runtime-only trust damping."""
-
-    executed_action, adjusted_values, action_value_delta_norm = (
-        apply_relation_action_with_controller_v31(
-            relation=relation,
-            action=action,
-            previous_values=previous_values,
-            current_values=current_values,
-            previous_delta=previous_delta,
-            current_delta=current_delta,
-            controller_v31_run_state=controller_run_state,
-        )
-    )
     policy = (
         None
         if controller_run_state is None
@@ -2864,6 +2851,44 @@ def apply_relation_action_with_controller_v33(
     )
 
 
+def apply_relation_action_with_controller_v33(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    previous_values: np.ndarray | None = None,
+    current_values: np.ndarray | None = None,
+    previous_delta: float = 0.0,
+    current_delta: float = 0.0,
+    controller_run_state: EvidenceActionControllerV31RunState | None = None,
+) -> tuple[
+    RelationActionDecision,
+    np.ndarray | None,
+    float,
+    ActionTrustDecision | None,
+    str,
+]:
+    """Apply v31 guards followed by v33 runtime-only trust damping."""
+
+    executed_action, adjusted_values, action_value_delta_norm = (
+        apply_relation_action_with_controller_v31(
+            relation=relation,
+            action=action,
+            previous_values=previous_values,
+            current_values=current_values,
+            previous_delta=previous_delta,
+            current_delta=current_delta,
+            controller_v31_run_state=controller_run_state,
+        )
+    )
+    return apply_v33_guard_to_executed_relation(
+        relation=relation,
+        executed_action=executed_action,
+        adjusted_values=adjusted_values,
+        action_value_delta_norm=action_value_delta_norm,
+        current_values=current_values,
+        controller_run_state=controller_run_state,
+    )
+
+
 def apply_topology_scoped_fallback_guard(
     *,
     executed_action: RelationActionDecision,
@@ -2942,6 +2967,79 @@ def apply_relation_action_with_controller_v35(
         None,
         fallback_route,
     )
+
+
+def apply_relation_action_with_controller_v36(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    previous_values: np.ndarray | None = None,
+    current_values: np.ndarray | None = None,
+    previous_delta: float = 0.0,
+    current_delta: float = 0.0,
+    controller_run_state: EvidenceActionControllerV31RunState | None = None,
+) -> tuple[
+    RelationActionDecision,
+    np.ndarray | None,
+    float,
+    ActionTrustDecision | None,
+    str,
+    str,
+]:
+    """Apply v36 maturity routes, otherwise preserve the v33 guard."""
+
+    if controller_run_state is not None:
+        controller_run_state.prepare_v36_outer_iter(relation.outer_iter)
+    executed_action, adjusted_values, action_value_delta_norm = (
+        apply_relation_action_with_controller_v31(
+            relation=relation,
+            action=action,
+            previous_values=previous_values,
+            current_values=current_values,
+            previous_delta=previous_delta,
+            current_delta=current_delta,
+            controller_v31_run_state=controller_run_state,
+        )
+    )
+    if controller_run_state is not None:
+        controller_run_state.observe_v36_relation(relation, executed_action)
+
+    canonical_action_name = _canonical_relation_action_name(executed_action)
+    if (
+        controller_run_state is not None
+        and controller_run_state.non_dense_repair_locked
+        and canonical_action_name == "repair_shared_variable_binding"
+    ):
+        return (
+            executed_action,
+            adjusted_values,
+            action_value_delta_norm,
+            None,
+            "",
+            "repair_lock_transparent",
+        )
+    if (
+        controller_run_state is not None
+        and controller_run_state.coordinate_maturity_latched
+        and canonical_action_name == "allow_beneficial_coordination"
+    ):
+        return (
+            executed_action,
+            adjusted_values,
+            action_value_delta_norm,
+            None,
+            "",
+            "first_sweep_sparse_coordinate_mature",
+        )
+
+    protected = apply_v33_guard_to_executed_relation(
+        relation=relation,
+        executed_action=executed_action,
+        adjusted_values=adjusted_values,
+        action_value_delta_norm=action_value_delta_norm,
+        current_values=current_values,
+        controller_run_state=controller_run_state,
+    )
+    return (*protected, "")
 
 
 def _format_shared_vars(shared_vars: tuple[int, ...]) -> str:
