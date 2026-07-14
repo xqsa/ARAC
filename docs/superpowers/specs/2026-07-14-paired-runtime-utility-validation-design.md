@@ -41,6 +41,11 @@ matplotlib 3.11.0
 PyYAML 6.0.3
 cma 4.4.4
 scipy-openblas 0.3.30
+PYTHONHASHSEED=0
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1
 ```
 
 The environment probe is a shared stable library contract consumed by both

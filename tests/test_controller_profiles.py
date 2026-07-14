@@ -39,3 +39,24 @@ def test_controller_registry_rejects_unknown_actions() -> None:
 
     with pytest.raises(KeyError, match="unknown controller action"):
         controller_profile_by_action("arac_evidence_action_controller_v40")
+
+
+def test_pinned_hcc_environment_includes_deterministic_thread_settings() -> None:
+    from arac.execution.environment import PINNED_HCC_RUNTIME_ENVIRONMENT
+
+    assert {
+        name: PINNED_HCC_RUNTIME_ENVIRONMENT[name]
+        for name in (
+            "pythonhashseed",
+            "omp_num_threads",
+            "openblas_num_threads",
+            "mkl_num_threads",
+            "numexpr_num_threads",
+        )
+    } == {
+        "pythonhashseed": "0",
+        "omp_num_threads": "1",
+        "openblas_num_threads": "1",
+        "mkl_num_threads": "1",
+        "numexpr_num_threads": "1",
+    }

@@ -3837,6 +3837,7 @@ def _blas_summary() -> str:
 
 def _thread_environment() -> str:
     names = (
+        "PYTHONHASHSEED",
         "OMP_NUM_THREADS",
         "OPENBLAS_NUM_THREADS",
         "MKL_NUM_THREADS",

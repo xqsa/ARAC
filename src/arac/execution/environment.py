@@ -17,12 +17,18 @@ PINNED_HCC_RUNTIME_ENVIRONMENT = {
     "cma": "4.4.4",
     "blas_name": "scipy-openblas",
     "blas_version": "0.3.30",
+    "pythonhashseed": "0",
+    "omp_num_threads": "1",
+    "openblas_num_threads": "1",
+    "mkl_num_threads": "1",
+    "numexpr_num_threads": "1",
 }
 EnvironmentProbe = Callable[[str], dict[str, str]]
 
 _ENVIRONMENT_PROBE_SOURCE = """
 import importlib.metadata as metadata
 import json
+import os
 import platform
 
 import numpy as np
@@ -38,6 +44,11 @@ print(json.dumps({
     "cma": metadata.version("cma"),
     "blas_name": str(blas.get("name", "missing")),
     "blas_version": str(blas.get("version", "missing")),
+    "pythonhashseed": os.environ.get("PYTHONHASHSEED", "missing"),
+    "omp_num_threads": os.environ.get("OMP_NUM_THREADS", "missing"),
+    "openblas_num_threads": os.environ.get("OPENBLAS_NUM_THREADS", "missing"),
+    "mkl_num_threads": os.environ.get("MKL_NUM_THREADS", "missing"),
+    "numexpr_num_threads": os.environ.get("NUMEXPR_NUM_THREADS", "missing"),
 }, sort_keys=True))
 """
 
