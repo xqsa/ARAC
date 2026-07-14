@@ -16,7 +16,7 @@ utility gate 失败，因此按协议停止，未启动 full-24。
 - `docs/superpowers/specs/2026-07-14-paired-runtime-utility-validation-design.md` - 已追加 observed result 和 runtime-evidence 失败诊断。
 
 ## 工作区状态
-代码固定在 `dd5ffec`；本阶段仅更新 tracked 协议、passport、autonomous 台账和本卡。`results/` 被忽略但 raw artifacts 完整。用户未跟踪的 FlyKI、论文和外部源码文件未触碰。最终验证、提交和 push 尚待本会话完成。
+本阶段记录已提交为 `0c301e9`，canonical tracked tests `685 passed, 1 skipped`，compileall/diff check 通过。`results/` 被忽略但 raw artifacts 完整；用户未跟踪的 FlyKI、论文和外部源码文件未触碰。两次 `git push origin main` 均因 GitHub `443` 连接失败/重置未完成，`origin/main` 仍为 `dd5ffec`，本地 `main` ahead 1。
 
 ## 下一步（<=3 条，最小动作）
 1. 不运行本候选 full-24；先以 paired artifact 为依据重构 Phase-I evidence 到动作的可识别性。
