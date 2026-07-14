@@ -4,9 +4,7 @@ import argparse
 import csv
 import hashlib
 import json
-import subprocess
 import sys
-from collections.abc import Callable
 from pathlib import Path
 
 from experiments.paths import experiment_results_dir, repository_root
@@ -19,6 +17,12 @@ from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
     run_hcc_runtime_consumer_smoke,
 )
 from arac.backends.hcc import DEFAULT_AOB_DATA_ROOT, HCC_VENDOR_ROOT
+from arac.execution.environment import (
+    EnvironmentProbe,
+    PINNED_HCC_RUNTIME_ENVIRONMENT,
+    hcc_runtime_environment_failures,
+    probe_python_environment,
+)
 
 RUN_ID = "exp_005_hcc_final_protocol_pilot"
 DEFAULT_EXECUTION_RUNNER = run_hcc_aob_smoke_execution
@@ -50,68 +54,9 @@ AOB_AUDIT_FILES = (
     "rastrigin.py",
     "ackley.py",
 )
-PINNED_FINAL_PROTOCOL_ENVIRONMENT = {
-    "python": "3.12.13",
-    "numpy": "2.3.5",
-    "matplotlib": "3.11.0",
-    "PyYAML": "6.0.3",
-    "scipy": "1.18.0",
-    "torch": "2.12.1",
-    "cma": "4.4.4",
-    "blas_name": "scipy-openblas",
-    "blas_version": "0.3.30",
-}
-EnvironmentProbe = Callable[[str], dict[str, str]]
-_ENVIRONMENT_PROBE_SOURCE = """
-import importlib.metadata as metadata
-import json
-import platform
-
-import numpy as np
-
-blas = getattr(np.__config__, "CONFIG", {}).get("Build Dependencies", {}).get("blas", {})
-print(json.dumps({
-    "python": platform.python_version(),
-    "numpy": metadata.version("numpy"),
-    "matplotlib": metadata.version("matplotlib"),
-    "PyYAML": metadata.version("PyYAML"),
-    "scipy": metadata.version("scipy"),
-    "torch": metadata.version("torch"),
-    "cma": metadata.version("cma"),
-    "blas_name": str(blas.get("name", "missing")),
-    "blas_version": str(blas.get("version", "missing")),
-}, sort_keys=True))
-"""
-
-
-def _probe_final_protocol_environment(python_executable: str) -> dict[str, str]:
-    try:
-        completed = subprocess.run(
-            [python_executable, "-c", _ENVIRONMENT_PROBE_SOURCE],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        observed = json.loads(completed.stdout)
-    except (OSError, subprocess.SubprocessError, json.JSONDecodeError) as exc:
-        raise RuntimeError(
-            f"unable to audit final protocol environment via {python_executable}: {exc}"
-        ) from exc
-    if not isinstance(observed, dict) or any(
-        not isinstance(key, str) or not isinstance(value, str)
-        for key, value in observed.items()
-    ):
-        raise RuntimeError("final protocol environment probe returned an invalid payload")
-    return observed
-
-
-def _final_protocol_environment_failures(observed: dict[str, str]) -> list[str]:
-    return [
-        f"{name}:expected={expected},observed={observed.get(name, 'missing')}"
-        for name, expected in PINNED_FINAL_PROTOCOL_ENVIRONMENT.items()
-        if observed.get(name) != expected
-    ]
+PINNED_FINAL_PROTOCOL_ENVIRONMENT = PINNED_HCC_RUNTIME_ENVIRONMENT
+_probe_final_protocol_environment = probe_python_environment
+_final_protocol_environment_failures = hcc_runtime_environment_failures
 
 
 def _sha256_file(path: Path) -> str:

@@ -1528,6 +1528,136 @@ def test_exp_003_v39_trace_schema_adds_only_sigma_continuation_fields() -> None:
     assert not set(V34_RECOVERY_TRACE_FIELDS).intersection(fields)
 
 
+def test_exp_003_paired_profile_has_fallback_candidate_and_negative_controls() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        lanes_for_profile,
+        parse_args,
+    )
+
+    lanes = lanes_for_profile("paired_v33_v36_runtime_utility")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "fallback",
+        "candidate",
+        "shuffled_relation_dispatch",
+        "no_action_negative_control",
+    ]
+    assert lanes[0].runner_action_name == "arac_evidence_action_controller_v33"
+    assert lanes[1].runner_action_name == "arac_evidence_action_controller_v36"
+    assert lanes[2].negative_control is True
+    assert lanes[3].negative_control is True
+    assert parse_args(
+        ["--lane-profile", "paired_v33_v36_runtime_utility"]
+    ).lane_profile == "paired_v33_v36_runtime_utility"
+
+
+def test_exp_003_rejects_environment_mismatch_before_output_or_execution(
+    tmp_path: Path,
+) -> None:
+    from arac.execution.environment import PINNED_HCC_RUNTIME_ENVIRONMENT
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        run_hcc_runtime_consumer_smoke,
+    )
+
+    output = tmp_path / "environment-rejected"
+    requests: list[HccAobExecutionRequest] = []
+    observed = dict(PINNED_HCC_RUNTIME_ENVIRONMENT)
+    observed["numpy"] = "2.1.3"
+
+    with pytest.raises(RuntimeError, match="pinned HCC runtime environment gate failed"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=output,
+            execution_runner=lambda request: requests.append(request),
+            lane_profile="evidence_action_controller_v36",
+            seeds=(4,),
+            problem_ids=("E2",),
+            environment_probe=lambda _python: observed,
+        )
+
+    assert requests == []
+    assert not output.exists()
+
+
+def test_exp_003_rejects_unknown_action_before_output_or_execution(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from arac.actions import ActionFamily
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke import run as experiment
+
+    unknown_lane = experiment.LaneConfig(
+        "unknown",
+        ActionFamily.TRAJECTORY,
+        "arac_unknown_controller",
+        "arac_unknown_controller",
+        "test_unknown_action",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_unknown_controller",
+    )
+    monkeypatch.setattr(experiment, "lanes_for_profile", lambda _profile: (unknown_lane,))
+    output = tmp_path / "unknown-rejected"
+    requests: list[HccAobExecutionRequest] = []
+
+    with pytest.raises(RuntimeError, match="HCC action preflight failed"):
+        experiment.run_hcc_runtime_consumer_smoke(
+            output_dir=output,
+            execution_runner=lambda request: requests.append(request),
+            lane_profile="runtime_smoke",
+            seeds=(4,),
+            problem_ids=("E2",),
+        )
+
+    assert requests == []
+    assert not output.exists()
+
+
+def test_paired_runtime_utility_rows_report_log_mean_worst_and_catastrophic() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _paired_runtime_utility_gate,
+        _paired_runtime_utility_rows,
+    )
+
+    records = []
+    for problem_id, seed, fallback_error, candidate_error in (
+        ("E2", 4, 100.0, 80.0),
+        ("E2", 5, 120.0, 150.0),
+        ("S2", 4, 200.0, 150.0),
+        ("S2", 5, 220.0, 170.0),
+    ):
+        records.extend(
+            [
+                {
+                    "lane_id": "fallback",
+                    "result": _hcc_result(problem_id, seed, fallback_error, Path(".")),
+                },
+                {
+                    "lane_id": "candidate",
+                    "result": _hcc_result(problem_id, seed, candidate_error, Path(".")),
+                },
+            ]
+        )
+
+    rows = _paired_runtime_utility_rows(records)
+    by_problem = {row["problem_id"]: row for row in rows}
+
+    assert set(by_problem) == {"E2", "S2", "ALL"}
+    assert by_problem["E2"]["seed_count"] == 2
+    assert by_problem["E2"]["mean_win"] == 0
+    assert by_problem["E2"]["worst_seed_win"] == 0
+    assert by_problem["E2"]["meaningful_seed_wins"] == 1
+    assert by_problem["E2"]["catastrophic_losses"] == 1
+    assert float(by_problem["S2"]["mean_log_error_delta"]) < 0.0
+    assert by_problem["S2"]["mean_win"] == 1
+    assert by_problem["S2"]["worst_seed_win"] == 1
+
+    gate = _paired_runtime_utility_gate(
+        rows,
+        negative_control_rows=[{"negative_control_pass": "1"}],
+    )
+    assert gate["status"] == "blocked"
+    assert "expected_13_cases_65_pairs" in gate["blockers"]
+
+
 def test_exp_003_trajectory_guard_summary_counts_resolved_statuses() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         RUN_ID,

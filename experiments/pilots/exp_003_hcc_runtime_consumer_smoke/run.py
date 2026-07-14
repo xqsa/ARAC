@@ -5,6 +5,7 @@ import csv
 import hashlib
 import importlib.metadata
 import json
+import math
 import os
 import platform
 import subprocess
@@ -31,8 +32,20 @@ ARAC_REPO_ROOT = repository_root()
 ARAC_SRC_ROOT = ARAC_REPO_ROOT / "src"
 
 from arac.actions import ActionDecision, ActionFamily
+from arac.actions.controller_profiles import (
+    CONTROLLER_PROFILES,
+    ControllerProfile,
+    controller_has_capability,
+    controller_lane_profile_names,
+    controller_profile_by_version,
+)
 from arac.audits import claim_gate
 from arac.execution import BackendSemanticsDiff
+from arac.execution.environment import (
+    EnvironmentProbe,
+    PINNED_HCC_RUNTIME_ENVIRONMENT,
+    require_pinned_hcc_runtime_environment,
+)
 from arac.backends.hcc import (
     DEFAULT_AOB_DATA_ROOT,
     HCC_VENDOR_PATHS,
@@ -495,88 +508,69 @@ EVIDENCE_ACTION_CONTROLLER_V32_LANES = (
         relation_policy_mode="controller_v31",
     ),
 )
-EVIDENCE_ACTION_CONTROLLER_V33_LANES = (
-    LaneConfig(
-        "arac_evidence_action_controller_v33",
+def _lane_from_controller_profile(
+    profile: ControllerProfile,
+    *,
+    lane_id: str | None = None,
+    dispatch_scope: str | None = None,
+) -> LaneConfig:
+    return LaneConfig(
+        lane_id or profile.action_name,
         ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v33",
-        "arac_evidence_action_controller_v33",
-        "single_run_risk_aware_runtime_evidence_controller_v33",
+        profile.action_name,
+        profile.action_name,
+        dispatch_scope or profile.dispatch_scope,
         relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v33",
-        relation_policy_mode="controller_v31",
+        plan_action_name=profile.action_name,
+        relation_policy_mode=profile.relation_policy_mode,
+    )
+
+
+CONTROLLER_LANES_BY_PROFILE = {
+    profile.lane_profile: (_lane_from_controller_profile(profile),)
+    for profile in CONTROLLER_PROFILES
+}
+EVIDENCE_ACTION_CONTROLLER_V33_LANES = CONTROLLER_LANES_BY_PROFILE[
+    "evidence_action_controller_v33"
+]
+EVIDENCE_ACTION_CONTROLLER_V34_LANES = CONTROLLER_LANES_BY_PROFILE[
+    "evidence_action_controller_v34"
+]
+EVIDENCE_ACTION_CONTROLLER_V35_LANES = CONTROLLER_LANES_BY_PROFILE[
+    "evidence_action_controller_v35"
+]
+EVIDENCE_ACTION_CONTROLLER_V36_LANES = CONTROLLER_LANES_BY_PROFILE[
+    "evidence_action_controller_v36"
+]
+EVIDENCE_ACTION_CONTROLLER_V37_LANES = CONTROLLER_LANES_BY_PROFILE[
+    "evidence_action_controller_v37"
+]
+EVIDENCE_ACTION_CONTROLLER_V38_LANES = CONTROLLER_LANES_BY_PROFILE[
+    "evidence_action_controller_v38"
+]
+EVIDENCE_ACTION_CONTROLLER_V39_LANES = CONTROLLER_LANES_BY_PROFILE[
+    "evidence_action_controller_v39"
+]
+
+PAIRED_V33_V36_RUNTIME_UTILITY_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(33),
+        lane_id="fallback",
+        dispatch_scope="paired_v33_runtime_fallback_reference",
     ),
-)
-EVIDENCE_ACTION_CONTROLLER_V34_LANES = (
-    LaneConfig(
-        "arac_evidence_action_controller_v34",
-        ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v34",
-        "arac_evidence_action_controller_v34",
-        "single_run_downstream_recovery_runtime_evidence_controller_v34",
-        relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v34",
-        relation_policy_mode="controller_v31",
+    _lane_from_controller_profile(
+        controller_profile_by_version(36),
+        lane_id="candidate",
+        dispatch_scope="paired_v36_runtime_candidate",
     ),
-)
-EVIDENCE_ACTION_CONTROLLER_V35_LANES = (
+    LANES[4],
     LaneConfig(
-        "arac_evidence_action_controller_v35",
-        ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v35",
-        "arac_evidence_action_controller_v35",
-        "single_run_transparent_trust_topology_guard_controller_v35",
-        relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v35",
-        relation_policy_mode="controller_v31",
-    ),
-)
-EVIDENCE_ACTION_CONTROLLER_V36_LANES = (
-    LaneConfig(
-        "arac_evidence_action_controller_v36",
-        ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v36",
-        "arac_evidence_action_controller_v36",
-        "single_run_first_sweep_evidence_maturity_controller_v36",
-        relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v36",
-        relation_policy_mode="controller_v31",
-    ),
-)
-EVIDENCE_ACTION_CONTROLLER_V37_LANES = (
-    LaneConfig(
-        "arac_evidence_action_controller_v37",
-        ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v37",
-        "arac_evidence_action_controller_v37",
-        "single_run_zero_yield_phase_rescue_retirement_controller_v37",
-        relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v37",
-        relation_policy_mode="controller_v31",
-    ),
-)
-EVIDENCE_ACTION_CONTROLLER_V38_LANES = (
-    LaneConfig(
-        "arac_evidence_action_controller_v38",
-        ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v38",
-        "arac_evidence_action_controller_v38",
-        "single_run_post_retirement_precision_reanchor_controller_v38",
-        relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v38",
-        relation_policy_mode="controller_v31",
-    ),
-)
-EVIDENCE_ACTION_CONTROLLER_V39_LANES = (
-    LaneConfig(
-        "arac_evidence_action_controller_v39",
-        ActionFamily.TRAJECTORY,
-        "arac_evidence_action_controller_v39",
-        "arac_evidence_action_controller_v39",
-        "single_run_cross_sweep_cma_sigma_continuation_controller_v39",
-        relation_dispatch_enabled=True,
-        plan_action_name="arac_evidence_action_controller_v39",
-        relation_policy_mode="controller_v31",
+        "no_action_negative_control",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "conservative_no_action",
+        "paired_no_action_negative_control",
+        negative_control=True,
     ),
 )
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
@@ -594,6 +588,11 @@ CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
 
 
 def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
+    controller_lanes = CONTROLLER_LANES_BY_PROFILE.get(lane_profile)
+    if controller_lanes is not None:
+        return controller_lanes
+    if lane_profile == "paired_v33_v36_runtime_utility":
+        return PAIRED_V33_V36_RUNTIME_UTILITY_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -658,20 +657,6 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return EVIDENCE_ACTION_CONTROLLER_V31_LANES
     if lane_profile == "evidence_action_controller_v32":
         return EVIDENCE_ACTION_CONTROLLER_V32_LANES
-    if lane_profile == "evidence_action_controller_v33":
-        return EVIDENCE_ACTION_CONTROLLER_V33_LANES
-    if lane_profile == "evidence_action_controller_v34":
-        return EVIDENCE_ACTION_CONTROLLER_V34_LANES
-    if lane_profile == "evidence_action_controller_v35":
-        return EVIDENCE_ACTION_CONTROLLER_V35_LANES
-    if lane_profile == "evidence_action_controller_v36":
-        return EVIDENCE_ACTION_CONTROLLER_V36_LANES
-    if lane_profile == "evidence_action_controller_v37":
-        return EVIDENCE_ACTION_CONTROLLER_V37_LANES
-    if lane_profile == "evidence_action_controller_v38":
-        return EVIDENCE_ACTION_CONTROLLER_V38_LANES
-    if lane_profile == "evidence_action_controller_v39":
-        return EVIDENCE_ACTION_CONTROLLER_V39_LANES
     if lane_profile == "canonical_evidence_controller_v1":
         return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
     raise ValueError(f"unsupported lane profile: {lane_profile}")
@@ -728,6 +713,33 @@ def _decision(lane: LaneConfig) -> ActionDecision:
         decision="fallback" if lane.action_family == ActionFamily.FALLBACK else "allow",
         trigger_reason=f"exp_003_{lane.dispatch_scope}",
         utility_proxy=0.0 if lane.action_family == ActionFamily.FALLBACK else 1.0,
+    )
+
+
+def _require_hcc_action_preflight(
+    lanes: tuple[LaneConfig, ...],
+    problem_ids: tuple[str, ...],
+) -> None:
+    if not problem_ids:
+        raise ValueError("at least one problem_id is required")
+    failures = []
+    for problem_id in problem_ids:
+        for lane in lanes:
+            plan = build_hcc_action_execution_plan(problem_id, _decision(lane))
+            if plan.optimizer_consumed and plan.runtime_dispatch_allowed:
+                continue
+            failures.append(
+                f"{problem_id}/{lane.lane_id}/{plan.selected_action_name}:"
+                f"{plan.blocker_reason or plan.execution_mode}"
+            )
+    if failures:
+        raise RuntimeError("HCC action preflight failed: " + ";".join(failures))
+
+
+def _requires_pinned_environment(lanes: tuple[LaneConfig, ...]) -> bool:
+    return any(
+        controller_has_capability(lane.runner_action_name, "requires_pinned_environment")
+        for lane in lanes
     )
 
 
@@ -1430,47 +1442,27 @@ V39_CMA_SIGMA_TRACE_FIELDS = [
 def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
     fields: list[str] = []
     if any(
-        lane.runner_action_name
-        in {
-            "arac_evidence_action_controller_v33",
-            "arac_evidence_action_controller_v34",
-            "arac_evidence_action_controller_v35",
-            "arac_evidence_action_controller_v36",
-            "arac_evidence_action_controller_v37",
-            "arac_evidence_action_controller_v38",
-            "arac_evidence_action_controller_v39",
-        }
+        controller_has_capability(lane.runner_action_name, "trust_trace")
         for lane in lanes
     ):
         fields.extend(V33_TRUST_TRACE_FIELDS)
     if any(
-        lane.runner_action_name == "arac_evidence_action_controller_v34"
+        controller_has_capability(lane.runner_action_name, "trajectory_guard")
         for lane in lanes
     ):
         fields.extend(V34_RECOVERY_TRACE_FIELDS)
     if any(
-        lane.runner_action_name
-        in {
-            "arac_evidence_action_controller_v36",
-            "arac_evidence_action_controller_v37",
-            "arac_evidence_action_controller_v38",
-            "arac_evidence_action_controller_v39",
-        }
+        controller_has_capability(lane.runner_action_name, "maturity")
         for lane in lanes
     ):
         fields.extend(V36_MATURITY_TRACE_FIELDS)
     if any(
-        lane.runner_action_name
-        in {
-            "arac_evidence_action_controller_v37",
-            "arac_evidence_action_controller_v38",
-            "arac_evidence_action_controller_v39",
-        }
+        controller_has_capability(lane.runner_action_name, "rescue_retirement")
         for lane in lanes
     ):
         fields.extend(V37_RESOURCE_TRACE_FIELDS)
     if any(
-        lane.runner_action_name == "arac_evidence_action_controller_v39"
+        controller_has_capability(lane.runner_action_name, "sigma_continuation")
         for lane in lanes
     ):
         fields.extend(V39_CMA_SIGMA_TRACE_FIELDS)
@@ -1849,41 +1841,83 @@ def _result_by_problem_seed_and_lane(
 
 def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     indexed = _result_by_problem_seed_and_lane(records)
+    lane_by_id = {
+        str(record["lane_id"]): record["lane"]
+        for record in records
+        if isinstance(record.get("lane"), LaneConfig)
+    }
+    candidate_lane_id = (
+        "candidate" if "candidate" in lane_by_id else "relation_dispatch_rule"
+    )
+    negative_lane_ids = sorted(
+        lane_id
+        for lane_id, lane in lane_by_id.items()
+        if isinstance(lane, LaneConfig) and lane.negative_control
+    )
+    if not negative_lane_ids:
+        negative_lane_ids = sorted(
+            lane_id
+            for _problem_id, _seed, lane_id in indexed
+            if lane_id in {"shuffled_relation_dispatch", "no_action_negative_control"}
+        )
     problem_ids = sorted(
         problem_id
         for problem_id, _seed, lane_id in indexed
-        if lane_id == "relation_dispatch_rule"
+        if lane_id == candidate_lane_id
     )
     rows: list[dict[str, object]] = []
     for problem_id in sorted(set(problem_ids)):
-        seeds = sorted(
-            seed
-            for indexed_problem_id, seed, lane_id in indexed
-            if indexed_problem_id == problem_id
-            and lane_id == "relation_dispatch_rule"
-            and (problem_id, seed, "shuffled_relation_dispatch") in indexed
-        )
-        if not seeds:
-            continue
-        relation_errors = [
-            indexed[(problem_id, seed, "relation_dispatch_rule")].final_error
-            for seed in seeds
-        ]
-        shuffled_errors = [
-            indexed[(problem_id, seed, "shuffled_relation_dispatch")].final_error
-            for seed in seeds
-        ]
-        shuffled_win_count = sum(
-            1
-            for relation_error, shuffled_error in zip(
-                relation_errors,
-                shuffled_errors,
-                strict=True,
+        comparisons = []
+        for negative_lane_id in negative_lane_ids:
+            seeds = sorted(
+                seed
+                for indexed_problem_id, seed, lane_id in indexed
+                if indexed_problem_id == problem_id
+                and lane_id == candidate_lane_id
+                and (problem_id, seed, negative_lane_id) in indexed
             )
-            if classify_utility(relation_error, shuffled_error) == "meaningful_win"
-        )
+            if not seeds:
+                continue
+            candidate_errors = [
+                indexed[(problem_id, seed, candidate_lane_id)].final_error
+                for seed in seeds
+            ]
+            negative_errors = [
+                indexed[(problem_id, seed, negative_lane_id)].final_error
+                for seed in seeds
+            ]
+            negative_win_count = sum(
+                1
+                for candidate_error, negative_error in zip(
+                    candidate_errors,
+                    negative_errors,
+                    strict=True,
+                )
+                if classify_utility(candidate_error, negative_error) == "meaningful_win"
+            )
+            comparisons.append(
+                (
+                    negative_win_count,
+                    -_mean(negative_errors),
+                    negative_lane_id,
+                    seeds,
+                    candidate_errors,
+                    negative_errors,
+                )
+            )
+        if not comparisons:
+            continue
+        (
+            shuffled_win_count,
+            _negative_mean,
+            negative_lane_id,
+            seeds,
+            relation_errors,
+            shuffled_errors,
+        ) = max(comparisons)
         total = len(seeds)
         stable_outperform = shuffled_win_count > total / 2
+        legacy_shuffled = negative_lane_id == "shuffled_relation_dispatch"
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -1896,13 +1930,176 @@ def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, o
                 "stable_outperform_detected": int(stable_outperform),
                 "negative_control_pass": int(not stable_outperform),
                 "diagnostic": (
-                    "shuffled_control_stably_outperforms_relation_dispatch"
+                    (
+                        "shuffled_control_stably_outperforms_relation_dispatch"
+                        if legacy_shuffled
+                        else "negative_control_stably_outperforms_candidate"
+                    )
                     if stable_outperform
-                    else "shuffled_control_not_stably_better"
+                    else (
+                        "shuffled_control_not_stably_better"
+                        if legacy_shuffled
+                        else "negative_control_not_stably_better"
+                    )
                 ),
             }
         )
     return rows
+
+
+def _paired_runtime_utility_rows(
+    records: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    indexed = _result_by_problem_seed_and_lane(records)
+    pairs_by_problem: dict[str, list[tuple[float, float]]] = {}
+    for problem_id, seed, lane_id in indexed:
+        if lane_id != "candidate" or (problem_id, seed, "fallback") not in indexed:
+            continue
+        fallback = indexed[(problem_id, seed, "fallback")].final_error
+        candidate = indexed[(problem_id, seed, "candidate")].final_error
+        if not all(math.isfinite(value) and value >= 0.0 for value in (fallback, candidate)):
+            raise ValueError(
+                f"paired runtime utility requires finite non-negative errors: {problem_id}/seed{seed}"
+            )
+        pairs_by_problem.setdefault(problem_id, []).append((fallback, candidate))
+
+    def summarize(problem_id: str, pairs: list[tuple[float, float]]) -> dict[str, object]:
+        fallback_errors = [fallback for fallback, _candidate in pairs]
+        candidate_errors = [candidate for _fallback, candidate in pairs]
+        labels = [
+            classify_utility(fallback, candidate)
+            for fallback, candidate in pairs
+        ]
+        return {
+            "run_id": RUN_ID,
+            "problem_id": problem_id,
+            "seed_count": len(pairs),
+            "fallback_mean_error": f"{_mean(fallback_errors):.17e}",
+            "candidate_mean_error": f"{_mean(candidate_errors):.17e}",
+            "fallback_worst_error": f"{max(fallback_errors):.17e}",
+            "candidate_worst_error": f"{max(candidate_errors):.17e}",
+            "mean_log_error_delta": (
+                f"{_mean([math.log1p(candidate) - math.log1p(fallback) for fallback, candidate in pairs]):.17e}"
+            ),
+            "meaningful_seed_wins": sum(label == "meaningful_win" for label in labels),
+            "catastrophic_losses": sum(label == "catastrophic_loss" for label in labels),
+            "mean_win": int(_mean(candidate_errors) < _mean(fallback_errors)),
+            "worst_seed_win": int(max(candidate_errors) < max(fallback_errors)),
+        }
+
+    case_rows = [
+        summarize(problem_id, pairs_by_problem[problem_id])
+        for problem_id in sorted(pairs_by_problem)
+    ]
+    if not case_rows:
+        return []
+    all_pairs = [
+        pair
+        for problem_id in sorted(pairs_by_problem)
+        for pair in pairs_by_problem[problem_id]
+    ]
+    aggregate = summarize("ALL", all_pairs)
+    aggregate["mean_win"] = sum(int(row["mean_win"]) for row in case_rows)
+    aggregate["worst_seed_win"] = sum(int(row["worst_seed_win"]) for row in case_rows)
+    return [*case_rows, aggregate]
+
+
+def _paired_runtime_utility_gate(
+    paired_rows: list[dict[str, object]],
+    *,
+    negative_control_rows: list[dict[str, object]],
+    integrity_failures: list[str] | None = None,
+) -> dict[str, object]:
+    case_rows = [row for row in paired_rows if row.get("problem_id") != "ALL"]
+    aggregate = next(
+        (row for row in paired_rows if row.get("problem_id") == "ALL"),
+        None,
+    )
+    blockers = list(integrity_failures or [])
+    if aggregate is None:
+        blockers.append("missing_paired_runtime_utility_summary")
+        return {"status": "blocked", "blockers": blockers}
+
+    pair_count = int(aggregate["seed_count"])
+    case_count = len(case_rows)
+    mean_log_error_delta = float(aggregate["mean_log_error_delta"])
+    mean_case_wins = int(aggregate["mean_win"])
+    worst_seed_case_wins = int(aggregate["worst_seed_win"])
+    meaningful_seed_wins = int(aggregate["meaningful_seed_wins"])
+    catastrophic_losses = int(aggregate["catastrophic_losses"])
+    negative_control_win_count = sum(
+        int(row.get("shuffled_win_count", 0)) for row in negative_control_rows
+    )
+    negative_control_pair_count = sum(
+        int(row.get("total_seeds", 0)) for row in negative_control_rows
+    )
+    negative_control_pass = (
+        negative_control_pair_count > 0
+        and negative_control_win_count <= negative_control_pair_count / 2
+    )
+
+    if case_count != 13 or pair_count != 65:
+        blockers.append("expected_13_cases_65_pairs")
+    if mean_log_error_delta >= 0.0:
+        blockers.append("aggregate_mean_log_error_not_improved")
+    if mean_case_wins < 7:
+        blockers.append("mean_case_wins_below_7")
+    if worst_seed_case_wins < 5:
+        blockers.append("worst_seed_case_wins_below_5")
+    if meaningful_seed_wins < 33:
+        blockers.append("meaningful_seed_wins_below_33")
+    if catastrophic_losses:
+        blockers.append("catastrophic_paired_loss")
+    if not negative_control_pass:
+        blockers.append("negative_control_failed_or_missing")
+
+    return {
+        "status": "pass" if not blockers else "blocked",
+        "blockers": blockers,
+        "case_count": case_count,
+        "pair_count": pair_count,
+        "aggregate_mean_log_error_delta": mean_log_error_delta,
+        "mean_case_wins": mean_case_wins,
+        "worst_seed_case_wins": worst_seed_case_wins,
+        "meaningful_seed_wins": meaningful_seed_wins,
+        "catastrophic_losses": catastrophic_losses,
+        "negative_control_pass": negative_control_pass,
+        "negative_control_win_count": negative_control_win_count,
+        "negative_control_pair_count": negative_control_pair_count,
+    }
+
+
+def _write_paired_runtime_utility_gate(
+    output_dir: Path,
+    gate: dict[str, object],
+) -> None:
+    (output_dir / "paired_runtime_utility_gate.json").write_text(
+        json.dumps(gate, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    blockers = gate.get("blockers", [])
+    lines = [
+        "# Paired Runtime Utility Gate",
+        "",
+        f"Status: {gate.get('status', 'blocked')}",
+        f"Cases / pairs: {gate.get('case_count', 0)} / {gate.get('pair_count', 0)}",
+        f"Aggregate mean log-error delta: {gate.get('aggregate_mean_log_error_delta', 'missing')}",
+        f"Mean-case wins: {gate.get('mean_case_wins', 0)}",
+        f"Worst-seed case wins: {gate.get('worst_seed_case_wins', 0)}",
+        f"Meaningful seed wins: {gate.get('meaningful_seed_wins', 0)}",
+        f"Catastrophic paired losses: {gate.get('catastrophic_losses', 0)}",
+        f"Negative-control pass: {int(bool(gate.get('negative_control_pass', False)))}",
+        (
+            "Negative-control wins / pairs: "
+            f"{gate.get('negative_control_win_count', 0)} / "
+            f"{gate.get('negative_control_pair_count', 0)}"
+        ),
+        f"Blockers: {','.join(str(value) for value in blockers) if blockers else 'none'}",
+    ]
+    (output_dir / "paired_runtime_utility_gate.md").write_text(
+        "\n".join(lines) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _policy_evidence_diagnosis_rows_for_problem(
@@ -3694,6 +3891,7 @@ def _write_manifest(
     python_executable: str = sys.executable,
     vendor_paths: HccVendorPaths = HCC_VENDOR_PATHS,
     search_state_backend: str = "phase_i_mmes",
+    runtime_environment: dict[str, str] | None = None,
 ) -> None:
     aob_input_rows = [] if aob_input_rows is None else aob_input_rows
     mmes_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "mmes.py"
@@ -3794,6 +3992,16 @@ def _write_manifest(
         "claim_evidence_table.md",
         "aob_input_manifest.csv",
     ]
+    if runtime_environment is not None:
+        artifacts.append("runtime_environment.json")
+    if lane_profile == "paired_v33_v36_runtime_utility":
+        artifacts.extend(
+            [
+                "paired_runtime_utility_summary.csv",
+                "paired_runtime_utility_gate.json",
+                "paired_runtime_utility_gate.md",
+            ]
+        )
     manifest = "\n".join(
         [
             "# exp_003_hcc_runtime_consumer_smoke Run Manifest",
@@ -3842,6 +4050,10 @@ def _write_manifest(
             f"Torch version: {_dependency_version('torch')}",
             f"cma version: {_dependency_version('cma')}",
             f"BLAS: {_blas_summary()}",
+            (
+                "Pinned HCC runtime environment: "
+                f"{'pass' if runtime_environment is not None else 'not_required'}"
+            ),
             f"Thread environment: {_thread_environment()}",
             "",
             "Freeze evidence:",
@@ -3912,6 +4124,7 @@ def run_hcc_runtime_consumer_smoke(
     mmes_restart: bool = True,
     lane_profile: str = "runtime_smoke",
     search_state_backend: str = "phase_i_mmes",
+    environment_probe: EnvironmentProbe | None = None,
 ) -> Path:
     worker_count = max(1, int(jobs))
     max_fes = int(max_fes)
@@ -3924,6 +4137,15 @@ def run_hcc_runtime_consumer_smoke(
             "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
         )
     lanes = lanes_for_profile(lane_profile)
+    problem_ids = tuple(problem_ids)
+    seeds = tuple(seeds)
+    _require_hcc_action_preflight(lanes, problem_ids)
+    runtime_environment = None
+    if _requires_pinned_environment(lanes):
+        runtime_environment = require_pinned_hcc_runtime_environment(
+            python_executable,
+            environment_probe=environment_probe,
+        )
     output = resolve_repository_path(output_dir).resolve()
     vendor_paths = resolve_hcc_vendor_paths(
         hcc_root,
@@ -3932,14 +4154,28 @@ def run_hcc_runtime_consumer_smoke(
     )
     resolved_aob_data_root = resolve_repository_path(aob_data_root).resolve()
     output.mkdir(parents=True, exist_ok=True)
+    if runtime_environment is not None:
+        (output / "runtime_environment.json").write_text(
+            json.dumps(
+                {
+                    "status": "pass",
+                    "expected": PINNED_HCC_RUNTIME_ENVIRONMENT,
+                    "observed": runtime_environment,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
     records = _records(
         output_dir=output,
         execution_runner=execution_runner,
         hcc_root=vendor_paths.vendor_root,
         aob_data_root=resolved_aob_data_root,
         python_executable=python_executable,
-        seeds=tuple(seeds),
-        problem_ids=tuple(problem_ids),
+        seeds=seeds,
+        problem_ids=problem_ids,
         max_fes=max_fes,
         jobs=worker_count,
         budget_accounting=budget_accounting,
@@ -3953,7 +4189,51 @@ def run_hcc_runtime_consumer_smoke(
     ledger_rows = _ledger_rows(records)
     utility_rows = _utility_rows(records)
     negative_control_rows = _negative_control_rows(records)
+    anti_leakage_rows = _anti_leakage_rows(records)
+    action_execution_plan_rows = _action_execution_plan_rows(records)
+    paired_runtime_utility_rows = (
+        _paired_runtime_utility_rows(records)
+        if lane_profile == "paired_v33_v36_runtime_utility"
+        else []
+    )
     action_trace_rows = _action_trace_rows(records)
+    paired_integrity_failures: list[str] = []
+    if lane_profile == "paired_v33_v36_runtime_utility":
+        results = [record["result"] for record in records]
+        plans = [record["plan"] for record in records]
+        if runtime_environment is None:
+            paired_integrity_failures.append("missing_pinned_environment_audit")
+        if not results or any(
+            not isinstance(result, HccAobExecutionResult)
+            or not result.fresh_optimizer_execution
+            for result in results
+        ):
+            paired_integrity_failures.append("not_all_runs_fresh")
+        if any(str(row.get("same_budget_violation", "1")) != "0" for row in ledger_rows):
+            paired_integrity_failures.append("same_budget_violation")
+        if not aob_input_rows or any(
+            str(row.get("unchanged", "0")) != "1" for row in aob_input_rows
+        ):
+            paired_integrity_failures.append("aob_input_changed_or_missing")
+        if not anti_leakage_rows or any(
+            str(row.get("audit_status", "fail")) != "pass"
+            for row in anti_leakage_rows
+        ):
+            paired_integrity_failures.append("anti_leakage_violation")
+        if any(
+            not isinstance(plan, HccActionExecutionPlan)
+            or not plan.optimizer_consumed
+            or not plan.runtime_dispatch_allowed
+            for plan in plans
+        ):
+            paired_integrity_failures.append("action_execution_plan_not_consumed")
+        if not results or any(
+            not isinstance(result, HccAobExecutionResult)
+            or result.action_trace_path is None
+            or result.action_trace_rows <= 0
+            for result in results
+        ):
+            paired_integrity_failures.append("action_trace_missing_or_empty")
     diagnosis_rows = _policy_evidence_diagnosis_rows(
         records,
         utility_rows,
@@ -4031,7 +4311,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "action_execution_plan.csv",
-        _action_execution_plan_rows(records),
+        action_execution_plan_rows,
         [
             "run_id",
             "lane_id",
@@ -4278,6 +4558,31 @@ def run_hcc_runtime_consumer_smoke(
             "diagnostic",
         ],
     )
+    if paired_runtime_utility_rows:
+        _write_csv(
+            output / "paired_runtime_utility_summary.csv",
+            paired_runtime_utility_rows,
+            [
+                "run_id",
+                "problem_id",
+                "seed_count",
+                "fallback_mean_error",
+                "candidate_mean_error",
+                "fallback_worst_error",
+                "candidate_worst_error",
+                "mean_log_error_delta",
+                "meaningful_seed_wins",
+                "catastrophic_losses",
+                "mean_win",
+                "worst_seed_win",
+            ],
+        )
+        paired_gate = _paired_runtime_utility_gate(
+            paired_runtime_utility_rows,
+            negative_control_rows=negative_control_rows,
+            integrity_failures=paired_integrity_failures,
+        )
+        _write_paired_runtime_utility_gate(output, paired_gate)
     _write_csv(
         output / "policy_evidence_diagnosis.csv",
         diagnosis_rows,
@@ -4309,7 +4614,7 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "anti_leakage_audit.csv",
-        _anti_leakage_rows(records),
+        anti_leakage_rows,
         [
             "run_id",
             "artifact_path",
@@ -4357,7 +4662,18 @@ def run_hcc_runtime_consumer_smoke(
         python_executable,
         vendor_paths,
         search_state_backend,
+        runtime_environment,
     )
+    if paired_runtime_utility_rows:
+        manifest_path = output / "run_manifest.md"
+        manifest = manifest_path.read_text(encoding="utf-8")
+        manifest += (
+            "\nPaired runtime utility gate: "
+            f"{paired_gate['status']}; "
+            f"blockers={','.join(str(value) for value in paired_gate['blockers']) if paired_gate['blockers'] else 'none'}; "
+            "details=paired_runtime_utility_gate.json\n"
+        )
+        manifest_path.write_text(manifest, encoding="utf-8")
     return output
 
 
@@ -4431,13 +4747,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v3",
             "evidence_action_controller_v31",
             "evidence_action_controller_v32",
-            "evidence_action_controller_v33",
-            "evidence_action_controller_v34",
-            "evidence_action_controller_v35",
-            "evidence_action_controller_v36",
-            "evidence_action_controller_v37",
-            "evidence_action_controller_v38",
-            "evidence_action_controller_v39",
+            *controller_lane_profile_names(),
+            "paired_v33_v36_runtime_utility",
             "canonical_evidence_controller_v1",
         ],
     )

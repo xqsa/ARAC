@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from arac.actions import ActionFamily
 from arac.backends.hcc import build_hcc_action_execution_plan
 from arac.actions import ActionDecision
@@ -454,6 +456,56 @@ def test_hcc_action_execution_plan_marks_v39_as_cma_sigma_continuation() -> None
         "hcc_evidence_action_controller_v39_runtime_consumed"
     )
     assert plan.runtime_dispatch_allowed is True
+
+
+@pytest.mark.parametrize(
+    ("action_name", "backend_effect_kind", "execution_mode"),
+    [
+        (
+            "arac_evidence_action_controller_v35",
+            "evidence_action_runtime_controller_v35",
+            "hcc_evidence_action_controller_v35_runtime_consumed",
+        ),
+        (
+            "arac_evidence_action_controller_v36",
+            "evidence_action_runtime_controller_v36",
+            "hcc_evidence_action_controller_v36_runtime_consumed",
+        ),
+        (
+            "arac_evidence_action_controller_v37",
+            "evidence_action_runtime_controller_v37",
+            "hcc_evidence_action_controller_v37_runtime_consumed",
+        ),
+        (
+            "arac_evidence_action_controller_v38",
+            "evidence_action_runtime_controller_v38",
+            "hcc_evidence_action_controller_v38_runtime_consumed",
+        ),
+    ],
+)
+def test_hcc_action_execution_plan_binds_every_executed_controller(
+    action_name: str,
+    backend_effect_kind: str,
+    execution_mode: str,
+) -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        action_name,
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("E2", decision)
+
+    assert plan.backend_effect_kind == backend_effect_kind
+    assert plan.execution_mode == execution_mode
+    assert plan.optimizer_consumed is True
+    assert plan.runtime_dispatch_allowed is True
+    assert plan.blocker_reason == ""
+    assert plan.optimizer_consumed_parameters["dispatch_boundary"] == (
+        "runtime_evidence_only"
+    )
 
 
 def test_hcc_action_execution_plan_marks_cma_sigma_action_as_consumed() -> None:

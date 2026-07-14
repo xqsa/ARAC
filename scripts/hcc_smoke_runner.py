@@ -74,6 +74,10 @@ from src.arac.policy.action_trust_policy import (
     normalized_objective_credit,
     robust_damped_writeback,
 )
+from src.arac.actions.controller_profiles import (
+    controller_has_capability,
+    controller_profile_by_version,
+)
 from src.arac.policy.trajectory_guard import (
     RecoveryCheckpoint,
     RecoveryResolution,
@@ -448,13 +452,13 @@ EVIDENCE_ACTION_CONTROLLER_V2 = "arac_evidence_action_controller_v2"
 EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
 EVIDENCE_ACTION_CONTROLLER_V31 = "arac_evidence_action_controller_v31"
 EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
-EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
-EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
-EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
-EVIDENCE_ACTION_CONTROLLER_V36 = "arac_evidence_action_controller_v36"
-EVIDENCE_ACTION_CONTROLLER_V37 = "arac_evidence_action_controller_v37"
-EVIDENCE_ACTION_CONTROLLER_V38 = "arac_evidence_action_controller_v38"
-EVIDENCE_ACTION_CONTROLLER_V39 = "arac_evidence_action_controller_v39"
+EVIDENCE_ACTION_CONTROLLER_V33 = controller_profile_by_version(33).action_name
+EVIDENCE_ACTION_CONTROLLER_V34 = controller_profile_by_version(34).action_name
+EVIDENCE_ACTION_CONTROLLER_V35 = controller_profile_by_version(35).action_name
+EVIDENCE_ACTION_CONTROLLER_V36 = controller_profile_by_version(36).action_name
+EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
+EVIDENCE_ACTION_CONTROLLER_V38 = controller_profile_by_version(38).action_name
+EVIDENCE_ACTION_CONTROLLER_V39 = controller_profile_by_version(39).action_name
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -1046,33 +1050,30 @@ def build_evidence_action_controller_v31_run_state(
         dense_overlap=is_evidence_action_controller_v31_dense_overlap(degree_of_overlap),
         action_trust_policy=(
             ActionTrustPolicy()
-            if action_name in {
-                EVIDENCE_ACTION_CONTROLLER_V33,
-                EVIDENCE_ACTION_CONTROLLER_V34,
-                EVIDENCE_ACTION_CONTROLLER_V36,
-                EVIDENCE_ACTION_CONTROLLER_V37,
-                EVIDENCE_ACTION_CONTROLLER_V38,
-                EVIDENCE_ACTION_CONTROLLER_V39,
-            }
+            if action_name is not None
+            and controller_has_capability(action_name, "risk_aware_trust")
             else None
         ),
-        trajectory_guard_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V34,
-        v36_enabled=action_name
-        in {
-            EVIDENCE_ACTION_CONTROLLER_V36,
-            EVIDENCE_ACTION_CONTROLLER_V37,
-            EVIDENCE_ACTION_CONTROLLER_V38,
-            EVIDENCE_ACTION_CONTROLLER_V39,
-        },
-        v37_enabled=action_name
-        in {
-            EVIDENCE_ACTION_CONTROLLER_V37,
-            EVIDENCE_ACTION_CONTROLLER_V38,
-            EVIDENCE_ACTION_CONTROLLER_V39,
-        },
-        v38_enabled=action_name
-        in {EVIDENCE_ACTION_CONTROLLER_V38, EVIDENCE_ACTION_CONTROLLER_V39},
-        v39_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V39,
+        trajectory_guard_enabled=(
+            action_name is not None
+            and controller_has_capability(action_name, "trajectory_guard")
+        ),
+        v36_enabled=(
+            action_name is not None
+            and controller_has_capability(action_name, "maturity")
+        ),
+        v37_enabled=(
+            action_name is not None
+            and controller_has_capability(action_name, "rescue_retirement")
+        ),
+        v38_enabled=(
+            action_name is not None
+            and controller_has_capability(action_name, "precision_reanchor")
+        ),
+        v39_enabled=(
+            action_name is not None
+            and controller_has_capability(action_name, "sigma_continuation")
+        ),
     )
 
 
@@ -1375,17 +1376,7 @@ def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
 
 
 def uses_v33_trust_trace_schema(action_name: str) -> bool:
-    return is_risk_aware_evidence_action_controller(
-        action_name
-    ) or is_evidence_action_controller_v35(
-        action_name
-    ) or is_evidence_action_controller_v36(
-        action_name
-    ) or is_evidence_action_controller_v37(
-        action_name
-    ) or is_evidence_action_controller_v38(
-        action_name
-    ) or is_evidence_action_controller_v39(action_name)
+    return controller_has_capability(action_name, "trust_trace")
 
 
 def relation_downstream_consumption_scope(

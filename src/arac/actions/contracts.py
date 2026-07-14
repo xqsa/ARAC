@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from .controller_profiles import CONTROLLER_PROFILES
+
 
 class ActionFamily(StrEnum):
     COORDINATE = "coordinate"
@@ -55,13 +57,10 @@ DEFAULT_ACTION_SPACE = (
     ActionSpec("arac_evidence_action_controller_v3", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("arac_evidence_action_controller_v31", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("arac_evidence_action_controller_v32", ActionFamily.TRAJECTORY, "core_intervention"),
-    ActionSpec("arac_evidence_action_controller_v33", ActionFamily.TRAJECTORY, "core_intervention"),
-    ActionSpec("arac_evidence_action_controller_v34", ActionFamily.TRAJECTORY, "core_intervention"),
-    ActionSpec("arac_evidence_action_controller_v35", ActionFamily.TRAJECTORY, "core_intervention"),
-    ActionSpec("arac_evidence_action_controller_v36", ActionFamily.TRAJECTORY, "core_intervention"),
-    ActionSpec("arac_evidence_action_controller_v37", ActionFamily.TRAJECTORY, "core_intervention"),
-    ActionSpec("arac_evidence_action_controller_v38", ActionFamily.TRAJECTORY, "core_intervention"),
-    ActionSpec("arac_evidence_action_controller_v39", ActionFamily.TRAJECTORY, "core_intervention"),
+    *(
+        ActionSpec(profile.action_name, ActionFamily.TRAJECTORY, "core_intervention")
+        for profile in CONTROLLER_PROFILES
+    ),
     ActionSpec("cross_sweep_cma_sigma_continuation", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("post_retirement_precision_reanchor", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("repair_bipop_search_state_restart", ActionFamily.TRAJECTORY, "core_intervention"),

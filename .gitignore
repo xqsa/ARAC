@@ -4,6 +4,7 @@ __pycache__/
 .ruff_cache/
 .venv/
 .codex/tmp/
+.autonomous/
 data/raw/*
 data/interim/*
 data/processed/*

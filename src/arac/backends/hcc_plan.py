@@ -10,6 +10,7 @@ import json
 from dataclasses import dataclass
 
 from arac.actions import ActionDecision
+from arac.actions.controller_profiles import controller_action_effects
 
 AOB_FUNCTION_NAMES = {
     "E": "elliptic",
@@ -214,59 +215,6 @@ HCC_ACTION_EFFECTS = {
         True,
         "",
     ),
-    "arac_evidence_action_controller_v33": (
-        "evidence_action_runtime_controller_v33",
-        {
-            "relation_runtime_hook": "controller_v33_risk_aware_action_guard",
-            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
-            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-            ],
-            "guard": "probation_trust_quarantine_and_exposure_cap",
-            "writeback": "topology_scoped_fallback_and_bounded_active_damping",
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v33_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v34": (
-        "evidence_action_runtime_controller_v34",
-        {
-            "relation_runtime_hook": "controller_v33_risk_aware_action_guard",
-            "mode_selector": "early_runtime_overlap_relation_evidence_with_relation_first_lock",
-            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-            ],
-            "guard": "probation_trust_quarantine_and_exposure_cap",
-            "writeback": "topology_scoped_fallback_and_bounded_active_damping",
-            "trajectory_guard": "downstream_recovery_checkpoint",
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v34_runtime_consumed",
-        True,
-        "",
-    ),
-    "arac_evidence_action_controller_v39": (
-        "evidence_action_runtime_controller_v39",
-        {
-            "relation_runtime_hook": "controller_v36_maturity_guarded_relation_dispatch",
-            "mode_selector": "current_run_phase_i_relation_and_optimizer_evidence",
-            "search_state_runtime_hooks": [
-                "phase_rescue_multistart",
-                "zero_yield_phase_rescue_retirement",
-                "post_retirement_precision_reanchor",
-                "cross_sweep_cma_terminal_sigma_continuation",
-            ],
-            "optimizer_runtime_hook": "cross_sweep_cma_terminal_sigma_continuation",
-            "dispatch_boundary": "runtime_evidence_only",
-        },
-        "hcc_evidence_action_controller_v39_runtime_consumed",
-        True,
-        "",
-    ),
     "cross_sweep_cma_sigma_continuation": (
         "optimizer_search_scale_continuation",
         {
@@ -322,6 +270,7 @@ HCC_ACTION_EFFECTS = {
         "",
     ),
 }
+HCC_ACTION_EFFECTS.update(controller_action_effects())
 
 def _problem_parts(problem_id: str) -> tuple[str, str, int]:
     problem = str(problem_id).strip().upper()
