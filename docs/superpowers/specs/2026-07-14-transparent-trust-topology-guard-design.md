@@ -2,7 +2,7 @@
 
 Date: 2026-07-14
 Executor: Codex
-Status: user pre-authorized autonomous implementation; engineering candidate
+Status: implemented and rejected at the protected gate
 
 ## Purpose
 
@@ -181,3 +181,67 @@ FE. Adoption requires:
 
 Three seeds remain pilot-level evidence. Passing these gates does not justify
 a 25-run, robust-final, or SOTA claim.
+
+## Execution Result
+
+The opt-in v35 implementation was completed in four commits:
+
+- `8567a17`: pure transparent active-action and topology fallback semantics;
+- `e422719`: runner, trace-schema, and action-contract registration;
+- `5b582c0`: single exp003 v35 lane;
+- `933368d`: matched-FE integration coverage.
+
+Focused verification passed with `268 passed, 1 skipped`; all Git-tracked tests
+passed with `602 passed, 1 skipped`. The real-HCC 5k smoke at
+`results/controller_v35_transparent_trust_5k_20260714` completed `9/9` fresh
+runs with zero FE violations or overspends, AOB inputs `90/90` unchanged,
+anti-leakage `16/16`, no non-empty trust or recovery values, and both fallback
+routes (`dense_preserve_v31`: 45 rows; `non_dense_bounded_0_5`: 99 rows).
+
+The protected 10-case run at
+`results/controller_v35_transparent_trust_10case_seed123_3m_20260714` completed
+all `30/30` fresh trajectories. FE violations and overspends were zero, AOB
+inputs were `297/297` unchanged, anti-leakage was `16/16`, and every run had
+its raw action trace, decision, mismatch audit, overlap relations, budget
+summary, AOB manifest, and evaluation record. Paper-best was joined only after
+runtime completion, with `runtime_dispatch_used=0`.
+
+The protected performance gate failed:
+
+- original protected eight: best-of-three `6/8`, not the required `8/8`;
+- S2/S3: seed wins `6/6`, meeting the restoration target;
+- aggregate: best `8/10`, mean `3/10`, worst `2/10`, seed wins `15/30`,
+  catastrophic seeds `7/30`;
+- failed protected cases: A4 and R2.
+
+Therefore the conditional v35 full-24 run was not started and v35 is not
+adopted.
+
+## Runtime-Evidence Diagnosis
+
+Removing trust damping produced the intended S2/S3 recovery but increased
+active-action exposure elsewhere. At the first matched v33.8/v35 divergence,
+the same coordinate action and relation received a v35 writeback norm exactly
+five times the v33.8 probation-limited norm for every A4 and R2 seed. This is
+the direct semantic effect of replacing v33.8's `0.2` probation blend with the
+transparent v31 writeback.
+
+The accumulated exposure was substantial in A4. Seed 2 coordinate rows rose
+from 19 to 80 and active norm sum from `6.11` to `36.93`; seed 3 rose from 14
+to 66 and from `6.26` to `30.64`. Yet final effects remained small and mixed:
+v35 changed A4 versus v33.8 by `-0.0041%`, `+0.0021%`, and `-0.0078%` across
+seeds 1/2/3, missing paper-best by only `2.51` in its best seed.
+
+R2 shows the stronger counterexample. The same transparent policy changed
+v35 versus v33.8 by `-15.78%`, `+4.36%`, and `-0.022%` across seeds 1/2/3.
+Its best error was `263580.7`, so it lost all three seeds to paper-best
+`248000`; v33.8 seed 1 had previously reached `227665.2`. Early local trust
+credits around the first divergence do not separate these opposite long-term
+directions.
+
+The evidence rejects unconditional active transparency as a stability fix.
+It does not validate the v33.8 exact-key trust proxy either: both the earlier
+trust audit and this ablation show local one-step evidence with inconsistent
+long-horizon utility. A future candidate needs an independently identifiable,
+reference-blind long-horizon signal; it must not tune on A4/R2 labels or final
+outcomes.
