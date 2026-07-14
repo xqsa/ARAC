@@ -1654,6 +1654,8 @@ def test_paired_runtime_utility_rows_report_log_mean_worst_and_catastrophic() ->
         rows,
         negative_control_rows=[{"negative_control_pass": "1"}],
     )
+    assert gate["integrity_status"] == "pass"
+    assert gate["integrity_failures"] == []
     assert gate["status"] == "blocked"
     assert "expected_13_cases_65_pairs" in gate["blockers"]
 

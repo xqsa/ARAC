@@ -2016,9 +2016,15 @@ def _paired_runtime_utility_gate(
         None,
     )
     blockers = list(integrity_failures or [])
+    integrity_status = "pass" if not blockers else "blocked"
     if aggregate is None:
         blockers.append("missing_paired_runtime_utility_summary")
-        return {"status": "blocked", "blockers": blockers}
+        return {
+            "status": "blocked",
+            "blockers": blockers,
+            "integrity_status": integrity_status,
+            "integrity_failures": list(integrity_failures or []),
+        }
 
     pair_count = int(aggregate["seed_count"])
     case_count = len(case_rows)
@@ -2056,6 +2062,8 @@ def _paired_runtime_utility_gate(
     return {
         "status": "pass" if not blockers else "blocked",
         "blockers": blockers,
+        "integrity_status": integrity_status,
+        "integrity_failures": list(integrity_failures or []),
         "case_count": case_count,
         "pair_count": pair_count,
         "aggregate_mean_log_error_delta": mean_log_error_delta,
@@ -2082,6 +2090,11 @@ def _write_paired_runtime_utility_gate(
         "# Paired Runtime Utility Gate",
         "",
         f"Status: {gate.get('status', 'blocked')}",
+        f"Integrity status: {gate.get('integrity_status', 'blocked')}",
+        (
+            "Integrity failures: "
+            f"{','.join(str(value) for value in gate.get('integrity_failures', [])) or 'none'}"
+        ),
         f"Cases / pairs: {gate.get('case_count', 0)} / {gate.get('pair_count', 0)}",
         f"Aggregate mean log-error delta: {gate.get('aggregate_mean_log_error_delta', 'missing')}",
         f"Mean-case wins: {gate.get('mean_case_wins', 0)}",
