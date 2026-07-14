@@ -3424,6 +3424,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         if (
             is_risk_aware_evidence_action_controller(config.arac_action)
             or is_evidence_action_controller_v35(config.arac_action)
+            or is_evidence_action_controller_v36(config.arac_action)
         )
         else build_evidence_action_controller_v31_run_state(degree)
         if (

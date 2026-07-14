@@ -5010,6 +5010,18 @@ def test_controller_v33_to_v36_matched_fe_credits_before_next_group_optimizer(
     optimize_calls["count"] = 0
     registered_baselines.clear()
     observed_contexts.clear()
+    v36_states = []
+    original_apply_v36 = runner.apply_relation_action_with_controller_v36
+
+    def capture_v36_state(**kwargs):
+        v36_states.append(kwargs["controller_run_state"])
+        return original_apply_v36(**kwargs)
+
+    monkeypatch.setattr(
+        runner,
+        "apply_relation_action_with_controller_v36",
+        capture_v36_state,
+    )
     v36_output = tmp_path / "v36"
     v36_output.mkdir()
 
@@ -5034,6 +5046,8 @@ def test_controller_v33_to_v36_matched_fe_credits_before_next_group_optimizer(
     assert len(v36_record) == len(v33_record)
     assert registered_baselines == []
     assert observed_contexts == []
+    assert v36_states
+    assert all(state is not None and state.v36_enabled for state in v36_states)
     assert all(
         row.get("trajectory_guard_status", "") == "" for row in v36_trace_rows
     )
