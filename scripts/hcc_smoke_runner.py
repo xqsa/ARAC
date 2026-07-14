@@ -228,6 +228,12 @@ ACTION_TRACE_FIELDS = [
     "trust_pre_writeback_fitness",
     "trust_post_writeback_fitness",
     "fallback_route",
+    "active_maturity_route",
+    "sweep_evidence_relation_count",
+    "sweep_evidence_active_count",
+    "sweep_evidence_active_fraction",
+    "sweep_evidence_support",
+    "sweep_evidence_reason",
     "trajectory_guard_status",
     "trajectory_guard_pre_fitness",
     "trajectory_guard_post_writeback_fitness",
@@ -256,10 +262,26 @@ V34_RECOVERY_TRACE_FIELDS = [
     "trajectory_guard_recovery_credit",
     "trajectory_guard_restored",
 ]
+V36_MATURITY_TRACE_FIELDS = [
+    "active_maturity_route",
+    "sweep_evidence_relation_count",
+    "sweep_evidence_active_count",
+    "sweep_evidence_active_fraction",
+    "sweep_evidence_support",
+    "sweep_evidence_reason",
+]
 V33_ACTION_TRACE_FIELDS = [
+    field
+    for field in ACTION_TRACE_FIELDS
+    if field not in V34_RECOVERY_TRACE_FIELDS
+    and field not in V36_MATURITY_TRACE_FIELDS
+]
+V34_ACTION_TRACE_FIELDS = [
+    field for field in ACTION_TRACE_FIELDS if field not in V36_MATURITY_TRACE_FIELDS
+]
+V36_ACTION_TRACE_FIELDS = [
     field for field in ACTION_TRACE_FIELDS if field not in V34_RECOVERY_TRACE_FIELDS
 ]
-V34_ACTION_TRACE_FIELDS = list(ACTION_TRACE_FIELDS)
 LEGACY_ACTION_TRACE_FIELDS = [
     field
     for field in V33_ACTION_TRACE_FIELDS
@@ -1180,6 +1202,10 @@ def is_evidence_action_controller_v35(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V35
 
 
+def is_evidence_action_controller_v36(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V36
+
+
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
     return is_evidence_action_controller_v33(
         action_name
@@ -1189,7 +1215,9 @@ def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
 def uses_v33_trust_trace_schema(action_name: str) -> bool:
     return is_risk_aware_evidence_action_controller(
         action_name
-    ) or is_evidence_action_controller_v35(action_name)
+    ) or is_evidence_action_controller_v35(
+        action_name
+    ) or is_evidence_action_controller_v36(action_name)
 
 
 def relation_downstream_consumption_scope(
@@ -1228,6 +1256,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v33(action_name)
         or is_evidence_action_controller_v34(action_name)
         or is_evidence_action_controller_v35(action_name)
+        or is_evidence_action_controller_v36(action_name)
     )
 
 
@@ -1241,6 +1270,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v33(action_name)
         or is_evidence_action_controller_v34(action_name)
         or is_evidence_action_controller_v35(action_name)
+        or is_evidence_action_controller_v36(action_name)
     )
 
 
@@ -1277,6 +1307,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v33(action_name)
             or is_evidence_action_controller_v34(action_name)
             or is_evidence_action_controller_v35(action_name)
+            or is_evidence_action_controller_v36(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1294,6 +1325,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v33(config.arac_action)
             or is_evidence_action_controller_v34(config.arac_action)
             or is_evidence_action_controller_v35(config.arac_action)
+            or is_evidence_action_controller_v36(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -2383,6 +2415,12 @@ def build_action_trace_row(
     trust_credit: float | None = None,
     trust_unstable: bool | None = None,
     fallback_route: str = "",
+    active_maturity_route: str = "",
+    sweep_evidence_relation_count: int | None = None,
+    sweep_evidence_active_count: int | None = None,
+    sweep_evidence_active_fraction: float | None = None,
+    sweep_evidence_support: float | None = None,
+    sweep_evidence_reason: str = "",
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -2552,6 +2590,20 @@ def build_action_trace_row(
             "trust_pre_writeback_fitness": "",
             "trust_post_writeback_fitness": "",
             "fallback_route": fallback_route,
+            "active_maturity_route": active_maturity_route,
+            "sweep_evidence_relation_count": ""
+            if sweep_evidence_relation_count is None
+            else str(sweep_evidence_relation_count),
+            "sweep_evidence_active_count": ""
+            if sweep_evidence_active_count is None
+            else str(sweep_evidence_active_count),
+            "sweep_evidence_active_fraction": ""
+            if sweep_evidence_active_fraction is None
+            else f"{sweep_evidence_active_fraction:.6e}",
+            "sweep_evidence_support": ""
+            if sweep_evidence_support is None
+            else f"{sweep_evidence_support:.6e}",
+            "sweep_evidence_reason": sweep_evidence_reason,
         }
     )
     return row
@@ -2563,9 +2615,12 @@ def _write_action_trace(
     *,
     include_trust_fields: bool = True,
     include_recovery_fields: bool = False,
+    include_maturity_fields: bool = False,
 ) -> None:
     if include_recovery_fields:
         fields = V34_ACTION_TRACE_FIELDS
+    elif include_maturity_fields:
+        fields = V36_ACTION_TRACE_FIELDS
     elif include_trust_fields:
         fields = V33_ACTION_TRACE_FIELDS
     else:
@@ -4189,6 +4244,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     )
                     trust_decision: ActionTrustDecision | None = None
                     fallback_route = ""
+                    active_maturity_route = ""
                     if is_risk_aware_evidence_action_controller(config.arac_action):
                         (
                             action,
@@ -4213,6 +4269,23 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             trust_decision,
                             fallback_route,
                         ) = apply_relation_action_with_controller_v35(
+                            relation=relation,
+                            action=action,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            previous_delta=context.previous_delta,
+                            current_delta=context.current_delta,
+                            controller_run_state=controller_v31_run_state,
+                        )
+                    elif is_evidence_action_controller_v36(config.arac_action):
+                        (
+                            action,
+                            adjusted_values,
+                            action_value_delta_norm,
+                            trust_decision,
+                            fallback_route,
+                            active_maturity_route,
+                        ) = apply_relation_action_with_controller_v36(
                             relation=relation,
                             action=action,
                             previous_values=context.previous_values,
@@ -4301,6 +4374,47 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 else None
                             ),
                             fallback_route=fallback_route,
+                            active_maturity_route=active_maturity_route,
+                            sweep_evidence_relation_count=(
+                                controller_v31_run_state.sweep_evidence_relation_count
+                                if is_evidence_action_controller_v36(
+                                    config.arac_action
+                                )
+                                and controller_v31_run_state is not None
+                                else None
+                            ),
+                            sweep_evidence_active_count=(
+                                controller_v31_run_state.sweep_evidence_active_count
+                                if is_evidence_action_controller_v36(
+                                    config.arac_action
+                                )
+                                and controller_v31_run_state is not None
+                                else None
+                            ),
+                            sweep_evidence_active_fraction=(
+                                controller_v31_run_state.sweep_evidence_active_fraction
+                                if is_evidence_action_controller_v36(
+                                    config.arac_action
+                                )
+                                and controller_v31_run_state is not None
+                                else None
+                            ),
+                            sweep_evidence_support=(
+                                controller_v31_run_state.sweep_evidence_support
+                                if is_evidence_action_controller_v36(
+                                    config.arac_action
+                                )
+                                and controller_v31_run_state is not None
+                                else None
+                            ),
+                            sweep_evidence_reason=(
+                                controller_v31_run_state.sweep_evidence_reason
+                                if is_evidence_action_controller_v36(
+                                    config.arac_action
+                                )
+                                and controller_v31_run_state is not None
+                                else ""
+                            ),
                     )
                     action_trace_rows.append(action_trace_row)
                     if controller_v31_run_state is not None:
@@ -5015,6 +5129,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 include_recovery_fields=is_evidence_action_controller_v34(
                     config.arac_action
                 ),
+                include_maturity_fields=is_evidence_action_controller_v36(
+                    config.arac_action
+                ),
             )
             function_trace_rows.extend(trace_rows)
             if config.enable_relation_dispatch:
@@ -5040,6 +5157,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 config.arac_action
             ),
             include_recovery_fields=is_evidence_action_controller_v34(
+                config.arac_action
+            ),
+            include_maturity_fields=is_evidence_action_controller_v36(
                 config.arac_action
             ),
         )

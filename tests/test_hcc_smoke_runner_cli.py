@@ -1072,6 +1072,88 @@ def test_action_trace_contains_v34_recovery_audit_fields() -> None:
     )
 
 
+def test_action_trace_records_v36_maturity_evidence() -> None:
+    runner = _load_runner_module()
+
+    assert {
+        "active_maturity_route",
+        "sweep_evidence_relation_count",
+        "sweep_evidence_active_count",
+        "sweep_evidence_active_fraction",
+        "sweep_evidence_support",
+        "sweep_evidence_reason",
+    } == set(runner.V36_MATURITY_TRACE_FIELDS)
+
+    row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=2,
+        outer_iter=1,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=2.0,
+        current_delta=1.0,
+        active_maturity_route="first_sweep_sparse_coordinate_mature",
+        sweep_evidence_relation_count=19,
+        sweep_evidence_active_count=5,
+        sweep_evidence_active_fraction=5 / 19,
+        sweep_evidence_support=0.52,
+        sweep_evidence_reason="first_sweep_sparse_coordinate_mature",
+    )
+
+    assert row["active_maturity_route"] == "first_sweep_sparse_coordinate_mature"
+    assert row["sweep_evidence_relation_count"] == "19"
+    assert row["sweep_evidence_active_count"] == "5"
+    assert row["sweep_evidence_active_fraction"] == "2.631579e-01"
+    assert row["sweep_evidence_support"] == "5.200000e-01"
+    assert row["sweep_evidence_reason"] == "first_sweep_sparse_coordinate_mature"
+
+
+def test_v36_action_trace_writer_keeps_maturity_schema_versioned(
+    tmp_path: Path,
+) -> None:
+    runner = _load_runner_module()
+    row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=1,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=1.0,
+        current_delta=1.0,
+    )
+    v33_path = tmp_path / "v33.csv"
+    v34_path = tmp_path / "v34.csv"
+    v36_path = tmp_path / "v36.csv"
+
+    runner._write_action_trace(v33_path, [row], include_trust_fields=True)
+    runner._write_action_trace(
+        v34_path,
+        [row],
+        include_trust_fields=True,
+        include_recovery_fields=True,
+    )
+    runner._write_action_trace(
+        v36_path,
+        [row],
+        include_trust_fields=True,
+        include_maturity_fields=True,
+    )
+
+    with v33_path.open(newline="", encoding="utf-8") as handle:
+        v33_header = next(csv.reader(handle))
+    with v34_path.open(newline="", encoding="utf-8") as handle:
+        v34_header = next(csv.reader(handle))
+    with v36_path.open(newline="", encoding="utf-8") as handle:
+        v36_header = next(csv.reader(handle))
+    assert not set(runner.V36_MATURITY_TRACE_FIELDS).intersection(v33_header)
+    assert not set(runner.V36_MATURITY_TRACE_FIELDS).intersection(v34_header)
+    assert set(runner.V33_TRUST_TRACE_FIELDS).issubset(v36_header)
+    assert set(runner.V36_MATURITY_TRACE_FIELDS).issubset(v36_header)
+    assert not set(runner.V34_RECOVERY_TRACE_FIELDS).intersection(v36_header)
+
+
 def test_legacy_action_trace_writer_omits_v33_trust_fields(tmp_path: Path) -> None:
     runner = _load_runner_module()
 
@@ -1152,6 +1234,29 @@ def test_relation_downstream_scope_preserves_v32_zero_norm_semantics() -> None:
         )
         == "no_state_change"
     )
+
+
+def test_v36_uses_guarded_trust_trace_runtime_membership() -> None:
+    runner = _load_runner_module()
+    config = runner.SmokeConfig(
+        max_fes=5_000,
+        seed=1,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+        enable_relation_dispatch=True,
+        relation_policy_mode="controller_v31",
+        search_state_backend="diagonal_cma",
+    )
+
+    assert runner.is_evidence_action_controller_v36(config.arac_action)
+    assert runner.is_guarded_evidence_action_controller(config.arac_action)
+    assert runner.is_evidence_action_controller(config.arac_action)
+    assert runner.uses_v33_trust_trace_schema(config.arac_action)
+    assert runner.uses_scheduled_search_state(config)
+    assert runner.uses_phase_rescue_during_run(
+        config.arac_action,
+        evidence_controller_search_state_enabled=True,
+    )
+    assert not runner.is_risk_aware_evidence_action_controller(config.arac_action)
 
 
 def test_controller_v33_fallback_route_is_runtime_topology_auditable() -> None:
