@@ -355,6 +355,11 @@ AOB_INPUT_MANIFEST_FIELDS = [
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 ACTION_TRUST_MIN_WRITEBACK_NORM = 1e-12
+V36_FIRST_SWEEP_OUTER_ITER = 0
+V36_MIN_ACTIVE_COUNT = 4
+V36_MIN_ACTIVE_FRACTION = 0.20
+V36_MAX_ACTIVE_FRACTION = 0.30
+V36_MIN_CONFIDENCE_RANK_SUPPORT = 0.50
 V31_NON_DENSE_PREFIX_RELATION_COUNT = 3
 V31_NON_DENSE_PREFIX_SHARED_VAR_COUNT = 3
 V31_NON_DENSE_PREFIX_REPAIR_TRIGGER = "controller_v31_non_dense_prefix_repair_lock"
@@ -379,6 +384,7 @@ EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
 EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
 EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
 EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
+EVIDENCE_ACTION_CONTROLLER_V36 = "arac_evidence_action_controller_v36"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -399,6 +405,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V33,
     EVIDENCE_ACTION_CONTROLLER_V34,
     EVIDENCE_ACTION_CONTROLLER_V35,
+    EVIDENCE_ACTION_CONTROLLER_V36,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -520,6 +527,16 @@ class EvidenceActionControllerV31RunState:
     diagonal_cma_state: DiagonalCMAState | None = field(default=None, repr=False)
     phase_i_runtime_tail_utility: float = 0.0
     cc_utility_history: list[float] = field(default_factory=list)
+    v36_enabled: bool = False
+    sweep_evidence_outer_iter: int | None = None
+    sweep_evidence_relation_count: int = 0
+    sweep_evidence_active_count: int = 0
+    sweep_evidence_active_families: set[str] = field(default_factory=set)
+    sweep_evidence_support_sum: float = 0.0
+    sweep_evidence_valid: bool = True
+    sweep_evidence_finalized: bool = False
+    coordinate_maturity_latched: bool = False
+    sweep_evidence_reason: str = ""
     _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
         default_factory=list,
         repr=False,
@@ -534,6 +551,82 @@ class EvidenceActionControllerV31RunState:
     @property
     def phase_rescue_enabled(self) -> bool:
         return not self.dense_overlap and not self.non_dense_repair_locked
+
+    @property
+    def sweep_evidence_active_fraction(self) -> float:
+        if self.sweep_evidence_relation_count == 0:
+            return 0.0
+        return (
+            self.sweep_evidence_active_count
+            / self.sweep_evidence_relation_count
+        )
+
+    @property
+    def sweep_evidence_support(self) -> float:
+        if self.sweep_evidence_active_count == 0:
+            return 0.0
+        return self.sweep_evidence_support_sum / self.sweep_evidence_active_count
+
+    def prepare_v36_outer_iter(self, outer_iter: int) -> None:
+        if not self.v36_enabled or self.sweep_evidence_finalized:
+            return
+        current_outer_iter = int(outer_iter)
+        if self.sweep_evidence_outer_iter is None:
+            self.sweep_evidence_outer_iter = current_outer_iter
+            return
+        if (
+            self.sweep_evidence_outer_iter == V36_FIRST_SWEEP_OUTER_ITER
+            and current_outer_iter != V36_FIRST_SWEEP_OUTER_ITER
+        ):
+            self._finalize_v36_first_sweep()
+
+    def observe_v36_relation(
+        self,
+        relation: OverlapRelation,
+        action: RelationActionDecision,
+    ) -> None:
+        if (
+            not self.v36_enabled
+            or self.sweep_evidence_finalized
+            or relation.outer_iter != V36_FIRST_SWEEP_OUTER_ITER
+        ):
+            return
+        self.sweep_evidence_relation_count += 1
+        if action.action_family == "fallback":
+            return
+        self.sweep_evidence_active_count += 1
+        self.sweep_evidence_active_families.add(action.action_family)
+        confidence = float(action.confidence)
+        rank_signal = float(relation.rank_signal)
+        if (
+            not math.isfinite(confidence)
+            or not math.isfinite(rank_signal)
+            or not 0.0 <= confidence <= 1.0
+            or not 0.0 <= rank_signal <= 1.0
+        ):
+            self.sweep_evidence_valid = False
+            return
+        self.sweep_evidence_support_sum += confidence * rank_signal
+
+    def _finalize_v36_first_sweep(self) -> None:
+        active_fraction = self.sweep_evidence_active_fraction
+        support = self.sweep_evidence_support
+        self.coordinate_maturity_latched = (
+            self.sweep_evidence_valid
+            and self.sweep_evidence_active_count >= V36_MIN_ACTIVE_COUNT
+            and V36_MIN_ACTIVE_FRACTION
+            <= active_fraction
+            <= V36_MAX_ACTIVE_FRACTION
+            and self.sweep_evidence_active_families == {"coordinate"}
+            and support >= V36_MIN_CONFIDENCE_RANK_SUPPORT
+            and not self.non_dense_repair_locked
+        )
+        self.sweep_evidence_reason = (
+            "first_sweep_sparse_coordinate_mature"
+            if self.coordinate_maturity_latched
+            else "first_sweep_evidence_not_mature"
+        )
+        self.sweep_evidence_finalized = True
 
     def lock_from_runtime_prefix(self, relations: list[OverlapRelation]) -> None:
         if not self.dense_overlap or self.locked_policy_mode is not None:
@@ -802,10 +895,12 @@ def build_evidence_action_controller_v31_run_state(
             if action_name in {
                 EVIDENCE_ACTION_CONTROLLER_V33,
                 EVIDENCE_ACTION_CONTROLLER_V34,
+                EVIDENCE_ACTION_CONTROLLER_V36,
             }
             else None
         ),
         trajectory_guard_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V34,
+        v36_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V36,
     )
 
 

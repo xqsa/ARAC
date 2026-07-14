@@ -698,6 +698,175 @@ def test_v35_enables_topology_guard_without_trust_or_recovery() -> None:
     assert state.trajectory_guard_enabled is False
 
 
+def _populate_v36_first_sweep(
+    runner,
+    state,
+    *,
+    relation_count: int,
+    active_count: int,
+    rank_signal: float = 0.55,
+    confidence: float = 0.98,
+    mixed_active_family: bool = False,
+) -> None:
+    for index in range(relation_count):
+        relation = runner.OverlapRelation(
+            relation_id=f"O0_{index}_{index + 1}",
+            problem_id="runtime_case",
+            outer_iter=0,
+            group_left=index,
+            group_right=index + 1,
+            shared_vars=(index,),
+            overlap_strength=1.0,
+            delta_signal=1.0,
+            rank_signal=rank_signal,
+            budget_remaining_ratio=0.8,
+            shared_var_count=1,
+        )
+        if index < active_count:
+            action_family = (
+                "reassign_repair"
+                if mixed_active_family and index == active_count - 1
+                else "coordinate"
+            )
+            action_name = (
+                "reassign_repair"
+                if action_family == "reassign_repair"
+                else "coordinate"
+            )
+            action_confidence = confidence
+        else:
+            action_family = "fallback"
+            action_name = "fallback"
+            action_confidence = 0.0
+        action = runner.RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name=action_name,
+            action_family=action_family,
+            confidence=action_confidence,
+            trigger_reason="test_v36_first_sweep",
+        )
+        state.prepare_v36_outer_iter(0)
+        state.observe_v36_relation(relation, action)
+
+
+def test_v36_first_sweep_latches_sparse_coordinate_maturity() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    _populate_v36_first_sweep(
+        runner,
+        state,
+        relation_count=19,
+        active_count=5,
+    )
+
+    assert state.coordinate_maturity_latched is False
+
+    state.prepare_v36_outer_iter(1)
+
+    assert state.coordinate_maturity_latched is True
+    assert state.sweep_evidence_reason == "first_sweep_sparse_coordinate_mature"
+    assert state.sweep_evidence_relation_count == 19
+    assert state.sweep_evidence_active_count == 5
+    assert state.sweep_evidence_active_fraction == pytest.approx(5 / 19)
+    assert state.sweep_evidence_support == pytest.approx(0.55 * 0.98)
+
+
+@pytest.mark.parametrize(
+    ("relation_count", "active_count"),
+    [(20, 4), (20, 6)],
+)
+def test_v36_first_sweep_includes_registered_fraction_boundaries(
+    relation_count: int,
+    active_count: int,
+) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    _populate_v36_first_sweep(
+        runner,
+        state,
+        relation_count=relation_count,
+        active_count=active_count,
+    )
+
+    state.prepare_v36_outer_iter(1)
+
+    assert state.coordinate_maturity_latched is True
+
+
+@pytest.mark.parametrize(
+    (
+        "relation_count",
+        "active_count",
+        "rank_signal",
+        "confidence",
+        "mixed_active_family",
+        "repair_locked",
+    ),
+    [
+        (19, 3, 0.55, 0.98, False, False),
+        (21, 4, 0.55, 0.98, False, False),
+        (19, 6, 0.55, 0.98, False, False),
+        (19, 5, 0.50, 0.99, False, False),
+        (19, 5, 0.55, 0.98, True, False),
+        (19, 5, float("nan"), 0.98, False, False),
+        (19, 5, 0.55, float("inf"), False, False),
+        (19, 5, 0.55, 0.98, False, True),
+    ],
+)
+def test_v36_first_sweep_fails_closed_without_complete_maturity_evidence(
+    relation_count: int,
+    active_count: int,
+    rank_signal: float,
+    confidence: float,
+    mixed_active_family: bool,
+    repair_locked: bool,
+) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    state.non_dense_repair_locked = repair_locked
+    _populate_v36_first_sweep(
+        runner,
+        state,
+        relation_count=relation_count,
+        active_count=active_count,
+        rank_signal=rank_signal,
+        confidence=confidence,
+        mixed_active_family=mixed_active_family,
+    )
+
+    state.prepare_v36_outer_iter(1)
+
+    assert state.coordinate_maturity_latched is False
+    assert state.sweep_evidence_reason == "first_sweep_evidence_not_mature"
+
+
+def test_v36_first_sweep_does_not_finalize_an_incomplete_prefix() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+    _populate_v36_first_sweep(
+        runner,
+        state,
+        relation_count=19,
+        active_count=5,
+    )
+
+    assert state.sweep_evidence_finalized is False
+    assert state.coordinate_maturity_latched is False
+    assert state.sweep_evidence_reason == ""
+
+
 def test_hcc_smoke_runner_parses_diagonal_search_state_backend() -> None:
     runner = _load_runner_module()
 
