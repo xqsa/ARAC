@@ -127,6 +127,6 @@ stages:
     skill: light-backend-coding/verification-before-completion/light-consistency
     input: frozen ARAC-CAR-W design plus uncommitted CAR-W implementation
     output: CAR-W type-boundary audit, stable-support-subgraph documentation, total-FE guard, and fresh CLI/5k smoke
-    artifacts: [src/arac/policy/counterfactual_action_racing.py, src/arac/backends/hcc_car.py, scripts/hcc_smoke_runner.py, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py, results/car_w_exp003_5k_20260715_final, docs/design/core-method.md, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/expected_outputs.md]
+    artifacts: [src/arac/policy/counterfactual_action_racing.py, src/arac/backends/hcc_car.py, scripts/hcc_smoke_runner.py, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py, results/car_w_exp003_5k_20260715_final, docs/design/core-method.md, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/expected_outputs.md, .light/handoff/S09-arac-car-implementation-smoke.md]
     gate: {type: confirm, result: PASS, notes: focused 131 passed; tracked 688 passed and 1 skipped; compileall pass; 5k fresh E2 seed1 FE 4989/5000 with zero violation; AOB 10/10 unchanged; generic anti-leakage 16/16; CAR type boundary 28/28; probe abstain reason is probe_budget_cannot_fit_complete_component_horizon}
     gaps: [ruff unavailable in local environment; full pytest also discovers 37 failures in existing untracked exp008 tests due missing old exp005 migration path; no 3M CAR utility result yet; next gate is seeds 9-11 six-case diagnostic]
