@@ -1,8 +1,8 @@
 project: arac
 pipeline: v338-evidence-replay-v34-v35-stability-audit
 created: "2026-07-13T23:59"
-updated: "2026-07-14T09:06"
-current_stage: 10
+updated: "2026-07-14T12:30"
+current_stage: 12
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -69,3 +69,17 @@ stages:
     artifacts: [results/controller_v35_transparent_trust_10case_seed123_3m_20260714, docs/superpowers/specs/2026-07-14-transparent-trust-topology-guard-design.md, .light/handoff/S04-arac-v35-protected-gate-failure.md]
     gate: {type: confirm, result: FAIL, notes: 30/30 fresh; FE violations and overspends 0; AOB 297/297 unchanged; anti-leakage 16/16; original protected best 6/8; S2/S3 seed wins 6/6; aggregate best 8/10; mean 3/10; worst 2/10; seed wins 15/30; catastrophic 7/30; full-24 not started by gate}
     gaps: [Unconditional active transparency restores S2/S3 but loses A4/R2; the first active-action divergence is a 5x writeback and has mixed long-horizon effects across seeds; v35 is not adopted]
+  - stage: 11
+    skill: light-backend-coding/test-driven-development
+    input: v36 first-sweep evidence maturity design plus v33.8 protected default
+    output: Opt-in v36 action/lane, maturity trace, matched-FE coverage, corrected runtime state binding, and audited smoke routes
+    artifacts: [scripts/hcc_smoke_runner.py, src/arac/actions/contracts.py, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py, results/controller_v36_sweep_maturity_5k_fixed_20260714, results/controller_v36_sweep_maturity_s6_dense_5k_20260714, results/controller_v36_sweep_maturity_s3_seed1_3m_probe_20260714]
+    gate: {type: confirm, result: PASS, notes: 628 passed, 1 skipped; compileall pass; matched FE; 15/15 corrected 5k fresh across non-dense+dense probes; S3 3M repair route 158; FE/AOB/leakage pass}
+    gaps: [Initial 12-run smoke exposed missing v36 state initialization; fixed at 2c40937 and retained as failed diagnostic artifact]
+  - stage: 12
+    skill: light-result-analysis
+    input: v36 current-winning-13 seeds 1/2/3 at strict 3M FE plus frozen offline paper-best reference
+    output: 39 fresh raw trajectories, offline best/mean/worst/seed/catastrophic comparison, and reference-blind maturity failure diagnosis
+    artifacts: [results/controller_v36_sweep_maturity_13win_seed123_3m_20260714, docs/superpowers/specs/2026-07-14-first-sweep-evidence-maturity-guard-design.md, .light/handoff/S05-arac-v36-sweep-maturity-failed-candidate.md]
+    gate: {type: confirm, result: FAIL, notes: 39/39 fresh; FE violations/overspends 0; AOB 384/384 unchanged; anti-leakage 16/16; best 10/13; mean 4/13; worst 2/13; seed wins 17/39; catastrophic 14/39; full-24 not started}
+    gaps: [First-sweep coordinate maturity false-positive on R2 seed3; S2/S3 transparency remained catastrophic on one seed; no-route cases also showed fresh-run variability, so v36 is rejected]

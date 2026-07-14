@@ -291,3 +291,104 @@ coordinate boundary may identify only one observed topology and may not
 generalize. The current-winning-13 gate and later full-24 audit are therefore
 mandatory; a threshold change after seeing v36 final outcomes requires a new
 candidate and cannot be folded into this route.
+
+## Observed Implementation And Experiment Result
+
+Date: 2026-07-14. Executor: Codex.
+
+### Implementation verification
+
+v36 was exposed as one trajectory action and one exp003 lane. The final
+implementation commits are:
+
+- `5f671f8`: first-sweep maturity state;
+- `0e19742`: maturity-scoped relation execution;
+- `afffa6d`: runtime trace integration;
+- `abbaae0`: stable action and experiment interfaces;
+- `0e75f12`: matched-FE and anti-leakage coverage;
+- `2c40937`: real-runtime v36 state initialization fix.
+
+The state-initialization fix was required by a genuine failed smoke: the first
+12-run artifact had empty maturity and fallback routes because `run_problem()`
+passed `None` to the already-wired v36 executor. A regression test now captures
+the state received by the executor and requires `v36_enabled=True`.
+
+Fresh post-fix verification:
+
+- v33-v36 targeted runtime regression: `66 passed`;
+- all Git-tracked tests: `628 passed, 1 skipped`;
+- `compileall`: pass;
+- `git diff --check`: pass;
+- matched objective calls and FE: pass;
+- static v36 case/outcome dispatch check: pass.
+
+### Real-HCC smoke and route probes
+
+The corrected 12-run non-dense smoke is in
+`results/controller_v36_sweep_maturity_5k_fixed_20260714`:
+
+- `12/12` completed and fresh;
+- FE violations/overspends `0/12`;
+- AOB hashes unchanged `120/120`;
+- anti-leakage `16/16` pass;
+- backend semantics changed `12/12`;
+- recovery fields non-empty `0`;
+- `non_dense_bounded_0_5` observed `193` times.
+
+The registered four-case smoke contained no dense-overlap case, so its original
+requirement to observe both topology routes was impossible. A separate S6
+smoke in `results/controller_v36_sweep_maturity_s6_dense_5k_20260714` verified
+`dense_preserve_v31` `45` times with `3/3` fresh runs, zero FE violations, AOB
+`30/30` unchanged, and anti-leakage `16/16` pass.
+
+S3 does not form the repair lock at 5k under either v35 or v36 because the
+budget-dependent first-sweep deltas differ from the 3M protocol. The minimal
+3M probe in
+`results/controller_v36_sweep_maturity_s3_seed1_3m_probe_20260714` verified
+`repair_lock_transparent` `158` times, one fresh exact-3M run, zero FE
+violations, AOB `10/10` unchanged, anti-leakage `16/16` pass, and no recovery
+state.
+
+### Current-winning-13 gate
+
+The 39 fresh trajectories are in
+`results/controller_v36_sweep_maturity_13win_seed123_3m_20260714`.
+Runtime-integrity results:
+
+- completed/fresh `39/39`;
+- one trace, decision, mismatch, relation, budget, AOB-manifest, and evaluation
+  artifact set per run;
+- FE violations/overspends `0/39`;
+- AOB hashes unchanged `384/384`;
+- anti-leakage `16/16` pass;
+- backend semantics changed `39/39`;
+- recovery fields non-empty `0`;
+- no forbidden runtime dispatch input.
+
+The offline-only paper-best comparison is
+`offline_paper_best_comparison.csv/.md` in that result directory. The stage
+gate failed:
+
+- best-of-three `10/13` (required `13/13`);
+- mean wins `4/13` (required at least `5/13`);
+- worst-seed wins `2/13` (required at least `4/13`);
+- seed wins `17/39` (required at least `24/39`);
+- catastrophic seeds `14/39` (required at most `9/39`).
+
+Observed maturity routes were reference-blind but not utility-stable:
+
+- S2 seed 1 latched coordinate maturity and later used it `34` times, but that
+  seed was catastrophic; seeds 2/3 did not latch because `6/19` active rows
+  exceeded the pre-registered `0.30` maximum;
+- R2 seed 3 legally crossed the boundary at `4/19` active rows and support
+  `0.5070288`, then used coordinate maturity `16` times and was catastrophic;
+- S3 repair transparency occurred `158/176/166` times for seeds 1/2/3, but
+  seed 1 remained catastrophic while seeds 2/3 won.
+
+The result rejects first-sweep maturity as a sufficient long-horizon utility
+signal. Small support/fraction margins admit a false-positive R2 route, while
+repair-lock transparency remains seed-unstable. Cases without a maturity route
+also varied materially from the earlier fresh v33.8 run, so three-seed outcome
+differences cannot all be causally assigned to v36. v33.8 remains canonical;
+full-24 was not started. Threshold changes after these outcomes require a new
+candidate and a separately attributable mechanism.
