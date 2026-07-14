@@ -662,6 +662,37 @@ def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v36() -> No
     assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
 
 
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v37() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "4",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--output-root",
+            "results/test",
+            "--arac-action",
+            "arac_evidence_action_controller_v37",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == runner.EVIDENCE_ACTION_CONTROLLER_V37
+    assert runner.is_evidence_action_controller_v37(args.arac_action)
+    assert runner.is_guarded_evidence_action_controller(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+    assert runner.uses_v33_trust_trace_schema(args.arac_action)
+    assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
+
+
 def test_v35_keeps_v31_scheduler_and_phase_rescue_membership() -> None:
     runner = _load_runner_module()
     config = runner.SmokeConfig(
@@ -897,6 +928,61 @@ def test_v36_first_sweep_does_not_finalize_an_incomplete_prefix() -> None:
     assert state.sweep_evidence_finalized is False
     assert state.coordinate_maturity_latched is False
     assert state.sweep_evidence_reason == ""
+
+
+def test_v37_retires_phase_rescue_after_three_pre_maturity_rejections() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+    )
+
+    assert state.phase_rescue_enabled is True
+    assert state.observe_v37_phase_rescue(accepted=False) == ""
+    assert state.observe_v37_phase_rescue(accepted=False) == ""
+    assert (
+        state.observe_v37_phase_rescue(accepted=False)
+        == "zero_yield_phase_rescue_retired"
+    )
+    assert state.phase_rescue_rejected_before_maturity == 3
+    assert state.phase_rescue_retired is True
+    assert state.phase_rescue_enabled is False
+
+
+def test_v37_productive_phase_rescue_maturity_prevents_retirement() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+    )
+
+    assert (
+        state.observe_v37_phase_rescue(accepted=True)
+        == "productive_phase_rescue_mature"
+    )
+    for _ in range(6):
+        assert state.observe_v37_phase_rescue(accepted=False) == ""
+
+    assert state.phase_rescue_productive_mature is True
+    assert state.phase_rescue_rejected_before_maturity == 0
+    assert state.phase_rescue_retired is False
+    assert state.phase_rescue_enabled is True
+
+
+def test_v36_does_not_enable_phase_rescue_retirement() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+
+    for _ in range(6):
+        assert state.observe_v37_phase_rescue(accepted=False) == ""
+
+    assert state.v37_enabled is False
+    assert state.phase_rescue_rejected_before_maturity == 0
+    assert state.phase_rescue_retired is False
+    assert state.phase_rescue_enabled is True
 
 
 def test_hcc_smoke_runner_parses_diagonal_search_state_backend() -> None:
@@ -1141,6 +1227,37 @@ def test_action_trace_records_v36_maturity_evidence() -> None:
     assert row["sweep_evidence_reason"] == "first_sweep_sparse_coordinate_mature"
 
 
+def test_action_trace_records_v37_phase_rescue_resource_evidence() -> None:
+    runner = _load_runner_module()
+
+    assert {
+        "phase_rescue_resource_route",
+        "phase_rescue_rejected_before_maturity",
+        "phase_rescue_productive_mature",
+        "phase_rescue_retired",
+    } == set(runner.V37_RESOURCE_TRACE_FIELDS)
+
+    row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=3,
+        group_index=9,
+        selected_action_name=runner.PHASE_RESCUE_MULTISTART_ACTION,
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=0.0,
+        phase_rescue_resource_route="zero_yield_phase_rescue_retired",
+        phase_rescue_rejected_before_maturity=3,
+        phase_rescue_productive_mature=False,
+        phase_rescue_retired=True,
+    )
+
+    assert row["phase_rescue_resource_route"] == "zero_yield_phase_rescue_retired"
+    assert row["phase_rescue_rejected_before_maturity"] == "3"
+    assert row["phase_rescue_productive_mature"] == "0"
+    assert row["phase_rescue_retired"] == "1"
+
+
 def test_v36_action_trace_writer_keeps_maturity_schema_versioned(
     tmp_path: Path,
 ) -> None:
@@ -1184,6 +1301,38 @@ def test_v36_action_trace_writer_keeps_maturity_schema_versioned(
     assert set(runner.V33_TRUST_TRACE_FIELDS).issubset(v36_header)
     assert set(runner.V36_MATURITY_TRACE_FIELDS).issubset(v36_header)
     assert not set(runner.V34_RECOVERY_TRACE_FIELDS).intersection(v36_header)
+
+
+def test_v37_action_trace_writer_adds_resource_fields_without_recovery(
+    tmp_path: Path,
+) -> None:
+    runner = _load_runner_module()
+    row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=1,
+        group_index=1,
+        selected_action_name="allow_beneficial_coordination",
+        overlap_size=1,
+        previous_delta=1.0,
+        current_delta=1.0,
+    )
+    path = tmp_path / "v37.csv"
+
+    runner._write_action_trace(
+        path,
+        [row],
+        include_trust_fields=True,
+        include_maturity_fields=True,
+        include_resource_fields=True,
+    )
+
+    with path.open(newline="", encoding="utf-8") as handle:
+        header = next(csv.reader(handle))
+    assert set(runner.V33_TRUST_TRACE_FIELDS).issubset(header)
+    assert set(runner.V36_MATURITY_TRACE_FIELDS).issubset(header)
+    assert set(runner.V37_RESOURCE_TRACE_FIELDS).issubset(header)
+    assert not set(runner.V34_RECOVERY_TRACE_FIELDS).intersection(header)
 
 
 def test_legacy_action_trace_writer_omits_v33_trust_fields(tmp_path: Path) -> None:
@@ -1300,6 +1449,38 @@ def test_v36_keeps_v33_nondense_refine_sigma() -> None:
 
     assert runner.refine_sigma_for_action(
         runner.EVIDENCE_ACTION_CONTROLLER_V36,
+        1.0,
+        controller_v31_run_state=state,
+    ) == pytest.approx(0.5)
+
+
+def test_v37_inherits_v36_runtime_memberships_and_refine_sigma() -> None:
+    runner = _load_runner_module()
+    config = runner.SmokeConfig(
+        max_fes=5_000,
+        seed=1,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+        enable_relation_dispatch=True,
+        relation_policy_mode="controller_v31",
+        search_state_backend="diagonal_cma",
+    )
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=config.arac_action,
+    )
+
+    assert state.v36_enabled is True
+    assert state.v37_enabled is True
+    assert runner.is_guarded_evidence_action_controller(config.arac_action)
+    assert runner.is_evidence_action_controller(config.arac_action)
+    assert runner.uses_v33_trust_trace_schema(config.arac_action)
+    assert runner.uses_scheduled_search_state(config)
+    assert runner.uses_phase_rescue_during_run(
+        config.arac_action,
+        evidence_controller_search_state_enabled=True,
+    )
+    assert runner.refine_sigma_for_action(
+        config.arac_action,
         1.0,
         controller_v31_run_state=state,
     ) == pytest.approx(0.5)
@@ -5067,6 +5248,42 @@ def test_controller_v33_to_v36_matched_fe_credits_before_next_group_optimizer(
     )
     assert any("active_maturity_route" in row for row in v36_trace_rows)
 
+    optimize_calls["count"] = 0
+    registered_baselines.clear()
+    observed_contexts.clear()
+    v37_output = tmp_path / "v37"
+    v37_output.mkdir()
+
+    v37_record, _elapsed, v37_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v37_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v37_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v37_function.objective_calls == v33_objective_calls
+    assert runner.current_fitness_evaluations(v37_function) == v33_fes
+    assert len(v37_record) == len(v33_record)
+    assert registered_baselines == []
+    assert observed_contexts == []
+    assert all(
+        row.get("trajectory_guard_status", "") == "" for row in v37_trace_rows
+    )
+    assert any("active_maturity_route" in row for row in v37_trace_rows)
+    assert all(
+        row.get("phase_rescue_resource_route", "") == ""
+        for row in v37_trace_rows
+    )
+
 
 def test_controller_v36_runtime_decisions_exclude_case_and_outcome_dispatch() -> None:
     runner = _load_runner_module()
@@ -5077,6 +5294,27 @@ def test_controller_v36_runtime_decisions_exclude_case_and_outcome_dispatch() ->
                 runner.EvidenceActionControllerV31RunState._finalize_v36_first_sweep
             ),
         )
+    ).lower()
+
+    forbidden_dispatch_inputs = {
+        "case_id",
+        "problem_id",
+        "fun_name",
+        "function_family",
+        "paper_best",
+        "historical_best",
+        "relative_gain",
+        "final_error",
+        "final_outcome",
+    }
+
+    assert all(token not in source for token in forbidden_dispatch_inputs)
+
+
+def test_controller_v37_runtime_decisions_exclude_case_and_outcome_dispatch() -> None:
+    runner = _load_runner_module()
+    source = inspect.getsource(
+        runner.EvidenceActionControllerV31RunState.observe_v37_phase_rescue
     ).lower()
 
     forbidden_dispatch_inputs = {

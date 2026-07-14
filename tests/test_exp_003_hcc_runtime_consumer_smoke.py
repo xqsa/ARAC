@@ -1391,6 +1391,51 @@ def test_exp_003_v36_trace_schema_adds_maturity_without_recovery() -> None:
     assert not set(V34_RECOVERY_TRACE_FIELDS).intersection(fields)
 
 
+def test_exp_003_v37_is_one_resource_retirement_lane() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        lanes_for_profile,
+    )
+
+    lanes = lanes_for_profile("evidence_action_controller_v37")
+
+    assert len(lanes) == 1
+    assert lanes[0].runner_action_name == "arac_evidence_action_controller_v37"
+    assert lanes[0].selected_action_name == "arac_evidence_action_controller_v37"
+    assert lanes[0].plan_action_name == "arac_evidence_action_controller_v37"
+    assert lanes[0].relation_dispatch_enabled is True
+    assert lanes[0].relation_policy_mode == "controller_v31"
+
+
+def test_exp_003_cli_accepts_evidence_action_controller_v37_profile() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import parse_args
+
+    args = parse_args(["--lane-profile", "evidence_action_controller_v37"])
+
+    assert args.lane_profile == "evidence_action_controller_v37"
+
+
+def test_exp_003_v37_trace_schema_adds_maturity_and_resource_fields() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        V33_TRUST_TRACE_FIELDS,
+        V34_RECOVERY_TRACE_FIELDS,
+        V36_MATURITY_TRACE_FIELDS,
+        V37_RESOURCE_TRACE_FIELDS,
+        action_trace_fields_for_lanes,
+        lanes_for_profile,
+    )
+
+    fields = set(
+        action_trace_fields_for_lanes(
+            lanes_for_profile("evidence_action_controller_v37")
+        )
+    )
+
+    assert set(V33_TRUST_TRACE_FIELDS).issubset(fields)
+    assert set(V36_MATURITY_TRACE_FIELDS).issubset(fields)
+    assert set(V37_RESOURCE_TRACE_FIELDS).issubset(fields)
+    assert not set(V34_RECOVERY_TRACE_FIELDS).intersection(fields)
+
+
 def test_exp_003_trajectory_guard_summary_counts_resolved_statuses() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         RUN_ID,

@@ -234,6 +234,10 @@ ACTION_TRACE_FIELDS = [
     "sweep_evidence_active_fraction",
     "sweep_evidence_support",
     "sweep_evidence_reason",
+    "phase_rescue_resource_route",
+    "phase_rescue_rejected_before_maturity",
+    "phase_rescue_productive_mature",
+    "phase_rescue_retired",
     "trajectory_guard_status",
     "trajectory_guard_pre_fitness",
     "trajectory_guard_post_writeback_fitness",
@@ -270,16 +274,32 @@ V36_MATURITY_TRACE_FIELDS = [
     "sweep_evidence_support",
     "sweep_evidence_reason",
 ]
+V37_RESOURCE_TRACE_FIELDS = [
+    "phase_rescue_resource_route",
+    "phase_rescue_rejected_before_maturity",
+    "phase_rescue_productive_mature",
+    "phase_rescue_retired",
+]
 V33_ACTION_TRACE_FIELDS = [
     field
     for field in ACTION_TRACE_FIELDS
     if field not in V34_RECOVERY_TRACE_FIELDS
     and field not in V36_MATURITY_TRACE_FIELDS
+    and field not in V37_RESOURCE_TRACE_FIELDS
 ]
 V34_ACTION_TRACE_FIELDS = [
-    field for field in ACTION_TRACE_FIELDS if field not in V36_MATURITY_TRACE_FIELDS
+    field
+    for field in ACTION_TRACE_FIELDS
+    if field not in V36_MATURITY_TRACE_FIELDS
+    and field not in V37_RESOURCE_TRACE_FIELDS
 ]
 V36_ACTION_TRACE_FIELDS = [
+    field
+    for field in ACTION_TRACE_FIELDS
+    if field not in V34_RECOVERY_TRACE_FIELDS
+    and field not in V37_RESOURCE_TRACE_FIELDS
+]
+V37_ACTION_TRACE_FIELDS = [
     field for field in ACTION_TRACE_FIELDS if field not in V34_RECOVERY_TRACE_FIELDS
 ]
 LEGACY_ACTION_TRACE_FIELDS = [
@@ -407,6 +427,7 @@ EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
 EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
 EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
 EVIDENCE_ACTION_CONTROLLER_V36 = "arac_evidence_action_controller_v36"
+EVIDENCE_ACTION_CONTROLLER_V37 = "arac_evidence_action_controller_v37"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -428,6 +449,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V34,
     EVIDENCE_ACTION_CONTROLLER_V35,
     EVIDENCE_ACTION_CONTROLLER_V36,
+    EVIDENCE_ACTION_CONTROLLER_V37,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -550,6 +572,7 @@ class EvidenceActionControllerV31RunState:
     phase_i_runtime_tail_utility: float = 0.0
     cc_utility_history: list[float] = field(default_factory=list)
     v36_enabled: bool = False
+    v37_enabled: bool = False
     sweep_evidence_outer_iter: int | None = None
     sweep_evidence_relation_count: int = 0
     sweep_evidence_active_count: int = 0
@@ -559,6 +582,10 @@ class EvidenceActionControllerV31RunState:
     sweep_evidence_finalized: bool = False
     coordinate_maturity_latched: bool = False
     sweep_evidence_reason: str = ""
+    phase_rescue_rejected_before_maturity: int = 0
+    phase_rescue_productive_mature: bool = False
+    phase_rescue_retired: bool = False
+    phase_rescue_resource_reason: str = ""
     _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
         default_factory=list,
         repr=False,
@@ -572,7 +599,11 @@ class EvidenceActionControllerV31RunState:
 
     @property
     def phase_rescue_enabled(self) -> bool:
-        return not self.dense_overlap and not self.non_dense_repair_locked
+        return (
+            not self.dense_overlap
+            and not self.non_dense_repair_locked
+            and not self.phase_rescue_retired
+        )
 
     @property
     def sweep_evidence_active_fraction(self) -> float:
@@ -649,6 +680,24 @@ class EvidenceActionControllerV31RunState:
             else "first_sweep_evidence_not_mature"
         )
         self.sweep_evidence_finalized = True
+
+    def observe_v37_phase_rescue(self, *, accepted: bool) -> str:
+        if not self.v37_enabled or self.phase_rescue_retired:
+            return ""
+        if accepted:
+            if self.phase_rescue_productive_mature:
+                return ""
+            self.phase_rescue_productive_mature = True
+            self.phase_rescue_resource_reason = "productive_phase_rescue_mature"
+            return self.phase_rescue_resource_reason
+        if self.phase_rescue_productive_mature:
+            return ""
+        self.phase_rescue_rejected_before_maturity += 1
+        if self.phase_rescue_rejected_before_maturity < PHASE_RESCUE_START_COUNT:
+            return ""
+        self.phase_rescue_retired = True
+        self.phase_rescue_resource_reason = "zero_yield_phase_rescue_retired"
+        return self.phase_rescue_resource_reason
 
     def lock_from_runtime_prefix(self, relations: list[OverlapRelation]) -> None:
         if not self.dense_overlap or self.locked_policy_mode is not None:
@@ -918,11 +967,14 @@ def build_evidence_action_controller_v31_run_state(
                 EVIDENCE_ACTION_CONTROLLER_V33,
                 EVIDENCE_ACTION_CONTROLLER_V34,
                 EVIDENCE_ACTION_CONTROLLER_V36,
+                EVIDENCE_ACTION_CONTROLLER_V37,
             }
             else None
         ),
         trajectory_guard_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V34,
-        v36_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V36,
+        v36_enabled=action_name
+        in {EVIDENCE_ACTION_CONTROLLER_V36, EVIDENCE_ACTION_CONTROLLER_V37},
+        v37_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V37,
     )
 
 
@@ -1206,6 +1258,10 @@ def is_evidence_action_controller_v36(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V36
 
 
+def is_evidence_action_controller_v37(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V37
+
+
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
     return is_evidence_action_controller_v33(
         action_name
@@ -1217,7 +1273,9 @@ def uses_v33_trust_trace_schema(action_name: str) -> bool:
         action_name
     ) or is_evidence_action_controller_v35(
         action_name
-    ) or is_evidence_action_controller_v36(action_name)
+    ) or is_evidence_action_controller_v36(
+        action_name
+    ) or is_evidence_action_controller_v37(action_name)
 
 
 def relation_downstream_consumption_scope(
@@ -1257,6 +1315,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v34(action_name)
         or is_evidence_action_controller_v35(action_name)
         or is_evidence_action_controller_v36(action_name)
+        or is_evidence_action_controller_v37(action_name)
     )
 
 
@@ -1271,6 +1330,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v34(action_name)
         or is_evidence_action_controller_v35(action_name)
         or is_evidence_action_controller_v36(action_name)
+        or is_evidence_action_controller_v37(action_name)
     )
 
 
@@ -1308,6 +1368,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v34(action_name)
             or is_evidence_action_controller_v35(action_name)
             or is_evidence_action_controller_v36(action_name)
+            or is_evidence_action_controller_v37(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1326,6 +1387,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v34(config.arac_action)
             or is_evidence_action_controller_v35(config.arac_action)
             or is_evidence_action_controller_v36(config.arac_action)
+            or is_evidence_action_controller_v37(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -1416,6 +1478,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v34(action_name)
             or is_evidence_action_controller_v35(action_name)
             or is_evidence_action_controller_v36(action_name)
+            or is_evidence_action_controller_v37(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
@@ -2422,6 +2485,10 @@ def build_action_trace_row(
     sweep_evidence_active_fraction: float | None = None,
     sweep_evidence_support: float | None = None,
     sweep_evidence_reason: str = "",
+    phase_rescue_resource_route: str = "",
+    phase_rescue_rejected_before_maturity: int | None = None,
+    phase_rescue_productive_mature: bool | None = None,
+    phase_rescue_retired: bool | None = None,
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -2605,6 +2672,16 @@ def build_action_trace_row(
             if sweep_evidence_support is None
             else f"{sweep_evidence_support:.6e}",
             "sweep_evidence_reason": sweep_evidence_reason,
+            "phase_rescue_resource_route": phase_rescue_resource_route,
+            "phase_rescue_rejected_before_maturity": ""
+            if phase_rescue_rejected_before_maturity is None
+            else str(phase_rescue_rejected_before_maturity),
+            "phase_rescue_productive_mature": ""
+            if phase_rescue_productive_mature is None
+            else str(int(phase_rescue_productive_mature)),
+            "phase_rescue_retired": ""
+            if phase_rescue_retired is None
+            else str(int(phase_rescue_retired)),
         }
     )
     return row
@@ -2617,8 +2694,11 @@ def _write_action_trace(
     include_trust_fields: bool = True,
     include_recovery_fields: bool = False,
     include_maturity_fields: bool = False,
+    include_resource_fields: bool = False,
 ) -> None:
-    if include_recovery_fields:
+    if include_resource_fields:
+        fields = V37_ACTION_TRACE_FIELDS
+    elif include_recovery_fields:
         fields = V34_ACTION_TRACE_FIELDS
     elif include_maturity_fields:
         fields = V36_ACTION_TRACE_FIELDS
@@ -3426,6 +3506,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             is_risk_aware_evidence_action_controller(config.arac_action)
             or is_evidence_action_controller_v35(config.arac_action)
             or is_evidence_action_controller_v36(config.arac_action)
+            or is_evidence_action_controller_v37(config.arac_action)
         )
         else build_evidence_action_controller_v31_run_state(degree)
         if (
@@ -3980,6 +4061,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     >= PHASE_RESCUE_STAGNATION_WINDOW
                     and bipop_global_cooldown <= 0
                     and start_count > 0
+                    and (
+                        controller_v31_run_state is None
+                        or controller_v31_run_state.phase_rescue_enabled
+                    )
                 ):
                     stagnation_window_for_trace = max(
                         group_stagnation_counts[index],
@@ -4056,6 +4141,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         best_candidate_x is not None
                         and best_candidate_y < post_primary_fitness
                     )
+                    phase_rescue_resource_route = (
+                        controller_v31_run_state.observe_v37_phase_rescue(
+                            accepted=rescue_accepted
+                        )
+                        if controller_v31_run_state is not None
+                        else ""
+                    )
                     if rescue_accepted:
                         best_individual[dims] = best_candidate_x.copy()
                         current_delta = original_fitness - best_candidate_y
@@ -4100,6 +4192,25 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             restart_relative_improvement=rescue_relative_improvement,
                             restart_acceptance_threshold=0.0,
                             best_after=best_candidate_y if rescue_accepted else post_primary_fitness,
+                            phase_rescue_resource_route=phase_rescue_resource_route,
+                            phase_rescue_rejected_before_maturity=(
+                                controller_v31_run_state.phase_rescue_rejected_before_maturity
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v37_enabled
+                                else None
+                            ),
+                            phase_rescue_productive_mature=(
+                                controller_v31_run_state.phase_rescue_productive_mature
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v37_enabled
+                                else None
+                            ),
+                            phase_rescue_retired=(
+                                controller_v31_run_state.phase_rescue_retired
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v37_enabled
+                                else None
+                            ),
                         )
                     )
             if (
@@ -4279,7 +4390,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             current_delta=context.current_delta,
                             controller_run_state=controller_v31_run_state,
                         )
-                    elif is_evidence_action_controller_v36(config.arac_action):
+                    elif is_evidence_action_controller_v36(
+                        config.arac_action
+                    ) or is_evidence_action_controller_v37(config.arac_action):
                         (
                             action,
                             adjusted_values,
@@ -4379,42 +4492,32 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             active_maturity_route=active_maturity_route,
                             sweep_evidence_relation_count=(
                                 controller_v31_run_state.sweep_evidence_relation_count
-                                if is_evidence_action_controller_v36(
-                                    config.arac_action
-                                )
-                                and controller_v31_run_state is not None
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v36_enabled
                                 else None
                             ),
                             sweep_evidence_active_count=(
                                 controller_v31_run_state.sweep_evidence_active_count
-                                if is_evidence_action_controller_v36(
-                                    config.arac_action
-                                )
-                                and controller_v31_run_state is not None
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v36_enabled
                                 else None
                             ),
                             sweep_evidence_active_fraction=(
                                 controller_v31_run_state.sweep_evidence_active_fraction
-                                if is_evidence_action_controller_v36(
-                                    config.arac_action
-                                )
-                                and controller_v31_run_state is not None
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v36_enabled
                                 else None
                             ),
                             sweep_evidence_support=(
                                 controller_v31_run_state.sweep_evidence_support
-                                if is_evidence_action_controller_v36(
-                                    config.arac_action
-                                )
-                                and controller_v31_run_state is not None
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v36_enabled
                                 else None
                             ),
                             sweep_evidence_reason=(
                                 controller_v31_run_state.sweep_evidence_reason
-                                if is_evidence_action_controller_v36(
-                                    config.arac_action
-                                )
-                                and controller_v31_run_state is not None
+                                if controller_v31_run_state is not None
+                                and controller_v31_run_state.v36_enabled
                                 else ""
                             ),
                     )
@@ -5062,6 +5165,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V34,
             EVIDENCE_ACTION_CONTROLLER_V35,
             EVIDENCE_ACTION_CONTROLLER_V36,
+            EVIDENCE_ACTION_CONTROLLER_V37,
         ],
     )
     args = parser.parse_args(argv)
@@ -5134,6 +5238,10 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 ),
                 include_maturity_fields=is_evidence_action_controller_v36(
                     config.arac_action
+                )
+                or is_evidence_action_controller_v37(config.arac_action),
+                include_resource_fields=is_evidence_action_controller_v37(
+                    config.arac_action
                 ),
             )
             function_trace_rows.extend(trace_rows)
@@ -5163,6 +5271,10 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 config.arac_action
             ),
             include_maturity_fields=is_evidence_action_controller_v36(
+                config.arac_action
+            )
+            or is_evidence_action_controller_v37(config.arac_action),
+            include_resource_fields=is_evidence_action_controller_v37(
                 config.arac_action
             ),
         )
