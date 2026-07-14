@@ -1415,6 +1415,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v33(action_name)
             or is_evidence_action_controller_v34(action_name)
             or is_evidence_action_controller_v35(action_name)
+            or is_evidence_action_controller_v36(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap

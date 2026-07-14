@@ -1291,6 +1291,20 @@ def test_v36_uses_guarded_trust_trace_runtime_membership() -> None:
     assert not runner.is_risk_aware_evidence_action_controller(config.arac_action)
 
 
+def test_v36_keeps_v33_nondense_refine_sigma() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+    )
+
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V36,
+        1.0,
+        controller_v31_run_state=state,
+    ) == pytest.approx(0.5)
+
+
 def test_controller_v33_fallback_route_is_runtime_topology_auditable() -> None:
     runner = _load_runner_module()
     dense = runner.build_evidence_action_controller_v31_run_state(
