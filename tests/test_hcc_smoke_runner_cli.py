@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import inspect
 import os
 import subprocess
 import sys
@@ -4779,7 +4780,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     assert policy_batch_sizes[:2] == [1, 2]
 
 
-def test_controller_v33_credits_writeback_before_next_group_optimizer(
+def test_controller_v33_to_v36_matched_fe_credits_before_next_group_optimizer(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -5005,6 +5006,64 @@ def test_controller_v33_credits_writeback_before_next_group_optimizer(
         row.get("trajectory_guard_status", "") == "" for row in v35_trace_rows
     )
     assert any(row.get("fallback_route", "") for row in v35_trace_rows)
+
+    optimize_calls["count"] = 0
+    registered_baselines.clear()
+    observed_contexts.clear()
+    v36_output = tmp_path / "v36"
+    v36_output.mkdir()
+
+    v36_record, _elapsed, v36_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v36_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V36,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v36_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v36_function.objective_calls == v33_objective_calls
+    assert runner.current_fitness_evaluations(v36_function) == v33_fes
+    assert len(v36_record) == len(v33_record)
+    assert registered_baselines == []
+    assert observed_contexts == []
+    assert all(
+        row.get("trajectory_guard_status", "") == "" for row in v36_trace_rows
+    )
+    assert any("active_maturity_route" in row for row in v36_trace_rows)
+
+
+def test_controller_v36_runtime_decisions_exclude_case_and_outcome_dispatch() -> None:
+    runner = _load_runner_module()
+    source = "\n".join(
+        (
+            inspect.getsource(runner.apply_relation_action_with_controller_v36),
+            inspect.getsource(
+                runner.EvidenceActionControllerV31RunState._finalize_v36_first_sweep
+            ),
+        )
+    ).lower()
+
+    forbidden_dispatch_inputs = {
+        "case_id",
+        "problem_id",
+        "fun_name",
+        "function_family",
+        "paper_best",
+        "historical_best",
+        "relative_gain",
+        "final_error",
+        "final_outcome",
+    }
+
+    assert all(token not in source for token in forbidden_dispatch_inputs)
 
 
 def test_run_problem_caps_aob_fitness_record_at_max_fes(
