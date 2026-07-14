@@ -76,7 +76,23 @@ from src.arac.policy.action_trust_policy import (
 )
 from src.arac.actions.controller_profiles import (
     controller_has_capability,
+    controller_profile_by_action,
     controller_profile_by_version,
+)
+from arac.backends.hcc_car import (
+    CARPlanDecision,
+    CARRelationProposal,
+    GroupOptimizationResult,
+    allocate_component_horizon_budgets,
+    freeze_component_writeback_plan,
+    run_component_horizon,
+)
+from arac.policy.counterfactual_action_racing import (
+    AuditEnvelope,
+    BranchState,
+    CARBudgetLedger,
+    CARProbeExecutor,
+    fingerprint_branch_state,
 )
 from src.arac.policy.trajectory_guard import (
     RecoveryCheckpoint,
@@ -421,6 +437,64 @@ AOB_INPUT_MANIFEST_FIELDS = [
     "sha256_after",
     "unchanged",
 ]
+CAR_PROBE_TRACE_FIELDS = [
+    "problem_id",
+    "seed",
+    "pair_index",
+    "channel",
+    "graph_fingerprint",
+    "component_fingerprint",
+    "action_family",
+    "fallback_fe",
+    "candidate_fe",
+    "seed_descriptor",
+    "probe_seed",
+    "phase1_probe_fitness_before",
+    "fallback_after",
+    "candidate_after",
+    "normalized_delta",
+    "lcb",
+    "tail",
+    "gate_result",
+    "abstain_reason",
+]
+CAR_STATE_LEDGER_FIELDS = [
+    "problem_id",
+    "seed",
+    "graph_fingerprint",
+    "component_fingerprint",
+    "candidate_action_name",
+    "candidate_action_family",
+    "evidence_sweeps",
+    "checkpoint_fe",
+    "probe_fe",
+    "total_fe_after_probe",
+    "probe_fe_limit",
+    "adopted_branch",
+    "committed_fitness",
+    "evaluated_elite",
+    "state_fingerprint",
+    "gate_result",
+    "abstain_reason",
+]
+CAR_BRANCH_MANIFEST_FIELDS = [
+    "problem_id",
+    "seed",
+    "pair_index",
+    "arm",
+    "evaluator_id",
+    "requested_fe",
+    "actual_fe",
+    "record_sha256",
+    "record_best",
+    "state_fingerprint_before",
+    "state_fingerprint_after",
+    "seed_descriptor",
+    "probe_seed",
+]
+CAR_W_MIN_EVIDENCE_SWEEPS = 2
+CAR_W_PAIR_COUNT = 3
+CAR_W_PROBE_BUDGET_FRACTION = 0.03
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 ACTION_TRUST_MIN_WRITEBACK_NORM = 1e-12
@@ -459,6 +533,7 @@ EVIDENCE_ACTION_CONTROLLER_V36 = controller_profile_by_version(36).action_name
 EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
 EVIDENCE_ACTION_CONTROLLER_V38 = controller_profile_by_version(38).action_name
 EVIDENCE_ACTION_CONTROLLER_V39 = controller_profile_by_version(39).action_name
+CAR_W_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w").action_name
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -485,6 +560,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V37,
     EVIDENCE_ACTION_CONTROLLER_V38,
     EVIDENCE_ACTION_CONTROLLER_V39,
+    CAR_W_ACTION,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -548,6 +624,7 @@ class SmokeConfig:
     skip_plots: bool = False
     aob_data_root: Path = DATA_DIR
     search_state_backend: str = "phase_i_mmes"
+    car_branch_order: str = "fallback_first"
 
 
 @dataclass(frozen=True)
@@ -1369,10 +1446,14 @@ def is_evidence_action_controller_v39(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V39
 
 
+def is_car_w_action(action_name: str) -> bool:
+    return action_name == CAR_W_ACTION
+
+
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
     return is_evidence_action_controller_v33(
         action_name
-    ) or is_evidence_action_controller_v34(action_name)
+    ) or is_evidence_action_controller_v34(action_name) or is_car_w_action(action_name)
 
 
 def uses_v33_trust_trace_schema(action_name: str) -> bool:
@@ -3641,9 +3722,328 @@ def build_overlap_relation_for_pair(
     raise ValueError(f"missing overlap relation for groups {group_left}-{group_right}")
 
 
+def _write_car_rows(
+    path: Path,
+    *,
+    fieldnames: list[str],
+    rows: list[dict[str, str]],
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _car_controller_state_payload(
+    controller: EvidenceActionControllerV31RunState | None,
+    *,
+    trajectory_mean_cache: dict[int, float],
+    previous_group_contribution_credit: list[float],
+) -> dict[str, object]:
+    if controller is None:
+        controller_payload: dict[str, object] = {}
+    else:
+        policy = controller.action_trust_policy
+        trust_states = (
+            {}
+            if policy is None
+            else {
+                key: asdict(state)
+                for key, state in sorted(policy._states.items())
+            }
+        )
+        controller_payload = {
+            "dense_overlap": bool(controller.dense_overlap),
+            "locked_policy_mode": controller.locked_policy_mode,
+            "non_dense_repair_locked": bool(controller.non_dense_repair_locked),
+            "non_dense_repair_lock_trigger": controller.non_dense_repair_lock_trigger,
+            "search_state_scheduler_state": asdict(
+                controller.search_state_scheduler_state
+            ),
+            "trust_states": trust_states,
+            "phase_i_state_fingerprint": (
+                ""
+                if controller.phase_i_state is None
+                else controller.phase_i_state.fingerprint()
+            ),
+            "diagonal_cma_state_present": controller.diagonal_cma_state is not None,
+        }
+    return {
+        "controller": controller_payload,
+        "trajectory_mean_cache": {
+            str(key): float(value)
+            for key, value in sorted(trajectory_mean_cache.items())
+        },
+        "previous_group_contribution_credit": [
+            float(value) for value in previous_group_contribution_credit
+        ],
+    }
+
+
+def _run_car_cma_group(
+    *,
+    evaluator,
+    background: np.ndarray,
+    dims: tuple[int, ...],
+    requested_fes: int,
+    population_size: int,
+    seed: int,
+    info: dict[str, object],
+    config: SmokeConfig,
+) -> GroupOptimizationResult:
+    objective = lambda x_batch: evaluator(combine(x_batch, background, list(dims)))
+    problem = {
+        "fitness_function": objective,
+        "ndim_problem": len(dims),
+        "lower_boundary": float(info["lower"]) * np.ones((len(dims),)),
+        "upper_boundary": float(info["upper"]) * np.ones((len(dims),)),
+    }
+    options = {
+        "max_function_evaluations": int(requested_fes),
+        "mean": (np.asarray(background, dtype=float)[list(dims)].copy(),),
+        "sigma": config.sigma,
+        "n_individuals": int(population_size),
+        "is_restart": config.cmaes_restart,
+        "verbose": config.verbose,
+        "early_stopping_evaluations": config.early_stopping_evaluations,
+        "seed_rng": int(seed),
+    }
+    evaluations_before = current_fitness_evaluations(evaluator)
+    result = CMAES(problem, options).optimize()
+    actual_fes = current_fitness_evaluations(evaluator) - evaluations_before
+    reported_fes = int(result["n_function_evaluations"])
+    if actual_fes != reported_fes:
+        raise RuntimeError(
+            "CAR branch objective FE does not match CMA reported FE: "
+            f"observed={actual_fes}, reported={reported_fes}"
+        )
+    return GroupOptimizationResult(
+        best_x=np.asarray(result["best_so_far_x"], dtype=float).reshape(-1).copy(),
+        best_y=float(result["best_so_far_y"]),
+        actual_fes=actual_fes,
+    )
+
+
+@dataclass(frozen=True)
+class CARBarrierResult:
+    adopted_state: BranchState | None
+    accounting_record: tuple[float, ...]
+    probe_fe: int
+    probe_trace_rows: tuple[dict[str, str], ...]
+    state_ledger_rows: tuple[dict[str, str], ...]
+    branch_manifest_rows: tuple[dict[str, str], ...]
+    abstain_reason: str
+
+
+def execute_car_w_probe_at_barrier(
+    *,
+    decision: CARPlanDecision,
+    checkpoint: BranchState,
+    checkpoint_fe: int,
+    fun_name: str,
+    fun_id: int,
+    output_path: Path,
+    info: dict[str, object],
+    config: SmokeConfig,
+    problem_id: str,
+    branch_order: tuple[str, str] = ("fallback", "candidate"),
+) -> CARBarrierResult:
+    audit = AuditEnvelope(
+        run_id=config.run_id,
+        problem_id=problem_id,
+        seed=0 if config.seed is None else int(config.seed),
+    )
+    probe_limit = int(math.floor(config.max_fes * CAR_W_PROBE_BUDGET_FRACTION))
+    plan = decision.plan
+    evidence = decision.evidence
+    if plan is None or evidence is None:
+        reason = decision.abstain_reason or "missing_car_writeback_plan"
+        row = {
+            "problem_id": audit.problem_id,
+            "seed": "" if config.seed is None else str(audit.seed),
+            "graph_fingerprint": "",
+            "component_fingerprint": "",
+            "candidate_action_name": "",
+            "candidate_action_family": "",
+            "evidence_sweeps": "0",
+            "checkpoint_fe": str(checkpoint_fe),
+            "probe_fe": "0",
+            "total_fe_after_probe": str(checkpoint_fe),
+            "probe_fe_limit": str(probe_limit),
+            "adopted_branch": "not_probed",
+            "committed_fitness": f"{checkpoint.committed_fitness:.17e}",
+            "evaluated_elite": "",
+            "state_fingerprint": checkpoint.state_fingerprint,
+            "gate_result": "abstain",
+            "abstain_reason": reason,
+        }
+        return CARBarrierResult(None, (), 0, (), (row,), (), reason)
+
+    probe_arm_cap = probe_limit // (2 * CAR_W_PAIR_COUNT)
+    remaining_total_fe = max(0, int(config.max_fes) - int(checkpoint_fe))
+    remaining_arm_cap = remaining_total_fe // (2 * CAR_W_PAIR_COUNT)
+    max_arm_fes = min(probe_arm_cap, remaining_arm_cap)
+    budgets = allocate_component_horizon_budgets(
+        max_arm_fes=max_arm_fes,
+        population_sizes=plan.group_population_sizes,
+    )
+    if not budgets:
+        reason = (
+            "remaining_total_budget_cannot_fit_complete_component_horizon"
+            if remaining_arm_cap < probe_arm_cap
+            else "probe_budget_cannot_fit_complete_component_horizon"
+        )
+        row = {
+            "problem_id": audit.problem_id,
+            "seed": "" if config.seed is None else str(audit.seed),
+            "graph_fingerprint": evidence.graph_fingerprint,
+            "component_fingerprint": evidence.component_fingerprint,
+            "candidate_action_name": evidence.candidate_action_name,
+            "candidate_action_family": evidence.candidate_action_family,
+            "evidence_sweeps": str(evidence.evidence_sweep_count),
+            "checkpoint_fe": str(checkpoint_fe),
+            "probe_fe": "0",
+            "total_fe_after_probe": str(checkpoint_fe),
+            "probe_fe_limit": str(probe_limit),
+            "adopted_branch": "not_probed",
+            "committed_fitness": f"{checkpoint.committed_fitness:.17e}",
+            "evaluated_elite": "",
+            "state_fingerprint": checkpoint.state_fingerprint,
+            "gate_result": "abstain",
+            "abstain_reason": reason,
+        }
+        return CARBarrierResult(None, (), 0, (), (row,), (), reason)
+
+    arm_fes = 1 + sum(budgets)
+    ledger = CARBudgetLedger(
+        max_fes=config.max_fes,
+        probe_fe_limit=probe_limit,
+        committed_fe=checkpoint_fe,
+    )
+    evaluator_factory = lambda: Benchmark(
+        str(output_path) + "/",
+        data_dir=config.aob_data_root,
+    ).get_function(fun_name, fun_id)
+
+    def transition(apply_candidate: bool):
+        return lambda state, evaluator, seed_descriptor, requested_fes: run_component_horizon(
+            checkpoint=state,
+            evaluator=evaluator,
+            seed_descriptor=seed_descriptor,
+            requested_fes=requested_fes,
+            plan=plan,
+            apply_candidate=apply_candidate,
+            optimize_group=lambda **kwargs: _run_car_cma_group(
+                **kwargs,
+                info=info,
+                config=config,
+            ),
+        )
+
+    execution = CARProbeExecutor(
+        evaluator_factory=evaluator_factory,
+        ledger=ledger,
+        base_seed=0 if config.seed is None else int(config.seed),
+        sweep_index=evidence.evidence_sweep_count,
+        graph_fingerprint=evidence.graph_fingerprint,
+        component_fingerprint=evidence.component_fingerprint,
+        action_family=evidence.candidate_action_family,
+        arm_fes=arm_fes,
+    ).execute(
+        initial_checkpoint=checkpoint,
+        fallback_transition=transition(False),
+        candidate_transition=transition(True),
+        branch_order=branch_order,
+    )
+    abstain_reason = ";".join(execution.gate.abstain_reasons)
+    probe_rows = tuple(
+        {
+            "problem_id": audit.problem_id,
+            "seed": "" if config.seed is None else str(audit.seed),
+            "pair_index": str(observation.pair_index),
+            "channel": "writeback",
+            "graph_fingerprint": observation.graph_fingerprint,
+            "component_fingerprint": observation.component_fingerprint,
+            "action_family": observation.action_family,
+            "fallback_fe": str(observation.fallback_fe),
+            "candidate_fe": str(observation.candidate_fe),
+            "seed_descriptor": observation.seed_descriptor.canonical_key,
+            "probe_seed": str(observation.seed_descriptor.seed),
+            "phase1_probe_fitness_before": (
+                f"{observation.phase1_probe_fitness_before:.17e}"
+            ),
+            "fallback_after": f"{observation.fallback_after:.17e}",
+            "candidate_after": f"{observation.candidate_after:.17e}",
+            "normalized_delta": f"{observation.normalized_delta:.17e}",
+            "lcb": f"{execution.gate.lcb:.17e}",
+            "tail": f"{execution.gate.tail:.17e}",
+            "gate_result": "commit" if execution.gate.committed else "abstain",
+            "abstain_reason": abstain_reason,
+        }
+        for observation in execution.observations
+    )
+    manifest_rows = tuple(
+        {
+            "problem_id": audit.problem_id,
+            "seed": "" if config.seed is None else str(audit.seed),
+            "pair_index": str(manifest.pair_index),
+            "arm": manifest.arm,
+            "evaluator_id": manifest.evaluator_id,
+            "requested_fe": str(manifest.requested_fe),
+            "actual_fe": str(manifest.actual_fe),
+            "record_sha256": manifest.record_sha256,
+            "record_best": f"{manifest.record_best:.17e}",
+            "state_fingerprint_before": manifest.state_fingerprint_before,
+            "state_fingerprint_after": manifest.state_fingerprint_after,
+            "seed_descriptor": manifest.seed_descriptor.canonical_key,
+            "probe_seed": str(manifest.seed_descriptor.seed),
+        }
+        for manifest in execution.branch_manifests
+    )
+    evaluated_elite = min(manifest.record_best for manifest in execution.branch_manifests)
+    state_row = {
+        "problem_id": audit.problem_id,
+        "seed": "" if config.seed is None else str(audit.seed),
+        "graph_fingerprint": evidence.graph_fingerprint,
+        "component_fingerprint": evidence.component_fingerprint,
+        "candidate_action_name": evidence.candidate_action_name,
+        "candidate_action_family": evidence.candidate_action_family,
+        "evidence_sweeps": str(evidence.evidence_sweep_count),
+        "checkpoint_fe": str(checkpoint_fe),
+        "probe_fe": str(ledger.probe_fe),
+        "total_fe_after_probe": str(ledger.total_fe),
+        "probe_fe_limit": str(probe_limit),
+        "adopted_branch": execution.gate.adopted_arm,
+        "committed_fitness": f"{execution.adopted_state.committed_fitness:.17e}",
+        "evaluated_elite": f"{evaluated_elite:.17e}",
+        "state_fingerprint": execution.adopted_state.state_fingerprint,
+        "gate_result": "commit" if execution.gate.committed else "abstain",
+        "abstain_reason": abstain_reason,
+    }
+    return CARBarrierResult(
+        adopted_state=execution.adopted_state,
+        accounting_record=execution.accounting_record,
+        probe_fe=ledger.probe_fe,
+        probe_trace_rows=probe_rows,
+        state_ledger_rows=(state_row,),
+        branch_manifest_rows=manifest_rows,
+        abstain_reason=abstain_reason,
+    )
+
+
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
     if config.budget_accounting not in {"strict", "source"}:
         raise ValueError(f"unsupported budget accounting mode: {config.budget_accounting}")
+    if is_car_w_action(config.arac_action) and (
+        not config.enable_relation_dispatch
+        or config.relation_policy_mode != "controller_v31"
+    ):
+        raise ValueError(
+            "CAR-W requires relation dispatch with the controller_v31 proposal policy"
+        )
+    if config.car_branch_order not in {"fallback_first", "candidate_first"}:
+        raise ValueError("unsupported CAR branch order")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -3800,6 +4200,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     relations: list[OverlapRelation] = []
     action_decisions: list[RelationActionDecision] = []
     previous_group_contribution_credit: list[float] = []
+    car_probe_enabled = is_car_w_action(config.arac_action)
+    car_probe_attempted = False
+    car_proposal_sweeps: list[tuple[CARRelationProposal, ...]] = []
+    car_current_proposals: list[CARRelationProposal] = []
+    car_probe_trace_rows: list[dict[str, str]] = []
+    car_state_ledger_rows: list[dict[str, str]] = []
+    car_branch_manifest_rows: list[dict[str, str]] = []
+    car_probe_fe = 0
     group_stagnation_counts = [0 for _ in grouping_result]
     bipop_global_cooldown = 0
     bipop_restart_count = 0
@@ -3915,9 +4323,22 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         )
         cc_budget_limit_fes = max(
             current_fes,
-            config.max_fes - held_search_state_fes,
+            config.max_fes
+            - held_search_state_fes
+            - (
+                int(math.floor(config.max_fes * CAR_W_PROBE_BUDGET_FRACTION))
+                if car_probe_enabled and not car_probe_attempted
+                else 0
+            ),
         )
-        sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)
+        if car_probe_enabled and not car_probe_attempted and len(car_proposal_sweeps) < CAR_W_MIN_EVIDENCE_SWEEPS:
+            sweep_slots_remaining = CAR_W_MIN_EVIDENCE_SWEEPS - len(car_proposal_sweeps)
+            sub_fes = math.ceil(
+                max(0, cc_budget_limit_fes - current_fes)
+                / max(1, sub_num * (sweep_slots_remaining + 1))
+            )
+        else:
+            sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)
         population_sizes = [
             calculate_cmaes_population_size(len(dims)) for dims in grouping_result
         ]
@@ -3938,6 +4359,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         relative_writeback_norms: list[float] = []
         current_outer_relations: list[OverlapRelation] = []
         current_outer_decisions: list[RelationActionDecision] = []
+        car_current_proposals = []
         optimized_any_group = False
         outer_stagnation_streak = 0
         for index, dims in enumerate(grouping_result):
@@ -4628,6 +5050,52 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         else config.relation_policy_mode,
                         shuffled_source_action=shuffled_source_action,
                     )
+                    if car_probe_enabled and relation.shared_vars:
+                        forced_candidate = (
+                            None
+                            if controller_v31_run_state is None
+                            else controller_v31_run_state.forced_relation_action(relation)
+                        )
+                        candidate_source_action = forced_candidate or action
+                        (
+                            candidate_proposal_action,
+                            candidate_proposed_values,
+                            candidate_writeback_norm,
+                        ) = apply_and_guard_action_to_relation(
+                            relation=relation,
+                            action=candidate_source_action,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            previous_delta=context.previous_delta,
+                            current_delta=context.current_delta,
+                        )
+                        proposal_values = (
+                            context.current_values
+                            if candidate_proposed_values is None
+                            else candidate_proposed_values
+                        )
+                        car_current_proposals.append(
+                            CARRelationProposal(
+                                sweep_index=len(car_proposal_sweeps),
+                                group_left=relation.group_left,
+                                group_right=relation.group_right,
+                                shared_indices=tuple(int(value) for value in relation.shared_vars),
+                                target_values=tuple(
+                                    float(value)
+                                    for value in np.asarray(
+                                        proposal_values,
+                                        dtype=float,
+                                    ).reshape(-1)
+                                ),
+                                action_name=_canonical_relation_action_name(
+                                    candidate_proposal_action
+                                ),
+                                action_family=candidate_proposal_action.action_family,
+                                overlap_strength=float(relation.overlap_strength),
+                                feature_coverage=float(relation.feature_coverage),
+                                writeback_norm=float(candidate_writeback_norm),
+                            )
+                        )
                     trust_decision: ActionTrustDecision | None = None
                     fallback_route = ""
                     active_maturity_route = ""
@@ -4934,6 +5402,96 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         )
                     )
                     break
+        if car_probe_enabled and not car_probe_attempted:
+            expected_proposals = sum(1 for shared in overlapping_elements if shared)
+            complete_evidence_sweep = (
+                optimized_any_group
+                and len(fitness_delta_list) == sub_num
+                and len(car_current_proposals) == expected_proposals
+            )
+            if complete_evidence_sweep:
+                car_proposal_sweeps.append(tuple(car_current_proposals))
+            if len(car_proposal_sweeps) >= CAR_W_MIN_EVIDENCE_SWEEPS:
+                car_probe_attempted = True
+                if controller_v31_run_state is not None:
+                    controller_v31_run_state.invalidate_pending_action_trust(
+                        "car_component_barrier"
+                    )
+                car_decision = freeze_component_writeback_plan(
+                    grouping_result=tuple(
+                        tuple(int(value) for value in group)
+                        for group in grouping_result
+                    ),
+                    overlapping_elements=tuple(
+                        tuple(int(value) for value in shared)
+                        for shared in overlapping_elements
+                    ),
+                    group_population_sizes=tuple(population_sizes),
+                    proposal_sweeps=tuple(car_proposal_sweeps),
+                    lower=float(info["lower"]),
+                    upper=float(info["upper"]),
+                )
+                if car_decision.plan is not None:
+                    checkpoint_fitness = float(fun(best_individual)[0])
+                    sum_fes += 1
+                    cc_phase_fe += 1
+                    checkpoint_incumbent = best_individual.copy()
+                else:
+                    checkpoint_fitness = guarded_incumbent_fitness
+                    checkpoint_incumbent = guarded_incumbent.copy()
+                checkpoint = BranchState(
+                    incumbent=tuple(
+                        float(value) for value in checkpoint_incumbent
+                    ),
+                    committed_fitness=checkpoint_fitness,
+                    evaluator_record=[],
+                    state_fingerprint="",
+                    state_payload=_car_controller_state_payload(
+                        controller_v31_run_state,
+                        trajectory_mean_cache=trajectory_mean_cache,
+                        previous_group_contribution_credit=(
+                            previous_group_contribution_credit
+                        ),
+                    ),
+                )
+                checkpoint.state_fingerprint = fingerprint_branch_state(checkpoint)
+                barrier = execute_car_w_probe_at_barrier(
+                    decision=car_decision,
+                    checkpoint=checkpoint,
+                    checkpoint_fe=current_fitness_evaluations(fun),
+                    fun_name=fun_name,
+                    fun_id=fun_id,
+                    output_path=output_path,
+                    info=info,
+                    config=config,
+                    problem_id=problem_id,
+                    branch_order=(
+                        ("candidate", "fallback")
+                        if config.car_branch_order == "candidate_first"
+                        else ("fallback", "candidate")
+                    ),
+                )
+                car_probe_trace_rows.extend(barrier.probe_trace_rows)
+                car_state_ledger_rows.extend(barrier.state_ledger_rows)
+                car_branch_manifest_rows.extend(barrier.branch_manifest_rows)
+                if barrier.adopted_state is not None:
+                    fun.fitness_record.extend(barrier.accounting_record)
+                    car_probe_fe += barrier.probe_fe
+                    sum_fes += barrier.probe_fe
+                    best_individual = np.asarray(
+                        barrier.adopted_state.incumbent,
+                        dtype=float,
+                    ).copy()
+                    if (
+                        barrier.adopted_state.committed_fitness
+                        < guarded_incumbent_fitness
+                    ):
+                        guarded_incumbent = best_individual.copy()
+                        guarded_incumbent_fitness = (
+                            barrier.adopted_state.committed_fitness
+                        )
+                    previous_group_contribution_credit = []
+
         if not optimized_any_group:
             break
         if not config.enable_relation_dispatch:
@@ -5284,6 +5842,53 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             best_individual = preempted_recovery.candidate.copy()
 
     problem_id = _problem_id(fun_name, fun_id)
+    if car_probe_enabled:
+        if not car_state_ledger_rows:
+            checkpoint = BranchState(
+                incumbent=tuple(float(value) for value in guarded_incumbent),
+                committed_fitness=guarded_incumbent_fitness,
+                evaluator_record=[],
+                state_fingerprint="",
+                state_payload=_car_controller_state_payload(
+                    controller_v31_run_state,
+                    trajectory_mean_cache=trajectory_mean_cache,
+                    previous_group_contribution_credit=(
+                        previous_group_contribution_credit
+                    ),
+                ),
+            )
+            checkpoint.state_fingerprint = fingerprint_branch_state(checkpoint)
+            incomplete = execute_car_w_probe_at_barrier(
+                decision=CARPlanDecision(
+                    plan=None,
+                    evidence=None,
+                    abstain_reason="insufficient_complete_evidence_sweeps",
+                ),
+                checkpoint=checkpoint,
+                checkpoint_fe=current_fitness_evaluations(fun),
+                fun_name=fun_name,
+                fun_id=fun_id,
+                output_path=output_path,
+                info=info,
+                config=config,
+                problem_id=problem_id,
+            )
+            car_state_ledger_rows.extend(incomplete.state_ledger_rows)
+        _write_car_rows(
+            case_artifact_path(output_path, problem_id, "car_probe_trace.csv"),
+            fieldnames=CAR_PROBE_TRACE_FIELDS,
+            rows=car_probe_trace_rows,
+        )
+        _write_car_rows(
+            case_artifact_path(output_path, problem_id, "car_state_ledger.csv"),
+            fieldnames=CAR_STATE_LEDGER_FIELDS,
+            rows=car_state_ledger_rows,
+        )
+        _write_car_rows(
+            case_artifact_path(output_path, problem_id, "car_branch_manifest.csv"),
+            fieldnames=CAR_BRANCH_MANIFEST_FIELDS,
+            rows=car_branch_manifest_rows,
+        )
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
         relations,
@@ -5356,6 +5961,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--search-state-backend",
         default="phase_i_mmes",
         choices=["phase_i_mmes", "diagonal_cma"],
+    )
+    parser.add_argument(
+        "--car-branch-order",
+        choices=["fallback_first", "candidate_first"],
+        default="fallback_first",
     )
     parser.add_argument(
         "--lane-profile",
@@ -5445,6 +6055,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V37,
             EVIDENCE_ACTION_CONTROLLER_V38,
             EVIDENCE_ACTION_CONTROLLER_V39,
+            CAR_W_ACTION,
         ],
     )
     args = parser.parse_args(argv)
@@ -5473,6 +6084,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         skip_plots=args.skip_plots,
         aob_data_root=args.aob_data_root,
         search_state_backend=args.search_state_backend,
+        car_branch_order=args.car_branch_order,
     )
     output_paths = []
     for fun_name in args.functions:

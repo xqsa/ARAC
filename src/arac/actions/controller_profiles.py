@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ControllerProfile:
-    version: int
+    version: int | None
     lane_profile: str
     action_name: str
     dispatch_scope: str
@@ -178,11 +178,50 @@ CONTROLLER_PROFILES = (
             "sigma_continuation",
         },
     ),
+    ControllerProfile(
+        version=None,
+        lane_profile="counterfactual_action_racing_w",
+        action_name="arac_counterfactual_action_racing_w",
+        dispatch_scope="within_run_same_checkpoint_counterfactual_action_racing_w",
+        relation_policy_mode="controller_v31",
+        backend_effect_kind="counterfactual_action_racing_writeback",
+        optimizer_consumed_parameters={
+            "candidate_proposal": "controller_v31_relation_proposal",
+            "candidate_blend_alpha": 0.20,
+            "candidate_norm_guard": "controller_v33_norm_guard",
+            "fallback": "arac_evidence_action_controller_v33",
+            "minimum_complete_evidence_sweeps": 2,
+            "stable_support_rule": "two_sweep_non_fallback_subgraph",
+            "paired_probe_count": 3,
+            "writeback_probe_budget_fraction": 0.03,
+            "deployment_pair_index": 2,
+            "candidate_lease": "final_pair_component_horizon_only",
+            "dispatch_boundary": "identity_free_runtime_evidence_only",
+        },
+        execution_mode="hcc_counterfactual_action_racing_w_runtime_consumed",
+        capabilities=frozenset(
+            {
+                "guarded",
+                "requires_pinned_environment",
+                "trust_trace",
+                "risk_aware_trust",
+                "paired_probe",
+                "branch_isolation",
+                "single_fe_ledger",
+                "writeback_only",
+            }
+        ),
+        dispatch_boundary="identity_free_runtime_evidence_only",
+    ),
 )
 
 _PROFILES_BY_ACTION = {profile.action_name: profile for profile in CONTROLLER_PROFILES}
 _PROFILES_BY_LANE = {profile.lane_profile: profile for profile in CONTROLLER_PROFILES}
-_PROFILES_BY_VERSION = {profile.version: profile for profile in CONTROLLER_PROFILES}
+_PROFILES_BY_VERSION = {
+    profile.version: profile
+    for profile in CONTROLLER_PROFILES
+    if profile.version is not None
+}
 
 
 def controller_profile_by_action(action_name: str) -> ControllerProfile:

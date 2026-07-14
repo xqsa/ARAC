@@ -76,6 +76,24 @@ def test_exp_003_cli_describes_canonical_vendor_runtime_root(
     assert "HCC-main runtime" not in help_text
 
 
+def test_car_dispatch_boundary_audit_is_type_level_and_disjoint() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _car_dispatch_boundary_rows,
+    )
+
+    rows = _car_dispatch_boundary_rows()
+    assert rows
+    assert all(row["audit_status"] == "pass" for row in rows)
+    runtime = {
+        row["field_name"] for row in rows if row["field_owner"] == "runtime_dispatch"
+    }
+    audit_only = {
+        row["field_name"] for row in rows if row["audit_only"] == 1
+    }
+    assert runtime.isdisjoint(audit_only)
+    assert {"problem_id", "seed", "run_id"}.issubset(audit_only)
+
+
 def _hcc_result(
     problem_id: str,
     seed: int,

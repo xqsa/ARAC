@@ -1,7 +1,7 @@
 # Core Method: ARAC-CAR Within-Run Causal Action Racing
 
 Date: 2026-07-15
-Status: design freeze for the next implementation; not a performance claim
+Status: implementation freeze for CAR-W; not a performance claim
 Executor: Codex
 
 ## One-Line Definition
@@ -19,7 +19,7 @@ dynamic overlap evidence
   -> candidate action proposal
   -> same-checkpoint paired probe
   -> normalized short-horizon contrast
-  -> LCB + lower-tail risk gate
+  -> conservative runtime safety score + lower-tail risk gate
   -> atomic commit or fallback/abstain
   -> frozen Phase-II action plan
 ```
@@ -49,14 +49,16 @@ one same-budget CC ledger, and a fallback-relative downside gate can abstain.
 
 ## Runtime Boundary
 
-The policy input is a capability-limited `DispatchEvidence` value. It contains
-only current-run information:
+The policy input is a capability-limited `DispatchEvidence` value. CAR-W passes
+only current-run overlap evidence and the pre-registered writeback contract:
 
-- immutable overlap graph/component fingerprint and shared-variable geometry;
-- sweep persistence, sign/rank consistency, support variance, owner entropy,
-  conflict/stagnation and feature coverage;
-- optimizer state validity/fingerprint and remaining FE ratio;
-- probe/risk budget already consumed and the pre-registered action contract.
+- immutable overlap graph/component fingerprints;
+- candidate action name/family and shared-variable geometry;
+- overlap strength, shared-variable count, complete-sweep count and coverage;
+- bounded writeback norm.
+
+Optimizer state fingerprints, remaining FE, and probe exposure are checked by
+the executor and ledger, not supplied as identity-bearing dispatch features.
 
 Run, case, seed, function family, paper-best, historical outcome, final error,
 relative gain, and win/catastrophic labels live only in a separate
@@ -83,10 +85,14 @@ contracts rather than inventing another threshold family.
 ### Writeback channel (first and mandatory experiment)
 
 Use the existing v31 relation proposal as `a`, then apply the fixed bounded
-dose (`alpha = 0.20`) and the existing v33 norm guard. An edge is eligible only
-when at least two complete sweeps produce the same non-fallback action family,
-the evidence is finite/covered, and a complete component horizon fits in the
-reserved probe budget. Mixed-family or unstable components abstain.
+dose (`alpha = 0.20`) and the existing v33 norm guard. The probe horizon remains
+the complete overlap connected component. Inside that component, only edges
+whose latest two complete sweeps agree on the same non-fallback action name and
+family enter the **stable support subgraph**. Candidate writeback touches only
+shared variables on that support; every unsupported or unstable edge behaves as
+native fallback in both arms. Evidence must be finite and fully covered, and a
+complete component horizon must fit in the reserved probe budget. If the active
+support mixes multiple non-fallback families, the component abstains.
 
 The fallback `a0` is the unchanged v33.8 behavior. The probe tests `a` versus
 `a0`; it does not infer action utility from support or rank thresholds alone.
@@ -127,8 +133,11 @@ branches.
 Use `K = 3` sequential pairs. For pair `k`, run both branches from a snapshot of
 `S_k`. For `k < K`, advance the main trajectory with `F_k` while retaining the
 candidate endpoint only as probe evidence. On the final pair, adopt `C_K` only
-if the gate passes; otherwise adopt `F_K`. This gives persistence checks across
-checkpoints without merging mutable branch state.
+if the gate passes; otherwise adopt `F_K`. A successful candidate receives one
+component-horizon lease only; all later Phase-II sweeps return to the canonical
+v33.8 fallback controller. This gives persistence checks across checkpoints
+without merging mutable branch state or turning a short probe into unbounded
+action exposure.
 
 For minimization, define the probe contrast:
 
@@ -141,7 +150,7 @@ Positive `d_k` means the candidate is better. Let `m` and `s` be the mean and
 sample standard deviation of the three contrasts:
 
 ```text
-LCB = m - kappa * s / sqrt(K)       (kappa = 1, fixed)
+Safety = m - kappa * s / sqrt(K)    (kappa = 1, fixed; trace field `lcb`)
 Tail = mean of the lowest ceil(K/3) d_k values
 ```
 
@@ -150,14 +159,16 @@ Commit iff all of the following hold:
 1. every pair has equal actual arm FE, finite values, valid state fingerprints,
    and no ledger overrun;
 2. the graph/component fingerprint and candidate action family remain stable;
-3. `LCB > epsilon` and `Tail >= 0`;
+3. `Safety > epsilon` and `Tail >= 0`;
 4. the final candidate endpoint is not worse than its own start;
 5. the candidate has not exhausted its channel exposure/risk budget.
 
 Otherwise the controller **abstains** and adopts the paired fallback state.
-With `K = 3`, `Tail` is the worst replicate, not a nominal 95% confidence
-interval. It is a runtime conservative score; final statistical inference uses
-case-clustered paired summaries, not relation rows as independent samples.
+With `K = 3`, neither `Safety` nor `Tail` is a nominal confidence interval.
+`Tail` is the worst replicate and `Safety` is only a conservative runtime
+dispatch score. The retained `lcb` trace name is a schema label, not a
+statistical confidence claim. Final inference uses case-clustered paired
+summaries, not relation rows as independent samples.
 
 The deployment index is fixed before probing (the final pair); the controller
 must never choose the numerically best probe endpoint after seeing all probes.
@@ -194,8 +205,9 @@ Add one CAR registry entry and these auditable artifacts:
 - `car_state_ledger.csv`: checkpoint/state fingerprints, adopted branch,
   committed plan and exposure/risk budget;
 - `car_branch_manifest.csv`: branch-local evaluator and record hashes;
-- an AST/runtime audit proving forbidden identity/outcome fields never reach the
-  dispatch policy.
+- `car_dispatch_boundary_audit.csv`: a type-level inventory proving
+  `DispatchEvidence` is disjoint from `AuditEnvelope` and forbidden
+  identity/outcome fields, alongside the existing payload/runtime audit.
 
 ## Falsifiable Hypotheses
 

@@ -65,6 +65,10 @@ from arac.backends.hcc import (
 from arac.evaluation import SameBudgetLedger
 from arac.evaluation import classify_utility, relative_gain
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS, validate_runtime_payload
+from arac.policy.counterfactual_action_racing import (
+    AuditEnvelope,
+    DispatchEvidence,
+)
 
 RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
 PROBLEM_ID = "E2"
@@ -1602,6 +1606,21 @@ def _overlap_relation_rows(records: list[dict[str, object]]) -> list[dict[str, o
     return rows
 
 
+def _car_artifact_rows(
+    records: list[dict[str, object]],
+    artifact_name: str,
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        rows.extend(
+            _with_lane_prefix(
+                record,
+                _artifact_rows_for_record(record, artifact_name),
+            )
+        )
+    return rows
+
+
 def _aob_input_manifest_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
@@ -1942,6 +1961,42 @@ def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, o
                         else "negative_control_not_stably_better"
                     )
                 ),
+            }
+        )
+    return rows
+
+
+def _car_dispatch_boundary_rows() -> list[dict[str, object]]:
+    """Materialize the CAR type boundary as an auditable artifact."""
+
+    runtime_fields = set(DispatchEvidence.runtime_field_names())
+    forbidden_fields = set(DispatchEvidence.forbidden_field_names())
+    audit_fields = set(AuditEnvelope.__dataclass_fields__)
+    overlap = runtime_fields & (forbidden_fields | audit_fields)
+    rows: list[dict[str, object]] = []
+    for field in sorted(runtime_fields):
+        rows.append(
+            {
+                "boundary": "DispatchEvidence",
+                "field_name": field,
+                "field_owner": "runtime_dispatch",
+                "present_in_runtime_type": 1,
+                "audit_only": 0,
+                "runtime_dispatch_allowed": int(field not in overlap),
+                "audit_status": "pass" if field not in overlap else "fail",
+            }
+        )
+    for field in sorted(audit_fields | forbidden_fields):
+        owner = "AuditEnvelope" if field in audit_fields else "forbidden_runtime"
+        rows.append(
+            {
+                "boundary": "DispatchEvidence",
+                "field_name": field,
+                "field_owner": owner,
+                "present_in_runtime_type": int(field in runtime_fields),
+                "audit_only": 1,
+                "runtime_dispatch_allowed": 0,
+                "audit_status": "pass" if field not in overlap else "fail",
             }
         )
     return rows
@@ -4016,6 +4071,15 @@ def _write_manifest(
                 "paired_runtime_utility_gate.md",
             ]
         )
+    if lane_profile == "counterfactual_action_racing_w":
+        artifacts.extend(
+            [
+                "car_dispatch_boundary_audit.csv",
+                "car_probe_trace.csv",
+                "car_state_ledger.csv",
+                "car_branch_manifest.csv",
+            ]
+        )
     manifest = "\n".join(
         [
             "# exp_003_hcc_runtime_consumer_smoke Run Manifest",
@@ -4028,7 +4092,7 @@ def _write_manifest(
             "",
             "Command shape:",
             (
-                "py -3 experiments\\exp_003_hcc_runtime_consumer_smoke\\run.py "
+                "py -3 experiments\\pilots\\exp_003_hcc_runtime_consumer_smoke\\run.py "
                 "--output-dir <output_dir> --seeds "
                 f"{' '.join(str(seed) for seed in seeds)} --problems "
                 f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))} "
@@ -4211,6 +4275,14 @@ def run_hcc_runtime_consumer_smoke(
         else []
     )
     action_trace_rows = _action_trace_rows(records)
+    car_probe_trace_rows = _car_artifact_rows(records, "car_probe_trace.csv")
+    car_state_ledger_rows = _car_artifact_rows(records, "car_state_ledger.csv")
+    car_branch_manifest_rows = _car_artifact_rows(records, "car_branch_manifest.csv")
+    car_dispatch_boundary_rows = (
+        _car_dispatch_boundary_rows()
+        if lane_profile == "counterfactual_action_racing_w"
+        else []
+    )
     paired_integrity_failures: list[str] = []
     if lane_profile == "paired_v33_v36_runtime_utility":
         results = [record["result"] for record in records]
@@ -4428,6 +4500,93 @@ def run_hcc_runtime_consumer_smoke(
             *action_trace_fields_for_lanes(lanes),
         ],
     )
+    if lane_profile == "counterfactual_action_racing_w":
+        _write_csv(
+            output / "car_dispatch_boundary_audit.csv",
+            car_dispatch_boundary_rows,
+            [
+                "boundary",
+                "field_name",
+                "field_owner",
+                "present_in_runtime_type",
+                "audit_only",
+                "runtime_dispatch_allowed",
+                "audit_status",
+            ],
+        )
+        _write_csv(
+            output / "car_probe_trace.csv",
+            car_probe_trace_rows,
+            [
+                "run_id",
+                "lane_id",
+                "problem_id",
+                "seed",
+                "pair_index",
+                "channel",
+                "graph_fingerprint",
+                "component_fingerprint",
+                "action_family",
+                "fallback_fe",
+                "candidate_fe",
+                "seed_descriptor",
+                "probe_seed",
+                "phase1_probe_fitness_before",
+                "fallback_after",
+                "candidate_after",
+                "normalized_delta",
+                "lcb",
+                "tail",
+                "gate_result",
+                "abstain_reason",
+            ],
+        )
+        _write_csv(
+            output / "car_state_ledger.csv",
+            car_state_ledger_rows,
+            [
+                "run_id",
+                "lane_id",
+                "problem_id",
+                "seed",
+                "graph_fingerprint",
+                "component_fingerprint",
+                "candidate_action_name",
+                "candidate_action_family",
+                "evidence_sweeps",
+                "checkpoint_fe",
+                "probe_fe",
+                "total_fe_after_probe",
+                "probe_fe_limit",
+                "adopted_branch",
+                "committed_fitness",
+                "evaluated_elite",
+                "state_fingerprint",
+                "gate_result",
+                "abstain_reason",
+            ],
+        )
+        _write_csv(
+            output / "car_branch_manifest.csv",
+            car_branch_manifest_rows,
+            [
+                "run_id",
+                "lane_id",
+                "problem_id",
+                "seed",
+                "pair_index",
+                "arm",
+                "evaluator_id",
+                "requested_fe",
+                "actual_fe",
+                "record_sha256",
+                "record_best",
+                "state_fingerprint_before",
+                "state_fingerprint_after",
+                "seed_descriptor",
+                "probe_seed",
+            ],
+        )
     _write_csv(
         output / "trajectory_guard_summary.csv",
         _trajectory_guard_summary_rows(action_trace_rows),

@@ -1,6 +1,8 @@
 # exp_003 Expected Outputs
 
-The experiment writes seventeen CSV artifacts and two Markdown audit files:
+The base experiment writes seventeen CSV artifacts and two Markdown audit files.
+The opt-in `counterfactual_action_racing_w` profile additionally writes four
+CAR CSV artifacts:
 
 - `our_result_by_case.csv`
 - `same_budget_ledger.csv`
@@ -19,6 +21,10 @@ The experiment writes seventeen CSV artifacts and two Markdown audit files:
 - `anti_leakage_audit.csv`
 - `claim_gate.csv`
 - `aob_input_manifest.csv`
+- `car_dispatch_boundary_audit.csv` (CAR-W only)
+- `car_probe_trace.csv` (CAR-W only)
+- `car_state_ledger.csv` (CAR-W only)
+- `car_branch_manifest.csv` (CAR-W only)
 - `run_manifest.md`
 - `claim_evidence_table.md`
 
