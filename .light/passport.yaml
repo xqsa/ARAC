@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T01:00"
-current_stage: 17
+updated: "2026-07-15T02:05"
+current_stage: 18
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -116,3 +116,10 @@ stages:
     artifacts: [results/controller_paired_v33_v36_pinned_5k_seed4_20260714, results/controller_paired_v33_v36_13case_seed45678_3m_20260714_retry, docs/superpowers/specs/2026-07-14-paired-runtime-utility-validation-design.md, .light/handoff/S07-arac-paired-runtime-utility-blocked.md]
     gate: {type: confirm, result: FAIL, notes: integrity pass; 260/260 fresh; FE 2,999,984..3,000,000 with zero overspends; AOB 2,560/2,560 unchanged; anti-leakage 16/16; action plans 260/260 consumed and dispatch-allowed; mean log delta -0.002233; mean wins 3/13; worst wins 1/13; meaningful wins 2/65; catastrophic 1/65; negative-control aggregate gate pass; full-24 not started by pre-registered gate}
     gaps: [Candidate equals fallback on 59/65 pairs; six changed pairs have mixed signs and include a 35% S3 seed-7 catastrophic loss; current Phase-I evidence-to-action mapping is too sparse and insufficiently risk-calibrated for long-horizon release]
+  - stage: 18
+    skill: light-literature-search/light-idea-critique
+    input: held-out v36 failure plus 2024-07-15..2026-07-15 CC, LSGO, algorithm-selection, probing and racing literature
+    output: ARAC-CAR within-run causal action racing design freeze and novelty audit
+    artifacts: [docs/literature_review.md, docs/design/core-method.md, .light/handoff/S08-arac-car-literature-method.md]
+    gate: {type: confirm, result: WARN, notes: broad structure-to-action claim is incremental; same-checkpoint native-fallback paired calibration with one FE ledger and downside abstention is a narrow, moderately supported delta; implementation and fresh-seed validation remain pending}
+    gaps: [CAR branch evaluator and shared fitness_record isolation are not implemented; no CAR-W smoke or held-out result exists; ACM/IEEE full abstracts and OpenAlex coverage remain incomplete]
