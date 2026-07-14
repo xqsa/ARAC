@@ -1,8 +1,8 @@
 project: arac
-pipeline: v338-evidence-replay-v34-v35-stability-audit
+pipeline: v338-evidence-replay-v38-evidence-coverage-audit
 created: "2026-07-13T23:59"
-updated: "2026-07-14T12:30"
-current_stage: 12
+updated: "2026-07-14T16:45"
+current_stage: 16
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -78,8 +78,34 @@ stages:
     gaps: [Initial 12-run smoke exposed missing v36 state initialization; fixed at 2c40937 and retained as failed diagnostic artifact]
   - stage: 12
     skill: light-result-analysis
-    input: v36 current-winning-13 seeds 1/2/3 at strict 3M FE plus frozen offline paper-best reference
-    output: 39 fresh raw trajectories, offline best/mean/worst/seed/catastrophic comparison, and reference-blind maturity failure diagnosis
-    artifacts: [results/controller_v36_sweep_maturity_13win_seed123_3m_20260714, docs/superpowers/specs/2026-07-14-first-sweep-evidence-maturity-guard-design.md, .light/handoff/S05-arac-v36-sweep-maturity-failed-candidate.md]
-    gate: {type: confirm, result: FAIL, notes: 39/39 fresh; FE violations/overspends 0; AOB 384/384 unchanged; anti-leakage 16/16; best 10/13; mean 4/13; worst 2/13; seed wins 17/39; catastrophic 14/39; full-24 not started}
-    gaps: [First-sweep coordinate maturity false-positive on R2 seed3; S2/S3 transparency remained catastrophic on one seed; no-route cases also showed fresh-run variability, so v36 is rejected]
+    input: sigma-corrected v36 current-winning-13 seeds 1/2/3 at strict 3M FE plus frozen offline paper-best reference
+    output: 39 fresh raw trajectories and corrected v36 maturity result after preserving the v33 non-dense sigma
+    artifacts: [results/controller_v36_sweep_maturity_13win_seed123_3m_sigmafix_20260714, docs/superpowers/specs/2026-07-14-first-sweep-evidence-maturity-guard-design.md, .light/handoff/S05-arac-v36-sweep-maturity-failed-candidate.md]
+    gate: {type: confirm, result: FAIL, notes: 39/39 fresh; FE violations/overspends 0; AOB 384/384 unchanged; anti-leakage 16/16; best 13/13; mean 5/13; worst 4/13; seed wins 24/39; catastrophic 9/39; S2/S3 6/6; full-24 not started because mean gate required 6/13}
+    gaps: [v36 restored the 13-case best gate after sigma correction but did not meet the pre-registered mean gate]
+  - stage: 13
+    skill: light-backend-coding/test-driven-development
+    input: v36 corrected runtime plus current-run evidence that three pre-maturity phase rescues yielded no accepted candidate
+    output: opt-in v37 rescue-retirement controller, resource trace, matched-FE coverage, and fixed commit 93c8dc5
+    artifacts: [scripts/hcc_smoke_runner.py, docs/superpowers/specs/2026-07-14-zero-yield-phase-rescue-retirement-design.md, results/controller_v37_zero_yield_rescue_retirement_5k_20260714, results/controller_v37_zero_yield_rescue_retirement_a4_seed1_3m_probe_20260714]
+    gate: {type: confirm, result: PASS, notes: 641 passed and 1 skipped; compileall/diff pass; 21/21 5k fresh; A4 route probe recorded retirement after three rejected rescue blocks; FE/AOB/leakage pass}
+  - stage: 14
+    skill: light-result-analysis
+    input: v37 current-winning-13 seeds 1/2/3 at strict 3M FE plus frozen offline paper-best reference
+    output: fresh resource-allocation ablation and diagnosis that reclaimed FE at unchanged CC scale did not remove the platform
+    artifacts: [results/controller_v37_zero_yield_rescue_retirement_13win_seed123_3m_20260714, docs/superpowers/specs/2026-07-14-zero-yield-phase-rescue-retirement-design.md]
+    gate: {type: confirm, result: FAIL, notes: 39/39 fresh; FE/AOB/leakage pass; best 13/13; mean 5/13; worst 4/13; seed wins 24/39; catastrophic 9/39; 17 retirement transitions; full-24 not started}
+    gaps: [Only 7/39 final errors changed by small amounts relative to v36; resource recovery alone did not improve the mean gate]
+  - stage: 15
+    skill: light-backend-coding/test-driven-development
+    input: v37 retirement state plus current incumbent and existing 0.5/0.25 refine multipliers
+    output: opt-in v38 post-retirement precision reanchor, optimizer-consumed trace, matched-FE and anti-case-dispatch tests, fixed commit ee6f28c
+    artifacts: [scripts/hcc_smoke_runner.py, src/arac/actions/contracts.py, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py, docs/superpowers/specs/2026-07-14-post-retirement-precision-reanchor-design.md]
+    gate: {type: confirm, result: PASS, notes: focused 295 passed and 1 skipped; all tracked 651 passed and 1 skipped; compileall/diff pass; static runtime source excludes case/outcome inputs}
+  - stage: 16
+    skill: light-result-analysis
+    input: v38 5k smoke, A4 seed1 route probe, and current-winning-13 seeds 1/2/3 at strict 3M FE
+    output: audited raw artifacts, offline per-case comparison, and runtime-evidence coverage diagnosis
+    artifacts: [results/controller_v38_post_retirement_precision_reanchor_5k_20260714, results/controller_v38_post_retirement_precision_reanchor_a4_seed1_3m_probe_20260714, results/controller_v38_post_retirement_precision_reanchor_13win_seed123_3m_20260714, docs/superpowers/specs/2026-07-14-post-retirement-precision-reanchor-design.md, .light/handoff/S06-arac-v38-precision-coverage-failed.md]
+    gate: {type: confirm, result: FAIL, notes: 39/39 fresh; FE 2,999,984..3,000,000 with zero overspends; AOB 384/384 unchanged; anti-leakage 16/16; best 13/13; mean 5/13; worst 4/13; seed wins 24/39; catastrophic 9/39; 4,397 precision rows after 17 retirement transitions; full-24 not started}
+    gaps: [The precision route was active but concentrated on A4/A5 and already-winning S2; R1/R2/E6/S6 received no retirement-triggered precision, so the remaining mean/catastrophic losses did not move]

@@ -126,3 +126,64 @@ Verdict: conditionally acceptable as an engineering ablation, not as a
 standalone novelty or final-performance claim.
 
 `[CONTRACT-ACKNOWLEDGED]`
+
+## Observed Implementation And Result
+
+Date: 2026-07-14. Executor: Codex.
+
+The implementation is frozen at commit `ee6f28c`. All Git-tracked tests passed
+(`651 passed, 1 skipped`), compileall passed, and cached/working-tree diff
+checks were clean. The focused v38 boundary suite passed `11/11` tests,
+including matched FE and forbidden-dispatch-source checks.
+
+The 5k smoke artifact is
+`results/controller_v38_post_retirement_precision_reanchor_5k_20260714`:
+
+- `21/21` completed fresh runs;
+- FE range `4,984..5,000`, with zero violations or overspends;
+- AOB hashes unchanged `207/207`;
+- anti-leakage `16/16` pass;
+- backend semantics changed `21/21`;
+- four productive-maturity transitions and no retirement or precision row,
+  which is permitted at this budget.
+
+The A4 seed-1 route probe is
+`results/controller_v38_post_retirement_precision_reanchor_a4_seed1_3m_probe_20260714`.
+The retirement transition occurred at trace position `68` (outer `3`, group
+`10`). The first precision row occurred at position `70` (outer `3`, group
+`11`). All `695` precision rows followed retirement, all recorded sigma
+`0.25 -> 0.125`, and `68` improved the group incumbent. The run used
+`2,999,998` FE with no overspend, preserved all `10/10` AOB inputs, and passed
+all `16/16` anti-leakage checks.
+
+The current-winning-13 artifact is
+`results/controller_v38_post_retirement_precision_reanchor_13win_seed123_3m_20260714`:
+
+- `39/39` completed fresh raw runs, with `39` case budget and trace sets;
+- FE range `2,999,984..3,000,000`, with zero violations or overspends;
+- AOB hashes unchanged `384/384`;
+- anti-leakage `16/16` pass;
+- backend semantics changed `39/39`;
+- `17` retirement and `10` productive-maturity transitions;
+- `4,397` precision rows, all after the corresponding retirement transition;
+- precision sigma values were exclusively `0.25 -> 0.125`.
+
+The frozen offline-only comparison did not pass the release gate:
+
+- best-of-three `13/13`;
+- mean wins `5/13` (required `>=6/13`);
+- worst-seed wins `4/13`;
+- seed wins `24/39`;
+- catastrophic seeds `9/39`;
+- S2/S3 retained `6/6` seed wins.
+
+Relative to v37, `12/39` final errors changed: ten improved and two worsened.
+The action was active and frequently productive at group level (`623/4,397`
+precision rows improved their group incumbent), but its coverage did not align
+with the remaining aggregate losses. A4/A5 consumed `3,984/4,397` precision
+rows without flipping their mean wins. S2 improved all three seeds by roughly
+`7%..12%`, but already won `3/3`. R1/R2/E6/S6 did not retire rescue and
+therefore received no precision action, leaving their mean/catastrophic losses
+unchanged. This is runtime-evidence coverage failure rather than missing action
+consumption. v38 is rejected as the final candidate, and full-24 was not
+started.
