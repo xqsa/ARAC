@@ -249,6 +249,34 @@ HCC_ACTION_EFFECTS = {
         True,
         "",
     ),
+    "arac_evidence_action_controller_v39": (
+        "evidence_action_runtime_controller_v39",
+        {
+            "relation_runtime_hook": "controller_v36_maturity_guarded_relation_dispatch",
+            "mode_selector": "current_run_phase_i_relation_and_optimizer_evidence",
+            "search_state_runtime_hooks": [
+                "phase_rescue_multistart",
+                "zero_yield_phase_rescue_retirement",
+                "post_retirement_precision_reanchor",
+                "cross_sweep_cma_terminal_sigma_continuation",
+            ],
+            "optimizer_runtime_hook": "cross_sweep_cma_terminal_sigma_continuation",
+            "dispatch_boundary": "runtime_evidence_only",
+        },
+        "hcc_evidence_action_controller_v39_runtime_consumed",
+        True,
+        "",
+    ),
+    "cross_sweep_cma_sigma_continuation": (
+        "optimizer_search_scale_continuation",
+        {
+            "runtime_hook": "cross_sweep_cma_terminal_sigma_continuation",
+            "state_scope": "current_run_phase_i_group",
+        },
+        "hcc_cma_sigma_continuation_runtime_consumed",
+        True,
+        "",
+    ),
     "repair_bipop_search_state_restart": (
         "repair_guided_optimizer_search_state_restart",
         {

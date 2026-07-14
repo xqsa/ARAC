@@ -431,6 +431,52 @@ def test_hcc_action_execution_plan_marks_v34_as_downstream_recovery_guard() -> N
     assert plan.runtime_dispatch_allowed is True
 
 
+def test_hcc_action_execution_plan_marks_v39_as_cma_sigma_continuation() -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v39",
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("R2", decision)
+
+    assert plan.backend_effect_kind == "evidence_action_runtime_controller_v39"
+    assert plan.optimizer_consumed is True
+    assert plan.optimizer_consumed_parameters["optimizer_runtime_hook"] == (
+        "cross_sweep_cma_terminal_sigma_continuation"
+    )
+    assert plan.optimizer_consumed_parameters["dispatch_boundary"] == (
+        "runtime_evidence_only"
+    )
+    assert plan.execution_mode == (
+        "hcc_evidence_action_controller_v39_runtime_consumed"
+    )
+    assert plan.runtime_dispatch_allowed is True
+
+
+def test_hcc_action_execution_plan_marks_cma_sigma_action_as_consumed() -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        "cross_sweep_cma_sigma_continuation",
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("S6", decision)
+
+    assert plan.backend_effect_kind == "optimizer_search_scale_continuation"
+    assert plan.optimizer_consumed is True
+    assert plan.optimizer_consumed_parameters == {
+        "runtime_hook": "cross_sweep_cma_terminal_sigma_continuation",
+        "state_scope": "current_run_phase_i_group",
+    }
+    assert plan.execution_mode == "hcc_cma_sigma_continuation_runtime_consumed"
+    assert plan.runtime_dispatch_allowed is True
+
+
 def test_hcc_action_execution_plan_marks_isolate_as_runtime_consumed() -> None:
     decision = ActionDecision(
         ActionFamily.ISOLATE,
