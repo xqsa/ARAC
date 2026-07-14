@@ -225,6 +225,7 @@ class HccAobExecutionRequest:
     mmes_restart: bool = True
     skip_plots: bool = False
     search_state_backend: str = "phase_i_mmes"
+    car_candidate_mode: str = "graph"
     hcc_repo_root: Path | None = None
     hcc_runner: Path | None = None
 
@@ -471,6 +472,10 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError(
             "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
         )
+    if request.car_candidate_mode not in {"graph", "shuffled_graph", "paired_fallback"}:
+        raise ValueError(
+            "car_candidate_mode must be 'graph', 'shuffled_graph', or 'paired_fallback'"
+        )
     vendor_paths = resolve_hcc_vendor_paths(
         request.hcc_root,
         repo_root=request.hcc_repo_root,
@@ -506,6 +511,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         "--search-state-backend",
         request.search_state_backend,
     ]
+    if request.car_candidate_mode != "graph":
+        argv.extend(("--car-candidate-mode", request.car_candidate_mode))
     if request.enable_relation_dispatch:
         argv.append("--enable-relation-dispatch")
     if request.relation_policy_mode:
@@ -560,6 +567,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             mmes_restart=request.mmes_restart,
             skip_plots=request.skip_plots,
             search_state_backend=request.search_state_backend,
+            car_candidate_mode=request.car_candidate_mode,
         )
     )
     start = time.time()

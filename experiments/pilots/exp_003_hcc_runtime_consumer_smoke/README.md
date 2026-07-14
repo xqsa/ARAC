@@ -24,6 +24,12 @@ lane keeps shared-variable overlap handling on the conservative native blend;
 only rows with `search_state_action_type=bipop_restart` represent the search
 state intervention itself.
 
+`car_w_diagnostic` is the pre-registered CAR-W validation profile. It runs the
+canonical v33 fallback, graph-conditioned CAR-W, deterministic shuffled-graph
+CAR-W, paired-fallback probe-cost control, and no-action control. The explicit
+`car_candidate_mode` changes only the candidate probe branch; it is not part of
+`DispatchEvidence` and cannot inspect case identity or final outcomes.
+
 The purpose is to prove that runtime actions reach the ARAC-owned HCC smoke
 runner, relation dispatch emits joinable `relation_id` artifacts, and
 `action_utility_audit.csv` reports utility failures plainly instead of turning

@@ -116,6 +116,24 @@ def test_car_action_is_registered_in_runner_cli() -> None:
 
     assert args.arac_action == "arac_counterfactual_action_racing_w"
 
+    control_args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "results/car-cli",
+            "--max-fes",
+            "5000",
+            "--arac-action",
+            runner.CAR_W_ACTION,
+            "--car-candidate-mode",
+            "shuffled_graph",
+        ]
+    )
+    assert control_args.car_candidate_mode == "shuffled_graph"
+
 
 def test_car_run_rejects_missing_controller_v31_dispatch(tmp_path: Path) -> None:
     config = runner.SmokeConfig(
@@ -159,6 +177,42 @@ def test_car_barrier_abstains_when_total_remaining_fe_cannot_fit_pairs(
     assert result.abstain_reason == (
         "remaining_total_budget_cannot_fit_complete_component_horizon"
     )
+
+
+def test_car_paired_fallback_control_is_equal_fe_and_abstains(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    CountingSphere.instances = []
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    config = runner.SmokeConfig(
+        max_fes=10_000,
+        seed=7,
+        arac_action=runner.CAR_W_ACTION,
+        enable_relation_dispatch=True,
+        relation_policy_mode="controller_v31",
+        car_candidate_mode="paired_fallback",
+        verbose=0,
+    )
+
+    result = runner.execute_car_w_probe_at_barrier(
+        decision=make_decision(),
+        checkpoint=make_checkpoint(),
+        checkpoint_fe=100,
+        fun_name="elliptic",
+        fun_id=2,
+        output_path=tmp_path,
+        info={"lower": -5.0, "upper": 5.0},
+        config=config,
+        problem_id="E2",
+    )
+
+    assert result.adopted_state is not None
+    assert result.abstain_reason == "lcb_not_positive"
+    assert all(row["candidate_mode"] == "paired_fallback" for row in result.probe_trace_rows)
+    assert all(float(row["normalized_delta"]) == 0.0 for row in result.probe_trace_rows)
+    assert all(row["candidate_mode"] == "paired_fallback" for row in result.branch_manifest_rows)
 
 
 @pytest.mark.parametrize(

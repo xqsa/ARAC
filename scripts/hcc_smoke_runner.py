@@ -86,6 +86,7 @@ from arac.backends.hcc_car import (
     allocate_component_horizon_budgets,
     freeze_component_writeback_plan,
     run_component_horizon,
+    shuffled_component_writeback_plan,
 )
 from arac.policy.counterfactual_action_racing import (
     AuditEnvelope,
@@ -445,6 +446,7 @@ CAR_PROBE_TRACE_FIELDS = [
     "graph_fingerprint",
     "component_fingerprint",
     "action_family",
+    "candidate_mode",
     "fallback_fe",
     "candidate_fe",
     "seed_descriptor",
@@ -465,6 +467,7 @@ CAR_STATE_LEDGER_FIELDS = [
     "component_fingerprint",
     "candidate_action_name",
     "candidate_action_family",
+    "candidate_mode",
     "evidence_sweeps",
     "checkpoint_fe",
     "probe_fe",
@@ -482,6 +485,7 @@ CAR_BRANCH_MANIFEST_FIELDS = [
     "seed",
     "pair_index",
     "arm",
+    "candidate_mode",
     "evaluator_id",
     "requested_fe",
     "actual_fe",
@@ -625,6 +629,7 @@ class SmokeConfig:
     aob_data_root: Path = DATA_DIR
     search_state_backend: str = "phase_i_mmes"
     car_branch_order: str = "fallback_first"
+    car_candidate_mode: str = "graph"
 
 
 @dataclass(frozen=True)
@@ -3849,6 +3854,10 @@ def execute_car_w_probe_at_barrier(
     problem_id: str,
     branch_order: tuple[str, str] = ("fallback", "candidate"),
 ) -> CARBarrierResult:
+    if config.car_candidate_mode not in {"graph", "shuffled_graph", "paired_fallback"}:
+        raise ValueError(
+            "unsupported CAR candidate mode: " + str(config.car_candidate_mode)
+        )
     audit = AuditEnvelope(
         run_id=config.run_id,
         problem_id=problem_id,
@@ -3866,6 +3875,7 @@ def execute_car_w_probe_at_barrier(
             "component_fingerprint": "",
             "candidate_action_name": "",
             "candidate_action_family": "",
+            "candidate_mode": config.car_candidate_mode,
             "evidence_sweeps": "0",
             "checkpoint_fe": str(checkpoint_fe),
             "probe_fe": "0",
@@ -3901,6 +3911,7 @@ def execute_car_w_probe_at_barrier(
             "component_fingerprint": evidence.component_fingerprint,
             "candidate_action_name": evidence.candidate_action_name,
             "candidate_action_family": evidence.candidate_action_family,
+            "candidate_mode": config.car_candidate_mode,
             "evidence_sweeps": str(evidence.evidence_sweep_count),
             "checkpoint_fe": str(checkpoint_fe),
             "probe_fe": "0",
@@ -3926,14 +3937,22 @@ def execute_car_w_probe_at_barrier(
         data_dir=config.aob_data_root,
     ).get_function(fun_name, fun_id)
 
+    candidate_plan = (
+        shuffled_component_writeback_plan(plan)
+        if config.car_candidate_mode == "shuffled_graph"
+        else plan
+    )
+
     def transition(apply_candidate: bool):
         return lambda state, evaluator, seed_descriptor, requested_fes: run_component_horizon(
             checkpoint=state,
             evaluator=evaluator,
             seed_descriptor=seed_descriptor,
             requested_fes=requested_fes,
-            plan=plan,
-            apply_candidate=apply_candidate,
+            plan=candidate_plan if apply_candidate else plan,
+            apply_candidate=(
+                apply_candidate and config.car_candidate_mode != "paired_fallback"
+            ),
             optimize_group=lambda **kwargs: _run_car_cma_group(
                 **kwargs,
                 info=info,
@@ -3966,6 +3985,7 @@ def execute_car_w_probe_at_barrier(
             "graph_fingerprint": observation.graph_fingerprint,
             "component_fingerprint": observation.component_fingerprint,
             "action_family": observation.action_family,
+            "candidate_mode": config.car_candidate_mode,
             "fallback_fe": str(observation.fallback_fe),
             "candidate_fe": str(observation.candidate_fe),
             "seed_descriptor": observation.seed_descriptor.canonical_key,
@@ -3989,6 +4009,7 @@ def execute_car_w_probe_at_barrier(
             "seed": "" if config.seed is None else str(audit.seed),
             "pair_index": str(manifest.pair_index),
             "arm": manifest.arm,
+            "candidate_mode": config.car_candidate_mode,
             "evaluator_id": manifest.evaluator_id,
             "requested_fe": str(manifest.requested_fe),
             "actual_fe": str(manifest.actual_fe),
@@ -4009,6 +4030,7 @@ def execute_car_w_probe_at_barrier(
         "component_fingerprint": evidence.component_fingerprint,
         "candidate_action_name": evidence.candidate_action_name,
         "candidate_action_family": evidence.candidate_action_family,
+        "candidate_mode": config.car_candidate_mode,
         "evidence_sweeps": str(evidence.evidence_sweep_count),
         "checkpoint_fe": str(checkpoint_fe),
         "probe_fe": str(ledger.probe_fe),
@@ -4044,6 +4066,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         )
     if config.car_branch_order not in {"fallback_first", "candidate_first"}:
         raise ValueError("unsupported CAR branch order")
+    if config.car_candidate_mode not in {"graph", "shuffled_graph", "paired_fallback"}:
+        raise ValueError("unsupported CAR candidate mode")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -6022,6 +6046,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ],
     )
     parser.add_argument("--skip-plots", action="store_true")
+    parser.add_argument(
+        "--car-candidate-mode",
+        choices=["graph", "shuffled_graph", "paired_fallback"],
+        default="graph",
+    )
     parser.add_argument("--arac-action-file", type=Path, default=None)
     parser.add_argument(
         "--arac-action",
@@ -6085,6 +6114,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         aob_data_root=args.aob_data_root,
         search_state_backend=args.search_state_backend,
         car_branch_order=args.car_branch_order,
+        car_candidate_mode=args.car_candidate_mode,
     )
     output_paths = []
     for fun_name in args.functions:

@@ -11,7 +11,7 @@ import copy
 import hashlib
 import json
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Callable
 
 import numpy as np
@@ -295,6 +295,22 @@ class CARWritebackPlan:
             raise ValueError("CAR-W candidate alpha is frozen at 0.20")
         if float(self.max_delta_norm) < 0.0:
             raise ValueError("max_delta_norm must be non-negative")
+
+
+def shuffled_component_writeback_plan(plan: CARWritebackPlan) -> CARWritebackPlan:
+    """Deterministically break variable-target pairing for a graph control."""
+
+    count = len(plan.target_values)
+    if count < 2:
+        return plan
+    digest = hashlib.sha256(
+        f"{plan.graph_fingerprint}|{plan.component_fingerprint}|shuffled-graph".encode(
+            "utf-8"
+        )
+    ).digest()
+    offset = 1 + (int.from_bytes(digest[:8], "big") % (count - 1))
+    targets = plan.target_values[offset:] + plan.target_values[:offset]
+    return replace(plan, target_values=targets)
 
 
 @dataclass(frozen=True)

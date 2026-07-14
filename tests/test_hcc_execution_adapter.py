@@ -138,6 +138,25 @@ def test_hcc_aob_smoke_command_passes_diagonal_search_state_backend(
     assert command.argv[option_index + 1] == "diagonal_cma"
 
 
+@pytest.mark.parametrize("mode", ["shuffled_graph", "paired_fallback"])
+def test_hcc_aob_smoke_command_passes_car_candidate_control(
+    tmp_path: Path,
+    mode: str,
+) -> None:
+    command = build_hcc_aob_smoke_command(
+        HccAobExecutionRequest(
+            problem_id="E2",
+            seed=3,
+            max_fes=3_000_000,
+            output_dir=tmp_path,
+            car_candidate_mode=mode,
+        )
+    )
+
+    option_index = command.argv.index("--car-candidate-mode")
+    assert command.argv[option_index + 1] == mode
+
+
 def test_hcc_aob_smoke_command_rejects_unknown_search_state_backend(
     tmp_path: Path,
 ) -> None:

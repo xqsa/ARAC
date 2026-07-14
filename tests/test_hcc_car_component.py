@@ -13,6 +13,7 @@ from arac.backends.hcc_car import (
     apply_candidate_writeback,
     freeze_component_writeback_plan,
     run_component_horizon,
+    shuffled_component_writeback_plan,
 )
 from arac.policy.counterfactual_action_racing import (
     BranchState,
@@ -66,6 +67,29 @@ def test_candidate_writeback_uses_fixed_alpha_and_v33_norm_guard() -> None:
     assert delta_norm == pytest.approx(0.5)
     np.testing.assert_allclose(adjusted, [3.5, 1.0, 2.0, 3.0])
     np.testing.assert_allclose(incumbent, [4.0, 1.0, 2.0, 3.0])
+
+
+def test_shuffled_component_plan_preserves_targets_but_breaks_pairing() -> None:
+    plan = CARWritebackPlan(
+        graph_fingerprint="graph-a",
+        component_fingerprint="component-a",
+        action_name="allow_beneficial_coordination",
+        action_family="coordinate",
+        group_indices=(0, 1, 2),
+        group_dims=((0,), (1,), (2,)),
+        group_population_sizes=(4, 4, 4),
+        shared_indices=(0, 1, 2),
+        target_values=(0.1, 0.2, 0.3),
+        lower=-5.0,
+        upper=5.0,
+    )
+
+    shuffled = shuffled_component_writeback_plan(plan)
+
+    assert shuffled == shuffled_component_writeback_plan(plan)
+    assert shuffled.shared_indices == plan.shared_indices
+    assert sorted(shuffled.target_values) == sorted(plan.target_values)
+    assert shuffled.target_values != plan.target_values
 
 
 class SphereEvaluator:

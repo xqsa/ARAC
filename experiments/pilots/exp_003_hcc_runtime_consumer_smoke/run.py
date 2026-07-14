@@ -37,6 +37,7 @@ from arac.actions.controller_profiles import (
     ControllerProfile,
     controller_has_capability,
     controller_lane_profile_names,
+    controller_profile_by_action,
     controller_profile_by_version,
 )
 from arac.audits import claim_gate
@@ -95,6 +96,7 @@ class LaneConfig:
     plan_action_name: str = ""
     relation_policy_mode: str = "rule"
     negative_control: bool = False
+    car_candidate_mode: str = "graph"
 
 
 LANES = (
@@ -517,6 +519,7 @@ def _lane_from_controller_profile(
     *,
     lane_id: str | None = None,
     dispatch_scope: str | None = None,
+    car_candidate_mode: str = "graph",
 ) -> LaneConfig:
     return LaneConfig(
         lane_id or profile.action_name,
@@ -527,6 +530,7 @@ def _lane_from_controller_profile(
         relation_dispatch_enabled=True,
         plan_action_name=profile.action_name,
         relation_policy_mode=profile.relation_policy_mode,
+        car_candidate_mode=car_candidate_mode,
     )
 
 
@@ -577,6 +581,39 @@ PAIRED_V33_V36_RUNTIME_UTILITY_LANES = (
         negative_control=True,
     ),
 )
+
+CAR_W_DIAGNOSTIC_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(33),
+        lane_id="v33_fallback",
+        dispatch_scope="car_w_diagnostic_v33_fallback_reference",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w"),
+        lane_id="car_w",
+        dispatch_scope="car_w_diagnostic_graph_candidate",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w"),
+        lane_id="car_w_shuffled",
+        dispatch_scope="car_w_diagnostic_shuffled_graph_control",
+        car_candidate_mode="shuffled_graph",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w"),
+        lane_id="car_w_paired_fallback",
+        dispatch_scope="car_w_diagnostic_paired_fallback_control",
+        car_candidate_mode="paired_fallback",
+    ),
+    LaneConfig(
+        "no_action_negative_control",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "conservative_no_action",
+        "car_w_diagnostic_no_action_control",
+        negative_control=True,
+    ),
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
@@ -597,6 +634,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return controller_lanes
     if lane_profile == "paired_v33_v36_runtime_utility":
         return PAIRED_V33_V36_RUNTIME_UTILITY_LANES
+    if lane_profile == "car_w_diagnostic":
+        return CAR_W_DIAGNOSTIC_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -1098,6 +1137,7 @@ def _records(
                             cmaes_restart=cmaes_restart,
                             mmes_restart=mmes_restart,
                             search_state_backend=search_state_backend,
+                            car_candidate_mode=lane.car_candidate_mode,
                             skip_plots=True,
                         ),
                     }
@@ -4071,7 +4111,10 @@ def _write_manifest(
                 "paired_runtime_utility_gate.md",
             ]
         )
-    if lane_profile == "counterfactual_action_racing_w":
+    if any(
+        lane.runner_action_name == "arac_counterfactual_action_racing_w"
+        for lane in lanes
+    ):
         artifacts.extend(
             [
                 "car_dispatch_boundary_audit.csv",
@@ -4215,6 +4258,10 @@ def run_hcc_runtime_consumer_smoke(
             "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
         )
     lanes = lanes_for_profile(lane_profile)
+    car_w_enabled = any(
+        lane.runner_action_name == "arac_counterfactual_action_racing_w"
+        for lane in lanes
+    )
     problem_ids = tuple(problem_ids)
     seeds = tuple(seeds)
     _require_hcc_action_preflight(lanes, problem_ids)
@@ -4280,7 +4327,7 @@ def run_hcc_runtime_consumer_smoke(
     car_branch_manifest_rows = _car_artifact_rows(records, "car_branch_manifest.csv")
     car_dispatch_boundary_rows = (
         _car_dispatch_boundary_rows()
-        if lane_profile == "counterfactual_action_racing_w"
+        if car_w_enabled
         else []
     )
     paired_integrity_failures: list[str] = []
@@ -4500,7 +4547,7 @@ def run_hcc_runtime_consumer_smoke(
             *action_trace_fields_for_lanes(lanes),
         ],
     )
-    if lane_profile == "counterfactual_action_racing_w":
+    if car_w_enabled:
         _write_csv(
             output / "car_dispatch_boundary_audit.csv",
             car_dispatch_boundary_rows,
@@ -4527,6 +4574,7 @@ def run_hcc_runtime_consumer_smoke(
                 "graph_fingerprint",
                 "component_fingerprint",
                 "action_family",
+                "candidate_mode",
                 "fallback_fe",
                 "candidate_fe",
                 "seed_descriptor",
@@ -4553,6 +4601,7 @@ def run_hcc_runtime_consumer_smoke(
                 "component_fingerprint",
                 "candidate_action_name",
                 "candidate_action_family",
+                "candidate_mode",
                 "evidence_sweeps",
                 "checkpoint_fe",
                 "probe_fe",
@@ -4576,6 +4625,7 @@ def run_hcc_runtime_consumer_smoke(
                 "seed",
                 "pair_index",
                 "arm",
+                "candidate_mode",
                 "evaluator_id",
                 "requested_fe",
                 "actual_fe",
@@ -4922,6 +4972,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v32",
             *controller_lane_profile_names(),
             "paired_v33_v36_runtime_utility",
+            "car_w_diagnostic",
             "canonical_evidence_controller_v1",
         ],
     )

@@ -231,8 +231,12 @@ re-registered.
 1. Implement and test CAR-W only; keep v33 and v32 untouched.
 2. Run CLI/5k smoke with snapshot round-trip, branch-order swap, CRN replay,
    equal-FE, AOB-hash, payload and discarded-branch isolation checks.
-3. Freeze parameters, then use seeds 9-11 on six topology-stratified diagnostic
-   cases plus v33, shuffled-graph, no-action and paired-fallback-probe controls.
+3. Freeze parameters, then use seeds 9-11 on the pre-registered diagnostic
+   suite `E1/E2/S3/R4/A5/E6`. Its AOB overlap degrees are respectively
+   `0/.019/.057/.095/.133/.190`, covering no-overlap plus every overlap stratum
+   while balancing the four offline objective transforms. Each case includes
+   v33, CAR-W, shuffled-graph, no-action and paired-fallback-probe controls.
+   Suite identities are experiment indices only and never runtime features.
 4. Require at least six commits across at least three cases and two topology
    strata, probe sign agreement >=60%, mean <0, median <=0, zero catastrophic
    losses, and probe overhead <=6%. If this gate fails, stop before R/S.
