@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T03:40"
-current_stage: 19
+updated: "2026-07-15T04:50"
+current_stage: 21
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -130,3 +130,17 @@ stages:
     artifacts: [src/arac/policy/counterfactual_action_racing.py, src/arac/backends/hcc_car.py, scripts/hcc_smoke_runner.py, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py, results/car_w_exp003_5k_20260715_final, docs/design/core-method.md, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/expected_outputs.md, .light/handoff/S09-arac-car-implementation-smoke.md]
     gate: {type: confirm, result: PASS, notes: focused 131 passed; tracked 688 passed and 1 skipped; compileall pass; 5k fresh E2 seed1 FE 4989/5000 with zero violation; AOB 10/10 unchanged; generic anti-leakage 16/16; CAR type boundary 28/28; probe abstain reason is probe_budget_cannot_fit_complete_component_horizon}
     gaps: [ruff unavailable in local environment; full pytest also discovers 37 failures in existing untracked exp008 tests due missing old exp005 migration path; no 3M CAR utility result yet; next gate is seeds 9-11 six-case diagnostic]
+  - stage: 20
+    skill: light-result-analysis/debug-first
+    input: first CAR-W diagnostic E1/E2/S3/R4/A5/E6 seeds 9/10/11 with five lanes at strict 3M FE
+    output: 90 fresh trajectories and integrity diagnosis; utility gate not evaluated because H5 parity failed
+    artifacts: [results/car_w_diagnostic_6case_seed9_11_3m_20260715]
+    gate: {type: confirm, result: FAIL, notes: 90/90 fresh; FE violations 0/90; AOB 885/885 unchanged; anti-leakage 16/16; CAR type boundary 28/28; E1 no-overlap CAR was not bit-equivalent to v33}
+    gaps: [CAR action was omitted from v33 guarded/evidence/refine/phase-rescue route helpers and reserved 3 percent probe budget even with no overlap; result is integrity-invalid and cannot support a CAR utility claim]
+  - stage: 21
+    skill: light-backend-coding/debug-first
+    input: E1 no-overlap parity failure from stage 20
+    output: CAR inherits the canonical v33 runtime route and bypasses probe reservation when the graph has no overlap edges
+    artifacts: [scripts/hcc_smoke_runner.py, tests/test_hcc_car_runner.py, results/car_w_no_overlap_parity_5k_seed9_20260715, docs/design/core-method.md]
+    gate: {type: confirm, result: PASS, notes: E1 seed9 5k v33/CAR/shuffled-CAR/paired-fallback-CAR final error all 4.537135e+13 and FE all 4999; three CAR lanes emit no_overlap_component_candidate with probe_fe 0}
+    gaps: [The frozen six-case 3M diagnostic must be rerun in a new directory after committing the parity fix]

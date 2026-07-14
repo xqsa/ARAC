@@ -148,6 +148,39 @@ def test_car_run_rejects_missing_controller_v31_dispatch(tmp_path: Path) -> None
         runner.run_problem("elliptic", 2, tmp_path, config)
 
 
+def test_car_inherits_the_canonical_v33_runtime_route() -> None:
+    car_state = runner.build_evidence_action_controller_v31_run_state(
+        0.019,
+        action_name=runner.CAR_W_ACTION,
+    )
+    v33_state = runner.build_evidence_action_controller_v31_run_state(
+        0.019,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V33,
+    )
+
+    assert runner.is_guarded_evidence_action_controller(runner.CAR_W_ACTION)
+    assert runner.is_evidence_action_controller(runner.CAR_W_ACTION)
+    assert runner.overlap_action_name_for_lane(runner.CAR_W_ACTION) == (
+        runner.overlap_action_name_for_lane(runner.EVIDENCE_ACTION_CONTROLLER_V33)
+    )
+    assert runner.refine_sigma_for_action(
+        runner.CAR_W_ACTION,
+        0.5,
+        controller_v31_run_state=car_state,
+    ) == runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V33,
+        0.5,
+        controller_v31_run_state=v33_state,
+    )
+    assert runner.uses_phase_rescue_during_run(
+        runner.CAR_W_ACTION,
+        evidence_controller_search_state_enabled=True,
+    ) == runner.uses_phase_rescue_during_run(
+        runner.EVIDENCE_ACTION_CONTROLLER_V33,
+        evidence_controller_search_state_enabled=True,
+    )
+
+
 def test_car_barrier_abstains_when_total_remaining_fe_cannot_fit_pairs(
     tmp_path: Path,
 ) -> None:

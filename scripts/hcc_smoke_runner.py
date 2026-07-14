@@ -1505,6 +1505,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
+        or is_car_w_action(action_name)
     )
 
 
@@ -1522,6 +1523,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
+        or is_car_w_action(action_name)
     )
 
 
@@ -1562,6 +1564,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
+            or is_car_w_action(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1583,6 +1586,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v37(config.arac_action)
             or is_evidence_action_controller_v38(config.arac_action)
             or is_evidence_action_controller_v39(config.arac_action)
+            or is_car_w_action(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -1681,6 +1685,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
+            or is_car_w_action(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
@@ -4224,7 +4229,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     relations: list[OverlapRelation] = []
     action_decisions: list[RelationActionDecision] = []
     previous_group_contribution_credit: list[float] = []
-    car_probe_enabled = is_car_w_action(config.arac_action)
+    car_artifacts_enabled = is_car_w_action(config.arac_action)
+    car_probe_enabled = car_artifacts_enabled and any(overlapping_elements)
     car_probe_attempted = False
     car_proposal_sweeps: list[tuple[CARRelationProposal, ...]] = []
     car_current_proposals: list[CARRelationProposal] = []
@@ -5866,7 +5872,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             best_individual = preempted_recovery.candidate.copy()
 
     problem_id = _problem_id(fun_name, fun_id)
-    if car_probe_enabled:
+    if car_artifacts_enabled:
         if not car_state_ledger_rows:
             checkpoint = BranchState(
                 incumbent=tuple(float(value) for value in guarded_incumbent),
@@ -5886,7 +5892,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 decision=CARPlanDecision(
                     plan=None,
                     evidence=None,
-                    abstain_reason="insufficient_complete_evidence_sweeps",
+                    abstain_reason=(
+                        "insufficient_complete_evidence_sweeps"
+                        if car_probe_enabled
+                        else "no_overlap_component_candidate"
+                    ),
                 ),
                 checkpoint=checkpoint,
                 checkpoint_fe=current_fitness_evaluations(fun),

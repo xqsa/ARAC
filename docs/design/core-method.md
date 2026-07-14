@@ -96,6 +96,11 @@ support mixes multiple non-fallback families, the component abstains.
 
 The fallback `a0` is the unchanged v33.8 behavior. The probe tests `a` versus
 `a0`; it does not infer action utility from support or rank thresholds alone.
+CAR-W is registered as a v33-derived runtime route: outside the leased probe
+horizon every guarded controller, sigma, rescue and fallback decision is the
+same as v33.8. If the overlap graph has no edges, CAR bypasses probe reservation
+entirely, emits `no_overlap_component_candidate`, and must be bit-equivalent to
+v33 for the same seed.
 
 ### Resource channel (only after writeback passes)
 
