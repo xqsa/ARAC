@@ -633,6 +633,18 @@ def test_v34_enables_trust_and_recovery_without_changing_v33() -> None:
     assert v34.trajectory_guard_enabled is True
 
 
+def test_v35_enables_topology_guard_without_trust_or_recovery() -> None:
+    runner = _load_runner_module()
+
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V35,
+    )
+
+    assert state.action_trust_policy is None
+    assert state.trajectory_guard_enabled is False
+
+
 def test_hcc_smoke_runner_parses_diagonal_search_state_backend() -> None:
     runner = _load_runner_module()
 
@@ -2436,6 +2448,107 @@ def test_controller_v33_bounds_non_dense_protected_fallback_writeback() -> None:
     np.testing.assert_allclose(adjusted, np.array([0.5]))
     assert trust is None
     assert fallback_route == "non_dense_bounded_0_5"
+
+
+def _v35_relation_fixture(runner):
+    relation = runner.OverlapRelation(
+        relation_id="O0_0_1",
+        problem_id="runtime_case",
+        outer_iter=0,
+        group_left=0,
+        group_right=1,
+        shared_vars=(10,),
+        overlap_strength=1.0,
+        delta_signal=0.0,
+        rank_signal=1.0,
+        budget_remaining_ratio=0.8,
+        shared_var_count=1,
+    )
+    action = runner.RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="coordinate",
+        action_family="coordinate",
+        confidence=0.8,
+        trigger_reason="runtime_coordinate_candidate",
+    )
+    return relation, action
+
+
+def test_controller_v35_active_action_is_v31_transparent() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V35,
+    )
+    relation, action = _v35_relation_fixture(runner)
+
+    expected_action, expected_values, expected_norm = (
+        runner.apply_relation_action_with_controller_v31(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_v31_run_state=state,
+        )
+    )
+    actual_action, actual_values, actual_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v35(
+            relation=relation,
+            action=action,
+            previous_values=np.array([0.0]),
+            current_values=np.array([1.0]),
+            previous_delta=1.0,
+            current_delta=1.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert actual_action == expected_action
+    np.testing.assert_allclose(actual_values, expected_values)
+    assert actual_norm == pytest.approx(expected_norm)
+    assert trust is None
+    assert fallback_route == ""
+
+
+@pytest.mark.parametrize(
+    ("overlap", "expected_values", "expected_norm", "expected_route"),
+    [
+        (0.20, np.array([10.0]), 10.0, "dense_preserve_v31"),
+        (0.10, np.array([0.5]), 0.5, "non_dense_bounded_0_5"),
+    ],
+)
+def test_controller_v35_keeps_topology_scoped_fallback(
+    overlap: float,
+    expected_values: np.ndarray,
+    expected_norm: float,
+    expected_route: str,
+) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        overlap,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V35,
+    )
+    relation, action = _v35_relation_fixture(runner)
+
+    executed, adjusted, actual_norm, trust, fallback_route = (
+        runner.apply_relation_action_with_controller_v35(
+            relation=relation,
+            action=action,
+            previous_values=np.array([10.0]),
+            current_values=np.array([0.0]),
+            previous_delta=1.0,
+            current_delta=0.0,
+            controller_run_state=state,
+        )
+    )
+
+    assert executed.relation_action_name == "fallback"
+    np.testing.assert_allclose(adjusted, expected_values)
+    assert actual_norm == pytest.approx(expected_norm)
+    assert trust is None
+    assert fallback_route == expected_route
 
 
 def test_controller_v33_noop_writeback_does_not_consume_trust_exposure() -> None:

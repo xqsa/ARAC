@@ -378,6 +378,7 @@ EVIDENCE_ACTION_CONTROLLER_V31 = "arac_evidence_action_controller_v31"
 EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
 EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
 EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
+EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -397,6 +398,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V32,
     EVIDENCE_ACTION_CONTROLLER_V33,
     EVIDENCE_ACTION_CONTROLLER_V34,
+    EVIDENCE_ACTION_CONTROLLER_V35,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -2676,43 +2678,20 @@ def apply_relation_action_with_controller_v33(
         return executed_action, adjusted_values, action_value_delta_norm, None, ""
 
     canonical_action_name = _canonical_relation_action_name(executed_action)
-    fallback_route = controller_v33_fallback_route(
-        canonical_action_name=canonical_action_name,
-        controller_run_state=controller_run_state,
+    adjusted_values, action_value_delta_norm, fallback_route = (
+        apply_topology_scoped_fallback_guard(
+            executed_action=executed_action,
+            adjusted_values=adjusted_values,
+            action_value_delta_norm=action_value_delta_norm,
+            current_values=current_values,
+            controller_run_state=controller_run_state,
+        )
     )
     if fallback_route:
-        if action_value_delta_norm <= ACTION_TRUST_MIN_WRITEBACK_NORM:
-            return (
-                executed_action,
-                np.asarray(current_values, dtype=float).copy(),
-                0.0,
-                None,
-                "",
-            )
-        if fallback_route == "dense_preserve_v31":
-            # Dense overlap keeps the original v31 fallback semantics because
-            # the topology itself is the runtime evidence for preserving it.
-            return (
-                executed_action,
-                adjusted_values,
-                action_value_delta_norm,
-                None,
-                fallback_route,
-            )
-        adjusted_values = robust_damped_writeback(
-            current_values=np.asarray(current_values, dtype=float),
-            proposed_values=np.asarray(adjusted_values, dtype=float),
-            blend_strength=1.0,
-            max_delta_norm=ACTION_VALUE_DELTA_GUARD_THRESHOLD,
-        )
         return (
             executed_action,
             adjusted_values,
-            float(
-                np.linalg.norm(
-                    adjusted_values - np.asarray(current_values, dtype=float)
-                )
-            ),
+            action_value_delta_norm,
             None,
             fallback_route,
         )
@@ -2772,6 +2751,86 @@ def apply_relation_action_with_controller_v33(
         action_value_delta_norm,
         trust_decision,
         "",
+    )
+
+
+def apply_topology_scoped_fallback_guard(
+    *,
+    executed_action: RelationActionDecision,
+    adjusted_values: np.ndarray | None,
+    action_value_delta_norm: float,
+    current_values: np.ndarray | None,
+    controller_run_state: EvidenceActionControllerV31RunState | None,
+) -> tuple[np.ndarray | None, float, str]:
+    fallback_route = controller_v33_fallback_route(
+        canonical_action_name=_canonical_relation_action_name(executed_action),
+        controller_run_state=controller_run_state,
+    )
+    if not fallback_route or current_values is None or adjusted_values is None:
+        return adjusted_values, float(action_value_delta_norm), ""
+
+    current = np.asarray(current_values, dtype=float)
+    if action_value_delta_norm <= ACTION_TRUST_MIN_WRITEBACK_NORM:
+        return current.copy(), 0.0, ""
+    if fallback_route == "dense_preserve_v31":
+        return adjusted_values, float(action_value_delta_norm), fallback_route
+
+    bounded = robust_damped_writeback(
+        current_values=current,
+        proposed_values=np.asarray(adjusted_values, dtype=float),
+        blend_strength=1.0,
+        max_delta_norm=ACTION_VALUE_DELTA_GUARD_THRESHOLD,
+    )
+    return (
+        bounded,
+        float(np.linalg.norm(bounded - current)),
+        fallback_route,
+    )
+
+
+def apply_relation_action_with_controller_v35(
+    relation: OverlapRelation,
+    action: RelationActionDecision,
+    previous_values: np.ndarray | None = None,
+    current_values: np.ndarray | None = None,
+    previous_delta: float = 0.0,
+    current_delta: float = 0.0,
+    controller_run_state: EvidenceActionControllerV31RunState | None = None,
+) -> tuple[
+    RelationActionDecision,
+    np.ndarray | None,
+    float,
+    ActionTrustDecision | None,
+    str,
+]:
+    """Apply v31 active actions with the v33 topology fallback guard only."""
+
+    executed_action, adjusted_values, action_value_delta_norm = (
+        apply_relation_action_with_controller_v31(
+            relation=relation,
+            action=action,
+            previous_values=previous_values,
+            current_values=current_values,
+            previous_delta=previous_delta,
+            current_delta=current_delta,
+            controller_v31_run_state=controller_run_state,
+        )
+    )
+    adjusted_values, action_value_delta_norm, fallback_route = (
+        apply_topology_scoped_fallback_guard(
+            executed_action=executed_action,
+            adjusted_values=adjusted_values,
+            action_value_delta_norm=action_value_delta_norm,
+            current_values=current_values,
+            controller_run_state=controller_run_state,
+        )
+    )
+    return (
+        executed_action,
+        adjusted_values,
+        action_value_delta_norm,
+        None,
+        fallback_route,
     )
 
 
