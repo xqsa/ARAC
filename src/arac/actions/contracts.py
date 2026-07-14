@@ -60,6 +60,8 @@ DEFAULT_ACTION_SPACE = (
     ActionSpec("arac_evidence_action_controller_v35", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("arac_evidence_action_controller_v36", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("arac_evidence_action_controller_v37", ActionFamily.TRAJECTORY, "core_intervention"),
+    ActionSpec("arac_evidence_action_controller_v38", ActionFamily.TRAJECTORY, "core_intervention"),
+    ActionSpec("post_retirement_precision_reanchor", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("repair_bipop_search_state_restart", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("repair_protect_refine", ActionFamily.TRAJECTORY, "core_intervention"),
     ActionSpec("repair_protect_deep_refine", ActionFamily.TRAJECTORY, "core_intervention"),

@@ -693,6 +693,37 @@ def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v37() -> No
     assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
 
 
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v38() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "4",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--output-root",
+            "results/test",
+            "--arac-action",
+            "arac_evidence_action_controller_v38",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == runner.EVIDENCE_ACTION_CONTROLLER_V38
+    assert runner.is_evidence_action_controller_v38(args.arac_action)
+    assert runner.is_guarded_evidence_action_controller(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+    assert runner.uses_v33_trust_trace_schema(args.arac_action)
+    assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
+
+
 def test_v35_keeps_v31_scheduler_and_phase_rescue_membership() -> None:
     runner = _load_runner_module()
     config = runner.SmokeConfig(
@@ -1484,6 +1515,97 @@ def test_v37_inherits_v36_runtime_memberships_and_refine_sigma() -> None:
         1.0,
         controller_v31_run_state=state,
     ) == pytest.approx(0.5)
+
+
+def test_v38_contracts_search_start_only_after_phase_rescue_retirement() -> None:
+    runner = _load_runner_module()
+    v37 = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+    )
+    v38 = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V38,
+    )
+
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V38,
+        1.0,
+        controller_v31_run_state=v38,
+    ) == pytest.approx(0.5)
+
+    v37.phase_rescue_retired = True
+    v38.phase_rescue_retired = True
+
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V37,
+        1.0,
+        controller_v31_run_state=v37,
+    ) == pytest.approx(0.5)
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V38,
+        1.0,
+        controller_v31_run_state=v38,
+    ) == pytest.approx(0.25)
+
+
+def test_v38_inherits_v37_runtime_memberships() -> None:
+    runner = _load_runner_module()
+    config = runner.SmokeConfig(
+        max_fes=5_000,
+        seed=1,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V38,
+        enable_relation_dispatch=True,
+        relation_policy_mode="controller_v31",
+        search_state_backend="diagonal_cma",
+    )
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=config.arac_action,
+    )
+
+    assert state.v36_enabled is True
+    assert state.v37_enabled is True
+    assert state.v38_enabled is True
+    assert runner.is_guarded_evidence_action_controller(config.arac_action)
+    assert runner.is_evidence_action_controller(config.arac_action)
+    assert runner.uses_v33_trust_trace_schema(config.arac_action)
+    assert runner.uses_scheduled_search_state(config)
+    assert runner.uses_phase_rescue_during_run(
+        config.arac_action,
+        evidence_controller_search_state_enabled=True,
+    )
+
+
+def test_v38_precision_reanchor_action_is_optimizer_consumed() -> None:
+    runner = _load_runner_module()
+
+    row = runner.build_action_trace_row(
+        problem_id="runtime_case",
+        seed=1,
+        outer_iter=4,
+        group_index=2,
+        selected_action_name=runner.POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=1.0,
+        state_mutated=True,
+        search_state_action_type=runner.POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
+        sigma_before=0.25,
+        sigma_after=0.125,
+        cc_block_fe=1000,
+        best_before=10.0,
+        best_after=9.0,
+    )
+
+    assert row["action_family"] == "trajectory"
+    assert row["optimizer_consumed"] == "1"
+    assert row["search_state_action_type"] == (
+        runner.POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+    )
+    assert row["sigma_before"] == "2.500000e-01"
+    assert row["sigma_after"] == "1.250000e-01"
+    assert row["cc_block_fe"] == "1000"
 
 
 def test_controller_v33_fallback_route_is_runtime_topology_auditable() -> None:
@@ -4975,12 +5097,13 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     assert policy_batch_sizes[:2] == [1, 2]
 
 
-def test_controller_v33_to_v36_matched_fe_credits_before_next_group_optimizer(
+def test_controller_v33_to_v38_matched_fe_credits_before_next_group_optimizer(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     runner = _load_runner_module()
     optimize_calls = {"count": 0}
+    options_seen: list[dict] = []
     registered_baselines: list[float] = []
     observed_contexts: list[tuple[int, float]] = []
     function_instances: list[FakeFunction] = []
@@ -5015,6 +5138,7 @@ def test_controller_v33_to_v36_matched_fe_credits_before_next_group_optimizer(
 
         def optimize(self):
             optimize_calls["count"] += 1
+            options_seen.append(self.options)
             self.problem["fitness_function"](
                 np.zeros((1, self.problem["ndim_problem"]))
             )
@@ -5284,6 +5408,88 @@ def test_controller_v33_to_v36_matched_fe_credits_before_next_group_optimizer(
         for row in v37_trace_rows
     )
 
+    optimize_calls["count"] = 0
+    options_seen.clear()
+    registered_baselines.clear()
+    observed_contexts.clear()
+    v38_output = tmp_path / "v38"
+    v38_output.mkdir()
+
+    v38_record, _elapsed, v38_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v38_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V38,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v38_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v38_function.objective_calls == v33_objective_calls
+    assert runner.current_fitness_evaluations(v38_function) == v33_fes
+    assert len(v38_record) == len(v33_record)
+    assert all(
+        row["selected_action_name"]
+        != runner.POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+        for row in v38_trace_rows
+    )
+    assert {float(options["sigma"]) for options in options_seen} == {0.5}
+
+    optimize_calls["count"] = 0
+    options_seen.clear()
+    retired_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V38,
+    )
+    retired_state.phase_rescue_retired = True
+    retired_state.phase_rescue_resource_reason = (
+        "zero_yield_phase_rescue_retired"
+    )
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree, *, action_name=None: retired_state,
+    )
+    v38_retired_output = tmp_path / "v38_retired"
+    v38_retired_output.mkdir()
+
+    v38_retired_record, _elapsed, v38_retired_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v38_retired_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V38,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v38_retired_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v38_retired_function.objective_calls == v33_objective_calls
+    assert runner.current_fitness_evaluations(v38_retired_function) == v33_fes
+    assert len(v38_retired_record) == len(v33_record)
+    assert {float(options["sigma"]) for options in options_seen} == {0.125}
+    precision_rows = [
+        row
+        for row in v38_retired_trace_rows
+        if row["selected_action_name"]
+        == runner.POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+    ]
+    assert len(precision_rows) == v33_optimizer_calls
+    assert all(row["sigma_before"] == "2.500000e-01" for row in precision_rows)
+    assert all(row["sigma_after"] == "1.250000e-01" for row in precision_rows)
+    assert all(row["cc_block_fe"] == "1" for row in precision_rows)
+
 
 def test_controller_v36_runtime_decisions_exclude_case_and_outcome_dispatch() -> None:
     runner = _load_runner_module()
@@ -5315,6 +5521,30 @@ def test_controller_v37_runtime_decisions_exclude_case_and_outcome_dispatch() ->
     runner = _load_runner_module()
     source = inspect.getsource(
         runner.EvidenceActionControllerV31RunState.observe_v37_phase_rescue
+    ).lower()
+
+    forbidden_dispatch_inputs = {
+        "case_id",
+        "problem_id",
+        "fun_name",
+        "function_family",
+        "paper_best",
+        "historical_best",
+        "relative_gain",
+        "final_error",
+        "final_outcome",
+    }
+
+    assert all(token not in source for token in forbidden_dispatch_inputs)
+
+
+def test_controller_v38_runtime_decisions_exclude_case_and_outcome_dispatch() -> None:
+    runner = _load_runner_module()
+    source = "\n".join(
+        (
+            inspect.getsource(runner.uses_post_retirement_precision_reanchor),
+            inspect.getsource(runner.refine_sigma_for_action),
+        )
     ).lower()
 
     forbidden_dispatch_inputs = {

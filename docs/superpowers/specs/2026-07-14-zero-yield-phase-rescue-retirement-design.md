@@ -199,3 +199,51 @@ accepted as a standalone novelty claim, and any positive result remains
 pilot-level until broader seeds or an external validation protocol exists.
 
 `[CONTRACT-ACKNOWLEDGED]`
+
+## Observed Implementation And Result
+
+Date: 2026-07-14. Executor: Codex.
+
+The implementation is frozen at commit `93c8dc5`. All Git-tracked tests passed
+(`641 passed, 1 skipped`), compileall passed, and diff checks were clean.
+
+The 5k smoke artifact is
+`results/controller_v37_zero_yield_rescue_retirement_5k_20260714`:
+
+- `21/21` fresh runs;
+- zero FE violations or overspends;
+- AOB hashes unchanged `207/207`;
+- anti-leakage `16/16` pass;
+- backend semantics changed `21/21`;
+- four productive-maturity transitions and no retirement transition at 5k.
+
+The A4 seed-1 3M route probe is
+`results/controller_v37_zero_yield_rescue_retirement_a4_seed1_3m_probe_20260714`.
+It reduced phase-rescue rows from v36's `13` to `3`, recorded one
+`zero_yield_phase_rescue_retired` transition, preserved final error
+`78299.33`, and passed FE/AOB/leakage audits.
+
+The current-winning-13 artifact is
+`results/controller_v37_zero_yield_rescue_retirement_13win_seed123_3m_20260714`:
+
+- `39/39` fresh raw artifact sets;
+- FE range `2,999,984..3,000,000`, with zero violations or overspends;
+- AOB hashes unchanged `384/384`;
+- anti-leakage `16/16` pass;
+- backend semantics changed `39/39`;
+- `17` retirement and `10` productive-maturity transitions;
+- phase-rescue rows fell from v36's `204` to `140`;
+- v36 S2/S3 maturity routes were preserved.
+
+The offline-only stage gate failed to improve v36:
+
+- best-of-three `13/13`;
+- mean wins `5/13` (required `>=6/13` for full-24 release);
+- worst-seed wins `4/13`;
+- seed wins `24/39`;
+- catastrophic seeds `9/39`.
+
+Only seven case-seed final errors changed relative to v36, all by small
+amounts. Reclaimed FE therefore did not remove the canonical CC platform.
+v37 remains a valid resource-allocation ablation but is rejected as the final
+candidate. Full-24 was not started.

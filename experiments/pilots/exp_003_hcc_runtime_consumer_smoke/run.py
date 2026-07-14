@@ -555,6 +555,18 @@ EVIDENCE_ACTION_CONTROLLER_V37_LANES = (
         relation_policy_mode="controller_v31",
     ),
 )
+EVIDENCE_ACTION_CONTROLLER_V38_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v38",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v38",
+        "arac_evidence_action_controller_v38",
+        "single_run_post_retirement_precision_reanchor_controller_v38",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v38",
+        relation_policy_mode="controller_v31",
+    ),
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
@@ -644,6 +656,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return EVIDENCE_ACTION_CONTROLLER_V36_LANES
     if lane_profile == "evidence_action_controller_v37":
         return EVIDENCE_ACTION_CONTROLLER_V37_LANES
+    if lane_profile == "evidence_action_controller_v38":
+        return EVIDENCE_ACTION_CONTROLLER_V38_LANES
     if lane_profile == "canonical_evidence_controller_v1":
         return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
     raise ValueError(f"unsupported lane profile: {lane_profile}")
@@ -1401,6 +1415,7 @@ def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
             "arac_evidence_action_controller_v35",
             "arac_evidence_action_controller_v36",
             "arac_evidence_action_controller_v37",
+            "arac_evidence_action_controller_v38",
         }
         for lane in lanes
     ):
@@ -1415,12 +1430,17 @@ def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
         in {
             "arac_evidence_action_controller_v36",
             "arac_evidence_action_controller_v37",
+            "arac_evidence_action_controller_v38",
         }
         for lane in lanes
     ):
         fields.extend(V36_MATURITY_TRACE_FIELDS)
     if any(
-        lane.runner_action_name == "arac_evidence_action_controller_v37"
+        lane.runner_action_name
+        in {
+            "arac_evidence_action_controller_v37",
+            "arac_evidence_action_controller_v38",
+        }
         for lane in lanes
     ):
         fields.extend(V37_RESOURCE_TRACE_FIELDS)
@@ -4386,6 +4406,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v35",
             "evidence_action_controller_v36",
             "evidence_action_controller_v37",
+            "evidence_action_controller_v38",
             "canonical_evidence_controller_v1",
         ],
     )

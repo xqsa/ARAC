@@ -418,6 +418,7 @@ CC_HARM_GUARDED_SEP_REFRESH_ACTION = "cc_harm_guarded_sep_refresh"
 SEPARABLE_CMAES_DISPATCH_ACTION = "separable_cmaes_dispatch_action"
 REPAIR_PROTECT_REFINE_ACTION = "repair_protect_refine"
 REPAIR_PROTECT_DEEP_REFINE_ACTION = "repair_protect_deep_refine"
+POST_RETIREMENT_PRECISION_REANCHOR_ACTION = "post_retirement_precision_reanchor"
 EVIDENCE_ACTION_CONTROLLER_V1 = "arac_evidence_action_controller_v1"
 EVIDENCE_ACTION_CONTROLLER_V2 = "arac_evidence_action_controller_v2"
 EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
@@ -428,6 +429,7 @@ EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
 EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
 EVIDENCE_ACTION_CONTROLLER_V36 = "arac_evidence_action_controller_v36"
 EVIDENCE_ACTION_CONTROLLER_V37 = "arac_evidence_action_controller_v37"
+EVIDENCE_ACTION_CONTROLLER_V38 = "arac_evidence_action_controller_v38"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -440,6 +442,7 @@ TRAJECTORY_ACTION_NAMES = {
     SEPARABLE_CMAES_DISPATCH_ACTION,
     REPAIR_PROTECT_REFINE_ACTION,
     REPAIR_PROTECT_DEEP_REFINE_ACTION,
+    POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
     EVIDENCE_ACTION_CONTROLLER_V1,
     EVIDENCE_ACTION_CONTROLLER_V2,
     EVIDENCE_ACTION_CONTROLLER_V3,
@@ -450,6 +453,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V35,
     EVIDENCE_ACTION_CONTROLLER_V36,
     EVIDENCE_ACTION_CONTROLLER_V37,
+    EVIDENCE_ACTION_CONTROLLER_V38,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -573,6 +577,7 @@ class EvidenceActionControllerV31RunState:
     cc_utility_history: list[float] = field(default_factory=list)
     v36_enabled: bool = False
     v37_enabled: bool = False
+    v38_enabled: bool = False
     sweep_evidence_outer_iter: int | None = None
     sweep_evidence_relation_count: int = 0
     sweep_evidence_active_count: int = 0
@@ -968,13 +973,20 @@ def build_evidence_action_controller_v31_run_state(
                 EVIDENCE_ACTION_CONTROLLER_V34,
                 EVIDENCE_ACTION_CONTROLLER_V36,
                 EVIDENCE_ACTION_CONTROLLER_V37,
+                EVIDENCE_ACTION_CONTROLLER_V38,
             }
             else None
         ),
         trajectory_guard_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V34,
         v36_enabled=action_name
-        in {EVIDENCE_ACTION_CONTROLLER_V36, EVIDENCE_ACTION_CONTROLLER_V37},
-        v37_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V37,
+        in {
+            EVIDENCE_ACTION_CONTROLLER_V36,
+            EVIDENCE_ACTION_CONTROLLER_V37,
+            EVIDENCE_ACTION_CONTROLLER_V38,
+        },
+        v37_enabled=action_name
+        in {EVIDENCE_ACTION_CONTROLLER_V37, EVIDENCE_ACTION_CONTROLLER_V38},
+        v38_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V38,
     )
 
 
@@ -1262,6 +1274,10 @@ def is_evidence_action_controller_v37(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V37
 
 
+def is_evidence_action_controller_v38(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V38
+
+
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
     return is_evidence_action_controller_v33(
         action_name
@@ -1275,7 +1291,9 @@ def uses_v33_trust_trace_schema(action_name: str) -> bool:
         action_name
     ) or is_evidence_action_controller_v36(
         action_name
-    ) or is_evidence_action_controller_v37(action_name)
+    ) or is_evidence_action_controller_v37(
+        action_name
+    ) or is_evidence_action_controller_v38(action_name)
 
 
 def relation_downstream_consumption_scope(
@@ -1316,6 +1334,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v35(action_name)
         or is_evidence_action_controller_v36(action_name)
         or is_evidence_action_controller_v37(action_name)
+        or is_evidence_action_controller_v38(action_name)
     )
 
 
@@ -1331,6 +1350,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v35(action_name)
         or is_evidence_action_controller_v36(action_name)
         or is_evidence_action_controller_v37(action_name)
+        or is_evidence_action_controller_v38(action_name)
     )
 
 
@@ -1369,6 +1389,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v35(action_name)
             or is_evidence_action_controller_v36(action_name)
             or is_evidence_action_controller_v37(action_name)
+            or is_evidence_action_controller_v38(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1388,6 +1409,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v35(config.arac_action)
             or is_evidence_action_controller_v36(config.arac_action)
             or is_evidence_action_controller_v37(config.arac_action)
+            or is_evidence_action_controller_v38(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -1470,6 +1492,11 @@ def refine_sigma_for_action(
         return float(base_sigma) * REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
     if action_name in {REPAIR_PROTECT_REFINE_ACTION, REPAIR_PHASE_RESCUE_MULTISTART_ACTION}:
         return float(base_sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
+    if uses_post_retirement_precision_reanchor(
+        action_name,
+        controller_v31_run_state,
+    ):
+        return float(base_sigma) * REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
     if (
         (
             is_evidence_action_controller_v31(action_name)
@@ -1479,12 +1506,26 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v35(action_name)
             or is_evidence_action_controller_v36(action_name)
             or is_evidence_action_controller_v37(action_name)
+            or is_evidence_action_controller_v38(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
     ):
         return float(base_sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
     return float(base_sigma)
+
+
+def uses_post_retirement_precision_reanchor(
+    action_name: str,
+    controller_run_state: EvidenceActionControllerV31RunState | None,
+) -> bool:
+    return bool(
+        is_evidence_action_controller_v38(action_name)
+        and controller_run_state is not None
+        and controller_run_state.v38_enabled
+        and not controller_run_state.dense_overlap
+        and controller_run_state.phase_rescue_retired
+    )
 
 
 def should_trigger_bipop_restart(
@@ -3507,6 +3548,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             or is_evidence_action_controller_v35(config.arac_action)
             or is_evidence_action_controller_v36(config.arac_action)
             or is_evidence_action_controller_v37(config.arac_action)
+            or is_evidence_action_controller_v38(config.arac_action)
         )
         else build_evidence_action_controller_v31_run_state(degree)
         if (
@@ -3827,6 +3869,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 config.sigma,
                 controller_v31_run_state=controller_v31_run_state,
             )
+            precision_reanchor_active = uses_post_retirement_precision_reanchor(
+                config.arac_action,
+                controller_v31_run_state,
+            )
             objective_function = lambda x_batch, dims=dims: fun(combine(x_batch, best_individual, dims))
             problem_cc = {
                 "fitness_function": objective_function,
@@ -3882,6 +3928,38 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             trajectory_mean_cache[int(variable_index)] = float(accepted_mean[local_index])
             else:
                 current_delta = 0.0
+            if precision_reanchor_active:
+                normal_refine_sigma = (
+                    float(config.sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
+                )
+                action_trace_rows.append(
+                    build_action_trace_row(
+                        problem_id=_problem_id(fun_name, fun_id),
+                        seed=config.seed,
+                        outer_iter=outer_iter,
+                        group_index=index,
+                        selected_action_name=(
+                            POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+                        ),
+                        overlap_size=0,
+                        previous_delta=0.0,
+                        current_delta=current_delta,
+                        state_mutated=new_best_y < original_fitness,
+                        action_value_delta_norm=abs(normal_refine_sigma - cc_sigma),
+                        downstream_consumed=True,
+                        downstream_consumption_scope="current_group_optimizer",
+                        search_state_action_type=(
+                            POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+                        ),
+                        sigma_before=normal_refine_sigma,
+                        sigma_after=cc_sigma,
+                        population_before=population_size,
+                        population_after=population_size,
+                        best_before=original_fitness,
+                        best_after=original_fitness - current_delta,
+                        cc_block_fe=primary_cc_fe,
+                    )
+                )
             if is_bipop_search_state_action(config.arac_action):
                 if bipop_global_cooldown > 0:
                     bipop_global_cooldown -= 1
@@ -4392,7 +4470,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         )
                     elif is_evidence_action_controller_v36(
                         config.arac_action
-                    ) or is_evidence_action_controller_v37(config.arac_action):
+                    ) or is_evidence_action_controller_v37(
+                        config.arac_action
+                    ) or is_evidence_action_controller_v38(config.arac_action):
                         (
                             action,
                             adjusted_values,
@@ -5166,6 +5246,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V35,
             EVIDENCE_ACTION_CONTROLLER_V36,
             EVIDENCE_ACTION_CONTROLLER_V37,
+            EVIDENCE_ACTION_CONTROLLER_V38,
         ],
     )
     args = parser.parse_args(argv)
@@ -5239,9 +5320,11 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 include_maturity_fields=is_evidence_action_controller_v36(
                     config.arac_action
                 )
-                or is_evidence_action_controller_v37(config.arac_action),
-                include_resource_fields=is_evidence_action_controller_v37(
-                    config.arac_action
+                or is_evidence_action_controller_v37(config.arac_action)
+                or is_evidence_action_controller_v38(config.arac_action),
+                include_resource_fields=(
+                    is_evidence_action_controller_v37(config.arac_action)
+                    or is_evidence_action_controller_v38(config.arac_action)
                 ),
             )
             function_trace_rows.extend(trace_rows)
@@ -5273,9 +5356,11 @@ def main(argv: list[str] | None = None) -> list[Path]:
             include_maturity_fields=is_evidence_action_controller_v36(
                 config.arac_action
             )
-            or is_evidence_action_controller_v37(config.arac_action),
-            include_resource_fields=is_evidence_action_controller_v37(
-                config.arac_action
+            or is_evidence_action_controller_v37(config.arac_action)
+            or is_evidence_action_controller_v38(config.arac_action),
+            include_resource_fields=(
+                is_evidence_action_controller_v37(config.arac_action)
+                or is_evidence_action_controller_v38(config.arac_action)
             ),
         )
         _write_aob_input_manifest(
