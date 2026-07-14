@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import importlib.util
 import inspect
+import math
 import os
 import subprocess
 import sys
@@ -1606,6 +1607,92 @@ def test_v38_precision_reanchor_action_is_optimizer_consumed() -> None:
     assert row["sigma_before"] == "2.500000e-01"
     assert row["sigma_after"] == "1.250000e-01"
     assert row["cc_block_fe"] == "1000"
+
+
+def test_v39_cma_sigma_continuation_is_group_scoped_and_bounded() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V39,
+    )
+
+    sigma, factor, route = state.v39_cma_sigma_for_group([0, 2], 0.25)
+    assert sigma == pytest.approx(0.25)
+    assert factor == pytest.approx(1.0)
+    assert route == "cold_start"
+
+    next_factor = state.observe_v39_cma_terminal_sigma(
+        [0, 2],
+        reference_sigma=0.25,
+        terminal_sigma=0.01,
+    )
+    assert next_factor == pytest.approx(0.5)
+    sigma, factor, route = state.v39_cma_sigma_for_group([0, 2], 0.25)
+    assert (sigma, factor) == pytest.approx((0.125, 0.5))
+    assert route == "continued"
+    sigma, factor, route = state.v39_cma_sigma_for_group([1, 3], 0.25)
+    assert (sigma, factor) == pytest.approx((0.25, 1.0))
+    assert route == "cold_start"
+
+    next_factor = state.observe_v39_cma_terminal_sigma(
+        [0, 2],
+        reference_sigma=0.25,
+        terminal_sigma=2.0,
+    )
+    assert next_factor == pytest.approx(1.5)
+
+
+@pytest.mark.parametrize("terminal_sigma", [0.0, -1.0, math.inf, math.nan])
+def test_v39_rejects_invalid_terminal_sigma(terminal_sigma: float) -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V39,
+    )
+
+    with pytest.raises(ValueError, match="terminal sigma"):
+        state.observe_v39_cma_terminal_sigma(
+            [0, 1],
+            reference_sigma=0.25,
+            terminal_sigma=terminal_sigma,
+        )
+
+
+def test_v38_does_not_store_v39_cma_sigma_state() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V38,
+    )
+
+    assert state.v39_enabled is False
+    assert state.observe_v39_cma_terminal_sigma(
+        [0, 1],
+        reference_sigma=0.25,
+        terminal_sigma=0.125,
+    ) == pytest.approx(1.0)
+    sigma, factor, route = state.v39_cma_sigma_for_group([0, 1], 0.25)
+    assert (sigma, factor) == pytest.approx((0.25, 1.0))
+    assert route == ""
+
+
+def test_v39_sigma_continuation_trace_fields_are_isolated() -> None:
+    runner = _load_runner_module()
+
+    assert set(runner.V39_CMA_SIGMA_TRACE_FIELDS) == {
+        "cma_sigma_reference",
+        "cma_sigma_applied_factor",
+        "cma_sigma_terminal",
+        "cma_sigma_next_factor",
+        "cma_sigma_route",
+        "cma_restart_count",
+    }
+    assert set(runner.V39_CMA_SIGMA_TRACE_FIELDS).issubset(
+        runner.V39_ACTION_TRACE_FIELDS
+    )
+    assert not set(runner.V39_CMA_SIGMA_TRACE_FIELDS).intersection(
+        runner.V37_ACTION_TRACE_FIELDS
+    )
 
 
 def test_controller_v33_fallback_route_is_runtime_topology_auditable() -> None:
@@ -5097,7 +5184,7 @@ def test_relation_dispatch_is_applied_before_next_group_objective(
     assert policy_batch_sizes[:2] == [1, 2]
 
 
-def test_controller_v33_to_v38_matched_fe_credits_before_next_group_optimizer(
+def test_controller_v33_to_v39_matched_fe_credits_before_next_group_optimizer(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -5152,6 +5239,9 @@ def test_controller_v33_to_v38_matched_fe_credits_before_next_group_optimizer(
                 "n_function_evaluations": 1,
                 "best_so_far_y": best_by_call.get(optimize_calls["count"], 1000.0),
                 "best_so_far_x": best_x,
+                "sigma": float(self.options["sigma"])
+                * (0.5, 1.5, 1.0)[(optimize_calls["count"] - 1) % 3],
+                "_n_restart": 0,
             }
 
     original_register = (
@@ -5447,6 +5537,10 @@ def test_controller_v33_to_v38_matched_fe_credits_before_next_group_optimizer(
         0.10,
         action_name=runner.EVIDENCE_ACTION_CONTROLLER_V38,
     )
+    v39_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V39,
+    )
     retired_state.phase_rescue_retired = True
     retired_state.phase_rescue_resource_reason = (
         "zero_yield_phase_rescue_retired"
@@ -5489,6 +5583,55 @@ def test_controller_v33_to_v38_matched_fe_credits_before_next_group_optimizer(
     assert all(row["sigma_before"] == "2.500000e-01" for row in precision_rows)
     assert all(row["sigma_after"] == "1.250000e-01" for row in precision_rows)
     assert all(row["cc_block_fe"] == "1" for row in precision_rows)
+
+    optimize_calls["count"] = 0
+    options_seen.clear()
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree, *, action_name=None: v39_state,
+    )
+    v39_output = tmp_path / "v39"
+    v39_output.mkdir()
+
+    v39_record, _elapsed, v39_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v39_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V39,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v39_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v39_function.objective_calls == v33_objective_calls
+    assert runner.current_fitness_evaluations(v39_function) == v33_fes
+    assert len(v39_record) == len(v33_record)
+    assert [float(options["sigma"]) for options in options_seen[:6]] == pytest.approx(
+        [0.25, 0.25, 0.25, 0.125, 0.375, 0.25]
+    )
+    continuation_rows = [
+        row
+        for row in v39_trace_rows
+        if row["selected_action_name"]
+        == runner.CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION
+    ]
+    assert len(continuation_rows) == v33_optimizer_calls
+    assert [row["cma_sigma_route"] for row in continuation_rows[:6]] == [
+        "cold_start",
+        "cold_start",
+        "cold_start",
+        "continued",
+        "continued",
+        "continued",
+    ]
+    assert all(row["cc_block_fe"] == "1" for row in continuation_rows)
 
 
 def test_controller_v36_runtime_decisions_exclude_case_and_outcome_dispatch() -> None:
@@ -5544,6 +5687,34 @@ def test_controller_v38_runtime_decisions_exclude_case_and_outcome_dispatch() ->
         (
             inspect.getsource(runner.uses_post_retirement_precision_reanchor),
             inspect.getsource(runner.refine_sigma_for_action),
+        )
+    ).lower()
+
+    forbidden_dispatch_inputs = {
+        "case_id",
+        "problem_id",
+        "fun_name",
+        "function_family",
+        "paper_best",
+        "historical_best",
+        "relative_gain",
+        "final_error",
+        "final_outcome",
+    }
+
+    assert all(token not in source for token in forbidden_dispatch_inputs)
+
+
+def test_controller_v39_runtime_decisions_exclude_case_and_outcome_dispatch() -> None:
+    runner = _load_runner_module()
+    source = "\n".join(
+        (
+            inspect.getsource(
+                runner.EvidenceActionControllerV31RunState.v39_cma_sigma_for_group
+            ),
+            inspect.getsource(
+                runner.EvidenceActionControllerV31RunState.observe_v39_cma_terminal_sigma
+            ),
         )
     ).lower()
 

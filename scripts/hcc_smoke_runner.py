@@ -238,6 +238,12 @@ ACTION_TRACE_FIELDS = [
     "phase_rescue_rejected_before_maturity",
     "phase_rescue_productive_mature",
     "phase_rescue_retired",
+    "cma_sigma_reference",
+    "cma_sigma_applied_factor",
+    "cma_sigma_terminal",
+    "cma_sigma_next_factor",
+    "cma_sigma_route",
+    "cma_restart_count",
     "trajectory_guard_status",
     "trajectory_guard_pre_fitness",
     "trajectory_guard_post_writeback_fitness",
@@ -280,26 +286,43 @@ V37_RESOURCE_TRACE_FIELDS = [
     "phase_rescue_productive_mature",
     "phase_rescue_retired",
 ]
+V39_CMA_SIGMA_TRACE_FIELDS = [
+    "cma_sigma_reference",
+    "cma_sigma_applied_factor",
+    "cma_sigma_terminal",
+    "cma_sigma_next_factor",
+    "cma_sigma_route",
+    "cma_restart_count",
+]
 V33_ACTION_TRACE_FIELDS = [
     field
     for field in ACTION_TRACE_FIELDS
     if field not in V34_RECOVERY_TRACE_FIELDS
     and field not in V36_MATURITY_TRACE_FIELDS
     and field not in V37_RESOURCE_TRACE_FIELDS
+    and field not in V39_CMA_SIGMA_TRACE_FIELDS
 ]
 V34_ACTION_TRACE_FIELDS = [
     field
     for field in ACTION_TRACE_FIELDS
     if field not in V36_MATURITY_TRACE_FIELDS
     and field not in V37_RESOURCE_TRACE_FIELDS
+    and field not in V39_CMA_SIGMA_TRACE_FIELDS
 ]
 V36_ACTION_TRACE_FIELDS = [
     field
     for field in ACTION_TRACE_FIELDS
     if field not in V34_RECOVERY_TRACE_FIELDS
     and field not in V37_RESOURCE_TRACE_FIELDS
+    and field not in V39_CMA_SIGMA_TRACE_FIELDS
 ]
 V37_ACTION_TRACE_FIELDS = [
+    field
+    for field in ACTION_TRACE_FIELDS
+    if field not in V34_RECOVERY_TRACE_FIELDS
+    and field not in V39_CMA_SIGMA_TRACE_FIELDS
+]
+V39_ACTION_TRACE_FIELDS = [
     field for field in ACTION_TRACE_FIELDS if field not in V34_RECOVERY_TRACE_FIELDS
 ]
 LEGACY_ACTION_TRACE_FIELDS = [
@@ -419,6 +442,7 @@ SEPARABLE_CMAES_DISPATCH_ACTION = "separable_cmaes_dispatch_action"
 REPAIR_PROTECT_REFINE_ACTION = "repair_protect_refine"
 REPAIR_PROTECT_DEEP_REFINE_ACTION = "repair_protect_deep_refine"
 POST_RETIREMENT_PRECISION_REANCHOR_ACTION = "post_retirement_precision_reanchor"
+CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION = "cross_sweep_cma_sigma_continuation"
 EVIDENCE_ACTION_CONTROLLER_V1 = "arac_evidence_action_controller_v1"
 EVIDENCE_ACTION_CONTROLLER_V2 = "arac_evidence_action_controller_v2"
 EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
@@ -430,6 +454,7 @@ EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
 EVIDENCE_ACTION_CONTROLLER_V36 = "arac_evidence_action_controller_v36"
 EVIDENCE_ACTION_CONTROLLER_V37 = "arac_evidence_action_controller_v37"
 EVIDENCE_ACTION_CONTROLLER_V38 = "arac_evidence_action_controller_v38"
+EVIDENCE_ACTION_CONTROLLER_V39 = "arac_evidence_action_controller_v39"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -443,6 +468,7 @@ TRAJECTORY_ACTION_NAMES = {
     REPAIR_PROTECT_REFINE_ACTION,
     REPAIR_PROTECT_DEEP_REFINE_ACTION,
     POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
+    CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION,
     EVIDENCE_ACTION_CONTROLLER_V1,
     EVIDENCE_ACTION_CONTROLLER_V2,
     EVIDENCE_ACTION_CONTROLLER_V3,
@@ -454,6 +480,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V36,
     EVIDENCE_ACTION_CONTROLLER_V37,
     EVIDENCE_ACTION_CONTROLLER_V38,
+    EVIDENCE_ACTION_CONTROLLER_V39,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -578,6 +605,7 @@ class EvidenceActionControllerV31RunState:
     v36_enabled: bool = False
     v37_enabled: bool = False
     v38_enabled: bool = False
+    v39_enabled: bool = False
     sweep_evidence_outer_iter: int | None = None
     sweep_evidence_relation_count: int = 0
     sweep_evidence_active_count: int = 0
@@ -591,6 +619,10 @@ class EvidenceActionControllerV31RunState:
     phase_rescue_productive_mature: bool = False
     phase_rescue_retired: bool = False
     phase_rescue_resource_reason: str = ""
+    _v39_cma_sigma_factors: dict[tuple[int, ...], float] = field(
+        default_factory=dict,
+        repr=False,
+    )
     _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
         default_factory=list,
         repr=False,
@@ -703,6 +735,52 @@ class EvidenceActionControllerV31RunState:
         self.phase_rescue_retired = True
         self.phase_rescue_resource_reason = "zero_yield_phase_rescue_retired"
         return self.phase_rescue_resource_reason
+
+    def v39_cma_sigma_for_group(
+        self,
+        group_dims: list[int] | tuple[int, ...] | np.ndarray,
+        reference_sigma: float,
+    ) -> tuple[float, float, str]:
+        reference = float(reference_sigma)
+        if not math.isfinite(reference) or reference <= 0.0:
+            raise ValueError("reference sigma must be finite and positive")
+        if not self.v39_enabled:
+            return reference, 1.0, ""
+        key = tuple(int(index) for index in group_dims)
+        factor = self._v39_cma_sigma_factors.get(key)
+        if factor is None:
+            return reference, 1.0, "cold_start"
+        return reference * factor, factor, "continued"
+
+    def observe_v39_cma_terminal_sigma(
+        self,
+        group_dims: list[int] | tuple[int, ...] | np.ndarray,
+        *,
+        reference_sigma: float,
+        terminal_sigma: float,
+    ) -> float:
+        if not self.v39_enabled:
+            return 1.0
+        reference = float(reference_sigma)
+        terminal = float(terminal_sigma)
+        if not math.isfinite(reference) or reference <= 0.0:
+            raise ValueError("reference sigma must be finite and positive")
+        if not math.isfinite(terminal) or terminal <= 0.0:
+            raise ValueError("terminal sigma must be finite and positive")
+        lower_factor = (
+            REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
+            / REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
+        )
+        next_factor = float(
+            np.clip(
+                terminal / reference,
+                lower_factor,
+                PHASE_RESCUE_SIGMA_MULTIPLIER,
+            )
+        )
+        key = tuple(int(index) for index in group_dims)
+        self._v39_cma_sigma_factors[key] = next_factor
+        return next_factor
 
     def lock_from_runtime_prefix(self, relations: list[OverlapRelation]) -> None:
         if not self.dense_overlap or self.locked_policy_mode is not None:
@@ -974,6 +1052,7 @@ def build_evidence_action_controller_v31_run_state(
                 EVIDENCE_ACTION_CONTROLLER_V36,
                 EVIDENCE_ACTION_CONTROLLER_V37,
                 EVIDENCE_ACTION_CONTROLLER_V38,
+                EVIDENCE_ACTION_CONTROLLER_V39,
             }
             else None
         ),
@@ -983,10 +1062,17 @@ def build_evidence_action_controller_v31_run_state(
             EVIDENCE_ACTION_CONTROLLER_V36,
             EVIDENCE_ACTION_CONTROLLER_V37,
             EVIDENCE_ACTION_CONTROLLER_V38,
+            EVIDENCE_ACTION_CONTROLLER_V39,
         },
         v37_enabled=action_name
-        in {EVIDENCE_ACTION_CONTROLLER_V37, EVIDENCE_ACTION_CONTROLLER_V38},
-        v38_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V38,
+        in {
+            EVIDENCE_ACTION_CONTROLLER_V37,
+            EVIDENCE_ACTION_CONTROLLER_V38,
+            EVIDENCE_ACTION_CONTROLLER_V39,
+        },
+        v38_enabled=action_name
+        in {EVIDENCE_ACTION_CONTROLLER_V38, EVIDENCE_ACTION_CONTROLLER_V39},
+        v39_enabled=action_name == EVIDENCE_ACTION_CONTROLLER_V39,
     )
 
 
@@ -1278,6 +1364,10 @@ def is_evidence_action_controller_v38(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V38
 
 
+def is_evidence_action_controller_v39(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V39
+
+
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
     return is_evidence_action_controller_v33(
         action_name
@@ -1293,7 +1383,9 @@ def uses_v33_trust_trace_schema(action_name: str) -> bool:
         action_name
     ) or is_evidence_action_controller_v37(
         action_name
-    ) or is_evidence_action_controller_v38(action_name)
+    ) or is_evidence_action_controller_v38(
+        action_name
+    ) or is_evidence_action_controller_v39(action_name)
 
 
 def relation_downstream_consumption_scope(
@@ -1335,6 +1427,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v36(action_name)
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
+        or is_evidence_action_controller_v39(action_name)
     )
 
 
@@ -1351,6 +1444,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v36(action_name)
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
+        or is_evidence_action_controller_v39(action_name)
     )
 
 
@@ -1390,6 +1484,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v36(action_name)
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
+            or is_evidence_action_controller_v39(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1410,6 +1505,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v36(config.arac_action)
             or is_evidence_action_controller_v37(config.arac_action)
             or is_evidence_action_controller_v38(config.arac_action)
+            or is_evidence_action_controller_v39(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -1507,6 +1603,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v36(action_name)
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
+            or is_evidence_action_controller_v39(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
@@ -1520,7 +1617,10 @@ def uses_post_retirement_precision_reanchor(
     controller_run_state: EvidenceActionControllerV31RunState | None,
 ) -> bool:
     return bool(
-        is_evidence_action_controller_v38(action_name)
+        (
+            is_evidence_action_controller_v38(action_name)
+            or is_evidence_action_controller_v39(action_name)
+        )
         and controller_run_state is not None
         and controller_run_state.v38_enabled
         and not controller_run_state.dense_overlap
@@ -2530,6 +2630,12 @@ def build_action_trace_row(
     phase_rescue_rejected_before_maturity: int | None = None,
     phase_rescue_productive_mature: bool | None = None,
     phase_rescue_retired: bool | None = None,
+    cma_sigma_reference: float | None = None,
+    cma_sigma_applied_factor: float | None = None,
+    cma_sigma_terminal: float | None = None,
+    cma_sigma_next_factor: float | None = None,
+    cma_sigma_route: str = "",
+    cma_restart_count: int | None = None,
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -2723,6 +2829,22 @@ def build_action_trace_row(
             "phase_rescue_retired": ""
             if phase_rescue_retired is None
             else str(int(phase_rescue_retired)),
+            "cma_sigma_reference": ""
+            if cma_sigma_reference is None
+            else f"{cma_sigma_reference:.6e}",
+            "cma_sigma_applied_factor": ""
+            if cma_sigma_applied_factor is None
+            else f"{cma_sigma_applied_factor:.6e}",
+            "cma_sigma_terminal": ""
+            if cma_sigma_terminal is None
+            else f"{cma_sigma_terminal:.6e}",
+            "cma_sigma_next_factor": ""
+            if cma_sigma_next_factor is None
+            else f"{cma_sigma_next_factor:.6e}",
+            "cma_sigma_route": cma_sigma_route,
+            "cma_restart_count": ""
+            if cma_restart_count is None
+            else str(cma_restart_count),
         }
     )
     return row
@@ -2736,8 +2858,11 @@ def _write_action_trace(
     include_recovery_fields: bool = False,
     include_maturity_fields: bool = False,
     include_resource_fields: bool = False,
+    include_cma_sigma_fields: bool = False,
 ) -> None:
-    if include_resource_fields:
+    if include_cma_sigma_fields:
+        fields = V39_ACTION_TRACE_FIELDS
+    elif include_resource_fields:
         fields = V37_ACTION_TRACE_FIELDS
     elif include_recovery_fields:
         fields = V34_ACTION_TRACE_FIELDS
@@ -3549,6 +3674,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             or is_evidence_action_controller_v36(config.arac_action)
             or is_evidence_action_controller_v37(config.arac_action)
             or is_evidence_action_controller_v38(config.arac_action)
+            or is_evidence_action_controller_v39(config.arac_action)
         )
         else build_evidence_action_controller_v31_run_state(degree)
         if (
@@ -3864,11 +3990,26 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     lower=info["lower"],
                     upper=info["upper"],
                 )
-            cc_sigma = refine_sigma_for_action(
+            cma_sigma_reference = refine_sigma_for_action(
                 config.arac_action,
                 config.sigma,
                 controller_v31_run_state=controller_v31_run_state,
             )
+            cc_sigma = cma_sigma_reference
+            cma_sigma_applied_factor = 1.0
+            cma_sigma_route = ""
+            if (
+                controller_v31_run_state is not None
+                and controller_v31_run_state.v39_enabled
+            ):
+                (
+                    cc_sigma,
+                    cma_sigma_applied_factor,
+                    cma_sigma_route,
+                ) = controller_v31_run_state.v39_cma_sigma_for_group(
+                    dims,
+                    cma_sigma_reference,
+                )
             precision_reanchor_active = uses_post_retirement_precision_reanchor(
                 config.arac_action,
                 controller_v31_run_state,
@@ -3908,6 +4049,26 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
             cc_phase_fe += primary_cc_fe
             sum_fes += primary_cc_fe
+            cma_sigma_terminal: float | None = None
+            cma_sigma_next_factor: float | None = None
+            cma_restart_count: int | None = None
+            if (
+                controller_v31_run_state is not None
+                and controller_v31_run_state.v39_enabled
+            ):
+                if "sigma" not in results_cc or "_n_restart" not in results_cc:
+                    raise RuntimeError(
+                        "v39 requires terminal CMA sigma and restart count"
+                    )
+                cma_sigma_terminal = float(results_cc["sigma"])
+                cma_restart_count = int(results_cc["_n_restart"])
+                cma_sigma_next_factor = (
+                    controller_v31_run_state.observe_v39_cma_terminal_sigma(
+                        dims,
+                        reference_sigma=cma_sigma_reference,
+                        terminal_sigma=cma_sigma_terminal,
+                    )
+                )
             new_best_y = float(results_cc["best_so_far_y"])
             if new_best_y < original_fitness:
                 best_individual[dims] = results_cc["best_so_far_x"].copy()
@@ -3958,6 +4119,49 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         best_before=original_fitness,
                         best_after=original_fitness - current_delta,
                         cc_block_fe=primary_cc_fe,
+                    )
+                )
+            if (
+                controller_v31_run_state is not None
+                and controller_v31_run_state.v39_enabled
+                and cma_sigma_terminal is not None
+                and cma_sigma_next_factor is not None
+                and cma_restart_count is not None
+            ):
+                action_trace_rows.append(
+                    build_action_trace_row(
+                        problem_id=_problem_id(fun_name, fun_id),
+                        seed=config.seed,
+                        outer_iter=outer_iter,
+                        group_index=index,
+                        selected_action_name=(
+                            CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION
+                        ),
+                        overlap_size=0,
+                        previous_delta=0.0,
+                        current_delta=current_delta,
+                        state_mutated=True,
+                        action_value_delta_norm=abs(
+                            cc_sigma - cma_sigma_reference
+                        ),
+                        downstream_consumed=True,
+                        downstream_consumption_scope="current_group_optimizer",
+                        search_state_action_type=(
+                            CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION
+                        ),
+                        sigma_before=cma_sigma_reference,
+                        sigma_after=cc_sigma,
+                        population_before=population_size,
+                        population_after=population_size,
+                        best_before=original_fitness,
+                        best_after=original_fitness - current_delta,
+                        cc_block_fe=primary_cc_fe,
+                        cma_sigma_reference=cma_sigma_reference,
+                        cma_sigma_applied_factor=cma_sigma_applied_factor,
+                        cma_sigma_terminal=cma_sigma_terminal,
+                        cma_sigma_next_factor=cma_sigma_next_factor,
+                        cma_sigma_route=cma_sigma_route,
+                        cma_restart_count=cma_restart_count,
                     )
                 )
             if is_bipop_search_state_action(config.arac_action):
@@ -4472,7 +4676,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         config.arac_action
                     ) or is_evidence_action_controller_v37(
                         config.arac_action
-                    ) or is_evidence_action_controller_v38(config.arac_action):
+                    ) or is_evidence_action_controller_v38(
+                        config.arac_action
+                    ) or is_evidence_action_controller_v39(config.arac_action):
                         (
                             action,
                             adjusted_values,
@@ -5247,6 +5453,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V36,
             EVIDENCE_ACTION_CONTROLLER_V37,
             EVIDENCE_ACTION_CONTROLLER_V38,
+            EVIDENCE_ACTION_CONTROLLER_V39,
         ],
     )
     args = parser.parse_args(argv)
@@ -5322,9 +5529,13 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 )
                 or is_evidence_action_controller_v37(config.arac_action)
                 or is_evidence_action_controller_v38(config.arac_action),
+                include_cma_sigma_fields=is_evidence_action_controller_v39(
+                    config.arac_action
+                ),
                 include_resource_fields=(
                     is_evidence_action_controller_v37(config.arac_action)
                     or is_evidence_action_controller_v38(config.arac_action)
+                    or is_evidence_action_controller_v39(config.arac_action)
                 ),
             )
             function_trace_rows.extend(trace_rows)
@@ -5358,9 +5569,13 @@ def main(argv: list[str] | None = None) -> list[Path]:
             )
             or is_evidence_action_controller_v37(config.arac_action)
             or is_evidence_action_controller_v38(config.arac_action),
+            include_cma_sigma_fields=is_evidence_action_controller_v39(
+                config.arac_action
+            ),
             include_resource_fields=(
                 is_evidence_action_controller_v37(config.arac_action)
                 or is_evidence_action_controller_v38(config.arac_action)
+                or is_evidence_action_controller_v39(config.arac_action)
             ),
         )
         _write_aob_input_manifest(
