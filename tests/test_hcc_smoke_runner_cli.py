@@ -602,6 +602,59 @@ def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v34() -> No
     assert runner.is_evidence_action_controller(args.arac_action)
 
 
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v35() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "2",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--output-root",
+            "results/test",
+            "--arac-action",
+            "arac_evidence_action_controller_v35",
+        ]
+    )
+
+    assert args.arac_action == runner.EVIDENCE_ACTION_CONTROLLER_V35
+    assert runner.is_evidence_action_controller_v35(args.arac_action)
+    assert runner.is_guarded_evidence_action_controller(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+    assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
+    assert runner.uses_v33_trust_trace_schema(args.arac_action)
+
+
+def test_v35_keeps_v31_scheduler_and_phase_rescue_membership() -> None:
+    runner = _load_runner_module()
+    config = runner.SmokeConfig(
+        run_id="test",
+        max_fes=5000,
+        seed=1,
+        verbose=0,
+        early_stopping_evaluations=100,
+        mmes_restart=False,
+        cmaes_restart=False,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V35,
+        enable_relation_dispatch=True,
+        relation_policy_mode="controller_v31",
+        budget_accounting="strict",
+        skip_plots=True,
+        search_state_backend="diagonal_cma",
+    )
+
+    assert runner.uses_scheduled_search_state(config)
+    assert runner.uses_phase_rescue_during_run(
+        config.arac_action,
+        evidence_controller_search_state_enabled=True,
+    )
+
+
 def test_v33_trust_state_is_opt_in_and_v32_has_no_trust_state() -> None:
     runner = _load_runner_module()
 

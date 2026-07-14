@@ -1081,10 +1081,20 @@ def is_evidence_action_controller_v34(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V34
 
 
+def is_evidence_action_controller_v35(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V35
+
+
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
     return is_evidence_action_controller_v33(
         action_name
     ) or is_evidence_action_controller_v34(action_name)
+
+
+def uses_v33_trust_trace_schema(action_name: str) -> bool:
+    return is_risk_aware_evidence_action_controller(
+        action_name
+    ) or is_evidence_action_controller_v35(action_name)
 
 
 def relation_downstream_consumption_scope(
@@ -1092,7 +1102,7 @@ def relation_downstream_consumption_scope(
     action_name: str,
     writeback_active: bool,
 ) -> str:
-    if not is_risk_aware_evidence_action_controller(action_name):
+    if not uses_v33_trust_trace_schema(action_name):
         return "same_outer_iteration"
     return "same_outer_iteration" if writeback_active else "no_state_change"
 
@@ -1122,6 +1132,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v32(action_name)
         or is_evidence_action_controller_v33(action_name)
         or is_evidence_action_controller_v34(action_name)
+        or is_evidence_action_controller_v35(action_name)
     )
 
 
@@ -1134,6 +1145,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v32(action_name)
         or is_evidence_action_controller_v33(action_name)
         or is_evidence_action_controller_v34(action_name)
+        or is_evidence_action_controller_v35(action_name)
     )
 
 
@@ -1169,6 +1181,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v32(action_name)
             or is_evidence_action_controller_v33(action_name)
             or is_evidence_action_controller_v34(action_name)
+            or is_evidence_action_controller_v35(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1185,6 +1198,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v32(config.arac_action)
             or is_evidence_action_controller_v33(config.arac_action)
             or is_evidence_action_controller_v34(config.arac_action)
+            or is_evidence_action_controller_v35(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -1273,6 +1287,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v32(action_name)
             or is_evidence_action_controller_v33(action_name)
             or is_evidence_action_controller_v34(action_name)
+            or is_evidence_action_controller_v35(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
@@ -3158,7 +3173,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             degree,
             action_name=config.arac_action,
         )
-        if is_risk_aware_evidence_action_controller(config.arac_action)
+        if (
+            is_risk_aware_evidence_action_controller(config.arac_action)
+            or is_evidence_action_controller_v35(config.arac_action)
+        )
         else build_evidence_action_controller_v31_run_state(degree)
         if (
             is_evidence_action_controller_v31(config.arac_action)
@@ -3994,6 +4012,22 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             current_delta=context.current_delta,
                             controller_run_state=controller_v31_run_state,
                         )
+                    elif is_evidence_action_controller_v35(config.arac_action):
+                        (
+                            action,
+                            adjusted_values,
+                            action_value_delta_norm,
+                            trust_decision,
+                            fallback_route,
+                        ) = apply_relation_action_with_controller_v35(
+                            relation=relation,
+                            action=action,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            previous_delta=context.previous_delta,
+                            current_delta=context.current_delta,
+                            controller_run_state=controller_v31_run_state,
+                        )
                     else:
                         action, adjusted_values, action_value_delta_norm = (
                             apply_relation_action_with_controller_v31(
@@ -4053,12 +4087,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 adjusted_values is not None
                                 and trust_writeback_active
                             )
-                            if is_risk_aware_evidence_action_controller(config.arac_action)
+                            if uses_v33_trust_trace_schema(config.arac_action)
                             else adjusted_values is not None,
                             action_value_delta_norm=action_value_delta_norm,
                             downstream_consumed=(
                                 index < sub_num - 1 and trust_writeback_active
-                                if is_risk_aware_evidence_action_controller(config.arac_action)
+                                if uses_v33_trust_trace_schema(config.arac_action)
                                 else index < sub_num - 1
                             ),
                             downstream_consumption_scope=(
@@ -4717,6 +4751,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V32,
             EVIDENCE_ACTION_CONTROLLER_V33,
             EVIDENCE_ACTION_CONTROLLER_V34,
+            EVIDENCE_ACTION_CONTROLLER_V35,
         ],
     )
     args = parser.parse_args(argv)
@@ -4781,7 +4816,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
             _write_action_trace(
                 case_artifact_path(output_path, problem_id, "action_trace.csv"),
                 trace_rows,
-                include_trust_fields=is_risk_aware_evidence_action_controller(
+                include_trust_fields=uses_v33_trust_trace_schema(
                     config.arac_action
                 ),
                 include_recovery_fields=is_evidence_action_controller_v34(
@@ -4808,7 +4843,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         _write_action_trace(
             output_path / "action_trace.csv",
             function_trace_rows,
-            include_trust_fields=is_risk_aware_evidence_action_controller(
+            include_trust_fields=uses_v33_trust_trace_schema(
                 config.arac_action
             ),
             include_recovery_fields=is_evidence_action_controller_v34(
