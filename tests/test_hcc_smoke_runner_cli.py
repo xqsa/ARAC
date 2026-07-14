@@ -4481,6 +4481,50 @@ def test_controller_v33_credits_writeback_before_next_group_optimizer(
     )
     assert resolved_positions[0] < next_relation_position
 
+    optimize_calls["count"] = 0
+    registered_baselines.clear()
+    observed_contexts.clear()
+    monkeypatch.setattr(
+        runner,
+        "select_relation_action_for_policy",
+        lambda *, relation, **_kwargs: runner.RelationActionDecision(
+            relation_id=relation.relation_id,
+            action_name="fallback",
+            action_family="fallback",
+            confidence=0.0,
+            trigger_reason="test_topology_fallback",
+        ),
+    )
+    v35_output = tmp_path / "v35"
+    v35_output.mkdir()
+
+    v35_record, _elapsed, v35_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v35_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V35,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v35_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v35_function.objective_calls == v33_objective_calls
+    assert runner.current_fitness_evaluations(v35_function) == v33_fes
+    assert len(v35_record) == len(v33_record)
+    assert registered_baselines == []
+    assert observed_contexts == []
+    assert all(row.get("trust_key", "") == "" for row in v35_trace_rows)
+    assert all(
+        row.get("trajectory_guard_status", "") == "" for row in v35_trace_rows
+    )
+    assert any(row.get("fallback_route", "") for row in v35_trace_rows)
+
 
 def test_run_problem_caps_aob_fitness_record_at_max_fes(
     tmp_path: Path,
