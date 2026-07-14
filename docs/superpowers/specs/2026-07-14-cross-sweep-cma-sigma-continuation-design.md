@@ -167,3 +167,32 @@ Verdict: conditionally acceptable as a single-variable, reference-blind
 stability ablation.
 
 `[CONTRACT-ACKNOWLEDGED]`
+
+## Observed Result (2026-07-14)
+
+The v39 verification ladder passed its implementation and runtime-integrity
+checks, but the pre-registered development release gate failed. The fresh
+current-winning-13 artifact is:
+
+`results/controller_v39_cross_sweep_cma_sigma_13win_seed123_3m_20260714`
+
+- `39/39` fresh runs;
+- strict FE range `2,999,984..3,000,000`, with zero overspend;
+- AOB `384/384` unchanged and anti-leakage `16/16` passed;
+- execution plan and backend semantics `39/39` passed;
+- continuation trace rows `9,173`, with `8,393` continued rows and `8,339`
+  non-unit applied factors;
+- best/mean/worst wins `9/13`, `5/13`, `4/13`;
+- seed wins `20/39`; catastrophic seeds `9/39`.
+
+The candidate therefore did not reach the fixed `13/13`, `6/13`, `5/13`,
+`26/39`, and `7/39` thresholds. Terminal-sigma continuation was active and
+repeatedly hit the lower factor clip (`0.5`), but this does not establish the
+cause of the final losses. The v39 artifact used `D:\python\python.exe`
+(Python 3.12.7, NumPy 2.1.3), whereas the v33.8-v38 reference artifacts used
+`E:\ARAC\.venv\Scripts\python.exe` (Python 3.12.13, NumPy 2.3.5). A direct
+v38-v39 performance attribution is therefore environment-confounded and
+requires a same-environment paired rerun. v39 is rejected by its standalone
+pre-registered performance gate regardless, so its full-24 and held-out-seed
+runs were not started. The v33.8 full-24 result remains the canonical `13/24`
+reference.
