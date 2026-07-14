@@ -630,6 +630,37 @@ def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v35() -> No
     assert runner.uses_v33_trust_trace_schema(args.arac_action)
 
 
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v36() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "schwefel",
+            "--ids",
+            "2",
+            "--seed",
+            "3",
+            "--max-fes",
+            "5000",
+            "--output-root",
+            "results/test",
+            "--arac-action",
+            "arac_evidence_action_controller_v36",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == runner.EVIDENCE_ACTION_CONTROLLER_V36
+    assert runner.is_evidence_action_controller_v36(args.arac_action)
+    assert runner.is_guarded_evidence_action_controller(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+    assert runner.uses_v33_trust_trace_schema(args.arac_action)
+    assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
+
+
 def test_v35_keeps_v31_scheduler_and_phase_rescue_membership() -> None:
     runner = _load_runner_module()
     config = runner.SmokeConfig(

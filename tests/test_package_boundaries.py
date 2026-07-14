@@ -87,6 +87,17 @@ def test_v35_is_registered_as_one_core_trajectory_action() -> None:
     assert sum(spec.name == action.name for spec in DEFAULT_ACTION_SPACE) == 1
 
 
+def test_v36_is_registered_as_one_core_trajectory_action() -> None:
+    action = action_by_name("arac_evidence_action_controller_v36")
+
+    assert action.family is ActionFamily.TRAJECTORY
+    assert action.backend_role == "core_intervention"
+    assert action.requires_semantic_effect is True
+    assert legacy_action_by_name(action.name) is action
+    assert LEGACY_ACTION_SPACE is DEFAULT_ACTION_SPACE
+    assert sum(spec.name == action.name for spec in DEFAULT_ACTION_SPACE) == 1
+
+
 def test_migrated_behavior_is_unchanged() -> None:
     decision = ActionDecision(
         ActionFamily.ISOLATE,

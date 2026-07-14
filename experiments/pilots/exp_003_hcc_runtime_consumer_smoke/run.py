@@ -531,6 +531,18 @@ EVIDENCE_ACTION_CONTROLLER_V35_LANES = (
         relation_policy_mode="controller_v31",
     ),
 )
+EVIDENCE_ACTION_CONTROLLER_V36_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v36",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v36",
+        "arac_evidence_action_controller_v36",
+        "single_run_first_sweep_evidence_maturity_controller_v36",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v36",
+        relation_policy_mode="controller_v31",
+    ),
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
@@ -616,6 +628,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return EVIDENCE_ACTION_CONTROLLER_V34_LANES
     if lane_profile == "evidence_action_controller_v35":
         return EVIDENCE_ACTION_CONTROLLER_V35_LANES
+    if lane_profile == "evidence_action_controller_v36":
+        return EVIDENCE_ACTION_CONTROLLER_V36_LANES
     if lane_profile == "canonical_evidence_controller_v1":
         return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
     raise ValueError(f"unsupported lane profile: {lane_profile}")
@@ -1347,6 +1361,14 @@ V34_RECOVERY_TRACE_FIELDS = [
     "trajectory_guard_recovery_credit",
     "trajectory_guard_restored",
 ]
+V36_MATURITY_TRACE_FIELDS = [
+    "active_maturity_route",
+    "sweep_evidence_relation_count",
+    "sweep_evidence_active_count",
+    "sweep_evidence_active_fraction",
+    "sweep_evidence_support",
+    "sweep_evidence_reason",
+]
 
 
 def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
@@ -1357,6 +1379,7 @@ def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
             "arac_evidence_action_controller_v33",
             "arac_evidence_action_controller_v34",
             "arac_evidence_action_controller_v35",
+            "arac_evidence_action_controller_v36",
         }
         for lane in lanes
     ):
@@ -1366,6 +1389,11 @@ def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
         for lane in lanes
     ):
         fields.extend(V34_RECOVERY_TRACE_FIELDS)
+    if any(
+        lane.runner_action_name == "arac_evidence_action_controller_v36"
+        for lane in lanes
+    ):
+        fields.extend(V36_MATURITY_TRACE_FIELDS)
     return fields
 
 
@@ -4326,6 +4354,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v33",
             "evidence_action_controller_v34",
             "evidence_action_controller_v35",
+            "evidence_action_controller_v36",
             "canonical_evidence_controller_v1",
         ],
     )

@@ -5059,6 +5059,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V33,
             EVIDENCE_ACTION_CONTROLLER_V34,
             EVIDENCE_ACTION_CONTROLLER_V35,
+            EVIDENCE_ACTION_CONTROLLER_V36,
         ],
     )
     args = parser.parse_args(argv)
