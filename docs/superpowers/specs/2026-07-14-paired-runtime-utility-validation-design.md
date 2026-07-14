@@ -146,3 +146,47 @@ paper-best, historical or prior-run outcomes, final error, relative gain, and
 offline success labels are forbidden dispatch inputs.
 
 `[CONTRACT-ACKNOWLEDGED]`
+
+## Observed Held-Out Result
+
+Date: 2026-07-15
+Commit: `dd5ffec5b67ab61fcd3e05795586783191ebf3ca`
+Artifact: `results/controller_paired_v33_v36_13case_seed45678_3m_20260714_retry`
+
+The pinned held-out run completed all `13 cases x 5 seeds x 4 lanes = 260`
+trajectories. This is 65 case-seed pairs with four same-budget lanes, not 260
+benchmark cases.
+
+Integrity passed:
+
+- fresh optimizer executions: `260/260`;
+- actual FE range: `2,999,984..3,000,000`, with `0/260` overspends and
+  `0/260` same-budget violations;
+- AOB inputs unchanged: `2,560/2,560` rows;
+- anti-leakage: `16/16` pass;
+- action plans: `260/260` known, optimizer-consumed, and runtime-dispatch
+  allowed;
+- pinned environment: pass under Python 3.12.13, NumPy 2.3.5, SciPy 1.18.0,
+  Torch 2.12.1, OpenBLAS 0.3.30, and the frozen single-thread variables.
+
+The held-out utility gate was blocked:
+
+- aggregate mean paired log-error delta: `-0.0022332589794715136` (pass);
+- arithmetic-mean case wins: `3/13` (required `>=7/13`);
+- worst-seed case wins: `1/13` (required `>=5/13`);
+- meaningful paired wins: `2/65` (required `>=33/65`);
+- catastrophic paired losses: `1/65` (required `0/65`);
+- negative-control aggregate gate: pass (`13/65` negative-control paired
+  wins, below a majority).
+
+The candidate and fallback produced identical final errors on `59/65` paired
+case-seed runs. Only six pairs changed: E2 seeds 4 and 7 degraded by about 5%
+and 10%; R2 seed 7 improved by about 1%; S2 seed 5 improved by about 19%; S3
+seed 4 improved by about 30%; and S3 seed 7 degraded by about 35%, which is
+the catastrophic loss. The current Phase-I evidence-to-action mapping is
+therefore too sparse to establish broad utility and is not sufficiently
+risk-calibrated on the few runs where it changes the long-horizon trajectory.
+
+Per the pre-registered protocol, the full-24 run was not started. This is a
+method-gate failure, not an integrity failure, and no performance or SOTA
+claim is allowed from this candidate.
