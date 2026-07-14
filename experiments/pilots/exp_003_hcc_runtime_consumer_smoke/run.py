@@ -519,6 +519,18 @@ EVIDENCE_ACTION_CONTROLLER_V34_LANES = (
         relation_policy_mode="controller_v31",
     ),
 )
+EVIDENCE_ACTION_CONTROLLER_V35_LANES = (
+    LaneConfig(
+        "arac_evidence_action_controller_v35",
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v35",
+        "arac_evidence_action_controller_v35",
+        "single_run_transparent_trust_topology_guard_controller_v35",
+        relation_dispatch_enabled=True,
+        plan_action_name="arac_evidence_action_controller_v35",
+        relation_policy_mode="controller_v31",
+    ),
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
@@ -602,6 +614,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return EVIDENCE_ACTION_CONTROLLER_V33_LANES
     if lane_profile == "evidence_action_controller_v34":
         return EVIDENCE_ACTION_CONTROLLER_V34_LANES
+    if lane_profile == "evidence_action_controller_v35":
+        return EVIDENCE_ACTION_CONTROLLER_V35_LANES
     if lane_profile == "canonical_evidence_controller_v1":
         return CANONICAL_EVIDENCE_CONTROLLER_V1_LANES
     raise ValueError(f"unsupported lane profile: {lane_profile}")
@@ -1342,6 +1356,7 @@ def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
         in {
             "arac_evidence_action_controller_v33",
             "arac_evidence_action_controller_v34",
+            "arac_evidence_action_controller_v35",
         }
         for lane in lanes
     ):
@@ -4310,6 +4325,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v32",
             "evidence_action_controller_v33",
             "evidence_action_controller_v34",
+            "evidence_action_controller_v35",
             "canonical_evidence_controller_v1",
         ],
     )
