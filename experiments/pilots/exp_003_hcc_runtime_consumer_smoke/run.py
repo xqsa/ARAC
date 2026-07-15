@@ -60,6 +60,7 @@ from arac.backends.hcc import (
     _parse_hcc_evaluation_record_with_optimizer_final_fe,
     build_hcc_action_execution_plan,
     hcc_backend_semantics_for,
+    required_aob_data_files,
     resolve_hcc_vendor_paths,
     run_hcc_aob_smoke_execution,
 )
@@ -69,6 +70,12 @@ from arac.evidence import FORBIDDEN_RUNTIME_FIELDS, validate_runtime_payload
 from arac.policy.counterfactual_action_racing import (
     AuditEnvelope,
     DispatchEvidence,
+)
+from arac.policy.oracle_actionability import (
+    CAR_ACTIONABILITY_HORIZON_LABELS,
+    CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
+    CAR_ACTIONABILITY_PROTOCOL_VERSION,
+    log_actionability_advantage,
 )
 
 RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
@@ -97,6 +104,7 @@ class LaneConfig:
     relation_policy_mode: str = "rule"
     negative_control: bool = False
     car_candidate_mode: str = "graph"
+    car_actionability_arm: str = "off"
 
 
 LANES = (
@@ -520,6 +528,7 @@ def _lane_from_controller_profile(
     lane_id: str | None = None,
     dispatch_scope: str | None = None,
     car_candidate_mode: str = "graph",
+    car_actionability_arm: str = "off",
 ) -> LaneConfig:
     return LaneConfig(
         lane_id or profile.action_name,
@@ -531,6 +540,7 @@ def _lane_from_controller_profile(
         plan_action_name=profile.action_name,
         relation_policy_mode=profile.relation_policy_mode,
         car_candidate_mode=car_candidate_mode,
+        car_actionability_arm=car_actionability_arm,
     )
 
 
@@ -678,6 +688,20 @@ CAR_W3_DIAGNOSTIC_LANES = (
         negative_control=True,
     ),
 )
+CAR_ACTIONABILITY_AUDIT_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w3"),
+        lane_id="oracle_fallback",
+        dispatch_scope="offline_actionability_fallback_continuation",
+        car_actionability_arm="fallback",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w3"),
+        lane_id="oracle_candidate",
+        dispatch_scope="offline_actionability_candidate_continuation",
+        car_actionability_arm="candidate",
+    ),
+)
 CAR_W_ACTION_NAMES = frozenset(
     {
         "arac_counterfactual_action_racing_w",
@@ -711,6 +735,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return CAR_W2_DIAGNOSTIC_LANES
     if lane_profile == "car_w3_diagnostic":
         return CAR_W3_DIAGNOSTIC_LANES
+    if lane_profile == "car_actionability_audit":
+        return CAR_ACTIONABILITY_AUDIT_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -939,10 +965,339 @@ def _read_csv_rows(path: Path | None) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _fingerprint_payload(payload: object) -> str:
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _car_actionability_execution_dependencies(
+    vendor_paths: HccVendorPaths,
+) -> dict[str, str]:
+    relative_paths = (
+        "actions/contracts.py",
+        "actions/controller_profiles.py",
+        "backends/diagonal_cma.py",
+        "backends/hcc.py",
+        "backends/hcc_budget.py",
+        "backends/hcc_car.py",
+        "backends/hcc_plan.py",
+        "backends/hcc_shared_writeback.py",
+        "backends/hcc_trace.py",
+        "evidence/__init__.py",
+        "evidence/overlap_relation_builder.py",
+        "policy/action_trust_policy.py",
+        "policy/counterfactual_action_racing.py",
+        "policy/oracle_actionability.py",
+        "policy/relation_policy.py",
+        "policy/search_state_policy.py",
+        "policy/trajectory_guard.py",
+    )
+    paths = {
+        "experiment_runner": Path(__file__).resolve(),
+        "hcc_smoke_runner": vendor_paths.runner,
+        **{
+            f"src/arac/{relative}": ARAC_SRC_ROOT / "arac" / relative
+            for relative in relative_paths
+        },
+        **{
+            f"vendor/hcc/{path.relative_to(vendor_paths.vendor_root).as_posix()}": path
+            for path in sorted(vendor_paths.vendor_root.rglob("*.py"))
+        },
+    }
+    hashes = {name: _sha256_file(path) for name, path in sorted(paths.items())}
+    missing = [name for name, digest in hashes.items() if digest == "missing"]
+    if missing:
+        raise RuntimeError(
+            "missing CAR actionability execution dependencies: "
+            + ",".join(missing)
+        )
+    return hashes
+
+
+def _car_actionability_aob_inputs(
+    request: HccAobExecutionRequest,
+) -> dict[str, str]:
+    suffix = str(request.problem_id)[1:]
+    if not suffix.isdigit():
+        raise ValueError("CAR actionability requires a canonical AOB problem id")
+    paths = required_aob_data_files(request.aob_data_root, int(suffix))
+    missing = [path.name for path in paths if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            "missing CAR actionability AOB inputs: " + ",".join(sorted(missing))
+        )
+    return {
+        path.name: _sha256_file(path)
+        for path in sorted(paths, key=lambda item: item.name)
+    }
+
+
+def _car_actionability_request_payload(
+    request: HccAobExecutionRequest,
+) -> dict[str, object]:
+    vendor_paths = resolve_hcc_vendor_paths(
+        request.hcc_root,
+        repo_root=request.hcc_repo_root,
+        runner_path=request.hcc_runner,
+    )
+    execution_dependencies = _car_actionability_execution_dependencies(vendor_paths)
+    aob_inputs = _car_actionability_aob_inputs(request)
+    dependency_versions = {
+        name: _dependency_version(name)
+        for name in ("cma", "numpy", "scipy", "torch")
+    }
+    execution_context = {
+        "git_commit": _git_commit(),
+        "python_version": platform.python_version(),
+        "thread_environment": _thread_environment(),
+        "dependency_versions": dependency_versions,
+        "execution_dependency_fingerprint": _fingerprint_payload(
+            execution_dependencies
+        ),
+    }
+    payload = {
+        "protocol_version": CAR_ACTIONABILITY_PROTOCOL_VERSION,
+        **execution_context,
+        "execution_context_fingerprint": _fingerprint_payload(execution_context),
+        "execution_dependency_sha256": execution_dependencies,
+        "problem_id": request.problem_id,
+        "seed": int(request.seed),
+        "max_fes": int(request.max_fes),
+        "timestamp": request.timestamp,
+        "config_name": request.config_name,
+        "python_executable": str(request.python_executable),
+        "skip_plots": bool(request.skip_plots),
+        "arac_action": request.arac_action,
+        "enable_relation_dispatch": bool(request.enable_relation_dispatch),
+        "relation_policy_mode": request.relation_policy_mode,
+        "budget_accounting": request.budget_accounting,
+        "cmaes_restart": bool(request.cmaes_restart),
+        "mmes_restart": bool(request.mmes_restart),
+        "search_state_backend": request.search_state_backend,
+        "car_candidate_mode": request.car_candidate_mode,
+        "car_actionability_arm": request.car_actionability_arm,
+        "aob_data_root": str(Path(request.aob_data_root).resolve()),
+        "aob_input_sha256": aob_inputs,
+        "aob_input_fingerprint": _fingerprint_payload(aob_inputs),
+        "hcc_vendor_root": str(vendor_paths.vendor_root),
+        "hcc_runner": str(vendor_paths.runner),
+        "hcc_runner_sha256": _sha256_file(vendor_paths.runner),
+        "oracle_module_sha256": _sha256_file(
+            ARAC_REPO_ROOT / "src" / "arac" / "policy" / "oracle_actionability.py"
+        ),
+    }
+    return {
+        "request": payload,
+        "request_fingerprint": _fingerprint_payload(payload),
+    }
+
+
+def _car_actionability_provenance_path(request: HccAobExecutionRequest) -> Path:
+    return Path(request.output_dir) / "car_actionability_provenance.json"
+
+
+def _latest_car_artifact(output_root: Path, pattern: str) -> Path | None:
+    paths = sorted(output_root.rglob(pattern))
+    return paths[-1] if paths else None
+
+
+def _provenance_artifact_path(
+    value: object,
+    output_root: Path,
+) -> Path | None:
+    if not value:
+        return None
+    try:
+        path = Path(str(value)).resolve()
+        path.relative_to(output_root.resolve())
+    except (TypeError, ValueError, OSError):
+        return None
+    return path
+
+
+def _prepare_car_actionability_provenance(
+    request: HccAobExecutionRequest,
+) -> dict[str, object]:
+    path = _car_actionability_provenance_path(request)
+    expected = _car_actionability_request_payload(request)
+    if path.exists():
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError("invalid CAR actionability provenance file") from exc
+        if existing.get("request_fingerprint") != expected["request_fingerprint"]:
+            raise RuntimeError("CAR actionability output belongs to a different request")
+        if existing.get("status") == "complete":
+            raise RuntimeError(
+                "CAR actionability output is already complete; use a new output directory"
+            )
+    else:
+        output_root = Path(request.output_dir)
+        stale_patterns = (
+            "action_trace.csv",
+            "evaluation_record.txt",
+            "*car_actionability_trace.csv",
+        )
+        if any(any(output_root.rglob(pattern)) for pattern in stale_patterns):
+            raise RuntimeError(
+                "CAR actionability output directory contains unprovenanced artifacts"
+            )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    scheduled = {
+        **expected,
+        "status": "scheduled",
+        "output_dir": str(Path(request.output_dir).resolve()),
+    }
+    path.write_text(json.dumps(scheduled, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return scheduled
+
+
+def _complete_car_actionability_provenance(
+    request: HccAobExecutionRequest,
+    result: HccAobExecutionResult,
+) -> None:
+    if request.car_actionability_arm == "off":
+        return
+    if not result.fresh_optimizer_execution:
+        raise RuntimeError("CAR actionability execution was not fresh")
+    path = _car_actionability_provenance_path(request)
+    expected = _car_actionability_request_payload(request)
+    try:
+        current = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("missing CAR actionability provenance schedule") from exc
+    if current.get("request_fingerprint") != expected["request_fingerprint"]:
+        raise RuntimeError("CAR actionability provenance request mismatch")
+    output_root = Path(result.output_root).resolve()
+    trace_path = _latest_car_artifact(output_root, "*car_actionability_trace.csv")
+    evaluation_path = _latest_car_artifact(output_root, "evaluation_record.txt")
+    budget_path = _latest_car_artifact(output_root, "*budget_summary.csv")
+    aob_manifest_path = _latest_car_artifact(
+        output_root, "*aob_input_manifest.csv"
+    )
+    if (
+        trace_path is None
+        or evaluation_path is None
+        or budget_path is None
+        or aob_manifest_path is None
+    ):
+        raise RuntimeError("CAR actionability execution artifacts are incomplete")
+    if result.action_trace_path is None or not result.action_trace_path.exists():
+        raise RuntimeError("CAR actionability execution produced no action trace")
+    action_trace_path = result.action_trace_path.resolve()
+    try:
+        action_trace_path.relative_to(output_root)
+    except ValueError as exc:
+        raise RuntimeError("CAR actionability action trace escaped output root") from exc
+    completed = {
+        **current,
+        "status": "complete",
+        "trace_path": str(trace_path.resolve()),
+        "trace_sha256": _sha256_file(trace_path),
+        "evaluation_record_path": str(evaluation_path.resolve()),
+        "evaluation_record_sha256": _sha256_file(evaluation_path),
+        "budget_summary_path": str(budget_path.resolve()),
+        "budget_summary_sha256": _sha256_file(budget_path),
+        "aob_input_manifest_path": str(aob_manifest_path.resolve()),
+        "aob_input_manifest_sha256": _sha256_file(aob_manifest_path),
+        "action_trace_path": str(action_trace_path),
+        "action_trace_sha256": _sha256_file(action_trace_path),
+        "fresh_optimizer_execution": bool(result.fresh_optimizer_execution),
+    }
+    path.write_text(json.dumps(completed, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecutionResult | None:
     action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
     if action_trace_path is None:
         return None
+    verified_fresh_audit = False
+    if request.car_actionability_arm != "off":
+        provenance_path = _car_actionability_provenance_path(request)
+        try:
+            provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        expected = _car_actionability_request_payload(request)
+        if (
+            provenance.get("request_fingerprint") != expected["request_fingerprint"]
+            or provenance.get("status") != "complete"
+            or provenance.get("fresh_optimizer_execution") is not True
+        ):
+            return None
+        output_root = Path(request.output_dir).resolve()
+        trace_path = _provenance_artifact_path(provenance.get("trace_path"), output_root)
+        evaluation_path = _provenance_artifact_path(
+            provenance.get("evaluation_record_path"), output_root
+        )
+        budget_path = _provenance_artifact_path(
+            provenance.get("budget_summary_path"), output_root
+        )
+        aob_manifest_path = _provenance_artifact_path(
+            provenance.get("aob_input_manifest_path"), output_root
+        )
+        if (
+            trace_path is None
+            or evaluation_path is None
+            or budget_path is None
+            or aob_manifest_path is None
+        ):
+            return None
+        latest_evaluation = _latest_car_artifact(output_root, "evaluation_record.txt")
+        latest_budget = _latest_car_artifact(output_root, "*budget_summary.csv")
+        latest_trace = _latest_car_artifact(
+            output_root, "*car_actionability_trace.csv"
+        )
+        latest_aob_manifest = _latest_car_artifact(
+            output_root, "*aob_input_manifest.csv"
+        )
+        if (
+            not trace_path.exists()
+            or provenance.get("trace_sha256") != _sha256_file(trace_path)
+            or trace_path != latest_trace
+            or evaluation_path != latest_evaluation
+            or budget_path != latest_budget
+            or aob_manifest_path != latest_aob_manifest
+            or not evaluation_path.exists()
+            or not budget_path.exists()
+            or not aob_manifest_path.exists()
+            or provenance.get("evaluation_record_sha256")
+            != _sha256_file(evaluation_path)
+            or provenance.get("budget_summary_sha256")
+            != _sha256_file(budget_path)
+            or provenance.get("aob_input_manifest_sha256")
+            != _sha256_file(aob_manifest_path)
+            or provenance.get("action_trace_path") != str(action_trace_path.resolve())
+            or provenance.get("action_trace_sha256") != _sha256_file(action_trace_path)
+        ):
+            return None
+        audit_rows = _read_csv_rows(trace_path)
+        if not audit_rows:
+            return None
+        expected = {
+            "protocol_version": CAR_ACTIONABILITY_PROTOCOL_VERSION,
+            "fresh_optimizer_execution": "1",
+            "problem_id": request.problem_id,
+            "seed": str(request.seed),
+            "audit_arm": request.car_actionability_arm,
+            "candidate_mode": request.car_candidate_mode,
+            "configured_max_fes": str(request.max_fes),
+        }
+        if any(
+            any(row.get(field) != value for field, value in expected.items())
+            for row in audit_rows
+        ):
+            return None
+        terminal_rows = [
+            row for row in audit_rows if row.get("horizon_label") == "terminal"
+        ]
+        if len(terminal_rows) != 1 or terminal_rows[0].get("horizon_status") != (
+            "complete"
+        ):
+            return None
+        verified_fresh_audit = True
     try:
         final_error, fe_used, optimizer_final_fe_used = (
             _parse_hcc_evaluation_record_with_optimizer_final_fe(
@@ -961,9 +1316,13 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
         fe_used=fe_used,
         time_seconds=0.0,
         output_root=Path(request.output_dir),
-        fresh_optimizer_execution=False,
+        fresh_optimizer_execution=verified_fresh_audit,
         status="completed_existing_artifact",
-        result_source="hcc_subprocess_smoke_execution_existing_artifact",
+        result_source=(
+            "verified_fresh_car_actionability_artifact"
+            if verified_fresh_audit
+            else "hcc_subprocess_smoke_execution_existing_artifact"
+        ),
         action_trace_path=action_trace_path,
         action_trace_rows=action_trace_rows,
         optimizer_final_fe_used=optimizer_final_fe_used,
@@ -1213,6 +1572,7 @@ def _records(
                             mmes_restart=mmes_restart,
                             search_state_backend=search_state_backend,
                             car_candidate_mode=lane.car_candidate_mode,
+                            car_actionability_arm=lane.car_actionability_arm,
                             skip_plots=True,
                         ),
                     }
@@ -1230,7 +1590,13 @@ def _records(
         assert isinstance(plan, HccActionExecutionPlan)
         assert isinstance(decision, ActionDecision)
         assert isinstance(lane, LaneConfig)
-        result = _existing_completed_result(request) or execution_runner(request)
+        result = _existing_completed_result(request)
+        if result is None:
+            if request.car_actionability_arm != "off":
+                _prepare_car_actionability_provenance(request)
+            result = execution_runner(request)
+            if request.car_actionability_arm != "off":
+                _complete_car_actionability_provenance(request, result)
         trace_rows = _read_csv_rows(result.action_trace_path)
         semantics = _semantics_from_trace_rows(trace_rows, fallback=semantics)
         ledger = _ledger_for_result(result)
@@ -1736,6 +2102,76 @@ def _car_artifact_rows(
     return rows
 
 
+def _car_actionability_rows_for_record(
+    record: dict[str, object],
+) -> list[dict[str, object]]:
+    """Read audit rows only after validating their immutable lane identity."""
+
+    result = record["result"]
+    lane = record["lane"]
+    assert isinstance(result, HccAobExecutionResult)
+    assert isinstance(lane, LaneConfig)
+    path = _find_lane_artifact(result, "car_actionability_trace.csv")
+    provenance_path = Path(result.output_root) / "car_actionability_provenance.json"
+    try:
+        provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("missing CAR actionability provenance") from exc
+    verified_path = _provenance_artifact_path(
+        provenance.get("trace_path"), Path(result.output_root)
+    )
+    if (
+        path is None
+        or verified_path is None
+        or path.resolve() != verified_path
+        or provenance.get("status") != "complete"
+        or provenance.get("fresh_optimizer_execution") is not True
+        or not provenance.get("request_fingerprint")
+        or provenance.get("trace_sha256") != _sha256_file(verified_path)
+    ):
+        raise ValueError("unverified CAR actionability trace provenance")
+    request_payload = provenance.get("request")
+    if not isinstance(request_payload, dict):
+        raise ValueError("missing CAR actionability provenance request")
+    execution_context_fingerprint = str(
+        request_payload.get("execution_context_fingerprint", "")
+    )
+    aob_input_fingerprint = str(request_payload.get("aob_input_fingerprint", ""))
+    if not execution_context_fingerprint or not aob_input_fingerprint:
+        raise ValueError("incomplete CAR actionability provenance context")
+    rows = _read_csv_rows(path)
+    if not rows:
+        return []
+    expected_arm = lane.car_actionability_arm
+    for row in rows:
+        if row.get("protocol_version") != CAR_ACTIONABILITY_PROTOCOL_VERSION:
+            raise ValueError("CAR actionability trace protocol version mismatch")
+        if row.get("fresh_optimizer_execution") != "1":
+            raise ValueError("CAR actionability trace is not marked fresh")
+        if row.get("problem_id") != result.problem_id:
+            raise ValueError("CAR actionability trace problem identity mismatch")
+        if str(row.get("seed")) != str(result.seed):
+            raise ValueError("CAR actionability trace seed identity mismatch")
+        if row.get("audit_arm") != expected_arm:
+            raise ValueError("CAR actionability trace arm identity mismatch")
+        if row.get("candidate_mode") != lane.car_candidate_mode:
+            raise ValueError("CAR actionability trace candidate mode mismatch")
+        if row.get("configured_max_fes") != str(result.max_fes):
+            raise ValueError("CAR actionability trace budget identity mismatch")
+    return [
+        {
+            **row,
+            "run_id": RUN_ID,
+            "lane_id": record["lane_id"],
+            "seed": result.seed,
+            "request_fingerprint": provenance["request_fingerprint"],
+            "execution_context_fingerprint": execution_context_fingerprint,
+            "aob_input_fingerprint": aob_input_fingerprint,
+        }
+        for row in rows
+    ]
+
+
 def _aob_input_manifest_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for record in records:
@@ -1746,6 +2182,62 @@ def _aob_input_manifest_rows(records: list[dict[str, object]]) -> list[dict[str,
             )
         )
     return rows
+
+
+def _car_actionability_aob_pair_failures(
+    rows: list[dict[str, object]],
+    *,
+    problem_ids: tuple[str, ...],
+    seeds: tuple[int, ...],
+    lanes: tuple[LaneConfig, ...],
+) -> list[str]:
+    audit_lane_ids = tuple(
+        lane.lane_id for lane in lanes if lane.car_actionability_arm != "off"
+    )
+    indexed: dict[tuple[str, str, str], dict[str, str]] = {}
+    for row in rows:
+        key = (
+            str(row.get("problem_id", "")),
+            str(row.get("seed", "")),
+            str(row.get("lane_id", "")),
+        )
+        filename = str(row.get("file", ""))
+        digest = str(row.get("sha256_before", ""))
+        if filename:
+            indexed.setdefault(key, {})[filename] = digest
+
+    failures: list[str] = []
+    for problem_id in problem_ids:
+        for seed in seeds:
+            lane_maps = {
+                lane_id: indexed.get((problem_id, str(seed), lane_id), {})
+                for lane_id in audit_lane_ids
+            }
+            missing = [lane_id for lane_id, mapping in lane_maps.items() if not mapping]
+            prefix = f"{problem_id}/seed{seed}"
+            if missing:
+                failures.append(f"{prefix}:missing_aob_lane={','.join(missing)}")
+                continue
+            reference_lane = audit_lane_ids[0]
+            reference = lane_maps[reference_lane]
+            for lane_id in audit_lane_ids[1:]:
+                candidate = lane_maps[lane_id]
+                if set(reference) != set(candidate):
+                    failures.append(f"{prefix}:{lane_id}:aob_file_set_mismatch")
+                    continue
+                mismatched = sorted(
+                    filename
+                    for filename in reference
+                    if not reference[filename]
+                    or reference[filename] == "missing"
+                    or reference[filename] != candidate[filename]
+                )
+                if mismatched:
+                    failures.append(
+                        f"{prefix}:{lane_id}:aob_hash_mismatch="
+                        + ",".join(mismatched)
+                    )
+    return failures
 
 
 def _anti_leakage_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
@@ -2202,6 +2694,361 @@ def _paired_runtime_utility_rows(
     aggregate["mean_win"] = sum(int(row["mean_win"]) for row in case_rows)
     aggregate["worst_seed_win"] = sum(int(row["worst_seed_win"]) for row in case_rows)
     return [*case_rows, aggregate]
+
+
+def _car_actionability_summary_rows(
+    trace_rows: list[dict[str, str]],
+) -> list[dict[str, object]]:
+    """Pair offline oracle arms at identical absolute-FE horizons.
+
+    This function is deliberately downstream of raw traces.  It never feeds
+    terminal outcomes back into runtime evidence or dispatch.
+    """
+
+    grouped: dict[tuple[str, str, str], dict[str, dict[str, str]]] = {}
+    for row in trace_rows:
+        key = (
+            str(row.get("problem_id", "")),
+            str(row.get("seed", "")),
+            str(row.get("horizon_label", "")),
+        )
+        arm = str(row.get("audit_arm", ""))
+        if arm not in {"fallback", "candidate"}:
+            continue
+        bucket = grouped.setdefault(key, {})
+        if arm in bucket:
+            raise ValueError(f"duplicate CAR actionability arm: {key}/{arm}")
+        bucket[arm] = row
+
+    def numeric(row: dict[str, str], field: str) -> float | None:
+        value = str(row.get(field, "")).strip()
+        if not value:
+            return None
+        try:
+            parsed = float(value)
+        except ValueError:
+            return None
+        return parsed if math.isfinite(parsed) else None
+
+    rows: list[dict[str, object]] = []
+    for key in sorted(grouped):
+        problem_id, seed, horizon_label = key
+        arms = grouped[key]
+        fallback = arms.get("fallback")
+        candidate = arms.get("candidate")
+        failures: list[str] = []
+        if fallback is None:
+            failures.append("missing_fallback_arm")
+        if candidate is None:
+            failures.append("missing_candidate_arm")
+        if fallback is None or candidate is None:
+            rows.append(
+                {
+                    "run_id": RUN_ID,
+                    "problem_id": problem_id,
+                    "seed": seed,
+                    "horizon_label": horizon_label,
+                    "prefix_match": 0,
+                    "equal_fe": 0,
+                    "fallback_error": "",
+                    "candidate_error": "",
+                    "log_advantage": "",
+                    "relative_gain": "",
+                    "numeric_win": 0,
+                    "meaningful_win": 0,
+                    "catastrophic_loss": 0,
+                    "oracle_selected_arm": "",
+                    "oracle_gain": "",
+                    "integrity_status": "fail",
+                    "integrity_failures": ";".join(failures),
+                }
+            )
+            continue
+
+        checkpoint_match = fallback.get("checkpoint_fe", "") == candidate.get(
+            "checkpoint_fe", ""
+        )
+        target_match = fallback.get("target_fe", "") == candidate.get("target_fe", "")
+        observed_match = fallback.get("observed_fe", "") == candidate.get(
+            "observed_fe", ""
+        )
+        horizon_complete = (
+            fallback.get("horizon_status") == "complete"
+            and candidate.get("horizon_status") == "complete"
+            and fallback.get("observed_fe") == fallback.get("target_fe")
+            and candidate.get("observed_fe") == candidate.get("target_fe")
+        )
+        intervention_match = fallback.get("actual_fe", "") == candidate.get(
+            "actual_fe", ""
+        )
+        plan_match = fallback.get("plan_status", "") == candidate.get(
+            "plan_status", ""
+        )
+        plan_applied = fallback.get("plan_status") == "applied"
+        crn_match = (
+            bool(fallback.get("seed_descriptor", ""))
+            and bool(fallback.get("probe_seed", ""))
+            and fallback.get("seed_descriptor", "")
+            == candidate.get("seed_descriptor", "")
+            and fallback.get("probe_seed", "") == candidate.get("probe_seed", "")
+        )
+        action_match = all(
+            bool(fallback.get(field, ""))
+            and fallback.get(field, "") == candidate.get(field, "")
+            for field in (
+                "graph_fingerprint",
+                "component_fingerprint",
+                "candidate_action_name",
+                "candidate_action_family",
+            )
+        )
+        configured_budget_match = fallback.get(
+            "configured_max_fes", ""
+        ) == candidate.get("configured_max_fes", "")
+        execution_context_match = (
+            bool(fallback.get("execution_context_fingerprint", ""))
+            and fallback.get("execution_context_fingerprint", "")
+            == candidate.get("execution_context_fingerprint", "")
+        )
+        aob_input_match = (
+            bool(fallback.get("aob_input_fingerprint", ""))
+            and fallback.get("aob_input_fingerprint", "")
+            == candidate.get("aob_input_fingerprint", "")
+        )
+        arm_semantics_valid = (
+            (
+                not plan_applied
+                and fallback.get("candidate_action_applied") == "0"
+                and candidate.get("candidate_action_applied") == "0"
+            )
+            or (
+                plan_applied
+                and fallback.get("candidate_action_applied") == "0"
+                and candidate.get("candidate_action_applied") == "1"
+            )
+        )
+        prefix_match = (
+            bool(fallback.get("prefix_state_fingerprint"))
+            and fallback.get("prefix_state_fingerprint")
+            == candidate.get("prefix_state_fingerprint")
+            and bool(fallback.get("prefix_record_sha256"))
+            and fallback.get("prefix_record_sha256")
+            == candidate.get("prefix_record_sha256")
+        )
+        if not prefix_match:
+            failures.append("prefix_mismatch")
+        if not checkpoint_match or not target_match or not observed_match:
+            failures.append("unequal_absolute_horizon")
+        if not intervention_match:
+            failures.append("unequal_intervention_fe")
+        if not configured_budget_match:
+            failures.append("configured_budget_mismatch")
+        if not execution_context_match:
+            failures.append("execution_context_mismatch")
+        if not aob_input_match:
+            failures.append("aob_input_mismatch")
+        if not plan_match:
+            failures.append("plan_status_mismatch")
+        if plan_applied and not crn_match:
+            failures.append("crn_seed_mismatch")
+        if plan_applied and not action_match:
+            failures.append("action_identity_mismatch")
+        if not arm_semantics_valid:
+            failures.append("invalid_one_shot_arm_semantics")
+        if not horizon_complete:
+            failures.append("incomplete_horizon")
+        fallback_error = numeric(fallback, "best_error")
+        candidate_error = numeric(candidate, "best_error")
+        if fallback_error is not None and fallback_error < 0.0:
+            fallback_error = None
+        if candidate_error is not None and candidate_error < 0.0:
+            candidate_error = None
+        if fallback_error is None or candidate_error is None:
+            failures.append("missing_or_nonfinite_error")
+        integrity_status = "pass" if not failures else "fail"
+        if integrity_status != "pass":
+            fallback_error = None
+            candidate_error = None
+            log_advantage = ""
+            gain = ""
+            numeric_win = meaningful_win = catastrophic_loss = 0
+            selected = ""
+            oracle_gain = ""
+        else:
+            log_advantage_value = log_actionability_advantage(
+                fallback_error,
+                candidate_error,
+            )
+            gain_value = relative_gain(fallback_error, candidate_error)
+            utility = classify_utility(fallback_error, candidate_error)
+            log_advantage = f"{log_advantage_value:.17e}"
+            gain = f"{gain_value:.17e}"
+            numeric_win = int(candidate_error < fallback_error)
+            meaningful_win = int(utility == "meaningful_win")
+            catastrophic_loss = int(utility == "catastrophic_loss")
+            selected = (
+                "candidate"
+                if candidate_error < fallback_error
+                else "fallback"
+                if fallback_error < candidate_error
+                else "tie"
+            )
+            oracle_gain = f"{max(gain_value, 0.0):.17e}"
+        rows.append(
+            {
+                "run_id": RUN_ID,
+                "problem_id": problem_id,
+                "seed": seed,
+                "horizon_label": horizon_label,
+                "horizon_index": fallback.get("horizon_index", ""),
+                "checkpoint_fe": fallback.get("checkpoint_fe", ""),
+                "configured_max_fes": fallback.get("configured_max_fes", ""),
+                "fallback_request_fingerprint": fallback.get(
+                    "request_fingerprint", ""
+                ),
+                "candidate_request_fingerprint": candidate.get(
+                    "request_fingerprint", ""
+                ),
+                "execution_context_fingerprint": fallback.get(
+                    "execution_context_fingerprint", ""
+                ),
+                "aob_input_fingerprint": fallback.get(
+                    "aob_input_fingerprint", ""
+                ),
+                "target_fe": fallback.get("target_fe", ""),
+                "observed_fe": fallback.get("observed_fe", ""),
+                "prefix_match": int(prefix_match),
+                "equal_fe": int(
+                    checkpoint_match
+                    and target_match
+                    and observed_match
+                    and intervention_match
+                    and horizon_complete
+                    and configured_budget_match
+                    and execution_context_match
+                    and aob_input_match
+                    and plan_match
+                    and (crn_match or not plan_applied)
+                    and (action_match or not plan_applied)
+                    and arm_semantics_valid
+                ),
+                "fallback_error": (
+                    "" if fallback_error is None else f"{fallback_error:.17e}"
+                ),
+                "candidate_error": (
+                    "" if candidate_error is None else f"{candidate_error:.17e}"
+                ),
+                "log_advantage": log_advantage,
+                "relative_gain": gain,
+                "numeric_win": numeric_win,
+                "meaningful_win": meaningful_win,
+                "catastrophic_loss": catastrophic_loss,
+                "oracle_selected_arm": selected,
+                "oracle_gain": oracle_gain,
+                "integrity_status": integrity_status,
+                "integrity_failures": ";".join(failures),
+            }
+        )
+
+    # Add terminal sign agreement and rank reversal without changing the raw
+    # fact source.  Missing/blocked rows remain explicitly blocked.
+    by_run: dict[tuple[str, str], list[dict[str, object]]] = {}
+    for row in rows:
+        by_run.setdefault((str(row["problem_id"]), str(row["seed"])), []).append(row)
+    for run_rows in by_run.values():
+        ordered = sorted(run_rows, key=lambda item: str(item.get("horizon_index", "")))
+        terminal = next(
+            (item for item in ordered if item.get("horizon_label") == "terminal"),
+            None,
+        )
+        terminal_sign = 0
+        if terminal is not None and terminal.get("integrity_status") == "pass":
+            try:
+                value = float(terminal.get("log_advantage", ""))
+                terminal_sign = 1 if value > 0 else -1 if value < 0 else 0
+            except (TypeError, ValueError):
+                terminal_sign = 0
+        previous_sign = 0
+        for item in ordered:
+            if item.get("integrity_status") != "pass":
+                sign = 0
+            else:
+                try:
+                    value = float(item.get("log_advantage", ""))
+                    sign = 1 if value > 0 else -1 if value < 0 else 0
+                except (TypeError, ValueError):
+                    sign = 0
+            item["terminal_sign_agreement"] = int(
+                bool(sign) and bool(terminal_sign) and sign == terminal_sign
+            )
+            item["rank_reversal_from_previous"] = int(
+                bool(sign) and bool(previous_sign) and sign != previous_sign
+            )
+            if sign:
+                previous_sign = sign
+    return rows
+
+
+def _car_actionability_coverage_failures(
+    trace_rows: list[dict[str, object]],
+    *,
+    problem_ids: tuple[str, ...],
+    seeds: tuple[int, ...],
+    lanes: tuple[LaneConfig, ...],
+) -> list[str]:
+    """Require every pre-registered lane and reachable horizon exactly once."""
+
+    indexed: dict[tuple[str, str, str, str], list[dict[str, object]]] = {}
+    for row in trace_rows:
+        key = (
+            str(row.get("problem_id", "")),
+            str(row.get("seed", "")),
+            str(row.get("lane_id", "")),
+            str(row.get("horizon_label", "")),
+        )
+        indexed.setdefault(key, []).append(row)
+
+    failures: list[str] = []
+    audit_lanes = tuple(
+        lane for lane in lanes if lane.car_actionability_arm != "off"
+    )
+    for problem_id in problem_ids:
+        for seed in seeds:
+            for lane in audit_lanes:
+                prefix = f"{problem_id}/seed{seed}/{lane.lane_id}"
+                terminal_rows = indexed.get(
+                    (problem_id, str(seed), lane.lane_id, "terminal"),
+                    [],
+                )
+                if len(terminal_rows) != 1:
+                    failures.append(f"{prefix}:terminal_count={len(terminal_rows)}")
+                    continue
+                terminal = terminal_rows[0]
+                expected_labels = {"terminal"}
+                if terminal.get("plan_status") == "applied":
+                    try:
+                        checkpoint_fe = int(str(terminal.get("checkpoint_fe", "")))
+                        intervention_fe = int(str(terminal.get("actual_fe", "")))
+                        configured_max_fes = int(
+                            str(terminal.get("configured_max_fes", ""))
+                        )
+                    except ValueError:
+                        failures.append(f"{prefix}:invalid_horizon_metadata")
+                        continue
+                    for multiplier, label in zip(
+                        CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
+                        CAR_ACTIONABILITY_HORIZON_LABELS,
+                        strict=True,
+                    ):
+                        if checkpoint_fe + multiplier * intervention_fe < configured_max_fes:
+                            expected_labels.add(label)
+                for label in sorted(expected_labels):
+                    count = len(
+                        indexed.get((problem_id, str(seed), lane.lane_id, label), [])
+                    )
+                    if count != 1:
+                        failures.append(f"{prefix}:{label}_count={count}")
+    return failures
 
 
 def _paired_runtime_utility_gate(
@@ -4059,6 +4906,7 @@ def _config_fingerprint(
     lane_profile: str = "runtime_smoke",
     aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
     vendor_paths: HccVendorPaths = HCC_VENDOR_PATHS,
+    search_state_backend: str = "phase_i_mmes",
 ) -> str:
     mmes_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "mmes.py"
     mmes_state_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "state.py"
@@ -4068,10 +4916,24 @@ def _config_fingerprint(
         "cmaes_restart": bool(cmaes_restart),
         "jobs": max(1, int(jobs)),
         "lane_profile": lane_profile,
-        "lanes": [lane.lane_id for lane in lanes],
+        "lanes": [
+            {
+                "lane_id": lane.lane_id,
+                "runner_action_name": lane.runner_action_name,
+                "relation_policy_mode": lane.relation_policy_mode,
+                "car_candidate_mode": lane.car_candidate_mode,
+                "car_actionability_arm": lane.car_actionability_arm,
+            }
+            for lane in lanes
+        ],
+        "car_actionability_protocol": {
+            "action_semantics": "one_shot_writeback_then_canonical_continuation",
+            "horizons": ["closure_1", "budget_3x", "budget_9x", "terminal"],
+        },
         "max_fes": int(max_fes),
         "mmes_restart": bool(mmes_restart),
         "problem_ids": list(problem_ids),
+        "search_state_backend": search_state_backend,
         "seeds": list(seeds),
         "aob_data_root": str(Path(aob_data_root).resolve()),
         "hcc_vendor_root": str(vendor_paths.vendor_root),
@@ -4228,6 +5090,15 @@ def _write_manifest(
                 "car_branch_manifest.csv",
             ]
         )
+    if any(lane.car_actionability_arm != "off" for lane in lanes):
+        artifacts.extend(
+            [
+                "_hcc_smoke/**/car_actionability_provenance.json",
+                "car_actionability_trace.csv",
+                "car_actionability_summary.csv",
+                "car_actionability_gate.json",
+            ]
+        )
     manifest = "\n".join(
         [
             "# exp_003_hcc_runtime_consumer_smoke Run Manifest",
@@ -4287,7 +5158,7 @@ def _write_manifest(
             f"- git commit: {_git_commit()}",
             (
                 "- config fingerprint: "
-                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root, vendor_paths)}"
+                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root, vendor_paths, search_state_backend)}"
             ),
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- search-state policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'search_state_policy.py')}",
@@ -4431,12 +5302,72 @@ def run_hcc_runtime_consumer_smoke(
     car_probe_trace_rows = _car_artifact_rows(records, "car_probe_trace.csv")
     car_state_ledger_rows = _car_artifact_rows(records, "car_state_ledger.csv")
     car_branch_manifest_rows = _car_artifact_rows(records, "car_branch_manifest.csv")
+    car_actionability_enabled = any(
+        lane.car_actionability_arm != "off" for lane in lanes
+    )
+    car_actionability_trace_rows = (
+        [
+            row
+            for record in records
+            for row in _car_actionability_rows_for_record(record)
+        ]
+        if car_actionability_enabled
+        else []
+    )
+    car_actionability_summary_rows = (
+        _car_actionability_summary_rows(car_actionability_trace_rows)
+        if car_actionability_enabled
+        else []
+    )
     car_dispatch_boundary_rows = (
         _car_dispatch_boundary_rows()
         if car_w_enabled
         else []
     )
     paired_integrity_failures: list[str] = []
+    car_actionability_integrity_failures: list[str] = []
+    if car_actionability_enabled:
+        results = [record["result"] for record in records]
+        if not results or any(
+            not isinstance(result, HccAobExecutionResult)
+            or not result.fresh_optimizer_execution
+            for result in results
+        ):
+            car_actionability_integrity_failures.append("not_all_runs_fresh")
+        if any(str(row.get("same_budget_violation", "1")) != "0" for row in ledger_rows):
+            car_actionability_integrity_failures.append("same_budget_violation")
+        if not aob_input_rows or any(
+            str(row.get("unchanged", "0")) != "1" for row in aob_input_rows
+        ):
+            car_actionability_integrity_failures.append("aob_input_changed_or_missing")
+        car_actionability_integrity_failures.extend(
+            _car_actionability_aob_pair_failures(
+                aob_input_rows,
+                problem_ids=problem_ids,
+                seeds=seeds,
+                lanes=lanes,
+            )
+        )
+        if not anti_leakage_rows or any(
+            str(row.get("audit_status", "fail")) != "pass"
+            for row in anti_leakage_rows
+        ):
+            car_actionability_integrity_failures.append("anti_leakage_violation")
+        if not car_actionability_trace_rows:
+            car_actionability_integrity_failures.append("missing_actionability_trace")
+        car_actionability_integrity_failures.extend(
+            _car_actionability_coverage_failures(
+                car_actionability_trace_rows,
+                problem_ids=problem_ids,
+                seeds=seeds,
+                lanes=lanes,
+            )
+        )
+        car_actionability_integrity_failures.extend(
+            f"{row['problem_id']}/seed{row['seed']}/{row['horizon_label']}:{row['integrity_failures']}"
+            for row in car_actionability_summary_rows
+            if str(row.get("integrity_status")) != "pass"
+        )
     if lane_profile == "paired_v33_v36_runtime_utility":
         results = [record["result"] for record in records]
         plans = [record["plan"] for record in records]
@@ -4743,6 +5674,104 @@ def run_hcc_runtime_consumer_smoke(
                 "probe_seed",
             ],
         )
+    if car_actionability_enabled:
+        _write_csv(
+            output / "car_actionability_trace.csv",
+            car_actionability_trace_rows,
+            [
+                "run_id",
+                "lane_id",
+                "request_fingerprint",
+                "execution_context_fingerprint",
+                "aob_input_fingerprint",
+                "protocol_version",
+                "fresh_optimizer_execution",
+                "problem_id",
+                "seed",
+                "audit_arm",
+                "candidate_mode",
+                "horizon_index",
+                "horizon_label",
+                "checkpoint_fe",
+                "checkpoint_fitness",
+                "configured_max_fes",
+                "terminal_completion_tolerance_fe",
+                "termination_reason",
+                "terminal_fe_shortfall",
+                "target_fe",
+                "observed_fe",
+                "best_error",
+                "prefix_state_fingerprint",
+                "prefix_record_sha256",
+                "post_intervention_state_fingerprint",
+                "graph_fingerprint",
+                "component_fingerprint",
+                "candidate_action_name",
+                "candidate_action_family",
+                "candidate_action_applied",
+                "requested_fe",
+                "actual_fe",
+                "seed_descriptor",
+                "probe_seed",
+                "intervention_record_sha256",
+                "fitness_prefix_sha256",
+                "plan_status",
+                "horizon_status",
+                "abstain_reason",
+            ],
+        )
+        _write_csv(
+            output / "car_actionability_summary.csv",
+            car_actionability_summary_rows,
+            [
+                "run_id",
+                "problem_id",
+                "seed",
+                "horizon_label",
+                "horizon_index",
+                "checkpoint_fe",
+                "configured_max_fes",
+                "fallback_request_fingerprint",
+                "candidate_request_fingerprint",
+                "execution_context_fingerprint",
+                "aob_input_fingerprint",
+                "target_fe",
+                "observed_fe",
+                "prefix_match",
+                "equal_fe",
+                "fallback_error",
+                "candidate_error",
+                "log_advantage",
+                "relative_gain",
+                "numeric_win",
+                "meaningful_win",
+                "catastrophic_loss",
+                "oracle_selected_arm",
+                "oracle_gain",
+                "terminal_sign_agreement",
+                "rank_reversal_from_previous",
+                "integrity_status",
+                "integrity_failures",
+            ],
+        )
+        (output / "car_actionability_gate.json").write_text(
+            json.dumps(
+                {
+                    "status": (
+                        "pass" if not car_actionability_integrity_failures else "blocked"
+                    ),
+                    "integrity_failures": car_actionability_integrity_failures,
+                    "offline_only": True,
+                    "estimand": "one_shot_component_actionability_with_canonical_continuation",
+                    "horizons": ["closure_1", "budget_3x", "budget_9x", "terminal"],
+                    "runtime_dispatch_inputs": [],
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
     _write_csv(
         output / "trajectory_guard_summary.csv",
         _trajectory_guard_summary_rows(action_trace_rows),
@@ -4993,6 +6022,11 @@ def run_hcc_runtime_consumer_smoke(
         search_state_backend,
         runtime_environment,
     )
+    if car_actionability_integrity_failures:
+        raise RuntimeError(
+            "CAR actionability audit integrity gate blocked: "
+            + ";".join(car_actionability_integrity_failures)
+        )
     if paired_runtime_utility_rows:
         manifest_path = output / "run_manifest.md"
         manifest = manifest_path.read_text(encoding="utf-8")
@@ -5081,6 +6115,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "car_w_diagnostic",
             "car_w2_diagnostic",
             "car_w3_diagnostic",
+            "car_actionability_audit",
             "canonical_evidence_controller_v1",
         ],
     )

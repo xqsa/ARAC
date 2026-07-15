@@ -93,7 +93,13 @@ from arac.policy.counterfactual_action_racing import (
     BranchState,
     CARBudgetLedger,
     CARProbeExecutor,
+    derive_probe_seed,
     fingerprint_branch_state,
+)
+from arac.policy.oracle_actionability import (
+    CAR_ACTIONABILITY_HORIZON_LABELS,
+    CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
+    CAR_ACTIONABILITY_PROTOCOL_VERSION,
 )
 from src.arac.policy.trajectory_guard import (
     RecoveryCheckpoint,
@@ -496,6 +502,42 @@ CAR_BRANCH_MANIFEST_FIELDS = [
     "seed_descriptor",
     "probe_seed",
 ]
+CAR_ACTIONABILITY_TRACE_FIELDS = [
+    "protocol_version",
+    "fresh_optimizer_execution",
+    "problem_id",
+    "seed",
+    "audit_arm",
+    "candidate_mode",
+    "horizon_index",
+    "horizon_label",
+    "checkpoint_fe",
+    "checkpoint_fitness",
+    "configured_max_fes",
+    "terminal_completion_tolerance_fe",
+    "termination_reason",
+    "terminal_fe_shortfall",
+    "target_fe",
+    "observed_fe",
+    "best_error",
+    "prefix_state_fingerprint",
+    "prefix_record_sha256",
+    "post_intervention_state_fingerprint",
+    "graph_fingerprint",
+    "component_fingerprint",
+    "candidate_action_name",
+    "candidate_action_family",
+    "candidate_action_applied",
+    "requested_fe",
+    "actual_fe",
+    "seed_descriptor",
+    "probe_seed",
+    "intervention_record_sha256",
+    "fitness_prefix_sha256",
+    "plan_status",
+    "horizon_status",
+    "abstain_reason",
+]
 CAR_W_MIN_EVIDENCE_SWEEPS = 2
 CAR_W_PAIR_COUNT = 3
 CAR_W_PROBE_BUDGET_FRACTION = 0.03
@@ -635,6 +677,7 @@ class SmokeConfig:
     search_state_backend: str = "phase_i_mmes"
     car_branch_order: str = "fallback_first"
     car_candidate_mode: str = "graph"
+    car_actionability_arm: str = "off"
 
 
 @dataclass(frozen=True)
@@ -3867,6 +3910,249 @@ class CARBarrierResult:
     abstain_reason: str
 
 
+@dataclass(frozen=True)
+class CARActionabilityArmResult:
+    state: BranchState | None
+    accounting_record: tuple[float, ...]
+    actual_fe: int
+    trace_base_row: dict[str, str]
+    abstain_reason: str
+
+
+def _fitness_record_sha256(values: tuple[float, ...] | list[float]) -> str:
+    normalized = tuple(float(value) for value in values)
+    return hashlib.sha256(repr(normalized).encode("utf-8")).hexdigest()
+
+
+def execute_car_actionability_arm_at_barrier(
+    *,
+    decision: CARPlanDecision,
+    checkpoint: BranchState,
+    checkpoint_fe: int,
+    prefix_record: tuple[float, ...],
+    fun_name: str,
+    fun_id: int,
+    output_path: Path,
+    info: dict[str, object],
+    config: SmokeConfig,
+    problem_id: str,
+) -> CARActionabilityArmResult:
+    """Execute one offline audit arm from the frozen CAR-W3 checkpoint.
+
+    Independent subprocess lanes provide the two long continuations.  This
+    helper applies the candidate writeback only in the candidate lane's first
+    component closure; both lanes then return to the same canonical runtime.
+    """
+
+    arm = config.car_actionability_arm
+    if arm not in {"fallback", "candidate"}:
+        raise ValueError("CAR actionability execution requires fallback or candidate arm")
+    prefix_hash = _fitness_record_sha256(prefix_record)
+    plan = decision.plan
+    evidence = decision.evidence
+
+    def base_row(*, reason: str, plan_status: str) -> dict[str, str]:
+        return {
+            "protocol_version": CAR_ACTIONABILITY_PROTOCOL_VERSION,
+            "fresh_optimizer_execution": "1",
+            "problem_id": problem_id,
+            "seed": "" if config.seed is None else str(int(config.seed)),
+            "audit_arm": arm,
+            "candidate_mode": config.car_candidate_mode,
+            "horizon_index": "",
+            "horizon_label": "",
+            "checkpoint_fe": str(int(checkpoint_fe)),
+            "checkpoint_fitness": f"{checkpoint.committed_fitness:.17e}",
+            "configured_max_fes": str(int(config.max_fes)),
+            "terminal_completion_tolerance_fe": "",
+            "termination_reason": "",
+            "terminal_fe_shortfall": "",
+            "target_fe": "",
+            "observed_fe": "",
+            "best_error": "",
+            "prefix_state_fingerprint": checkpoint.state_fingerprint,
+            "prefix_record_sha256": prefix_hash,
+            "post_intervention_state_fingerprint": "",
+            "graph_fingerprint": "" if evidence is None else evidence.graph_fingerprint,
+            "component_fingerprint": (
+                "" if evidence is None else evidence.component_fingerprint
+            ),
+            "candidate_action_name": (
+                "" if evidence is None else evidence.candidate_action_name
+            ),
+            "candidate_action_family": (
+                "" if evidence is None else evidence.candidate_action_family
+            ),
+            "candidate_action_applied": "0",
+            "requested_fe": "0",
+            "actual_fe": "0",
+            "seed_descriptor": "",
+            "probe_seed": "",
+            "intervention_record_sha256": "",
+            "fitness_prefix_sha256": "",
+            "plan_status": plan_status,
+            "horizon_status": "",
+            "abstain_reason": reason,
+        }
+
+    if plan is None or evidence is None:
+        reason = decision.abstain_reason or "missing_car_writeback_plan"
+        return CARActionabilityArmResult(
+            state=None,
+            accounting_record=(),
+            actual_fe=0,
+            trace_base_row=base_row(reason=reason, plan_status="not_applicable"),
+            abstain_reason=reason,
+        )
+
+    arm_cap = int(math.floor(config.max_fes * CAR_W_PROBE_BUDGET_FRACTION)) // (
+        2 * CAR_W_PAIR_COUNT
+    )
+    remaining_fe = max(0, int(config.max_fes) - int(checkpoint_fe))
+    budgets = allocate_component_horizon_budgets(
+        max_arm_fes=min(arm_cap, remaining_fe),
+        population_sizes=plan.group_population_sizes,
+    )
+    if not budgets:
+        reason = "audit_budget_cannot_fit_complete_component_horizon"
+        return CARActionabilityArmResult(
+            state=None,
+            accounting_record=(),
+            actual_fe=0,
+            trace_base_row=base_row(reason=reason, plan_status="abstain"),
+            abstain_reason=reason,
+        )
+
+    requested_fe = 1 + sum(budgets)
+    evaluator = Benchmark(
+        str(output_path) + "/",
+        data_dir=config.aob_data_root,
+    ).get_function(fun_name, fun_id)
+    seed_descriptor = derive_probe_seed(
+        base_seed=0 if config.seed is None else int(config.seed),
+        sweep_index=evidence.evidence_sweep_count,
+        component_fingerprint=evidence.component_fingerprint,
+        pair_index=0,
+    )
+    candidate_plan = (
+        shuffled_component_writeback_plan(plan)
+        if config.car_candidate_mode == "shuffled_graph"
+        else plan
+    )
+    apply_candidate = (
+        arm == "candidate" and config.car_candidate_mode != "paired_fallback"
+    )
+    state = run_component_horizon(
+        checkpoint=checkpoint.clone(),
+        evaluator=evaluator,
+        seed_descriptor=seed_descriptor,
+        requested_fes=requested_fe,
+        plan=candidate_plan if apply_candidate else plan,
+        apply_candidate=apply_candidate,
+        optimize_group=lambda **kwargs: _run_car_cma_group(
+            **kwargs,
+            info=info,
+            config=config,
+        ),
+    )
+    record = tuple(float(value) for value in state.evaluator_record)
+    if len(record) != requested_fe:
+        raise RuntimeError("CAR actionability arm FE does not match reservation")
+    row = base_row(reason="", plan_status="applied")
+    row.update(
+        {
+            "post_intervention_state_fingerprint": state.state_fingerprint,
+            "candidate_action_applied": "1" if apply_candidate else "0",
+            "requested_fe": str(requested_fe),
+            "actual_fe": str(len(record)),
+            "seed_descriptor": seed_descriptor.canonical_key,
+            "probe_seed": str(seed_descriptor.seed),
+            "intervention_record_sha256": _fitness_record_sha256(record),
+        }
+    )
+    return CARActionabilityArmResult(
+        state=state.clone(),
+        accounting_record=record,
+        actual_fe=len(record),
+        trace_base_row=row,
+        abstain_reason="",
+    )
+
+
+def finalize_car_actionability_trace(
+    *,
+    trace_base_row: dict[str, str],
+    fitness_record: list[float],
+    max_fes: int,
+) -> list[dict[str, str]]:
+    """Materialize exact-FE nested and terminal labels after one fresh lane."""
+
+    record = tuple(float(value) for value in fitness_record)
+    rows: list[dict[str, str]] = []
+    checkpoint_fe = int(trace_base_row.get("checkpoint_fe") or 0)
+    intervention_fe = int(trace_base_row.get("actual_fe") or 0)
+    plan_applied = trace_base_row.get("plan_status") == "applied"
+    targets: list[tuple[int, str, int]] = []
+    if plan_applied and intervention_fe > 0:
+        for index, (multiplier, label) in enumerate(
+            zip(
+                CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
+                CAR_ACTIONABILITY_HORIZON_LABELS,
+                strict=True,
+            )
+        ):
+            target = checkpoint_fe + multiplier * intervention_fe
+            if target < int(max_fes):
+                targets.append((index, label, target))
+    # Canonical HCC stops only at complete population boundaries, which can be
+    # a few FE below the configured cap.  Pairing later requires both lanes to
+    # expose the same exact terminal FE while retaining configured_max_fes.
+    targets.append((3, "terminal", len(record)))
+
+    for horizon_index, label, target_fe in targets:
+        observed_fe = min(target_fe, len(record))
+        prefix = record[:observed_fe]
+        if label == "terminal":
+            try:
+                tolerance = int(
+                    str(trace_base_row.get("terminal_completion_tolerance_fe", "0"))
+                )
+            except ValueError:
+                tolerance = 0
+            shortfall = max(0, int(max_fes) - len(record))
+            reason = trace_base_row.get("termination_reason", "")
+            horizon_status = (
+                "complete"
+                if shortfall <= tolerance and reason != "early_guard"
+                else "incomplete"
+            )
+        else:
+            horizon_status = "complete" if observed_fe == target_fe else "incomplete"
+        row = dict(trace_base_row)
+        row.update(
+            {
+                "horizon_index": str(horizon_index),
+                "horizon_label": label,
+                "target_fe": str(target_fe),
+                "observed_fe": str(observed_fe),
+                "best_error": (
+                    "" if not prefix else f"{min(prefix):.17e}"
+                ),
+                "fitness_prefix_sha256": (
+                    "" if not prefix else _fitness_record_sha256(prefix)
+                ),
+                "horizon_status": horizon_status,
+                "terminal_fe_shortfall": (
+                    str(max(0, int(max_fes) - len(record)))
+                    if label == "terminal"
+                    else trace_base_row.get("terminal_fe_shortfall", "")
+                ),
+            }
+        )
+        rows.append(row)
+    return rows
+
+
 def execute_car_w_probe_at_barrier(
     *,
     decision: CARPlanDecision,
@@ -4096,6 +4382,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError("unsupported CAR branch order")
     if config.car_candidate_mode not in {"graph", "shuffled_graph", "paired_fallback"}:
         raise ValueError("unsupported CAR candidate mode")
+    if config.car_actionability_arm not in {"off", "fallback", "candidate"}:
+        raise ValueError("unsupported CAR actionability arm")
+    if config.car_actionability_arm != "off" and not is_car_w3_action(
+        config.arac_action
+    ):
+        raise ValueError("CAR actionability audit requires the frozen CAR-W3 action")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -4103,6 +4395,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     problem_id = _problem_id(fun_name, fun_id)
     grouping_result = decompose_problem(fun_id, config.aob_data_root)
     _, overlap_groups, overlapping_elements = remove_overlapping_groups(grouping_result)
+    terminal_completion_tolerance_fe = max(
+        1,
+        max(
+            calculate_cmaes_population_size(len(group))
+            for group in grouping_result
+        ),
+    )
     metadata = load_aob_metadata(fun_id, config.aob_data_root)
     degree = calculate_degree_of_overlap(overlap_groups, metadata["dimension"])
     global_fes = calculate_global_fes(config.max_fes, degree)
@@ -4260,6 +4559,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     car_probe_trace_rows: list[dict[str, str]] = []
     car_state_ledger_rows: list[dict[str, str]] = []
     car_branch_manifest_rows: list[dict[str, str]] = []
+    car_actionability_trace_base_row: dict[str, str] | None = None
     car_probe_fe = 0
     group_stagnation_counts = [0 for _ in grouping_result]
     bipop_global_cooldown = 0
@@ -5512,6 +5812,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 else:
                     checkpoint_fitness = guarded_incumbent_fitness
                     checkpoint_incumbent = guarded_incumbent.copy()
+                if not math.isfinite(float(checkpoint_fitness)):
+                    if current_fitness_evaluations(fun) >= config.max_fes:
+                        raise RuntimeError(
+                            "cannot establish a finite CAR actionability checkpoint"
+                        )
+                    checkpoint_fitness = float(fun(checkpoint_incumbent)[0])
+                    sum_fes += 1
+                    cc_phase_fe += 1
                 checkpoint = BranchState(
                     incumbent=tuple(
                         float(value) for value in checkpoint_incumbent
@@ -5528,43 +5836,121 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                 )
                 checkpoint.state_fingerprint = fingerprint_branch_state(checkpoint)
-                barrier = execute_car_w_probe_at_barrier(
-                    decision=car_decision,
-                    checkpoint=checkpoint,
-                    checkpoint_fe=current_fitness_evaluations(fun),
-                    fun_name=fun_name,
-                    fun_id=fun_id,
-                    output_path=output_path,
-                    info=info,
-                    config=config,
-                    problem_id=problem_id,
-                    branch_order=(
-                        ("candidate", "fallback")
-                        if config.car_branch_order == "candidate_first"
-                        else ("fallback", "candidate")
-                    ),
-                    early_futility_abort=is_car_w3_action(config.arac_action),
-                )
-                car_probe_trace_rows.extend(barrier.probe_trace_rows)
-                car_state_ledger_rows.extend(barrier.state_ledger_rows)
-                car_branch_manifest_rows.extend(barrier.branch_manifest_rows)
-                if barrier.adopted_state is not None:
-                    fun.fitness_record.extend(barrier.accounting_record)
-                    car_probe_fe += barrier.probe_fe
-                    sum_fes += barrier.probe_fe
-                    best_individual = np.asarray(
-                        barrier.adopted_state.incumbent,
-                        dtype=float,
-                    ).copy()
-                    if (
-                        barrier.adopted_state.committed_fitness
-                        < guarded_incumbent_fitness
-                    ):
-                        guarded_incumbent = best_individual.copy()
-                        guarded_incumbent_fitness = (
+                if config.car_actionability_arm != "off":
+                    audit_result = execute_car_actionability_arm_at_barrier(
+                        decision=car_decision,
+                        checkpoint=checkpoint,
+                        checkpoint_fe=current_fitness_evaluations(fun),
+                        prefix_record=tuple(float(value) for value in fun.fitness_record),
+                        fun_name=fun_name,
+                        fun_id=fun_id,
+                        output_path=output_path,
+                        info=info,
+                        config=config,
+                        problem_id=problem_id,
+                    )
+                    car_actionability_trace_base_row = audit_result.trace_base_row
+                    audit_state = audit_result.state
+                    car_state_ledger_rows.append(
+                        {
+                            "problem_id": problem_id,
+                            "seed": "" if config.seed is None else str(int(config.seed)),
+                            "graph_fingerprint": car_actionability_trace_base_row[
+                                "graph_fingerprint"
+                            ],
+                            "component_fingerprint": car_actionability_trace_base_row[
+                                "component_fingerprint"
+                            ],
+                            "candidate_action_name": car_actionability_trace_base_row[
+                                "candidate_action_name"
+                            ],
+                            "candidate_action_family": car_actionability_trace_base_row[
+                                "candidate_action_family"
+                            ],
+                            "candidate_mode": config.car_candidate_mode,
+                            "evidence_sweeps": (
+                                "0"
+                                if car_decision.evidence is None
+                                else str(car_decision.evidence.evidence_sweep_count)
+                            ),
+                            "checkpoint_fe": car_actionability_trace_base_row[
+                                "checkpoint_fe"
+                            ],
+                            "probe_fe": "0",
+                            "total_fe_after_probe": str(
+                                current_fitness_evaluations(fun) + audit_result.actual_fe
+                            ),
+                            "probe_fe_limit": "0",
+                            "adopted_branch": (
+                                "not_applied"
+                                if audit_state is None
+                                else f"offline_oracle_{config.car_actionability_arm}"
+                            ),
+                            "committed_fitness": (
+                                f"{checkpoint.committed_fitness:.17e}"
+                                if audit_state is None
+                                else f"{audit_state.committed_fitness:.17e}"
+                            ),
+                            "evaluated_elite": "",
+                            "state_fingerprint": (
+                                checkpoint.state_fingerprint
+                                if audit_state is None
+                                else audit_state.state_fingerprint
+                            ),
+                            "gate_result": "offline_actionability_audit",
+                            "abstain_reason": audit_result.abstain_reason,
+                        }
+                    )
+                    if audit_state is not None:
+                        fun.fitness_record.extend(audit_result.accounting_record)
+                        sum_fes += audit_result.actual_fe
+                        cc_phase_fe += audit_result.actual_fe
+                        best_individual = np.asarray(
+                            audit_state.incumbent,
+                            dtype=float,
+                        ).copy()
+                        if audit_state.committed_fitness < guarded_incumbent_fitness:
+                            guarded_incumbent = best_individual.copy()
+                            guarded_incumbent_fitness = audit_state.committed_fitness
+                        previous_group_contribution_credit = []
+                else:
+                    barrier = execute_car_w_probe_at_barrier(
+                        decision=car_decision,
+                        checkpoint=checkpoint,
+                        checkpoint_fe=current_fitness_evaluations(fun),
+                        fun_name=fun_name,
+                        fun_id=fun_id,
+                        output_path=output_path,
+                        info=info,
+                        config=config,
+                        problem_id=problem_id,
+                        branch_order=(
+                            ("candidate", "fallback")
+                            if config.car_branch_order == "candidate_first"
+                            else ("fallback", "candidate")
+                        ),
+                        early_futility_abort=is_car_w3_action(config.arac_action),
+                    )
+                    car_probe_trace_rows.extend(barrier.probe_trace_rows)
+                    car_state_ledger_rows.extend(barrier.state_ledger_rows)
+                    car_branch_manifest_rows.extend(barrier.branch_manifest_rows)
+                    if barrier.adopted_state is not None:
+                        fun.fitness_record.extend(barrier.accounting_record)
+                        car_probe_fe += barrier.probe_fe
+                        sum_fes += barrier.probe_fe
+                        best_individual = np.asarray(
+                            barrier.adopted_state.incumbent,
+                            dtype=float,
+                        ).copy()
+                        if (
                             barrier.adopted_state.committed_fitness
-                        )
-                    previous_group_contribution_credit = []
+                            < guarded_incumbent_fitness
+                        ):
+                            guarded_incumbent = best_individual.copy()
+                            guarded_incumbent_fitness = (
+                                barrier.adopted_state.committed_fitness
+                            )
+                        previous_group_contribution_credit = []
 
         if not optimized_any_group:
             break
@@ -5917,6 +6303,98 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
     problem_id = _problem_id(fun_name, fun_id)
     if car_artifacts_enabled:
+        needs_terminal_checkpoint = (
+            (
+                config.car_actionability_arm != "off"
+                and car_actionability_trace_base_row is None
+            )
+            or not car_state_ledger_rows
+        )
+        if needs_terminal_checkpoint and not math.isfinite(
+            float(guarded_incumbent_fitness)
+        ):
+            if current_fitness_evaluations(fun) >= config.max_fes:
+                raise RuntimeError(
+                    "cannot establish a finite CAR actionability checkpoint"
+                )
+            guarded_incumbent_fitness = float(fun(guarded_incumbent)[0])
+            sum_fes += 1
+            cc_phase_fe += 1
+        if car_actionability_trace_base_row is not None:
+            terminal_fe = current_fitness_evaluations(fun)
+            terminal_shortfall = max(0, config.max_fes - terminal_fe)
+            termination_reason = (
+                "early_guard"
+                if cc_harm_guard_consumed
+                else "early_termination"
+                if terminal_shortfall > terminal_completion_tolerance_fe
+                else "population_complete_budget_endpoint"
+            )
+            car_actionability_trace_base_row = {
+                **car_actionability_trace_base_row,
+                "terminal_completion_tolerance_fe": str(
+                    terminal_completion_tolerance_fe
+                ),
+                "termination_reason": termination_reason,
+                "terminal_fe_shortfall": str(terminal_shortfall),
+            }
+        if (
+            config.car_actionability_arm != "off"
+            and car_actionability_trace_base_row is None
+        ):
+            audit_checkpoint = BranchState(
+                incumbent=tuple(float(value) for value in guarded_incumbent),
+                committed_fitness=guarded_incumbent_fitness,
+                evaluator_record=[],
+                state_fingerprint="",
+                state_payload=_car_controller_state_payload(
+                    controller_v31_run_state,
+                    trajectory_mean_cache=trajectory_mean_cache,
+                    previous_group_contribution_credit=(
+                        previous_group_contribution_credit
+                    ),
+                ),
+            )
+            audit_checkpoint.state_fingerprint = fingerprint_branch_state(
+                audit_checkpoint
+            )
+            missing_audit = execute_car_actionability_arm_at_barrier(
+                decision=CARPlanDecision(
+                    plan=None,
+                    evidence=None,
+                    abstain_reason=(
+                        "insufficient_complete_evidence_sweeps"
+                        if car_probe_enabled
+                        else "no_overlap_component_candidate"
+                    ),
+                ),
+                checkpoint=audit_checkpoint,
+                checkpoint_fe=current_fitness_evaluations(fun),
+                prefix_record=tuple(float(value) for value in fun.fitness_record),
+                fun_name=fun_name,
+                fun_id=fun_id,
+                output_path=output_path,
+                info=info,
+                config=config,
+                problem_id=problem_id,
+            )
+            car_actionability_trace_base_row = {
+                **missing_audit.trace_base_row,
+                "terminal_completion_tolerance_fe": str(
+                    terminal_completion_tolerance_fe
+                ),
+                "termination_reason": (
+                    "early_guard"
+                    if cc_harm_guard_consumed
+                    else "early_termination"
+                    if max(0, config.max_fes - current_fitness_evaluations(fun))
+                    > terminal_completion_tolerance_fe
+                    else "population_complete_budget_endpoint"
+                ),
+                "terminal_fe_shortfall": str(
+                    max(0, config.max_fes - current_fitness_evaluations(fun))
+                ),
+            }
         if not car_state_ledger_rows:
             checkpoint = BranchState(
                 incumbent=tuple(float(value) for value in guarded_incumbent),
@@ -5967,6 +6445,23 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             fieldnames=CAR_BRANCH_MANIFEST_FIELDS,
             rows=car_branch_manifest_rows,
         )
+        if (
+            config.car_actionability_arm != "off"
+            and car_actionability_trace_base_row is not None
+        ):
+            _write_car_rows(
+                case_artifact_path(
+                    output_path,
+                    problem_id,
+                    "car_actionability_trace.csv",
+                ),
+                fieldnames=CAR_ACTIONABILITY_TRACE_FIELDS,
+                rows=finalize_car_actionability_trace(
+                    trace_base_row=car_actionability_trace_base_row,
+                    fitness_record=fun.fitness_record,
+                    max_fes=config.max_fes,
+                ),
+            )
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
         relations,
@@ -6105,6 +6600,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=["graph", "shuffled_graph", "paired_fallback"],
         default="graph",
     )
+    parser.add_argument(
+        "--car-actionability-arm",
+        choices=["off", "fallback", "candidate"],
+        default="off",
+        help="Offline paired-lane actionability condition; never used for runtime dispatch.",
+    )
     parser.add_argument("--arac-action-file", type=Path, default=None)
     parser.add_argument(
         "--arac-action",
@@ -6146,6 +6647,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     args = parser.parse_args(argv)
     if args.arac_action_file is not None:
         parser.error("--arac-action-file is not supported by the smoke runner yet")
+    if args.car_actionability_arm != "off" and args.arac_action != CAR_W3_ACTION:
+        parser.error("--car-actionability-arm requires --arac-action CAR-W3")
     return args
 
 
@@ -6171,6 +6674,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         search_state_backend=args.search_state_backend,
         car_branch_order=args.car_branch_order,
         car_candidate_mode=args.car_candidate_mode,
+        car_actionability_arm=args.car_actionability_arm,
     )
     output_paths = []
     for fun_name in args.functions:

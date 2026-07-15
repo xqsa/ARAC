@@ -172,6 +172,27 @@ def test_car_action_is_registered_in_runner_cli() -> None:
     )
     assert control_args.car_candidate_mode == "shuffled_graph"
 
+    audit_args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "results/car-cli",
+            "--max-fes",
+            "5000",
+            "--arac-action",
+            runner.CAR_W3_ACTION,
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+            "--car-actionability-arm",
+            "candidate",
+        ]
+    )
+    assert audit_args.car_actionability_arm == "candidate"
+
 
 def test_car_run_rejects_missing_controller_v31_dispatch(tmp_path: Path) -> None:
     config = runner.SmokeConfig(
@@ -317,6 +338,182 @@ def test_car_paired_fallback_control_is_equal_fe_and_abstains(
     assert all(row["candidate_mode"] == "paired_fallback" for row in result.probe_trace_rows)
     assert all(float(row["normalized_delta"]) == 0.0 for row in result.probe_trace_rows)
     assert all(row["candidate_mode"] == "paired_fallback" for row in result.branch_manifest_rows)
+
+
+@pytest.mark.parametrize(
+    ("arm", "expected_fitness", "expected_action_applied"),
+    [
+        ("fallback", 30.0, "0"),
+        ("candidate", 26.25, "1"),
+    ],
+)
+def test_car_actionability_arm_is_one_shot_and_exact_fe(
+    monkeypatch,
+    tmp_path: Path,
+    arm: str,
+    expected_fitness: float,
+    expected_action_applied: str,
+) -> None:
+    CountingSphere.instances = []
+    monkeypatch.setattr(runner, "Benchmark", FakeBenchmark)
+    monkeypatch.setattr(runner, "CMAES", FakeCMAES)
+    config = runner.SmokeConfig(
+        max_fes=10_000,
+        seed=7,
+        arac_action=runner.CAR_W3_ACTION,
+        enable_relation_dispatch=True,
+        relation_policy_mode="controller_v31",
+        car_actionability_arm=arm,
+        verbose=0,
+    )
+
+    result = runner.execute_car_actionability_arm_at_barrier(
+        decision=make_decision(),
+        checkpoint=make_checkpoint(),
+        checkpoint_fe=100,
+        prefix_record=(100.0, 30.0),
+        fun_name="elliptic",
+        fun_id=2,
+        output_path=tmp_path,
+        info={"lower": -5.0, "upper": 5.0},
+        config=config,
+        problem_id="E2",
+    )
+
+    assert result.state is not None
+    assert result.state.committed_fitness == pytest.approx(expected_fitness)
+    assert result.actual_fe == len(result.accounting_record)
+    assert result.actual_fe > 0
+    assert len(CountingSphere.instances) == 1
+    assert result.trace_base_row["audit_arm"] == arm
+    assert result.trace_base_row["candidate_action_applied"] == expected_action_applied
+    assert result.trace_base_row["requested_fe"] == str(result.actual_fe)
+    assert result.trace_base_row["actual_fe"] == str(result.actual_fe)
+
+
+def test_car_actionability_no_plan_has_zero_cost(tmp_path: Path) -> None:
+    config = runner.SmokeConfig(
+        max_fes=10_000,
+        seed=7,
+        arac_action=runner.CAR_W3_ACTION,
+        enable_relation_dispatch=True,
+        relation_policy_mode="controller_v31",
+        car_actionability_arm="fallback",
+        verbose=0,
+    )
+
+    result = runner.execute_car_actionability_arm_at_barrier(
+        decision=CARPlanDecision(None, None, "no_overlap_component_candidate"),
+        checkpoint=make_checkpoint(),
+        checkpoint_fe=100,
+        prefix_record=(100.0, 30.0),
+        fun_name="elliptic",
+        fun_id=2,
+        output_path=tmp_path,
+        info={"lower": -5.0, "upper": 5.0},
+        config=config,
+        problem_id="E1",
+    )
+
+    assert result.state is None
+    assert result.actual_fe == 0
+    assert result.accounting_record == ()
+    assert result.trace_base_row["plan_status"] == "not_applicable"
+
+
+def test_car_actionability_no_overlap_materializes_finite_terminal_checkpoint(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    class ConstantFunction:
+        def __init__(self) -> None:
+            self.fitness_record: list[float] = []
+
+        def __call__(self, x_batch):
+            values = np.asarray(x_batch, dtype=float)
+            batch_size = 1 if values.ndim == 1 else len(values)
+            result = np.full(batch_size, 100.0)
+            self.fitness_record.extend(result.tolist())
+            return result
+
+    class ConstantBenchmark:
+        def __init__(self, *args, **kwargs) -> None:
+            pass
+
+        def get_function(self, fun_name, fun_id):
+            return ConstantFunction()
+
+        def get_info(self, fun_name, fun_id):
+            return {"dimension": 4, "lower": -5.0, "upper": 5.0}
+
+    class ConstantCMAES:
+        def __init__(self, problem, options) -> None:
+            self.problem = problem
+            self.options = options
+
+        def optimize(self):
+            requested = int(self.options["max_function_evaluations"])
+            mean = np.asarray(self.options["mean"][0], dtype=float).reshape(-1)
+            values = self.problem["fitness_function"](
+                np.tile(mean, (requested, 1))
+            )
+            return {
+                "best_so_far_x": mean.copy(),
+                "best_so_far_y": float(np.min(values)),
+                "n_function_evaluations": requested,
+            }
+
+    monkeypatch.setattr(runner, "Benchmark", ConstantBenchmark)
+    monkeypatch.setattr(runner, "CMAES", ConstantCMAES)
+    monkeypatch.setattr(
+        runner,
+        "decompose_problem",
+        lambda fun_id, data_root=None: [[0, 1], [2, 3]],
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_overlapping_groups",
+        lambda grouping: (grouping, [], [[]]),
+    )
+    monkeypatch.setattr(
+        runner,
+        "load_aob_metadata",
+        lambda fun_id, data_root=None: {
+            "dimension": 4,
+            "overlap_degree": 0,
+            "subgroups": [2, 2],
+        },
+    )
+    monkeypatch.setattr(runner, "calculate_global_fes", lambda max_fes, degree: 0)
+
+    record, _, _ = runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        runner.SmokeConfig(
+            max_fes=20,
+            seed=1,
+            arac_action=runner.CAR_W3_ACTION,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+            car_actionability_arm="fallback",
+            verbose=0,
+        ),
+    )
+
+    rows = runner._read_csv_rows(
+        runner.case_artifact_path(
+            tmp_path,
+            "E1",
+            "car_actionability_trace.csv",
+        )
+    )
+    assert len(record) <= 20
+    assert len(rows) == 1
+    assert rows[0]["plan_status"] == "not_applicable"
+    assert rows[0]["actual_fe"] == "0"
+    assert float(rows[0]["checkpoint_fitness"]) == pytest.approx(100.0)
+    assert rows[0]["prefix_state_fingerprint"]
 
 
 @pytest.mark.parametrize(

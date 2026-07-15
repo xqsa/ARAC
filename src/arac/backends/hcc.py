@@ -226,6 +226,7 @@ class HccAobExecutionRequest:
     skip_plots: bool = False
     search_state_backend: str = "phase_i_mmes"
     car_candidate_mode: str = "graph"
+    car_actionability_arm: str = "off"
     hcc_repo_root: Path | None = None
     hcc_runner: Path | None = None
 
@@ -476,6 +477,14 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError(
             "car_candidate_mode must be 'graph', 'shuffled_graph', or 'paired_fallback'"
         )
+    if request.car_actionability_arm not in {"off", "fallback", "candidate"}:
+        raise ValueError(
+            "car_actionability_arm must be 'off', 'fallback', or 'candidate'"
+        )
+    if request.car_actionability_arm != "off" and request.arac_action != (
+        "arac_counterfactual_action_racing_w3"
+    ):
+        raise ValueError("CAR actionability arms require the frozen CAR-W3 action")
     vendor_paths = resolve_hcc_vendor_paths(
         request.hcc_root,
         repo_root=request.hcc_repo_root,
@@ -513,6 +522,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
     ]
     if request.car_candidate_mode != "graph":
         argv.extend(("--car-candidate-mode", request.car_candidate_mode))
+    if request.car_actionability_arm != "off":
+        argv.extend(("--car-actionability-arm", request.car_actionability_arm))
     if request.enable_relation_dispatch:
         argv.append("--enable-relation-dispatch")
     if request.relation_policy_mode:
@@ -568,6 +579,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             skip_plots=request.skip_plots,
             search_state_backend=request.search_state_backend,
             car_candidate_mode=request.car_candidate_mode,
+            car_actionability_arm=request.car_actionability_arm,
         )
     )
     start = time.time()

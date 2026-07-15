@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -9,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from arac.actions import ActionFamily
 from arac.backends.hcc import HccAobExecutionRequest, HccAobExecutionResult
 
 
@@ -59,6 +61,57 @@ def test_exp_003_config_fingerprint_tracks_actual_vendor_and_runner(tmp_path: Pa
     after = _config_fingerprint(**kwargs)
 
     assert before != after
+
+    phase_i = _config_fingerprint(**kwargs, search_state_backend="phase_i_mmes")
+    diagonal = _config_fingerprint(**kwargs, search_state_backend="diagonal_cma")
+    assert phase_i != diagonal
+
+
+def test_car_actionability_request_fingerprint_binds_code_and_aob_content(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _car_actionability_request_payload,
+    )
+
+    runner = tmp_path / "runner.py"
+    runner.write_text("RUNNER = 1\n", encoding="utf-8")
+    aob_root = tmp_path / "aob-data"
+    aob_root.mkdir()
+    (aob_root / "F2-info.txt").write_text(
+        "subgroups_type: []\n",
+        encoding="utf-8",
+    )
+    for suffix in ("design", "p", "s", "w", "xopt"):
+        (aob_root / f"F2-{suffix}.txt").write_text(
+            f"{suffix}=1\n",
+            encoding="utf-8",
+        )
+    request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=1,
+        max_fes=5_000,
+        output_dir=tmp_path / "out",
+        aob_data_root=aob_root,
+        hcc_runner=runner,
+        arac_action="arac_counterfactual_action_racing_w3",
+        car_actionability_arm="fallback",
+    )
+
+    before = _car_actionability_request_payload(request)
+    runner.write_text("RUNNER = 2\n", encoding="utf-8")
+    after_code = _car_actionability_request_payload(request)
+    assert before["request"]["execution_context_fingerprint"] != (
+        after_code["request"]["execution_context_fingerprint"]
+    )
+    assert before["request_fingerprint"] != after_code["request_fingerprint"]
+
+    (aob_root / "F2-w.txt").write_text("w=2\n", encoding="utf-8")
+    after_aob = _car_actionability_request_payload(request)
+    assert after_code["request"]["aob_input_fingerprint"] != (
+        after_aob["request"]["aob_input_fingerprint"]
+    )
+    assert after_code["request_fingerprint"] != after_aob["request_fingerprint"]
 
 
 def test_exp_003_cli_describes_canonical_vendor_runtime_root(
@@ -148,6 +201,236 @@ def test_exp_003_car_w3_diagnostic_profile_has_first_pair_controls() -> None:
     assert parse_args(["--lane-profile", "car_w3_diagnostic"]).lane_profile == (
         "car_w3_diagnostic"
     )
+
+
+def test_exp_003_car_actionability_profile_has_paired_external_arms() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        lanes_for_profile,
+        parse_args,
+    )
+
+    lanes = lanes_for_profile("car_actionability_audit")
+
+    assert [lane.lane_id for lane in lanes] == [
+        "oracle_fallback",
+        "oracle_candidate",
+    ]
+    assert [lane.car_actionability_arm for lane in lanes] == [
+        "fallback",
+        "candidate",
+    ]
+    assert all(
+        lane.runner_action_name == "arac_counterfactual_action_racing_w3"
+        for lane in lanes
+    )
+    assert parse_args(["--lane-profile", "car_actionability_audit"]).lane_profile == (
+        "car_actionability_audit"
+    )
+
+
+def test_car_actionability_summary_pairs_horizons_and_fails_closed() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _car_actionability_summary_rows,
+    )
+
+    base = {
+        "run_id": "exp_003_hcc_runtime_consumer_smoke",
+        "problem_id": "E2",
+        "seed": "1",
+        "horizon_label": "terminal",
+        "horizon_index": "3",
+        "checkpoint_fe": "100",
+        "target_fe": "1000",
+        "observed_fe": "1000",
+        "configured_max_fes": "1000",
+        "request_fingerprint": "request-a",
+        "execution_context_fingerprint": "context-a",
+        "aob_input_fingerprint": "aob-a",
+        "horizon_status": "complete",
+        "plan_status": "applied",
+        "seed_descriptor": "seed-key",
+        "probe_seed": "17",
+        "graph_fingerprint": "graph-a",
+        "component_fingerprint": "component-a",
+        "candidate_action_name": "repair_shared_variable_binding",
+        "candidate_action_family": "coordinate",
+        "candidate_action_applied": "0",
+        "prefix_state_fingerprint": "same-state",
+        "prefix_record_sha256": "same-record",
+        "requested_fe": "25",
+        "actual_fe": "25",
+        "plan_status": "applied",
+        "abstain_reason": "",
+    }
+    rows = _car_actionability_summary_rows(
+        [
+            {**base, "lane_id": "oracle_fallback", "audit_arm": "fallback", "best_error": "100"},
+            {
+                **base,
+                "lane_id": "oracle_candidate",
+                "audit_arm": "candidate",
+                "best_error": "80",
+                "candidate_action_applied": "1",
+            },
+        ]
+    )
+
+    assert len(rows) == 1
+    assert rows[0]["integrity_status"] == "pass"
+    assert float(rows[0]["log_advantage"]) == pytest.approx(
+        __import__("math").log(100.0) - __import__("math").log(80.0)
+    )
+    assert rows[0]["numeric_win"] == 1
+    assert rows[0]["meaningful_win"] == 1
+    assert rows[0]["oracle_selected_arm"] == "candidate"
+
+    mismatched = _car_actionability_summary_rows(
+        [
+            {**base, "lane_id": "oracle_fallback", "audit_arm": "fallback", "best_error": "100"},
+            {
+                **base,
+                "lane_id": "oracle_candidate",
+                "audit_arm": "candidate",
+                "best_error": "80",
+                "prefix_state_fingerprint": "different-state",
+                "actual_fe": "24",
+                "execution_context_fingerprint": "context-b",
+                "aob_input_fingerprint": "aob-b",
+                "candidate_action_applied": "1",
+            },
+        ]
+    )
+    assert mismatched[0]["integrity_status"] == "fail"
+    assert "prefix_mismatch" in mismatched[0]["integrity_failures"]
+    assert "unequal_intervention_fe" in mismatched[0]["integrity_failures"]
+    assert "execution_context_mismatch" in mismatched[0]["integrity_failures"]
+    assert "aob_input_mismatch" in mismatched[0]["integrity_failures"]
+    assert mismatched[0]["fallback_error"] == ""
+    assert mismatched[0]["candidate_error"] == ""
+    assert mismatched[0]["oracle_gain"] == ""
+
+    incomplete = _car_actionability_summary_rows(
+        [
+            {
+                **base,
+                "lane_id": "oracle_fallback",
+                "audit_arm": "fallback",
+                "best_error": "100",
+                "observed_fe": "999",
+                "horizon_status": "incomplete",
+            },
+            {
+                **base,
+                "lane_id": "oracle_candidate",
+                "audit_arm": "candidate",
+                "best_error": "80",
+                "observed_fe": "999",
+                "horizon_status": "incomplete",
+                "candidate_action_applied": "1",
+            },
+        ]
+    )
+    assert incomplete[0]["integrity_status"] == "fail"
+    assert "incomplete_horizon" in incomplete[0]["integrity_failures"]
+    assert incomplete[0]["fallback_error"] == ""
+    assert incomplete[0]["candidate_error"] == ""
+
+    empty_crn = _car_actionability_summary_rows(
+        [
+            {
+                **base,
+                "lane_id": "oracle_fallback",
+                "audit_arm": "fallback",
+                "best_error": "100",
+                "seed_descriptor": "",
+                "probe_seed": "",
+            },
+            {
+                **base,
+                "lane_id": "oracle_candidate",
+                "audit_arm": "candidate",
+                "best_error": "80",
+                "candidate_action_applied": "1",
+                "seed_descriptor": "",
+                "probe_seed": "",
+            },
+        ]
+    )
+    assert empty_crn[0]["integrity_status"] == "fail"
+    assert "crn_seed_mismatch" in empty_crn[0]["integrity_failures"]
+
+
+def test_car_actionability_coverage_requires_every_lane_terminal() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        LaneConfig,
+        _car_actionability_coverage_failures,
+    )
+
+    lane = LaneConfig(
+        "oracle_fallback",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "arac_counterfactual_action_racing_w3",
+        "offline",
+        car_actionability_arm="fallback",
+    )
+    failures = _car_actionability_coverage_failures(
+        [],
+        problem_ids=("E2",),
+        seeds=(1,),
+        lanes=(lane,),
+    )
+
+    assert failures == ["E2/seed1/oracle_fallback:terminal_count=0"]
+
+
+def test_car_actionability_aob_inputs_must_match_between_arms() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _car_actionability_aob_pair_failures,
+        lanes_for_profile,
+    )
+
+    lanes = lanes_for_profile("car_actionability_audit")
+    rows = [
+        {
+            "problem_id": "E2",
+            "seed": "1",
+            "lane_id": lane_id,
+            "file": "F2-info.txt",
+            "sha256_before": digest,
+        }
+        for lane_id, digest in (
+            ("oracle_fallback", "same"),
+            ("oracle_candidate", "same"),
+        )
+    ]
+
+    assert _car_actionability_aob_pair_failures(
+        rows,
+        problem_ids=("E2",),
+        seeds=(1,),
+        lanes=lanes,
+    ) == []
+    rows[1]["sha256_before"] = "different"
+    failures = _car_actionability_aob_pair_failures(
+        rows,
+        problem_ids=("E2",),
+        seeds=(1,),
+        lanes=lanes,
+    )
+    assert failures == [
+        "E2/seed1:oracle_candidate:aob_hash_mismatch=F2-info.txt"
+    ]
+
+
+def test_actionability_log_helper_uses_floor_for_zero_error() -> None:
+    from arac.policy.oracle_actionability import log_actionability_advantage
+
+    assert log_actionability_advantage(10.0, 0.0, log_floor=1e-12) == pytest.approx(
+        __import__("math").log(10.0) - __import__("math").log(1e-12)
+    )
+    with pytest.raises(ValueError, match="non-negative"):
+        log_actionability_advantage(10.0, -1.0)
 
 
 def test_car_w3_utility_uses_v33_fallback_reference(tmp_path: Path) -> None:
@@ -255,6 +538,174 @@ def test_exp_003_reuses_completed_lane_artifact(tmp_path: Path) -> None:
     assert result.fe_used == 2000
     assert result.optimizer_final_fe_used == 2001
     assert result.action_trace_rows == 1
+
+
+def test_car_actionability_reuse_requires_complete_untampered_provenance(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _complete_car_actionability_provenance,
+        _existing_completed_result,
+        _prepare_car_actionability_provenance,
+    )
+
+    request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=7,
+        max_fes=2_000,
+        output_dir=tmp_path,
+        car_actionability_arm="fallback",
+    )
+    assert _existing_completed_result(request) is None
+    scheduled = _prepare_car_actionability_provenance(request)
+    assert scheduled["status"] == "scheduled"
+    (tmp_path / "evaluation_record.txt").write_text(
+        "1000 9.0\n2000 4.2\nFin: 2000 4.2\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "E2_budget_summary.csv").write_text(
+        "fitness_record_fe,optimizer_reported_fe\n2000,2000\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "E2_aob_input_manifest.csv").write_text(
+        "problem_id,file,path,sha256_before,sha256_after,unchanged\n"
+        "E2,F2-info.txt,F2-info.txt,same,same,1\n",
+        encoding="utf-8",
+    )
+    action_trace = tmp_path / "action_trace.csv"
+    action_trace.write_text(
+        "problem_id,seed,outer_iter,group_index,selected_action_name\n"
+        "E2,7,0,1,arac_counterfactual_action_racing_w3\n",
+        encoding="utf-8",
+    )
+    audit_trace = tmp_path / "E2_car_actionability_trace.csv"
+    audit_text = (
+        "protocol_version,fresh_optimizer_execution,problem_id,seed,audit_arm,"
+        "candidate_mode,configured_max_fes,horizon_label,horizon_status\n"
+        "car-actionability-v1,1,E2,7,fallback,graph,2000,terminal,complete\n"
+    )
+    audit_trace.write_text(audit_text, encoding="utf-8")
+
+    result = HccAobExecutionResult(
+        problem_id="E2",
+        seed=7,
+        max_fes=2_000,
+        final_error=4.2,
+        fe_used=2_000,
+        time_seconds=0.1,
+        output_root=tmp_path,
+        fresh_optimizer_execution=True,
+        status="completed",
+        result_source="test",
+        action_trace_path=action_trace,
+        action_trace_rows=1,
+        optimizer_final_fe_used=2_000,
+    )
+    _complete_car_actionability_provenance(request, result)
+
+    reused = _existing_completed_result(request)
+    assert reused is not None
+    assert reused.fresh_optimizer_execution is True
+    assert reused.result_source == "verified_fresh_car_actionability_artifact"
+
+    audit_trace.write_text(audit_text + "\n", encoding="utf-8")
+    assert _existing_completed_result(request) is None
+    audit_trace.write_text(audit_text, encoding="utf-8")
+    assert _existing_completed_result(request) is not None
+
+    action_text = action_trace.read_text(encoding="utf-8")
+    action_trace.write_text(action_text + "\n", encoding="utf-8")
+    assert _existing_completed_result(request) is None
+    action_trace.write_text(action_text, encoding="utf-8")
+
+    evaluation_path = tmp_path / "evaluation_record.txt"
+    evaluation_text = evaluation_path.read_text(encoding="utf-8")
+    evaluation_path.write_text(evaluation_text + "\n", encoding="utf-8")
+    assert _existing_completed_result(request) is None
+    evaluation_path.write_text(evaluation_text, encoding="utf-8")
+
+    budget_path = tmp_path / "E2_budget_summary.csv"
+    budget_text = budget_path.read_text(encoding="utf-8")
+    budget_path.write_text(budget_text + "\n", encoding="utf-8")
+    assert _existing_completed_result(request) is None
+    budget_path.write_text(budget_text, encoding="utf-8")
+    assert _existing_completed_result(request) is not None
+
+    aob_manifest_path = tmp_path / "E2_aob_input_manifest.csv"
+    aob_manifest_text = aob_manifest_path.read_text(encoding="utf-8")
+    aob_manifest_path.write_text(aob_manifest_text + "\n", encoding="utf-8")
+    assert _existing_completed_result(request) is None
+    aob_manifest_path.write_text(aob_manifest_text, encoding="utf-8")
+    assert _existing_completed_result(request) is not None
+    with pytest.raises(RuntimeError, match="already complete"):
+        _prepare_car_actionability_provenance(request)
+
+    mismatched_request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=8,
+        max_fes=2_000,
+        output_dir=tmp_path,
+        car_actionability_arm="fallback",
+    )
+    with pytest.raises(RuntimeError, match="different request"):
+        _prepare_car_actionability_provenance(mismatched_request)
+
+
+def test_car_actionability_prepare_rejects_unprovenanced_artifacts(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _prepare_car_actionability_provenance,
+    )
+
+    (tmp_path / "action_trace.csv").write_text("header\n", encoding="utf-8")
+    request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=7,
+        max_fes=2_000,
+        output_dir=tmp_path,
+        car_actionability_arm="fallback",
+    )
+
+    with pytest.raises(RuntimeError, match="unprovenanced artifacts"):
+        _prepare_car_actionability_provenance(request)
+
+
+def test_car_actionability_provenance_rejects_nonfresh_completion(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _complete_car_actionability_provenance,
+        _prepare_car_actionability_provenance,
+    )
+
+    request = HccAobExecutionRequest(
+        problem_id="E2",
+        seed=7,
+        max_fes=2_000,
+        output_dir=tmp_path,
+        car_actionability_arm="candidate",
+    )
+    _prepare_car_actionability_provenance(request)
+    failed = HccAobExecutionResult(
+        problem_id="E2",
+        seed=7,
+        max_fes=2_000,
+        final_error=float("nan"),
+        fe_used=0,
+        time_seconds=0.1,
+        output_root=tmp_path,
+        fresh_optimizer_execution=False,
+        status="failed_returncode_1",
+        result_source="test",
+    )
+
+    with pytest.raises(RuntimeError, match="was not fresh"):
+        _complete_car_actionability_provenance(request, failed)
+    provenance = json.loads(
+        (tmp_path / "car_actionability_provenance.json").read_text(encoding="utf-8")
+    )
+    assert provenance["status"] == "scheduled"
 
 
 def test_exp_003_normalizes_subprocess_run_id_in_relation_artifacts(tmp_path: Path) -> None:

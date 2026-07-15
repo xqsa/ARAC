@@ -157,6 +157,43 @@ def test_hcc_aob_smoke_command_passes_car_candidate_control(
     assert command.argv[option_index + 1] == mode
 
 
+@pytest.mark.parametrize("arm", ["fallback", "candidate"])
+def test_hcc_aob_smoke_command_passes_car_actionability_arm(
+    tmp_path: Path,
+    arm: str,
+) -> None:
+    command = build_hcc_aob_smoke_command(
+        HccAobExecutionRequest(
+            problem_id="E2",
+            seed=3,
+            max_fes=3_000_000,
+            output_dir=tmp_path,
+            arac_action="arac_counterfactual_action_racing_w3",
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+            car_actionability_arm=arm,
+        )
+    )
+
+    option_index = command.argv.index("--car-actionability-arm")
+    assert command.argv[option_index + 1] == arm
+
+
+def test_hcc_aob_smoke_command_rejects_actionability_arm_without_car_w3(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(ValueError, match="CAR-W3"):
+        build_hcc_aob_smoke_command(
+            HccAobExecutionRequest(
+                problem_id="E2",
+                seed=3,
+                max_fes=3_000_000,
+                output_dir=tmp_path,
+                car_actionability_arm="candidate",
+            )
+        )
+
+
 def test_hcc_aob_smoke_command_rejects_unknown_search_state_backend(
     tmp_path: Path,
 ) -> None:
