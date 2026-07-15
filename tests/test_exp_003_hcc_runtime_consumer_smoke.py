@@ -2495,6 +2495,25 @@ def test_exp_003_cli_accepts_evidence_action_controller_v40_profile() -> None:
     assert args.lane_profile == "evidence_action_controller_v40"
 
 
+def test_exp_003_v41_is_one_runtime_component_lease_lane() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        COMPONENT_CREDIT_TRACE_FIELDS,
+        action_trace_fields_for_lanes,
+        lanes_for_profile,
+        parse_args,
+    )
+
+    lanes = lanes_for_profile("evidence_action_controller_v41")
+    args = parse_args(["--lane-profile", "evidence_action_controller_v41"])
+
+    assert len(lanes) == 1
+    assert lanes[0].runner_action_name == "arac_evidence_action_controller_v41"
+    assert set(COMPONENT_CREDIT_TRACE_FIELDS).issubset(
+        action_trace_fields_for_lanes(lanes)
+    )
+    assert args.lane_profile == "evidence_action_controller_v41"
+
+
 def test_exp_003_paired_profile_has_fallback_candidate_and_negative_controls() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         lanes_for_profile,

@@ -78,6 +78,7 @@ from src.arac.policy.component_delayed_credit import (
     COMPONENT_CREDIT_TRACE_FIELDS,
     ComponentDelayedCreditTrace,
     calculate_scheduler_revisit_cap,
+    decide_component_lease,
 )
 from src.arac.actions.controller_profiles import (
     controller_has_capability,
@@ -601,6 +602,7 @@ EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
 EVIDENCE_ACTION_CONTROLLER_V38 = controller_profile_by_version(38).action_name
 EVIDENCE_ACTION_CONTROLLER_V39 = controller_profile_by_version(39).action_name
 EVIDENCE_ACTION_CONTROLLER_V40 = controller_profile_by_version(40).action_name
+EVIDENCE_ACTION_CONTROLLER_V41 = controller_profile_by_version(41).action_name
 CAR_W_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w").action_name
 CAR_W2_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w2").action_name
 CAR_W3_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w3").action_name
@@ -1524,6 +1526,16 @@ def is_evidence_action_controller_v40(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V40
 
 
+def is_evidence_action_controller_v41(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V41
+
+
+def uses_component_credit_state(action_name: str) -> bool:
+    return is_evidence_action_controller_v40(
+        action_name
+    ) or is_evidence_action_controller_v41(action_name)
+
+
 def is_car_w_action(action_name: str) -> bool:
     return action_name == CAR_W_ACTION
 
@@ -1595,6 +1607,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
         or is_evidence_action_controller_v40(action_name)
+        or is_evidence_action_controller_v41(action_name)
         or is_car_w_family_action(action_name)
     )
 
@@ -1614,6 +1627,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
         or is_evidence_action_controller_v40(action_name)
+        or is_evidence_action_controller_v41(action_name)
         or is_car_w_family_action(action_name)
     )
 
@@ -1656,6 +1670,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
             or is_evidence_action_controller_v40(action_name)
+            or is_evidence_action_controller_v41(action_name)
             or is_car_w_family_action(action_name)
         )
         and evidence_controller_search_state_enabled
@@ -1679,6 +1694,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v38(config.arac_action)
             or is_evidence_action_controller_v39(config.arac_action)
             or is_evidence_action_controller_v40(config.arac_action)
+            or is_evidence_action_controller_v41(config.arac_action)
             or is_car_w_family_action(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
@@ -1757,15 +1773,21 @@ def refine_sigma_for_action(
     base_sigma: float,
     *,
     controller_v31_run_state: EvidenceActionControllerV31RunState | None = None,
+    precision_reanchor_active: bool | None = None,
 ) -> float:
     if action_name == REPAIR_PROTECT_DEEP_REFINE_ACTION:
         return float(base_sigma) * REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
     if action_name in {REPAIR_PROTECT_REFINE_ACTION, REPAIR_PHASE_RESCUE_MULTISTART_ACTION}:
         return float(base_sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
-    if uses_post_retirement_precision_reanchor(
-        action_name,
-        controller_v31_run_state,
-    ):
+    precision_active = (
+        uses_post_retirement_precision_reanchor(
+            action_name,
+            controller_v31_run_state,
+        )
+        if precision_reanchor_active is None
+        else bool(precision_reanchor_active)
+    )
+    if precision_active:
         return float(base_sigma) * REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
     if (
         (
@@ -1779,6 +1801,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
             or is_evidence_action_controller_v40(action_name)
+            or is_evidence_action_controller_v41(action_name)
             or is_car_w_family_action(action_name)
         )
         and controller_v31_run_state is not None
@@ -1797,6 +1820,7 @@ def uses_post_retirement_precision_reanchor(
             is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
             or is_evidence_action_controller_v40(action_name)
+            or is_evidence_action_controller_v41(action_name)
         )
         and controller_run_state is not None
         and controller_run_state.v38_enabled
@@ -4465,6 +4489,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             or is_evidence_action_controller_v38(config.arac_action)
             or is_evidence_action_controller_v39(config.arac_action)
             or is_evidence_action_controller_v40(config.arac_action)
+            or is_evidence_action_controller_v41(config.arac_action)
         )
         else build_evidence_action_controller_v31_run_state(degree)
         if (
@@ -4627,7 +4652,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             lower=float(info["lower"]),
             upper=float(info["upper"]),
         )
-        if is_evidence_action_controller_v40(config.arac_action)
+        if uses_component_credit_state(config.arac_action)
         else None
     )
 
@@ -4829,10 +4854,47 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     lower=info["lower"],
                     upper=info["upper"],
                 )
+            primary_evaluations_before = current_fitness_evaluations(fun)
+            precision_reanchor_requested = uses_post_retirement_precision_reanchor(
+                config.arac_action,
+                controller_v31_run_state,
+            )
+            scheduler_revisit_cap = (
+                calculate_scheduler_revisit_cap(
+                    sweep_start_fe=sweep_fes_before,
+                    decision_fe=primary_evaluations_before,
+                    cc_budget_limit_fe=cc_budget_limit_fes,
+                    current_group_index=index,
+                    current_sweep_group_budget_fe=sub_fes,
+                    current_optimizer_budget_fe=optimizer_budget,
+                    group_population_sizes=tuple(population_sizes),
+                )
+                if component_credit_trace is not None
+                and precision_reanchor_requested
+                else None
+            )
+            component_lease_eligibility = (
+                component_credit_trace.component_lease_eligibility(
+                    group_index=index,
+                    scheduler_revisit_cap=scheduler_revisit_cap,
+                )
+                if is_evidence_action_controller_v41(config.arac_action)
+                and component_credit_trace is not None
+                and scheduler_revisit_cap is not None
+                else None
+            )
+            precision_reanchor_active = bool(
+                precision_reanchor_requested
+                and (
+                    component_lease_eligibility is None
+                    or component_lease_eligibility.selected
+                )
+            )
             cma_sigma_reference = refine_sigma_for_action(
                 config.arac_action,
                 config.sigma,
                 controller_v31_run_state=controller_v31_run_state,
+                precision_reanchor_active=precision_reanchor_active,
             )
             cc_sigma = cma_sigma_reference
             cma_sigma_applied_factor = 1.0
@@ -4849,10 +4911,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     dims,
                     cma_sigma_reference,
                 )
-            precision_reanchor_active = uses_post_retirement_precision_reanchor(
-                config.arac_action,
-                controller_v31_run_state,
-            )
             objective_function = lambda x_batch, dims=dims: fun(combine(x_batch, best_individual, dims))
             problem_cc = {
                 "fitness_function": objective_function,
@@ -4878,21 +4936,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     0,
                     stage_index,
                 )
-            primary_evaluations_before = current_fitness_evaluations(fun)
-            scheduler_revisit_cap = (
-                calculate_scheduler_revisit_cap(
-                    sweep_start_fe=sweep_fes_before,
-                    decision_fe=primary_evaluations_before,
-                    cc_budget_limit_fe=cc_budget_limit_fes,
-                    current_group_index=index,
-                    current_sweep_group_budget_fe=sub_fes,
-                    current_optimizer_budget_fe=optimizer_budget,
-                    group_population_sizes=tuple(population_sizes),
-                )
-                if component_credit_trace is not None
-                and precision_reanchor_active
-                else None
-            )
             results_cc = CMAES(problem_cc, options_cc).optimize()
             optimized_any_group = True
             primary_cc_fe = observed_optimizer_fe(
@@ -4942,7 +4985,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             trajectory_mean_cache[int(variable_index)] = float(accepted_mean[local_index])
             else:
                 current_delta = 0.0
-            if precision_reanchor_active:
+            if precision_reanchor_active or component_lease_eligibility is not None:
                 normal_refine_sigma = (
                     float(config.sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
                 )
@@ -4953,16 +4996,26 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     group_index=index,
                     selected_action_name=(
                         POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+                        if precision_reanchor_active
+                        else "conservative_no_action"
                     ),
                     overlap_size=0,
                     previous_delta=0.0,
-                    current_delta=current_delta,
-                    state_mutated=new_best_y < original_fitness,
+                    current_delta=(current_delta if precision_reanchor_active else 0.0),
+                    state_mutated=(
+                        precision_reanchor_active and new_best_y < original_fitness
+                    ),
                     action_value_delta_norm=abs(normal_refine_sigma - cc_sigma),
-                    downstream_consumed=True,
-                    downstream_consumption_scope="current_group_optimizer",
+                    downstream_consumed=precision_reanchor_active,
+                    downstream_consumption_scope=(
+                        "current_group_optimizer"
+                        if precision_reanchor_active
+                        else "no_state_change"
+                    ),
                     search_state_action_type=(
                         POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+                        if precision_reanchor_active
+                        else ""
                     ),
                     sigma_before=normal_refine_sigma,
                     sigma_after=cc_sigma,
@@ -4976,14 +5029,25 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         / max(config.max_fes, 1)
                     ),
                     decision_point=f"group_optimizer:{outer_iter}:{index}",
-                    state_action_fe=primary_cc_fe,
+                    state_action_fe=(primary_cc_fe if precision_reanchor_active else 0),
                 )
                 if scheduler_revisit_cap is not None:
                     precision_trace_row.update(
                         scheduler_revisit_cap.trace_fields()
                     )
+                if (
+                    component_credit_trace is not None
+                    and component_lease_eligibility is not None
+                ):
+                    component_credit_trace.annotate_lease_eligibility(
+                        precision_trace_row,
+                        group_index=index,
+                        eligibility=component_lease_eligibility,
+                        decision_fe=primary_evaluations_before,
+                        max_fes=config.max_fes,
+                    )
                 action_trace_rows.append(precision_trace_row)
-                if component_credit_trace is not None:
+                if component_credit_trace is not None and precision_reanchor_active:
                     component_credit_trace.register_search_action(
                         precision_trace_row,
                         action_name=POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
@@ -4995,6 +5059,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         post_action_fitness=original_fitness - current_delta,
                         pre_action_candidate=original_best,
                         post_action_candidate=best_individual,
+                        require_component_unlocked=is_evidence_action_controller_v41(
+                            config.arac_action
+                        ),
                     )
             if (
                 controller_v31_run_state is not None
@@ -5601,7 +5668,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         config.arac_action
                     ) or is_evidence_action_controller_v39(
                         config.arac_action
-                    ) or is_evidence_action_controller_v40(config.arac_action):
+                    ) or is_evidence_action_controller_v40(
+                        config.arac_action
+                    ) or is_evidence_action_controller_v41(config.arac_action):
                         (
                             action,
                             adjusted_values,
@@ -6765,6 +6834,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V38,
             EVIDENCE_ACTION_CONTROLLER_V39,
             EVIDENCE_ACTION_CONTROLLER_V40,
+            EVIDENCE_ACTION_CONTROLLER_V41,
             CAR_W_ACTION,
             CAR_W2_ACTION,
             CAR_W3_ACTION,
@@ -6856,8 +6926,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
                     or is_evidence_action_controller_v38(config.arac_action)
                     or is_evidence_action_controller_v39(config.arac_action)
                     or is_evidence_action_controller_v40(config.arac_action)
+                    or is_evidence_action_controller_v41(config.arac_action)
                 ),
-                include_component_credit_fields=is_evidence_action_controller_v40(
+                include_component_credit_fields=uses_component_credit_state(
                     config.arac_action
                 ),
             )
@@ -6900,8 +6971,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 or is_evidence_action_controller_v38(config.arac_action)
                 or is_evidence_action_controller_v39(config.arac_action)
                 or is_evidence_action_controller_v40(config.arac_action)
+                or is_evidence_action_controller_v41(config.arac_action)
             ),
-            include_component_credit_fields=is_evidence_action_controller_v40(
+            include_component_credit_fields=uses_component_credit_state(
                 config.arac_action
             ),
         )

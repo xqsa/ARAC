@@ -497,6 +497,28 @@ def test_hcc_action_execution_plan_marks_v40_as_trace_only_v38_behavior() -> Non
     assert plan.runtime_dispatch_allowed is True
 
 
+def test_hcc_action_execution_plan_marks_v41_as_runtime_component_lease() -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v41",
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("R2", decision)
+
+    assert plan.backend_effect_kind == "evidence_action_runtime_controller_v41"
+    assert plan.optimizer_consumed_parameters["component_lease_dispatch"] == (
+        "component_mutex_and_strict_scheduler_revisit_cap_v1"
+    )
+    assert plan.optimizer_consumed_parameters["lease_fallback"] == (
+        "inherited_v38_conservative_sigma"
+    )
+    assert plan.optimizer_consumed_parameters["trace_affects_dispatch"] is True
+    assert plan.runtime_dispatch_allowed is True
+
+
 @pytest.mark.parametrize(
     ("action_name", "backend_effect_kind", "execution_mode"),
     [

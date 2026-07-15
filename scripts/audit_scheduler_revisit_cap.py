@@ -16,6 +16,7 @@ if str(ARAC_SRC_ROOT) not in sys.path:
 from arac.policy.component_delayed_credit import (
     SchedulerRevisitCap,
     calculate_scheduler_revisit_cap,
+    decide_component_lease,
 )
 
 
@@ -169,12 +170,12 @@ def replay_run(trace_rows: list[dict[str, str]]) -> list[dict[str, object]]:
         cap, cap_blockers = audit_cap_contract(action)
         if cap_blockers:
             abstain_reason = "abstain_invalid_cap_contract"
-        elif not cap.reachable:
-            abstain_reason = "abstain_scheduler_unreachable"
-        elif active is not None:
-            abstain_reason = "abstain_component_mutex"
         else:
-            abstain_reason = ""
+            eligibility = decide_component_lease(
+                scheduler_revisit_cap=cap,
+                active_component_action_id=active_action_id,
+            )
+            abstain_reason = "" if eligibility.selected else eligibility.reason
         selected = not abstain_reason
         if selected:
             active_by_component[component_id] = action

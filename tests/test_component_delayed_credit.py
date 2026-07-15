@@ -8,8 +8,59 @@ import pytest
 from arac.policy.component_delayed_credit import (
     COMPONENT_CREDIT_TRACE_FIELDS,
     ComponentDelayedCreditTrace,
+    SchedulerRevisitCap,
     build_overlap_components,
+    decide_component_lease,
 )
+
+
+def _reachable_cap() -> SchedulerRevisitCap:
+    return SchedulerRevisitCap(
+        sweep_start_fe=0,
+        decision_fe=30,
+        cc_budget_limit_fe=100,
+        current_group_index=0,
+        current_sweep_group_budget_fe=50,
+        current_optimizer_budget_fe=50,
+        group_population_sizes=(10, 10),
+        reachable=True,
+        cap_fe=61,
+        current_tail_cap_fe=50,
+        next_sweep_min_group_budget_fe=10,
+        reason="scheduler_revisit_cap_available",
+    )
+
+
+def test_component_lease_eligibility_uses_only_cap_and_active_lease() -> None:
+    cap = _reachable_cap()
+
+    selected = decide_component_lease(
+        scheduler_revisit_cap=cap,
+        active_component_action_id="",
+    )
+    locked = decide_component_lease(
+        scheduler_revisit_cap=cap,
+        active_component_action_id="precision:component:0",
+    )
+    unreachable = decide_component_lease(
+        scheduler_revisit_cap=SchedulerRevisitCap(
+            **{
+                **cap.__dict__,
+                "reachable": False,
+                "cap_fe": None,
+                "reason": "next_sweep_not_reachable",
+            }
+        ),
+        active_component_action_id="",
+    )
+
+    assert selected.selected is True
+    assert selected.reason == "component_lease_available"
+    assert locked.selected is False
+    assert locked.reason == "abstain_component_mutex"
+    assert locked.active_component_action_id == "precision:component:0"
+    assert unreachable.selected is False
+    assert unreachable.reason == "abstain_scheduler_unreachable"
 
 
 def test_overlap_components_lock_connected_groups_and_isolate_disjoint_groups() -> None:
@@ -132,6 +183,49 @@ def test_component_trace_marks_unresolved_actions_without_fabricated_credit() ->
     assert row["component_gain"] == ""
     assert row["component_neighbor_gain"] == ""
     assert row["component_credit_reason"] == "budget_ended_before_next_group_revisit"
+
+
+def test_component_runtime_mutex_spans_connected_groups_until_origin_revisit() -> None:
+    trace = ComponentDelayedCreditTrace([[0, 1], [1, 2]], lower=-5.0, upper=5.0)
+    first = trace.component_lease_eligibility(
+        group_index=0,
+        scheduler_revisit_cap=_reachable_cap(),
+    )
+    row = {field: "" for field in COMPONENT_CREDIT_TRACE_FIELDS}
+    trace.register_search_action(
+        row,
+        action_name="post_retirement_precision_reanchor",
+        outer_iter=0,
+        group_index=0,
+        decision_fe=30,
+        max_fes=100,
+        pre_action_fitness=100.0,
+        post_action_fitness=90.0,
+        pre_action_candidate=np.zeros(3),
+        post_action_candidate=np.ones(3),
+        require_component_unlocked=True,
+    )
+
+    locked = trace.component_lease_eligibility(
+        group_index=1,
+        scheduler_revisit_cap=_reachable_cap(),
+    )
+    assert first.selected is True
+    assert locked.selected is False
+    assert locked.reason == "abstain_component_mutex"
+    assert locked.active_component_action_id == row["component_action_id"]
+
+    trace.resolve_group_revisit(
+        group_index=0,
+        resolution_fe=70,
+        current_fitness=80.0,
+        current_candidate=np.ones(3),
+    )
+    released = trace.component_lease_eligibility(
+        group_index=1,
+        scheduler_revisit_cap=_reachable_cap(),
+    )
+    assert released.selected is True
 
 
 def test_component_trace_rejects_unidentified_actions_and_backward_fe() -> None:

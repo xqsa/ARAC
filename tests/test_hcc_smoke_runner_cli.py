@@ -7,6 +7,7 @@ import math
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -754,6 +755,35 @@ def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v40() -> No
     assert runner.is_evidence_action_controller(args.arac_action)
     assert runner.uses_v33_trust_trace_schema(args.arac_action)
     assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
+
+
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v41() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "4",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--output-root",
+            "results/test",
+            "--arac-action",
+            "arac_evidence_action_controller_v41",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == runner.EVIDENCE_ACTION_CONTROLLER_V41
+    assert runner.is_evidence_action_controller_v41(args.arac_action)
+    assert runner.uses_component_credit_state(args.arac_action)
+    assert runner.is_guarded_evidence_action_controller(args.arac_action)
 
 
 def test_v35_keeps_v31_scheduler_and_phase_rescue_membership() -> None:
@@ -1579,6 +1609,28 @@ def test_v38_contracts_search_start_only_after_phase_rescue_retirement() -> None
         1.0,
         controller_v31_run_state=v38,
     ) == pytest.approx(0.25)
+
+
+def test_v41_lease_decision_controls_precision_sigma_without_new_dose() -> None:
+    runner = _load_runner_module()
+    state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V41,
+    )
+    state.phase_rescue_retired = True
+
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V41,
+        1.0,
+        controller_v31_run_state=state,
+        precision_reanchor_active=True,
+    ) == pytest.approx(0.25)
+    assert runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V41,
+        1.0,
+        controller_v31_run_state=state,
+        precision_reanchor_active=False,
+    ) == pytest.approx(0.5)
 
 
 def test_v38_inherits_v37_runtime_memberships() -> None:
@@ -5590,6 +5642,10 @@ def test_controller_v33_to_v39_matched_fe_credits_before_next_group_optimizer(
         0.10,
         action_name=runner.EVIDENCE_ACTION_CONTROLLER_V40,
     )
+    v41_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V41,
+    )
     retired_state.phase_rescue_retired = True
     retired_state.phase_rescue_resource_reason = (
         "zero_yield_phase_rescue_retired"
@@ -5702,6 +5758,64 @@ def test_controller_v33_to_v39_matched_fe_credits_before_next_group_optimizer(
         row["component_credit_status"] == "relation_observation"
         for row in v40_trace_rows
     )
+
+    optimize_calls["count"] = 0
+    options_seen.clear()
+    v41_state.phase_rescue_retired = True
+    v41_state.phase_rescue_resource_reason = "zero_yield_phase_rescue_retired"
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree, *, action_name=None: v41_state,
+    )
+    real_calculate_scheduler_revisit_cap = runner.calculate_scheduler_revisit_cap
+
+    def reachable_scheduler_revisit_cap(**kwargs):
+        cap = real_calculate_scheduler_revisit_cap(**kwargs)
+        return replace(
+            cap,
+            reachable=True,
+            cap_fe=kwargs["cc_budget_limit_fe"] - kwargs["decision_fe"],
+            reason="scheduler_revisit_cap_available",
+        )
+
+    monkeypatch.setattr(
+        runner,
+        "calculate_scheduler_revisit_cap",
+        reachable_scheduler_revisit_cap,
+    )
+    v41_output = tmp_path / "v41"
+    v41_output.mkdir()
+
+    _v41_record, _elapsed, v41_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v41_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V41,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    lease_rows = [row for row in v41_trace_rows if row["component_lease_decision"]]
+    selected_lease_rows = [
+        row for row in lease_rows if row["component_lease_decision"] == "selected"
+    ]
+    abstained_lease_rows = [
+        row for row in lease_rows if row["component_lease_decision"] == "abstained"
+    ]
+    assert selected_lease_rows
+    assert abstained_lease_rows
+    assert all(row["component_lock_conflict"] == "0" for row in selected_lease_rows)
+    assert all(row["component_precision_consumed"] == "1" for row in selected_lease_rows)
+    assert all(row["downstream_consumed"] == "1" for row in selected_lease_rows)
+    assert all(row["component_precision_consumed"] == "0" for row in abstained_lease_rows)
+    assert all(row["downstream_consumed"] == "0" for row in abstained_lease_rows)
+    assert {float(options["sigma"]) for options in options_seen} == {0.125, 0.25}
 
     optimize_calls["count"] = 0
     options_seen.clear()
@@ -5855,6 +5969,33 @@ def test_controller_v39_runtime_decisions_exclude_case_and_outcome_dispatch() ->
 def test_controller_v40_trace_cannot_dispatch_on_case_or_outcome() -> None:
     runner = _load_runner_module()
     source = inspect.getsource(runner.ComponentDelayedCreditTrace).lower()
+
+    forbidden_dispatch_inputs = {
+        "case_id",
+        "problem_id",
+        "fun_name",
+        "function_family",
+        "paper_best",
+        "historical_best",
+        "relative_gain",
+        "final_error",
+        "final_outcome",
+    }
+
+    assert all(token not in source for token in forbidden_dispatch_inputs)
+
+
+def test_controller_v41_lease_dispatch_excludes_case_and_outcome() -> None:
+    runner = _load_runner_module()
+    source = "\n".join(
+        (
+            inspect.getsource(runner.decide_component_lease),
+            inspect.getsource(runner.calculate_scheduler_revisit_cap),
+            inspect.getsource(
+                runner.ComponentDelayedCreditTrace.component_lease_eligibility
+            ),
+        )
+    ).lower()
 
     forbidden_dispatch_inputs = {
         "case_id",

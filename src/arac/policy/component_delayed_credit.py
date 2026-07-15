@@ -1,7 +1,8 @@
-"""Trace-only component state for action-specific delayed credit audits.
+"""Component state for action-specific delayed credit and lease dispatch.
 
-The tracker observes runtime state and mutates trace dictionaries only. It has
-no dispatch API and must not change candidates, optimizer state, RNG, or FE.
+The tracker owns component-local pending credit. v40 only writes its trace;
+v41 may query the same pending state through the pure lease eligibility rule.
+Neither path changes candidates, optimizer state, RNG, or FE by itself.
 """
 
 from __future__ import annotations
@@ -37,6 +38,10 @@ COMPONENT_CREDIT_TRACE_FIELDS = (
     "component_resolution_window",
     "component_pending_before",
     "component_lock_conflict",
+    "component_active_lease_action_id",
+    "component_lease_decision",
+    "component_lease_reason",
+    "component_precision_consumed",
     "component_proposal_disagreement",
     "component_local_gain",
     "component_gain",
@@ -84,6 +89,49 @@ class SchedulerRevisitCap:
             "component_scheduler_revisit_reachable": str(int(self.reachable)),
             "component_scheduler_revisit_reason": self.reason,
         }
+
+
+@dataclass(frozen=True)
+class ComponentLeaseEligibility:
+    selected: bool
+    reason: str
+    active_component_action_id: str
+
+    def trace_fields(self) -> dict[str, str]:
+        return {
+            "component_active_lease_action_id": self.active_component_action_id,
+            "component_lease_decision": (
+                "selected" if self.selected else "abstained"
+            ),
+            "component_lease_reason": self.reason,
+            "component_precision_consumed": str(int(self.selected)),
+        }
+
+
+def decide_component_lease(
+    *,
+    scheduler_revisit_cap: SchedulerRevisitCap,
+    active_component_action_id: str,
+) -> ComponentLeaseEligibility:
+    """Select a component lease from pre-action scheduler and mutex state."""
+    active_action_id = str(active_component_action_id).strip()
+    if not scheduler_revisit_cap.reachable:
+        return ComponentLeaseEligibility(
+            selected=False,
+            reason="abstain_scheduler_unreachable",
+            active_component_action_id=active_action_id,
+        )
+    if active_action_id:
+        return ComponentLeaseEligibility(
+            selected=False,
+            reason="abstain_component_mutex",
+            active_component_action_id=active_action_id,
+        )
+    return ComponentLeaseEligibility(
+        selected=True,
+        reason="component_lease_available",
+        active_component_action_id="",
+    )
 
 
 def _population_rounded_budget(
@@ -484,6 +532,7 @@ class ComponentDelayedCreditTrace:
         post_action_fitness: float,
         pre_action_candidate: np.ndarray,
         post_action_candidate: np.ndarray,
+        require_component_unlocked: bool = False,
     ) -> str:
         action = str(action_name).strip()
         if not action:
@@ -496,6 +545,8 @@ class ComponentDelayedCreditTrace:
             pending.component.component_id == component.component_id
             for pending in self._pending_by_group.values()
         )
+        if require_component_unlocked and pending_before:
+            raise RuntimeError("component already has an unresolved action lease")
         pre_candidate = np.asarray(pre_action_candidate, dtype=float).reshape(-1)
         post_candidate = np.asarray(post_action_candidate, dtype=float).reshape(-1)
         if pre_candidate.shape != post_candidate.shape:
@@ -549,6 +600,56 @@ class ComponentDelayedCreditTrace:
             trace_row=trace_row,
         )
         return action_id
+
+    def component_lease_eligibility(
+        self,
+        *,
+        group_index: int,
+        scheduler_revisit_cap: SchedulerRevisitCap,
+    ) -> ComponentLeaseEligibility:
+        component = self.topology.for_group(group_index)
+        active_action_ids = sorted(
+            pending.action_id
+            for pending in self._pending_by_group.values()
+            if pending.component.component_id == component.component_id
+        )
+        active_action_id = active_action_ids[0] if active_action_ids else ""
+        return decide_component_lease(
+            scheduler_revisit_cap=scheduler_revisit_cap,
+            active_component_action_id=active_action_id,
+        )
+
+    def annotate_lease_eligibility(
+        self,
+        trace_row: dict[str, str],
+        *,
+        group_index: int,
+        eligibility: ComponentLeaseEligibility,
+        decision_fe: int,
+        max_fes: int,
+    ) -> None:
+        component = self.topology.for_group(group_index)
+        trace_row.update(
+            {
+                **self._component_values(component),
+                **eligibility.trace_fields(),
+                "component_action_scope": "component_lease_dispatch",
+                "component_credit_status": (
+                    "pending" if eligibility.selected else "lease_abstained"
+                ),
+                "component_decision_fe": str(int(decision_fe)),
+                "component_remaining_budget_ratio": _format_float(
+                    self._remaining_ratio(decision_fe, max_fes)
+                ),
+                "component_pending_before": str(
+                    int(bool(eligibility.active_component_action_id))
+                ),
+                "component_lock_conflict": str(
+                    int(eligibility.reason == "abstain_component_mutex")
+                ),
+                "component_credit_reason": eligibility.reason,
+            }
+        )
 
     def resolve_group_revisit(
         self,
