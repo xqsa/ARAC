@@ -111,6 +111,7 @@ from arac.policy.oracle_actionability import (
 from arac.policy.causal_risk_scheduler import (
     FEATURE_SCHEMA_SHA256,
     PRE_ACTION_UTILITY_SCHEMA_VERSION,
+    PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
     UTILITY_FEATURE_NAMES,
     PreActionUtilityState,
 )
@@ -379,6 +380,10 @@ V40_ACTION_TRACE_FIELDS = [
     for field in ACTION_TRACE_FIELDS
     if field not in V34_RECOVERY_TRACE_FIELDS
     and field not in V39_CMA_SIGMA_TRACE_FIELDS
+]
+PRECISION_CAUSAL_ACTION_TRACE_FIELDS = [
+    *V40_ACTION_TRACE_FIELDS,
+    *PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
 ]
 LEGACY_ACTION_TRACE_FIELDS = [
     field
@@ -3153,8 +3158,11 @@ def _write_action_trace(
     include_resource_fields: bool = False,
     include_cma_sigma_fields: bool = False,
     include_component_credit_fields: bool = False,
+    include_precision_causal_fields: bool = False,
 ) -> None:
-    if include_component_credit_fields:
+    if include_precision_causal_fields:
+        fields = PRECISION_CAUSAL_ACTION_TRACE_FIELDS
+    elif include_component_credit_fields:
         fields = V40_ACTION_TRACE_FIELDS
     elif include_cma_sigma_fields:
         fields = V39_ACTION_TRACE_FIELDS
@@ -4170,6 +4178,35 @@ def summarize_cma_trace_only_diagnostic(
     )
 
 
+def append_precision_cc_trace_only_history(
+    progress_history: list[float],
+    source_end_fes: list[int],
+    *,
+    incumbent_before: float,
+    incumbent_after: float,
+    source_start_fe: int,
+    source_end_fe: int,
+) -> None:
+    """Record a completed CC sweep without mutating controller state."""
+
+    start_fe = int(source_start_fe)
+    end_fe = int(source_end_fe)
+    if end_fe <= start_fe:
+        raise ValueError("precision CC history requires a positive FE interval")
+    if source_end_fes and end_fe <= int(source_end_fes[-1]):
+        raise ValueError("precision CC history watermarks must increase")
+    if len(progress_history) != len(source_end_fes):
+        raise ValueError("precision CC history values and watermarks must align")
+    progress_history.append(
+        normalized_gain_utility(
+            incumbent_before,
+            incumbent_after,
+            end_fe - start_fe,
+        )
+    )
+    source_end_fes.append(end_fe)
+
+
 def component_mean_overlap_ratio(
     grouping_result: list[list[int]],
     component_group_indices: tuple[int, ...],
@@ -5138,6 +5175,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             "mmes_restart": bool(config.mmes_restart),
         }
     )
+    precision_cc_progress_history: list[float] = []
     precision_cc_source_end_fes: list[int] = []
     precision_cma_history: dict[int, list[CMATraceOnlyDiagnostic]] = {}
     precision_component_disagreement_history: dict[
@@ -5408,19 +5446,50 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 else None
             )
             precision_causal_action_active = False
+            precision_causal_candidate_snapshot = None
+            precision_causal_candidate_reason = ""
+            precision_causal_shared_component = False
+            precision_causal_cc_history_count = 0
+            precision_causal_disagreement_history_count = 0
+            precision_causal_cma_history_count = 0
             if precision_causal_candidate and component_credit_trace is not None:
                 component = component_credit_trace.topology.for_group(index)
+                precision_causal_shared_component = bool(component.shared_variables)
+                precision_causal_cc_history_count = len(
+                    precision_cc_progress_history
+                )
+                precision_causal_disagreement_history_count = len(
+                    precision_component_disagreement_history.get(
+                        component.component_id,
+                        [],
+                    )
+                )
+                precision_causal_cma_history_count = len(
+                    precision_cma_history.get(index, [])
+                )
                 precision_causal_saw_overlap_component = bool(
                     precision_causal_saw_overlap_component
                     or component.shared_variables
                 )
-                if (
-                    component.shared_variables
-                    and scheduler_revisit_cap is not None
-                    and scheduler_revisit_cap.reachable
-                    and component_lease_eligibility is not None
-                    and component_lease_eligibility.selected
-                ):
+                if not component.shared_variables:
+                    precision_causal_candidate_reason = (
+                        "no_shared_overlap_component_candidate"
+                    )
+                elif scheduler_revisit_cap is None:
+                    precision_causal_candidate_reason = (
+                        "scheduler_revisit_cap_unavailable"
+                    )
+                elif not scheduler_revisit_cap.reachable:
+                    precision_causal_candidate_reason = scheduler_revisit_cap.reason
+                elif component_lease_eligibility is None:
+                    precision_causal_candidate_reason = (
+                        "component_lease_eligibility_unavailable"
+                    )
+                elif not component_lease_eligibility.selected:
+                    precision_causal_candidate_reason = (
+                        component_lease_eligibility.reason
+                    )
+                else:
                     normal_sigma = refine_sigma_for_action(
                         config.arac_action,
                         config.sigma,
@@ -5468,7 +5537,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 bipop_rejected_restart_streak
                             ),
                             "cc_progress_history": list(
-                                controller_v31_run_state.cc_utility_history
+                                precision_cc_progress_history
                             ),
                             "cc_source_end_fes": precision_cc_source_end_fes,
                             "component_disagreement_history": (
@@ -5508,52 +5577,56 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             "cmaes_restart": bool(config.cmaes_restart),
                         }
                     )
-                    candidate_snapshot = build_precision_causal_snapshot(
-                        checkpoint_fitness=original_fitness,
-                        decision_fe=primary_evaluations_before,
-                        max_fes=config.max_fes,
-                        phase_i_tail_progress_rate=(
-                            controller_v31_run_state.phase_i_runtime_tail_utility
-                        ),
-                        phase_i_source_end_fe=global_phase_fe,
-                        cc_progress_history=(
-                            controller_v31_run_state.cc_utility_history
-                        ),
-                        cc_source_end_fes=precision_cc_source_end_fes,
-                        component_disagreement_history=(
-                            precision_component_disagreement_history.get(
-                                component.component_id,
-                                [],
-                            )
-                        ),
-                        cma_history=precision_cma_history.get(index, []),
-                        grouping_result=grouping_result,
-                        dimension=int(info["dimension"]),
-                        component=component,
-                        scheduler_revisit_cap=scheduler_revisit_cap,
-                        controller_state_sha256=controller_state_sha256,
-                        prefix_record_sha256=_fitness_record_sha256(
-                            tuple(float(value) for value in fun.fitness_record)
-                        ),
-                        checkpoint_candidate_sha256=(
-                            checkpoint_candidate_sha256
-                        ),
-                        random_descriptor_sha256=random_descriptor_sha256,
-                        normal_sigma=normal_sigma,
-                        candidate_sigma=candidate_sigma,
+                    precision_causal_candidate_snapshot = (
+                        build_precision_causal_snapshot(
+                            checkpoint_fitness=original_fitness,
+                            decision_fe=primary_evaluations_before,
+                            max_fes=config.max_fes,
+                            phase_i_tail_progress_rate=(
+                                controller_v31_run_state.phase_i_runtime_tail_utility
+                            ),
+                            phase_i_source_end_fe=global_phase_fe,
+                            cc_progress_history=precision_cc_progress_history,
+                            cc_source_end_fes=precision_cc_source_end_fes,
+                            component_disagreement_history=(
+                                precision_component_disagreement_history.get(
+                                    component.component_id,
+                                    [],
+                                )
+                            ),
+                            cma_history=precision_cma_history.get(index, []),
+                            grouping_result=grouping_result,
+                            dimension=int(info["dimension"]),
+                            component=component,
+                            scheduler_revisit_cap=scheduler_revisit_cap,
+                            controller_state_sha256=controller_state_sha256,
+                            prefix_record_sha256=_fitness_record_sha256(
+                                tuple(float(value) for value in fun.fitness_record)
+                            ),
+                            checkpoint_candidate_sha256=(
+                                checkpoint_candidate_sha256
+                            ),
+                            random_descriptor_sha256=random_descriptor_sha256,
+                            normal_sigma=normal_sigma,
+                            candidate_sigma=candidate_sigma,
+                        )
                     )
                     precision_causal_saw_reachable_opportunity = True
-                    if candidate_snapshot.state is None:
+                    if precision_causal_candidate_snapshot.state is None:
                         precision_causal_last_incomplete_reason = (
-                            candidate_snapshot.not_applicable_reason
+                            precision_causal_candidate_snapshot.not_applicable_reason
+                        )
+                        precision_causal_candidate_reason = (
+                            precision_causal_candidate_snapshot.not_applicable_reason
                         )
                     else:
+                        precision_causal_candidate_reason = "snapshot_complete"
                         (
                             precision_causal_snapshot,
                             precision_causal_action_active,
                         ) = select_first_complete_precision_snapshot(
                             precision_causal_snapshot,
-                            candidate_snapshot,
+                            precision_causal_candidate_snapshot,
                             audit_arm=config.precision_causal_arm,
                         )
                         precision_causal_attempted = True
@@ -5760,6 +5833,38 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         eligibility=component_lease_eligibility,
                         decision_fe=primary_evaluations_before,
                         max_fes=config.max_fes,
+                    )
+                if precision_causal_candidate:
+                    precision_trace_row["component_precision_consumed"] = str(
+                        int(precision_causal_action_active)
+                    )
+                    precision_trace_row.update(
+                        {
+                            "precision_causal_candidate": "1",
+                            "precision_causal_shared_component": str(
+                                int(precision_causal_shared_component)
+                            ),
+                            "precision_causal_cc_history_count": str(
+                                precision_causal_cc_history_count
+                            ),
+                            "precision_causal_disagreement_history_count": str(
+                                precision_causal_disagreement_history_count
+                            ),
+                            "precision_causal_cma_history_count": str(
+                                precision_causal_cma_history_count
+                            ),
+                            "precision_causal_snapshot_complete": str(
+                                int(
+                                    precision_causal_candidate_snapshot is not None
+                                    and precision_causal_candidate_snapshot.state
+                                    is not None
+                                )
+                            ),
+                            "precision_causal_candidate_reason": (
+                                precision_causal_candidate_reason
+                                or "candidate_not_evaluated"
+                            ),
+                        }
                     )
                 action_trace_rows.append(precision_trace_row)
                 if component_credit_trace is not None and precision_reanchor_active:
@@ -6871,6 +6976,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             relations.extend(iteration_relations)
 
         if (
+            precision_causal_enabled
+            and optimized_any_group
+            and len(fitness_delta_list) == sub_num
+        ):
+            append_precision_cc_trace_only_history(
+                precision_cc_progress_history,
+                precision_cc_source_end_fes,
+                incumbent_before=sweep_incumbent_before,
+                incumbent_after=guarded_incumbent_fitness,
+                source_start_fe=sweep_fes_before,
+                source_end_fe=current_fitness_evaluations(fun),
+            )
+        if (
             controller_v31_run_state is not None
             and uses_scheduled_search_state(config)
             and optimized_any_group
@@ -6890,10 +7008,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 sweep_fes,
             )
             controller_v31_run_state.cc_utility_history.append(cc_utility)
-            if precision_causal_enabled:
-                precision_cc_source_end_fes.append(
-                    current_fitness_evaluations(fun)
-                )
             phase_population_size = (
                 int(phase_state.n_individuals)
                 if phase_state is not None
@@ -7742,6 +7856,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 include_component_credit_fields=uses_component_credit_state(
                     config.arac_action
                 ),
+                include_precision_causal_fields=(
+                    config.precision_causal_arm != "off"
+                ),
             )
             function_trace_rows.extend(trace_rows)
             if config.enable_relation_dispatch:
@@ -7786,6 +7903,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
             ),
             include_component_credit_fields=uses_component_credit_state(
                 config.arac_action
+            ),
+            include_precision_causal_fields=(
+                config.precision_causal_arm != "off"
             ),
         )
         _write_aob_input_manifest(

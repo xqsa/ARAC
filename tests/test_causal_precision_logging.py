@@ -65,6 +65,12 @@ def test_precision_causal_profile_is_two_fresh_v37_arms() -> None:
     }
     assert all(lane.relation_dispatch_enabled for lane in lanes)
 
+    aggregate_fields = exp003.action_trace_fields_for_lanes(lanes)
+    assert set(exp003.COMPONENT_CREDIT_TRACE_FIELDS).issubset(aggregate_fields)
+    assert set(exp003.PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS).issubset(
+        aggregate_fields
+    )
+
 
 def test_precision_causal_backend_flag_is_independent_from_car() -> None:
     request = HccAobExecutionRequest(
@@ -174,6 +180,84 @@ def test_precision_causal_runner_cli_requires_v37() -> None:
 
     with pytest.raises(SystemExit):
         runner.parse_args([*common, "--arac-action", "conservative_no_action"])
+
+
+def test_precision_causal_action_trace_keeps_feasibility_diagnostics(
+    tmp_path: Path,
+) -> None:
+    runner = _load_runner_module()
+    row = runner.build_action_trace_row(
+        problem_id="E2",
+        seed=1,
+        outer_iter=3,
+        group_index=0,
+        selected_action_name="conservative_no_action",
+        overlap_size=0,
+        previous_delta=0.0,
+        current_delta=0.0,
+    )
+    row.update(
+        {
+            "component_id": "component-a",
+            "component_group_count": "2",
+            "component_shared_var_count": "1",
+            "component_scheduler_revisit_reachable": "1",
+            "component_scheduler_revisit_reason": (
+                "scheduler_revisit_cap_available"
+            ),
+            "component_lease_decision": "selected",
+            "component_lease_reason": "component_lease_available",
+            "component_precision_consumed": "0",
+            "precision_causal_candidate": "1",
+            "precision_causal_shared_component": "1",
+            "precision_causal_cc_history_count": "3",
+            "precision_causal_disagreement_history_count": "3",
+            "precision_causal_cma_history_count": "3",
+            "precision_causal_snapshot_complete": "0",
+            "precision_causal_candidate_reason": (
+                "missing_pre_action_history:cc_progress_history_4"
+            ),
+        }
+    )
+    regular_path = tmp_path / "v37.csv"
+    causal_path = tmp_path / "causal.csv"
+
+    runner._write_action_trace(
+        regular_path,
+        [row],
+        include_maturity_fields=True,
+        include_resource_fields=True,
+    )
+    runner._write_action_trace(
+        causal_path,
+        [row],
+        include_maturity_fields=True,
+        include_resource_fields=True,
+        include_precision_causal_fields=True,
+    )
+
+    with regular_path.open(newline="", encoding="utf-8") as handle:
+        regular_header = next(csv.reader(handle))
+    with causal_path.open(newline="", encoding="utf-8") as handle:
+        causal_rows = list(csv.DictReader(handle))
+
+    assert not set(runner.COMPONENT_CREDIT_TRACE_FIELDS).intersection(
+        regular_header
+    )
+    assert not set(runner.PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS).intersection(
+        regular_header
+    )
+    assert set(runner.COMPONENT_CREDIT_TRACE_FIELDS).issubset(causal_rows[0])
+    assert set(runner.PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS).issubset(
+        causal_rows[0]
+    )
+    assert causal_rows[0]["component_scheduler_revisit_reachable"] == "1"
+    assert causal_rows[0]["component_precision_consumed"] == "0"
+    assert causal_rows[0]["precision_causal_cc_history_count"] == "3"
+    assert causal_rows[0]["precision_causal_snapshot_complete"] == "0"
+    assert causal_rows[0]["precision_causal_candidate_reason"] == (
+        "missing_pre_action_history:cc_progress_history_4"
+    )
 
 
 def test_pre_action_snapshot_uses_only_completed_history() -> None:
@@ -293,6 +377,48 @@ def test_cma_diagnostic_is_computed_from_existing_batches() -> None:
     assert diagnostic.success_generation_ratio == pytest.approx(1.0)
     assert diagnostic.offspring_diversity_ratio == pytest.approx(0.15)
     assert diagnostic.source_end_fe == 100
+
+
+def test_precision_cc_history_is_independent_from_phase_i_scheduler_state() -> None:
+    runner = _load_runner_module()
+    controller_state = runner.build_evidence_action_controller_v31_run_state(
+        0.1,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+    )
+    config = runner.SmokeConfig(
+        max_fes=1_000,
+        seed=None,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+        search_state_backend="phase_i_mmes",
+    )
+    progress_history: list[float] = []
+    source_end_fes: list[int] = []
+
+    assert runner.uses_scheduled_search_state(config) is False
+    for index in range(4):
+        runner.append_precision_cc_trace_only_history(
+            progress_history,
+            source_end_fes,
+            incumbent_before=10.0 - index,
+            incumbent_after=9.0 - index,
+            source_start_fe=index * 10,
+            source_end_fe=(index + 1) * 10,
+        )
+
+    assert len(progress_history) == 4
+    assert source_end_fes == [10, 20, 30, 40]
+    assert progress_history[0] == pytest.approx(0.01)
+    assert controller_state.cc_utility_history == []
+
+    with pytest.raises(ValueError, match="watermarks must increase"):
+        runner.append_precision_cc_trace_only_history(
+            progress_history,
+            source_end_fes,
+            incumbent_before=6.0,
+            incumbent_after=5.0,
+            source_start_fe=30,
+            source_end_fe=40,
+        )
 
 
 def test_trace_only_baseline_is_bit_equivalent_to_v37_at_5k(

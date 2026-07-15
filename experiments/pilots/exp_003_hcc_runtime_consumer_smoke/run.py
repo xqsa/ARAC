@@ -75,6 +75,7 @@ from arac.policy.component_delayed_credit import COMPONENT_CREDIT_TRACE_FIELDS
 from arac.policy.causal_risk_scheduler import (
     FEATURE_SCHEMA_SHA256,
     PRE_ACTION_UTILITY_SCHEMA_VERSION,
+    PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
     UTILITY_FEATURE_NAMES,
 )
 from arac.policy.oracle_actionability import (
@@ -2691,6 +2692,9 @@ V39_CMA_SIGMA_TRACE_FIELDS = [
 
 def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
     fields: list[str] = []
+    precision_causal_enabled = any(
+        lane.precision_causal_arm != "off" for lane in lanes
+    )
     if any(
         controller_has_capability(lane.runner_action_name, "trust_trace")
         for lane in lanes
@@ -2722,8 +2726,10 @@ def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
             "component_delayed_credit_trace",
         )
         for lane in lanes
-    ):
+    ) or precision_causal_enabled:
         fields.extend(COMPONENT_CREDIT_TRACE_FIELDS)
+    if precision_causal_enabled:
+        fields.extend(PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS)
     return fields
 
 

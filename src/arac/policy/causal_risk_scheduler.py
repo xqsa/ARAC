@@ -41,6 +41,16 @@ UTILITY_FEATURE_NAMES = (
     "offspring_diversity_ratio_last",
 )
 
+PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS = (
+    "precision_causal_candidate",
+    "precision_causal_shared_component",
+    "precision_causal_cc_history_count",
+    "precision_causal_disagreement_history_count",
+    "precision_causal_cma_history_count",
+    "precision_causal_snapshot_complete",
+    "precision_causal_candidate_reason",
+)
+
 
 class CausalRiskInvariantError(ValueError):
     """Raised when a causal-risk hard contract is invalid."""
