@@ -178,6 +178,32 @@ CONTROLLER_PROFILES = (
             "sigma_continuation",
         },
     ),
+    _profile(
+        40,
+        dispatch_scope="single_run_component_delayed_credit_trace_controller_v40",
+        backend_parameters={
+            "relation_runtime_hook": "controller_v36_maturity_guarded_relation_dispatch",
+            "mode_selector": "current_run_relation_rescue_and_search_state_evidence",
+            "candidate_relation_policies": ["adaptive_v24", "adaptive_v26"],
+            "search_state_runtime_hooks": [
+                "phase_rescue_multistart",
+                "zero_yield_phase_rescue_retirement",
+                "post_retirement_precision_reanchor",
+            ],
+            "optimizer_runtime_hook": "post_retirement_precision_reanchor",
+            "trace_runtime_hook": "component_locked_action_specific_delayed_credit",
+            "trace_affects_dispatch": False,
+            "guard": "repair_lock_first_sweep_maturity_and_rescue_productivity",
+        },
+        capabilities={
+            "trust_trace",
+            "risk_aware_trust",
+            "maturity",
+            "rescue_retirement",
+            "precision_reanchor",
+            "component_delayed_credit_trace",
+        },
+    ),
     ControllerProfile(
         version=None,
         lane_profile="counterfactual_action_racing_w",

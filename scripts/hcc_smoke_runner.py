@@ -74,6 +74,10 @@ from src.arac.policy.action_trust_policy import (
     normalized_objective_credit,
     robust_damped_writeback,
 )
+from src.arac.policy.component_delayed_credit import (
+    COMPONENT_CREDIT_TRACE_FIELDS,
+    ComponentDelayedCreditTrace,
+)
 from src.arac.actions.controller_profiles import (
     controller_has_capability,
     controller_profile_by_action,
@@ -271,6 +275,7 @@ ACTION_TRACE_FIELDS = [
     "cma_sigma_next_factor",
     "cma_sigma_route",
     "cma_restart_count",
+    *COMPONENT_CREDIT_TRACE_FIELDS,
     "trajectory_guard_status",
     "trajectory_guard_pre_fitness",
     "trajectory_guard_post_writeback_fitness",
@@ -321,6 +326,7 @@ V39_CMA_SIGMA_TRACE_FIELDS = [
     "cma_sigma_route",
     "cma_restart_count",
 ]
+V40_COMPONENT_CREDIT_TRACE_FIELDS = list(COMPONENT_CREDIT_TRACE_FIELDS)
 V33_ACTION_TRACE_FIELDS = [
     field
     for field in ACTION_TRACE_FIELDS
@@ -328,6 +334,7 @@ V33_ACTION_TRACE_FIELDS = [
     and field not in V36_MATURITY_TRACE_FIELDS
     and field not in V37_RESOURCE_TRACE_FIELDS
     and field not in V39_CMA_SIGMA_TRACE_FIELDS
+    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
 ]
 V34_ACTION_TRACE_FIELDS = [
     field
@@ -335,6 +342,7 @@ V34_ACTION_TRACE_FIELDS = [
     if field not in V36_MATURITY_TRACE_FIELDS
     and field not in V37_RESOURCE_TRACE_FIELDS
     and field not in V39_CMA_SIGMA_TRACE_FIELDS
+    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
 ]
 V36_ACTION_TRACE_FIELDS = [
     field
@@ -342,15 +350,26 @@ V36_ACTION_TRACE_FIELDS = [
     if field not in V34_RECOVERY_TRACE_FIELDS
     and field not in V37_RESOURCE_TRACE_FIELDS
     and field not in V39_CMA_SIGMA_TRACE_FIELDS
+    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
 ]
 V37_ACTION_TRACE_FIELDS = [
     field
     for field in ACTION_TRACE_FIELDS
     if field not in V34_RECOVERY_TRACE_FIELDS
     and field not in V39_CMA_SIGMA_TRACE_FIELDS
+    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
 ]
 V39_ACTION_TRACE_FIELDS = [
-    field for field in ACTION_TRACE_FIELDS if field not in V34_RECOVERY_TRACE_FIELDS
+    field
+    for field in ACTION_TRACE_FIELDS
+    if field not in V34_RECOVERY_TRACE_FIELDS
+    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
+]
+V40_ACTION_TRACE_FIELDS = [
+    field
+    for field in ACTION_TRACE_FIELDS
+    if field not in V34_RECOVERY_TRACE_FIELDS
+    and field not in V39_CMA_SIGMA_TRACE_FIELDS
 ]
 LEGACY_ACTION_TRACE_FIELDS = [
     field
@@ -580,6 +599,7 @@ EVIDENCE_ACTION_CONTROLLER_V36 = controller_profile_by_version(36).action_name
 EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
 EVIDENCE_ACTION_CONTROLLER_V38 = controller_profile_by_version(38).action_name
 EVIDENCE_ACTION_CONTROLLER_V39 = controller_profile_by_version(39).action_name
+EVIDENCE_ACTION_CONTROLLER_V40 = controller_profile_by_version(40).action_name
 CAR_W_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w").action_name
 CAR_W2_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w2").action_name
 CAR_W3_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w3").action_name
@@ -1499,6 +1519,10 @@ def is_evidence_action_controller_v39(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V39
 
 
+def is_evidence_action_controller_v40(action_name: str) -> bool:
+    return action_name == EVIDENCE_ACTION_CONTROLLER_V40
+
+
 def is_car_w_action(action_name: str) -> bool:
     return action_name == CAR_W_ACTION
 
@@ -1569,6 +1593,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
+        or is_evidence_action_controller_v40(action_name)
         or is_car_w_family_action(action_name)
     )
 
@@ -1587,6 +1612,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
+        or is_evidence_action_controller_v40(action_name)
         or is_car_w_family_action(action_name)
     )
 
@@ -1628,6 +1654,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
+            or is_evidence_action_controller_v40(action_name)
             or is_car_w_family_action(action_name)
         )
         and evidence_controller_search_state_enabled
@@ -1650,6 +1677,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v37(config.arac_action)
             or is_evidence_action_controller_v38(config.arac_action)
             or is_evidence_action_controller_v39(config.arac_action)
+            or is_evidence_action_controller_v40(config.arac_action)
             or is_car_w_family_action(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
@@ -1749,6 +1777,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
+            or is_evidence_action_controller_v40(action_name)
             or is_car_w_family_action(action_name)
         )
         and controller_v31_run_state is not None
@@ -1766,6 +1795,7 @@ def uses_post_retirement_precision_reanchor(
         (
             is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
+            or is_evidence_action_controller_v40(action_name)
         )
         and controller_run_state is not None
         and controller_run_state.v38_enabled
@@ -2993,6 +3023,7 @@ def build_action_trace_row(
             else str(cma_restart_count),
         }
     )
+    row.update({field: "" for field in COMPONENT_CREDIT_TRACE_FIELDS})
     return row
 
 
@@ -3005,8 +3036,11 @@ def _write_action_trace(
     include_maturity_fields: bool = False,
     include_resource_fields: bool = False,
     include_cma_sigma_fields: bool = False,
+    include_component_credit_fields: bool = False,
 ) -> None:
-    if include_cma_sigma_fields:
+    if include_component_credit_fields:
+        fields = V40_ACTION_TRACE_FIELDS
+    elif include_cma_sigma_fields:
         fields = V39_ACTION_TRACE_FIELDS
     elif include_resource_fields:
         fields = V37_ACTION_TRACE_FIELDS
@@ -4429,6 +4463,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             or is_evidence_action_controller_v37(config.arac_action)
             or is_evidence_action_controller_v38(config.arac_action)
             or is_evidence_action_controller_v39(config.arac_action)
+            or is_evidence_action_controller_v40(config.arac_action)
         )
         else build_evidence_action_controller_v31_run_state(degree)
         if (
@@ -4584,6 +4619,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         controller_v31_run_state.phase_rescue_enabled
         if controller_v31_run_state is not None
         else False
+    )
+    component_credit_trace = (
+        ComponentDelayedCreditTrace(
+            grouping_result,
+            lower=float(info["lower"]),
+            upper=float(info["upper"]),
+        )
+        if is_evidence_action_controller_v40(config.arac_action)
+        else None
     )
 
     if global_fes != 0:
@@ -4746,6 +4790,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 break
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
+            if component_credit_trace is not None:
+                component_credit_trace.resolve_group_revisit(
+                    group_index=index,
+                    resolution_fe=current_fitness_evaluations(fun),
+                    current_fitness=original_fitness,
+                    current_candidate=best_individual,
+                )
             if controller_v31_run_state is not None:
                 controller_v31_run_state.observe_pending_action_trust(
                     post_writeback_fitness=original_fitness,
@@ -4880,34 +4931,52 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 normal_refine_sigma = (
                     float(config.sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
                 )
-                action_trace_rows.append(
-                    build_action_trace_row(
-                        problem_id=_problem_id(fun_name, fun_id),
-                        seed=config.seed,
+                precision_trace_row = build_action_trace_row(
+                    problem_id=_problem_id(fun_name, fun_id),
+                    seed=config.seed,
+                    outer_iter=outer_iter,
+                    group_index=index,
+                    selected_action_name=(
+                        POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+                    ),
+                    overlap_size=0,
+                    previous_delta=0.0,
+                    current_delta=current_delta,
+                    state_mutated=new_best_y < original_fitness,
+                    action_value_delta_norm=abs(normal_refine_sigma - cc_sigma),
+                    downstream_consumed=True,
+                    downstream_consumption_scope="current_group_optimizer",
+                    search_state_action_type=(
+                        POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+                    ),
+                    sigma_before=normal_refine_sigma,
+                    sigma_after=cc_sigma,
+                    population_before=population_size,
+                    population_after=population_size,
+                    best_before=original_fitness,
+                    best_after=original_fitness - current_delta,
+                    cc_block_fe=primary_cc_fe,
+                    remaining_budget_ratio=(
+                        max(0, config.max_fes - primary_evaluations_before)
+                        / max(config.max_fes, 1)
+                    ),
+                    decision_point=f"group_optimizer:{outer_iter}:{index}",
+                    state_action_fe=primary_cc_fe,
+                )
+                action_trace_rows.append(precision_trace_row)
+                if component_credit_trace is not None:
+                    component_credit_trace.register_search_action(
+                        precision_trace_row,
+                        action_name=POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
                         outer_iter=outer_iter,
                         group_index=index,
-                        selected_action_name=(
-                            POST_RETIREMENT_PRECISION_REANCHOR_ACTION
-                        ),
-                        overlap_size=0,
-                        previous_delta=0.0,
-                        current_delta=current_delta,
-                        state_mutated=new_best_y < original_fitness,
-                        action_value_delta_norm=abs(normal_refine_sigma - cc_sigma),
-                        downstream_consumed=True,
-                        downstream_consumption_scope="current_group_optimizer",
-                        search_state_action_type=(
-                            POST_RETIREMENT_PRECISION_REANCHOR_ACTION
-                        ),
-                        sigma_before=normal_refine_sigma,
-                        sigma_after=cc_sigma,
-                        population_before=population_size,
-                        population_after=population_size,
-                        best_before=original_fitness,
-                        best_after=original_fitness - current_delta,
-                        cc_block_fe=primary_cc_fe,
+                        decision_fe=primary_evaluations_before,
+                        max_fes=config.max_fes,
+                        pre_action_fitness=original_fitness,
+                        post_action_fitness=original_fitness - current_delta,
+                        pre_action_candidate=original_best,
+                        post_action_candidate=best_individual,
                     )
-                )
             if (
                 controller_v31_run_state is not None
                 and controller_v31_run_state.v39_enabled
@@ -5511,7 +5580,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         config.arac_action
                     ) or is_evidence_action_controller_v38(
                         config.arac_action
-                    ) or is_evidence_action_controller_v39(config.arac_action):
+                    ) or is_evidence_action_controller_v39(
+                        config.arac_action
+                    ) or is_evidence_action_controller_v40(config.arac_action):
                         (
                             action,
                             adjusted_values,
@@ -5640,6 +5711,17 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 else ""
                             ),
                     )
+                    if component_credit_trace is not None:
+                        component_credit_trace.annotate_relation_observation(
+                            action_trace_row,
+                            outer_iter=outer_iter,
+                            group_left=relation.group_left,
+                            group_right=relation.group_right,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            decision_fe=current_fitness_evaluations(fun),
+                            max_fes=config.max_fes,
+                        )
                     action_trace_rows.append(action_trace_row)
                     if controller_v31_run_state is not None:
                         controller_v31_run_state.register_pending_action_trust(
@@ -6301,6 +6383,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         )
                     )
 
+        if (
+            component_credit_trace is not None
+            and len(fitness_delta_list) == sub_num
+        ):
+            component_credit_trace.complete_sweep(
+                outer_iter=outer_iter,
+                optimized_group_count=len(fitness_delta_list),
+            )
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
         if cc_harm_guard_consumed:
@@ -6312,6 +6402,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         )
         if preempted_recovery is not None:
             best_individual = preempted_recovery.candidate.copy()
+    if component_credit_trace is not None:
+        component_credit_trace.finalize_unresolved(
+            resolution_fe=current_fitness_evaluations(fun)
+        )
 
     problem_id = _problem_id(fun_name, fun_id)
     if car_artifacts_enabled:
@@ -6651,6 +6745,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V37,
             EVIDENCE_ACTION_CONTROLLER_V38,
             EVIDENCE_ACTION_CONTROLLER_V39,
+            EVIDENCE_ACTION_CONTROLLER_V40,
             CAR_W_ACTION,
             CAR_W2_ACTION,
             CAR_W3_ACTION,
@@ -6741,6 +6836,10 @@ def main(argv: list[str] | None = None) -> list[Path]:
                     is_evidence_action_controller_v37(config.arac_action)
                     or is_evidence_action_controller_v38(config.arac_action)
                     or is_evidence_action_controller_v39(config.arac_action)
+                    or is_evidence_action_controller_v40(config.arac_action)
+                ),
+                include_component_credit_fields=is_evidence_action_controller_v40(
+                    config.arac_action
                 ),
             )
             function_trace_rows.extend(trace_rows)
@@ -6781,6 +6880,10 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 is_evidence_action_controller_v37(config.arac_action)
                 or is_evidence_action_controller_v38(config.arac_action)
                 or is_evidence_action_controller_v39(config.arac_action)
+                or is_evidence_action_controller_v40(config.arac_action)
+            ),
+            include_component_credit_fields=is_evidence_action_controller_v40(
+                config.arac_action
             ),
         )
         _write_aob_input_manifest(

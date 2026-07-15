@@ -2470,6 +2470,31 @@ def test_exp_003_v39_trace_schema_adds_only_sigma_continuation_fields() -> None:
     assert not set(V34_RECOVERY_TRACE_FIELDS).intersection(fields)
 
 
+def test_exp_003_v40_is_one_component_credit_trace_lane() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        COMPONENT_CREDIT_TRACE_FIELDS,
+        V39_CMA_SIGMA_TRACE_FIELDS,
+        action_trace_fields_for_lanes,
+        lanes_for_profile,
+    )
+
+    lanes = lanes_for_profile("evidence_action_controller_v40")
+    fields = set(action_trace_fields_for_lanes(lanes))
+
+    assert len(lanes) == 1
+    assert lanes[0].runner_action_name == "arac_evidence_action_controller_v40"
+    assert set(COMPONENT_CREDIT_TRACE_FIELDS).issubset(fields)
+    assert not set(V39_CMA_SIGMA_TRACE_FIELDS).intersection(fields)
+
+
+def test_exp_003_cli_accepts_evidence_action_controller_v40_profile() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import parse_args
+
+    args = parse_args(["--lane-profile", "evidence_action_controller_v40"])
+
+    assert args.lane_profile == "evidence_action_controller_v40"
+
+
 def test_exp_003_paired_profile_has_fallback_candidate_and_negative_controls() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         lanes_for_profile,

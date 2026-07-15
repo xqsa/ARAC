@@ -306,3 +306,16 @@ fit to the three-seed terminal outcomes are prohibited. The first eligible
 pilot is search-start exposure control after a capped initial lease; writeback
 and resource revisions remain blocked until component persistence, neighbour
 spillover and overwrite/survival are explicitly traced.
+
+### v40 trace-only instrumentation boundary
+
+The v40 profile is the first implementation of that evidence boundary. It
+inherits v38's runtime route and adds only `ComponentDelayedCreditTrace` fields:
+component topology, proposal disagreement, decision FE and remaining budget,
+pending/lock state, action-specific revisit resolution, local/component/neighbor
+gain, and shared-variable overwrite/survival. The tracker writes trace rows
+only; it has no action-selection API and cannot alter dispatch, candidates,
+optimizer state, RNG, or FE accounting. A 5k E2/seed1 parity run produced
+identical v38/v40 final error, FE, and all common trace fields, with 19 relation
+observations. It did not exercise precision reanchor, so no delayed-credit
+utility or stability claim follows from this smoke.

@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T18:35+08:00"
-current_stage: 30
+updated: "2026-07-15T19:10+08:00"
+current_stage: 31
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -207,3 +207,10 @@ stages:
     artifacts: [scripts/audit_state_evidence.py, tests/test_audit_state_evidence.py, results/state_evidence_sufficiency_audit_20260715, docs/design/state-evidence-sufficiency-audit-20260715.md, docs/design/core-method.md, .light/handoff/S18-arac-state-evidence-sufficiency-audit.md]
     gate: {type: confirm, result: WARN, notes: Eight declared action-state fields empty across all audited traces; v34 writeback credit Spearman -0.234 and within-case 10/21; v37-v36 resource retirement mean log advantage -0.0000586 with 3 wins/4 losses; v38-v37 precision local gain Spearman +0.741 and within-case 9/11 but S2 holds 91.5 percent of absolute effect; CAR rank-gap hypothesis Spearman +0.492 but S3 holds 92.6 percent of absolute contrast; no controller or FE run authorized}
     gaps: [Component/neighbor persistence and shared-variable overwrite are not traceable; three seeds are descriptive; search-start signal is post-action and outcome-concentrated; writeback/resource credit remains unidentified]
+  - stage: 31
+    skill: light-backend-coding/verification-before-completion/light-consistency
+    input: S18 component-locked delayed-credit boundary; v38/v40 E2 seed1 strict 5k parity
+    output: v40 trace-only component delayed-credit instrumentation, isolated schema, CLI/profile/action-plan tests, and paired raw smoke artifacts
+    artifacts: [src/arac/policy/component_delayed_credit.py, scripts/hcc_smoke_runner.py, src/arac/actions/controller_profiles.py, tests/test_component_delayed_credit.py, results/controller_v40_component_credit_5k_20260715_final_v38, results/controller_v40_component_credit_5k_20260715_final_v40, docs/design/state-evidence-sufficiency-audit-20260715.md, .light/handoff/S19-arac-component-delayed-credit-trace.md]
+    gate: {type: confirm, result: WARN, notes: 386 focused passed with 1 skip and 782 tracked passed with 1 skip; v38/v40 E2 seed1 5k final error and FE matched; 101 common trace fields matched across 20 rows; AOB 10/10 unchanged per lane; anti-leakage 16/16 per lane; v40 recorded 19 relation observations; no precision reanchor occurred, so delayed-credit resolution remains uncovered}
+    gaps: [No resolved or unresolved search-start credit in the 5k smoke; held-out seed coverage and any dispatch rule remain unauthorized; writeback/resource channels remain frozen]

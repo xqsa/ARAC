@@ -1,8 +1,9 @@
 # State-Evidence Sufficiency Audit: 2026-07-15
 
 Status: partial support for action-specific delayed credit; insufficient
-evidence for a new runtime controller. No new FE was consumed and no
-performance claim is made.
+evidence for a new runtime controller. The original offline audit consumed no
+FE; its S19 trace-only follow-up consumed only the paired 5k parity smoke
+recorded below. No performance claim is made.
 
 Executor: Codex. Source HEAD before the audit: `6e5adc3`.
 
@@ -29,6 +30,31 @@ tables are under `results/state_evidence_sufficiency_audit_20260715`:
 
 The audit reads the frozen v33.8, v34, v35, v36, v37, v38 and CAR v2 raw
 directories. It changes neither their artifacts nor the runtime implementation.
+
+## S19 trace-only follow-up
+
+S19 added `arac_evidence_action_controller_v40` as an observation-only profile.
+It inherits v38 runtime behavior and records overlap-connected component id and
+topology, relation proposal disagreement, search-start decision FE and budget,
+pending/lock state, revisit resolution, local/component/neighbor gain, and
+shared-variable overwrite/survival. The tracker has no dispatch return path and
+does not mutate candidates, optimizer state, RNG, or the FE ledger. It records a
+same-component pending conflict for diagnosis but does not block the existing
+v38 action in this trace-only stage.
+
+The paired E2/seed1/5k smoke artifacts are:
+
+- `results/controller_v40_component_credit_5k_20260715_final_v38`;
+- `results/controller_v40_component_credit_5k_20260715_final_v40`.
+
+Both lanes were fresh and used strict accounting. Final error was
+`6.101156e+12` in both lanes, FE was `4996` in both lanes, all 101 common trace
+fields matched across 20 rows, AOB input rows were `10/10` unchanged, and the
+anti-leakage audit was `16/16` pass. v40 added 19 relation-observation rows with
+component ids and disagreement values. No precision reanchor row occurred in
+this 5k run, so delayed-credit resolution, overwrite/survival coverage, and
+unresolved run-end behavior remain unvalidated by this smoke and cannot be
+treated as zero incidence.
 
 ## Field sufficiency
 

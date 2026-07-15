@@ -17,6 +17,16 @@ import pytest
             {"trust_trace", "maturity", "rescue_retirement", "precision_reanchor"},
         ),
         (
+            "arac_evidence_action_controller_v40",
+            {
+                "trust_trace",
+                "maturity",
+                "rescue_retirement",
+                "precision_reanchor",
+                "component_delayed_credit_trace",
+            },
+        ),
+        (
             "arac_counterfactual_action_racing_w",
             {"paired_probe", "branch_isolation", "single_fe_ledger", "writeback_only"},
         ),
@@ -65,7 +75,7 @@ def test_controller_registry_rejects_unknown_actions() -> None:
     from arac.actions.controller_profiles import controller_profile_by_action
 
     with pytest.raises(KeyError, match="unknown controller action"):
-        controller_profile_by_action("arac_evidence_action_controller_v40")
+        controller_profile_by_action("arac_evidence_action_controller_v41")
 
 
 def test_car_w_profile_freezes_the_audited_protocol() -> None:

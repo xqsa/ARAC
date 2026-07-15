@@ -71,6 +71,7 @@ from arac.policy.counterfactual_action_racing import (
     AuditEnvelope,
     DispatchEvidence,
 )
+from arac.policy.component_delayed_credit import COMPONENT_CREDIT_TRACE_FIELDS
 from arac.policy.oracle_actionability import (
     CAR_ACTIONABILITY_HORIZON_LABELS,
     CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
@@ -1956,6 +1957,14 @@ def action_trace_fields_for_lanes(lanes: tuple[LaneConfig, ...]) -> list[str]:
         for lane in lanes
     ):
         fields.extend(V39_CMA_SIGMA_TRACE_FIELDS)
+    if any(
+        controller_has_capability(
+            lane.runner_action_name,
+            "component_delayed_credit_trace",
+        )
+        for lane in lanes
+    ):
+        fields.extend(COMPONENT_CREDIT_TRACE_FIELDS)
     return fields
 
 

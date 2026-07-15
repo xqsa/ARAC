@@ -49,6 +49,13 @@ The required smoke evidence is:
   downstream fitness, recovery credit, and restore status.
   `trajectory_guard_summary.csv` reports pending, committed, restored, and
   preempted-restore counts plus restore rate per case and seed.
+- The opt-in `evidence_action_controller_v40` profile inherits the v38 runtime
+  behavior and adds component delayed-credit trace fields: component topology,
+  action id/scope, decision and resolution FE, pending/lock state, proposal
+  disagreement, local/component/neighbor gain, and shared-variable
+  overwrite/survival. These fields are observation-only; v40 does not add an
+  action dispatch input or a new FE charge. Empty resolution fields mean the
+  action-specific revisit horizon was not reached, not zero utility.
 - For `landscape_escape`, `action_trace.csv` also records BIPOP search-state
   audit fields such as `search_state_action_type`, `bipop_restart_mode`,
   `sigma_before`, `sigma_after`, `population_before`, `population_after`,

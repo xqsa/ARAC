@@ -725,6 +725,37 @@ def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v38() -> No
     assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
 
 
+def test_hcc_smoke_runner_parses_explicit_evidence_action_controller_v40() -> None:
+    runner = _load_runner_module()
+
+    args = runner.parse_args(
+        [
+            "--functions",
+            "ackley",
+            "--ids",
+            "4",
+            "--seed",
+            "1",
+            "--max-fes",
+            "5000",
+            "--output-root",
+            "results/test",
+            "--arac-action",
+            "arac_evidence_action_controller_v40",
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+
+    assert args.arac_action == runner.EVIDENCE_ACTION_CONTROLLER_V40
+    assert runner.is_evidence_action_controller_v40(args.arac_action)
+    assert runner.is_guarded_evidence_action_controller(args.arac_action)
+    assert runner.is_evidence_action_controller(args.arac_action)
+    assert runner.uses_v33_trust_trace_schema(args.arac_action)
+    assert not runner.is_risk_aware_evidence_action_controller(args.arac_action)
+
+
 def test_v35_keeps_v31_scheduler_and_phase_rescue_membership() -> None:
     runner = _load_runner_module()
     config = runner.SmokeConfig(
@@ -1692,6 +1723,20 @@ def test_v39_sigma_continuation_trace_fields_are_isolated() -> None:
     )
     assert not set(runner.V39_CMA_SIGMA_TRACE_FIELDS).intersection(
         runner.V37_ACTION_TRACE_FIELDS
+    )
+
+
+def test_v40_component_credit_trace_fields_are_isolated() -> None:
+    runner = _load_runner_module()
+
+    assert set(runner.V40_COMPONENT_CREDIT_TRACE_FIELDS).issubset(
+        runner.V40_ACTION_TRACE_FIELDS
+    )
+    assert not set(runner.V40_COMPONENT_CREDIT_TRACE_FIELDS).intersection(
+        runner.V39_ACTION_TRACE_FIELDS
+    )
+    assert not set(runner.V39_CMA_SIGMA_TRACE_FIELDS).intersection(
+        runner.V40_ACTION_TRACE_FIELDS
     )
 
 
@@ -5541,6 +5586,10 @@ def test_controller_v33_to_v39_matched_fe_credits_before_next_group_optimizer(
         0.10,
         action_name=runner.EVIDENCE_ACTION_CONTROLLER_V39,
     )
+    v40_state = runner.build_evidence_action_controller_v31_run_state(
+        0.10,
+        action_name=runner.EVIDENCE_ACTION_CONTROLLER_V40,
+    )
     retired_state.phase_rescue_retired = True
     retired_state.phase_rescue_resource_reason = (
         "zero_yield_phase_rescue_retired"
@@ -5583,6 +5632,57 @@ def test_controller_v33_to_v39_matched_fe_credits_before_next_group_optimizer(
     assert all(row["sigma_before"] == "2.500000e-01" for row in precision_rows)
     assert all(row["sigma_after"] == "1.250000e-01" for row in precision_rows)
     assert all(row["cc_block_fe"] == "1" for row in precision_rows)
+
+    optimize_calls["count"] = 0
+    options_seen.clear()
+    v40_state.phase_rescue_retired = True
+    v40_state.phase_rescue_resource_reason = "zero_yield_phase_rescue_retired"
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        lambda _degree, *, action_name=None: v40_state,
+    )
+    v40_output = tmp_path / "v40"
+    v40_output.mkdir()
+
+    v40_record, _elapsed, v40_trace_rows = runner.run_problem(
+        "elliptic",
+        1,
+        v40_output,
+        runner.SmokeConfig(
+            max_fes=12,
+            seed=1,
+            verbose=0,
+            arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V40,
+            enable_relation_dispatch=True,
+            relation_policy_mode="controller_v31",
+        ),
+    )
+
+    v40_function = function_instances[-1]
+    assert optimize_calls["count"] == v33_optimizer_calls
+    assert v40_function.objective_calls == v38_retired_function.objective_calls
+    assert runner.current_fitness_evaluations(v40_function) == v33_fes
+    assert v40_record == v38_retired_record
+    assert {float(options["sigma"]) for options in options_seen} == {0.125}
+    v40_precision_rows = [
+        row
+        for row in v40_trace_rows
+        if row["selected_action_name"]
+        == runner.POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+    ]
+    assert len(v40_precision_rows) == len(precision_rows)
+    assert all(row["component_action_id"] for row in v40_precision_rows)
+    component_statuses = {
+        row["component_credit_status"] for row in v40_precision_rows
+    }
+    assert component_statuses.issubset({"resolved", "unresolved_run_end"})
+    assert "resolved" in component_statuses
+    assert any(row["component_lock_conflict"] == "1" for row in v40_precision_rows)
+    assert any(
+        row["component_credit_status"] == "relation_observation"
+        for row in v40_trace_rows
+    )
 
     optimize_calls["count"] = 0
     options_seen.clear()
@@ -5717,6 +5817,25 @@ def test_controller_v39_runtime_decisions_exclude_case_and_outcome_dispatch() ->
             ),
         )
     ).lower()
+
+    forbidden_dispatch_inputs = {
+        "case_id",
+        "problem_id",
+        "fun_name",
+        "function_family",
+        "paper_best",
+        "historical_best",
+        "relative_gain",
+        "final_error",
+        "final_outcome",
+    }
+
+    assert all(token not in source for token in forbidden_dispatch_inputs)
+
+
+def test_controller_v40_trace_cannot_dispatch_on_case_or_outcome() -> None:
+    runner = _load_runner_module()
+    source = inspect.getsource(runner.ComponentDelayedCreditTrace).lower()
 
     forbidden_dispatch_inputs = {
         "case_id",

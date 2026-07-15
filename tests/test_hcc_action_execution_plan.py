@@ -458,6 +458,42 @@ def test_hcc_action_execution_plan_marks_v39_as_cma_sigma_continuation() -> None
     assert plan.runtime_dispatch_allowed is True
 
 
+def test_hcc_action_execution_plan_marks_v40_as_trace_only_v38_behavior() -> None:
+    decision = ActionDecision(
+        ActionFamily.TRAJECTORY,
+        "arac_evidence_action_controller_v40",
+        "allow",
+        "test",
+        0.5,
+    )
+
+    plan = build_hcc_action_execution_plan("R2", decision)
+
+    assert plan.backend_effect_kind == "evidence_action_runtime_controller_v40"
+    assert plan.optimizer_consumed is True
+    assert plan.optimizer_consumed_parameters["candidate_relation_policies"] == [
+        "adaptive_v24",
+        "adaptive_v26",
+    ]
+    assert plan.optimizer_consumed_parameters["optimizer_runtime_hook"] == (
+        "post_retirement_precision_reanchor"
+    )
+    assert plan.optimizer_consumed_parameters["trace_runtime_hook"] == (
+        "component_locked_action_specific_delayed_credit"
+    )
+    assert plan.optimizer_consumed_parameters["trace_affects_dispatch"] is False
+    assert plan.optimizer_consumed_parameters["guard"] == (
+        "repair_lock_first_sweep_maturity_and_rescue_productivity"
+    )
+    assert "cross_sweep_cma_terminal_sigma_continuation" not in str(
+        plan.optimizer_consumed_parameters
+    )
+    assert plan.optimizer_consumed_parameters["dispatch_boundary"] == (
+        "runtime_evidence_only"
+    )
+    assert plan.runtime_dispatch_allowed is True
+
+
 @pytest.mark.parametrize(
     ("action_name", "backend_effect_kind", "execution_mode"),
     [
