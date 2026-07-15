@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T20:09+08:00"
-current_stage: 32
+updated: "2026-07-15T20:29+08:00"
+current_stage: 33
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -221,3 +221,10 @@ stages:
     artifacts: [scripts/audit_component_credit_coverage.py, tests/test_audit_component_credit_coverage.py, results/controller_v40_component_credit_heldout_seed31_33_3m_20260715, results/controller_v40_component_credit_parity_v38_seed31_3m_20260715, results/controller_v40_component_credit_heldout_audit_20260715, docs/design/state-evidence-sufficiency-audit-20260715.md, docs/design/core-method.md, .light/handoff/S20-arac-component-credit-coverage-failed.md]
     gate: {type: confirm, result: FAIL, notes: 17 focused tests passed and 787 tracked passed with 1 skip; 9/9 v40 and 3/3 v38 fresh; FE overspend 0/12; AOB v40 90/90 and v38 30/30 unchanged; anti-leakage 16/16 per arm; parity 3/3 exact on final error FE AOB and 101 common trace fields; precision 7/9 runs; resolved 1668/1803 or 92.51 percent; 135 unresolved; overwrite coverage 6 runs and 3 cases; lock conflicts 1796/1803; E2 seed33 precision 15 resolved 0, so the preregistered every-precision-run resolution gate failed}
     gaps: [Current v38 group-local actions create up to 20 simultaneous pending credits in one component; late actions may not have budget for a canonical revisit; no credit-gated runtime rule or further 3M matrix is authorized]
+  - stage: 33
+    skill: light-backend-coding/light-result-analysis/light-consistency
+    input: Frozen S20 v40 traces; exploratory component mutex plus prior-cycle horizon replay; no new optimizer FE
+    output: Reproducible offline lease-feasibility replay, coverage and horizon diagnosis, and deterministic scheduler-cap method boundary
+    artifacts: [scripts/replay_component_lease_feasibility.py, tests/test_replay_component_lease_feasibility.py, results/controller_v40_component_lease_feasibility_replay_20260715, docs/design/state-evidence-sufficiency-audit-20260715.md, docs/design/core-method.md, .light/handoff/S21-arac-component-lease-feasibility-failed.md]
+    gate: {type: confirm, result: FAIL, notes: 10 focused tests and 792 full tests passed with 1 full-suite skip; S20 integrity and eligibility boundary pass; 1803 original actions; 71 selected and 1732 abstained; selected closure 71/71; selected overlap 0; coverage 5 runs and 2 cases below frozen 6 runs and 3 cases; E2 selected 0/44; one selected neighbour harm; overwrite observed 10 with 4 full overwrite and 4 full survival; projection underestimated 13/71 with maximum error 76595 FE}
+    gaps: [The component mutex serializes credit but prior-cycle duration is nonstationary and is not an upper bound; no runtime lease controller or new 3M matrix is authorized; next horizon evidence must come from action-time committed scheduler and FE-ledger state]

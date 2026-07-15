@@ -160,6 +160,43 @@ cover an estimated next canonical revisit. Case, function, seed, final error,
 and paper-best remain prohibited inputs. S20 authorizes no runtime dispatch
 change, new 3M matrix, or full-24 run.
 
+### S21 exploratory lease-feasibility replay
+
+`scripts/replay_component_lease_feasibility.py` replayed all 1,803 precision
+actions from the frozen S20 traces. It selected only when no earlier
+replay-selected lease remained unresolved and when remaining FE covered a
+component-level projection. The projection used the conservative maximum of
+the latest completed adjacent-sweep interval for each relation-bearing group,
+using only observations before the action outer iteration. Group 0 therefore
+did not require a fabricated group-local history.
+
+The input-integrity and eligibility-boundary checks passed. The replay selected
+71 actions and abstained on 1,732: 71/71 selected actions resolved, no selected
+leases overlapped, one selected action had negative neighbour gain, and 10 had
+an overwrite/survival observation (four full overwrite and four full
+survival). These outcome fields were descriptive after selection and did not
+feed eligibility.
+
+The frozen exploratory gate failed on coverage: selected leases appeared in
+five runs across A4 and S2 only, versus the required six runs and three cases.
+All 44 E2 actions failed the horizon check. In E2 seed32 the first action's
+12,433 remaining FE was compared with a 342,185-FE prior-cycle projection, but
+its observed semantic revisit arrived after 11,503 FE. This is direct evidence
+that complete-cycle duration is nonstationary under the shrinking end-budget
+scheduler. The source path confirms the cause: upstream HCC and the ARAC runner
+recompute `ceil(remaining_fes / group_count)` at each sweep boundary.
+Conversely, 13/71 selected actions resolved later than projected, with maximum
+underprediction 76,595 FE. The estimator is thus both too
+conservative for late E2 coverage and not a guaranteed upper bound elsewhere.
+
+S21 does not reject component locking; it rejects historical cycle duration as
+the release-feasibility state. A runtime pilot remains blocked. The next
+auditable candidate is a deterministic `projected_next_revisit_cap_fe` derived
+from the current scheduler's already committed group/block FE caps and current
+ledger position. If that cap cannot be computed without future execution, the
+correct action is abstention. Observed S20/S21 resolution delays may diagnose
+the cap afterward but may not tune it.
+
 ## Field sufficiency
 
 The common trace schema is wider than the values actually recorded. Eight

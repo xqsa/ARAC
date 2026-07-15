@@ -337,3 +337,34 @@ projected_revisit_fe, remaining_fe)`, derived only from the current run. It is
 not a `group_id -> action` table. The next eligible work is an offline replay
 of these two eligibility conditions; v40 remains trace-only until that replay
 is preregistered and passes.
+
+### S21 feasibility replay: mutex works, prior-cycle horizon does not release
+
+The exploratory S21 replay applied the two eligibility conditions to the
+frozen S20 traces without optimizer execution. A lease was selected only when
+the component had no replay-selected pending lease and the remaining ledger
+could cover the maximum of the latest completed per-relation-group cycle
+intervals observed before the action sweep. Current-action credit status,
+resolution, gains, case and seed identity, and terminal outcomes were excluded
+from eligibility.
+
+The mutex removed all overlap and every selected lease closed: 71/71 selected
+actions resolved, with zero overlap violations. This did not pass the coverage
+gate. Selection occurred in only five runs and two cases, below the frozen six
+run/three case minimum; every E2 action abstained on the horizon check. E2
+seed32 illustrates the estimator failure: its first precision action had
+12,433 FE remaining, the prior-cycle component maximum projected 342,185 FE,
+and the observed revisit took 11,503 FE. The scheduler's per-group work shrinks
+strongly near the budget endpoint, so a prior full-cycle duration is not a
+stationary estimate of the next cycle. This is explicit in both the upstream
+HCC source and the ARAC runner: each sweep recomputes the uniform group budget
+as `ceil(remaining_fes / group_count)`.
+
+The projection was also not a strict upper bound: 13/71 selected actions had
+observed resolution delay above the estimate, although all happened to close
+in this sample. The replay therefore establishes the component mutex as a
+necessary serialization rule but rejects prior-cycle extrapolation as the
+horizon contract. No runtime lease controller is authorized. The next eligible
+horizon must be computed from action-time committed scheduler/ledger state as
+a deterministic revisit cap, or the controller must abstain; it may not be a
+threshold fitted to these observed resolutions.
