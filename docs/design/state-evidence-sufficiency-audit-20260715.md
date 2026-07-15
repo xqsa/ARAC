@@ -56,6 +56,67 @@ this 5k run, so delayed-credit resolution, overwrite/survival coverage, and
 unresolved run-end behavior remain unvalidated by this smoke and cannot be
 treated as zero incidence.
 
+## S20 held-out coverage preregistration
+
+This section is frozen before any S20 optimizer run by the Git commit that
+contains it. S20 is a trace-coverage experiment, not a performance comparison
+or a threshold-fitting dataset.
+
+### Question and selection boundary
+
+The confirmatory question is whether v40 can record valid, action-specific
+search-start credit through its semantic resolution horizon without changing
+v38 behavior. Cases are selected only from historical v38 action coverage:
+A4 had 2,147 precision rows across 3/3 seeds, S2 had 282 across 3/3 seeds, and
+E2 had 46 across 2/3 seeds. Historical final error, paper-best, family labels,
+and seed outcomes were not used to choose the matrix or any runtime action.
+
+### Frozen matrix
+
+- v40 coverage arm: A4/S2/E2, seeds 31/32/33, one lane, strict 3,000,000 FE;
+  9 fresh trajectories in
+  `results/controller_v40_component_credit_heldout_seed31_33_3m_20260715`.
+- v38 parity arm: A4/S2/E2, seed 31, strict 3,000,000 FE; 3 fresh trajectories
+  in `results/controller_v40_component_credit_parity_v38_seed31_3m_20260715`.
+- Runtime environment: pinned Python/NumPy/SciPy and single-thread
+  `PYTHONHASHSEED`, OMP, OpenBLAS, MKL, and NumExpr settings already enforced by
+  exp003. The manifests must identify the preregistration commit.
+- Offline audit output:
+  `results/controller_v40_component_credit_heldout_audit_20260715`, generated
+  only by `scripts/audit_component_credit_coverage.py`.
+
+The v40 seeds are held out from the frozen v38 seed1/2/3 coverage artifact.
+Nine trajectories are sufficient only for a wiring/coverage gate; they are
+not powered for a performance effect and no significance claim is permitted.
+
+### Frozen integrity and coverage gate
+
+All 12 runs must be fresh, completed, at or below 3M FE, AOB-unchanged, and
+anti-leakage clean. The three seed31 parity pairs must match exactly on final
+error, FE, AOB hashes, action-trace row count, and every common non-lane trace
+field. v40 action plans must retain `trace_affects_dispatch=false` and exclude
+v39 sigma continuation.
+
+The coverage gate passes only if all of the following hold:
+
+1. At least 6/9 v40 runs contain a precision action.
+2. At least two cases contain precision actions in at least two seeds each.
+3. Every v40 run contains component relation observations, and every
+   precision-bearing run contains at least one resolved action.
+4. At least one `unresolved_run_end` row is observed and no serialized row
+   remains `pending`.
+5. Aggregate resolved/precision coverage is at least 0.90.
+6. Overwrite/survival is observed in at least three runs and two cases; every
+   emitted pair is finite, within [0,1], and sums to one.
+7. At least one same-component lock conflict is observed. All decision and
+   resolution FE values are monotonic and stay within the run ledger.
+
+If integrity fails, the affected trajectories are invalid and must be rerun in
+a new directory after a root-cause fix. If coverage fails with valid runs, S20
+stops: no credit-gated lease rule, threshold tuning, 3M expansion, or full-24
+run is authorized. A coverage pass permits only the next preregistered design
+step; it is not evidence that a controller improves optimization performance.
+
 ## Field sufficiency
 
 The common trace schema is wider than the values actually recorded. Eight
