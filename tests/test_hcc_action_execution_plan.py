@@ -516,7 +516,8 @@ def test_hcc_action_execution_plan_marks_v41_as_runtime_component_lease() -> Non
         "inherited_v38_conservative_sigma"
     )
     assert plan.optimizer_consumed_parameters["trace_affects_dispatch"] is True
-    assert plan.runtime_dispatch_allowed is True
+    assert plan.runtime_dispatch_allowed is False
+    assert plan.blocker_reason == "runtime_dispatch_blocked"
 
 
 @pytest.mark.parametrize(

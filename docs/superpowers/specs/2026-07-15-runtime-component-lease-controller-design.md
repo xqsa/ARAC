@@ -103,3 +103,18 @@ The pilot passes only if all conditions hold:
 Any failure permanently stops the component-lease controller route. The gate,
 thresholds, cases, seeds, and baseline may not be retuned. Passing permits a
 separate full-24 preregistration; it is not itself a final performance claim.
+
+## Frozen Result
+
+The runtime pilot failed and this route is permanently stopped. All structural
+and attribution checks passed: 9/9 v41 and 9/9 v38 runs were fresh, strict FE
+overspend was zero, AOB inputs were unchanged, anti-leakage passed, and v41
+selected 116 leases with 116/116 resolution, zero overlap, zero cap
+underprediction, zero cap-contract failure, and zero decision mismatch.
+
+The release conditions failed. Selected coverage reached six runs but only
+two cases because E2 selected no lease. Of nine paired runs, six changed: v41
+won one and lost five. Mean paired log advantage was -0.0931242, median was
+-0.000264807, and S2 seeds 37 and 38 were catastrophic losses. The runtime
+profile is retained only for audit reproduction and is marked dispatch-blocked.
+No threshold, margin, seed, case, or fallback revision is authorized.

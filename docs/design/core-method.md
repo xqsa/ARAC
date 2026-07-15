@@ -368,3 +368,29 @@ horizon contract. No runtime lease controller is authorized. The next eligible
 horizon must be computed from action-time committed scheduler/ledger state as
 a deterministic revisit cap, or the controller must abstain; it may not be a
 threshold fitted to these observed resolutions.
+
+### S22 deterministic cap passes attribution but runtime serialization fails
+
+S22 replaced historical-cycle extrapolation with an exact action-time bound
+from the strict scheduler and FE ledger. Fresh A4/S2/E2 seeds 34-36 produced
+111/111 replay-selected leases that resolved, with zero component overlap,
+zero cap underprediction, zero cap-contract drift, six selected runs, three
+selected cases, and two cases covering at least two selected seeds. This
+passed the frozen scheduler-feasibility gate and established that the next
+canonical revisit can be bounded without case, seed, outcome, or future-action
+inputs.
+
+The authorized v41 pilot then applied that cap and mutex at runtime on fresh
+seeds 37-39. The state mechanism worked exactly: 116/116 selected leases
+resolved, with zero overlap, underprediction, contract failure, or runtime
+decision mismatch. It did not improve the optimizer. E2 selected no leases,
+so coverage reached only A4 and S2. Six paired final errors changed versus
+v38; v41 won one and lost five. Mean paired log advantage was -0.0931242,
+median was -0.000264807, and S2 seeds 37/38 were catastrophic losses.
+
+This separates two claims that had previously been conflated. Scheduler state
+can guarantee that delayed credit will become observable; it does not predict
+that suppressing repeated precision actions will improve the remaining
+trajectory. On S2, serialization removed useful repeated search exposure.
+The component-lease controller route is therefore permanently stopped. v41 is
+dispatch-blocked and no threshold, margin, or full-24 extension is allowed.

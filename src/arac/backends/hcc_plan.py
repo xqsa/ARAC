@@ -311,5 +311,5 @@ def build_hcc_action_execution_plan(
         optimizer_consumed_parameters=dict(parameters),
         execution_mode=execution_mode,
         blocker_reason=blocker,
-        runtime_dispatch_allowed=bool(optimizer_consumed),
+        runtime_dispatch_allowed=bool(optimizer_consumed and not blocker),
     )

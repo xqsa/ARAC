@@ -282,47 +282,36 @@ not solve the general ranking problem: Spearman to terminal was +0.158 at
 closure, +0.207 at 3x and -0.067 at 9x; within-case concordance was respectively
 1/7, 3/7 and 2/7.
 
-## Method decision
+## Final audited method decision
 
-Adding state evidence is necessary, but the correct unit is not
-`group_id -> action`. The next defensible method candidate is a
-**component-locked, state-conditioned delayed-credit controller**:
+The proposed component-locked search-start controller was implemented and
+falsified in two stages. S22's deterministic action-time scheduler cap passed
+offline coverage on fresh A4/S2/E2 seeds 34-36: 111/111 replay-selected leases
+resolved, with zero overlap, cap underprediction or contract drift. The bound
+therefore solves the attribution-horizon problem without outcome or identity
+inputs.
 
-1. Structure proposes an eligible action and its scope; it does not certify
-   long-horizon benefit.
-2. Shared-variable writeback is locked at an overlap-connected component.
-   Adjacent groups cannot independently write the same shared variable.
-3. Resource and search-start actions may be group-local only when they do not
-   share mutable state; otherwise they inherit the component lock.
-4. Each component has at most one pending action. A second action cannot be
-   credited until the first reaches its action-specific resolution window.
-5. Writeback credit waits for a complete component cycle and all incident
-   groups to revisit; resource credit waits for its allocation block plus the
-   next canonical revisit; search-start credit waits for its search block plus
-   the next CC revisit.
-6. Credit combines local gain, component gain, neighbour spillover and
-   shared-variable overwrite/survival. Unresolved or harmful credit reduces
-   dose, enters cooldown or abstains.
+The v41 runtime pilot on fresh seeds 37-39 also satisfied every state
+contract. It selected 116 leases and all 116 resolved, with zero overlap, cap
+underprediction, contract failure or decision mismatch. This did not create a
+stable action policy. E2 selected no lease, while paired v41 versus v38
+performance changed in six runs with one win and five losses. Mean log
+advantage was -0.0931242, median was -0.000264807, and S2 seeds 37/38 were
+catastrophic under the frozen -20% relative-gain threshold.
 
-The first implementation candidate should be search-start exposure control,
-not a simultaneous W/R/S controller. Existing v38 evidence supports using
-post-action local progress to decide whether another precision lease is
-allowed. It does not support changing the initial dispatch or tuning a repair
-threshold.
+The final interpretation is narrower than the original candidate:
 
-## Release decision and next gate
+1. Structure identifies action scope and shared-state conflicts.
+2. Scheduler state determines whether future credit is observable within the
+   remaining budget.
+3. Neither signal predicts whether serializing repeated precision exposure is
+   beneficial to the terminal trajectory.
+4. A component mutex is valid for attribution but harmful as a generic action
+   limiter; on S2 it suppresses useful repeated search.
 
-- Do not implement a learned group policy, tune thresholds, restart CAR R/S,
-  or run a new full-24 matrix from these three-seed artifacts.
-- First add trace-only, zero-behaviour-change instrumentation for decision FE,
-  remaining budget, component/action id, pending/resolution state, component
-  and neighbour gain, proposal disagreement, overwrite rate and survival.
-- Then preregister one search-start controller: the existing structural route
-  grants the first capped lease; subsequent leases require positive resolved
-  component credit and no neighbour/overwrite harm.
-- Validate on held-out seeds with same-budget paired references. Report action
-  coverage, abstention, mean, worst seed and catastrophic loss. Writeback and
-  resource channels remain frozen until their own credit is identifiable.
-
-For the July paper, v33.8 full-24 remains the performance result. This audit is
-a mechanism result and an evidence-based roadmap, not a replacement score.
+The component-lease controller route is permanently stopped. Do not tune its
+margin, change the held-out matrix, add credit thresholds, restart CAR R/S, or
+run a v41 full-24 experiment. v41 remains only as a dispatch-blocked audit
+artifact. For the July paper, v33.8 full-24 remains the performance result;
+v40/S22/v41 support a mechanism section explaining why structural evidence,
+credit observability, and long-horizon action utility are distinct claims.

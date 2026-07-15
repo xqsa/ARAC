@@ -78,7 +78,9 @@ def test_controller_registry_is_the_single_runtime_capability_source(
     assert profile.lane_profile == action_name.removeprefix("arac_")
     assert capabilities.issubset(profile.capabilities)
     assert profile.optimizer_consumed is True
-    assert profile.runtime_dispatch_allowed is True
+    assert profile.runtime_dispatch_allowed is (
+        action_name != "arac_evidence_action_controller_v41"
+    )
     assert profile.dispatch_boundary.endswith("runtime_evidence_only")
 
 
@@ -87,6 +89,14 @@ def test_controller_registry_rejects_unknown_actions() -> None:
 
     with pytest.raises(KeyError, match="unknown controller action"):
         controller_profile_by_action("arac_evidence_action_controller_v42")
+
+
+def test_failed_v41_pilot_is_not_runtime_dispatchable() -> None:
+    from arac.actions.controller_profiles import controller_profile_by_version
+
+    profile = controller_profile_by_version(41)
+
+    assert profile.runtime_dispatch_allowed is False
 
 
 def test_car_w_profile_freezes_the_audited_protocol() -> None:

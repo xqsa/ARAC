@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T20:29+08:00"
-current_stage: 33
+updated: "2026-07-15T22:45+08:00"
+current_stage: 35
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -228,3 +228,17 @@ stages:
     artifacts: [scripts/replay_component_lease_feasibility.py, tests/test_replay_component_lease_feasibility.py, results/controller_v40_component_lease_feasibility_replay_20260715, docs/design/state-evidence-sufficiency-audit-20260715.md, docs/design/core-method.md, .light/handoff/S21-arac-component-lease-feasibility-failed.md]
     gate: {type: confirm, result: FAIL, notes: 10 focused tests and 792 full tests passed with 1 full-suite skip; S20 integrity and eligibility boundary pass; 1803 original actions; 71 selected and 1732 abstained; selected closure 71/71; selected overlap 0; coverage 5 runs and 2 cases below frozen 6 runs and 3 cases; E2 selected 0/44; one selected neighbour harm; overwrite observed 10 with 4 full overwrite and 4 full survival; projection underestimated 13/71 with maximum error 76595 FE}
     gaps: [The component mutex serializes credit but prior-cycle duration is nonstationary and is not an upper bound; no runtime lease controller or new 3M matrix is authorized; next horizon evidence must come from action-time committed scheduler and FE-ledger state]
+  - stage: 34
+    skill: light-backend-coding/light-result-analysis/debug-first
+    input: Frozen deterministic action-time scheduler revisit cap; A4/S2/E2 seeds 34/35/36 v40 plus seed34 v38 parity; strict 3M FE
+    output: Trace-only scheduler-cap implementation, exact offline replay, fresh coverage evidence, and authorization for one runtime mutex/cap pilot
+    artifacts: [docs/superpowers/specs/2026-07-15-deterministic-scheduler-revisit-cap-design.md, scripts/audit_scheduler_revisit_cap.py, results/controller_v40_scheduler_cap_heldout_seed34_36_3m_20260715, results/controller_v40_scheduler_cap_parity_v38_seed34_3m_20260715, results/controller_v40_scheduler_cap_audit_20260715]
+    gate: {type: confirm, result: PASS, notes: 9/9 v40 and 3/3 v38 fresh; FE overspend 0/12; AOB unchanged; anti-leakage pass; parity 3/3 on final error FE AOB and 101 common trace fields; 111 selected; 111/111 resolved; overlap 0; cap underprediction 0; cap contract failures 0; selected coverage 6 runs 3 cases with two cross-seed cases}
+    gaps: [Scheduler feasibility proves that credit can be observed, not that runtime serialization improves terminal performance; only a separately frozen v41 paired pilot was authorized]
+  - stage: 35
+    skill: light-backend-coding/light-result-analysis/light-consistency
+    input: Frozen v41 component mutex plus deterministic scheduler cap; A4/S2/E2 seeds 37/38/39 v41 and v38; strict 3M FE
+    output: Fresh paired runtime artifacts, exact lease audit, failed performance gate, dispatch-blocked v41 profile, and permanent controller hard stop
+    artifacts: [docs/superpowers/specs/2026-07-15-runtime-component-lease-controller-design.md, scripts/audit_runtime_component_lease.py, results/controller_v41_runtime_lease_heldout_seed37_39_3m_20260715, results/controller_v41_runtime_lease_parity_v38_seed37_39_3m_20260715, results/controller_v41_runtime_lease_audit_20260715, .light/handoff/S22-arac-runtime-component-lease-failed.md]
+    gate: {type: confirm, result: FAIL, notes: both arms 9/9 fresh; FE overspend 0/18; AOB 90/90 unchanged per arm; anti-leakage 16/16 per arm; 116 selected and 116/116 resolved; overlap underprediction contract and decision mismatches all 0; selected coverage 6 runs but only A4/S2; changed pairs 1 win 5 losses; mean log advantage -0.0931242; median -0.000264807; catastrophic 2/9 on S2 seeds 37/38}
+    gaps: [The cap and mutex solve attribution but not long-horizon action utility; serialization suppresses useful repeated S2 precision exposure; v41 is dispatch-blocked and this controller route is permanently stopped]

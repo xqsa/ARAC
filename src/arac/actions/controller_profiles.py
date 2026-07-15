@@ -42,6 +42,7 @@ def _profile(
     dispatch_scope: str,
     backend_parameters: dict[str, object],
     capabilities: set[str],
+    runtime_dispatch_allowed: bool = True,
 ) -> ControllerProfile:
     suffix = str(version)
     return ControllerProfile(
@@ -54,6 +55,7 @@ def _profile(
         optimizer_consumed_parameters=backend_parameters,
         execution_mode=f"hcc_evidence_action_controller_v{suffix}_runtime_consumed",
         capabilities=frozenset({"guarded", "requires_pinned_environment", *capabilities}),
+        runtime_dispatch_allowed=runtime_dispatch_allowed,
     )
 
 
@@ -240,6 +242,7 @@ CONTROLLER_PROFILES = (
             "component_delayed_credit_trace",
             "component_lease_dispatch",
         },
+        runtime_dispatch_allowed=False,
     ),
     ControllerProfile(
         version=None,
