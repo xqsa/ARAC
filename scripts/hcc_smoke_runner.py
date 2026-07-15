@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import json
 import math
 import sys
 import time
@@ -106,6 +107,12 @@ from arac.policy.oracle_actionability import (
     CAR_ACTIONABILITY_HORIZON_LABELS,
     CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
     CAR_ACTIONABILITY_PROTOCOL_VERSION,
+)
+from arac.policy.causal_risk_scheduler import (
+    FEATURE_SCHEMA_SHA256,
+    PRE_ACTION_UTILITY_SCHEMA_VERSION,
+    UTILITY_FEATURE_NAMES,
+    PreActionUtilityState,
 )
 from src.arac.policy.trajectory_guard import (
     RecoveryCheckpoint,
@@ -559,6 +566,53 @@ CAR_ACTIONABILITY_TRACE_FIELDS = [
     "horizon_status",
     "abstain_reason",
 ]
+PRECISION_CAUSAL_PROTOCOL_VERSION = "precision-causal-logging-v1"
+PRECISION_CAUSAL_TRACE_FIELDS = [
+    "protocol_version",
+    "fresh_optimizer_execution",
+    "problem_id",
+    "seed",
+    "audit_arm",
+    "decision_id",
+    "decision_status",
+    "not_applicable_reason",
+    "schema_version",
+    *UTILITY_FEATURE_NAMES,
+    "feature_schema_sha256",
+    "feature_sha256",
+    "decision_fe",
+    "checkpoint_fitness",
+    "remaining_fe",
+    "component_id",
+    "component_group_count",
+    "component_shared_var_count",
+    "component_unlocked",
+    "scheduler_revisit_reachable",
+    "scheduler_revisit_cap_fe",
+    "scheduler_revisit_reason",
+    "source_phase_i_end_fe",
+    "source_cc_history_end_fe",
+    "source_disagreement_history_end_fe",
+    "source_cma_history_end_fe",
+    "source_end_fe",
+    "prefix_record_sha256",
+    "checkpoint_candidate_sha256",
+    "controller_state_sha256",
+    "random_descriptor_sha256",
+    "action_applied",
+    "normal_sigma",
+    "candidate_sigma",
+    "applied_sigma",
+    "requested_fe",
+    "actual_fe",
+    "intervention_end_fe",
+    "configured_max_fes",
+    "terminal_target_fe",
+    "terminal_observed_fe",
+    "terminal_error",
+    "terminal_status",
+    "terminal_record_sha256",
+]
 CAR_W_MIN_EVIDENCE_SWEEPS = 2
 CAR_W_PAIR_COUNT = 3
 CAR_W_PROBE_BUDGET_FRACTION = 0.03
@@ -701,6 +755,43 @@ class SmokeConfig:
     car_branch_order: str = "fallback_first"
     car_candidate_mode: str = "graph"
     car_actionability_arm: str = "off"
+    precision_causal_arm: str = "off"
+
+
+@dataclass(frozen=True)
+class CMATraceOnlyDiagnostic:
+    source_end_fe: int
+    terminal_sigma_ratio: float
+    success_generation_ratio: float
+    offspring_diversity_ratio: float
+
+
+@dataclass(frozen=True)
+class PrecisionCausalDecisionSnapshot:
+    decision_id: str
+    decision_status: str
+    not_applicable_reason: str
+    state: PreActionUtilityState | None
+    decision_fe: int
+    checkpoint_fitness: float
+    remaining_fe: int
+    component_id: str
+    component_group_count: int
+    component_shared_var_count: int
+    component_unlocked: bool
+    scheduler_revisit_cap_fe: int
+    scheduler_revisit_reason: str
+    source_phase_i_end_fe: int
+    source_cc_history_end_fe: int
+    source_disagreement_history_end_fe: int
+    source_cma_history_end_fe: int
+    source_end_fe: int
+    prefix_record_sha256: str
+    checkpoint_candidate_sha256: str
+    controller_state_sha256: str
+    random_descriptor_sha256: str
+    normal_sigma: float
+    candidate_sigma: float
 
 
 @dataclass(frozen=True)
@@ -3983,6 +4074,390 @@ def _fitness_record_sha256(values: tuple[float, ...] | list[float]) -> str:
     return hashlib.sha256(repr(normalized).encode("utf-8")).hexdigest()
 
 
+def _canonical_payload_sha256(payload: object) -> str:
+    encoded = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _linear_slope(values: tuple[float, ...] | list[float]) -> float:
+    samples = tuple(float(value) for value in values)
+    if len(samples) < 2:
+        raise ValueError("linear slope requires at least two values")
+    x_mean = (len(samples) - 1) / 2.0
+    denominator = sum((index - x_mean) ** 2 for index in range(len(samples)))
+    return sum(
+        (index - x_mean) * (value - sum(samples) / len(samples))
+        for index, value in enumerate(samples)
+    ) / denominator
+
+
+def offspring_diversity_ratio(
+    x_batch: np.ndarray,
+    *,
+    lower: float,
+    upper: float,
+) -> float:
+    """Measure normalized parameter-space spread without touching the optimizer."""
+
+    values = np.asarray(x_batch, dtype=float)
+    if values.ndim != 2 or values.shape[0] == 0 or values.shape[1] == 0:
+        return float("nan")
+    if not np.all(np.isfinite(values)):
+        return float("nan")
+    span = float(upper) - float(lower)
+    if not math.isfinite(span) or span <= 0.0:
+        return float("nan")
+    centered = values - np.mean(values, axis=0, keepdims=True)
+    scale = span * math.sqrt(values.shape[1])
+    return float(np.mean(np.linalg.norm(centered, axis=1)) / scale)
+
+
+def summarize_cma_trace_only_diagnostic(
+    *,
+    objective_values: tuple[float, ...] | list[float],
+    batch_diversities: tuple[float, ...] | list[float],
+    population_size: int,
+    pre_block_fitness: float,
+    initial_sigma: float,
+    terminal_sigma: float,
+    source_end_fe: int,
+) -> CMATraceOnlyDiagnostic | None:
+    """Summarize already-observed CMA batches; no objective or RNG call is added."""
+
+    values = tuple(float(value) for value in objective_values)
+    population = int(population_size)
+    if not values or population <= 0:
+        return None
+    diversities = tuple(float(value) for value in batch_diversities)
+    if not diversities or any(not math.isfinite(value) for value in diversities):
+        return None
+    initial = float(initial_sigma)
+    terminal = float(terminal_sigma)
+    if (
+        not math.isfinite(initial)
+        or not math.isfinite(terminal)
+        or initial <= 0.0
+        or terminal <= 0.0
+    ):
+        return None
+    running_best = float(pre_block_fitness)
+    successes = 0
+    generations = 0
+    for offset in range(0, len(values), population):
+        generation = tuple(
+            value
+            for value in values[offset : offset + population]
+            if math.isfinite(value)
+        )
+        if not generation:
+            continue
+        generation_best = min(generation)
+        successes += int(generation_best < running_best)
+        running_best = min(running_best, generation_best)
+        generations += 1
+    if generations == 0:
+        return None
+    return CMATraceOnlyDiagnostic(
+        source_end_fe=int(source_end_fe),
+        terminal_sigma_ratio=terminal / initial,
+        success_generation_ratio=successes / generations,
+        offspring_diversity_ratio=sum(diversities) / len(diversities),
+    )
+
+
+def component_mean_overlap_ratio(
+    grouping_result: list[list[int]],
+    component_group_indices: tuple[int, ...],
+) -> float | None:
+    ratios: list[float] = []
+    groups = [set(int(value) for value in group) for group in grouping_result]
+    for position, left_index in enumerate(component_group_indices):
+        for right_index in component_group_indices[position + 1 :]:
+            overlap = groups[left_index].intersection(groups[right_index])
+            if not overlap:
+                continue
+            ratios.append(
+                len(overlap) / max(1, min(len(groups[left_index]), len(groups[right_index])))
+            )
+    if not ratios:
+        return None
+    return sum(ratios) / len(ratios)
+
+
+def build_precision_causal_snapshot(
+    *,
+    checkpoint_fitness: float,
+    decision_fe: int,
+    max_fes: int,
+    phase_i_tail_progress_rate: float,
+    phase_i_source_end_fe: int,
+    cc_progress_history: list[float],
+    cc_source_end_fes: list[int],
+    component_disagreement_history: list[tuple[int, float]],
+    cma_history: list[CMATraceOnlyDiagnostic],
+    grouping_result: list[list[int]],
+    dimension: int,
+    component,
+    scheduler_revisit_cap,
+    controller_state_sha256: str,
+    prefix_record_sha256: str,
+    checkpoint_candidate_sha256: str,
+    random_descriptor_sha256: str,
+    normal_sigma: float,
+    candidate_sigma: float,
+) -> PrecisionCausalDecisionSnapshot:
+    """Freeze the first structurally feasible precision decision before execution."""
+
+    missing: list[str] = []
+    if len(cc_progress_history) < 4 or len(cc_source_end_fes) < 4:
+        missing.append("cc_progress_history_4")
+    if len(component_disagreement_history) < 2:
+        missing.append("component_disagreement_history_2")
+    if len(cma_history) < 3:
+        missing.append("group_cma_history_3")
+    overlap_ratio = component_mean_overlap_ratio(
+        grouping_result,
+        component.group_indices,
+    )
+    if overlap_ratio is None:
+        missing.append("component_overlap_ratio")
+
+    remaining_fe = max(0, int(max_fes) - int(decision_fe))
+    source_phase_i = int(phase_i_source_end_fe)
+    source_cc = int(cc_source_end_fes[-1]) if cc_source_end_fes else -1
+    source_disagreement = (
+        int(component_disagreement_history[-1][0])
+        if component_disagreement_history
+        else -1
+    )
+    source_cma = int(cma_history[-1].source_end_fe) if cma_history else -1
+    source_end = max(source_phase_i, source_cc, source_disagreement, source_cma)
+    if source_end >= int(decision_fe):
+        missing.append("history_watermark_not_pre_action")
+
+    state: PreActionUtilityState | None = None
+    if not missing:
+        recent_cc = tuple(float(value) for value in cc_progress_history[-4:])
+        recent_disagreement = tuple(
+            float(value) for _, value in component_disagreement_history[-2:]
+        )
+        recent_sigma = tuple(
+            max(float(item.terminal_sigma_ratio), 1e-300)
+            for item in cma_history[-3:]
+        )
+        stagnation_streak = 0
+        for value in reversed(cc_progress_history):
+            if float(value) > BIPOP_STAGNATION_EPSILON:
+                break
+            stagnation_streak += 1
+        payload = {
+            "schema_version": PRE_ACTION_UTILITY_SCHEMA_VERSION,
+            "remaining_fe_ratio": remaining_fe / max(1, int(max_fes)),
+            "revisit_cap_remaining_ratio": int(scheduler_revisit_cap.cap_fe)
+            / max(1, remaining_fe),
+            "component_group_fraction": len(component.group_indices)
+            / max(1, len(grouping_result)),
+            "component_shared_variable_ratio": len(component.shared_variables)
+            / max(1, int(dimension)),
+            "component_mean_overlap_ratio": float(overlap_ratio),
+            "proposal_disagreement_mean_2": sum(recent_disagreement)
+            / len(recent_disagreement),
+            "candidate_dose_ratio": float(candidate_sigma) / float(normal_sigma),
+            "phase_i_tail_progress_rate": float(phase_i_tail_progress_rate),
+            "cc_progress_rate_last": recent_cc[-1],
+            "cc_progress_rate_slope_4": _linear_slope(recent_cc),
+            "cc_progress_rate_std_4": float(np.std(recent_cc)),
+            "cc_stagnation_streak": float(stagnation_streak),
+            "terminal_sigma_ratio_last": recent_sigma[-1],
+            "log_sigma_slope_3": _linear_slope(
+                tuple(math.log(value) for value in recent_sigma)
+            ),
+            "success_generation_ratio_last": float(
+                cma_history[-1].success_generation_ratio
+            ),
+            "offspring_diversity_ratio_last": float(
+                cma_history[-1].offspring_diversity_ratio
+            ),
+        }
+        state = PreActionUtilityState.from_runtime_payload(payload)
+
+    reason = "" if state is not None else "missing_pre_action_history:" + ",".join(missing)
+    feature_hash = "" if state is None else state.feature_sha256
+    decision_id = "precision_" + _canonical_payload_sha256(
+        {
+            "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+            "prefix_record_sha256": prefix_record_sha256,
+            "feature_sha256": feature_hash,
+            "not_applicable_reason": reason,
+        }
+    )[:24]
+    return PrecisionCausalDecisionSnapshot(
+        decision_id=decision_id,
+        decision_status="applicable" if state is not None else "not_applicable",
+        not_applicable_reason=reason,
+        state=state,
+        decision_fe=int(decision_fe),
+        checkpoint_fitness=float(checkpoint_fitness),
+        remaining_fe=remaining_fe,
+        component_id=component.component_id,
+        component_group_count=len(component.group_indices),
+        component_shared_var_count=len(component.shared_variables),
+        component_unlocked=True,
+        scheduler_revisit_cap_fe=int(scheduler_revisit_cap.cap_fe),
+        scheduler_revisit_reason=scheduler_revisit_cap.reason,
+        source_phase_i_end_fe=source_phase_i,
+        source_cc_history_end_fe=source_cc,
+        source_disagreement_history_end_fe=source_disagreement,
+        source_cma_history_end_fe=source_cma,
+        source_end_fe=source_end,
+        prefix_record_sha256=prefix_record_sha256,
+        checkpoint_candidate_sha256=checkpoint_candidate_sha256,
+        controller_state_sha256=controller_state_sha256,
+        random_descriptor_sha256=random_descriptor_sha256,
+        normal_sigma=float(normal_sigma),
+        candidate_sigma=float(candidate_sigma),
+    )
+
+
+def precision_causal_snapshot_row(
+    snapshot: PrecisionCausalDecisionSnapshot,
+    *,
+    problem_id: str,
+    seed: int | None,
+    audit_arm: str,
+) -> dict[str, str]:
+    feature_values = (
+        {}
+        if snapshot.state is None
+        else {
+            name: f"{float(getattr(snapshot.state, name)):.17e}"
+            for name in UTILITY_FEATURE_NAMES
+        }
+    )
+    return {
+        "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+        "fresh_optimizer_execution": "1",
+        "problem_id": problem_id,
+        "seed": "" if seed is None else str(int(seed)),
+        "audit_arm": audit_arm,
+        "decision_id": snapshot.decision_id,
+        "decision_status": snapshot.decision_status,
+        "not_applicable_reason": snapshot.not_applicable_reason,
+        "schema_version": (
+            "" if snapshot.state is None else snapshot.state.schema_version
+        ),
+        **feature_values,
+        "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
+        "feature_sha256": (
+            "" if snapshot.state is None else snapshot.state.feature_sha256
+        ),
+        "decision_fe": str(snapshot.decision_fe),
+        "checkpoint_fitness": f"{snapshot.checkpoint_fitness:.17e}",
+        "remaining_fe": str(snapshot.remaining_fe),
+        "component_id": snapshot.component_id,
+        "component_group_count": str(snapshot.component_group_count),
+        "component_shared_var_count": str(snapshot.component_shared_var_count),
+        "component_unlocked": str(int(snapshot.component_unlocked)),
+        "scheduler_revisit_reachable": "1",
+        "scheduler_revisit_cap_fe": str(snapshot.scheduler_revisit_cap_fe),
+        "scheduler_revisit_reason": snapshot.scheduler_revisit_reason,
+        "source_phase_i_end_fe": str(snapshot.source_phase_i_end_fe),
+        "source_cc_history_end_fe": str(snapshot.source_cc_history_end_fe),
+        "source_disagreement_history_end_fe": str(
+            snapshot.source_disagreement_history_end_fe
+        ),
+        "source_cma_history_end_fe": str(snapshot.source_cma_history_end_fe),
+        "source_end_fe": str(snapshot.source_end_fe),
+        "prefix_record_sha256": snapshot.prefix_record_sha256,
+        "checkpoint_candidate_sha256": snapshot.checkpoint_candidate_sha256,
+        "controller_state_sha256": snapshot.controller_state_sha256,
+        "random_descriptor_sha256": snapshot.random_descriptor_sha256,
+        "normal_sigma": f"{snapshot.normal_sigma:.17e}",
+        "candidate_sigma": f"{snapshot.candidate_sigma:.17e}",
+    }
+
+
+def select_first_complete_precision_snapshot(
+    existing: PrecisionCausalDecisionSnapshot | None,
+    candidate: PrecisionCausalDecisionSnapshot,
+    *,
+    audit_arm: str,
+) -> tuple[PrecisionCausalDecisionSnapshot | None, bool]:
+    """Consume only the first history-complete opportunity in a trajectory."""
+
+    if audit_arm not in {"baseline", "action"}:
+        raise ValueError("precision causal audit arm must be baseline or action")
+    if existing is not None or candidate.state is None:
+        return existing, False
+    return candidate, audit_arm == "action"
+
+
+def finalize_precision_causal_trace_row(
+    *,
+    base_row: dict[str, str],
+    fitness_record: list[float],
+    max_fes: int,
+    terminal_completion_tolerance_fe: int,
+    action_applied: bool,
+    applied_sigma: float | None,
+    requested_fe: int,
+    actual_fe: int,
+    intervention_end_fe: int | None,
+    early_guard: bool,
+) -> dict[str, str]:
+    record = tuple(float(value) for value in fitness_record)
+    terminal_target_fe = max(
+        0,
+        int(max_fes) - int(terminal_completion_tolerance_fe),
+    )
+    terminal_observed_fe = min(terminal_target_fe, len(record))
+    terminal_prefix = record[:terminal_observed_fe]
+    decision_fe = int(base_row.get("decision_fe") or 0)
+    intervention_end = (
+        decision_fe if intervention_end_fe is None else int(intervention_end_fe)
+    )
+    complete = (
+        terminal_observed_fe == terminal_target_fe
+        and not early_guard
+        and (
+            base_row.get("decision_status") != "applicable"
+            or terminal_target_fe > intervention_end
+        )
+    )
+    row = dict(base_row)
+    row.update(
+        {
+            "action_applied": str(int(action_applied)),
+            "applied_sigma": (
+                "" if applied_sigma is None else f"{float(applied_sigma):.17e}"
+            ),
+            "requested_fe": str(int(requested_fe)),
+            "actual_fe": str(int(actual_fe)),
+            "intervention_end_fe": (
+                "" if intervention_end_fe is None else str(intervention_end)
+            ),
+            "configured_max_fes": str(int(max_fes)),
+            "terminal_target_fe": str(terminal_target_fe),
+            "terminal_observed_fe": str(terminal_observed_fe),
+            "terminal_error": (
+                "" if not terminal_prefix else f"{min(terminal_prefix):.17e}"
+            ),
+            "terminal_status": "complete" if complete else "incomplete",
+            "terminal_record_sha256": (
+                ""
+                if not terminal_prefix
+                else _fitness_record_sha256(terminal_prefix)
+            ),
+        }
+    )
+    return row
+
+
 def execute_car_actionability_arm_at_barrier(
     *,
     decision: CARPlanDecision,
@@ -4459,6 +4934,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         config.arac_action
     ):
         raise ValueError("CAR actionability audit requires the frozen CAR-W3 action")
+    if config.precision_causal_arm not in {"off", "baseline", "action"}:
+        raise ValueError("unsupported precision causal arm")
+    if config.precision_causal_arm != "off" and not is_evidence_action_controller_v37(
+        config.arac_action
+    ):
+        raise ValueError("precision causal logging requires the frozen v37 action")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -4634,6 +5115,35 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     car_branch_manifest_rows: list[dict[str, str]] = []
     car_actionability_trace_base_row: dict[str, str] | None = None
     car_probe_fe = 0
+    precision_causal_enabled = config.precision_causal_arm != "off"
+    precision_causal_snapshot: PrecisionCausalDecisionSnapshot | None = None
+    precision_causal_attempted = False
+    precision_causal_saw_retirement = False
+    precision_causal_saw_overlap_component = False
+    precision_causal_saw_reachable_opportunity = False
+    precision_causal_last_incomplete_reason = ""
+    precision_causal_action_applied = False
+    precision_causal_applied_sigma: float | None = None
+    precision_causal_requested_fe = 0
+    precision_causal_actual_fe = 0
+    precision_causal_intervention_end_fe: int | None = None
+    precision_causal_run_random_descriptor_sha256 = _canonical_payload_sha256(
+        {
+            "base_seed": 0 if config.seed is None else int(config.seed),
+            "function_name": fun_name,
+            "function_id": int(fun_id),
+            "max_fes": int(config.max_fes),
+            "optimizer_seed_schedule": "derive_optimizer_seed_stage_index_v1",
+            "cmaes_restart": bool(config.cmaes_restart),
+            "mmes_restart": bool(config.mmes_restart),
+        }
+    )
+    precision_cc_source_end_fes: list[int] = []
+    precision_cma_history: dict[int, list[CMATraceOnlyDiagnostic]] = {}
+    precision_component_disagreement_history: dict[
+        str, list[tuple[int, float]]
+    ] = {}
+    precision_current_component_disagreements: dict[str, list[float]] = {}
     group_stagnation_counts = [0 for _ in grouping_result]
     bipop_global_cooldown = 0
     bipop_restart_count = 0
@@ -4652,7 +5162,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             lower=float(info["lower"]),
             upper=float(info["upper"]),
         )
-        if uses_component_credit_state(config.arac_action)
+        if uses_component_credit_state(config.arac_action) or precision_causal_enabled
         else None
     )
 
@@ -4859,6 +5369,17 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 config.arac_action,
                 controller_v31_run_state,
             )
+            precision_causal_candidate = bool(
+                precision_causal_enabled
+                and not precision_causal_attempted
+                and controller_v31_run_state is not None
+                and controller_v31_run_state.v37_enabled
+                and not controller_v31_run_state.dense_overlap
+                and controller_v31_run_state.phase_rescue_retired
+            )
+            precision_causal_saw_retirement = bool(
+                precision_causal_saw_retirement or precision_causal_candidate
+            )
             scheduler_revisit_cap = (
                 calculate_scheduler_revisit_cap(
                     sweep_start_fe=sweep_fes_before,
@@ -4870,7 +5391,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     group_population_sizes=tuple(population_sizes),
                 )
                 if component_credit_trace is not None
-                and precision_reanchor_requested
+                and (precision_reanchor_requested or precision_causal_candidate)
                 else None
             )
             component_lease_eligibility = (
@@ -4878,16 +5399,172 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     group_index=index,
                     scheduler_revisit_cap=scheduler_revisit_cap,
                 )
-                if is_evidence_action_controller_v41(config.arac_action)
+                if (
+                    is_evidence_action_controller_v41(config.arac_action)
+                    or precision_causal_candidate
+                )
                 and component_credit_trace is not None
                 and scheduler_revisit_cap is not None
                 else None
             )
+            precision_causal_action_active = False
+            if precision_causal_candidate and component_credit_trace is not None:
+                component = component_credit_trace.topology.for_group(index)
+                precision_causal_saw_overlap_component = bool(
+                    precision_causal_saw_overlap_component
+                    or component.shared_variables
+                )
+                if (
+                    component.shared_variables
+                    and scheduler_revisit_cap is not None
+                    and scheduler_revisit_cap.reachable
+                    and component_lease_eligibility is not None
+                    and component_lease_eligibility.selected
+                ):
+                    normal_sigma = refine_sigma_for_action(
+                        config.arac_action,
+                        config.sigma,
+                        controller_v31_run_state=controller_v31_run_state,
+                        precision_reanchor_active=False,
+                    )
+                    candidate_sigma = refine_sigma_for_action(
+                        config.arac_action,
+                        config.sigma,
+                        controller_v31_run_state=controller_v31_run_state,
+                        precision_reanchor_active=True,
+                    )
+                    controller_state_sha256 = _canonical_payload_sha256(
+                        {
+                            "controller_state": _car_controller_state_payload(
+                                controller_v31_run_state,
+                                trajectory_mean_cache=trajectory_mean_cache,
+                                previous_group_contribution_credit=(
+                                    previous_group_contribution_credit
+                                ),
+                            ),
+                            "outer_iter": outer_iter,
+                            "group_index": index,
+                            "current_sweep_fitness_deltas": tuple(
+                                float(value) for value in fitness_delta_list
+                            ),
+                            "current_sweep_overlap_writeback_norms": tuple(
+                                float(value) for value in overlap_writeback_norms
+                            ),
+                            "current_sweep_relative_writeback_norms": tuple(
+                                float(value) for value in relative_writeback_norms
+                            ),
+                            "checkpoint_candidate": tuple(
+                                float(value) for value in best_individual
+                            ),
+                            "guarded_incumbent": tuple(
+                                float(value) for value in guarded_incumbent
+                            ),
+                            "group_stagnation_counts": tuple(
+                                int(value) for value in group_stagnation_counts
+                            ),
+                            "bipop_global_cooldown": int(bipop_global_cooldown),
+                            "bipop_restart_count": int(bipop_restart_count),
+                            "bipop_rejected_restart_streak": int(
+                                bipop_rejected_restart_streak
+                            ),
+                            "cc_progress_history": list(
+                                controller_v31_run_state.cc_utility_history
+                            ),
+                            "cc_source_end_fes": precision_cc_source_end_fes,
+                            "component_disagreement_history": (
+                                precision_component_disagreement_history.get(
+                                    component.component_id,
+                                    [],
+                                )
+                            ),
+                            "cma_history": [
+                                asdict(value)
+                                for value in precision_cma_history.get(index, [])
+                            ],
+                        }
+                    )
+                    checkpoint_candidate_sha256 = _canonical_payload_sha256(
+                        tuple(float(value) for value in best_individual)
+                    )
+                    stage_index = outer_iter * sub_num + index + 1
+                    random_descriptor_sha256 = _canonical_payload_sha256(
+                        {
+                            "run_random_descriptor_sha256": (
+                                precision_causal_run_random_descriptor_sha256
+                            ),
+                            "base_seed": (
+                                0 if config.seed is None else int(config.seed)
+                            ),
+                            "optimizer_seed": derive_optimizer_seed(
+                                0 if config.seed is None else int(config.seed),
+                                fun_name,
+                                fun_id,
+                                0,
+                                stage_index,
+                            ),
+                            "stage_index": stage_index,
+                            "population_size": population_size,
+                            "requested_fe": optimizer_budget,
+                            "cmaes_restart": bool(config.cmaes_restart),
+                        }
+                    )
+                    candidate_snapshot = build_precision_causal_snapshot(
+                        checkpoint_fitness=original_fitness,
+                        decision_fe=primary_evaluations_before,
+                        max_fes=config.max_fes,
+                        phase_i_tail_progress_rate=(
+                            controller_v31_run_state.phase_i_runtime_tail_utility
+                        ),
+                        phase_i_source_end_fe=global_phase_fe,
+                        cc_progress_history=(
+                            controller_v31_run_state.cc_utility_history
+                        ),
+                        cc_source_end_fes=precision_cc_source_end_fes,
+                        component_disagreement_history=(
+                            precision_component_disagreement_history.get(
+                                component.component_id,
+                                [],
+                            )
+                        ),
+                        cma_history=precision_cma_history.get(index, []),
+                        grouping_result=grouping_result,
+                        dimension=int(info["dimension"]),
+                        component=component,
+                        scheduler_revisit_cap=scheduler_revisit_cap,
+                        controller_state_sha256=controller_state_sha256,
+                        prefix_record_sha256=_fitness_record_sha256(
+                            tuple(float(value) for value in fun.fitness_record)
+                        ),
+                        checkpoint_candidate_sha256=(
+                            checkpoint_candidate_sha256
+                        ),
+                        random_descriptor_sha256=random_descriptor_sha256,
+                        normal_sigma=normal_sigma,
+                        candidate_sigma=candidate_sigma,
+                    )
+                    precision_causal_saw_reachable_opportunity = True
+                    if candidate_snapshot.state is None:
+                        precision_causal_last_incomplete_reason = (
+                            candidate_snapshot.not_applicable_reason
+                        )
+                    else:
+                        (
+                            precision_causal_snapshot,
+                            precision_causal_action_active,
+                        ) = select_first_complete_precision_snapshot(
+                            precision_causal_snapshot,
+                            candidate_snapshot,
+                            audit_arm=config.precision_causal_arm,
+                        )
+                        precision_causal_attempted = True
             precision_reanchor_active = bool(
-                precision_reanchor_requested
-                and (
-                    component_lease_eligibility is None
-                    or component_lease_eligibility.selected
+                precision_causal_action_active
+                or (
+                    precision_reanchor_requested
+                    and (
+                        component_lease_eligibility is None
+                        or component_lease_eligibility.selected
+                    )
                 )
             )
             cma_sigma_reference = refine_sigma_for_action(
@@ -4911,7 +5588,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     dims,
                     cma_sigma_reference,
                 )
-            objective_function = lambda x_batch, dims=dims: fun(combine(x_batch, best_individual, dims))
+            cma_batch_diversities: list[float] = []
+
+            def objective_function(x_batch, dims=dims):
+                if precision_causal_enabled:
+                    cma_batch_diversities.append(
+                        offspring_diversity_ratio(
+                            x_batch,
+                            lower=float(info["lower"]),
+                            upper=float(info["upper"]),
+                        )
+                    )
+                return fun(combine(x_batch, best_individual, dims))
+
             problem_cc = {
                 "fitness_function": objective_function,
                 "ndim_problem": len(dims),
@@ -4945,6 +5634,32 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
             cc_phase_fe += primary_cc_fe
             sum_fes += primary_cc_fe
+            if precision_causal_enabled:
+                diagnostic = summarize_cma_trace_only_diagnostic(
+                    objective_values=tuple(
+                        float(value)
+                        for value in fun.fitness_record[
+                            primary_evaluations_before:
+                            primary_evaluations_before + primary_cc_fe
+                        ]
+                    ),
+                    batch_diversities=tuple(cma_batch_diversities),
+                    population_size=population_size,
+                    pre_block_fitness=original_fitness,
+                    initial_sigma=cc_sigma,
+                    terminal_sigma=float(results_cc.get("sigma", float("nan"))),
+                    source_end_fe=current_fitness_evaluations(fun),
+                )
+                if diagnostic is not None:
+                    precision_cma_history.setdefault(index, []).append(diagnostic)
+            if precision_causal_snapshot is not None and (
+                precision_causal_snapshot.decision_fe == primary_evaluations_before
+            ):
+                precision_causal_action_applied = precision_causal_action_active
+                precision_causal_applied_sigma = cc_sigma
+                precision_causal_requested_fe = optimizer_budget
+                precision_causal_actual_fe = primary_cc_fe
+                precision_causal_intervention_end_fe = current_fitness_evaluations(fun)
             cma_sigma_terminal: float | None = None
             cma_sigma_next_factor: float | None = None
             cma_restart_count: int | None = None
@@ -5799,8 +6514,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 else ""
                             ),
                     )
-                    if component_credit_trace is not None:
-                        component_credit_trace.annotate_relation_observation(
+                    if component_credit_trace is not None and relation.shared_vars:
+                        disagreement = component_credit_trace.annotate_relation_observation(
                             action_trace_row,
                             outer_iter=outer_iter,
                             group_left=relation.group_left,
@@ -5810,6 +6525,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             decision_fe=current_fitness_evaluations(fun),
                             max_fes=config.max_fes,
                         )
+                        if precision_causal_enabled:
+                            component_id = component_credit_trace.topology.for_group(
+                                relation.group_right
+                            ).component_id
+                            precision_current_component_disagreements.setdefault(
+                                component_id,
+                                [],
+                            ).append(disagreement)
                     action_trace_rows.append(action_trace_row)
                     if controller_v31_run_state is not None:
                         controller_v31_run_state.register_pending_action_trust(
@@ -6167,6 +6890,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 sweep_fes,
             )
             controller_v31_run_state.cc_utility_history.append(cc_utility)
+            if precision_causal_enabled:
+                precision_cc_source_end_fes.append(
+                    current_fitness_evaluations(fun)
+                )
             phase_population_size = (
                 int(phase_state.n_individuals)
                 if phase_state is not None
@@ -6479,6 +7206,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 outer_iter=outer_iter,
                 optimized_group_count=len(fitness_delta_list),
             )
+            if precision_causal_enabled:
+                source_end_fe = current_fitness_evaluations(fun)
+                for component_id, values in (
+                    precision_current_component_disagreements.items()
+                ):
+                    if values:
+                        precision_component_disagreement_history.setdefault(
+                            component_id,
+                            [],
+                        ).append((source_end_fe, sum(values) / len(values)))
+        if precision_causal_enabled:
+            precision_current_component_disagreements = {}
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
         if cc_harm_guard_consumed:
@@ -6656,6 +7395,63 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     max_fes=config.max_fes,
                 ),
             )
+    if precision_causal_enabled:
+        if precision_causal_snapshot is not None:
+            precision_base_row = precision_causal_snapshot_row(
+                precision_causal_snapshot,
+                problem_id=problem_id,
+                seed=config.seed,
+                audit_arm=config.precision_causal_arm,
+            )
+        else:
+            if not any(overlapping_elements):
+                reason = "no_overlap_component_candidate"
+            elif not precision_causal_saw_retirement:
+                reason = "precision_retirement_not_reached"
+            elif not precision_causal_saw_overlap_component:
+                reason = "no_shared_overlap_component_candidate"
+            elif (
+                precision_causal_saw_reachable_opportunity
+                and precision_causal_last_incomplete_reason
+            ):
+                reason = precision_causal_last_incomplete_reason
+            else:
+                reason = "no_scheduler_reachable_unlocked_precision_opportunity"
+            precision_base_row = {
+                "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+                "fresh_optimizer_execution": "1",
+                "problem_id": problem_id,
+                "seed": "" if config.seed is None else str(int(config.seed)),
+                "audit_arm": config.precision_causal_arm,
+                "decision_id": "",
+                "decision_status": "not_applicable",
+                "not_applicable_reason": reason,
+                "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
+                "random_descriptor_sha256": (
+                    precision_causal_run_random_descriptor_sha256
+                ),
+            }
+        precision_trace_row = finalize_precision_causal_trace_row(
+            base_row=precision_base_row,
+            fitness_record=fun.fitness_record,
+            max_fes=config.max_fes,
+            terminal_completion_tolerance_fe=terminal_completion_tolerance_fe,
+            action_applied=precision_causal_action_applied,
+            applied_sigma=precision_causal_applied_sigma,
+            requested_fe=precision_causal_requested_fe,
+            actual_fe=precision_causal_actual_fe,
+            intervention_end_fe=precision_causal_intervention_end_fe,
+            early_guard=cc_harm_guard_consumed,
+        )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "precision_causal_trace.csv",
+            ),
+            fieldnames=PRECISION_CAUSAL_TRACE_FIELDS,
+            rows=[precision_trace_row],
+        )
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
         relations,
@@ -6800,6 +7596,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="off",
         help="Offline paired-lane actionability condition; never used for runtime dispatch.",
     )
+    parser.add_argument(
+        "--precision-causal-arm",
+        choices=["off", "baseline", "action"],
+        default="off",
+        help=(
+            "Offline one-shot v37 precision causal logging arm; never used for "
+            "runtime dispatch."
+        ),
+    )
     parser.add_argument("--arac-action-file", type=Path, default=None)
     parser.add_argument(
         "--arac-action",
@@ -6845,6 +7650,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("--arac-action-file is not supported by the smoke runner yet")
     if args.car_actionability_arm != "off" and args.arac_action != CAR_W3_ACTION:
         parser.error("--car-actionability-arm requires --arac-action CAR-W3")
+    if (
+        args.precision_causal_arm != "off"
+        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
+    ):
+        parser.error("--precision-causal-arm requires --arac-action v37")
     return args
 
 
@@ -6871,6 +7681,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         car_branch_order=args.car_branch_order,
         car_candidate_mode=args.car_candidate_mode,
         car_actionability_arm=args.car_actionability_arm,
+        precision_causal_arm=args.precision_causal_arm,
     )
     output_paths = []
     for fun_name in args.functions:

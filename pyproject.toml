@@ -14,6 +14,14 @@ hcc = [
     "scipy==1.18.0",
     "torch==2.12.1",
 ]
+causal-audit = [
+    "joblib==1.5.3",
+    "narwhals==2.24.0",
+    "numpy==2.3.5",
+    "scipy==1.18.0",
+    "scikit-learn==1.9.0",
+    "threadpoolctl==3.6.0",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

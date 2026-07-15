@@ -72,6 +72,11 @@ from arac.policy.counterfactual_action_racing import (
     DispatchEvidence,
 )
 from arac.policy.component_delayed_credit import COMPONENT_CREDIT_TRACE_FIELDS
+from arac.policy.causal_risk_scheduler import (
+    FEATURE_SCHEMA_SHA256,
+    PRE_ACTION_UTILITY_SCHEMA_VERSION,
+    UTILITY_FEATURE_NAMES,
+)
 from arac.policy.oracle_actionability import (
     CAR_ACTIONABILITY_HORIZON_LABELS,
     CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
@@ -91,6 +96,36 @@ FORMAL_SOTA_PROBLEMS = tuple(
     for prefix in ("E", "S", "R", "A")
     for problem_id in range(1, 7)
 )
+PRECISION_CAUSAL_PROTOCOL_VERSION = "precision-causal-logging-v1"
+PRECISION_CAUSAL_RANDOMIZATION_SALT = "arac-precision-causal-logged-arm-v1"
+PRECISION_CAUSAL_ARMS = ("baseline", "action")
+PRECISION_CAUSAL_PREREGISTRATION_PATH = (
+    "docs/superpowers/specs/2026-07-15-causal-risk-precision-scheduler-design.md"
+)
+PRECISION_CAUSAL_PREREGISTRATION_SHA256 = (
+    "f566533ccd17c14fad2acf936c09668892183e872ebd6cf3ab57026b20797d26"
+)
+PRECISION_CAUSAL_PREREGISTRATION_COMMIT = (
+    "f7960eafc27f64f519d0d2137f5a2c4152b715c3"
+)
+PRECISION_CAUSAL_FEATURE_FORMULAS = {
+    "remaining_fe_ratio": "(max_fes - decision_fe) / max_fes",
+    "revisit_cap_remaining_ratio": "scheduler_revisit_cap_fe / remaining_fe",
+    "component_group_fraction": "component_group_count / total_group_count",
+    "component_shared_variable_ratio": "component_shared_variable_count / dimension",
+    "component_mean_overlap_ratio": "mean(pair_shared_count / min(pair_group_sizes)) over component overlap edges",
+    "proposal_disagreement_mean_2": "mean(last two completed component-sweep normalized proposal disagreements)",
+    "candidate_dose_ratio": "precision_sigma / v37_normal_refine_sigma",
+    "phase_i_tail_progress_rate": "normalized Phase-I tail best-so-far progress per FE",
+    "cc_progress_rate_last": "last completed CC sweep normalized progress per FE",
+    "cc_progress_rate_slope_4": "OLS slope of last four completed CC progress rates",
+    "cc_progress_rate_std_4": "population standard deviation of last four completed CC progress rates",
+    "cc_stagnation_streak": "trailing completed CC progress rates <= 1e-8",
+    "terminal_sigma_ratio_last": "last same-group terminal CMA sigma / initial sigma",
+    "log_sigma_slope_3": "OLS slope of log terminal sigma ratios over last three same-group blocks",
+    "success_generation_ratio_last": "generations improving running best / observed generations in last same-group block",
+    "offspring_diversity_ratio_last": "mean offspring distance to batch centroid / parameter-space diagonal in last same-group block",
+}
 
 
 @dataclass(frozen=True)
@@ -106,6 +141,7 @@ class LaneConfig:
     negative_control: bool = False
     car_candidate_mode: str = "graph"
     car_actionability_arm: str = "off"
+    precision_causal_arm: str = "off"
 
 
 LANES = (
@@ -530,6 +566,7 @@ def _lane_from_controller_profile(
     dispatch_scope: str | None = None,
     car_candidate_mode: str = "graph",
     car_actionability_arm: str = "off",
+    precision_causal_arm: str = "off",
 ) -> LaneConfig:
     return LaneConfig(
         lane_id or profile.action_name,
@@ -542,6 +579,7 @@ def _lane_from_controller_profile(
         relation_policy_mode=profile.relation_policy_mode,
         car_candidate_mode=car_candidate_mode,
         car_actionability_arm=car_actionability_arm,
+        precision_causal_arm=precision_causal_arm,
     )
 
 
@@ -703,6 +741,20 @@ CAR_ACTIONABILITY_AUDIT_LANES = (
         car_actionability_arm="candidate",
     ),
 )
+PRECISION_CAUSAL_LOGGING_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id="precision_baseline",
+        dispatch_scope="offline_precision_causal_baseline_continuation",
+        precision_causal_arm="baseline",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id="precision_action",
+        dispatch_scope="offline_precision_causal_action_continuation",
+        precision_causal_arm="action",
+    ),
+)
 CAR_W_ACTION_NAMES = frozenset(
     {
         "arac_counterfactual_action_racing_w",
@@ -738,6 +790,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return CAR_W3_DIAGNOSTIC_LANES
     if lane_profile == "car_actionability_audit":
         return CAR_ACTIONABILITY_AUDIT_LANES
+    if lane_profile == "precision_causal_logging":
+        return PRECISION_CAUSAL_LOGGING_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -989,6 +1043,8 @@ def _car_actionability_execution_dependencies(
         "evidence/__init__.py",
         "evidence/overlap_relation_builder.py",
         "policy/action_trust_policy.py",
+        "policy/causal_risk_scheduler.py",
+        "policy/component_delayed_credit.py",
         "policy/counterfactual_action_racing.py",
         "policy/oracle_actionability.py",
         "policy/relation_policy.py",
@@ -1213,6 +1269,243 @@ def _complete_car_actionability_provenance(
     path.write_text(json.dumps(completed, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _precision_causal_request_payload(
+    request: HccAobExecutionRequest,
+) -> dict[str, object]:
+    vendor_paths = resolve_hcc_vendor_paths(
+        request.hcc_root,
+        repo_root=request.hcc_repo_root,
+        runner_path=request.hcc_runner,
+    )
+    execution_dependencies = _car_actionability_execution_dependencies(vendor_paths)
+    aob_inputs = _car_actionability_aob_inputs(request)
+    execution_context = {
+        "git_commit": _git_commit(),
+        "python_version": platform.python_version(),
+        "thread_environment": _thread_environment(),
+        "dependency_versions": {
+            name: _dependency_version(name)
+            for name in ("cma", "numpy", "scipy", "torch")
+        },
+        "execution_dependency_fingerprint": _fingerprint_payload(
+            execution_dependencies
+        ),
+    }
+    payload = {
+        "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+        **execution_context,
+        "execution_context_fingerprint": _fingerprint_payload(execution_context),
+        "execution_dependency_sha256": execution_dependencies,
+        "problem_id": request.problem_id,
+        "seed": int(request.seed),
+        "max_fes": int(request.max_fes),
+        "timestamp": request.timestamp,
+        "config_name": request.config_name,
+        "python_executable": str(request.python_executable),
+        "skip_plots": bool(request.skip_plots),
+        "arac_action": request.arac_action,
+        "enable_relation_dispatch": bool(request.enable_relation_dispatch),
+        "relation_policy_mode": request.relation_policy_mode,
+        "budget_accounting": request.budget_accounting,
+        "cmaes_restart": bool(request.cmaes_restart),
+        "mmes_restart": bool(request.mmes_restart),
+        "search_state_backend": request.search_state_backend,
+        "precision_causal_arm": request.precision_causal_arm,
+        "pair_id": precision_causal_pair_id(request.problem_id, request.seed),
+        "logged_arm": precision_causal_logged_arm(
+            request.problem_id, request.seed
+        ),
+        "randomization_salt": PRECISION_CAUSAL_RANDOMIZATION_SALT,
+        "randomization_algorithm": "sha256_first_u64_mod2",
+        "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
+        "preregistration": {
+            "path": PRECISION_CAUSAL_PREREGISTRATION_PATH,
+            "sha256": PRECISION_CAUSAL_PREREGISTRATION_SHA256,
+            "commit": PRECISION_CAUSAL_PREREGISTRATION_COMMIT,
+        },
+        "aob_data_root": str(Path(request.aob_data_root).resolve()),
+        "aob_input_sha256": aob_inputs,
+        "aob_input_fingerprint": _fingerprint_payload(aob_inputs),
+        "hcc_vendor_root": str(vendor_paths.vendor_root),
+        "hcc_runner": str(vendor_paths.runner),
+        "hcc_runner_sha256": _sha256_file(vendor_paths.runner),
+    }
+    return {
+        "request": payload,
+        "request_fingerprint": _fingerprint_payload(payload),
+    }
+
+
+def _precision_causal_provenance_path(request: HccAobExecutionRequest) -> Path:
+    return Path(request.output_dir) / "precision_causal_provenance.json"
+
+
+def _prepare_precision_causal_provenance(
+    request: HccAobExecutionRequest,
+) -> None:
+    path = _precision_causal_provenance_path(request)
+    expected = _precision_causal_request_payload(request)
+    if path.exists():
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError("invalid precision causal provenance file") from exc
+        if existing.get("request_fingerprint") != expected["request_fingerprint"]:
+            raise RuntimeError("precision causal output belongs to a different request")
+        if existing.get("status") == "complete":
+            raise RuntimeError(
+                "precision causal output is already complete; use a new output directory"
+            )
+    else:
+        output_root = Path(request.output_dir)
+        stale_patterns = (
+            "action_trace.csv",
+            "evaluation_record.txt",
+            "*precision_causal_trace.csv",
+        )
+        if any(any(output_root.rglob(pattern)) for pattern in stale_patterns):
+            raise RuntimeError(
+                "precision causal output directory contains unprovenanced artifacts"
+            )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                **expected,
+                "status": "scheduled",
+                "output_dir": str(Path(request.output_dir).resolve()),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _complete_precision_causal_provenance(
+    request: HccAobExecutionRequest,
+    result: HccAobExecutionResult,
+) -> None:
+    if request.precision_causal_arm == "off":
+        return
+    if not result.fresh_optimizer_execution:
+        raise RuntimeError("precision causal execution was not fresh")
+    path = _precision_causal_provenance_path(request)
+    expected = _precision_causal_request_payload(request)
+    try:
+        current = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("missing precision causal provenance schedule") from exc
+    if (
+        current.get("request_fingerprint") != expected["request_fingerprint"]
+        or current.get("request") != expected["request"]
+    ):
+        raise RuntimeError("precision causal provenance request mismatch")
+    output_root = Path(result.output_root).resolve()
+    artifacts = {
+        "trace": _latest_car_artifact(output_root, "*precision_causal_trace.csv"),
+        "evaluation_record": _latest_car_artifact(output_root, "evaluation_record.txt"),
+        "budget_summary": _latest_car_artifact(output_root, "*budget_summary.csv"),
+        "aob_input_manifest": _latest_car_artifact(
+            output_root, "*aob_input_manifest.csv"
+        ),
+        "action_trace": result.action_trace_path,
+    }
+    if any(path_value is None for path_value in artifacts.values()):
+        raise RuntimeError("precision causal execution artifacts are incomplete")
+    completed_artifacts: dict[str, dict[str, str]] = {}
+    for name, artifact in artifacts.items():
+        assert artifact is not None
+        resolved = Path(artifact).resolve()
+        try:
+            resolved.relative_to(output_root)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"precision causal {name} artifact escaped output root"
+            ) from exc
+        completed_artifacts[name] = {
+            "path": str(resolved),
+            "sha256": _sha256_file(resolved),
+        }
+    path.write_text(
+        json.dumps(
+            {
+                **current,
+                "status": "complete",
+                "fresh_optimizer_execution": True,
+                "artifacts": completed_artifacts,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def _precision_causal_provenance_is_complete(
+    request: HccAobExecutionRequest,
+    *,
+    action_trace_path: Path,
+) -> bool:
+    provenance_path = _precision_causal_provenance_path(request)
+    try:
+        provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    expected = _precision_causal_request_payload(request)
+    if (
+        provenance.get("request_fingerprint") != expected["request_fingerprint"]
+        or provenance.get("request") != expected["request"]
+        or provenance.get("status") != "complete"
+        or provenance.get("fresh_optimizer_execution") is not True
+    ):
+        return False
+    output_root = Path(request.output_dir).resolve()
+    artifacts = provenance.get("artifacts")
+    if not isinstance(artifacts, dict):
+        return False
+    expected_latest = {
+        "trace": _latest_car_artifact(output_root, "*precision_causal_trace.csv"),
+        "evaluation_record": _latest_car_artifact(output_root, "evaluation_record.txt"),
+        "budget_summary": _latest_car_artifact(output_root, "*budget_summary.csv"),
+        "aob_input_manifest": _latest_car_artifact(
+            output_root, "*aob_input_manifest.csv"
+        ),
+        "action_trace": action_trace_path.resolve(),
+    }
+    for name, expected_path in expected_latest.items():
+        item = artifacts.get(name)
+        if expected_path is None or not isinstance(item, dict):
+            return False
+        try:
+            artifact_path = Path(str(item.get("path", ""))).resolve()
+            artifact_path.relative_to(output_root)
+        except (OSError, ValueError):
+            return False
+        if (
+            artifact_path != Path(expected_path).resolve()
+            or not artifact_path.exists()
+            or item.get("sha256") != _sha256_file(artifact_path)
+        ):
+            return False
+    trace_path = Path(str(artifacts["trace"]["path"]))
+    rows = _read_csv_rows(trace_path)
+    expected_row = {
+        "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+        "fresh_optimizer_execution": "1",
+        "problem_id": request.problem_id,
+        "seed": str(request.seed),
+        "audit_arm": request.precision_causal_arm,
+        "configured_max_fes": str(request.max_fes),
+        "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
+    }
+    return len(rows) == 1 and all(
+        rows[0].get(field) == value for field, value in expected_row.items()
+    )
+
+
 def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecutionResult | None:
     action_trace_path, action_trace_rows = _find_hcc_action_trace(Path(request.output_dir))
     if action_trace_path is None:
@@ -1304,6 +1597,13 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
         ):
             return None
         verified_fresh_audit = True
+    if request.precision_causal_arm != "off":
+        if not _precision_causal_provenance_is_complete(
+            request,
+            action_trace_path=action_trace_path,
+        ):
+            return None
+        verified_fresh_audit = True
     try:
         final_error, fe_used, optimizer_final_fe_used = (
             _parse_hcc_evaluation_record_with_optimizer_final_fe(
@@ -1325,8 +1625,10 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
         fresh_optimizer_execution=verified_fresh_audit,
         status="completed_existing_artifact",
         result_source=(
-            "verified_fresh_car_actionability_artifact"
-            if verified_fresh_audit
+            "verified_fresh_precision_causal_artifact"
+            if request.precision_causal_arm != "off" and verified_fresh_audit
+            else "verified_fresh_car_actionability_artifact"
+            if request.car_actionability_arm != "off" and verified_fresh_audit
             else "hcc_subprocess_smoke_execution_existing_artifact"
         ),
         action_trace_path=action_trace_path,
@@ -1351,6 +1653,415 @@ def _find_lane_artifact(result: HccAobExecutionResult, artifact_name: str) -> Pa
         return preferred[-1]
     generic = sorted(root.rglob(artifact_name))
     return generic[-1] if generic else None
+
+
+def precision_causal_pair_id(problem_id: str, seed: int) -> str:
+    material = (
+        f"{PRECISION_CAUSAL_PROTOCOL_VERSION}|{str(problem_id).upper()}|{int(seed)}"
+    )
+    return "pair_" + hashlib.sha256(material.encode("utf-8")).hexdigest()[:24]
+
+
+def precision_causal_logged_arm(problem_id: str, seed: int) -> str:
+    material = (
+        f"{PRECISION_CAUSAL_RANDOMIZATION_SALT}|"
+        f"{str(problem_id).upper()}|{int(seed)}"
+    )
+    digest = hashlib.sha256(material.encode("utf-8")).digest()
+    return PRECISION_CAUSAL_ARMS[int.from_bytes(digest[:8], "big") % 2]
+
+
+def _precision_trace_row(record: dict[str, object]) -> dict[str, str] | None:
+    result = record["result"]
+    lane = record["lane"]
+    assert isinstance(result, HccAobExecutionResult)
+    assert isinstance(lane, LaneConfig)
+    if lane.precision_causal_arm == "off":
+        return None
+    rows = _read_csv_rows(
+        _find_lane_artifact(result, "precision_causal_trace.csv")
+    )
+    if len(rows) != 1:
+        return None
+    return rows[0]
+
+
+def _float_or_nan(value: object) -> float:
+    try:
+        return float(str(value))
+    except (TypeError, ValueError):
+        return float("nan")
+
+
+def _precision_causal_raw_rows(
+    records: list[dict[str, object]],
+) -> tuple[
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[str],
+]:
+    grouped: dict[tuple[str, int], dict[str, dict[str, object]]] = {}
+    for record in records:
+        lane = record["lane"]
+        result = record["result"]
+        assert isinstance(lane, LaneConfig)
+        assert isinstance(result, HccAobExecutionResult)
+        if lane.precision_causal_arm == "off":
+            continue
+        grouped.setdefault((result.problem_id, result.seed), {})[
+            lane.precision_causal_arm
+        ] = record
+
+    feature_rows: list[dict[str, object]] = []
+    audit_rows: list[dict[str, object]] = []
+    branch_rows: list[dict[str, object]] = []
+    outcome_rows: list[dict[str, object]] = []
+    randomized_rows: list[dict[str, object]] = []
+    failures: list[str] = []
+
+    for (problem_id, seed), arm_records in sorted(grouped.items()):
+        pair_id = precision_causal_pair_id(problem_id, seed)
+        logged_arm = precision_causal_logged_arm(problem_id, seed)
+        arm_rows: dict[str, dict[str, str]] = {}
+        for arm in PRECISION_CAUSAL_ARMS:
+            record = arm_records.get(arm)
+            if record is None:
+                failures.append(f"{pair_id}:missing_{arm}_lane")
+                continue
+            trace = _precision_trace_row(record)
+            if trace is None:
+                failures.append(f"{pair_id}:missing_{arm}_trace")
+                continue
+            arm_rows[arm] = trace
+            result = record["result"]
+            lane = record["lane"]
+            assert isinstance(result, HccAobExecutionResult)
+            assert isinstance(lane, LaneConfig)
+            branch_rows.append(
+                {
+                    "pair_id": pair_id,
+                    "decision_id": trace.get("decision_id", ""),
+                    "problem_id": problem_id,
+                    "seed": seed,
+                    "arm": arm,
+                    "lane_id": lane.lane_id,
+                    "fresh_optimizer_execution": int(
+                        result.fresh_optimizer_execution
+                    ),
+                    "status": result.status,
+                    "result_source": result.result_source,
+                    "output_root": str(Path(result.output_root).resolve()),
+                    "decision_status": trace.get("decision_status", ""),
+                    "not_applicable_reason": trace.get(
+                        "not_applicable_reason", ""
+                    ),
+                    "action_applied": trace.get("action_applied", ""),
+                    "decision_fe": trace.get("decision_fe", ""),
+                    "intervention_end_fe": trace.get(
+                        "intervention_end_fe", ""
+                    ),
+                    "checkpoint_fitness": trace.get(
+                        "checkpoint_fitness", ""
+                    ),
+                    "normal_sigma": trace.get("normal_sigma", ""),
+                    "candidate_sigma": trace.get("candidate_sigma", ""),
+                    "applied_sigma": trace.get("applied_sigma", ""),
+                    "requested_fe": trace.get("requested_fe", ""),
+                    "actual_fe": trace.get("actual_fe", ""),
+                    "configured_max_fes": trace.get(
+                        "configured_max_fes", ""
+                    ),
+                    "terminal_target_fe": trace.get("terminal_target_fe", ""),
+                    "terminal_observed_fe": trace.get(
+                        "terminal_observed_fe", ""
+                    ),
+                    "terminal_status": trace.get("terminal_status", ""),
+                    "prefix_record_sha256": trace.get(
+                        "prefix_record_sha256", ""
+                    ),
+                    "checkpoint_candidate_sha256": trace.get(
+                        "checkpoint_candidate_sha256", ""
+                    ),
+                    "feature_sha256": trace.get("feature_sha256", ""),
+                    "controller_state_sha256": trace.get(
+                        "controller_state_sha256", ""
+                    ),
+                    "random_descriptor_sha256": trace.get(
+                        "random_descriptor_sha256", ""
+                    ),
+                    "terminal_error": trace.get("terminal_error", ""),
+                    "terminal_record_sha256": trace.get(
+                        "terminal_record_sha256", ""
+                    ),
+                    "optimizer_fe_used": _actual_fe_used(result),
+                    "same_budget_violation": int(
+                        _actual_fe_used(result) > result.max_fes
+                    ),
+                }
+            )
+
+        if set(arm_rows) != set(PRECISION_CAUSAL_ARMS):
+            continue
+        baseline = arm_rows["baseline"]
+        action = arm_rows["action"]
+        status_match = baseline.get("decision_status") == action.get(
+            "decision_status"
+        )
+        decision_id_match = baseline.get("decision_id") == action.get(
+            "decision_id"
+        )
+        feature_match = baseline.get("feature_sha256") == action.get(
+            "feature_sha256"
+        )
+        prefix_match = baseline.get("prefix_record_sha256") == action.get(
+            "prefix_record_sha256"
+        )
+        controller_match = baseline.get("controller_state_sha256") == action.get(
+            "controller_state_sha256"
+        )
+        checkpoint_candidate_match = baseline.get(
+            "checkpoint_candidate_sha256"
+        ) == action.get("checkpoint_candidate_sha256")
+        random_descriptor_match = baseline.get(
+            "random_descriptor_sha256"
+        ) == action.get("random_descriptor_sha256")
+        intervention_end_match = baseline.get("intervention_end_fe") == action.get(
+            "intervention_end_fe"
+        )
+        reason_match = baseline.get("not_applicable_reason") == action.get(
+            "not_applicable_reason"
+        )
+        pair_integrity = all(
+            (
+                status_match,
+                decision_id_match,
+                feature_match,
+                prefix_match,
+                controller_match,
+                checkpoint_candidate_match,
+                random_descriptor_match,
+                intervention_end_match,
+                reason_match,
+            )
+        )
+        if not pair_integrity:
+            failures.append(f"{pair_id}:preaction_pair_mismatch")
+
+        decision_status = baseline.get("decision_status", "")
+        decision_id = baseline.get("decision_id", "")
+        if decision_status == "applicable" and pair_integrity:
+            feature_rows.append(
+                {
+                    "decision_id": decision_id,
+                    **{name: baseline.get(name, "") for name in UTILITY_FEATURE_NAMES},
+                }
+            )
+        audit_rows.append(
+            {
+                "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+                "pair_id": pair_id,
+                "decision_id": decision_id,
+                "problem_id": problem_id,
+                "seed": seed,
+                "decision_status": decision_status,
+                "not_applicable_reason": baseline.get(
+                    "not_applicable_reason", ""
+                ),
+                "logged_arm": logged_arm,
+                "propensity": "0.5",
+                "decision_fe": baseline.get("decision_fe", ""),
+                "checkpoint_fitness": baseline.get("checkpoint_fitness", ""),
+                "remaining_fe": baseline.get("remaining_fe", ""),
+                "component_id": baseline.get("component_id", ""),
+                "component_group_count": baseline.get(
+                    "component_group_count", ""
+                ),
+                "component_shared_var_count": baseline.get(
+                    "component_shared_var_count", ""
+                ),
+                "component_unlocked": baseline.get("component_unlocked", ""),
+                "scheduler_revisit_reachable": baseline.get(
+                    "scheduler_revisit_reachable", ""
+                ),
+                "scheduler_revisit_cap_fe": baseline.get(
+                    "scheduler_revisit_cap_fe", ""
+                ),
+                "scheduler_revisit_reason": baseline.get(
+                    "scheduler_revisit_reason", ""
+                ),
+                "source_phase_i_end_fe": baseline.get(
+                    "source_phase_i_end_fe", ""
+                ),
+                "source_cc_history_end_fe": baseline.get(
+                    "source_cc_history_end_fe", ""
+                ),
+                "source_disagreement_history_end_fe": baseline.get(
+                    "source_disagreement_history_end_fe", ""
+                ),
+                "source_cma_history_end_fe": baseline.get(
+                    "source_cma_history_end_fe", ""
+                ),
+                "source_end_fe": baseline.get("source_end_fe", ""),
+                "prefix_record_sha256": baseline.get(
+                    "prefix_record_sha256", ""
+                ),
+                "checkpoint_candidate_sha256": baseline.get(
+                    "checkpoint_candidate_sha256", ""
+                ),
+                "controller_state_sha256": baseline.get(
+                    "controller_state_sha256", ""
+                ),
+                "random_descriptor_sha256": baseline.get(
+                    "random_descriptor_sha256", ""
+                ),
+                "feature_schema_sha256": baseline.get(
+                    "feature_schema_sha256", ""
+                ),
+                "feature_sha256": baseline.get("feature_sha256", ""),
+                "decision_status_match": int(status_match),
+                "decision_id_match": int(decision_id_match),
+                "feature_match": int(feature_match),
+                "prefix_match": int(prefix_match),
+                "controller_state_match": int(controller_match),
+                "checkpoint_candidate_match": int(
+                    checkpoint_candidate_match
+                ),
+                "random_descriptor_match": int(random_descriptor_match),
+                "intervention_end_fe_match": int(intervention_end_match),
+                "not_applicable_reason_match": int(reason_match),
+                "pair_integrity": int(pair_integrity),
+            }
+        )
+
+        baseline_error = _float_or_nan(baseline.get("terminal_error"))
+        action_error = _float_or_nan(action.get("terminal_error"))
+        baseline_result = arm_records["baseline"]["result"]
+        action_result = arm_records["action"]["result"]
+        assert isinstance(baseline_result, HccAobExecutionResult)
+        assert isinstance(action_result, HccAobExecutionResult)
+        equal_optimizer_fe = _actual_fe_used(baseline_result) == _actual_fe_used(
+            action_result
+        )
+        checkpoint_baseline = _float_or_nan(baseline.get("checkpoint_fitness"))
+        checkpoint_action = _float_or_nan(action.get("checkpoint_fitness"))
+        equal_checkpoint = (
+            math.isfinite(checkpoint_baseline)
+            and checkpoint_baseline == checkpoint_action
+        )
+        equal_target = baseline.get("terminal_target_fe") == action.get(
+            "terminal_target_fe"
+        )
+        equal_observed = baseline.get("terminal_observed_fe") == action.get(
+            "terminal_observed_fe"
+        )
+        outcome_valid = bool(
+            pair_integrity
+            and decision_status == "applicable"
+            and baseline.get("action_applied") == "0"
+            and action.get("action_applied") == "1"
+            and baseline.get("terminal_status") == "complete"
+            and action.get("terminal_status") == "complete"
+            and equal_checkpoint
+            and equal_target
+            and equal_observed
+            and equal_optimizer_fe
+            and math.isfinite(baseline_error)
+            and math.isfinite(action_error)
+        )
+        if decision_status == "applicable" and not outcome_valid:
+            failures.append(f"{pair_id}:invalid_paired_outcome")
+        if decision_status != "applicable":
+            if (
+                baseline.get("terminal_record_sha256")
+                != action.get("terminal_record_sha256")
+                or not equal_optimizer_fe
+            ):
+                failures.append(f"{pair_id}:not_applicable_v37_parity_mismatch")
+        floor = 1e-300
+        baseline_y = (
+            math.log(max(checkpoint_baseline, floor))
+            - math.log(max(baseline_error, floor))
+            if outcome_valid
+            else float("nan")
+        )
+        action_y = (
+            math.log(max(checkpoint_action, floor))
+            - math.log(max(action_error, floor))
+            if outcome_valid
+            else float("nan")
+        )
+        paired_tau = action_y - baseline_y if outcome_valid else float("nan")
+        catastrophic = (
+            int(action_error >= 1.2 * baseline_error) if outcome_valid else ""
+        )
+        outcome_rows.append(
+            {
+                "pair_id": pair_id,
+                "decision_id": decision_id,
+                "problem_id": problem_id,
+                "seed": seed,
+                "decision_status": decision_status,
+                "checkpoint_error": (
+                    f"{checkpoint_baseline:.17e}" if equal_checkpoint else ""
+                ),
+                "baseline_terminal_error": (
+                    f"{baseline_error:.17e}" if math.isfinite(baseline_error) else ""
+                ),
+                "action_terminal_error": (
+                    f"{action_error:.17e}" if math.isfinite(action_error) else ""
+                ),
+                "baseline_log_progress": (
+                    f"{baseline_y:.17e}" if outcome_valid else ""
+                ),
+                "action_log_progress": (
+                    f"{action_y:.17e}" if outcome_valid else ""
+                ),
+                "paired_tau": f"{paired_tau:.17e}" if outcome_valid else "",
+                "catastrophic": catastrophic,
+                "equal_checkpoint": int(equal_checkpoint),
+                "equal_terminal_target_fe": int(equal_target),
+                "equal_terminal_observed_fe": int(equal_observed),
+                "outcome_valid": int(outcome_valid),
+            }
+        )
+        observed_row = baseline if logged_arm == "baseline" else action
+        observed_error = baseline_error if logged_arm == "baseline" else action_error
+        observed_y = baseline_y if logged_arm == "baseline" else action_y
+        randomized_rows.append(
+            {
+                "pair_id": pair_id,
+                "decision_id": decision_id,
+                "problem_id": problem_id,
+                "seed": seed,
+                "logged_arm": logged_arm,
+                "observed_treatment": int(logged_arm == "action"),
+                "propensity": "0.5",
+                "observed_terminal_error": (
+                    f"{observed_error:.17e}" if outcome_valid else ""
+                ),
+                "observed_log_progress": (
+                    f"{observed_y:.17e}" if outcome_valid else ""
+                ),
+                "terminal_target_fe": observed_row.get(
+                    "terminal_target_fe", ""
+                ),
+                "terminal_observed_fe": observed_row.get(
+                    "terminal_observed_fe", ""
+                ),
+                "outcome_valid": int(outcome_valid),
+            }
+        )
+    return (
+        feature_rows,
+        audit_rows,
+        branch_rows,
+        outcome_rows,
+        randomized_rows,
+        failures,
+    )
 
 
 def _trace_rows_for_record(record: dict[str, object]) -> list[dict[str, str]]:
@@ -1579,10 +2290,54 @@ def _records(
                             search_state_backend=search_state_backend,
                             car_candidate_mode=lane.car_candidate_mode,
                             car_actionability_arm=lane.car_actionability_arm,
+                            precision_causal_arm=lane.precision_causal_arm,
                             skip_plots=True,
                         ),
                     }
                 )
+
+    precision_requests = [
+        context["request"]
+        for context in contexts
+        if isinstance(context["request"], HccAobExecutionRequest)
+        and context["request"].precision_causal_arm != "off"
+    ]
+    if precision_requests:
+        scheduled_pairs = [
+            {
+                "pair_id": precision_causal_pair_id(problem_id, seed),
+                "problem_id": problem_id,
+                "seed": seed,
+                "logged_arm": precision_causal_logged_arm(problem_id, seed),
+                "propensity": 0.5,
+            }
+            for problem_id in problem_ids
+            for seed in seeds
+        ]
+        schedule = {
+            "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+            "status": "scheduled_before_subprocess",
+            "randomization_salt": PRECISION_CAUSAL_RANDOMIZATION_SALT,
+            "randomization_algorithm": "sha256_first_u64_mod2",
+            "coin_material": "{salt}|{problem_id.upper()}|{int(seed)}",
+            "arm_mapping": {"0": "baseline", "1": "action"},
+            "preregistration": {
+                "path": PRECISION_CAUSAL_PREREGISTRATION_PATH,
+                "sha256": PRECISION_CAUSAL_PREREGISTRATION_SHA256,
+                "commit": PRECISION_CAUSAL_PREREGISTRATION_COMMIT,
+            },
+            "pairs": scheduled_pairs,
+        }
+        schedule_path = output_dir / "causal_randomization_schedule.json"
+        encoded_schedule = json.dumps(schedule, indent=2, sort_keys=True) + "\n"
+        if schedule_path.exists():
+            if schedule_path.read_text(encoding="utf-8") != encoded_schedule:
+                raise RuntimeError(
+                    "precision causal randomization schedule mismatch"
+                )
+        else:
+            schedule_path.parent.mkdir(parents=True, exist_ok=True)
+            schedule_path.write_text(encoded_schedule, encoding="utf-8")
 
     def run_context(context: dict[str, object]) -> dict[str, object]:
         request = context["request"]
@@ -1600,9 +2355,13 @@ def _records(
         if result is None:
             if request.car_actionability_arm != "off":
                 _prepare_car_actionability_provenance(request)
+            if request.precision_causal_arm != "off":
+                _prepare_precision_causal_provenance(request)
             result = execution_runner(request)
             if request.car_actionability_arm != "off":
                 _complete_car_actionability_provenance(request, result)
+            if request.precision_causal_arm != "off":
+                _complete_precision_causal_provenance(request, result)
         trace_rows = _read_csv_rows(result.action_trace_path)
         semantics = _semantics_from_trace_rows(trace_rows, fallback=semantics)
         ledger = _ledger_for_result(result)
@@ -5105,6 +5864,7 @@ def _config_fingerprint(
                 "relation_policy_mode": lane.relation_policy_mode,
                 "car_candidate_mode": lane.car_candidate_mode,
                 "car_actionability_arm": lane.car_actionability_arm,
+                "precision_causal_arm": lane.precision_causal_arm,
             }
             for lane in lanes
         ],
@@ -5113,6 +5873,12 @@ def _config_fingerprint(
             "action_semantics": "one_shot_writeback_then_canonical_continuation",
             "horizons": ["closure_1", "budget_3x", "budget_9x", "terminal"],
             "terminal_semantics": "common_max_of_intervention_closure_and_cap_minus_tolerance_prefix_with_post_closure_gate",
+        },
+        "precision_causal_protocol": {
+            "version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+            "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
+            "randomization_salt": PRECISION_CAUSAL_RANDOMIZATION_SALT,
+            "action_semantics": "one_v38_precision_sigma_group_block_then_v37_continuation",
         },
         "max_fes": int(max_fes),
         "mmes_restart": bool(mmes_restart),
@@ -5283,6 +6049,20 @@ def _write_manifest(
                 "car_actionability_gate.json",
             ]
         )
+    if any(lane.precision_causal_arm != "off" for lane in lanes):
+        artifacts.extend(
+            [
+                "_hcc_smoke/**/precision_causal_provenance.json",
+                "causal_decision_features.csv",
+                "causal_decision_audit.csv",
+                "causal_branch_manifest.csv",
+                "causal_outcomes.csv",
+                "randomized_log.csv",
+                "causal_randomization_schedule.json",
+                "feature_manifest.json",
+                "causal_logging_manifest.json",
+            ]
+        )
     manifest = "\n".join(
         [
             "# exp_003_hcc_runtime_consumer_smoke Run Manifest",
@@ -5419,6 +6199,18 @@ def run_hcc_runtime_consumer_smoke(
             "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
         )
     lanes = lanes_for_profile(lane_profile)
+    precision_causal_profile_enabled = any(
+        lane.precision_causal_arm != "off" for lane in lanes
+    )
+    if precision_causal_profile_enabled:
+        preregistration_path = (
+            ARAC_REPO_ROOT / PRECISION_CAUSAL_PREREGISTRATION_PATH
+        )
+        if (
+            _sha256_file(preregistration_path)
+            != PRECISION_CAUSAL_PREREGISTRATION_SHA256
+        ):
+            raise RuntimeError("precision causal preregistration hash mismatch")
     car_w_enabled = any(
         lane.runner_action_name in CAR_W_ACTION_NAMES
         for lane in lanes
@@ -5503,6 +6295,19 @@ def run_hcc_runtime_consumer_smoke(
         if car_actionability_enabled
         else []
     )
+    precision_causal_enabled = precision_causal_profile_enabled
+    (
+        causal_feature_rows,
+        causal_audit_rows,
+        causal_branch_rows,
+        causal_outcome_rows,
+        causal_randomized_rows,
+        precision_causal_integrity_failures,
+    ) = (
+        _precision_causal_raw_rows(records)
+        if precision_causal_enabled
+        else ([], [], [], [], [], [])
+    )
     car_dispatch_boundary_rows = (
         _car_dispatch_boundary_rows()
         if car_w_enabled
@@ -5510,6 +6315,46 @@ def run_hcc_runtime_consumer_smoke(
     )
     paired_integrity_failures: list[str] = []
     car_actionability_integrity_failures: list[str] = []
+    if precision_causal_enabled:
+        results = [record["result"] for record in records]
+        expected_pair_count = len(problem_ids) * len(seeds)
+        if not results or any(
+            not isinstance(result, HccAobExecutionResult)
+            or not result.fresh_optimizer_execution
+            for result in results
+        ):
+            precision_causal_integrity_failures.append("not_all_runs_fresh")
+        if any(
+            str(row.get("same_budget_violation", "1")) != "0"
+            for row in ledger_rows
+        ):
+            precision_causal_integrity_failures.append("same_budget_violation")
+        if not aob_input_rows or any(
+            str(row.get("unchanged", "0")) != "1" for row in aob_input_rows
+        ):
+            precision_causal_integrity_failures.append(
+                "aob_input_changed_or_missing"
+            )
+        if not anti_leakage_rows or any(
+            str(row.get("audit_status", "fail")) != "pass"
+            for row in anti_leakage_rows
+        ):
+            precision_causal_integrity_failures.append("anti_leakage_violation")
+        if len(causal_audit_rows) != expected_pair_count:
+            precision_causal_integrity_failures.append(
+                "causal_pair_count_mismatch"
+            )
+        if len(causal_branch_rows) != 2 * expected_pair_count:
+            precision_causal_integrity_failures.append(
+                "causal_branch_count_mismatch"
+            )
+        if any(
+            str(row.get("terminal_status", "")) != "complete"
+            for row in causal_branch_rows
+        ):
+            precision_causal_integrity_failures.append(
+                "incomplete_terminal_branch"
+            )
     if car_actionability_enabled:
         results = [record["result"] for record in records]
         if not results or any(
@@ -5960,6 +6805,247 @@ def run_hcc_runtime_consumer_smoke(
             + "\n",
             encoding="utf-8",
         )
+    if precision_causal_enabled:
+        _write_csv(
+            output / "causal_decision_features.csv",
+            causal_feature_rows,
+            ["decision_id", *UTILITY_FEATURE_NAMES],
+        )
+        _write_csv(
+            output / "causal_decision_audit.csv",
+            causal_audit_rows,
+            [
+                "protocol_version",
+                "pair_id",
+                "decision_id",
+                "problem_id",
+                "seed",
+                "decision_status",
+                "not_applicable_reason",
+                "logged_arm",
+                "propensity",
+                "decision_fe",
+                "checkpoint_fitness",
+                "remaining_fe",
+                "component_id",
+                "component_group_count",
+                "component_shared_var_count",
+                "component_unlocked",
+                "scheduler_revisit_reachable",
+                "scheduler_revisit_cap_fe",
+                "scheduler_revisit_reason",
+                "source_phase_i_end_fe",
+                "source_cc_history_end_fe",
+                "source_disagreement_history_end_fe",
+                "source_cma_history_end_fe",
+                "source_end_fe",
+                "prefix_record_sha256",
+                "checkpoint_candidate_sha256",
+                "controller_state_sha256",
+                "random_descriptor_sha256",
+                "feature_schema_sha256",
+                "feature_sha256",
+                "decision_status_match",
+                "decision_id_match",
+                "feature_match",
+                "prefix_match",
+                "controller_state_match",
+                "checkpoint_candidate_match",
+                "random_descriptor_match",
+                "intervention_end_fe_match",
+                "not_applicable_reason_match",
+                "pair_integrity",
+            ],
+        )
+        _write_csv(
+            output / "causal_branch_manifest.csv",
+            causal_branch_rows,
+            [
+                "pair_id",
+                "decision_id",
+                "problem_id",
+                "seed",
+                "arm",
+                "lane_id",
+                "fresh_optimizer_execution",
+                "status",
+                "result_source",
+                "output_root",
+                "decision_status",
+                "not_applicable_reason",
+                "action_applied",
+                "decision_fe",
+                "intervention_end_fe",
+                "checkpoint_fitness",
+                "normal_sigma",
+                "candidate_sigma",
+                "applied_sigma",
+                "requested_fe",
+                "actual_fe",
+                "configured_max_fes",
+                "terminal_target_fe",
+                "terminal_observed_fe",
+                "terminal_status",
+                "prefix_record_sha256",
+                "checkpoint_candidate_sha256",
+                "controller_state_sha256",
+                "feature_sha256",
+                "random_descriptor_sha256",
+                "terminal_error",
+                "terminal_record_sha256",
+                "optimizer_fe_used",
+                "same_budget_violation",
+            ],
+        )
+        _write_csv(
+            output / "causal_outcomes.csv",
+            causal_outcome_rows,
+            [
+                "pair_id",
+                "decision_id",
+                "problem_id",
+                "seed",
+                "decision_status",
+                "checkpoint_error",
+                "baseline_terminal_error",
+                "action_terminal_error",
+                "baseline_log_progress",
+                "action_log_progress",
+                "paired_tau",
+                "catastrophic",
+                "equal_checkpoint",
+                "equal_terminal_target_fe",
+                "equal_terminal_observed_fe",
+                "outcome_valid",
+            ],
+        )
+        _write_csv(
+            output / "randomized_log.csv",
+            causal_randomized_rows,
+            [
+                "pair_id",
+                "decision_id",
+                "problem_id",
+                "seed",
+                "logged_arm",
+                "observed_treatment",
+                "propensity",
+                "observed_terminal_error",
+                "observed_log_progress",
+                "terminal_target_fe",
+                "terminal_observed_fe",
+                "outcome_valid",
+            ],
+        )
+        feature_manifest = {
+            "schema_version": PRE_ACTION_UTILITY_SCHEMA_VERSION,
+            "feature_names": list(UTILITY_FEATURE_NAMES),
+            "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
+            "features": [
+                {
+                    "name": name,
+                    "formula": PRECISION_CAUSAL_FEATURE_FORMULAS[name],
+                    "source_timing": "strictly_pre_action",
+                }
+                for name in UTILITY_FEATURE_NAMES
+            ],
+            "identity_fields": ["problem_id", "seed", "component_id"],
+            "identity_fields_location": "causal_decision_audit.csv_only",
+            "forbidden_model_fields": sorted(
+                {
+                    "case",
+                    "problem_id",
+                    "seed",
+                    "function_family",
+                    "paper_best",
+                    "historical_best",
+                    "final_error",
+                    "final_outcome",
+                    "graph_fingerprint",
+                    "component_id",
+                    "group_index",
+                    "raw_objective",
+                    "incumbent",
+                    "component_gain",
+                    "neighbor_gain",
+                    "overwrite",
+                    "survival",
+                }
+            ),
+            "immutable_snapshot": True,
+        }
+        (output / "feature_manifest.json").write_text(
+            json.dumps(feature_manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        raw_artifact_names = (
+            "causal_decision_features.csv",
+            "causal_decision_audit.csv",
+            "causal_branch_manifest.csv",
+            "causal_outcomes.csv",
+            "randomized_log.csv",
+            "causal_randomization_schedule.json",
+            "feature_manifest.json",
+        )
+        logging_manifest = {
+            "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
+            "offline_only": True,
+            "runtime_scheduler_authorized": False,
+            "lane_profile": lane_profile,
+            "baseline_action": controller_profile_by_version(37).action_name,
+            "treatment_action": "post_retirement_precision_reanchor",
+            "treatment_semantics": (
+                "one_v38_precision_sigma_group_block_then_v37_continuation"
+            ),
+            "feature_schema": {
+                "schema_version": PRE_ACTION_UTILITY_SCHEMA_VERSION,
+                "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
+                "feature_names": list(UTILITY_FEATURE_NAMES),
+            },
+            "randomization": {
+                "randomization_salt": PRECISION_CAUSAL_RANDOMIZATION_SALT,
+                "randomization_algorithm": "sha256_first_u64_mod2",
+                "coin_material": "{salt}|{problem_id.upper()}|{int(seed)}",
+                "arm_mapping": {"0": "baseline", "1": "action"},
+                "propensity": 0.5,
+            },
+            "estimand": {
+                "unit": "first_complete_scheduler_reachable_unlocked_precision_opportunity_per_trajectory",
+                "outcome": "log(checkpoint_error)-log(terminal_error)",
+                "paired_tau": "log(baseline_terminal_error/action_terminal_error)",
+                "catastrophic": "action_terminal_error >= 1.2 * baseline_terminal_error",
+                "log_floor": 1e-300,
+            },
+            "preregistration": {
+                "path": PRECISION_CAUSAL_PREREGISTRATION_PATH,
+                "sha256": PRECISION_CAUSAL_PREREGISTRATION_SHA256,
+                "commit": PRECISION_CAUSAL_PREREGISTRATION_COMMIT,
+            },
+            "matrix": {
+                "problem_ids": list(problem_ids),
+                "seeds": list(seeds),
+                "arms": list(PRECISION_CAUSAL_ARMS),
+                "max_fes": max_fes,
+                "jobs": worker_count,
+                "budget_accounting": budget_accounting,
+            },
+            "integrity": {
+                "status": (
+                    "pass" if not precision_causal_integrity_failures else "blocked"
+                ),
+                "failures": precision_causal_integrity_failures,
+                "applicable_pairs": len(causal_feature_rows),
+                "total_pairs": len(causal_audit_rows),
+            },
+            "git_commit": _git_commit(),
+            "raw_artifact_sha256": {
+                name: _sha256_file(output / name) for name in raw_artifact_names
+            },
+        }
+        (output / "causal_logging_manifest.json").write_text(
+            json.dumps(logging_manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     _write_csv(
         output / "trajectory_guard_summary.csv",
         _trajectory_guard_summary_rows(action_trace_rows),
@@ -6215,6 +7301,11 @@ def run_hcc_runtime_consumer_smoke(
             "CAR actionability audit integrity gate blocked: "
             + ";".join(car_actionability_integrity_failures)
         )
+    if precision_causal_integrity_failures:
+        raise RuntimeError(
+            "precision causal logging integrity gate blocked: "
+            + ";".join(precision_causal_integrity_failures)
+        )
     if paired_runtime_utility_rows:
         manifest_path = output / "run_manifest.md"
         manifest = manifest_path.read_text(encoding="utf-8")
@@ -6304,6 +7395,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "car_w2_diagnostic",
             "car_w3_diagnostic",
             "car_actionability_audit",
+            "precision_causal_logging",
             "canonical_evidence_controller_v1",
         ],
     )

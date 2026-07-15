@@ -28,6 +28,25 @@ CAR CSV artifacts:
 - `run_manifest.md`
 - `claim_evidence_table.md`
 
+The opt-in `precision_causal_logging` profile additionally writes:
+
+- `causal_randomization_schedule.json`: frozen before subprocess execution;
+- `causal_decision_features.csv`: `decision_id` plus only the 16 whitelisted
+  pre-action features;
+- `causal_decision_audit.csv`: case/seed, cap, watermarks, hashes, assignment,
+  and pair-integrity checks (offline only);
+- `causal_branch_manifest.csv`: one row per baseline/action fresh lane,
+  including CRN descriptor, intervention/terminal FE, and terminal error;
+- `causal_outcomes.csv`: paired terminal labels, log-progress, treatment effect,
+  and catastrophic indicator;
+- `randomized_log.csv`: only the preregistered observed arm and propensity;
+- `feature_manifest.json`: formulas, fixed order, schema hash, and forbidden
+  model fields;
+- `causal_logging_manifest.json`: preregistration binding, raw hashes, matrix,
+  and integrity status;
+- `_hcc_smoke/**/precision_causal_provenance.json`: per-lane request and artifact
+  hashes proving a fresh execution.
+
 The required smoke evidence is:
 
 - `repair_shared_variable_binding` has `optimizer_consumed=1` in
@@ -82,3 +101,8 @@ The required smoke evidence is:
   observed evidence, blockers, and source artifact.
 - Final errors are offline-only smoke outputs and must not enter runtime
   dispatch.
+- Precision causal logging requires equal prefix/feature/controller/checkpoint
+  hashes, equal CRN descriptor and intervention end FE, a common terminal target,
+  strict FE accounting, unchanged AOB inputs, and a complete terminal prefix.
+  Missing history or missing structural opportunity is explicit
+  `not_applicable`, never an imputed feature row.

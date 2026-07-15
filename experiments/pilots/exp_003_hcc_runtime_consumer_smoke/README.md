@@ -36,6 +36,21 @@ five lanes with CAR-W3, and is the only profile authorized for the fresh W3
 non-positive or worse than its checkpoint; this changes probe cost only, not
 the unchanged deployment gate.
 
+`precision_causal_logging` is an offline-only paired fresh-run profile for the
+first history-complete `post_retirement_precision_reanchor` opportunity. Both
+lanes start from the frozen v37 controller. The baseline lane keeps v37's
+normal-refine sigma; the action lane uses the existing v38 precision sigma for
+one group block and then returns to v37. A trajectory can consume at most one
+opportunity. Structural candidates with incomplete pre-action history stay on
+v37 and remain eligible for a later complete opportunity.
+
+The profile writes the 16 identity-free features separately from audit identity
+and outcomes. Its SHA-256 logged-arm schedule is written before any optimizer
+subprocess. Case and seed remain audit/fold fields and never enter the feature
+table or runtime dispatch. The logging manifest keeps
+`runtime_scheduler_authorized=false`; only the separate preregistered causal
+audit may change that status.
+
 The purpose is to prove that runtime actions reach the ARAC-owned HCC smoke
 runner, relation dispatch emits joinable `relation_id` artifacts, and
 `action_utility_audit.csv` reports utility failures plainly instead of turning
@@ -62,6 +77,13 @@ For wider smoke runs, pass explicit problems/seeds and parallel jobs:
 
 ```powershell
 $env:PYTHONPATH='src'; python -m experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run --output-dir results\exp_003_hcc_runtime_consumer_smoke --seeds 1 2 3 4 5 --problems E1 E2 S1 S2 R1 R2 A1 A2 --jobs 8
+```
+
+Run the bounded causal-logging smoke (40k FE total):
+
+```powershell
+$env:PYTHONHASHSEED='0'; $env:OMP_NUM_THREADS='1'; $env:OPENBLAS_NUM_THREADS='1'; $env:MKL_NUM_THREADS='1'; $env:NUMEXPR_NUM_THREADS='1'; $env:VECLIB_MAXIMUM_THREADS='1'
+$env:PYTHONPATH='src'; python -m experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run --output-dir results\causal_precision_logging_5k --problems E1 E2 --seeds 1 2 --jobs 24 --max-fes 5000 --lane-profile precision_causal_logging
 ```
 
 The vendored HCC snapshot remains read-only. The subprocess executes the
