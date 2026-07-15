@@ -2,7 +2,7 @@
 
 Date: 2026-07-15
 Executor: Codex
-Status: frozen before implementation commit and fresh optimizer FE
+Status: v2 mechanical amendment frozen before randomized pilot FE
 Source HEAD: `a739997`
 
 ## Decision
@@ -90,10 +90,13 @@ in-memory HCC checkpoint clone.
 
 The paired integrity gate requires identical prefix state and fitness-record
 hashes, immutable feature hash, controller-state manifest, candidate contract,
-counter-based random descriptor, actual intervention FE, AOB inputs,
-environment, and absolute terminal target. Both lanes disable further
-experimental precision actions after the selected opportunity and continue
-with v37.
+counter-based random descriptor, requested intervention reservation, AOB
+inputs, environment, configured budget, and absolute terminal target. Both
+lanes disable further experimental precision actions after the selected
+opportunity and continue with v37. Each arm's actual intervention consumption
+and natural endpoint remain auditable, but are not required to match because
+they occur after the sigma intervention and can be changed by CMA early
+stopping.
 
 Before outcomes exist, a fixed SHA-256 assignment designates one arm as the
 randomized logged observation with known propensity 0.5. The other arm remains
@@ -189,5 +192,49 @@ catastrophes and a one-sided exact-binomial risk bound no greater than 5%.
 Failure of any gate is a completed no-go result. It prohibits model export,
 runtime registration, shadow/live/full extension, and threshold or matrix
 revision against the observed outcomes.
+
+## Mechanical Amendment: Common-Endpoint FE Integrity (v2)
+
+Date: 2026-07-16
+
+The first post-history-fix A4 seed1 trace reached one real applicable decision
+and blocked before pilot launch. Its two arms had identical decision FE,
+sixteen-feature hash, prefix-record hash, controller-state hash, checkpoint
+candidate hash, random descriptor, requested reservation, and absolute
+terminal target. The only pair-integrity mismatch was the natural end of the
+treated group optimizer: normal sigma and precision sigma triggered CMA early
+stopping after different numbers of evaluations. The blocked raw manifest is
+`results/causal_precision_logging_a4_seed1_3m_historyfix_jobs24_20260716T021430/causal_logging_manifest.json`
+(SHA-256 `2265c13b80dfe2cbb9312460c1f44e49cd2bb64ad82f7666e04f5b311dfb3850`).
+
+Actual group-block consumption and `intervention_end_fe` are downstream of the
+sigma assignment. Requiring them to be equal would condition on a
+post-treatment mediator or require changing the frozen action by disabling
+early stopping, adding hidden objective calls, or padding one arm. None of
+those alternatives estimates the deployed v38 precision action against the
+v37 normal-sigma baseline.
+
+Protocol `precision-causal-logging-v2` therefore freezes the following
+outcome-independent clarification before any randomized pilot run:
+
+- pair integrity requires equal pre-action state and hashes, equal requested
+  group reservation, equal configured total budget, and equal absolute
+  terminal target;
+- each arm independently must satisfy
+  `intervention_end_fe - decision_fe == actual_fe`,
+  `0 < actual_fe <= requested_fe`, no FE overrun, and completion beyond its
+  own intervention end;
+- `actual_fe`, `intervention_end_fe`, and the natural optimizer endpoint are
+  recorded as post-action diagnostics and may differ between applicable arms;
+- the causal label is read only from the identical absolute-FE terminal prefix
+  reached by both arms; evaluations after that common prefix cannot enter the
+  label;
+- a not-applicable pair still requires exact v37 terminal-record and natural
+  FE parity.
+
+This amendment does not change the action, feature schema, randomization,
+cases, seeds, budgets, labels, estimator, thresholds, or hard gates. It is a
+mechanical correction to the causal timing boundary, not a response to the
+observed terminal outcome.
 
 `[CONTRACT-ACKNOWLEDGED]`
