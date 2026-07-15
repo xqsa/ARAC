@@ -97,17 +97,17 @@ FORMAL_SOTA_PROBLEMS = tuple(
     for prefix in ("E", "S", "R", "A")
     for problem_id in range(1, 7)
 )
-PRECISION_CAUSAL_PROTOCOL_VERSION = "precision-causal-logging-v1"
+PRECISION_CAUSAL_PROTOCOL_VERSION = "precision-causal-logging-v2"
 PRECISION_CAUSAL_RANDOMIZATION_SALT = "arac-precision-causal-logged-arm-v1"
 PRECISION_CAUSAL_ARMS = ("baseline", "action")
 PRECISION_CAUSAL_PREREGISTRATION_PATH = (
     "docs/superpowers/specs/2026-07-15-causal-risk-precision-scheduler-design.md"
 )
 PRECISION_CAUSAL_PREREGISTRATION_SHA256 = (
-    "f566533ccd17c14fad2acf936c09668892183e872ebd6cf3ab57026b20797d26"
+    "9be1c021776c87cbc4e9ecfac1b91f97193f417ab1dd0a95f5f29afdd7b081a4"
 )
 PRECISION_CAUSAL_PREREGISTRATION_COMMIT = (
-    "f7960eafc27f64f519d0d2137f5a2c4152b715c3"
+    "650d49126a27c48447ab4ab14e56d5e8ed847da2"
 )
 PRECISION_CAUSAL_FEATURE_FORMULAS = {
     "remaining_fe_ratio": "(max_fes - decision_fe) / max_fes",
@@ -1829,6 +1829,9 @@ def _precision_causal_raw_rows(
         random_descriptor_match = baseline.get(
             "random_descriptor_sha256"
         ) == action.get("random_descriptor_sha256")
+        requested_fe_match = baseline.get("requested_fe") == action.get(
+            "requested_fe"
+        )
         intervention_end_match = baseline.get("intervention_end_fe") == action.get(
             "intervention_end_fe"
         )
@@ -1844,7 +1847,7 @@ def _precision_causal_raw_rows(
                 controller_match,
                 checkpoint_candidate_match,
                 random_descriptor_match,
-                intervention_end_match,
+                requested_fe_match,
                 reason_match,
             )
         )
@@ -1931,6 +1934,7 @@ def _precision_causal_raw_rows(
                     checkpoint_candidate_match
                 ),
                 "random_descriptor_match": int(random_descriptor_match),
+                "requested_fe_match": int(requested_fe_match),
                 "intervention_end_fe_match": int(intervention_end_match),
                 "not_applicable_reason_match": int(reason_match),
                 "pair_integrity": int(pair_integrity),
@@ -1968,7 +1972,6 @@ def _precision_causal_raw_rows(
             and equal_checkpoint
             and equal_target
             and equal_observed
-            and equal_optimizer_fe
             and math.isfinite(baseline_error)
             and math.isfinite(action_error)
         )
@@ -6858,6 +6861,7 @@ def run_hcc_runtime_consumer_smoke(
                 "controller_state_match",
                 "checkpoint_candidate_match",
                 "random_descriptor_match",
+                "requested_fe_match",
                 "intervention_end_fe_match",
                 "not_applicable_reason_match",
                 "pair_integrity",

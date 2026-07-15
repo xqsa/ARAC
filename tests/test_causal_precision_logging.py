@@ -479,13 +479,20 @@ def _write_trace(path: Path, row: dict[str, object]) -> None:
         writer.writerow(row)
 
 
-def _paired_records(tmp_path: Path, *, mismatched_end: bool = False):
+def _paired_records(
+    tmp_path: Path,
+    *,
+    mismatched_end: bool = False,
+    mismatched_requested: bool = False,
+):
     pair_rows = {}
     feature_values = {name: "5.00000000000000000e-01" for name in UTILITY_FEATURE_NAMES}
     for arm, terminal_error in (("baseline", 10.0), ("action", 5.0)):
-        intervention_end = 201 if arm == "action" and mismatched_end else 200
+        actual_fe = 99 if arm == "action" and mismatched_end else 100
+        intervention_end = 100 + actual_fe
+        requested_fe = 99 if arm == "action" and mismatched_requested else 100
         row = {
-            "protocol_version": "precision-causal-logging-v1",
+            "protocol_version": "precision-causal-logging-v2",
             "fresh_optimizer_execution": "1",
             "problem_id": "E2",
             "seed": "1",
@@ -519,8 +526,8 @@ def _paired_records(tmp_path: Path, *, mismatched_end: bool = False):
             "normal_sigma": "0.25",
             "candidate_sigma": "0.125",
             "applied_sigma": "0.125" if arm == "action" else "0.25",
-            "requested_fe": "100",
-            "actual_fe": "100",
+            "requested_fe": str(requested_fe),
+            "actual_fe": str(actual_fe),
             "intervention_end_fe": str(intervention_end),
             "configured_max_fes": "5000",
             "terminal_target_fe": "4990",
@@ -545,13 +552,15 @@ def _paired_records(tmp_path: Path, *, mismatched_end: bool = False):
             seed=1,
             max_fes=5_000,
             final_error=terminal_error,
-            fe_used=4_995,
+            fe_used=4_994 if arm == "action" and mismatched_end else 4_995,
             time_seconds=1.0,
             output_root=output_root,
             fresh_optimizer_execution=True,
             status="completed",
             result_source="fresh",
-            optimizer_final_fe_used=4_995,
+            optimizer_final_fe_used=(
+                4_994 if arm == "action" and mismatched_end else 4_995
+            ),
         )
         pair_rows[arm] = {"lane": lane, "lane_id": lane_id, "result": result}
     return [pair_rows["baseline"], pair_rows["action"]]
@@ -571,6 +580,7 @@ def test_raw_pair_rows_bind_features_crn_fe_and_terminal_outcomes(
     assert audit[0]["logged_arm"] == precision_causal_logged_arm("E2", 1)
     assert audit[0]["pair_integrity"] == 1
     assert audit[0]["random_descriptor_match"] == 1
+    assert audit[0]["requested_fe_match"] == 1
     assert audit[0]["intervention_end_fe_match"] == 1
     assert {row["arm"] for row in branches} == {"baseline", "action"}
     assert {row["terminal_error"] for row in branches} == {"10.0", "5.0"}
@@ -579,15 +589,29 @@ def test_raw_pair_rows_bind_features_crn_fe_and_terminal_outcomes(
     assert randomized[0]["propensity"] == "0.5"
 
 
-def test_pair_rows_fail_closed_on_intervention_fe_mismatch(tmp_path: Path) -> None:
+def test_pair_rows_allow_action_dependent_intervention_fe_at_common_terminal(
+    tmp_path: Path,
+) -> None:
     _, audit, _, outcomes, _, failures = _precision_causal_raw_rows(
         _paired_records(tmp_path, mismatched_end=True)
+    )
+
+    assert failures == []
+    assert audit[0]["requested_fe_match"] == 1
+    assert audit[0]["intervention_end_fe_match"] == 0
+    assert audit[0]["pair_integrity"] == 1
+    assert outcomes[0]["outcome_valid"] == 1
+
+
+def test_pair_rows_fail_closed_on_requested_fe_mismatch(tmp_path: Path) -> None:
+    _, audit, _, outcomes, _, failures = _precision_causal_raw_rows(
+        _paired_records(tmp_path, mismatched_requested=True)
     )
 
     assert failures == [
         f"{precision_causal_pair_id('E2', 1)}:preaction_pair_mismatch",
         f"{precision_causal_pair_id('E2', 1)}:invalid_paired_outcome",
     ]
-    assert audit[0]["intervention_end_fe_match"] == 0
+    assert audit[0]["requested_fe_match"] == 0
     assert audit[0]["pair_integrity"] == 0
     assert outcomes[0]["outcome_valid"] == 0

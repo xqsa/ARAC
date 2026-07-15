@@ -139,6 +139,7 @@ def _raw_dataset(
                     "controller_state_match": 1,
                     "checkpoint_candidate_match": 1,
                     "random_descriptor_match": 1,
+                    "requested_fe_match": 1,
                     "intervention_end_fe_match": 1,
                     "not_applicable_reason_match": 1,
                     "pair_integrity": 1,
@@ -340,6 +341,55 @@ def test_raw_pair_loader_recomputes_assignment_hashes_and_terminal_tau(tmp_path:
     assert pairs[0].tau == pytest.approx(
         math.log(pairs[0].baseline_error / pairs[0].action_error)
     )
+
+
+def test_loader_allows_action_dependent_intervention_duration(tmp_path: Path) -> None:
+    root = _raw_dataset(tmp_path / "raw")
+    branch_header, branches = MODULE._read_csv(root / "causal_branch_manifest.csv")
+    action = next(
+        row
+        for row in branches
+        if row["problem_id"] == "A1" and row["seed"] == "1" and row["arm"] == "action"
+    )
+    action["actual_fe"] = "9"
+    action["intervention_end_fe"] = "109"
+    _write_csv(root / "causal_branch_manifest.csv", branches, branch_header)
+    audit_header, audits = MODULE._read_csv(root / "causal_decision_audit.csv")
+    audit = next(
+        row for row in audits if row["problem_id"] == "A1" and row["seed"] == "1"
+    )
+    audit["intervention_end_fe_match"] = "0"
+    _write_csv(root / "causal_decision_audit.csv", audits, audit_header)
+    _refresh_logging_manifest(root)
+
+    pairs, _stats, blockers = MODULE.load_decision_pairs(root)
+
+    assert blockers == []
+    assert len(pairs) == 9
+
+
+def test_loader_fails_closed_on_requested_reservation_drift(tmp_path: Path) -> None:
+    root = _raw_dataset(tmp_path / "raw")
+    branch_header, branches = MODULE._read_csv(root / "causal_branch_manifest.csv")
+    action = next(
+        row
+        for row in branches
+        if row["problem_id"] == "A1" and row["seed"] == "1" and row["arm"] == "action"
+    )
+    action["requested_fe"] = "9"
+    _write_csv(root / "causal_branch_manifest.csv", branches, branch_header)
+    audit_header, audits = MODULE._read_csv(root / "causal_decision_audit.csv")
+    audit = next(
+        row for row in audits if row["problem_id"] == "A1" and row["seed"] == "1"
+    )
+    audit["requested_fe_match"] = "0"
+    _write_csv(root / "causal_decision_audit.csv", audits, audit_header)
+    _refresh_logging_manifest(root)
+
+    _pairs, _stats, blockers = MODULE.load_decision_pairs(root)
+
+    assert any(item.startswith("paired_pre_action_integrity_failed:") for item in blockers)
+    assert any(item.startswith("paired_branch_budget_or_target_mismatch:") for item in blockers)
 
 
 def test_loader_fails_closed_on_assignment_watermark_and_branch_outcome_drift(tmp_path: Path) -> None:

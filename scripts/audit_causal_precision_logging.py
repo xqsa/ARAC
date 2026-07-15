@@ -45,7 +45,7 @@ except ImportError as exc:  # pragma: no cover - exercised only in a broken env.
     ) from exc
 
 
-PROTOCOL_VERSION = "precision-causal-logging-v1"
+PROTOCOL_VERSION = "precision-causal-logging-v2"
 RANDOMIZATION_SALT = "arac-precision-causal-logged-arm-v1"
 RANDOMIZATION_ALGORITHM = "sha256_first_u64_mod2"
 PROPENSITY = 0.5
@@ -66,8 +66,8 @@ PRECISION_LANE_PROFILE = "precision_causal_logging"
 PREREGISTRATION_PATH = (
     "docs/superpowers/specs/2026-07-15-causal-risk-precision-scheduler-design.md"
 )
-PREREGISTRATION_SHA256 = "f566533ccd17c14fad2acf936c09668892183e872ebd6cf3ab57026b20797d26"
-PREREGISTRATION_COMMIT = "f7960eafc27f64f519d0d2137f5a2c4152b715c3"
+PREREGISTRATION_SHA256 = "9be1c021776c87cbc4e9ecfac1b91f97193f417ab1dd0a95f5f29afdd7b081a4"
+PREREGISTRATION_COMMIT = "650d49126a27c48447ab4ab14e56d5e8ed847da2"
 
 FEATURE_COLUMNS = ("decision_id", *UTILITY_FEATURE_NAMES)
 RAW_FILENAMES = (
@@ -116,6 +116,7 @@ AUDIT_REQUIRED_COLUMNS = (
     "controller_state_match",
     "checkpoint_candidate_match",
     "random_descriptor_match",
+    "requested_fe_match",
     "intervention_end_fe_match",
     "not_applicable_reason_match",
     "pair_integrity",
@@ -752,7 +753,7 @@ def load_decision_pairs(
                 "controller_state_match",
                 "checkpoint_candidate_match",
                 "random_descriptor_match",
-                "intervention_end_fe_match",
+                "requested_fe_match",
                 "not_applicable_reason_match",
                 "pair_integrity",
                 "component_unlocked",
@@ -823,52 +824,66 @@ def load_decision_pairs(
                 blockers.append(f"invalid_terminal_record_sha256:{pair_id}:{arm}")
         equal_fields = (
             "decision_fe",
-            "intervention_end_fe",
             "checkpoint_fitness",
             "normal_sigma",
             "candidate_sigma",
             "requested_fe",
-            "actual_fe",
             "configured_max_fes",
             "terminal_target_fe",
             "terminal_observed_fe",
-            "optimizer_fe_used",
         )
         if any(baseline_branch[field] != action_branch[field] for field in equal_fields):
             blockers.append(f"paired_branch_budget_or_target_mismatch:{pair_id}")
+        if audit["requested_fe_match"] != str(
+            int(baseline_branch["requested_fe"] == action_branch["requested_fe"])
+        ):
+            blockers.append(f"requested_fe_match_flag_drift:{pair_id}")
+        if audit["intervention_end_fe_match"] != str(
+            int(
+                baseline_branch["intervention_end_fe"]
+                == action_branch["intervention_end_fe"]
+            )
+        ):
+            blockers.append(f"intervention_end_fe_match_flag_drift:{pair_id}")
         if baseline_branch["action_applied"] != "0" or action_branch["action_applied"] != "1":
             blockers.append(f"paired_branch_action_contract_mismatch:{pair_id}")
-        try:
-            configured_max_fes = _int(
-                baseline_branch["configured_max_fes"], field="configured_max_fes"
-            )
-            intervention_end_fe = _int(
-                baseline_branch["intervention_end_fe"], field="intervention_end_fe"
-            )
-            actual_fe = _int(baseline_branch["actual_fe"], field="actual_fe")
-            terminal_target_fe = _int(
-                baseline_branch["terminal_target_fe"], field="terminal_target_fe"
-            )
-            terminal_observed_fe = _int(
-                baseline_branch["terminal_observed_fe"], field="terminal_observed_fe"
-            )
-            optimizer_fe_used = _int(
-                baseline_branch["optimizer_fe_used"], field="optimizer_fe_used"
-            )
-            remaining_fe = _int(audit["remaining_fe"], field="remaining_fe")
-            revisit_cap_fe = _int(
-                audit["scheduler_revisit_cap_fe"], field="scheduler_revisit_cap_fe"
-            )
-            if (
-                intervention_end_fe - decision_fe != actual_fe
-                or terminal_observed_fe != terminal_target_fe
-                or optimizer_fe_used > configured_max_fes
-                or remaining_fe != configured_max_fes - decision_fe
-                or revisit_cap_fe > remaining_fe
-            ):
-                blockers.append(f"branch_fe_contract_mismatch:{pair_id}")
-        except ValueError:
-            blockers.append(f"branch_fe_contract_invalid:{pair_id}")
+        for arm, branch in by_arm.items():
+            try:
+                configured_max_fes = _int(
+                    branch["configured_max_fes"], field="configured_max_fes"
+                )
+                intervention_end_fe = _int(
+                    branch["intervention_end_fe"], field="intervention_end_fe"
+                )
+                requested_fe = _int(branch["requested_fe"], field="requested_fe")
+                actual_fe = _int(branch["actual_fe"], field="actual_fe")
+                terminal_target_fe = _int(
+                    branch["terminal_target_fe"], field="terminal_target_fe"
+                )
+                terminal_observed_fe = _int(
+                    branch["terminal_observed_fe"], field="terminal_observed_fe"
+                )
+                optimizer_fe_used = _int(
+                    branch["optimizer_fe_used"], field="optimizer_fe_used"
+                )
+                remaining_fe = _int(audit["remaining_fe"], field="remaining_fe")
+                revisit_cap_fe = _int(
+                    audit["scheduler_revisit_cap_fe"], field="scheduler_revisit_cap_fe"
+                )
+                if (
+                    intervention_end_fe - decision_fe != actual_fe
+                    or actual_fe <= 0
+                    or actual_fe > requested_fe
+                    or terminal_observed_fe != terminal_target_fe
+                    or terminal_target_fe <= intervention_end_fe
+                    or optimizer_fe_used < terminal_target_fe
+                    or optimizer_fe_used > configured_max_fes
+                    or remaining_fe != configured_max_fes - decision_fe
+                    or revisit_cap_fe > remaining_fe
+                ):
+                    blockers.append(f"branch_fe_contract_mismatch:{pair_id}:{arm}")
+            except ValueError:
+                blockers.append(f"branch_fe_contract_invalid:{pair_id}:{arm}")
         try:
             if not _close(
                 _float(baseline_branch["applied_sigma"], field="baseline applied_sigma"),

@@ -571,7 +571,7 @@ CAR_ACTIONABILITY_TRACE_FIELDS = [
     "horizon_status",
     "abstain_reason",
 ]
-PRECISION_CAUSAL_PROTOCOL_VERSION = "precision-causal-logging-v1"
+PRECISION_CAUSAL_PROTOCOL_VERSION = "precision-causal-logging-v2"
 PRECISION_CAUSAL_TRACE_FIELDS = [
     "protocol_version",
     "fresh_optimizer_execution",
