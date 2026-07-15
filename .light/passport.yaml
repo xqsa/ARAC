@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T17:33+08:00"
-current_stage: 29
+updated: "2026-07-15T18:35+08:00"
+current_stage: 30
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -200,3 +200,10 @@ stages:
     artifacts: [results/car_actionability_smoke_20260715_v7, results/car_actionability_pilot_E2_seed1_3m_20260715_v2, results/car_actionability_audit_6case_seed123_3m_20260715_v2, docs/design/car-actionability-audit-result-20260715.md, .light/handoff/S17-arac-actionability-sixcase-hard-stop.md]
     gate: {type: confirm, result: FAIL, notes: v2 smoke 2/2 fresh; E2 rerun all four horizons integrity-clean; six-case 36/36 fresh provenance; FE 2999984..3000000 with zero overspend; AOB 354/354 unchanged; anti-leakage 16/16; paired horizons 47/47 pass; 10 applied and 8 no-plan pairs; applied terminal mean log advantage -0.066855, median 1.36e-7, numeric wins 5/10, meaningful wins 0/10, catastrophic losses 1/10; strict non-zero closure/terminal sign agreement 4/10; Spearman 0.158; CAR full-24 not started}
     gaps: [Current overlap/grouping evidence occasionally exposes headroom but does not stably predict long-horizon action payoff; S3 seed1 remains catastrophic; three seeds are descriptive only; no CAR runtime-performance claim or threshold/R-S expansion is authorized]
+  - stage: 30
+    skill: light-result-analysis/light-memory-pm/light-consistency
+    input: Frozen v33-v38 and CAR v2 raw traces; no new FE; offline terminal joins only
+    output: State-field coverage audit, action-specific delayed-credit diagnosis, component-locked method boundary, and reproducible offline analyzer
+    artifacts: [scripts/audit_state_evidence.py, tests/test_audit_state_evidence.py, results/state_evidence_sufficiency_audit_20260715, docs/design/state-evidence-sufficiency-audit-20260715.md, docs/design/core-method.md, .light/handoff/S18-arac-state-evidence-sufficiency-audit.md]
+    gate: {type: confirm, result: WARN, notes: Eight declared action-state fields empty across all audited traces; v34 writeback credit Spearman -0.234 and within-case 10/21; v37-v36 resource retirement mean log advantage -0.0000586 with 3 wins/4 losses; v38-v37 precision local gain Spearman +0.741 and within-case 9/11 but S2 holds 91.5 percent of absolute effect; CAR rank-gap hypothesis Spearman +0.492 but S3 holds 92.6 percent of absolute contrast; no controller or FE run authorized}
+    gaps: [Component/neighbor persistence and shared-variable overwrite are not traceable; three seeds are descriptive; search-start signal is post-action and outcome-concentrated; writeback/resource credit remains unidentified]

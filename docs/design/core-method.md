@@ -288,3 +288,21 @@ continues to the unchanged three-pair gate.
 
 Performance, generalization, and any paper-best win count remain empirical
 claims gated by the staged protocol above.
+
+## State-conditioned delayed credit: audited candidate, not current runtime
+
+The 2026-07-15 offline state-sufficiency audit found that a single generic
+local credit cannot govern all actions. One-group downstream writeback credit
+did not order later utility, resource retirement was approximately neutral,
+and only post-action precision-search progress showed a useful descriptive
+association with later incremental utility. The evidence and limitations are
+recorded in `docs/design/state-evidence-sufficiency-audit-20260715.md`.
+
+Any future state-conditioned controller must lock shared-variable actions at
+the overlap-connected component, allow at most one pending action per mutable
+component, and resolve credit on an action-specific semantic horizon.
+`group_id -> action` tables, common credit windows across W/R/S, and thresholds
+fit to the three-seed terminal outcomes are prohibited. The first eligible
+pilot is search-start exposure control after a capped initial lease; writeback
+and resource revisions remain blocked until component persistence, neighbour
+spillover and overwrite/survival are explicitly traced.
