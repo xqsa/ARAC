@@ -172,3 +172,10 @@ stages:
     artifacts: [docs/design/2026-07-15-car-w3-first-pair-futility-design.md, src/arac/policy/counterfactual_action_racing.py, src/arac/actions/controller_profiles.py, scripts/hcc_smoke_runner.py, tests/test_counterfactual_action_racing.py, tests/test_controller_profiles.py, tests/test_hcc_car_runner.py, results/car_w3_parity_5k_20260715_w3, .light/handoff/S13-arac-car-w3-parity-pass.md]
     gate: {type: confirm, result: PASS, notes: 49 focused and 734 tracked tests passed with 1 tracked skip; negative pair0 charges one pair and aborts; positive pair0 reaches unchanged K=3 gate; E2 seed9 5k W3/v33 final error and FE match; action/AOB hashes match; probe_fe=0}
     gaps: [No W3 3M diagnostic is registered; first-pair futility reduces impossible-to-commit probe cost but candidate coverage and long-horizon utility remain unproven]
+  - stage: 26
+    skill: light-result-analysis/debug-first/light-consistency
+    input: frozen CAR-W3 preregistration; E1/E2/S3/R4/A5/E6; seeds 26/27/28; five lanes; strict 3M FE
+    output: fresh CAR-W3 raw artifacts, integrity audit, paired utility diagnosis, and July hard-stop decision
+    artifacts: [docs/design/2026-07-15-car-w3-diagnostic-preregistration.md, results/car_w3_diagnostic_6case_seed26_28_3m_20260715, docs/design/car-w3-diagnostic-result-20260715.md, .light/handoff/S14-arac-car-w3-gate-failed.md]
+    gate: {type: confirm, result: FAIL, notes: 90/90 fresh; FE 0/90 violations; AOB 885/885 unchanged; anti-leakage 16/16; CAR boundary 28/28; branch FE 68/68; no-plan parity 10/10; 8 stable graph plans, 1 commit; mean log delta +0.019356626; overlap mean +0.023227951; meaningful wins 0/18; catastrophic 0/18; max overhead 2.9986%; W gate failed}
+    gaps: [W3 reduces probe cost but does not establish positive or stable long-horizon utility; no R/S, held-out, or CAR full-24 run is authorized; July work is paper completion and reproducibility packaging]
