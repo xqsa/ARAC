@@ -394,3 +394,23 @@ that suppressing repeated precision actions will improve the remaining
 trajectory. On S2, serialization removed useful repeated search exposure.
 The component-lease controller route is therefore permanently stopped. v41 is
 dispatch-blocked and no threshold, margin, or full-24 extension is allowed.
+
+## Precision-first causal utility identification: pre-FE candidate
+
+The only eligible successor is not a v41 adjustment. It separates candidate
+generation from utility identification: scheduler state proposes a first
+post-retirement precision opportunity, while a model trained from randomized,
+same-prefix, same-FE terminal continuations estimates its fallback-relative
+effect and catastrophic risk. The action is released only for an in-support
+pre-action state with a calibrated positive effect lower bound and a risk
+upper bound no greater than the preregistered 5% non-inferiority allowance.
+
+The first estimand is one precision action on a v37 continuation, with at most
+one release per trajectory. It does not revive v41, serialize the native v38
+action stream, or authorize repeat leases, writeback, and resource channels.
+The complete logging, feature, estimator, artifact, matrix, and hard-stop
+contract is frozen in
+`docs/superpowers/specs/2026-07-15-causal-risk-precision-scheduler-design.md`.
+Until its full identifiability gate explicitly authorizes runtime, this remains
+an offline causal-logging protocol and v33.8 remains the paper performance
+result.
