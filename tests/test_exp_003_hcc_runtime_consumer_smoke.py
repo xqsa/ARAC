@@ -98,6 +98,32 @@ def test_exp_003_car_w_diagnostic_profile_has_explicit_controls() -> None:
     ]
 
 
+def test_exp_003_car_w2_diagnostic_profile_has_lazy_lease_controls() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        lanes_for_profile,
+        parse_args,
+    )
+
+    lanes = lanes_for_profile("car_w2_diagnostic")
+    assert [lane.lane_id for lane in lanes] == [
+        "v33_fallback",
+        "car_w2",
+        "car_w2_shuffled",
+        "car_w2_paired_fallback",
+        "no_action_negative_control",
+    ]
+    assert [lane.car_candidate_mode for lane in lanes] == [
+        "graph",
+        "graph",
+        "shuffled_graph",
+        "paired_fallback",
+        "graph",
+    ]
+    assert parse_args(["--lane-profile", "car_w2_diagnostic"]).lane_profile == (
+        "car_w2_diagnostic"
+    )
+
+
 def test_car_dispatch_boundary_audit_is_type_level_and_disjoint() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _car_dispatch_boundary_rows,

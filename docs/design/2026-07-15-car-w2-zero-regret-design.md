@@ -73,7 +73,31 @@ The CLI/5k parity gate must show:
 - AOB hashes unchanged, equal-FE, branch isolation, and anti-leakage pass;
 - W1 behavior unchanged when the W1 action is selected.
 
-Only after this gate passes may a fresh W2 3M diagnostic be registered. The
-W2 diagnostic must report candidate coverage, commits, paired mean/median,
-worst seed, catastrophic losses, and lease overhead. It cannot start R/S or
-the full 24-case protocol until its pre-registered W gate passes.
+## Frozen 3M diagnostic
+
+After the 5k parity gate passes, run exactly:
+
+- cases: `E1/E2/S3/R4/A5/E6`;
+- seeds: `22/23/24` (W1 used 9/10/11; 12-21 remain reserved);
+- lanes: `v33_fallback`, `car_w2`, `car_w2_shuffled`,
+  `car_w2_paired_fallback`, and `no_action_negative_control`;
+- budget: strict 3,000,000 FE per lane/case, 90 fresh trajectories;
+- experiment entry: exp003 `car_w2_diagnostic`.
+
+The integrity gate requires all trajectories fresh, no FE overrun, unchanged
+AOB hashes, anti-leakage pass, CAR type-boundary pass, equal requested/actual
+branch FE, and branch-record isolation. Every no-plan W2 run must use zero
+probe FE and match its same-seed v33 final error and FE exactly.
+
+The utility gate remains deliberately hard: at least six candidate commits
+across at least three cases and two overlap strata; probe-to-3M sign agreement
+at least 60%; negative mean and non-positive median paired log-error delta
+versus v33; zero losses at or below the repository's -20% relative-gain
+catastrophic threshold; and maximum probe overhead at most 3%. Failure stops
+the pipeline before R/S and full-24. Final error and catastrophic labels are
+offline audit fields only and never runtime inputs.
+
+The W2 diagnostic must report candidate coverage, commits, paired mean/median,
+worst seed, catastrophic losses, and lease overhead. It cannot start R/S,
+held-out expansion, or the full 24-case protocol until this pre-registered W
+gate passes.

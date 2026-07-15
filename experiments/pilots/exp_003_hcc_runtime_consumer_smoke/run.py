@@ -614,6 +614,44 @@ CAR_W_DIAGNOSTIC_LANES = (
         negative_control=True,
     ),
 )
+CAR_W2_DIAGNOSTIC_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(33),
+        lane_id="v33_fallback",
+        dispatch_scope="car_w2_diagnostic_v33_fallback_reference",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w2"),
+        lane_id="car_w2",
+        dispatch_scope="car_w2_diagnostic_graph_candidate",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w2"),
+        lane_id="car_w2_shuffled",
+        dispatch_scope="car_w2_diagnostic_shuffled_graph_control",
+        car_candidate_mode="shuffled_graph",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w2"),
+        lane_id="car_w2_paired_fallback",
+        dispatch_scope="car_w2_diagnostic_paired_fallback_control",
+        car_candidate_mode="paired_fallback",
+    ),
+    LaneConfig(
+        "no_action_negative_control",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "conservative_no_action",
+        "car_w2_diagnostic_no_action_control",
+        negative_control=True,
+    ),
+)
+CAR_W_ACTION_NAMES = frozenset(
+    {
+        "arac_counterfactual_action_racing_w",
+        "arac_counterfactual_action_racing_w2",
+    }
+)
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
     LaneConfig(
         "canonical_evidence_controller_v1",
@@ -636,6 +674,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return PAIRED_V33_V36_RUNTIME_UTILITY_LANES
     if lane_profile == "car_w_diagnostic":
         return CAR_W_DIAGNOSTIC_LANES
+    if lane_profile == "car_w2_diagnostic":
+        return CAR_W2_DIAGNOSTIC_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -4112,7 +4152,7 @@ def _write_manifest(
             ]
         )
     if any(
-        lane.runner_action_name == "arac_counterfactual_action_racing_w"
+        lane.runner_action_name in CAR_W_ACTION_NAMES
         for lane in lanes
     ):
         artifacts.extend(
@@ -4259,7 +4299,7 @@ def run_hcc_runtime_consumer_smoke(
         )
     lanes = lanes_for_profile(lane_profile)
     car_w_enabled = any(
-        lane.runner_action_name == "arac_counterfactual_action_racing_w"
+        lane.runner_action_name in CAR_W_ACTION_NAMES
         for lane in lanes
     )
     problem_ids = tuple(problem_ids)
@@ -4973,6 +5013,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             *controller_lane_profile_names(),
             "paired_v33_v36_runtime_utility",
             "car_w_diagnostic",
+            "car_w2_diagnostic",
             "canonical_evidence_controller_v1",
         ],
     )
