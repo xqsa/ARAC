@@ -646,10 +646,43 @@ CAR_W2_DIAGNOSTIC_LANES = (
         negative_control=True,
     ),
 )
+CAR_W3_DIAGNOSTIC_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(33),
+        lane_id="v33_fallback",
+        dispatch_scope="car_w3_diagnostic_v33_fallback_reference",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w3"),
+        lane_id="car_w3",
+        dispatch_scope="car_w3_diagnostic_graph_candidate",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w3"),
+        lane_id="car_w3_shuffled",
+        dispatch_scope="car_w3_diagnostic_shuffled_graph_control",
+        car_candidate_mode="shuffled_graph",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_action("arac_counterfactual_action_racing_w3"),
+        lane_id="car_w3_paired_fallback",
+        dispatch_scope="car_w3_diagnostic_paired_fallback_control",
+        car_candidate_mode="paired_fallback",
+    ),
+    LaneConfig(
+        "no_action_negative_control",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "conservative_no_action",
+        "car_w3_diagnostic_no_action_control",
+        negative_control=True,
+    ),
+)
 CAR_W_ACTION_NAMES = frozenset(
     {
         "arac_counterfactual_action_racing_w",
         "arac_counterfactual_action_racing_w2",
+        "arac_counterfactual_action_racing_w3",
     }
 )
 CANONICAL_EVIDENCE_CONTROLLER_V1_LANES = (
@@ -676,6 +709,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return CAR_W_DIAGNOSTIC_LANES
     if lane_profile == "car_w2_diagnostic":
         return CAR_W2_DIAGNOSTIC_LANES
+    if lane_profile == "car_w3_diagnostic":
+        return CAR_W3_DIAGNOSTIC_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -1236,7 +1271,7 @@ def _records(
 def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
     fallback_by_case: dict[tuple[str, int], HccAobExecutionResult] = {}
     for record in records:
-        if record["lane_id"] != "fallback":
+        if record["lane_id"] not in {"fallback", "v33_fallback"}:
             continue
         result = record["result"]
         assert isinstance(result, HccAobExecutionResult)
@@ -1265,7 +1300,7 @@ def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
         blockers: list[str] = []
         if fallback_result is None:
             blockers.append("no_fallback_reference")
-        if lane.lane_id == "fallback":
+        if lane.lane_id in {"fallback", "v33_fallback"}:
             blockers.append("comparison_lane_not_utility_claim")
         if lane.negative_control:
             blockers.append("negative_control_lane_not_utility_claim")
@@ -1275,7 +1310,7 @@ def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
             blockers.append("not_fresh_execution")
         if utility_label == "catastrophic_loss":
             blockers.append("catastrophic_loss")
-        if lane.lane_id != "fallback" and utility_label != "meaningful_win":
+        if lane.lane_id not in {"fallback", "v33_fallback"} and utility_label != "meaningful_win":
             blockers.append("utility_not_meaningful_win")
         if lane.relation_dispatch_enabled and not _relation_join_pass(record):
             blockers.append("relation_artifact_join_failed")
@@ -1945,19 +1980,44 @@ def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, o
         for record in records
         if isinstance(record.get("lane"), LaneConfig)
     }
-    candidate_lane_id = (
-        "candidate" if "candidate" in lane_by_id else "relation_dispatch_rule"
+    available_lane_ids = set(lane_by_id).union(
+        lane_id for _problem_id, _seed, lane_id in indexed
     )
-    negative_lane_ids = sorted(
+    candidate_lane_id = next(
+        (
+            lane_id
+            for lane_id in (
+                "candidate",
+                "relation_dispatch_rule",
+                "car_w",
+                "car_w2",
+                "car_w3",
+            )
+            if lane_id in available_lane_ids
+        ),
+        "",
+    )
+    negative_lane_ids = [
         lane_id
         for lane_id, lane in lane_by_id.items()
         if isinstance(lane, LaneConfig) and lane.negative_control
+    ]
+    sibling_suffixes = ("_shuffled", "_paired_fallback")
+    negative_lane_ids.extend(
+        f"{candidate_lane_id}{suffix}"
+        for suffix in sibling_suffixes
+        if candidate_lane_id
+        and f"{candidate_lane_id}{suffix}" in available_lane_ids
     )
+    negative_lane_ids = sorted(set(negative_lane_ids))
     if not negative_lane_ids:
         negative_lane_ids = sorted(
             lane_id
             for _problem_id, _seed, lane_id in indexed
-            if lane_id in {"shuffled_relation_dispatch", "no_action_negative_control"}
+            if lane_id in {
+                "shuffled_relation_dispatch",
+                "no_action_negative_control",
+            }
         )
     problem_ids = sorted(
         problem_id
@@ -2016,7 +2076,12 @@ def _negative_control_rows(records: list[dict[str, object]]) -> list[dict[str, o
         ) = max(comparisons)
         total = len(seeds)
         stable_outperform = shuffled_win_count > total / 2
-        legacy_shuffled = negative_lane_id == "shuffled_relation_dispatch"
+        legacy_shuffled = negative_lane_id in {
+            "shuffled_relation_dispatch",
+            "car_w_shuffled",
+            "car_w2_shuffled",
+            "car_w3_shuffled",
+        }
         rows.append(
             {
                 "run_id": RUN_ID,
@@ -4180,6 +4245,7 @@ def _write_manifest(
                 f"{' '.join(str(seed) for seed in seeds)} --problems "
                 f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))} "
                 f"--max-fes {max_fes} --budget-accounting {budget_accounting} "
+                f"--lane-profile {lane_profile} "
                 f"--hcc-root {vendor_paths.vendor_root} "
                 f"--hcc-runner {vendor_paths.runner}"
                 f"{'' if cmaes_restart else ' --no-cmaes-restart'}"
@@ -5014,6 +5080,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "paired_v33_v36_runtime_utility",
             "car_w_diagnostic",
             "car_w2_diagnostic",
+            "car_w3_diagnostic",
             "canonical_evidence_controller_v1",
         ],
     )

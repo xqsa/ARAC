@@ -124,6 +124,67 @@ def test_exp_003_car_w2_diagnostic_profile_has_lazy_lease_controls() -> None:
     )
 
 
+def test_exp_003_car_w3_diagnostic_profile_has_first_pair_controls() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        lanes_for_profile,
+        parse_args,
+    )
+
+    lanes = lanes_for_profile("car_w3_diagnostic")
+    assert [lane.lane_id for lane in lanes] == [
+        "v33_fallback",
+        "car_w3",
+        "car_w3_shuffled",
+        "car_w3_paired_fallback",
+        "no_action_negative_control",
+    ]
+    assert [lane.car_candidate_mode for lane in lanes] == [
+        "graph",
+        "graph",
+        "shuffled_graph",
+        "paired_fallback",
+        "graph",
+    ]
+    assert parse_args(["--lane-profile", "car_w3_diagnostic"]).lane_profile == (
+        "car_w3_diagnostic"
+    )
+
+
+def test_car_w3_utility_uses_v33_fallback_reference(tmp_path: Path) -> None:
+    from arac.execution import BackendSemanticsDiff
+    from arac.evaluation import SameBudgetLedger
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _utility_rows,
+        lanes_for_profile,
+    )
+
+    fallback_lane, candidate_lane, *_ = lanes_for_profile("car_w3_diagnostic")
+    ledger = SameBudgetLedger(phase_i_fe=1000, phase_ii_fe=999, budget_limit=2000, fresh_execution=True)
+    records = [
+        {
+            "lane_id": fallback_lane.lane_id,
+            "lane": fallback_lane,
+            "result": _hcc_result("E2", 26, 100.0, tmp_path),
+            "ledger": ledger,
+            "semantics": BackendSemanticsDiff(),
+        },
+        {
+            "lane_id": candidate_lane.lane_id,
+            "lane": candidate_lane,
+            "result": _hcc_result("E2", 26, 80.0, tmp_path),
+            "ledger": ledger,
+            "semantics": BackendSemanticsDiff(),
+        },
+    ]
+
+    rows = {row["lane_id"]: row for row in _utility_rows(records)}
+
+    assert rows["v33_fallback"]["relative_gain_vs_fallback"] == "0.000000"
+    assert rows["car_w3"]["relative_gain_vs_fallback"] == "0.200000"
+    assert rows["car_w3"]["utility_label"] == "meaningful_win"
+    assert "no_fallback_reference" not in rows["car_w3"]["claim_blockers"]
+
+
 def test_car_dispatch_boundary_audit_is_type_level_and_disjoint() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _car_dispatch_boundary_rows,
@@ -302,6 +363,33 @@ def test_negative_control_ignores_tiny_shuffled_advantage(tmp_path: Path) -> Non
     assert rows[0]["shuffled_win_count"] == 0
     assert rows[0]["stable_outperform_detected"] == 0
     assert rows[0]["negative_control_pass"] == 1
+
+
+def test_negative_control_compares_car_w3_shuffled_lane(tmp_path: Path) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import _negative_control_rows
+
+    records = []
+    for seed in (26, 27, 28):
+        records.extend(
+            [
+                {
+                    "lane_id": "car_w3",
+                    "result": _hcc_result("E2", seed, 100.0, tmp_path),
+                },
+                {
+                    "lane_id": "car_w3_shuffled",
+                    "result": _hcc_result("E2", seed, 80.0, tmp_path),
+                },
+            ]
+        )
+
+    rows = _negative_control_rows(records)
+
+    assert rows[0]["shuffled_win_count"] == 3
+    assert rows[0]["stable_outperform_detected"] == 1
+    assert rows[0]["diagnostic"] == (
+        "shuffled_control_stably_outperforms_relation_dispatch"
+    )
 
 
 def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None:
@@ -754,6 +842,7 @@ def test_exp_003_writes_runtime_consumer_smoke_artifacts(tmp_path: Path) -> None
     assert all(row["actual_fe_used"] == "3000" for row in budget_ledger_rows)
     budget_manifest = (budget_output / "run_manifest.md").read_text(encoding="utf-8")
     assert "--max-fes 3000 --budget-accounting source" in budget_manifest
+    assert "--lane-profile runtime_smoke" in budget_manifest
     assert "--no-cmaes-restart --no-mmes-restart" in budget_manifest
     assert "Budget: 3000 FE per lane/case" in budget_manifest
     assert "Budget accounting: source" in budget_manifest

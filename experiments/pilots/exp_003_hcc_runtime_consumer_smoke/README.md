@@ -30,6 +30,12 @@ CAR-W, paired-fallback probe-cost control, and no-action control. The explicit
 `car_candidate_mode` changes only the candidate probe branch; it is not part of
 `DispatchEvidence` and cannot inspect case identity or final outcomes.
 
+`car_w3_diagnostic` is the frozen first-pair-futility follow-up. It has the same
+five lanes with CAR-W3, and is the only profile authorized for the fresh W3
+3M-FE diagnostic. W3 may stop after pair 0 when the candidate is already
+non-positive or worse than its checkpoint; this changes probe cost only, not
+the unchanged deployment gate.
+
 The purpose is to prove that runtime actions reach the ARAC-owned HCC smoke
 runner, relation dispatch emits joinable `relation_id` artifacts, and
 `action_utility_audit.csv` reports utility failures plainly instead of turning

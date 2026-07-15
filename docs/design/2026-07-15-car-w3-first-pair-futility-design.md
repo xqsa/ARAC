@@ -2,7 +2,8 @@
 
 Date: 2026-07-15
 Executor: Codex
-Status: frozen for CLI/5k parity and executor validation only
+Status: frozen; 3M use is authorized only by the separate preregistration
+`docs/design/2026-07-15-car-w3-diagnostic-preregistration.md`
 
 ## Evidence basis
 
@@ -56,5 +57,7 @@ convert a rejected candidate into an accepted one.
 - No-plan CLI/5k W3 is bit-equivalent to v33 with zero probe FE.
 - AOB input, anti-leakage, type boundary, and total FE gates pass.
 
-No W3 3M diagnostic is authorized by this document. A fresh diagnostic needs
-a separate preregistration after the verification gate passes.
+This design document alone does not authorize a 3M diagnostic. The verification
+gate passed; the exact fresh 3M cases, seeds, lanes, command, and stop rules are
+frozen separately in
+`docs/design/2026-07-15-car-w3-diagnostic-preregistration.md`.
