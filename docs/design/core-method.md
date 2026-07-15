@@ -319,3 +319,21 @@ optimizer state, RNG, or FE accounting. A 5k E2/seed1 parity run produced
 identical v38/v40 final error, FE, and all common trace fields, with 19 relation
 observations. It did not exercise precision reanchor, so no delayed-credit
 utility or stability claim follows from this smoke.
+
+### S20 coverage result: credit needs a mutex and a completable horizon
+
+The held-out A4/S2/E2 seed31-33 trace probe preserved v38 behavior exactly on
+three 3M parity anchors and passed all FE, AOB, and anti-leakage checks. Its
+coverage gate nevertheless failed because E2 seed33 started 15 precision
+actions near the budget endpoint and none reached the next canonical revisit.
+Across all seven precision-bearing runs, 1,796/1,803 actions started while the
+same component already had pending credit, and the pending depth reached 19.
+
+This observation sharpens the method boundary. A group-local action may not
+open a new lease while its mutable overlap component has pending credit, and a
+new lease must be feasible to resolve before the remaining FE budget expires.
+The required state is therefore `(component_pending_count,
+projected_revisit_fe, remaining_fe)`, derived only from the current run. It is
+not a `group_id -> action` table. The next eligible work is an offline replay
+of these two eligibility conditions; v40 remains trace-only until that replay
+is preregistered and passes.

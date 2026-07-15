@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T19:10+08:00"
-current_stage: 31
+updated: "2026-07-15T20:09+08:00"
+current_stage: 32
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -214,3 +214,10 @@ stages:
     artifacts: [src/arac/policy/component_delayed_credit.py, scripts/hcc_smoke_runner.py, src/arac/actions/controller_profiles.py, tests/test_component_delayed_credit.py, results/controller_v40_component_credit_5k_20260715_final_v38, results/controller_v40_component_credit_5k_20260715_final_v40, docs/design/state-evidence-sufficiency-audit-20260715.md, .light/handoff/S19-arac-component-delayed-credit-trace.md]
     gate: {type: confirm, result: WARN, notes: 386 focused passed with 1 skip and 782 tracked passed with 1 skip; v38/v40 E2 seed1 5k final error and FE matched; 101 common trace fields matched across 20 rows; AOB 10/10 unchanged per lane; anti-leakage 16/16 per lane; v40 recorded 19 relation observations; no precision reanchor occurred, so delayed-credit resolution remains uncovered}
     gaps: [No resolved or unresolved search-start credit in the 5k smoke; held-out seed coverage and any dispatch rule remain unauthorized; writeback/resource channels remain frozen]
+  - stage: 32
+    skill: light-research-plan/light-backend-coding/light-result-analysis/light-consistency
+    input: Preregistered commit fedee07; A4/S2/E2 seeds 31/32/33 v40 plus seed31 v38 parity at strict 3M FE
+    output: Fresh held-out component-credit raw artifacts, reproducible coverage/parity audit, late-horizon and component-conflict diagnosis, and hard-stop method decision
+    artifacts: [scripts/audit_component_credit_coverage.py, tests/test_audit_component_credit_coverage.py, results/controller_v40_component_credit_heldout_seed31_33_3m_20260715, results/controller_v40_component_credit_parity_v38_seed31_3m_20260715, results/controller_v40_component_credit_heldout_audit_20260715, docs/design/state-evidence-sufficiency-audit-20260715.md, docs/design/core-method.md, .light/handoff/S20-arac-component-credit-coverage-failed.md]
+    gate: {type: confirm, result: FAIL, notes: 17 focused tests passed and 787 tracked passed with 1 skip; 9/9 v40 and 3/3 v38 fresh; FE overspend 0/12; AOB v40 90/90 and v38 30/30 unchanged; anti-leakage 16/16 per arm; parity 3/3 exact on final error FE AOB and 101 common trace fields; precision 7/9 runs; resolved 1668/1803 or 92.51 percent; 135 unresolved; overwrite coverage 6 runs and 3 cases; lock conflicts 1796/1803; E2 seed33 precision 15 resolved 0, so the preregistered every-precision-run resolution gate failed}
+    gaps: [Current v38 group-local actions create up to 20 simultaneous pending credits in one component; late actions may not have budget for a canonical revisit; no credit-gated runtime rule or further 3M matrix is authorized]

@@ -4,6 +4,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 
 SCRIPT_PATH = Path(__file__).parents[1] / "scripts" / "audit_component_credit_coverage.py"
 SPEC = importlib.util.spec_from_file_location("audit_component_credit_coverage", SCRIPT_PATH)
@@ -241,3 +243,16 @@ def test_build_gate_uses_run_level_coverage_not_row_volume() -> None:
     assert gate["precision_run_count"] == 7
     assert gate["cases_with_two_precision_seeds"] == 2
     assert gate["resolution_rate"] == 0.9
+
+
+def test_plans_by_problem_collapses_only_identical_seed_repetitions() -> None:
+    plan = _valid_run_inputs()[-1]
+    repeated = [dict(plan), dict(plan), dict(plan)]
+
+    plans = MODULE._plans_by_problem(repeated)
+
+    assert plans == {"A4": plan}
+
+    repeated[2]["optimizer_consumed"] = "0"
+    with pytest.raises(ValueError, match="inconsistent action execution plans"):
+        MODULE._plans_by_problem(repeated)

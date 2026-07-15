@@ -117,6 +117,49 @@ stops: no credit-gated lease rule, threshold tuning, 3M expansion, or full-24
 run is authorized. A coverage pass permits only the next preregistered design
 step; it is not evidence that a controller improves optimization performance.
 
+### S20 frozen result and hard stop
+
+The raw runs are bound to preregistration commit `fedee07`. All 9 v40 and 3
+v38 trajectories were fresh and completed without FE overspend. v40 AOB inputs
+were `90/90` unchanged, v38 inputs were `30/30` unchanged, and both anti-leakage
+audits were `16/16` pass. The three seed31 parity pairs matched exactly on
+final error, FE, AOB hashes, 101 common trace fields, and trace row count.
+
+The frozen coverage gate failed only on
+`precision_run_without_resolved_credit`:
+
+- precision occurred in 7/9 runs and in at least two seeds for all three cases;
+- 1,668/1,803 precision actions resolved (`92.51%`), with 135 run-end
+  unresolved actions;
+- overwrite/survival was observed in six runs and all three cases;
+- 1,796 lock-conflict rows were observed;
+- E2 seed33 emitted 15 precision actions but resolved none. Its first precision
+  action occurred at FE 2,995,118 with only 0.1627% budget remaining, so no
+  affected group reached the next canonical revisit.
+
+The unresolved frontier is structural rather than a serialization failure.
+Every other precision-bearing run ended with 20 unresolved actions, matching
+the 20-group overlap component frontier; E2 seed33 ended part-way through that
+frontier with 15. Current v38 behavior also allows nearly every later group
+action to start while another action in the same component is pending:
+`1,796/1,803 = 99.61%` of precision rows reported a lock conflict, with up to
+19 earlier pending actions.
+
+An explicitly exploratory, post-gate view of the seven first actions with no
+component conflict found six resolved and one late unresolved action. All six
+resolved rows had positive component gain and no neighbour harm; three had
+observable shared-variable displacement. This is a small descriptive subset,
+not a threshold or a utility claim. Across all 1,668 resolved rows, 354 had an
+overwrite/survival observation, 181 were fully overwritten, 73 fully survived,
+and 49 had negative neighbour gain.
+
+The method implication is narrower than activating a controller. Before any
+credit-gated lease, an offline eligibility replay must test two runtime-only
+conditions: the component has no pending action, and the remaining budget can
+cover an estimated next canonical revisit. Case, function, seed, final error,
+and paper-best remain prohibited inputs. S20 authorizes no runtime dispatch
+change, new 3M matrix, or full-24 run.
+
 ## Field sufficiency
 
 The common trace schema is wider than the values actually recorded. Eight

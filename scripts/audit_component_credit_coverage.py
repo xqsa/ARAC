@@ -110,6 +110,24 @@ def _one_by_run(rows: list[dict[str, str]]) -> dict[tuple[str, int], dict[str, s
     return {key: values[0] for key, values in grouped.items()}
 
 
+def _plans_by_problem(rows: list[dict[str, str]]) -> dict[str, dict[str, str]]:
+    grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        problem_id = row.get("problem_id", "")
+        if not problem_id:
+            raise ValueError("action execution plan is missing problem_id")
+        grouped[problem_id].append(row)
+    output: dict[str, dict[str, str]] = {}
+    for problem_id, repeated in grouped.items():
+        first = repeated[0]
+        if any(row != first for row in repeated[1:]):
+            raise ValueError(
+                f"inconsistent action execution plans for {problem_id}"
+            )
+        output[problem_id] = first
+    return output
+
+
 def _add(blockers: list[str], condition: bool, blocker: str) -> None:
     if condition and blocker not in blockers:
         blockers.append(blocker)
@@ -623,10 +641,7 @@ def _load_root(
     ledgers = _one_by_run(_read_csv(root / "same_budget_ledger.csv"))
     traces = _group_by_run(_read_csv(root / "action_trace.csv"))
     aob = _group_by_run(_read_csv(root / "aob_input_manifest.csv"))
-    plan_rows = _read_csv(root / "action_execution_plan.csv")
-    plans = {row["problem_id"]: row for row in plan_rows}
-    if len(plans) != len(plan_rows):
-        raise ValueError("duplicate action execution plan rows")
+    plans = _plans_by_problem(_read_csv(root / "action_execution_plan.csv"))
     return results, ledgers, traces, aob, plans
 
 
