@@ -499,6 +499,7 @@ CAR_BRANCH_MANIFEST_FIELDS = [
 CAR_W_MIN_EVIDENCE_SWEEPS = 2
 CAR_W_PAIR_COUNT = 3
 CAR_W_PROBE_BUDGET_FRACTION = 0.03
+CAR_W2_FUTILITY_MIN_WRITEBACK_NORM = 1e-12
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 ACTION_TRUST_MIN_WRITEBACK_NORM = 1e-12
@@ -538,6 +539,7 @@ EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
 EVIDENCE_ACTION_CONTROLLER_V38 = controller_profile_by_version(38).action_name
 EVIDENCE_ACTION_CONTROLLER_V39 = controller_profile_by_version(39).action_name
 CAR_W_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w").action_name
+CAR_W2_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w2").action_name
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -565,6 +567,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V38,
     EVIDENCE_ACTION_CONTROLLER_V39,
     CAR_W_ACTION,
+    CAR_W2_ACTION,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -1455,10 +1458,18 @@ def is_car_w_action(action_name: str) -> bool:
     return action_name == CAR_W_ACTION
 
 
+def is_car_w2_action(action_name: str) -> bool:
+    return action_name == CAR_W2_ACTION
+
+
+def is_car_w_family_action(action_name: str) -> bool:
+    return is_car_w_action(action_name) or is_car_w2_action(action_name)
+
+
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
     return is_evidence_action_controller_v33(
         action_name
-    ) or is_evidence_action_controller_v34(action_name) or is_car_w_action(action_name)
+    ) or is_evidence_action_controller_v34(action_name) or is_car_w_family_action(action_name)
 
 
 def uses_v33_trust_trace_schema(action_name: str) -> bool:
@@ -1505,7 +1516,7 @@ def is_guarded_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
-        or is_car_w_action(action_name)
+        or is_car_w_family_action(action_name)
     )
 
 
@@ -1523,7 +1534,7 @@ def is_evidence_action_controller(action_name: str) -> bool:
         or is_evidence_action_controller_v37(action_name)
         or is_evidence_action_controller_v38(action_name)
         or is_evidence_action_controller_v39(action_name)
-        or is_car_w_action(action_name)
+        or is_car_w_family_action(action_name)
     )
 
 
@@ -1564,7 +1575,7 @@ def uses_phase_rescue_during_run(
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
-            or is_car_w_action(action_name)
+            or is_car_w_family_action(action_name)
         )
         and evidence_controller_search_state_enabled
     )
@@ -1586,7 +1597,7 @@ def uses_scheduled_search_state(config: SmokeConfig) -> bool:
             or is_evidence_action_controller_v37(config.arac_action)
             or is_evidence_action_controller_v38(config.arac_action)
             or is_evidence_action_controller_v39(config.arac_action)
-            or is_car_w_action(config.arac_action)
+            or is_car_w_family_action(config.arac_action)
         )
     return uses_resumable_phase_i_state_during_run(config.arac_action)
 
@@ -1685,7 +1696,7 @@ def refine_sigma_for_action(
             or is_evidence_action_controller_v37(action_name)
             or is_evidence_action_controller_v38(action_name)
             or is_evidence_action_controller_v39(action_name)
-            or is_car_w_action(action_name)
+            or is_car_w_family_action(action_name)
         )
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
@@ -4062,7 +4073,7 @@ def execute_car_w_probe_at_barrier(
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
     if config.budget_accounting not in {"strict", "source"}:
         raise ValueError(f"unsupported budget accounting mode: {config.budget_accounting}")
-    if is_car_w_action(config.arac_action) and (
+    if is_car_w_family_action(config.arac_action) and (
         not config.enable_relation_dispatch
         or config.relation_policy_mode != "controller_v31"
     ):
@@ -4229,7 +4240,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     relations: list[OverlapRelation] = []
     action_decisions: list[RelationActionDecision] = []
     previous_group_contribution_credit: list[float] = []
-    car_artifacts_enabled = is_car_w_action(config.arac_action)
+    car_artifacts_enabled = is_car_w_family_action(config.arac_action)
     car_probe_enabled = car_artifacts_enabled and any(overlapping_elements)
     car_probe_attempted = False
     car_proposal_sweeps: list[tuple[CARRelationProposal, ...]] = []
@@ -4357,11 +4368,20 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             - held_search_state_fes
             - (
                 int(math.floor(config.max_fes * CAR_W_PROBE_BUDGET_FRACTION))
-                if car_probe_enabled and not car_probe_attempted
+                if (
+                    is_car_w_action(config.arac_action)
+                    and car_probe_enabled
+                    and not car_probe_attempted
+                )
                 else 0
             ),
         )
-        if car_probe_enabled and not car_probe_attempted and len(car_proposal_sweeps) < CAR_W_MIN_EVIDENCE_SWEEPS:
+        if (
+            is_car_w_action(config.arac_action)
+            and car_probe_enabled
+            and not car_probe_attempted
+            and len(car_proposal_sweeps) < CAR_W_MIN_EVIDENCE_SWEEPS
+        ):
             sweep_slots_remaining = CAR_W_MIN_EVIDENCE_SWEEPS - len(car_proposal_sweeps)
             sub_fes = math.ceil(
                 max(0, cc_budget_limit_fes - current_fes)
@@ -5443,7 +5463,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 car_proposal_sweeps.append(tuple(car_current_proposals))
             if len(car_proposal_sweeps) >= CAR_W_MIN_EVIDENCE_SWEEPS:
                 car_probe_attempted = True
-                if controller_v31_run_state is not None:
+                car_w2_mode = is_car_w2_action(config.arac_action)
+                if controller_v31_run_state is not None and not car_w2_mode:
                     controller_v31_run_state.invalidate_pending_action_trust(
                         "car_component_barrier"
                     )
@@ -5460,11 +5481,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     proposal_sweeps=tuple(car_proposal_sweeps),
                     lower=float(info["lower"]),
                     upper=float(info["upper"]),
+                    minimum_writeback_norm=(
+                        CAR_W2_FUTILITY_MIN_WRITEBACK_NORM
+                        if car_w2_mode
+                        else 0.0
+                    ),
                 )
                 if car_decision.plan is not None:
-                    checkpoint_fitness = float(fun(best_individual)[0])
-                    sum_fes += 1
-                    cc_phase_fe += 1
+                    if car_w2_mode:
+                        checkpoint_fitness = guarded_incumbent_fitness
+                    else:
+                        checkpoint_fitness = float(fun(best_individual)[0])
+                        sum_fes += 1
+                        cc_phase_fe += 1
                     checkpoint_incumbent = best_individual.copy()
                 else:
                     checkpoint_fitness = guarded_incumbent_fitness
@@ -6095,6 +6124,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V38,
             EVIDENCE_ACTION_CONTROLLER_V39,
             CAR_W_ACTION,
+            CAR_W2_ACTION,
         ],
     )
     args = parser.parse_args(argv)

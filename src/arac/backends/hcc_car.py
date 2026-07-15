@@ -121,6 +121,7 @@ def freeze_component_writeback_plan(
     proposal_sweeps: tuple[tuple[CARRelationProposal, ...], ...],
     lower: float,
     upper: float,
+    minimum_writeback_norm: float = 0.0,
 ) -> CARPlanDecision:
     """Freeze one identity-free component plan after two complete sweeps."""
 
@@ -128,6 +129,8 @@ def freeze_component_writeback_plan(
     overlaps = tuple(tuple(sorted(int(value) for value in shared)) for shared in overlapping_elements)
     if len(proposal_sweeps) < 2:
         return CARPlanDecision(None, None, "insufficient_complete_evidence_sweeps")
+    if not math.isfinite(float(minimum_writeback_norm)) or float(minimum_writeback_norm) < 0.0:
+        raise ValueError("minimum_writeback_norm must be finite and non-negative")
     if len(groups) != len(group_population_sizes) or len(overlaps) != max(0, len(groups) - 1):
         raise ValueError("group and overlap metadata lengths are inconsistent")
     graph_fp = _graph_fingerprint(groups, overlaps)
@@ -209,6 +212,9 @@ def freeze_component_writeback_plan(
         action_name = next(iter(names))
         overlap_strength = sum(item.overlap_strength for item in latest) / len(latest)
         writeback_norm = math.sqrt(sum(item.writeback_norm**2 for item in latest))
+        if writeback_norm <= float(minimum_writeback_norm):
+            rejection_reasons.append("futility_no_material_writeback")
+            continue
         evidence = DispatchEvidence(
             graph_fingerprint=graph_fp,
             component_fingerprint=component_fp,

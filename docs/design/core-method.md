@@ -262,5 +262,21 @@ The strongest claim allowed before the new gates pass is:
 > racing protocol for testing overlap-conditioned interventions with explicit
 > abstention and branch-level auditability.
 
+## CAR-W2 zero-regret lease
+
+CAR-W2 is a separately registered implementation of the W channel after the
+CAR-W v1 utility failure. Its defining constraint is that discovery is part of
+the native v33.8 route: before a stable two-sweep component plan exists, W2
+does not reserve probe FE, reshape sweep budgets, evaluate a checkpoint solely
+for CAR, or invalidate pending v33 trust state. A missing or structurally
+futile plan therefore returns the untouched v33 state with zero probe FE.
+
+Only a surviving plan can request the fixed 3% probe cap. The lease is charged
+from the remaining ledger at the barrier; if a complete paired horizon cannot
+fit, W2 abstains without consuming a shortened probe. The positive LCB,
+lower-tail, endpoint, equal-FE, branch-isolation, and atomic final-pair gates
+are unchanged from W1. The zero-regret prefix is a protocol invariant, not an
+offline outcome check.
+
 Performance, generalization, and any paper-best win count remain empirical
 claims gated by the staged protocol above.

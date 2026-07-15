@@ -414,3 +414,38 @@ def test_component_barrier_requires_two_complete_sweeps() -> None:
 
     assert decision.plan is None
     assert decision.abstain_reason == "insufficient_complete_evidence_sweeps"
+
+
+def test_component_barrier_applies_fixed_zero_fe_futility_screen() -> None:
+    decision = freeze_component_writeback_plan(
+        grouping_result=((0, 1), (1, 2)),
+        overlapping_elements=((1,),),
+        group_population_sizes=(4, 4),
+        proposal_sweeps=(
+            (
+                proposal(
+                    sweep_index=0,
+                    group_left=0,
+                    group_right=1,
+                    shared_indices=(1,),
+                    target_values=(0.5,),
+                ),
+            ),
+            (
+                proposal(
+                    sweep_index=1,
+                    group_left=0,
+                    group_right=1,
+                    shared_indices=(1,),
+                    target_values=(0.4,),
+                ),
+            ),
+        ),
+        lower=-5.0,
+        upper=5.0,
+        minimum_writeback_norm=0.36,
+    )
+
+    assert decision.plan is None
+    assert decision.evidence is None
+    assert decision.abstain_reason == "futility_no_material_writeback"

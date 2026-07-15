@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T06:18"
-current_stage: 22
+updated: "2026-07-15T08:35"
+current_stage: 23
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -151,3 +151,10 @@ stages:
     artifacts: [results/car_w_diagnostic_6case_seed9_11_3m_parityfix_20260715, docs/design/car-w-diagnostic-result-20260715.md, .light/handoff/S10-arac-car-w-gate-failed.md]
     gate: {type: confirm, result: FAIL, notes: 90/90 fresh; same-budget violations 0/90; AOB 885/885 unchanged; anti-leakage 16/16; CAR boundary 28/28; candidate commits 0; overlap paired mean log delta +0.342483; median +0.270987; meaningful wins 2/15; catastrophic losses 9/15; probe overhead max 2.999%; W gate failed}
     gaps: [All 27 paired probe observations abstained; only A5/E2/S3 obtained probes; R4/E6 were blocked by mixed or unstable runtime action families; CAR probe cost was paid without candidate deployment, so R/S and full-24 are stopped]
+  - stage: 23
+    skill: light-backend-coding/light-research-plan/light-consistency
+    input: CAR-W v1 utility failure and S10 zero-regret redesign requirement
+    output: frozen CAR-W2 lazy lease profile, structural zero-FE futility screen, native-prefix parity implementation, and fresh E2 seed9 5k comparison
+    artifacts: [docs/design/2026-07-15-car-w2-zero-regret-design.md, scripts/hcc_smoke_runner.py, src/arac/actions/controller_profiles.py, src/arac/backends/hcc_car.py, tests/test_controller_profiles.py, tests/test_hcc_car_component.py, tests/test_hcc_car_runner.py, results/car_w2_parity_5k_20260715_w2, results/car_w2_parity_5k_20260715_v33, .light/handoff/S11-arac-car-w2-parity-pass.md]
+    gate: {type: confirm, result: PASS, notes: 158 focused and 727 tracked tests passed with 1 tracked skip; compileall pass; W2 E2 seed9 5k final error and FE match v33; action/overlap traces match; probe_fe=0; AOB manifest hashes match; no 3M diagnostic started}
+    gaps: [W2 candidate coverage is intentionally zero when two native complete sweeps do not fit within 5k; a fresh W2 3M diagnostic is still required before any R/S or full-24 decision]

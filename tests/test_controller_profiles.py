@@ -20,6 +20,17 @@ import pytest
             "arac_counterfactual_action_racing_w",
             {"paired_probe", "branch_isolation", "single_fe_ledger", "writeback_only"},
         ),
+        (
+            "arac_counterfactual_action_racing_w2",
+            {
+                "paired_probe",
+                "branch_isolation",
+                "single_fe_ledger",
+                "writeback_only",
+                "lazy_probe_lease",
+                "zero_regret_prefix",
+            },
+        ),
     ],
 )
 def test_controller_registry_is_the_single_runtime_capability_source(
@@ -66,6 +77,20 @@ def test_car_w_profile_freezes_the_audited_protocol() -> None:
         "candidate_lease": "final_pair_component_horizon_only",
         "dispatch_boundary": "identity_free_runtime_evidence_only",
     }
+
+
+def test_car_w2_profile_freezes_lazy_lease_contract() -> None:
+    from arac.actions.controller_profiles import controller_profile_by_action
+
+    profile = controller_profile_by_action("arac_counterfactual_action_racing_w2")
+
+    assert profile.dispatch_boundary == "identity_free_runtime_evidence_only"
+    assert profile.optimizer_consumed_parameters["probe_lease"] == (
+        "lazy_after_stable_plan_only"
+    )
+    assert profile.optimizer_consumed_parameters["futility_stage"] == (
+        "zero_fe_structural_writeback_screen"
+    )
 
 
 def test_pinned_hcc_environment_includes_deterministic_thread_settings() -> None:

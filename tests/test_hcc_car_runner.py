@@ -116,6 +116,25 @@ def test_car_action_is_registered_in_runner_cli() -> None:
 
     assert args.arac_action == "arac_counterfactual_action_racing_w"
 
+    w2_args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "results/car-cli",
+            "--max-fes",
+            "5000",
+            "--arac-action",
+            runner.CAR_W2_ACTION,
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+    assert w2_args.arac_action == "arac_counterfactual_action_racing_w2"
+
     control_args = runner.parse_args(
         [
             "--functions",
@@ -178,6 +197,24 @@ def test_car_inherits_the_canonical_v33_runtime_route() -> None:
     ) == runner.uses_phase_rescue_during_run(
         runner.EVIDENCE_ACTION_CONTROLLER_V33,
         evidence_controller_search_state_enabled=True,
+    )
+
+    w2_state = runner.build_evidence_action_controller_v31_run_state(
+        0.019,
+        action_name=runner.CAR_W2_ACTION,
+    )
+    assert runner.is_guarded_evidence_action_controller(runner.CAR_W2_ACTION)
+    assert runner.overlap_action_name_for_lane(runner.CAR_W2_ACTION) == (
+        runner.overlap_action_name_for_lane(runner.EVIDENCE_ACTION_CONTROLLER_V33)
+    )
+    assert runner.refine_sigma_for_action(
+        runner.CAR_W2_ACTION,
+        0.5,
+        controller_v31_run_state=w2_state,
+    ) == runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V33,
+        0.5,
+        controller_v31_run_state=v33_state,
     )
 
 
