@@ -5679,6 +5679,25 @@ def test_controller_v33_to_v39_matched_fe_credits_before_next_group_optimizer(
     assert component_statuses.issubset({"resolved", "unresolved_run_end"})
     assert "resolved" in component_statuses
     assert any(row["component_lock_conflict"] == "1" for row in v40_precision_rows)
+    assert all(row["component_scheduler_sweep_start_fe"] for row in v40_precision_rows)
+    assert all(
+        row["component_scheduler_cc_budget_limit_fe"] for row in v40_precision_rows
+    )
+    assert all(
+        row["component_scheduler_group_budget_fe"] for row in v40_precision_rows
+    )
+    assert all(
+        row["component_scheduler_optimizer_budget_fe"]
+        for row in v40_precision_rows
+    )
+    assert all(
+        row["component_scheduler_population_sizes"] for row in v40_precision_rows
+    )
+    assert all(
+        row["component_scheduler_revisit_reachable"] in {"0", "1"}
+        for row in v40_precision_rows
+    )
+    assert all(row["component_scheduler_revisit_reason"] for row in v40_precision_rows)
     assert any(
         row["component_credit_status"] == "relation_observation"
         for row in v40_trace_rows

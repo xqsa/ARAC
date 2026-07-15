@@ -77,6 +77,7 @@ from src.arac.policy.action_trust_policy import (
 from src.arac.policy.component_delayed_credit import (
     COMPONENT_CREDIT_TRACE_FIELDS,
     ComponentDelayedCreditTrace,
+    calculate_scheduler_revisit_cap,
 )
 from src.arac.actions.controller_profiles import (
     controller_has_capability,
@@ -4878,6 +4879,20 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     stage_index,
                 )
             primary_evaluations_before = current_fitness_evaluations(fun)
+            scheduler_revisit_cap = (
+                calculate_scheduler_revisit_cap(
+                    sweep_start_fe=sweep_fes_before,
+                    decision_fe=primary_evaluations_before,
+                    cc_budget_limit_fe=cc_budget_limit_fes,
+                    current_group_index=index,
+                    current_sweep_group_budget_fe=sub_fes,
+                    current_optimizer_budget_fe=optimizer_budget,
+                    group_population_sizes=tuple(population_sizes),
+                )
+                if component_credit_trace is not None
+                and precision_reanchor_active
+                else None
+            )
             results_cc = CMAES(problem_cc, options_cc).optimize()
             optimized_any_group = True
             primary_cc_fe = observed_optimizer_fe(
@@ -4963,6 +4978,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     decision_point=f"group_optimizer:{outer_iter}:{index}",
                     state_action_fe=primary_cc_fe,
                 )
+                if scheduler_revisit_cap is not None:
+                    precision_trace_row.update(
+                        scheduler_revisit_cap.trace_fields()
+                    )
                 action_trace_rows.append(precision_trace_row)
                 if component_credit_trace is not None:
                     component_credit_trace.register_search_action(

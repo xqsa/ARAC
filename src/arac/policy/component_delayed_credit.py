@@ -24,6 +24,14 @@ COMPONENT_CREDIT_TRACE_FIELDS = (
     "component_credit_status",
     "component_decision_fe",
     "component_remaining_budget_ratio",
+    "component_scheduler_sweep_start_fe",
+    "component_scheduler_cc_budget_limit_fe",
+    "component_scheduler_group_budget_fe",
+    "component_scheduler_optimizer_budget_fe",
+    "component_scheduler_population_sizes",
+    "component_scheduler_revisit_cap_fe",
+    "component_scheduler_revisit_reachable",
+    "component_scheduler_revisit_reason",
     "component_resolution_fe",
     "component_resolution_delay_fe",
     "component_resolution_window",
@@ -38,6 +46,209 @@ COMPONENT_CREDIT_TRACE_FIELDS = (
     "shared_var_survival_rate",
     "component_credit_reason",
 )
+
+
+@dataclass(frozen=True)
+class SchedulerRevisitCap:
+    sweep_start_fe: int
+    decision_fe: int
+    cc_budget_limit_fe: int
+    current_group_index: int
+    current_sweep_group_budget_fe: int
+    current_optimizer_budget_fe: int
+    group_population_sizes: tuple[int, ...]
+    reachable: bool
+    cap_fe: int | None
+    current_tail_cap_fe: int
+    next_sweep_min_group_budget_fe: int | None
+    reason: str
+
+    def trace_fields(self) -> dict[str, str]:
+        return {
+            "component_scheduler_sweep_start_fe": str(self.sweep_start_fe),
+            "component_scheduler_cc_budget_limit_fe": str(
+                self.cc_budget_limit_fe
+            ),
+            "component_scheduler_group_budget_fe": str(
+                self.current_sweep_group_budget_fe
+            ),
+            "component_scheduler_optimizer_budget_fe": str(
+                self.current_optimizer_budget_fe
+            ),
+            "component_scheduler_population_sizes": ";".join(
+                str(value) for value in self.group_population_sizes
+            ),
+            "component_scheduler_revisit_cap_fe": (
+                "" if self.cap_fe is None else str(self.cap_fe)
+            ),
+            "component_scheduler_revisit_reachable": str(int(self.reachable)),
+            "component_scheduler_revisit_reason": self.reason,
+        }
+
+
+def _population_rounded_budget(
+    *,
+    requested_fe: int,
+    remaining_fe: int,
+    population_size: int,
+) -> int:
+    usable_fe = min(int(requested_fe), int(remaining_fe))
+    if usable_fe <= 0:
+        return 0
+    return (usable_fe // int(population_size)) * int(population_size)
+
+
+def calculate_scheduler_revisit_cap(
+    *,
+    sweep_start_fe: int,
+    decision_fe: int,
+    cc_budget_limit_fe: int,
+    current_group_index: int,
+    current_sweep_group_budget_fe: int,
+    current_optimizer_budget_fe: int,
+    group_population_sizes: tuple[int, ...] | list[int],
+) -> SchedulerRevisitCap:
+    """Bound the next revisit using only strict scheduler state at dispatch."""
+    populations = tuple(int(value) for value in group_population_sizes)
+    sweep_start = int(sweep_start_fe)
+    decision = int(decision_fe)
+    budget_limit = int(cc_budget_limit_fe)
+    group_index = int(current_group_index)
+    group_budget = int(current_sweep_group_budget_fe)
+    optimizer_budget = int(current_optimizer_budget_fe)
+    if (
+        not populations
+        or any(value <= 0 for value in populations)
+        or group_index < 0
+        or group_index >= len(populations)
+        or sweep_start < 0
+        or decision < sweep_start
+        or budget_limit <= decision
+        or group_budget <= 0
+        or optimizer_budget <= 0
+    ):
+        raise ValueError("scheduler revisit-cap inputs are invalid")
+
+    def result(
+        *,
+        reachable: bool,
+        cap_fe: int | None,
+        tail_cap_fe: int = 0,
+        next_group_budget_fe: int | None = None,
+        reason: str,
+    ) -> SchedulerRevisitCap:
+        return SchedulerRevisitCap(
+            sweep_start_fe=sweep_start,
+            decision_fe=decision,
+            cc_budget_limit_fe=budget_limit,
+            current_group_index=group_index,
+            current_sweep_group_budget_fe=group_budget,
+            current_optimizer_budget_fe=optimizer_budget,
+            group_population_sizes=populations,
+            reachable=reachable,
+            cap_fe=cap_fe,
+            current_tail_cap_fe=tail_cap_fe,
+            next_sweep_min_group_budget_fe=next_group_budget_fe,
+            reason=reason,
+        )
+
+    expected_group_budget = math.ceil(
+        (budget_limit - sweep_start) / len(populations)
+    )
+    if group_budget != expected_group_budget:
+        return result(
+            reachable=False,
+            cap_fe=None,
+            reason="sweep_group_budget_not_scheduler_derived",
+        )
+    current_population = populations[group_index]
+    expected_optimizer_budget = _population_rounded_budget(
+        requested_fe=max(group_budget, current_population),
+        remaining_fe=budget_limit - decision,
+        population_size=current_population,
+    )
+    if optimizer_budget != expected_optimizer_budget:
+        return result(
+            reachable=False,
+            cap_fe=None,
+            reason="current_optimizer_budget_not_scheduler_derived",
+        )
+
+    simulated_fe = decision + optimizer_budget
+    for population in populations[group_index + 1 :]:
+        if budget_limit - simulated_fe <= population:
+            return result(
+                reachable=False,
+                cap_fe=None,
+                tail_cap_fe=simulated_fe - decision,
+                reason="current_sweep_tail_not_guaranteed",
+            )
+        simulated_fe += 1
+        future_budget = _population_rounded_budget(
+            requested_fe=max(group_budget, population),
+            remaining_fe=budget_limit - simulated_fe,
+            population_size=population,
+        )
+        if future_budget <= 0:
+            return result(
+                reachable=False,
+                cap_fe=None,
+                tail_cap_fe=simulated_fe - decision,
+                reason="current_sweep_tail_not_guaranteed",
+            )
+        simulated_fe += future_budget
+
+    tail_cap = simulated_fe - decision
+    remaining_at_decision = budget_limit - decision
+    remaining_after_tail = budget_limit - simulated_fe
+    if remaining_after_tail <= 0:
+        return result(
+            reachable=False,
+            cap_fe=None,
+            tail_cap_fe=tail_cap,
+            reason="next_sweep_not_reachable",
+        )
+    next_group_budget = math.ceil(remaining_after_tail / len(populations))
+    candidate_caps: list[int] = []
+    for candidate_group_budget in (next_group_budget, next_group_budget + 1):
+        tail_upper = min(
+            tail_cap,
+            remaining_at_decision
+            - (candidate_group_budget - 1) * len(populations)
+            - 1,
+        )
+        if tail_upper < 0:
+            continue
+        prefix_upper = sum(
+            1 + max(candidate_group_budget, population)
+            for population in populations[:group_index]
+        )
+        candidate_caps.append(tail_upper + prefix_upper + 1)
+    if not candidate_caps:
+        return result(
+            reachable=False,
+            cap_fe=None,
+            tail_cap_fe=tail_cap,
+            next_group_budget_fe=next_group_budget,
+            reason="next_sweep_bound_unavailable",
+        )
+    revisit_cap = max(candidate_caps)
+    strict_guard_population = max(populations[: group_index + 1])
+    if revisit_cap > remaining_at_decision - strict_guard_population:
+        return result(
+            reachable=False,
+            cap_fe=None,
+            tail_cap_fe=tail_cap,
+            next_group_budget_fe=next_group_budget,
+            reason="next_sweep_population_guard_not_guaranteed",
+        )
+    return result(
+        reachable=True,
+        cap_fe=revisit_cap,
+        tail_cap_fe=tail_cap,
+        next_group_budget_fe=next_group_budget,
+        reason="scheduler_revisit_cap_available",
+    )
 
 
 @dataclass(frozen=True)

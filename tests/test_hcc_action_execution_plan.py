@@ -481,6 +481,9 @@ def test_hcc_action_execution_plan_marks_v40_as_trace_only_v38_behavior() -> Non
     assert plan.optimizer_consumed_parameters["trace_runtime_hook"] == (
         "component_locked_action_specific_delayed_credit"
     )
+    assert plan.optimizer_consumed_parameters["scheduler_revisit_cap_trace"] == (
+        "strict_budget_population_guard_upper_bound_v1"
+    )
     assert plan.optimizer_consumed_parameters["trace_affects_dispatch"] is False
     assert plan.optimizer_consumed_parameters["guard"] == (
         "repair_lock_first_sweep_maturity_and_rescue_productivity"

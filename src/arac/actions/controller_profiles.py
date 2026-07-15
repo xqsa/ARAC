@@ -192,6 +192,9 @@ CONTROLLER_PROFILES = (
             ],
             "optimizer_runtime_hook": "post_retirement_precision_reanchor",
             "trace_runtime_hook": "component_locked_action_specific_delayed_credit",
+            "scheduler_revisit_cap_trace": (
+                "strict_budget_population_guard_upper_bound_v1"
+            ),
             "trace_affects_dispatch": False,
             "guard": "repair_lock_first_sweep_maturity_and_rescue_productivity",
         },
