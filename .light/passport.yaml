@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T08:35"
-current_stage: 23
+updated: "2026-07-15T10:00"
+current_stage: 24
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -158,3 +158,10 @@ stages:
     artifacts: [docs/design/2026-07-15-car-w2-zero-regret-design.md, scripts/hcc_smoke_runner.py, src/arac/actions/controller_profiles.py, src/arac/backends/hcc_car.py, tests/test_controller_profiles.py, tests/test_hcc_car_component.py, tests/test_hcc_car_runner.py, results/car_w2_parity_5k_20260715_w2, results/car_w2_parity_5k_20260715_v33, .light/handoff/S11-arac-car-w2-parity-pass.md]
     gate: {type: confirm, result: PASS, notes: 158 focused and 727 tracked tests passed with 1 tracked skip; compileall pass; W2 E2 seed9 5k final error and FE match v33; action/overlap traces match; probe_fe=0; AOB manifest hashes match; no 3M diagnostic started}
     gaps: [W2 candidate coverage is intentionally zero when two native complete sweeps do not fit within 5k; a fresh W2 3M diagnostic is still required before any R/S or full-24 decision]
+  - stage: 24
+    skill: light-result-analysis/debug-first
+    input: CAR-W2 frozen E1/E2/S3/R4/A5/E6 diagnostic; seeds 22/23/24; five lanes; strict 3M FE
+    output: 90 fresh raw trajectories, integrity audit, no-plan parity audit, and offline CAR-W2 utility diagnosis
+    artifacts: [results/car_w2_diagnostic_6case_seed22_24_3m_20260715, docs/design/car-w2-diagnostic-result-20260715.md, .light/handoff/S12-arac-car-w2-gate-failed.md]
+    gate: {type: confirm, result: FAIL, notes: 90/90 fresh; FE 0/90 violations; AOB 885/885 unchanged; anti-leakage 16/16; CAR boundary 28/28; 7/7 no-plan W2 graph runs zero-probe and v33-parity; 11 stable graph plans, 0 commits; mean overlap log delta +0.101125; catastrophic 2/15; max probe overhead 2.9986%}
+    gaps: [W2 lazy lease removes pre-candidate cost but full three-pair probes still abstain after spending the lease; next redesign is first-pair futility abort, no threshold relaxation]
