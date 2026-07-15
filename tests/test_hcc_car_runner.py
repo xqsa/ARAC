@@ -135,6 +135,25 @@ def test_car_action_is_registered_in_runner_cli() -> None:
     )
     assert w2_args.arac_action == "arac_counterfactual_action_racing_w2"
 
+    w3_args = runner.parse_args(
+        [
+            "--functions",
+            "elliptic",
+            "--ids",
+            "2",
+            "--output-root",
+            "results/car-cli",
+            "--max-fes",
+            "5000",
+            "--arac-action",
+            runner.CAR_W3_ACTION,
+            "--enable-relation-dispatch",
+            "--relation-policy",
+            "controller_v31",
+        ]
+    )
+    assert w3_args.arac_action == "arac_counterfactual_action_racing_w3"
+
     control_args = runner.parse_args(
         [
             "--functions",
@@ -186,6 +205,21 @@ def test_car_inherits_the_canonical_v33_runtime_route() -> None:
         runner.CAR_W_ACTION,
         0.5,
         controller_v31_run_state=car_state,
+    ) == runner.refine_sigma_for_action(
+        runner.EVIDENCE_ACTION_CONTROLLER_V33,
+        0.5,
+        controller_v31_run_state=v33_state,
+    )
+
+    w3_state = runner.build_evidence_action_controller_v31_run_state(
+        0.019,
+        action_name=runner.CAR_W3_ACTION,
+    )
+    assert runner.is_guarded_evidence_action_controller(runner.CAR_W3_ACTION)
+    assert runner.refine_sigma_for_action(
+        runner.CAR_W3_ACTION,
+        0.5,
+        controller_v31_run_state=w3_state,
     ) == runner.refine_sigma_for_action(
         runner.EVIDENCE_ACTION_CONTROLLER_V33,
         0.5,

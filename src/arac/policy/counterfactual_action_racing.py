@@ -365,6 +365,35 @@ def evaluate_risk_gate(
     )
 
 
+def evaluate_first_pair_futility(
+    observation: PairedProbeObservation,
+    *,
+    epsilon: float = 1e-12,
+) -> RiskGateResult:
+    """Fail closed after the first pair when a candidate is already futile."""
+
+    if not math.isfinite(float(epsilon)) or float(epsilon) < 0.0:
+        raise CARInvariantError("epsilon must be finite and non-negative")
+    reasons: list[str] = []
+    if observation.normalized_delta <= float(epsilon):
+        reasons.append("futility_pair_not_positive")
+    if observation.candidate_after > (
+        observation.phase1_probe_fitness_before + float(epsilon)
+    ):
+        reasons.append("candidate_endpoint_worse_than_start")
+    if not reasons:
+        raise CARInvariantError("first pair is not futile")
+    return RiskGateResult(
+        mean=observation.normalized_delta,
+        sample_std=0.0,
+        lcb=observation.normalized_delta,
+        tail=observation.normalized_delta,
+        committed=False,
+        adopted_arm="fallback",
+        abstain_reasons=tuple(reasons),
+    )
+
+
 @dataclass
 class BranchState:
     """Small pure state carrier used to prove adoption does not alias a branch."""
@@ -459,6 +488,7 @@ class CARProbeExecutor:
         fallback_transition: Callable[[BranchState, object, ProbeSeedDescriptor, int], BranchState],
         candidate_transition: Callable[[BranchState, object, ProbeSeedDescriptor, int], BranchState],
         branch_order: tuple[str, str] = ("fallback", "candidate"),
+        early_futility_abort: bool = False,
     ) -> CARProbeExecutionResult:
         if set(branch_order) != {"fallback", "candidate"} or len(branch_order) != 2:
             raise CARInvariantError("branch_order must contain fallback and candidate exactly once")
@@ -546,6 +576,30 @@ class CARProbeExecutor:
                     seed_descriptor=seed_descriptor,
                 )
             )
+            first_pair_futile = (
+                pair_index == 0
+                and (
+                    observations[0].normalized_delta <= 1e-12
+                    or observations[0].candidate_after
+                    > observations[0].phase1_probe_fitness_before + 1e-12
+                )
+            )
+            if early_futility_abort and first_pair_futile:
+                gate = evaluate_first_pair_futility(observations[0])
+                pair_states_history.append(
+                    {arm: state.clone() for arm, state in pair_states.items()}
+                )
+                selected = pair_states["fallback"]
+                accounting_record = tuple(
+                    float(value) for value in selected.evaluator_record
+                ) + (float(selected.committed_fitness),) * self._arm_fes
+                return CARProbeExecutionResult(
+                    observations=tuple(observations),
+                    gate=gate,
+                    adopted_state=selected.clone(),
+                    branch_manifests=tuple(manifests),
+                    accounting_record=accounting_record,
+                )
             if pair_index < 2:
                 current_checkpoint = pair_states["fallback"].clone()
                 current_checkpoint.evaluator_record = []

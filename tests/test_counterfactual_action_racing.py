@@ -12,6 +12,7 @@ from arac.policy.counterfactual_action_racing import (
     PairedProbeObservation,
     adopt_final_pair_branch,
     derive_probe_seed,
+    evaluate_first_pair_futility,
     evaluate_risk_gate,
     fingerprint_branch_state,
 )
@@ -190,6 +191,20 @@ def test_k3_empirical_gate_abstains_on_negative_lower_tail() -> None:
     assert any(reason.startswith("lower_tail") for reason in gate.abstain_reasons)
 
 
+def test_first_pair_futility_gate_fails_closed_on_non_positive_contrast() -> None:
+    observation = make_observation(
+        0,
+        fallback_after=80.0,
+        candidate_after=90.0,
+    )
+
+    gate = evaluate_first_pair_futility(observation)
+
+    assert gate.committed is False
+    assert gate.adopted_arm == "fallback"
+    assert "futility_pair_not_positive" in gate.abstain_reasons
+
+
 def test_gate_abstains_when_action_family_or_graph_is_unstable() -> None:
     family_gate = evaluate_risk_gate(
         (
@@ -325,6 +340,69 @@ def test_probe_executor_is_branch_order_invariant(branch_order) -> None:
     assert all(item.actual_fe == 10 for item in result.branch_manifests)
     for pair_offset in range(0, len(calls), 2):
         assert calls[pair_offset] == calls[pair_offset + 1]
+
+
+@pytest.mark.parametrize(
+    "branch_order",
+    [("fallback", "candidate"), ("candidate", "fallback")],
+)
+def test_probe_executor_first_pair_futility_aborts_remaining_pairs(
+    branch_order,
+) -> None:
+    calls: list[tuple[str, int]] = []
+    ledger = CARBudgetLedger(max_fes=1_000, probe_fe_limit=120, committed_fe=100)
+    executor = CARProbeExecutor(
+        evaluator_factory=FakeEvaluator,
+        ledger=ledger,
+        base_seed=31,
+        sweep_index=2,
+        graph_fingerprint="graph-a",
+        component_fingerprint="component-a",
+        action_family="coordinate",
+        arm_fes=10,
+    )
+
+    result = executor.execute(
+        initial_checkpoint=make_checkpoint(),
+        fallback_transition=deterministic_transition(2.0, calls),
+        candidate_transition=deterministic_transition(1.0, calls),
+        branch_order=branch_order,
+        early_futility_abort=True,
+    )
+
+    assert result.gate.committed is False
+    assert result.gate.abstain_reasons == ("futility_pair_not_positive",)
+    assert result.adopted_state.committed_fitness == pytest.approx(98.0)
+    assert ledger.probe_fe == 20
+    assert len(result.observations) == 1
+    assert len(result.branch_manifests) == 2
+    assert len(result.accounting_record) == 20
+    assert len(calls) == 2
+
+
+def test_probe_executor_positive_first_pair_runs_full_gate() -> None:
+    ledger = CARBudgetLedger(max_fes=1_000, probe_fe_limit=120, committed_fe=100)
+    executor = CARProbeExecutor(
+        evaluator_factory=FakeEvaluator,
+        ledger=ledger,
+        base_seed=31,
+        sweep_index=2,
+        graph_fingerprint="graph-a",
+        component_fingerprint="component-a",
+        action_family="coordinate",
+        arm_fes=10,
+    )
+
+    result = executor.execute(
+        initial_checkpoint=make_checkpoint(),
+        fallback_transition=deterministic_transition(1.0, []),
+        candidate_transition=deterministic_transition(2.0, []),
+        early_futility_abort=True,
+    )
+
+    assert result.gate.committed is True
+    assert ledger.probe_fe == 60
+    assert len(result.observations) == 3
 
 
 def test_probe_executor_rejects_reused_evaluator_record() -> None:

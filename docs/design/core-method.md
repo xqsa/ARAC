@@ -278,5 +278,13 @@ lower-tail, endpoint, equal-FE, branch-isolation, and atomic final-pair gates
 are unchanged from W1. The zero-regret prefix is a protocol invariant, not an
 offline outcome check.
 
+CAR-W3 retains that native prefix and adds a logically safe sequential futility
+stop. Pair 0 is executed before pairs 1-2 are reserved. A non-positive pair-0
+candidate contrast or a candidate endpoint worse than its checkpoint adopts
+the fallback immediately. Such an observation cannot satisfy the frozen
+`Tail >= 0` and positive-LCB gate, so the early stop changes probe cost but not
+which candidates are eligible to commit. A positive, endpoint-safe pair 0
+continues to the unchanged three-pair gate.
+
 Performance, generalization, and any paper-best win count remain empirical
 claims gated by the staged protocol above.

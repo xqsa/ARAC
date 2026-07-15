@@ -31,6 +31,18 @@ import pytest
                 "zero_regret_prefix",
             },
         ),
+        (
+            "arac_counterfactual_action_racing_w3",
+            {
+                "paired_probe",
+                "branch_isolation",
+                "single_fe_ledger",
+                "writeback_only",
+                "lazy_probe_lease",
+                "zero_regret_prefix",
+                "futility_abort",
+            },
+        ),
     ],
 )
 def test_controller_registry_is_the_single_runtime_capability_source(
@@ -90,6 +102,19 @@ def test_car_w2_profile_freezes_lazy_lease_contract() -> None:
     )
     assert profile.optimizer_consumed_parameters["futility_stage"] == (
         "zero_fe_structural_writeback_screen"
+    )
+
+
+def test_car_w3_profile_freezes_first_pair_futility_contract() -> None:
+    from arac.actions.controller_profiles import controller_profile_by_action
+
+    profile = controller_profile_by_action("arac_counterfactual_action_racing_w3")
+
+    assert profile.optimizer_consumed_parameters["futility_stage"] == (
+        "first_equal_fe_component_pair"
+    )
+    assert profile.optimizer_consumed_parameters["futility_rule"] == (
+        "positive_normalized_delta_and_not_worse_than_start"
     )
 
 

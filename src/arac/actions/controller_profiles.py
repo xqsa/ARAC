@@ -252,6 +252,46 @@ CONTROLLER_PROFILES = (
         ),
         dispatch_boundary="identity_free_runtime_evidence_only",
     ),
+    ControllerProfile(
+        version=None,
+        lane_profile="counterfactual_action_racing_w3",
+        action_name="arac_counterfactual_action_racing_w3",
+        dispatch_scope="within_run_first_pair_futility_counterfactual_action_racing_w3",
+        relation_policy_mode="controller_v31",
+        backend_effect_kind="counterfactual_action_racing_w3_writeback",
+        optimizer_consumed_parameters={
+            "candidate_proposal": "controller_v31_relation_proposal",
+            "candidate_blend_alpha": 0.20,
+            "candidate_norm_guard": "controller_v33_norm_guard",
+            "fallback": "arac_evidence_action_controller_v33",
+            "minimum_complete_evidence_sweeps": 2,
+            "stable_support_rule": "two_sweep_non_fallback_subgraph",
+            "futility_stage": "first_equal_fe_component_pair",
+            "futility_rule": "positive_normalized_delta_and_not_worse_than_start",
+            "paired_probe_count": 3,
+            "writeback_probe_budget_fraction": 0.03,
+            "probe_lease": "lazy_after_stable_plan_only",
+            "deployment_pair_index": 2,
+            "dispatch_boundary": "identity_free_runtime_evidence_only",
+        },
+        execution_mode="hcc_counterfactual_action_racing_w3_runtime_consumed",
+        capabilities=frozenset(
+            {
+                "guarded",
+                "requires_pinned_environment",
+                "trust_trace",
+                "risk_aware_trust",
+                "paired_probe",
+                "branch_isolation",
+                "single_fe_ledger",
+                "writeback_only",
+                "lazy_probe_lease",
+                "zero_regret_prefix",
+                "futility_abort",
+            }
+        ),
+        dispatch_boundary="identity_free_runtime_evidence_only",
+    ),
 )
 
 _PROFILES_BY_ACTION = {profile.action_name: profile for profile in CONTROLLER_PROFILES}

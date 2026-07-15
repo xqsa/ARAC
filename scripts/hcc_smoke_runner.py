@@ -540,6 +540,7 @@ EVIDENCE_ACTION_CONTROLLER_V38 = controller_profile_by_version(38).action_name
 EVIDENCE_ACTION_CONTROLLER_V39 = controller_profile_by_version(39).action_name
 CAR_W_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w").action_name
 CAR_W2_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w2").action_name
+CAR_W3_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w3").action_name
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -568,6 +569,7 @@ TRAJECTORY_ACTION_NAMES = {
     EVIDENCE_ACTION_CONTROLLER_V39,
     CAR_W_ACTION,
     CAR_W2_ACTION,
+    CAR_W3_ACTION,
     RESUME_PHASE_I_SEARCH_STATE,
     CONTINUE_DIAGONAL_SEARCH_STATE,
 }
@@ -1462,8 +1464,16 @@ def is_car_w2_action(action_name: str) -> bool:
     return action_name == CAR_W2_ACTION
 
 
+def is_car_w3_action(action_name: str) -> bool:
+    return action_name == CAR_W3_ACTION
+
+
 def is_car_w_family_action(action_name: str) -> bool:
-    return is_car_w_action(action_name) or is_car_w2_action(action_name)
+    return (
+        is_car_w_action(action_name)
+        or is_car_w2_action(action_name)
+        or is_car_w3_action(action_name)
+    )
 
 
 def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
@@ -3869,6 +3879,7 @@ def execute_car_w_probe_at_barrier(
     config: SmokeConfig,
     problem_id: str,
     branch_order: tuple[str, str] = ("fallback", "candidate"),
+    early_futility_abort: bool = False,
 ) -> CARBarrierResult:
     if config.car_candidate_mode not in {"graph", "shuffled_graph", "paired_fallback"}:
         raise ValueError(
@@ -3990,6 +4001,7 @@ def execute_car_w_probe_at_barrier(
         fallback_transition=transition(False),
         candidate_transition=transition(True),
         branch_order=branch_order,
+        early_futility_abort=early_futility_abort,
     )
     abstain_reason = ";".join(execution.gate.abstain_reasons)
     probe_rows = tuple(
@@ -5463,8 +5475,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 car_proposal_sweeps.append(tuple(car_current_proposals))
             if len(car_proposal_sweeps) >= CAR_W_MIN_EVIDENCE_SWEEPS:
                 car_probe_attempted = True
-                car_w2_mode = is_car_w2_action(config.arac_action)
-                if controller_v31_run_state is not None and not car_w2_mode:
+                lazy_car_mode = is_car_w2_action(
+                    config.arac_action
+                ) or is_car_w3_action(config.arac_action)
+                if controller_v31_run_state is not None and not lazy_car_mode:
                     controller_v31_run_state.invalidate_pending_action_trust(
                         "car_component_barrier"
                     )
@@ -5483,12 +5497,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     upper=float(info["upper"]),
                     minimum_writeback_norm=(
                         CAR_W2_FUTILITY_MIN_WRITEBACK_NORM
-                        if car_w2_mode
+                        if lazy_car_mode
                         else 0.0
                     ),
                 )
                 if car_decision.plan is not None:
-                    if car_w2_mode:
+                    if lazy_car_mode:
                         checkpoint_fitness = guarded_incumbent_fitness
                     else:
                         checkpoint_fitness = float(fun(best_individual)[0])
@@ -5529,6 +5543,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         if config.car_branch_order == "candidate_first"
                         else ("fallback", "candidate")
                     ),
+                    early_futility_abort=is_car_w3_action(config.arac_action),
                 )
                 car_probe_trace_rows.extend(barrier.probe_trace_rows)
                 car_state_ledger_rows.extend(barrier.state_ledger_rows)
@@ -6125,6 +6140,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             EVIDENCE_ACTION_CONTROLLER_V39,
             CAR_W_ACTION,
             CAR_W2_ACTION,
+            CAR_W3_ACTION,
         ],
     )
     args = parser.parse_args(argv)
