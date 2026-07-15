@@ -5,8 +5,13 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+ARAC_SRC_ROOT = Path(__file__).resolve().parents[1] / "src"
+if str(ARAC_SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(ARAC_SRC_ROOT))
 
 from arac.policy.component_delayed_credit import (
     SchedulerRevisitCap,
