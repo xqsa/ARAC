@@ -10,7 +10,7 @@ from __future__ import annotations
 import math
 
 
-CAR_ACTIONABILITY_PROTOCOL_VERSION = "car-actionability-v1"
+CAR_ACTIONABILITY_PROTOCOL_VERSION = "car-actionability-v2"
 CAR_ACTIONABILITY_HORIZON_MULTIPLIERS = (1, 3, 9)
 CAR_ACTIONABILITY_HORIZON_LABELS = ("closure_1", "budget_3x", "budget_9x")
 CAR_ACTIONABILITY_LOG_FLOOR = 1e-300

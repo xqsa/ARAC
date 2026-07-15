@@ -384,6 +384,304 @@ def test_car_actionability_coverage_requires_every_lane_terminal() -> None:
     assert failures == ["E2/seed1/oracle_fallback:terminal_count=0"]
 
 
+def test_car_actionability_coverage_uses_common_terminal_target() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        LaneConfig,
+        _car_actionability_coverage_failures,
+    )
+
+    lane = LaneConfig(
+        "oracle_fallback",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "arac_counterfactual_action_racing_w3",
+        "offline",
+        car_actionability_arm="fallback",
+    )
+    base = {
+        "problem_id": "E2",
+        "seed": "1",
+        "lane_id": lane.lane_id,
+        "checkpoint_fe": "10",
+        "actual_fe": "10",
+        "configured_max_fes": "100",
+        "terminal_completion_tolerance_fe": "70",
+        "termination_reason": "population_complete_budget_endpoint",
+        "terminal_fe_shortfall": "70",
+        "plan_status": "applied",
+        "requested_fe": "10",
+        "candidate_action_applied": "0",
+        "horizon_status": "complete",
+    }
+    trace_rows = [
+        {
+            **base,
+            "horizon_index": "0",
+            "horizon_label": "closure_1",
+            "target_fe": "20",
+            "observed_fe": "20",
+        },
+        {
+            **base,
+            "horizon_index": "3",
+            "horizon_label": "terminal",
+            "target_fe": "30",
+            "observed_fe": "30",
+        },
+    ]
+
+    assert (
+        _car_actionability_coverage_failures(
+            trace_rows,
+            problem_ids=("E2",),
+            seeds=(1,),
+            lanes=(lane,),
+        )
+        == []
+    )
+
+    wrong_index = [dict(row) for row in trace_rows]
+    wrong_index[0]["horizon_index"] = "2"
+    assert any(
+        "closure_1_horizon_index_mismatch" in failure
+        for failure in _car_actionability_coverage_failures(
+            wrong_index,
+            problem_ids=("E2",),
+            seeds=(1,),
+            lanes=(lane,),
+        )
+    )
+
+    inconsistent = [dict(row) for row in trace_rows]
+    inconsistent[0]["terminal_completion_tolerance_fe"] = "69"
+    assert any(
+        "closure_1_terminal_completion_tolerance_fe_mismatch" in failure
+        for failure in _car_actionability_coverage_failures(
+            inconsistent,
+            problem_ids=("E2",),
+            seeds=(1,),
+            lanes=(lane,),
+        )
+    )
+
+    unknown = [
+        *(dict(row) for row in trace_rows),
+        {**base, "horizon_index": "4", "horizon_label": "mystery"},
+    ]
+    assert any(
+        "unknown_horizon_label=mystery" in failure
+        for failure in _car_actionability_coverage_failures(
+            unknown,
+            problem_ids=("E2",),
+            seeds=(1,),
+            lanes=(lane,),
+        )
+    )
+
+    for row in trace_rows:
+        row.update(
+            {
+                "terminal_completion_tolerance_fe": "80",
+                "terminal_fe_shortfall": "80",
+            }
+        )
+    trace_rows[-1].update({"target_fe": "20", "observed_fe": "20"})
+    assert _car_actionability_coverage_failures(
+        trace_rows,
+        problem_ids=("E2",),
+        seeds=(1,),
+        lanes=(lane,),
+    ) == [
+        "E2/seed1/oracle_fallback:"
+        "terminal_target_has_no_post_intervention_continuation"
+    ]
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "expected_failure"),
+    [
+        ("target_fe", "31", "terminal_target_mismatch"),
+        (
+            "terminal_fe_shortfall",
+            "71",
+            "terminal_shortfall_out_of_bounds",
+        ),
+        (
+            "termination_reason",
+            "early_termination",
+            "terminal_termination_reason=early_termination",
+        ),
+        ("horizon_status", "incomplete", "terminal_horizon_status=incomplete"),
+    ],
+)
+def test_car_actionability_coverage_recomputes_terminal_integrity(
+    field: str,
+    value: str,
+    expected_failure: str,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        LaneConfig,
+        _car_actionability_coverage_failures,
+    )
+
+    lane = LaneConfig(
+        "oracle_fallback",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "arac_counterfactual_action_racing_w3",
+        "offline",
+        car_actionability_arm="fallback",
+    )
+    base = {
+        "problem_id": "E2",
+        "seed": "1",
+        "lane_id": lane.lane_id,
+        "checkpoint_fe": "10",
+        "actual_fe": "10",
+        "configured_max_fes": "100",
+        "terminal_completion_tolerance_fe": "70",
+        "termination_reason": "population_complete_budget_endpoint",
+        "terminal_fe_shortfall": "70",
+        "plan_status": "applied",
+        "requested_fe": "10",
+        "candidate_action_applied": "0",
+        "horizon_status": "complete",
+    }
+    trace_rows = [
+        {
+            **base,
+            "horizon_index": "0",
+            "horizon_label": "closure_1",
+            "target_fe": "20",
+            "observed_fe": "20",
+        },
+        {
+            **base,
+            field: value,
+            "horizon_index": "3",
+            "horizon_label": "terminal",
+            "target_fe": "30" if field != "target_fe" else value,
+            "observed_fe": "30",
+        },
+    ]
+
+    failures = _car_actionability_coverage_failures(
+        trace_rows,
+        problem_ids=("E2",),
+        seeds=(1,),
+        lanes=(lane,),
+    )
+
+    assert any(expected_failure in failure for failure in failures)
+
+
+@pytest.mark.parametrize(
+    ("updates", "expected_failure"),
+    [
+        ({"plan_status": "garbage"}, "invalid_plan_status=garbage"),
+        ({"actual_fe": "1"}, "non_applied_intervention_fe_nonzero"),
+        ({"requested_fe": "1"}, "non_applied_requested_fe_nonzero"),
+        (
+            {"candidate_action_applied": "1"},
+            "non_applied_candidate_action_applied",
+        ),
+    ],
+)
+def test_car_actionability_coverage_requires_zero_cost_non_applied_controls(
+    updates: dict[str, str],
+    expected_failure: str,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        LaneConfig,
+        _car_actionability_coverage_failures,
+    )
+
+    lane = LaneConfig(
+        "oracle_fallback",
+        ActionFamily.FALLBACK,
+        "conservative_no_action",
+        "arac_counterfactual_action_racing_w3",
+        "offline",
+        car_actionability_arm="fallback",
+    )
+    terminal = {
+        "problem_id": "E2",
+        "seed": "1",
+        "lane_id": lane.lane_id,
+        "checkpoint_fe": "100",
+        "actual_fe": "0",
+        "requested_fe": "0",
+        "candidate_action_applied": "0",
+        "configured_max_fes": "100",
+        "terminal_completion_tolerance_fe": "1",
+        "termination_reason": "population_complete_budget_endpoint",
+        "terminal_fe_shortfall": "0",
+        "plan_status": "not_applicable",
+        "horizon_index": "3",
+        "horizon_label": "terminal",
+        "target_fe": "100",
+        "observed_fe": "100",
+        "horizon_status": "complete",
+        **updates,
+    }
+
+    failures = _car_actionability_coverage_failures(
+        [terminal],
+        problem_ids=("E2",),
+        seeds=(1,),
+        lanes=(lane,),
+    )
+
+    assert any(expected_failure in failure for failure in failures)
+
+
+def test_car_actionability_global_integrity_failure_redacts_outcomes() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _redact_car_actionability_summary_rows,
+    )
+
+    row = {
+        "fallback_error": "10",
+        "candidate_error": "5",
+        "log_advantage": "0.69",
+        "relative_gain": "0.5",
+        "numeric_win": 1,
+        "meaningful_win": 1,
+        "catastrophic_loss": 0,
+        "oracle_selected_arm": "candidate",
+        "oracle_gain": "0.5",
+        "terminal_sign_agreement": 1,
+        "rank_reversal_from_previous": 0,
+        "integrity_status": "pass",
+        "integrity_failures": "",
+    }
+
+    redacted = _redact_car_actionability_summary_rows(
+        [row],
+        ["E2/seed1/oracle_fallback:terminal_target_mismatch"],
+    )[0]
+
+    for field in (
+        "fallback_error",
+        "candidate_error",
+        "log_advantage",
+        "relative_gain",
+        "oracle_selected_arm",
+        "oracle_gain",
+    ):
+        assert redacted[field] == ""
+    for field in (
+        "numeric_win",
+        "meaningful_win",
+        "catastrophic_loss",
+        "terminal_sign_agreement",
+        "rank_reversal_from_previous",
+    ):
+        assert redacted[field] == 0
+    assert redacted["integrity_status"] == "fail"
+    assert "terminal_target_mismatch" in redacted["integrity_failures"]
+
+
 def test_car_actionability_aob_inputs_must_match_between_arms() -> None:
     from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
         _car_actionability_aob_pair_failures,
@@ -547,6 +845,7 @@ def test_car_actionability_reuse_requires_complete_untampered_provenance(
         _complete_car_actionability_provenance,
         _existing_completed_result,
         _prepare_car_actionability_provenance,
+        _sha256_file,
     )
 
     request = HccAobExecutionRequest(
@@ -581,8 +880,13 @@ def test_car_actionability_reuse_requires_complete_untampered_provenance(
     audit_trace = tmp_path / "E2_car_actionability_trace.csv"
     audit_text = (
         "protocol_version,fresh_optimizer_execution,problem_id,seed,audit_arm,"
-        "candidate_mode,configured_max_fes,horizon_label,horizon_status\n"
-        "car-actionability-v1,1,E2,7,fallback,graph,2000,terminal,complete\n"
+        "candidate_mode,configured_max_fes,horizon_index,horizon_label,"
+        "checkpoint_fe,terminal_completion_tolerance_fe,termination_reason,"
+        "terminal_fe_shortfall,target_fe,observed_fe,requested_fe,actual_fe,"
+        "candidate_action_applied,plan_status,horizon_status\n"
+        "car-actionability-v2,1,E2,7,fallback,graph,2000,3,terminal,2000,1,"
+        "population_complete_budget_endpoint,0,2000,2000,0,0,0,"
+        "not_applicable,complete\n"
     )
     audit_trace.write_text(audit_text, encoding="utf-8")
 
@@ -607,6 +911,23 @@ def test_car_actionability_reuse_requires_complete_untampered_provenance(
     assert reused is not None
     assert reused.fresh_optimizer_execution is True
     assert reused.result_source == "verified_fresh_car_actionability_artifact"
+
+    provenance_path = tmp_path / "car_actionability_provenance.json"
+    provenance_text = provenance_path.read_text(encoding="utf-8")
+    semantic_bad = audit_text.replace(
+        ",0,2000,2000,0,0,0,not_applicable,complete",
+        ",0,1999,1999,0,0,0,not_applicable,complete",
+    )
+    audit_trace.write_text(semantic_bad, encoding="utf-8")
+    provenance = json.loads(provenance_text)
+    provenance["trace_sha256"] = _sha256_file(audit_trace)
+    provenance_path.write_text(
+        json.dumps(provenance, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    assert _existing_completed_result(request) is None
+    audit_trace.write_text(audit_text, encoding="utf-8")
+    provenance_path.write_text(provenance_text, encoding="utf-8")
 
     audit_trace.write_text(audit_text + "\n", encoding="utf-8")
     assert _existing_completed_result(request) is None
@@ -637,6 +958,21 @@ def test_car_actionability_reuse_requires_complete_untampered_provenance(
     assert _existing_completed_result(request) is None
     aob_manifest_path.write_text(aob_manifest_text, encoding="utf-8")
     assert _existing_completed_result(request) is not None
+
+    provenance = json.loads(provenance_text)
+    provenance["request"]["execution_context_fingerprint"] = "tampered"
+    provenance_path.write_text(
+        json.dumps(provenance, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    assert _existing_completed_result(request) is None
+    provenance_path.write_text(provenance_text, encoding="utf-8")
+
+    extra_trace = tmp_path / "zz" / "E2_car_actionability_trace.csv"
+    extra_trace.parent.mkdir()
+    extra_trace.write_text(audit_text, encoding="utf-8")
+    assert _existing_completed_result(request) is None
+    extra_trace.unlink()
     with pytest.raises(RuntimeError, match="already complete"):
         _prepare_car_actionability_provenance(request)
 

@@ -4092,6 +4092,20 @@ def finalize_car_actionability_trace(
     checkpoint_fe = int(trace_base_row.get("checkpoint_fe") or 0)
     intervention_fe = int(trace_base_row.get("actual_fe") or 0)
     plan_applied = trace_base_row.get("plan_status") == "applied"
+    try:
+        terminal_tolerance = int(
+            str(trace_base_row.get("terminal_completion_tolerance_fe", "0"))
+        )
+    except ValueError:
+        terminal_tolerance = 0
+    # HCC can end adjacent lanes at different population boundaries. Retain
+    # each natural endpoint in metadata, but pair the same absolute-FE prefix.
+    closure_target = checkpoint_fe + intervention_fe
+    terminal_target = max(
+        closure_target,
+        max(0, int(max_fes) - terminal_tolerance),
+    )
+    terminal_order_valid = not plan_applied or terminal_target > closure_target
     targets: list[tuple[int, str, int]] = []
     if plan_applied and intervention_fe > 0:
         for index, (multiplier, label) in enumerate(
@@ -4102,33 +4116,31 @@ def finalize_car_actionability_trace(
             )
         ):
             target = checkpoint_fe + multiplier * intervention_fe
-            if target < int(max_fes):
+            if (index == 0 and target <= terminal_target) or target < terminal_target:
                 targets.append((index, label, target))
-    # Canonical HCC stops only at complete population boundaries, which can be
-    # a few FE below the configured cap.  Pairing later requires both lanes to
-    # expose the same exact terminal FE while retaining configured_max_fes.
-    targets.append((3, "terminal", len(record)))
+    targets.append((3, "terminal", terminal_target))
 
     for horizon_index, label, target_fe in targets:
         observed_fe = min(target_fe, len(record))
         prefix = record[:observed_fe]
         if label == "terminal":
-            try:
-                tolerance = int(
-                    str(trace_base_row.get("terminal_completion_tolerance_fe", "0"))
-                )
-            except ValueError:
-                tolerance = 0
             shortfall = max(0, int(max_fes) - len(record))
             reason = trace_base_row.get("termination_reason", "")
             horizon_status = (
                 "complete"
-                if shortfall <= tolerance and reason != "early_guard"
+                if observed_fe == target_fe
+                and shortfall <= terminal_tolerance
+                and reason != "early_guard"
+                and terminal_order_valid
                 else "incomplete"
             )
         else:
             horizon_status = "complete" if observed_fe == target_fe else "incomplete"
         row = dict(trace_base_row)
+        if label == "terminal" and not terminal_order_valid:
+            row["abstain_reason"] = (
+                "terminal_target_has_no_post_intervention_continuation"
+            )
         row.update(
             {
                 "horizon_index": str(horizon_index),

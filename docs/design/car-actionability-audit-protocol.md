@@ -2,7 +2,7 @@
 
 Date: 2026-07-15
 Executor: Codex
-Status: frozen for the first CAR-W3 audit
+Status: frozen for the CAR-W3 actionability audit (v2 common-terminal estimand)
 
 ## Purpose
 
@@ -39,16 +39,24 @@ the raw error remains zero.
 
 The intervention itself is one complete population-valid component horizon.
 After it, labels are sampled at absolute FE targets `1x`, `3x`, and `9x` of
-that intervention budget, followed by the terminal population-complete endpoint.
-The trace labels are therefore `closure_1`, `budget_3x`, `budget_9x`, and
+that intervention budget, followed by a common terminal audit horizon. The
+trace labels are therefore `closure_1`, `budget_3x`, `budget_9x`, and
 `terminal`; the latter three are canonical continuation horizons, not cloned
 MMES/CMA state checkpoints.
 
-The configured cap is recorded separately from the observed endpoint. HCC may
-stop a few FE below the cap at a complete population boundary. A paired
-horizon is valid only when both lanes have the same checkpoint/target/observed
-FE, matching prefix state and prefix-record hashes, equal intervention FE, and
-`horizon_status=complete`. Otherwise the offline summary is blocked.
+The configured cap and each lane's natural population endpoint/shortfall are
+recorded separately. To avoid an otherwise meaningless adjacent-population
+FE mismatch, `terminal` is a pre-registered common absolute-FE best-so-far
+prefix at `max(checkpoint_fe + actual_intervention_fe, max_fes -
+terminal_completion_tolerance_fe)`. An applied terminal row is complete only
+when the target is strictly after the intervention closure, each lane reaches
+that target, and its natural endpoint is within the recorded tolerance. Later
+`3x`/`9x` labels are materialized only when they precede this terminal target;
+a late checkpoint that leaves no post-closure continuation fails closed. A
+paired horizon is valid only when both lanes have the
+same checkpoint/target/observed FE, matching prefix state and prefix-record
+hashes, equal intervention FE, and `horizon_status=complete`. Otherwise the
+offline summary is blocked.
 
 ## Integrity Gates
 
@@ -60,6 +68,9 @@ FE, matching prefix state and prefix-record hashes, equal intervention FE, and
   Artifact paths and contents are checked by resolved path and SHA-256. A raw
   trace's self-reported fresh flag is never sufficient for resume.
 - No FE overrun; equal absolute FE at every paired horizon.
+- The coverage gate independently recomputes the common terminal target,
+  verifies terminal completion/shortfall metadata, and rejects nested labels
+  that occur at or after that target (except the closure label at equality).
 - Exact AOB input hashes before and after each lane.
 - Fallback and candidate lanes must expose identical required-file sets and
   identical `sha256_before` values for every AOB input.

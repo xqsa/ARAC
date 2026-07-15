@@ -1168,7 +1168,10 @@ def _complete_car_actionability_provenance(
         current = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise RuntimeError("missing CAR actionability provenance schedule") from exc
-    if current.get("request_fingerprint") != expected["request_fingerprint"]:
+    if (
+        current.get("request_fingerprint") != expected["request_fingerprint"]
+        or current.get("request") != expected["request"]
+    ):
         raise RuntimeError("CAR actionability provenance request mismatch")
     output_root = Path(result.output_root).resolve()
     trace_path = _latest_car_artifact(output_root, "*car_actionability_trace.csv")
@@ -1223,6 +1226,7 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
         expected = _car_actionability_request_payload(request)
         if (
             provenance.get("request_fingerprint") != expected["request_fingerprint"]
+            or provenance.get("request") != expected["request"]
             or provenance.get("status") != "complete"
             or provenance.get("fresh_optimizer_execution") is not True
         ):
@@ -1290,11 +1294,12 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
             for row in audit_rows
         ):
             return None
-        terminal_rows = [
-            row for row in audit_rows if row.get("horizon_label") == "terminal"
-        ]
-        if len(terminal_rows) != 1 or terminal_rows[0].get("horizon_status") != (
-            "complete"
+        if _car_actionability_lane_semantic_failures(
+            audit_rows,
+            prefix=(
+                f"{request.problem_id}/seed{request.seed}/"
+                f"{request.car_actionability_arm}"
+            ),
         ):
             return None
         verified_fresh_audit = True
@@ -2133,6 +2138,8 @@ def _car_actionability_rows_for_record(
     request_payload = provenance.get("request")
     if not isinstance(request_payload, dict):
         raise ValueError("missing CAR actionability provenance request")
+    if _fingerprint_payload(request_payload) != provenance.get("request_fingerprint"):
+        raise ValueError("CAR actionability provenance request hash mismatch")
     execution_context_fingerprint = str(
         request_payload.get("execution_context_fingerprint", "")
     )
@@ -2989,6 +2996,199 @@ def _car_actionability_summary_rows(
     return rows
 
 
+def _redact_car_actionability_summary_rows(
+    rows: list[dict[str, object]],
+    integrity_failures: list[str],
+) -> list[dict[str, object]]:
+    """Fail closed when any run-level integrity gate blocks the audit."""
+
+    if not integrity_failures:
+        return rows
+    global_failure = "global_actionability_gate:" + "|".join(
+        sorted(set(integrity_failures))
+    )
+    redacted: list[dict[str, object]] = []
+    for source in rows:
+        row = dict(source)
+        existing = str(row.get("integrity_failures", "")).strip(";")
+        row.update(
+            {
+                "fallback_error": "",
+                "candidate_error": "",
+                "log_advantage": "",
+                "relative_gain": "",
+                "numeric_win": 0,
+                "meaningful_win": 0,
+                "catastrophic_loss": 0,
+                "oracle_selected_arm": "",
+                "oracle_gain": "",
+                "terminal_sign_agreement": 0,
+                "rank_reversal_from_previous": 0,
+                "integrity_status": "fail",
+                "integrity_failures": ";".join(
+                    value for value in (existing, global_failure) if value
+                ),
+            }
+        )
+        redacted.append(row)
+    return redacted
+
+
+def _car_actionability_lane_semantic_failures(
+    trace_rows: list[dict[str, object]],
+    *,
+    prefix: str,
+) -> list[str]:
+    """Validate one lane's v2 horizon set independently of paired outcomes."""
+
+    failures: list[str] = []
+    index_by_label = {
+        **{
+            label: str(index)
+            for index, label in enumerate(CAR_ACTIONABILITY_HORIZON_LABELS)
+        },
+        "terminal": "3",
+    }
+    rows_by_label: dict[str, list[dict[str, object]]] = {}
+    for row in trace_rows:
+        label = str(row.get("horizon_label", ""))
+        if label not in index_by_label:
+            failures.append(f"{prefix}:unknown_horizon_label={label}")
+            continue
+        rows_by_label.setdefault(label, []).append(row)
+        if str(row.get("horizon_index", "")) != index_by_label[label]:
+            failures.append(f"{prefix}:{label}_horizon_index_mismatch")
+
+    terminal_rows = rows_by_label.get("terminal", [])
+    if len(terminal_rows) != 1:
+        failures.append(f"{prefix}:terminal_count={len(terminal_rows)}")
+        return failures
+    terminal = terminal_rows[0]
+    immutable_fields = (
+        "checkpoint_fe",
+        "actual_fe",
+        "requested_fe",
+        "candidate_action_applied",
+        "plan_status",
+        "configured_max_fes",
+        "terminal_completion_tolerance_fe",
+        "termination_reason",
+        "terminal_fe_shortfall",
+    )
+    for label, label_rows in rows_by_label.items():
+        for row in label_rows:
+            for field in immutable_fields:
+                if str(row.get(field, "")) != str(terminal.get(field, "")):
+                    failures.append(f"{prefix}:{label}_{field}_mismatch")
+
+    try:
+        checkpoint_fe = int(str(terminal.get("checkpoint_fe", "")))
+        intervention_fe = int(str(terminal.get("actual_fe", "")))
+        requested_fe = int(str(terminal.get("requested_fe", "")))
+        configured_max_fes = int(str(terminal.get("configured_max_fes", "")))
+        terminal_tolerance = int(
+            str(terminal.get("terminal_completion_tolerance_fe", ""))
+        )
+        terminal_shortfall = int(str(terminal.get("terminal_fe_shortfall", "")))
+        terminal_target = int(str(terminal.get("target_fe", "")))
+        terminal_observed = int(str(terminal.get("observed_fe", "")))
+    except ValueError:
+        failures.append(f"{prefix}:invalid_horizon_metadata")
+        return failures
+    if (
+        checkpoint_fe < 0
+        or intervention_fe < 0
+        or requested_fe < 0
+        or configured_max_fes <= 0
+        or terminal_tolerance < 0
+        or terminal_shortfall < 0
+        or terminal_target < 0
+        or terminal_observed < 0
+    ):
+        failures.append(f"{prefix}:invalid_horizon_metadata")
+        return failures
+
+    plan_status = str(terminal.get("plan_status", ""))
+    if plan_status not in {"applied", "abstain", "not_applicable"}:
+        failures.append(f"{prefix}:invalid_plan_status={plan_status}")
+    if plan_status == "applied":
+        if intervention_fe <= 0:
+            failures.append(f"{prefix}:applied_intervention_fe_nonpositive")
+        if requested_fe != intervention_fe:
+            failures.append(f"{prefix}:applied_requested_actual_fe_mismatch")
+    else:
+        if intervention_fe != 0:
+            failures.append(f"{prefix}:non_applied_intervention_fe_nonzero")
+        if requested_fe != 0:
+            failures.append(f"{prefix}:non_applied_requested_fe_nonzero")
+        if str(terminal.get("candidate_action_applied", "")) != "0":
+            failures.append(f"{prefix}:non_applied_candidate_action_applied")
+
+    closure_target = checkpoint_fe + intervention_fe
+    expected_terminal_target = max(
+        closure_target,
+        max(0, configured_max_fes - terminal_tolerance),
+    )
+    if terminal_target != expected_terminal_target:
+        failures.append(f"{prefix}:terminal_target_mismatch")
+    if plan_status == "applied" and terminal_target <= closure_target:
+        failures.append(
+            f"{prefix}:terminal_target_has_no_post_intervention_continuation"
+        )
+    if terminal_observed != terminal_target:
+        failures.append(f"{prefix}:terminal_observed_fe_mismatch")
+    if terminal_shortfall > terminal_tolerance:
+        failures.append(f"{prefix}:terminal_shortfall_out_of_bounds")
+    if configured_max_fes - terminal_shortfall < terminal_target:
+        failures.append(f"{prefix}:terminal_endpoint_before_target")
+    if terminal.get("termination_reason") != "population_complete_budget_endpoint":
+        failures.append(
+            f"{prefix}:terminal_termination_reason="
+            f"{terminal.get('termination_reason', '')}"
+        )
+    if terminal.get("horizon_status") != "complete":
+        failures.append(
+            f"{prefix}:terminal_horizon_status="
+            f"{terminal.get('horizon_status', '')}"
+        )
+
+    expected_targets: dict[str, int] = {}
+    if plan_status == "applied":
+        for index, (multiplier, label) in enumerate(
+            zip(
+                CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
+                CAR_ACTIONABILITY_HORIZON_LABELS,
+                strict=True,
+            )
+        ):
+            target = checkpoint_fe + multiplier * intervention_fe
+            if (index == 0 and target <= terminal_target) or target < terminal_target:
+                expected_targets[label] = target
+
+    for label in CAR_ACTIONABILITY_HORIZON_LABELS:
+        label_rows = rows_by_label.get(label, [])
+        count = len(label_rows)
+        if label not in expected_targets:
+            if count:
+                failures.append(f"{prefix}:{label}_not_before_common_terminal")
+            continue
+        if count != 1:
+            failures.append(f"{prefix}:{label}_count={count}")
+            continue
+        horizon = label_rows[0]
+        expected_target = expected_targets[label]
+        if str(horizon.get("target_fe", "")) != str(expected_target):
+            failures.append(f"{prefix}:{label}_target_mismatch")
+        if str(horizon.get("observed_fe", "")) != str(expected_target):
+            failures.append(f"{prefix}:{label}_observed_fe_mismatch")
+        if horizon.get("horizon_status") != "complete":
+            failures.append(
+                f"{prefix}:{label}_horizon_status="
+                f"{horizon.get('horizon_status', '')}"
+            )
+    return failures
+
+
 def _car_actionability_coverage_failures(
     trace_rows: list[dict[str, object]],
     *,
@@ -2998,13 +3198,12 @@ def _car_actionability_coverage_failures(
 ) -> list[str]:
     """Require every pre-registered lane and reachable horizon exactly once."""
 
-    indexed: dict[tuple[str, str, str, str], list[dict[str, object]]] = {}
+    indexed: dict[tuple[str, str, str], list[dict[str, object]]] = {}
     for row in trace_rows:
         key = (
             str(row.get("problem_id", "")),
             str(row.get("seed", "")),
             str(row.get("lane_id", "")),
-            str(row.get("horizon_label", "")),
         )
         indexed.setdefault(key, []).append(row)
 
@@ -3016,38 +3215,12 @@ def _car_actionability_coverage_failures(
         for seed in seeds:
             for lane in audit_lanes:
                 prefix = f"{problem_id}/seed{seed}/{lane.lane_id}"
-                terminal_rows = indexed.get(
-                    (problem_id, str(seed), lane.lane_id, "terminal"),
-                    [],
-                )
-                if len(terminal_rows) != 1:
-                    failures.append(f"{prefix}:terminal_count={len(terminal_rows)}")
-                    continue
-                terminal = terminal_rows[0]
-                expected_labels = {"terminal"}
-                if terminal.get("plan_status") == "applied":
-                    try:
-                        checkpoint_fe = int(str(terminal.get("checkpoint_fe", "")))
-                        intervention_fe = int(str(terminal.get("actual_fe", "")))
-                        configured_max_fes = int(
-                            str(terminal.get("configured_max_fes", ""))
-                        )
-                    except ValueError:
-                        failures.append(f"{prefix}:invalid_horizon_metadata")
-                        continue
-                    for multiplier, label in zip(
-                        CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
-                        CAR_ACTIONABILITY_HORIZON_LABELS,
-                        strict=True,
-                    ):
-                        if checkpoint_fe + multiplier * intervention_fe < configured_max_fes:
-                            expected_labels.add(label)
-                for label in sorted(expected_labels):
-                    count = len(
-                        indexed.get((problem_id, str(seed), lane.lane_id, label), [])
+                failures.extend(
+                    _car_actionability_lane_semantic_failures(
+                        indexed.get((problem_id, str(seed), lane.lane_id), []),
+                        prefix=prefix,
                     )
-                    if count != 1:
-                        failures.append(f"{prefix}:{label}_count={count}")
+                )
     return failures
 
 
@@ -4927,8 +5100,10 @@ def _config_fingerprint(
             for lane in lanes
         ],
         "car_actionability_protocol": {
+            "version": CAR_ACTIONABILITY_PROTOCOL_VERSION,
             "action_semantics": "one_shot_writeback_then_canonical_continuation",
             "horizons": ["closure_1", "budget_3x", "budget_9x", "terminal"],
+            "terminal_semantics": "common_max_of_intervention_closure_and_cap_minus_tolerance_prefix_with_post_closure_gate",
         },
         "max_fes": int(max_fes),
         "mmes_restart": bool(mmes_restart),
@@ -5367,6 +5542,10 @@ def run_hcc_runtime_consumer_smoke(
             f"{row['problem_id']}/seed{row['seed']}/{row['horizon_label']}:{row['integrity_failures']}"
             for row in car_actionability_summary_rows
             if str(row.get("integrity_status")) != "pass"
+        )
+        car_actionability_summary_rows = _redact_car_actionability_summary_rows(
+            car_actionability_summary_rows,
+            car_actionability_integrity_failures,
         )
     if lane_profile == "paired_v33_v36_runtime_utility":
         results = [record["result"] for record in records]

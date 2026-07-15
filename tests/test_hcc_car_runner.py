@@ -421,6 +421,76 @@ def test_car_actionability_no_plan_has_zero_cost(tmp_path: Path) -> None:
     assert result.trace_base_row["plan_status"] == "not_applicable"
 
 
+def test_car_actionability_terminal_uses_common_absolute_fe_target() -> None:
+    base = {
+        "checkpoint_fe": "10",
+        "actual_fe": "5",
+        "plan_status": "applied",
+        "terminal_completion_tolerance_fe": "16",
+        "termination_reason": "population_complete_budget_endpoint",
+        "terminal_fe_shortfall": "",
+    }
+    longer = runner.finalize_car_actionability_trace(
+        trace_base_row=base,
+        fitness_record=[float(value) for value in range(100, 15, -1)],
+        max_fes=100,
+    )
+    shorter = runner.finalize_car_actionability_trace(
+        trace_base_row=base,
+        fitness_record=[float(value) for value in range(100, 16, -1)],
+        max_fes=100,
+    )
+    longer_terminal = next(
+        row for row in longer if row["horizon_label"] == "terminal"
+    )
+    shorter_terminal = next(
+        row for row in shorter if row["horizon_label"] == "terminal"
+    )
+
+    assert longer_terminal["target_fe"] == "84"
+    assert shorter_terminal["target_fe"] == "84"
+    assert longer_terminal["observed_fe"] == "84"
+    assert shorter_terminal["observed_fe"] == "84"
+    assert longer_terminal["best_error"] == shorter_terminal["best_error"]
+    assert longer_terminal["terminal_fe_shortfall"] == "15"
+    assert shorter_terminal["terminal_fe_shortfall"] == "16"
+    assert longer_terminal["horizon_status"] == "complete"
+    assert shorter_terminal["horizon_status"] == "complete"
+
+    early = runner.finalize_car_actionability_trace(
+        trace_base_row={**base, "termination_reason": "early_guard"},
+        fitness_record=[float(value) for value in range(100, 15, -1)],
+        max_fes=100,
+    )
+    assert next(row for row in early if row["horizon_label"] == "terminal")[
+        "horizon_status"
+    ] == "incomplete"
+
+
+def test_car_actionability_late_checkpoint_requires_post_closure_terminal() -> None:
+    rows = runner.finalize_car_actionability_trace(
+        trace_base_row={
+            "checkpoint_fe": "80",
+            "actual_fe": "10",
+            "plan_status": "applied",
+            "terminal_completion_tolerance_fe": "15",
+            "termination_reason": "population_complete_budget_endpoint",
+            "terminal_fe_shortfall": "0",
+        },
+        fitness_record=[float(value) for value in range(100, 0, -1)],
+        max_fes=100,
+    )
+
+    assert [row["horizon_label"] for row in rows] == ["closure_1", "terminal"]
+    assert [row["target_fe"] for row in rows] == ["90", "90"]
+    assert rows[0]["horizon_status"] == "complete"
+    assert rows[1]["horizon_status"] == "incomplete"
+    assert (
+        rows[1]["abstain_reason"]
+        == "terminal_target_has_no_post_intervention_continuation"
+    )
+
+
 def test_car_actionability_no_overlap_materializes_finite_terminal_checkpoint(
     monkeypatch,
     tmp_path: Path,
@@ -514,6 +584,7 @@ def test_car_actionability_no_overlap_materializes_finite_terminal_checkpoint(
     assert rows[0]["actual_fe"] == "0"
     assert float(rows[0]["checkpoint_fitness"]) == pytest.approx(100.0)
     assert rows[0]["prefix_state_fingerprint"]
+    assert int(rows[0]["target_fe"]) >= int(rows[0]["checkpoint_fe"])
 
 
 @pytest.mark.parametrize(

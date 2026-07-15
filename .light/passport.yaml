@@ -1,8 +1,8 @@
 project: arac
 pipeline: paired-runtime-utility-validation
 created: "2026-07-13T23:59"
-updated: "2026-07-15T14:31+08:00"
-current_stage: 27
+updated: "2026-07-15T15:52+08:00"
+current_stage: 28
 stages:
   - stage: 1
     skill: orchestrator/runtime-smoke
@@ -186,3 +186,10 @@ stages:
     artifacts: [src/arac/policy/oracle_actionability.py, scripts/hcc_smoke_runner.py, experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py, docs/design/car-actionability-audit-protocol.md, results/car_actionability_smoke_20260715_v5]
     gate: {type: confirm, result: PASS, notes: tracked 753 passed and 1 skipped; focused actionability/runtime-boundary 357 passed and 1 skipped; compileall/diff pass; 4/4 fresh 5k lanes; FE 4996..4999/5000 with 0 violations; AOB 38/38 unchanged and arm-paired; anti-leakage 16/16; provenance 4/4 complete with execution, AOB, and artifact hashes; actionability gate pass with zero intervention rows}
     gaps: [3M actionability audit has not started; no long-horizon utility or 13/24 claim is made from the 5k smoke]
+  - stage: 28
+    skill: debug-first/paired-runtime-utility-validation
+    input: Frozen commit 001d188 and first E2 seed1 fallback/candidate 3M actionability pilot
+    output: Integrity-visible v1 terminal mismatch diagnosis and v2 common-terminal absolute-FE estimand
+    artifacts: [results/car_actionability_pilot_E2_seed1_3m_20260715, docs/design/car-actionability-audit-protocol.md, scripts/hcc_smoke_runner.py, src/arac/policy/oracle_actionability.py, .light/handoff/S16-arac-actionability-v1-terminal-blocked.md]
+    gate: {type: confirm, result: WARN, notes: v1 pilot 2/2 fresh with FE 2999985..2999986 and zero overspend; prefix/action/CRN and closure/3x/9x pairs pass; natural terminal endpoints differ by 1 FE so terminal metrics are correctly blanked and gate blocked; v2 fixes terminal target at max(intervention closure, max_fes minus shared completion tolerance) with a strict post-closure gate; semantic coverage and resume independently recompute terminal/horizon integrity and global failure redacts all summary outcomes; focused runner/CLI 222 passed and 1 skipped; exp003/adapter 140 passed; tracked 765 passed and 1 skipped; compileall/diff pass}
+    gaps: [v2 requires a fresh post-commit 5k smoke and E2 seed1 3M rerun before the six-case matrix]
