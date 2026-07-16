@@ -12,6 +12,7 @@ from arac.backends.hcc import HccAobExecutionRequest, HccAobExecutionResult, bui
 from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
     LaneConfig,
     PRECISION_RESPONSE_ARMS,
+    PRECISION_RESPONSE_BRANCH_FIELDS,
     PRECISION_RESPONSE_CONFIG_PATH,
     PRECISION_RESPONSE_CONFIG_SHA256,
     PRECISION_RESPONSE_PREREGISTRATION_PATH,
@@ -22,6 +23,10 @@ from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
     parse_args,
 )
 import experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run as exp003
+from scripts.assemble_precision_response_pilot import (
+    assemble_precision_response_pilot,
+)
+from scripts.audit_precision_response_loop import audit_precision_response
 
 
 def _write_rows(path: Path, rows: list[dict[str, object]], fieldnames=None) -> None:
@@ -207,6 +212,120 @@ def test_triplet_audit_enforces_probe_and_abstain_parity(
     assert triplets[0]["a2_released"] == str(int(released))
     expected_tau = math.log(8.0 / (5.0 if released else 8.0))
     assert float(triplets[0]["tau_lease"]) == pytest.approx(expected_tau)
+
+
+def test_treatment_only_aggregate_preserves_gate_features(tmp_path: Path) -> None:
+    records = [
+        record
+        for record in _response_records(tmp_path, released=False)
+        if record["lane"].precision_response_arm != "a0_v37"
+    ]
+
+    branches, _, features, _, triplets, failures = _precision_response_raw_rows(
+        records
+    )
+
+    assert failures == []
+    assert len(branches) == 2
+    assert len(features) == 1
+    assert triplets == []
+
+
+def test_phased_response_assembly_builds_complete_triplet(tmp_path: Path) -> None:
+    records = _response_records(tmp_path / "raw", released=True)
+    coverage_records = [
+        record
+        for record in records
+        if record["lane"].precision_response_arm == "a0_v37"
+    ]
+    treatment_records = [
+        record
+        for record in records
+        if record["lane"].precision_response_arm != "a0_v37"
+    ]
+    coverage_branches, _, _, _, _, coverage_failures = (
+        _precision_response_raw_rows(coverage_records)
+    )
+    treatment_branches, _, treatment_features, _, _, treatment_failures = (
+        _precision_response_raw_rows(treatment_records)
+    )
+    assert coverage_failures == []
+    assert treatment_failures == []
+
+    coverage = tmp_path / "coverage"
+    treatment = tmp_path / "treatment"
+    coverage.mkdir()
+    treatment.mkdir()
+    common_manifest = {
+        "protocol_version": "precision-response-loop-v1",
+        "status": "pass",
+        "integrity_failures": [],
+        "config": {"path": "config", "sha256": "c" * 64},
+        "preregistration": {"path": "spec", "sha256": "p" * 64},
+        "forbidden_outputs": ["causal_risk_precision_model.json"],
+    }
+    for root, arms, branches in (
+        (coverage, ["a0_v37"], coverage_branches),
+        (treatment, ["a1_probe_only", "a2_probe_gated"], treatment_branches),
+    ):
+        (root / "precision_response_manifest.json").write_text(
+            json.dumps(
+                {**common_manifest, "arms": arms, "run_count": len(branches)}
+            ),
+            encoding="utf-8",
+        )
+        (root / "runtime_environment.json").write_text(
+            json.dumps({"status": "pass"}),
+            encoding="utf-8",
+        )
+        _write_rows(
+            root / "precision_response_branch_manifest.csv",
+            branches,
+            PRECISION_RESPONSE_BRANCH_FIELDS,
+        )
+        _write_rows(
+            root / "same_budget_ledger.csv",
+            [{"same_budget_violation": "0"}],
+        )
+        _write_rows(root / "aob_input_manifest.csv", [{"unchanged": "1"}])
+        _write_rows(
+            root / "anti_leakage_audit.csv",
+            [{"audit_status": "pass"}],
+        )
+        _write_rows(root / "precision_probe_audit.csv", [], ["empty"])
+        _write_rows(
+            root / "precision_lease_credit.csv",
+            [],
+            ["component_credit_status"],
+        )
+
+    feature_fields = list(treatment_features[0])
+    _write_rows(
+        coverage / "precision_probe_gate_features.csv",
+        [],
+        feature_fields,
+    )
+    _write_rows(
+        treatment / "precision_probe_gate_features.csv",
+        treatment_features,
+        feature_fields,
+    )
+    output = tmp_path / "assembled"
+
+    manifest = assemble_precision_response_pilot(coverage, treatment, output)
+
+    with (output / "precision_response_triplets.csv").open(
+        newline="",
+        encoding="utf-8",
+    ) as handle:
+        triplets = list(csv.DictReader(handle))
+    gate = audit_precision_response(output, resamples=10)
+    assert manifest["run_count"] == 3
+    assert len(triplets) == 1
+    assert triplets[0]["triplet_integrity"] == "1"
+    assert gate["integrity"]["status"] == "pass"
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        assemble_precision_response_pilot(coverage, treatment, output)
 
 
 def test_manifest_does_not_authorize_runtime_model() -> None:

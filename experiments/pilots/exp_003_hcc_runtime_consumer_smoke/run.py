@@ -2133,6 +2133,88 @@ def _precision_response_artifact_rows(
     return _read_csv_rows(path)
 
 
+def _precision_response_triplet_rows(
+    branches: list[dict[str, str]],
+) -> tuple[list[dict[str, str]], list[str]]:
+    grouped: dict[tuple[str, int], dict[str, dict[str, str]]] = {}
+    for branch in branches:
+        grouped.setdefault(
+            (branch["problem_id"], int(branch["seed"])),
+            {},
+        )[branch["response_arm"]] = branch
+
+    triplets: list[dict[str, str]] = []
+    failures: list[str] = []
+    for (problem_id, seed), by_arm in sorted(grouped.items()):
+        if not set(PRECISION_RESPONSE_ARMS).issubset(by_arm):
+            continue
+        a0, a1, a2 = (
+            by_arm["a0_v37"],
+            by_arm["a1_probe_only"],
+            by_arm["a2_probe_gated"],
+        )
+        prefix_match = len(
+            {row["prefix_record_sha256"] for row in (a0, a1, a2)}
+        ) == 1
+        decision_match = len({row["decision_id"] for row in (a0, a1, a2)}) == 1
+        probe_match = all(
+            a1[field] == a2[field]
+            for field in (
+                "probe_seed",
+                "probe_fe",
+                "gate_state_sha256",
+                "gate_would_release",
+            )
+        )
+        gate_match = a1["gate_state_sha256"] == a2["gate_state_sha256"]
+        terminal_complete = all(
+            row["terminal_status"] == "complete" for row in (a0, a1, a2)
+        )
+        applicable = all(
+            row["decision_status"] == "applicable" for row in (a0, a1, a2)
+        )
+        a2_released = a2["lease_applied"] == "1"
+        a0_error = max(float(a0["terminal_error"]), 1e-300)
+        a1_error = max(float(a1["terminal_error"]), 1e-300)
+        a2_error = max(float(a2["terminal_error"]), 1e-300)
+        integrity = bool(
+            prefix_match
+            and decision_match
+            and probe_match
+            and gate_match
+            and terminal_complete
+            and (a2_released or a1_error == a2_error)
+        )
+        triplets.append(
+            {
+                "problem_id": problem_id,
+                "seed": str(seed),
+                "triplet_integrity": str(int(integrity)),
+                "applicable": str(int(applicable)),
+                "prefix_match": str(int(prefix_match)),
+                "decision_match": str(int(decision_match)),
+                "probe_match": str(int(probe_match)),
+                "gate_match": str(int(gate_match)),
+                "a2_released": str(int(a2_released)),
+                "a0_error": f"{a0_error:.17e}",
+                "a1_error": f"{a1_error:.17e}",
+                "a2_error": f"{a2_error:.17e}",
+                "tau_probe": f"{math.log(a0_error / a1_error):.17e}",
+                "tau_lease": f"{math.log(a1_error / a2_error):.17e}",
+                "tau_total": f"{math.log(a0_error / a2_error):.17e}",
+                "probe_catastrophic": str(int(a1_error >= 1.2 * a0_error)),
+                "lease_catastrophic": str(int(a2_error >= 1.2 * a1_error)),
+                "total_catastrophic": str(int(a2_error >= 1.2 * a0_error)),
+                "lease_material_positive_1pct": str(
+                    int(a2_error <= 0.99 * a1_error)
+                ),
+            }
+        )
+        if not integrity:
+            failures.append(f"{problem_id}:{seed}:triplet_integrity_failed")
+    return triplets, failures
+
+
 def _precision_response_raw_rows(
     records: list[dict[str, object]],
 ) -> tuple[
@@ -2147,7 +2229,6 @@ def _precision_response_raw_rows(
     audit_rows: list[dict[str, str]] = []
     gate_features: list[dict[str, str]] = []
     lease_rows: list[dict[str, str]] = []
-    triplets: list[dict[str, str]] = []
     failures: list[str] = []
     grouped: dict[tuple[str, int], dict[str, dict[str, str]]] = {}
     gate_by_key: dict[tuple[str, int, str], list[dict[str, str]]] = {}
@@ -2215,61 +2296,38 @@ def _precision_response_raw_rows(
                 f"{problem_id}:{seed}:missing_arms:{','.join(sorted(missing))}"
             )
             continue
-        if not set(PRECISION_RESPONSE_ARMS).issubset(by_arm):
-            continue
-        a0, a1, a2 = (
-            by_arm["a0_v37"],
-            by_arm["a1_probe_only"],
-            by_arm["a2_probe_gated"],
-        )
-        prefix_match = len({row["prefix_record_sha256"] for row in (a0, a1, a2)}) == 1
-        decision_match = len({row["decision_id"] for row in (a0, a1, a2)}) == 1
-        probe_match = all(
-            a1[field] == a2[field]
-            for field in ("probe_seed", "probe_fe", "gate_state_sha256", "gate_would_release")
-        )
-        gate_match = a1["gate_state_sha256"] == a2["gate_state_sha256"]
-        terminal_complete = all(row["terminal_status"] == "complete" for row in (a0, a1, a2))
-        applicable = all(row["decision_status"] == "applicable" for row in (a0, a1, a2))
-        a2_released = a2["lease_applied"] == "1"
-        a0_error = max(float(a0["terminal_error"]), 1e-300)
-        a1_error = max(float(a1["terminal_error"]), 1e-300)
-        a2_error = max(float(a2["terminal_error"]), 1e-300)
-        integrity = bool(
-            prefix_match and decision_match and probe_match and gate_match
-            and terminal_complete and (a2_released or a1_error == a2_error)
-        )
-        triplets.append(
-            {
-                "problem_id": problem_id,
-                "seed": str(seed),
-                "triplet_integrity": str(int(integrity)),
-                "applicable": str(int(applicable)),
-                "prefix_match": str(int(prefix_match)),
-                "decision_match": str(int(decision_match)),
-                "probe_match": str(int(probe_match)),
-                "gate_match": str(int(gate_match)),
-                "a2_released": str(int(a2_released)),
-                "a0_error": f"{a0_error:.17e}",
-                "a1_error": f"{a1_error:.17e}",
-                "a2_error": f"{a2_error:.17e}",
-                "tau_probe": f"{math.log(a0_error / a1_error):.17e}",
-                "tau_lease": f"{math.log(a1_error / a2_error):.17e}",
-                "tau_total": f"{math.log(a0_error / a2_error):.17e}",
-                "probe_catastrophic": str(int(a1_error >= 1.2 * a0_error)),
-                "lease_catastrophic": str(int(a2_error >= 1.2 * a1_error)),
-                "total_catastrophic": str(int(a2_error >= 1.2 * a0_error)),
-                "lease_material_positive_1pct": str(int(a2_error <= 0.99 * a1_error)),
-            }
-        )
-        if not integrity:
-            failures.append(f"{problem_id}:{seed}:triplet_integrity_failed")
-        a1_features = gate_by_key.get((problem_id, seed, "a1_probe_only"), [])
-        a2_features = gate_by_key.get((problem_id, seed, "a2_probe_gated"), [])
-        if applicable and a1_features != a2_features:
-            failures.append(f"{problem_id}:{seed}:gate_feature_mismatch")
-        if a1_features:
-            gate_features.extend(a1_features)
+        if {"a1_probe_only", "a2_probe_gated"}.issubset(by_arm):
+            a1 = by_arm["a1_probe_only"]
+            a2 = by_arm["a2_probe_gated"]
+            treatment_applicable = all(
+                row["decision_status"] == "applicable" for row in (a1, a2)
+            )
+            treatment_probe_match = all(
+                a1[field] == a2[field]
+                for field in (
+                    "probe_seed",
+                    "probe_fe",
+                    "gate_state_sha256",
+                    "gate_would_release",
+                )
+            )
+            if treatment_applicable and not treatment_probe_match:
+                failures.append(f"{problem_id}:{seed}:treatment_probe_mismatch")
+            a1_features = gate_by_key.get(
+                (problem_id, seed, "a1_probe_only"),
+                [],
+            )
+            a2_features = gate_by_key.get(
+                (problem_id, seed, "a2_probe_gated"),
+                [],
+            )
+            if treatment_applicable and a1_features != a2_features:
+                failures.append(f"{problem_id}:{seed}:gate_feature_mismatch")
+            if a1_features:
+                gate_features.extend(a1_features)
+
+    triplets, triplet_failures = _precision_response_triplet_rows(branches)
+    failures.extend(triplet_failures)
 
     return branches, audit_rows, gate_features, lease_rows, triplets, failures
 
