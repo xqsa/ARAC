@@ -60,6 +60,7 @@ from src.arac.policy.search_state_policy import (
     FIRST_PROBE_FRACTION,
     RESUME_PHASE_I_SEARCH_STATE,
     SEARCH_STATE_BLOCKED,
+    SEARCH_STATE_INITIAL_PROBE,
     PreHoldEvidence,
     SearchStateEvidence,
     SearchStateSchedulerState,
@@ -114,6 +115,20 @@ from arac.policy.causal_risk_scheduler import (
     PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
     UTILITY_FEATURE_NAMES,
     PreActionUtilityState,
+)
+from arac.policy.precision_response_probe import (
+    PRECISION_PROBE_GATE_FIELDS,
+    PRECISION_RESPONSE_PROTOCOL_VERSION,
+    PrecisionProbeConfig,
+    PrecisionProbeGateDecision,
+    PrecisionProbeGateState,
+    build_precision_probe_gate_state,
+    decide_precision_probe,
+    precision_probe_config_from_mapping,
+)
+from arac.backends.hcc_cma_proposals import (
+    PairedHccCMAProbeResult,
+    run_paired_hcc_cma_probe,
 )
 from src.arac.policy.trajectory_guard import (
     RecoveryCheckpoint,
@@ -384,6 +399,21 @@ V40_ACTION_TRACE_FIELDS = [
 PRECISION_CAUSAL_ACTION_TRACE_FIELDS = [
     *V40_ACTION_TRACE_FIELDS,
     *PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
+]
+PRECISION_RESPONSE_ACTION_DIAGNOSTIC_FIELDS = [
+    "response_arm",
+    "gate_state_sha256",
+    "lease_sigma",
+    "lease_diversity",
+    "review_normal_sigma_restored",
+    "review_diversity_recovery",
+    "review_progress_delta",
+    "review_positive",
+    "renewal_enabled",
+]
+PRECISION_RESPONSE_ACTION_TRACE_FIELDS = [
+    *V40_ACTION_TRACE_FIELDS,
+    *PRECISION_RESPONSE_ACTION_DIAGNOSTIC_FIELDS,
 ]
 LEGACY_ACTION_TRACE_FIELDS = [
     field
@@ -761,6 +791,8 @@ class SmokeConfig:
     car_candidate_mode: str = "graph"
     car_actionability_arm: str = "off"
     precision_causal_arm: str = "off"
+    precision_response_arm: str = "off"
+    offline_frozen_replay: bool = False
 
 
 @dataclass(frozen=True)
@@ -797,6 +829,82 @@ class PrecisionCausalDecisionSnapshot:
     random_descriptor_sha256: str
     normal_sigma: float
     candidate_sigma: float
+
+
+PRECISION_RESPONSE_CONFIG_PATH = (
+    ARAC_REPO_ROOT / "configs" / "precision_response_loop_v1.json"
+)
+PRECISION_RESPONSE_TRACE_FIELDS = [
+    "protocol_version",
+    "fresh_optimizer_execution",
+    "problem_id",
+    "seed",
+    "response_arm",
+    "decision_id",
+    "decision_status",
+    "not_applicable_reason",
+    "decision_fe",
+    "outer_iter",
+    "group_index",
+    "component_id",
+    "prefix_record_sha256",
+    "checkpoint_candidate_sha256",
+    "probe_seed",
+    "probe_executed",
+    "probe_fe",
+    "normal_sigma",
+    "precision_sigma",
+    "normal_direction_sha256",
+    "precision_direction_sha256",
+    "gate_state_sha256",
+    "gate_would_release",
+    "lease_applied",
+    "gate_reason",
+    "main_requested_fe",
+    "main_actual_fe",
+    "intervention_end_fe",
+    "delayed_credit_status",
+    "terminal_target_fe",
+    "terminal_observed_fe",
+    "terminal_error",
+    "terminal_status",
+]
+PRECISION_PROBE_AUDIT_FIELDS = [
+    "protocol_version",
+    "problem_id",
+    "seed",
+    "response_arm",
+    "decision_id",
+    "outer_iter",
+    "group_index",
+    "component_id",
+    "pair_index",
+    "normal_objective",
+    "precision_objective",
+    "normal_candidate_sha256",
+    "precision_candidate_sha256",
+    "normal_direction_sha256",
+    "precision_direction_sha256",
+    "boundary_mode",
+]
+PRECISION_PROBE_GATE_FEATURE_FIELDS = ["decision_id", *PRECISION_PROBE_GATE_FIELDS]
+PRECISION_LEASE_CREDIT_FIELDS = [
+    *COMPONENT_CREDIT_TRACE_FIELDS,
+    "response_arm",
+    "gate_state_sha256",
+    "lease_sigma",
+    "lease_diversity",
+    "review_normal_sigma_restored",
+    "review_diversity_recovery",
+    "review_progress_delta",
+    "review_positive",
+    "renewal_enabled",
+]
+
+
+def load_precision_response_config() -> PrecisionProbeConfig:
+    payload = json.loads(PRECISION_RESPONSE_CONFIG_PATH.read_text(encoding="utf-8"))
+    return precision_probe_config_from_mapping(payload)
 
 
 @dataclass(frozen=True)
@@ -3159,8 +3267,11 @@ def _write_action_trace(
     include_cma_sigma_fields: bool = False,
     include_component_credit_fields: bool = False,
     include_precision_causal_fields: bool = False,
+    include_precision_response_fields: bool = False,
 ) -> None:
-    if include_precision_causal_fields:
+    if include_precision_response_fields:
+        fields = PRECISION_RESPONSE_ACTION_TRACE_FIELDS
+    elif include_precision_causal_fields:
         fields = PRECISION_CAUSAL_ACTION_TRACE_FIELDS
     elif include_component_credit_fields:
         fields = V40_ACTION_TRACE_FIELDS
@@ -3890,6 +4001,7 @@ def _write_budget_summary(
     rescue_fe: int = 0,
     refresh_fe: int = 0,
     search_state_fe: int = 0,
+    precision_probe_fe: int = 0,
     separable_continuation_fe: int = 0,
 ) -> None:
     budget_aligned_fe = min(max_fes, fitness_record_fe)
@@ -3899,6 +4011,7 @@ def _write_budget_summary(
         + rescue_fe
         + refresh_fe
         + search_state_fe
+        + precision_probe_fe
         + separable_continuation_fe
     )
     overhead_fe = max(0, fitness_record_fe - stage_fe)
@@ -3920,7 +4033,11 @@ def _write_budget_summary(
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=BUDGET_SUMMARY_FIELDS)
+        fieldnames = list(BUDGET_SUMMARY_FIELDS)
+        if precision_probe_fe > 0:
+            fieldnames.append("precision_probe_fe")
+            row["precision_probe_fe"] = str(precision_probe_fe)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerow(row)
 
@@ -4977,6 +5094,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         config.arac_action
     ):
         raise ValueError("precision causal logging requires the frozen v37 action")
+    if config.precision_response_arm not in {
+        "off",
+        "a0_v37",
+        "a1_probe_only",
+        "a2_probe_gated",
+    }:
+        raise ValueError("unsupported precision response arm")
+    if config.precision_response_arm != "off" and not is_evidence_action_controller_v37(
+        config.arac_action
+    ):
+        raise ValueError("precision response logging requires the frozen v37 action")
+    if config.precision_response_arm != "off" and config.precision_causal_arm != "off":
+        raise ValueError("precision response and causal logging arms are exclusive")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -5182,6 +5312,26 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         str, list[tuple[int, float]]
     ] = {}
     precision_current_component_disagreements: dict[str, list[float]] = {}
+    precision_response_enabled = config.precision_response_arm != "off"
+    precision_response_config = (
+        load_precision_response_config() if precision_response_enabled else None
+    )
+    precision_response_attempted = False
+    precision_response_saw_overlap = False
+    precision_response_last_reason = ""
+    precision_response_trace_row: dict[str, str] | None = None
+    precision_response_gate_state: PrecisionProbeGateState | None = None
+    precision_response_gate_decision: PrecisionProbeGateDecision | None = None
+    precision_response_probe_result: PairedHccCMAProbeResult | None = None
+    precision_response_probe_audit_rows: list[dict[str, str]] = []
+    precision_response_probe_fe = 0
+    precision_response_lease_applied = False
+    precision_response_lease_row: dict[str, str] | None = None
+    precision_response_lease_group_index: int | None = None
+    precision_response_lease_diversity = 0.0
+    precision_response_prior_group_progress = 0.0
+    precision_response_group_progress: dict[int, float] = {}
+    precision_response_group_visits = [0 for _ in grouping_result]
     group_stagnation_counts = [0 for _ in grouping_result]
     bipop_global_cooldown = 0
     bipop_restart_count = 0
@@ -5200,7 +5350,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             lower=float(info["lower"]),
             upper=float(info["upper"]),
         )
-        if uses_component_credit_state(config.arac_action) or precision_causal_enabled
+        if (
+            uses_component_credit_state(config.arac_action)
+            or precision_causal_enabled
+            or precision_response_enabled
+        )
         else None
     )
 
@@ -5355,6 +5509,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         optimized_any_group = False
         outer_stagnation_streak = 0
         for index, dims in enumerate(grouping_result):
+            precision_response_review_current_group = False
             population_size = population_sizes[index]
             if (
                 config.budget_accounting == "strict"
@@ -5365,11 +5520,16 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
             if component_credit_trace is not None:
-                component_credit_trace.resolve_group_revisit(
+                resolved_component_actions = component_credit_trace.resolve_group_revisit(
                     group_index=index,
                     resolution_fe=current_fitness_evaluations(fun),
                     current_fitness=original_fitness,
                     current_candidate=best_individual,
+                )
+                precision_response_review_current_group = bool(
+                    resolved_component_actions
+                    and precision_response_lease_row is not None
+                    and precision_response_lease_group_index == index
                 )
             if controller_v31_run_state is not None:
                 controller_v31_run_state.observe_pending_action_trust(
@@ -5630,8 +5790,293 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             audit_arm=config.precision_causal_arm,
                         )
                         precision_causal_attempted = True
+            precision_response_lease_active = False
+            precision_response_candidate = False
+            precision_response_revisit_cap = None
+            precision_response_lease_eligibility = None
+            if (
+                precision_response_enabled
+                and not precision_response_attempted
+                and precision_response_config is not None
+                and controller_v31_run_state is not None
+                and controller_v31_run_state.v37_enabled
+                and not controller_v31_run_state.dense_overlap
+                and outer_iter >= 1
+                and precision_response_group_visits[index] > 0
+                and controller_v31_run_state.search_state_scheduler_state.phase
+                in {SEARCH_STATE_INITIAL_PROBE, SEARCH_STATE_BLOCKED}
+                and controller_v31_run_state.pending_trajectory_recovery is None
+                and controller_v31_run_state.pending_action_trust is None
+                and component_credit_trace is not None
+            ):
+                response_component = component_credit_trace.topology.for_group(index)
+                precision_response_saw_overlap = bool(
+                    precision_response_saw_overlap or response_component.shared_variables
+                )
+                if not response_component.shared_variables:
+                    precision_response_last_reason = (
+                        "no_shared_overlap_component_candidate"
+                    )
+                else:
+                    adjusted_optimizer_budget = bounded_population_budget(
+                        requested_fes=max(sub_fes, population_size),
+                        remaining_fes=(
+                            cc_budget_limit_fes
+                            - primary_evaluations_before
+                            - precision_response_config.probe_fe
+                        ),
+                        population_size=population_size,
+                    )
+                    if adjusted_optimizer_budget < population_size:
+                        precision_response_last_reason = (
+                            "probe_reserve_leaves_no_complete_group_block"
+                        )
+                    else:
+                        precision_response_revisit_cap = calculate_scheduler_revisit_cap(
+                            sweep_start_fe=sweep_fes_before,
+                            decision_fe=(
+                                primary_evaluations_before
+                                + precision_response_config.probe_fe
+                            ),
+                            cc_budget_limit_fe=cc_budget_limit_fes,
+                            current_group_index=index,
+                            current_sweep_group_budget_fe=sub_fes,
+                            current_optimizer_budget_fe=adjusted_optimizer_budget,
+                            group_population_sizes=tuple(population_sizes),
+                        )
+                        precision_response_lease_eligibility = (
+                            component_credit_trace.component_lease_eligibility(
+                                group_index=index,
+                                scheduler_revisit_cap=precision_response_revisit_cap,
+                            )
+                        )
+                        if not precision_response_revisit_cap.reachable:
+                            precision_response_last_reason = (
+                                precision_response_revisit_cap.reason
+                            )
+                        elif not precision_response_lease_eligibility.selected:
+                            precision_response_last_reason = (
+                                precision_response_lease_eligibility.reason
+                            )
+                        else:
+                            precision_response_candidate = True
+                            precision_response_attempted = True
+                            response_decision_fe = primary_evaluations_before
+                            response_prefix_sha256 = _fitness_record_sha256(
+                                tuple(float(value) for value in fun.fitness_record)
+                            )
+                            response_checkpoint_sha256 = _canonical_payload_sha256(
+                                tuple(float(value) for value in best_individual)
+                            )
+                            response_decision_id = _canonical_payload_sha256(
+                                {
+                                    "protocol": PRECISION_RESPONSE_PROTOCOL_VERSION,
+                                    "prefix": response_prefix_sha256,
+                                    "checkpoint": response_checkpoint_sha256,
+                                    "decision_fe": response_decision_fe,
+                                }
+                            )
+                            response_normal_sigma = refine_sigma_for_action(
+                                config.arac_action,
+                                config.sigma,
+                                controller_v31_run_state=controller_v31_run_state,
+                                precision_reanchor_active=False,
+                            )
+                            response_precision_sigma = refine_sigma_for_action(
+                                config.arac_action,
+                                config.sigma,
+                                controller_v31_run_state=controller_v31_run_state,
+                                precision_reanchor_active=True,
+                            )
+                            response_probe_seed = derive_optimizer_seed(
+                                0 if config.seed is None else config.seed,
+                                fun_name,
+                                fun_id,
+                                97,
+                                outer_iter * sub_num + index + 1,
+                            )
+                            precision_response_prior_group_progress = (
+                                precision_response_group_progress.get(index, 0.0)
+                            )
+                            precision_response_trace_row = {
+                                "protocol_version": PRECISION_RESPONSE_PROTOCOL_VERSION,
+                                "fresh_optimizer_execution": "1",
+                                "problem_id": problem_id,
+                                "seed": "" if config.seed is None else str(config.seed),
+                                "response_arm": config.precision_response_arm,
+                                "decision_id": response_decision_id,
+                                "decision_status": "applicable",
+                                "not_applicable_reason": "",
+                                "decision_fe": str(response_decision_fe),
+                                "outer_iter": str(outer_iter),
+                                "group_index": str(index),
+                                "component_id": response_component.component_id,
+                                "prefix_record_sha256": response_prefix_sha256,
+                                "checkpoint_candidate_sha256": (
+                                    response_checkpoint_sha256
+                                ),
+                                "probe_seed": str(response_probe_seed),
+                                "probe_executed": "0",
+                                "probe_fe": "0",
+                                "normal_sigma": f"{response_normal_sigma:.17e}",
+                                "precision_sigma": f"{response_precision_sigma:.17e}",
+                                "normal_direction_sha256": "",
+                                "precision_direction_sha256": "",
+                                "gate_state_sha256": "",
+                                "gate_would_release": "0",
+                                "lease_applied": "0",
+                                "gate_reason": "a0_shadow_opportunity",
+                                "main_requested_fe": str(optimizer_budget),
+                                "main_actual_fe": "",
+                                "intervention_end_fe": "",
+                                "delayed_credit_status": "not_released",
+                            }
+                            if config.precision_response_arm != "a0_v37":
+                                response_context = best_individual.copy()
+
+                                def response_objective(x_batch, dims=dims):
+                                    return fun(combine(x_batch, response_context, dims))
+
+                                precision_response_probe_result = (
+                                    run_paired_hcc_cma_probe(
+                                        fitness_function=response_objective,
+                                        mean=cc_mean,
+                                        lower=float(info["lower"]),
+                                        upper=float(info["upper"]),
+                                        normal_sigma=response_normal_sigma,
+                                        precision_sigma=response_precision_sigma,
+                                        seed=response_probe_seed,
+                                        pair_count=precision_response_config.pair_count,
+                                    )
+                                )
+                                if (
+                                    precision_response_probe_result.total_fe
+                                    != precision_response_config.probe_fe
+                                ):
+                                    raise RuntimeError(
+                                        "precision response probe FE contract drift"
+                                    )
+                                precision_response_probe_fe += (
+                                    precision_response_probe_result.total_fe
+                                )
+                                sum_fes += precision_response_probe_result.total_fe
+                                optimizer_budget = adjusted_optimizer_budget
+                                primary_evaluations_before = (
+                                    current_fitness_evaluations(fun)
+                                )
+                                normal_probe = precision_response_probe_result.normal
+                                precision_probe = (
+                                    precision_response_probe_result.precision
+                                )
+                                precision_response_gate_state = (
+                                    build_precision_probe_gate_state(
+                                        normal_errors=normal_probe.objectives,
+                                        precision_errors=precision_probe.objectives,
+                                        checkpoint_error=original_fitness,
+                                        direction_hash_match=(
+                                            precision_response_probe_result.direction_hash_match
+                                        ),
+                                        standardized_diversity_ratio=(
+                                            precision_response_probe_result.standardized_diversity_ratio
+                                        ),
+                                        normal_boundary_hit_count=(
+                                            normal_probe.boundary_hit_count
+                                        ),
+                                        precision_boundary_hit_count=(
+                                            precision_probe.boundary_hit_count
+                                        ),
+                                        config=precision_response_config,
+                                    )
+                                )
+                                precision_response_gate_decision = decide_precision_probe(
+                                    precision_response_gate_state,
+                                    precision_response_config,
+                                )
+                                precision_response_lease_active = bool(
+                                    config.precision_response_arm == "a2_probe_gated"
+                                    and precision_response_gate_decision.release
+                                )
+                                precision_response_trace_row.update(
+                                    {
+                                        "probe_executed": "1",
+                                        "probe_fe": str(
+                                            precision_response_probe_result.total_fe
+                                        ),
+                                        "normal_direction_sha256": (
+                                            normal_probe.direction_sha256
+                                        ),
+                                        "precision_direction_sha256": (
+                                            precision_probe.direction_sha256
+                                        ),
+                                        "gate_state_sha256": (
+                                            precision_response_gate_decision.state_sha256
+                                        ),
+                                        "gate_would_release": str(
+                                            int(precision_response_gate_decision.release)
+                                        ),
+                                        "lease_applied": str(
+                                            int(precision_response_lease_active)
+                                        ),
+                                        "gate_reason": (
+                                            precision_response_gate_decision.reason
+                                        ),
+                                        "main_requested_fe": str(optimizer_budget),
+                                        "delayed_credit_status": (
+                                            "pending"
+                                            if precision_response_lease_active
+                                            else "not_released"
+                                        ),
+                                    }
+                                )
+                                best_probe = min(
+                                    (normal_probe, precision_probe),
+                                    key=lambda arm: arm.best_objective,
+                                )
+                                if best_probe.best_objective < guarded_incumbent_fitness:
+                                    guarded_probe = response_context.copy()
+                                    guarded_probe[dims] = best_probe.best_candidate
+                                    guarded_incumbent = guarded_probe
+                                    guarded_incumbent_fitness = best_probe.best_objective
+                                for pair_index in range(
+                                    precision_response_config.pair_count
+                                ):
+                                    precision_response_probe_audit_rows.append(
+                                        {
+                                            "protocol_version": PRECISION_RESPONSE_PROTOCOL_VERSION,
+                                            "problem_id": problem_id,
+                                            "seed": "" if config.seed is None else str(config.seed),
+                                            "response_arm": config.precision_response_arm,
+                                            "decision_id": response_decision_id,
+                                            "outer_iter": str(outer_iter),
+                                            "group_index": str(index),
+                                            "component_id": response_component.component_id,
+                                            "pair_index": str(pair_index),
+                                            "normal_objective": f"{normal_probe.objectives[pair_index]:.17e}",
+                                            "precision_objective": f"{precision_probe.objectives[pair_index]:.17e}",
+                                            "normal_candidate_sha256": _canonical_payload_sha256(
+                                                tuple(
+                                                    float(value)
+                                                    for value in normal_probe.candidates[pair_index]
+                                                )
+                                            ),
+                                            "precision_candidate_sha256": _canonical_payload_sha256(
+                                                tuple(
+                                                    float(value)
+                                                    for value in precision_probe.candidates[pair_index]
+                                                )
+                                            ),
+                                            "normal_direction_sha256": normal_probe.direction_sha256,
+                                            "precision_direction_sha256": precision_probe.direction_sha256,
+                                            "boundary_mode": precision_response_config.boundary_mode,
+                                        }
+                                    )
+                            scheduler_revisit_cap = precision_response_revisit_cap
+                            component_lease_eligibility = (
+                                precision_response_lease_eligibility
+                            )
             precision_reanchor_active = bool(
-                precision_causal_action_active
+                precision_response_lease_active
+                or precision_causal_action_active
                 or (
                     precision_reanchor_requested
                     and (
@@ -5664,7 +6109,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             cma_batch_diversities: list[float] = []
 
             def objective_function(x_batch, dims=dims):
-                if precision_causal_enabled:
+                if precision_causal_enabled or precision_response_enabled:
                     cma_batch_diversities.append(
                         offspring_diversity_ratio(
                             x_batch,
@@ -5707,7 +6152,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
             cc_phase_fe += primary_cc_fe
             sum_fes += primary_cc_fe
-            if precision_causal_enabled:
+            if precision_causal_enabled or precision_response_enabled:
                 diagnostic = summarize_cma_trace_only_diagnostic(
                     objective_values=tuple(
                         float(value)
@@ -5733,6 +6178,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 precision_causal_requested_fe = optimizer_budget
                 precision_causal_actual_fe = primary_cc_fe
                 precision_causal_intervention_end_fe = current_fitness_evaluations(fun)
+            if precision_response_candidate and precision_response_trace_row is not None:
+                precision_response_trace_row.update(
+                    {
+                        "main_actual_fe": str(primary_cc_fe),
+                        "intervention_end_fe": str(current_fitness_evaluations(fun)),
+                    }
+                )
             cma_sigma_terminal: float | None = None
             cma_sigma_next_factor: float | None = None
             cma_restart_count: int | None = None
@@ -5773,6 +6225,73 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             trajectory_mean_cache[int(variable_index)] = float(accepted_mean[local_index])
             else:
                 current_delta = 0.0
+            response_block_progress = normalized_gain_utility(
+                original_fitness,
+                original_fitness - current_delta,
+                primary_cc_fe,
+            )
+            if precision_response_review_current_group and precision_response_lease_row is not None:
+                normal_review_sigma = refine_sigma_for_action(
+                    config.arac_action,
+                    config.sigma,
+                    controller_v31_run_state=controller_v31_run_state,
+                    precision_reanchor_active=False,
+                )
+                sigma_restored = math.isclose(
+                    cc_sigma,
+                    normal_review_sigma,
+                    rel_tol=0.0,
+                    abs_tol=1e-15,
+                )
+                review_diversity = (
+                    float(sum(cma_batch_diversities) / len(cma_batch_diversities))
+                    if cma_batch_diversities
+                    else 0.0
+                )
+                diversity_recovery = review_diversity / max(
+                    2.0 * precision_response_lease_diversity,
+                    1e-300,
+                )
+                progress_delta = (
+                    response_block_progress - precision_response_prior_group_progress
+                )
+                component_gain = float(
+                    precision_response_lease_row.get("component_gain") or "-inf"
+                )
+                neighbor_gain = float(
+                    precision_response_lease_row.get("component_neighbor_gain")
+                    or "-inf"
+                )
+                overwrite_text = precision_response_lease_row.get(
+                    "shared_var_overwrite_rate",
+                    "",
+                )
+                not_overwritten = not overwrite_text or float(overwrite_text) <= 0.0
+                review_positive = bool(
+                    component_gain > 0.0
+                    and neighbor_gain >= 0.0
+                    and not_overwritten
+                    and sigma_restored
+                    and diversity_recovery >= 0.8
+                    and progress_delta > 0.0
+                )
+                precision_response_lease_row.update(
+                    {
+                        "review_normal_sigma_restored": str(int(sigma_restored)),
+                        "review_diversity_recovery": f"{diversity_recovery:.17e}",
+                        "review_progress_delta": f"{progress_delta:.17e}",
+                        "review_positive": str(int(review_positive)),
+                    }
+                )
+                if precision_response_trace_row is not None:
+                    precision_response_trace_row["delayed_credit_status"] = (
+                        "review_positive_no_renewal"
+                        if review_positive
+                        else "review_negative_no_renewal"
+                    )
+                precision_response_lease_group_index = None
+            if not precision_response_lease_active:
+                precision_response_group_progress[index] = response_block_progress
             if precision_reanchor_active or component_lease_eligibility is not None:
                 normal_refine_sigma = (
                     float(config.sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
@@ -5866,11 +6385,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             ),
                         }
                     )
+                if precision_response_candidate:
+                    precision_trace_row["component_precision_consumed"] = str(
+                        int(precision_response_lease_active)
+                    )
                 action_trace_rows.append(precision_trace_row)
                 if component_credit_trace is not None and precision_reanchor_active:
                     component_credit_trace.register_search_action(
                         precision_trace_row,
-                        action_name=POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
+                        action_name=(
+                            "precision_response_lease"
+                            if precision_response_lease_active
+                            else POST_RETIREMENT_PRECISION_REANCHOR_ACTION
+                        ),
                         outer_iter=outer_iter,
                         group_index=index,
                         decision_fe=primary_evaluations_before,
@@ -5879,10 +6406,39 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         post_action_fitness=original_fitness - current_delta,
                         pre_action_candidate=original_best,
                         post_action_candidate=best_individual,
-                        require_component_unlocked=is_evidence_action_controller_v41(
-                            config.arac_action
+                        require_component_unlocked=(
+                            precision_response_lease_active
+                            or is_evidence_action_controller_v41(config.arac_action)
                         ),
                     )
+                    if precision_response_lease_active:
+                        precision_response_lease_applied = True
+                        precision_response_lease_group_index = index
+                        precision_response_lease_diversity = (
+                            float(
+                                sum(cma_batch_diversities)
+                                / max(1, len(cma_batch_diversities))
+                            )
+                        )
+                        precision_trace_row.update(
+                            {
+                                "response_arm": config.precision_response_arm,
+                                "gate_state_sha256": (
+                                    ""
+                                    if precision_response_gate_decision is None
+                                    else precision_response_gate_decision.state_sha256
+                                ),
+                                "lease_sigma": f"{cc_sigma:.17e}",
+                                "lease_diversity": f"{precision_response_lease_diversity:.17e}",
+                                "review_normal_sigma_restored": "",
+                                "review_diversity_recovery": "",
+                                "review_progress_delta": "",
+                                "review_positive": "",
+                                "renewal_enabled": "0",
+                            }
+                        )
+                        precision_response_lease_row = precision_trace_row
+            precision_response_group_visits[index] += 1
             if (
                 controller_v31_run_state is not None
                 and controller_v31_run_state.v39_enabled
@@ -7566,6 +8122,142 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             fieldnames=PRECISION_CAUSAL_TRACE_FIELDS,
             rows=[precision_trace_row],
         )
+    if precision_response_enabled:
+        if precision_response_trace_row is None:
+            response_reason = (
+                "no_overlap_component_candidate"
+                if not any(overlapping_elements)
+                else precision_response_last_reason
+                or "no_safe_overlap_revisit_opportunity"
+            )
+            precision_response_trace_row = {
+                "protocol_version": PRECISION_RESPONSE_PROTOCOL_VERSION,
+                "fresh_optimizer_execution": "1",
+                "problem_id": problem_id,
+                "seed": "" if config.seed is None else str(config.seed),
+                "response_arm": config.precision_response_arm,
+                "decision_id": "",
+                "decision_status": "not_applicable",
+                "not_applicable_reason": response_reason,
+                "decision_fe": "",
+                "outer_iter": "",
+                "group_index": "",
+                "component_id": "",
+                "prefix_record_sha256": "",
+                "checkpoint_candidate_sha256": "",
+                "probe_seed": "",
+                "probe_executed": "0",
+                "probe_fe": "0",
+                "normal_sigma": "",
+                "precision_sigma": "",
+                "normal_direction_sha256": "",
+                "precision_direction_sha256": "",
+                "gate_state_sha256": "",
+                "gate_would_release": "0",
+                "lease_applied": "0",
+                "gate_reason": response_reason,
+                "main_requested_fe": "",
+                "main_actual_fe": "",
+                "intervention_end_fe": "",
+                "delayed_credit_status": "not_applicable",
+            }
+        if precision_response_lease_row is not None:
+            credit_status = precision_response_lease_row.get(
+                "component_credit_status",
+                "",
+            )
+            if credit_status != "resolved":
+                precision_response_trace_row["delayed_credit_status"] = credit_status
+        terminal_target_fe = max(
+            0,
+            int(config.max_fes) - int(terminal_completion_tolerance_fe),
+        )
+        terminal_observed_fe = min(
+            terminal_target_fe,
+            current_fitness_evaluations(fun),
+        )
+        terminal_record = tuple(
+            float(value) for value in fun.fitness_record[:terminal_observed_fe]
+        )
+        intervention_end = int(
+            precision_response_trace_row.get("intervention_end_fe") or 0
+        )
+        response_complete = bool(
+            terminal_observed_fe == terminal_target_fe
+            and not cc_harm_guard_consumed
+            and (
+                precision_response_trace_row.get("decision_status") != "applicable"
+                or terminal_target_fe > intervention_end
+            )
+        )
+        precision_response_trace_row.update(
+            {
+                "terminal_target_fe": str(terminal_target_fe),
+                "terminal_observed_fe": str(terminal_observed_fe),
+                "terminal_error": (
+                    "" if not terminal_record else f"{min(terminal_record):.17e}"
+                ),
+                "terminal_status": "complete" if response_complete else "incomplete",
+            }
+        )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "precision_response_trace.csv",
+            ),
+            fieldnames=PRECISION_RESPONSE_TRACE_FIELDS,
+            rows=[precision_response_trace_row],
+        )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "precision_probe_audit.csv",
+            ),
+            fieldnames=PRECISION_PROBE_AUDIT_FIELDS,
+            rows=precision_response_probe_audit_rows,
+        )
+        gate_feature_rows = []
+        if (
+            precision_response_gate_state is not None
+            and precision_response_trace_row.get("decision_id")
+        ):
+            gate_feature_rows.append(
+                {
+                    "decision_id": precision_response_trace_row["decision_id"],
+                    **{
+                        field: getattr(precision_response_gate_state, field)
+                        for field in PRECISION_PROBE_GATE_FIELDS
+                    },
+                }
+            )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "precision_probe_gate_features.csv",
+            ),
+            fieldnames=PRECISION_PROBE_GATE_FEATURE_FIELDS,
+            rows=gate_feature_rows,
+        )
+        lease_rows = []
+        if precision_response_lease_row is not None:
+            lease_rows.append(
+                {
+                    field: precision_response_lease_row.get(field, "")
+                    for field in PRECISION_LEASE_CREDIT_FIELDS
+                }
+            )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "precision_lease_credit.csv",
+            ),
+            fieldnames=PRECISION_LEASE_CREDIT_FIELDS,
+            rows=lease_rows,
+        )
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
         relations,
@@ -7609,6 +8301,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         rescue_fe=rescue_fe,
         refresh_fe=refresh_fe,
         search_state_fe=search_state_fe,
+        precision_probe_fe=precision_response_probe_fe,
     )
     print(f"{problem_id} overlap relations extracted: {len(relations)}")
     return fun.fitness_record, time.time() - time_start, action_trace_rows
@@ -7719,6 +8412,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "runtime dispatch."
         ),
     )
+    parser.add_argument(
+        "--precision-response-arm",
+        choices=["off", "a0_v37", "a1_probe_only", "a2_probe_gated"],
+        default="off",
+        help="Opt-in v37 current-trajectory precision response pilot arm.",
+    )
+    parser.add_argument(
+        "--offline-frozen-replay",
+        action="store_true",
+        help="Allow historical replay of the permanently frozen v41 profile.",
+    )
     parser.add_argument("--arac-action-file", type=Path, default=None)
     parser.add_argument(
         "--arac-action",
@@ -7769,11 +8473,26 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
     ):
         parser.error("--precision-causal-arm requires --arac-action v37")
+    if (
+        args.precision_response_arm != "off"
+        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
+    ):
+        parser.error("--precision-response-arm requires --arac-action v37")
+    if args.precision_response_arm != "off" and args.precision_causal_arm != "off":
+        parser.error("precision response and causal logging arms are exclusive")
+    if args.offline_frozen_replay and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V41:
+        parser.error("--offline-frozen-replay is only valid with v41")
     return args
 
 
 def main(argv: list[str] | None = None) -> list[Path]:
     args = parse_args(argv)
+    if args.arac_action == EVIDENCE_ACTION_CONTROLLER_V41 and not (
+        args.offline_frozen_replay
+    ):
+        raise ValueError(
+            "v41 is frozen; pass --offline-frozen-replay for historical replay"
+        )
     for fun_id in args.ids:
         validate_aob_data_root(args.aob_data_root, fun_id)
     config = SmokeConfig(
@@ -7796,6 +8515,8 @@ def main(argv: list[str] | None = None) -> list[Path]:
         car_candidate_mode=args.car_candidate_mode,
         car_actionability_arm=args.car_actionability_arm,
         precision_causal_arm=args.precision_causal_arm,
+        precision_response_arm=args.precision_response_arm,
+        offline_frozen_replay=args.offline_frozen_replay,
     )
     output_paths = []
     for fun_name in args.functions:
@@ -7859,6 +8580,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 include_precision_causal_fields=(
                     config.precision_causal_arm != "off"
                 ),
+                include_precision_response_fields=(
+                    config.precision_response_arm != "off"
+                ),
             )
             function_trace_rows.extend(trace_rows)
             if config.enable_relation_dispatch:
@@ -7906,6 +8630,9 @@ def main(argv: list[str] | None = None) -> list[Path]:
             ),
             include_precision_causal_fields=(
                 config.precision_causal_arm != "off"
+            ),
+            include_precision_response_fields=(
+                config.precision_response_arm != "off"
             ),
         )
         _write_aob_input_manifest(

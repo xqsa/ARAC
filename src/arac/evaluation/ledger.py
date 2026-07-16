@@ -12,6 +12,7 @@ class SameBudgetLedger:
     budget_limit: int
     fresh_execution: bool
     search_state_fe: int = 0
+    precision_probe_fe: int = 0
 
     @property
     def total_fe(self) -> int:

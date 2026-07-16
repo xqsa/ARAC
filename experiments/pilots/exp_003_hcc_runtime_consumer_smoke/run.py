@@ -78,6 +78,10 @@ from arac.policy.causal_risk_scheduler import (
     PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
     UTILITY_FEATURE_NAMES,
 )
+from arac.policy.precision_response_probe import (
+    PRECISION_PROBE_GATE_FIELDS,
+    PRECISION_RESPONSE_PROTOCOL_VERSION,
+)
 from arac.policy.oracle_actionability import (
     CAR_ACTIONABILITY_HORIZON_LABELS,
     CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
@@ -108,6 +112,24 @@ PRECISION_CAUSAL_PREREGISTRATION_SHA256 = (
 )
 PRECISION_CAUSAL_PREREGISTRATION_COMMIT = (
     "650d49126a27c48447ab4ab14e56d5e8ed847da2"
+)
+PRECISION_RESPONSE_PREREGISTRATION_PATH = (
+    "docs/superpowers/specs/2026-07-16-precision-response-loop-v1.md"
+)
+PRECISION_RESPONSE_PREREGISTRATION_SHA256 = (
+    "1de4bf92f3d54305e55906468584ec5956c103b8251b729f54dfe1f144ad73ea"
+)
+PRECISION_RESPONSE_CONFIG_PATH = "configs/precision_response_loop_v1.json"
+PRECISION_RESPONSE_CONFIG_SHA256 = (
+    "9fa5aff8c870566390dcde4b3bc07fe27c14543afb2af2ff3a29947c9a3e1847"
+)
+PRECISION_RESPONSE_PREREGISTRATION_COMMIT = (
+    "7c62fe55ef5ef42afa19043611f9a51713027057"
+)
+PRECISION_RESPONSE_ARMS = (
+    "a0_v37",
+    "a1_probe_only",
+    "a2_probe_gated",
 )
 PRECISION_CAUSAL_FEATURE_FORMULAS = {
     "remaining_fe_ratio": "(max_fes - decision_fe) / max_fes",
@@ -143,6 +165,7 @@ class LaneConfig:
     car_candidate_mode: str = "graph"
     car_actionability_arm: str = "off"
     precision_causal_arm: str = "off"
+    precision_response_arm: str = "off"
 
 
 LANES = (
@@ -568,6 +591,7 @@ def _lane_from_controller_profile(
     car_candidate_mode: str = "graph",
     car_actionability_arm: str = "off",
     precision_causal_arm: str = "off",
+    precision_response_arm: str = "off",
 ) -> LaneConfig:
     return LaneConfig(
         lane_id or profile.action_name,
@@ -581,6 +605,7 @@ def _lane_from_controller_profile(
         car_candidate_mode=car_candidate_mode,
         car_actionability_arm=car_actionability_arm,
         precision_causal_arm=precision_causal_arm,
+        precision_response_arm=precision_response_arm,
     )
 
 
@@ -756,6 +781,15 @@ PRECISION_CAUSAL_LOGGING_LANES = (
         precision_causal_arm="action",
     ),
 )
+PRECISION_RESPONSE_LOGGING_LANES = tuple(
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id=f"precision_response_{arm}",
+        dispatch_scope=f"precision_response_loop_v1_{arm}",
+        precision_response_arm=arm,
+    )
+    for arm in PRECISION_RESPONSE_ARMS
+)
 CAR_W_ACTION_NAMES = frozenset(
     {
         "arac_counterfactual_action_racing_w",
@@ -793,6 +827,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return CAR_ACTIONABILITY_AUDIT_LANES
     if lane_profile == "precision_causal_logging":
         return PRECISION_CAUSAL_LOGGING_LANES
+    if lane_profile == "precision_response_logging":
+        return PRECISION_RESPONSE_LOGGING_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -1005,6 +1041,7 @@ def _ledger_for_result(result: HccAobExecutionResult) -> SameBudgetLedger:
         budget_limit=result.max_fes,
         fresh_execution=result.fresh_optimizer_execution,
         search_state_fe=max(0, result.search_state_fe or 0),
+        precision_probe_fe=max(0, result.precision_probe_fe or 0),
     )
 
 
@@ -1640,6 +1677,7 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
         rescue_fe=budget_breakdown.get("rescue_fe"),
         refresh_fe=budget_breakdown.get("refresh_fe"),
         search_state_fe=budget_breakdown.get("search_state_fe", 0),
+        precision_probe_fe=budget_breakdown.get("precision_probe_fe", 0),
         separable_continuation_fe=budget_breakdown.get(
             "separable_continuation_fe"
         ),
@@ -2068,6 +2106,174 @@ def _precision_causal_raw_rows(
     )
 
 
+PRECISION_RESPONSE_BRANCH_FIELDS = [
+    "problem_id", "seed", "lane_id", "response_arm",
+    "fresh_optimizer_execution", "decision_status", "not_applicable_reason",
+    "decision_id", "decision_fe", "prefix_record_sha256",
+    "checkpoint_candidate_sha256", "probe_seed", "probe_executed", "probe_fe",
+    "gate_state_sha256", "gate_would_release", "lease_applied", "gate_reason",
+    "main_requested_fe", "main_actual_fe", "intervention_end_fe",
+    "delayed_credit_status", "terminal_target_fe", "terminal_observed_fe",
+    "terminal_error", "terminal_status",
+]
+PRECISION_RESPONSE_TRIPLET_FIELDS = [
+    "problem_id", "seed", "triplet_integrity", "applicable", "prefix_match",
+    "decision_match", "probe_match", "gate_match", "a2_released", "a0_error",
+    "a1_error", "a2_error", "tau_probe", "tau_lease", "tau_total",
+    "probe_catastrophic", "lease_catastrophic", "total_catastrophic",
+    "lease_material_positive_1pct",
+]
+
+
+def _precision_response_artifact_rows(
+    result: HccAobExecutionResult,
+    suffix: str,
+) -> list[dict[str, str]]:
+    path = _latest_car_artifact(Path(result.output_root), f"*{suffix}")
+    return _read_csv_rows(path)
+
+
+def _precision_response_raw_rows(
+    records: list[dict[str, object]],
+) -> tuple[
+    list[dict[str, str]],
+    list[dict[str, str]],
+    list[dict[str, str]],
+    list[dict[str, str]],
+    list[dict[str, str]],
+    list[str],
+]:
+    branches: list[dict[str, str]] = []
+    audit_rows: list[dict[str, str]] = []
+    gate_features: list[dict[str, str]] = []
+    lease_rows: list[dict[str, str]] = []
+    triplets: list[dict[str, str]] = []
+    failures: list[str] = []
+    grouped: dict[tuple[str, int], dict[str, dict[str, str]]] = {}
+    gate_by_key: dict[tuple[str, int, str], list[dict[str, str]]] = {}
+
+    for record in records:
+        lane = record["lane"]
+        result = record["result"]
+        assert isinstance(lane, LaneConfig)
+        assert isinstance(result, HccAobExecutionResult)
+        if lane.precision_response_arm == "off":
+            continue
+        trace_rows = _precision_response_artifact_rows(
+            result,
+            "precision_response_trace.csv",
+        )
+        identity = f"{result.problem_id}:{result.seed}:{lane.precision_response_arm}"
+        if len(trace_rows) != 1:
+            failures.append(f"{identity}:missing_response_trace")
+            continue
+        trace = trace_rows[0]
+        branch = {field: trace.get(field, "") for field in PRECISION_RESPONSE_BRANCH_FIELDS}
+        branch.update(
+            {
+                "problem_id": result.problem_id,
+                "seed": str(result.seed),
+                "lane_id": lane.lane_id,
+                "response_arm": lane.precision_response_arm,
+                "fresh_optimizer_execution": str(int(result.fresh_optimizer_execution)),
+                "terminal_error": f"{float(result.final_error):.17e}",
+            }
+        )
+        branches.append(branch)
+        grouped.setdefault((result.problem_id, result.seed), {})[
+            lane.precision_response_arm
+        ] = branch
+        audit_rows.extend(
+            _precision_response_artifact_rows(result, "precision_probe_audit.csv")
+        )
+        lease_rows.extend(
+            _precision_response_artifact_rows(result, "precision_lease_credit.csv")
+        )
+        gate_by_key[(result.problem_id, result.seed, lane.precision_response_arm)] = (
+            _precision_response_artifact_rows(
+                result,
+                "precision_probe_gate_features.csv",
+            )
+        )
+        if not result.fresh_optimizer_execution:
+            failures.append(f"{identity}:not_fresh")
+        if result.optimizer_final_fe_used is not None and result.optimizer_final_fe_used > result.max_fes:
+            failures.append(f"{identity}:fe_overrun")
+        if trace.get("terminal_status") != "complete":
+            failures.append(f"{identity}:terminal_incomplete")
+
+    required_arms = {
+        lane.precision_response_arm
+        for record in records
+        for lane in (record["lane"],)
+        if isinstance(lane, LaneConfig) and lane.precision_response_arm != "off"
+    }
+    for (problem_id, seed), by_arm in sorted(grouped.items()):
+        missing = required_arms - set(by_arm)
+        if missing:
+            failures.append(
+                f"{problem_id}:{seed}:missing_arms:{','.join(sorted(missing))}"
+            )
+            continue
+        if not set(PRECISION_RESPONSE_ARMS).issubset(by_arm):
+            continue
+        a0, a1, a2 = (
+            by_arm["a0_v37"],
+            by_arm["a1_probe_only"],
+            by_arm["a2_probe_gated"],
+        )
+        prefix_match = len({row["prefix_record_sha256"] for row in (a0, a1, a2)}) == 1
+        decision_match = len({row["decision_id"] for row in (a0, a1, a2)}) == 1
+        probe_match = all(
+            a1[field] == a2[field]
+            for field in ("probe_seed", "probe_fe", "gate_state_sha256", "gate_would_release")
+        )
+        gate_match = a1["gate_state_sha256"] == a2["gate_state_sha256"]
+        terminal_complete = all(row["terminal_status"] == "complete" for row in (a0, a1, a2))
+        applicable = all(row["decision_status"] == "applicable" for row in (a0, a1, a2))
+        a2_released = a2["lease_applied"] == "1"
+        a0_error = max(float(a0["terminal_error"]), 1e-300)
+        a1_error = max(float(a1["terminal_error"]), 1e-300)
+        a2_error = max(float(a2["terminal_error"]), 1e-300)
+        integrity = bool(
+            prefix_match and decision_match and probe_match and gate_match
+            and terminal_complete and (a2_released or a1_error == a2_error)
+        )
+        triplets.append(
+            {
+                "problem_id": problem_id,
+                "seed": str(seed),
+                "triplet_integrity": str(int(integrity)),
+                "applicable": str(int(applicable)),
+                "prefix_match": str(int(prefix_match)),
+                "decision_match": str(int(decision_match)),
+                "probe_match": str(int(probe_match)),
+                "gate_match": str(int(gate_match)),
+                "a2_released": str(int(a2_released)),
+                "a0_error": f"{a0_error:.17e}",
+                "a1_error": f"{a1_error:.17e}",
+                "a2_error": f"{a2_error:.17e}",
+                "tau_probe": f"{math.log(a0_error / a1_error):.17e}",
+                "tau_lease": f"{math.log(a1_error / a2_error):.17e}",
+                "tau_total": f"{math.log(a0_error / a2_error):.17e}",
+                "probe_catastrophic": str(int(a1_error >= 1.2 * a0_error)),
+                "lease_catastrophic": str(int(a2_error >= 1.2 * a1_error)),
+                "total_catastrophic": str(int(a2_error >= 1.2 * a0_error)),
+                "lease_material_positive_1pct": str(int(a2_error <= 0.99 * a1_error)),
+            }
+        )
+        if not integrity:
+            failures.append(f"{problem_id}:{seed}:triplet_integrity_failed")
+        a1_features = gate_by_key.get((problem_id, seed, "a1_probe_only"), [])
+        a2_features = gate_by_key.get((problem_id, seed, "a2_probe_gated"), [])
+        if applicable and a1_features != a2_features:
+            failures.append(f"{problem_id}:{seed}:gate_feature_mismatch")
+        if a1_features:
+            gate_features.extend(a1_features)
+
+    return branches, audit_rows, gate_features, lease_rows, triplets, failures
+
+
 def _trace_rows_for_record(record: dict[str, object]) -> list[dict[str, str]]:
     result = record["result"]
     assert isinstance(result, HccAobExecutionResult)
@@ -2295,6 +2501,7 @@ def _records(
                             car_candidate_mode=lane.car_candidate_mode,
                             car_actionability_arm=lane.car_actionability_arm,
                             precision_causal_arm=lane.precision_causal_arm,
+                            precision_response_arm=lane.precision_response_arm,
                             skip_plots=True,
                         ),
                     }
@@ -2548,6 +2755,7 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
         rescue_fe = max(0, result.rescue_fe or 0)
         refresh_fe = max(0, result.refresh_fe or 0)
         search_state_fe = max(0, result.search_state_fe or 0)
+        precision_probe_fe = max(0, result.precision_probe_fe or 0)
         separable_continuation_fe = max(
             0,
             result.separable_continuation_fe or 0,
@@ -2558,6 +2766,7 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
             + rescue_fe
             + refresh_fe
             + search_state_fe
+            + precision_probe_fe
             + separable_continuation_fe
         )
         overhead_fe = (
@@ -2587,6 +2796,7 @@ def _ledger_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
                 "rescue_fe": rescue_fe,
                 "refresh_fe": refresh_fe,
                 "search_state_fe": search_state_fe,
+                "precision_probe_fe": precision_probe_fe,
                 "separable_continuation_fe": separable_continuation_fe,
                 "overhead_fe": overhead_fe,
                 "total_fe": actual_fe_used,
@@ -6194,6 +6404,7 @@ def run_hcc_runtime_consumer_smoke(
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
     lane_profile: str = "runtime_smoke",
+    response_arms: tuple[str, ...] | None = None,
     search_state_backend: str = "phase_i_mmes",
     environment_probe: EnvironmentProbe | None = None,
 ) -> Path:
@@ -6208,6 +6419,18 @@ def run_hcc_runtime_consumer_smoke(
             "search_state_backend must be 'phase_i_mmes' or 'diagonal_cma'"
         )
     lanes = lanes_for_profile(lane_profile)
+    if response_arms is not None:
+        requested_arms = tuple(dict.fromkeys(str(arm) for arm in response_arms))
+        if lane_profile != "precision_response_logging":
+            raise ValueError("response_arms requires precision_response_logging")
+        invalid_arms = sorted(set(requested_arms) - set(PRECISION_RESPONSE_ARMS))
+        if invalid_arms:
+            raise ValueError(f"unsupported response arms: {','.join(invalid_arms)}")
+        lanes = tuple(
+            lane for lane in lanes if lane.precision_response_arm in requested_arms
+        )
+        if not lanes:
+            raise ValueError("response_arms selected no lanes")
     precision_causal_profile_enabled = any(
         lane.precision_causal_arm != "off" for lane in lanes
     )
@@ -6220,6 +6443,20 @@ def run_hcc_runtime_consumer_smoke(
             != PRECISION_CAUSAL_PREREGISTRATION_SHA256
         ):
             raise RuntimeError("precision causal preregistration hash mismatch")
+    precision_response_profile_enabled = any(
+        lane.precision_response_arm != "off" for lane in lanes
+    )
+    if precision_response_profile_enabled:
+        if (
+            _sha256_file(ARAC_REPO_ROOT / PRECISION_RESPONSE_PREREGISTRATION_PATH)
+            != PRECISION_RESPONSE_PREREGISTRATION_SHA256
+        ):
+            raise RuntimeError("precision response preregistration hash mismatch")
+        if (
+            _sha256_file(ARAC_REPO_ROOT / PRECISION_RESPONSE_CONFIG_PATH)
+            != PRECISION_RESPONSE_CONFIG_SHA256
+        ):
+            raise RuntimeError("precision response config hash mismatch")
     car_w_enabled = any(
         lane.runner_action_name in CAR_W_ACTION_NAMES
         for lane in lanes
@@ -6315,6 +6552,18 @@ def run_hcc_runtime_consumer_smoke(
     ) = (
         _precision_causal_raw_rows(records)
         if precision_causal_enabled
+        else ([], [], [], [], [], [])
+    )
+    (
+        precision_response_branch_rows,
+        precision_response_audit_rows,
+        precision_response_gate_rows,
+        precision_response_lease_rows,
+        precision_response_triplet_rows,
+        precision_response_integrity_failures,
+    ) = (
+        _precision_response_raw_rows(records)
+        if precision_response_profile_enabled
         else ([], [], [], [], [], [])
     )
     car_dispatch_boundary_rows = (
@@ -6491,6 +6740,7 @@ def run_hcc_runtime_consumer_smoke(
             "rescue_fe",
             "refresh_fe",
             "search_state_fe",
+            "precision_probe_fe",
             "separable_continuation_fe",
             "overhead_fe",
             "total_fe",
@@ -6626,6 +6876,81 @@ def run_hcc_runtime_consumer_smoke(
             *action_trace_fields_for_lanes(lanes),
         ],
     )
+    if precision_response_profile_enabled:
+        _write_csv(
+            output / "precision_response_branch_manifest.csv",
+            precision_response_branch_rows,
+            PRECISION_RESPONSE_BRANCH_FIELDS,
+        )
+        _write_csv(
+            output / "precision_response_triplets.csv",
+            precision_response_triplet_rows,
+            PRECISION_RESPONSE_TRIPLET_FIELDS,
+        )
+        _write_csv(
+            output / "precision_probe_gate_features.csv",
+            precision_response_gate_rows,
+            ["decision_id", *PRECISION_PROBE_GATE_FIELDS],
+        )
+        _write_csv(
+            output / "precision_probe_audit.csv",
+            precision_response_audit_rows,
+            [
+                "protocol_version", "problem_id", "seed", "response_arm",
+                "decision_id", "outer_iter", "group_index", "component_id",
+                "pair_index", "normal_objective", "precision_objective",
+                "normal_candidate_sha256", "precision_candidate_sha256",
+                "normal_direction_sha256", "precision_direction_sha256",
+                "boundary_mode",
+            ],
+        )
+        _write_csv(
+            output / "precision_lease_credit.csv",
+            precision_response_lease_rows,
+            [
+                *COMPONENT_CREDIT_TRACE_FIELDS,
+                "response_arm", "gate_state_sha256", "lease_sigma",
+                "lease_diversity", "review_normal_sigma_restored",
+                "review_diversity_recovery", "review_progress_delta",
+                "review_positive", "renewal_enabled",
+            ],
+        )
+        response_manifest = {
+            "protocol_version": PRECISION_RESPONSE_PROTOCOL_VERSION,
+            "status": (
+                "pass" if not precision_response_integrity_failures else "blocked"
+            ),
+            "runtime_scheduler_authorized": False,
+            "preregistration": {
+                "path": PRECISION_RESPONSE_PREREGISTRATION_PATH,
+                "sha256": PRECISION_RESPONSE_PREREGISTRATION_SHA256,
+                "commit": PRECISION_RESPONSE_PREREGISTRATION_COMMIT,
+            },
+            "config": {
+                "path": PRECISION_RESPONSE_CONFIG_PATH,
+                "sha256": PRECISION_RESPONSE_CONFIG_SHA256,
+            },
+            "arms": [lane.precision_response_arm for lane in lanes],
+            "run_count": len(precision_response_branch_rows),
+            "applicable_count": sum(
+                row["decision_status"] == "applicable"
+                for row in precision_response_branch_rows
+            ),
+            "release_count": sum(
+                row["lease_applied"] == "1"
+                for row in precision_response_branch_rows
+            ),
+            "integrity_failures": precision_response_integrity_failures,
+            "forbidden_outputs": [
+                "causal_risk_precision_model.json",
+                "runtime_profile",
+                "gate_balanced_accuracy",
+            ],
+        }
+        (output / "precision_response_manifest.json").write_text(
+            json.dumps(response_manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     if car_w_enabled:
         _write_csv(
             output / "car_dispatch_boundary_audit.csv",
@@ -7316,6 +7641,11 @@ def run_hcc_runtime_consumer_smoke(
             "precision causal logging integrity gate blocked: "
             + ";".join(precision_causal_integrity_failures)
         )
+    if precision_response_integrity_failures:
+        raise RuntimeError(
+            "precision response integrity gate blocked: "
+            + ";".join(precision_response_integrity_failures)
+        )
     if paired_runtime_utility_rows:
         manifest_path = output / "run_manifest.md"
         manifest = manifest_path.read_text(encoding="utf-8")
@@ -7406,8 +7736,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "car_w3_diagnostic",
             "car_actionability_audit",
             "precision_causal_logging",
+            "precision_response_logging",
             "canonical_evidence_controller_v1",
         ],
+    )
+    parser.add_argument(
+        "--response-arms",
+        nargs="+",
+        choices=list(PRECISION_RESPONSE_ARMS),
+        default=None,
+        help="Run only selected arms from precision_response_logging.",
     )
     return parser.parse_args(argv)
 
@@ -7431,6 +7769,9 @@ def main(argv: list[str] | None = None) -> Path:
         cmaes_restart=bool(args.cmaes_restart),
         mmes_restart=bool(args.mmes_restart),
         lane_profile=str(args.lane_profile),
+        response_arms=(
+            None if args.response_arms is None else tuple(args.response_arms)
+        ),
         search_state_backend=str(args.search_state_backend),
     )
 
