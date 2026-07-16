@@ -6,6 +6,48 @@ from dataclasses import dataclass
 
 from ..actions import ActionDecision, ActionFamily
 from ..evidence import EvidenceProfile
+from .overlap_hypergraph import (
+    DelayedHyperedgeCredit,
+    DirectionalSurvival,
+    GroupCycleObservation,
+    HyperedgeCycleState,
+    HyperedgeFocalScope,
+    HyperedgeScore,
+    OverlapHypergraphTopology,
+    SharedProposal,
+    SharedVariableStar,
+    SweepCoordinationPlan,
+    build_delayed_hyperedge_credit,
+    build_group_cycle_observation,
+    build_hyperedge_cycle_states,
+    build_overlap_hypergraph,
+    directional_survival,
+    plan_sweep_coordination,
+    score_hyperedge_states,
+)
+
+
+__all__ = [
+    "DelayedHyperedgeCredit",
+    "DirectionalSurvival",
+    "GroupCycleObservation",
+    "HyperedgeCycleState",
+    "HyperedgeFocalScope",
+    "HyperedgeScore",
+    "OverlapHypergraphTopology",
+    "PolicyConfig",
+    "SharedProposal",
+    "SharedVariableStar",
+    "SweepCoordinationPlan",
+    "build_delayed_hyperedge_credit",
+    "build_group_cycle_observation",
+    "build_hyperedge_cycle_states",
+    "build_overlap_hypergraph",
+    "decide_action",
+    "directional_survival",
+    "plan_sweep_coordination",
+    "score_hyperedge_states",
+]
 
 
 @dataclass(frozen=True)

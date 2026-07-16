@@ -1,0 +1,401 @@
+{
+  "protocol_version": "hypergraph-delayed-credit-v1",
+  "config_schema_version": 1,
+  "status": "frozen_before_new_optimizer_fe",
+  "preregistration_date": "2026-07-16",
+  "baseline": {
+    "profile": "arac_evidence_action_controller_v37",
+    "immutable": [
+      "cma_kernel",
+      "sigma",
+      "csa",
+      "population",
+      "restart_semantics",
+      "requested_group_budgets",
+      "optimizer_seeds",
+      "native_group_writeback",
+      "native_sweep_end_handlers"
+    ],
+    "observer_mode": "opt_in_trace_only_bit_equivalent"
+  },
+  "retired_precision_routes": {
+    "status": "permanently_retired_for_new_optimizer_runs",
+    "sigma_ratio": 0.5,
+    "routes": [
+      "arac_evidence_action_controller_v38",
+      "arac_evidence_action_controller_v41",
+      "precision-causal-logging-v2",
+      "precision-response-loop-v1",
+      "component-precision-action-validity-v1"
+    ],
+    "allowed_use": "explicit_offline_frozen_replay_only",
+    "forbidden_changes": [
+      "sigma",
+      "threshold",
+      "opportunity",
+      "scheduler"
+    ]
+  },
+  "authorization": {
+    "trace_observer_implementation": true,
+    "action_runtime_default": false,
+    "action_requires_passing_identifiability_gate": true,
+    "resource_reallocation": false,
+    "scheduler": false,
+    "repeated_action": false
+  },
+  "numeric": {
+    "error_floor": 1e-300,
+    "ewma_alpha": 0.5,
+    "history_complete_sweeps": 3,
+    "stagnation_cap": 3,
+    "contribution_fe_scale": 1000.0,
+    "owner_weight_cap": 0.65,
+    "overwrite_penalty_log_factor": 0.009950330853168092,
+    "catastrophic_multiplier": 1.2,
+    "material_log_effect": 0.009950330853168092,
+    "bootstrap_count": 2000,
+    "bootstrap_seed": 2026071604,
+    "confidence_level": 0.95,
+    "bootstrap_lcb_quantile": 0.05
+  },
+  "topology": {
+    "vertices": "decision_variables",
+    "hyperedges": "raw_overlapping_groups",
+    "preserve_multiple_membership": true,
+    "transitive_closure_allowed": false,
+    "union_find_allowed": false,
+    "action_scope": "focal_hyperedge_shared_variables_and_direct_owner_stars",
+    "neighbor_of_neighbor_expansion_allowed": false,
+    "identity_utility_tiebreak_allowed": false
+  },
+  "state": {
+    "snapshot_time": "complete_native_sweep_end_before_action_evaluation",
+    "source_watermark": "source_end_fe_at_or_before_decision_fe",
+    "snapshot_immutable": true,
+    "required_derived_features": [
+      "current_unit_fe_contribution",
+      "ewma_unit_fe_contribution_3",
+      "success_ratio_3",
+      "zero_gain_difficulty",
+      "stagnation_ratio_3",
+      "direct_owner_proposal_disagreement",
+      "prior_next_sweep_survival",
+      "prior_next_sweep_overwrite"
+    ],
+    "unit_fe_contribution_formula": "1000/actual_fe*log((pre_error+eps)/(min(pre_error,best_error)+eps))",
+    "actual_fe_scope": "full_native_group_interval_from_before_existing_precheck_through_group_local_rescue_recovery_end",
+    "proposal_capture_watermark": "after_group_local_rescue_recovery_before_relation_writeback",
+    "success_formula": "1_if_best_error_strictly_less_than_pre_error_else_0",
+    "ewma_order": "oldest_to_newest_three_complete_sweeps",
+    "difficulty_formula": "1-success_ratio_3",
+    "stagnation_formula": "min(consecutive_u_le_0,3)/3",
+    "variable_disagreement_formula": "clip((max_direct_owner_proposal-min_direct_owner_proposal)/domain_width,0,1)",
+    "hyperedge_disagreement_aggregation": "arithmetic_mean_over_focal_shared_variables",
+    "missing_required_state": "inapplicable_fail_closed"
+  },
+  "scores": {
+    "rank_scope": "same_complete_sweep_eligible_population",
+    "rank_method": "ascending_midrank_percentile_singleton_0_5",
+    "contribution_score": "mean(rank_current_u,rank_ewma_u)",
+    "need_score": "mean(rank_difficulty,rank_stagnation,rank_disagreement)",
+    "focal_priority": "zero_if_contribution_plus_need_zero_else_harmonic_mean",
+    "owner_reliability": "mean(rank_current_u,rank_ewma_u,rank_prior_survival,rank_one_minus_prior_overwrite)",
+    "selection": "unique_highest_focal_priority",
+    "complete_numeric_tie": "abstain"
+  },
+  "prediction": {
+    "label_horizon": "next_complete_normal_sweep_end_after_all_native_handlers",
+    "next_gain_label": "next_sweep_unit_fe_contribution",
+    "owner_survival_label": "displacement_weighted_directional_survival",
+    "owner_survival_anchor": "owner_pre_block_shared_context",
+    "owner_survival_endpoint": "next_complete_sweep_end_after_all_native_handlers",
+    "zero_owner_displacement_survival": 0.5,
+    "zero_owner_displacement_overwrite": 0.5,
+    "overwrite_event": "overwrite_strictly_greater_than_0_5",
+    "overwrite_prediction": "owner_reliability_below_training_fold_median",
+    "metrics": [
+      "spearman_focal_priority_vs_next_gain",
+      "top_priority_quartile_minus_bottom_priority_quartile_next_gain",
+      "spearman_owner_reliability_vs_next_survival",
+      "overwrite_balanced_accuracy"
+    ],
+    "cross_validation": [
+      "leave_one_case_out",
+      "leave_one_seed_out"
+    ],
+    "support": {
+      "fit_on_training_fold_only": true,
+      "normalization": "median_iqr",
+      "iqr_floor": 1e-12,
+      "per_feature_closed_training_range": true,
+      "knn_k": 5,
+      "knn_threshold": "training_leave_one_out_distance_quantile_0_95",
+      "minimum_training_rows": 6
+    },
+    "diagnostic_model_can_rescue_fixed_score": false
+  },
+  "coordination_action": {
+    "protocol_version": "one-hop-shared-commit-v1",
+    "max_decisions_per_trajectory": 1,
+    "max_actions_per_trajectory": 1,
+    "decision_opportunity": "first_applicable_complete_sweep_end_after_three_complete_history_sweeps",
+    "required_remaining_path": "two_action_fe_plus_next_complete_normal_sweep_plus_absolute_terminal",
+    "auxiliary_context_replacement_pending": "inapplicable",
+    "owner_raw_weight": "1+owner_reliability",
+    "owner_weight_projection": "unique_euclidean_projection_to_simplex_with_per_owner_cap_0_65",
+    "consensus": "weighted_mean_of_direct_owner_proposals",
+    "proposal_range_D": "l2_norm_of_direct_owner_proposal_range_divided_by_domain_width",
+    "anchor_displacement_L": "l2_norm_of_consensus_minus_anchor_divided_by_domain_width",
+    "structural_risk_R": "max(shared_variable_count/hyperedge_size,direct_neighbor_count/(direct_neighbor_count+1))",
+    "step_lambda": "min(1,(1-R)*D/(L+eps))",
+    "candidate_scope": "replace_focal_shared_variables_only",
+    "candidate_requirements": [
+      "finite",
+      "in_original_domain",
+      "nonzero_shared_displacement"
+    ],
+    "invalid_candidate": "permanent_abstain_consume_decision_lock",
+    "evaluation_order": [
+      "anchor",
+      "candidate"
+    ],
+    "evaluation_fe": 2,
+    "consume_optimizer_rng": false,
+    "update_cma_kernel": false,
+    "commit_rule": "candidate_error_strictly_less_than_anchor_error",
+    "post_action_profile": "arac_evidence_action_controller_v37"
+  },
+  "arms": [
+    "c0_v37",
+    "c1_shadow_coordinate",
+    "c2_commit_if_improved"
+  ],
+  "delayed_credit": {
+    "minimum_complete_normal_sweeps": 1,
+    "closure": "next_complete_normal_sweep_end_after_all_native_handlers",
+    "entry_time_closure_allowed": false,
+    "per_variable_retention": "clip((next_value-anchor)/(candidate-anchor),0,1)",
+    "survival": "absolute_candidate_displacement_weighted_mean_retention",
+    "overwrite": "1-survival",
+    "credit": "log((anchor_error+eps)/(delayed_error+eps))-log(1.01)*overwrite",
+    "paired_survival_effect": "survival_c2-survival_c1",
+    "paired_credit_effect": "credit_c2-credit_c1",
+    "can_enter_current_commit": false
+  },
+  "forbidden_policy_inputs": [
+    "case",
+    "problem",
+    "seed",
+    "function_family",
+    "run",
+    "lane",
+    "group_index",
+    "variable_index",
+    "relation_index",
+    "component_index",
+    "graph_fingerprint",
+    "component_fingerprint",
+    "group_fingerprint",
+    "raw_objective",
+    "raw_incumbent",
+    "target_vector",
+    "paper_best",
+    "historical_result",
+    "current_action_gain",
+    "future_survival",
+    "future_overwrite",
+    "terminal_outcome",
+    "win_label",
+    "catastrophic_label",
+    "future_resolution"
+  ],
+  "matrices": {
+    "observer_cli": {
+      "cases": ["E1", "E2"],
+      "seeds": [1, 2],
+      "modes": ["observer_off", "observer_on"],
+      "terminal_fe": 5000,
+      "run_count": 8
+    },
+    "observer_trace": {
+      "cases": ["A4", "S2"],
+      "seeds": [90],
+      "modes": ["observer_off", "observer_on"],
+      "terminal_fe": 100000,
+      "run_count": 4,
+      "single_escalation_terminal_fe": 3000000,
+      "maximum_run_count": 8
+    },
+    "trace_screen": {
+      "cases": ["A4", "A5", "E1", "E2", "E3", "E4", "S2", "S5"],
+      "seeds": [91, 92, 93, 94, 95],
+      "arms": ["v37_observer"],
+      "terminal_fe": 3000000,
+      "run_count": 40
+    },
+    "trace_full": {
+      "cases": [
+        "E1", "E2", "E3", "E4", "E5", "E6",
+        "S1", "S2", "S3", "S4", "S5", "S6",
+        "R1", "R2", "R3", "R4", "R5", "R6",
+        "A1", "A2", "A3", "A4", "A5", "A6"
+      ],
+      "seeds": [96, 97, 98, 99, 100, 101, 102, 103],
+      "arms": ["v37_observer"],
+      "terminal_fe": 3000000,
+      "run_count": 192
+    },
+    "action_cli": {
+      "cases": ["E1", "E2"],
+      "seeds": [1, 2],
+      "arms": ["c0_v37", "c1_shadow_coordinate", "c2_commit_if_improved"],
+      "terminal_fe": 5000,
+      "run_count": 12
+    },
+    "action_trace": {
+      "cases": ["A4"],
+      "seeds": [1],
+      "arms": ["c0_v37", "c1_shadow_coordinate", "c2_commit_if_improved"],
+      "terminal_fe": 100000,
+      "run_count": 3,
+      "single_escalation_terminal_fe": 3000000,
+      "maximum_run_count": 6
+    },
+    "action_screen": {
+      "cases": ["A4", "A5", "E1", "E2", "E3", "E4", "S2", "S5"],
+      "seeds": [104, 105, 106, 107, 108],
+      "arms": ["c0_v37", "c1_shadow_coordinate", "c2_commit_if_improved"],
+      "terminal_fe": 3000000,
+      "run_count": 120
+    },
+    "action_confirm": {
+      "cases": [
+        "E1", "E2", "E3", "E4", "E5", "E6",
+        "S1", "S2", "S3", "S4", "S5", "S6",
+        "R1", "R2", "R3", "R4", "R5", "R6",
+        "A1", "A2", "A3", "A4", "A5", "A6"
+      ],
+      "seeds": [109, 110, 111, 112, 113, 114, 115, 116],
+      "arms": ["c0_v37", "c1_shadow_coordinate", "c2_commit_if_improved"],
+      "terminal_fe": 3000000,
+      "run_count": 576
+    }
+  },
+  "trace_gates": {
+    "screen": {
+      "integrity_fraction": 1.0,
+      "minimum_applicable_trajectories": 30,
+      "minimum_cases": 6,
+      "minimum_seeds": 5,
+      "maximum_required_state_missing_fraction": 0.05,
+      "minimum_focal_priority_spearman": 0.0,
+      "minimum_overwrite_balanced_accuracy": 0.55,
+      "minimum_positive_seed_directions": 3,
+      "minimum_positive_overlap_case_directions": 5
+    },
+    "full": {
+      "integrity_fraction": 1.0,
+      "minimum_applicable_trajectories": 120,
+      "minimum_cases": 16,
+      "minimum_seeds": 8,
+      "minimum_lco_in_support_fraction": 0.6,
+      "minimum_lso_in_support_fraction": 0.6,
+      "metric_lcb_strictly_positive": [
+        "spearman_focal_priority_vs_next_gain",
+        "top_priority_quartile_minus_bottom_priority_quartile_next_gain",
+        "spearman_owner_reliability_vs_next_survival"
+      ],
+      "overwrite_balanced_accuracy_lcb_strictly_above": 0.5,
+      "minimum_positive_case_fold_fraction": 0.75,
+      "minimum_positive_seed_folds": 6,
+      "maximum_single_case_absolute_advantage_share": 0.5
+    }
+  },
+  "action_gates": {
+    "screen": {
+      "integrity_fraction": 1.0,
+      "minimum_applicable_pairs": 30,
+      "minimum_applicable_cases": 6,
+      "minimum_applicable_seeds": 5,
+      "minimum_commit_eligible_pairs": 10,
+      "minimum_commit_cases": 4,
+      "minimum_commit_seeds": 3,
+      "positive_lcb_and_nonnegative_median": [
+        "tau_A_itt",
+        "tau_A_att",
+        "tau_C_commit_att",
+        "tau_D_commit_att",
+        "paired_penalized_delayed_credit"
+      ],
+      "minimum_positive_seed_means_tau_A": 3,
+      "minimum_positive_seed_means_tau_C": 3,
+      "minimum_material_tau_A_pairs": 5,
+      "minimum_material_cases": 3,
+      "minimum_material_seeds": 3,
+      "paired_survival_lcb_strictly_positive": true,
+      "paired_survival_median_min": 0.0,
+      "maximum_catastrophic_events": 0,
+      "delayed_closure_fraction": 1.0,
+      "rejected_c2_c1_bit_parity_fraction": 1.0
+    },
+    "confirm": {
+      "integrity_fraction": 1.0,
+      "minimum_applicable_pairs": 120,
+      "minimum_applicable_cases": 16,
+      "minimum_applicable_seeds": 8,
+      "minimum_commit_eligible_pairs": 59,
+      "minimum_commit_cases": 12,
+      "minimum_commit_seeds": 8,
+      "positive_lcb_and_nonnegative_median": [
+        "tau_A_itt",
+        "tau_A_att",
+        "tau_C_commit_att",
+        "tau_D_commit_att",
+        "paired_penalized_delayed_credit"
+      ],
+      "minimum_tau_A_case_mean_wins": 13,
+      "minimum_tau_C_case_mean_wins": 12,
+      "all_seed_means_nonnegative_for": ["tau_A", "tau_C"],
+      "minimum_strict_positive_seed_means_each": 6,
+      "minimum_worst_ten_percent_cvar_tau_A": 0.0,
+      "minimum_worst_ten_percent_cvar_tau_C": 0.0,
+      "maximum_catastrophic_events": 0,
+      "catastrophic_cp_ucb_max": 0.05,
+      "minimum_material_tau_A_fraction": 0.2,
+      "minimum_material_cases": 8,
+      "minimum_material_seeds": 6,
+      "paired_survival_lcb_strictly_positive": true,
+      "paired_survival_median_strictly_positive": true,
+      "minimum_strict_positive_retention_fraction": 0.5,
+      "maximum_single_case_absolute_effect_share": 0.5,
+      "non_screen_case_mean_tau_A_strictly_positive": true,
+      "delayed_closure_fraction": 1.0,
+      "rejected_c2_c1_bit_parity_fraction": 1.0
+    }
+  },
+  "artifacts": {
+    "trace": [
+      "hypergraph_manifest.json",
+      "hyperedge_cycle_features.csv",
+      "hyperedge_cycle_audit.csv",
+      "shared_proposal_audit.csv",
+      "hyperedge_cycle_outcomes.csv",
+      "hypergraph_fold_assignments.csv",
+      "hypergraph_crossfit_predictions.csv",
+      "hypergraph_predictive_summary.csv",
+      "hypergraph_trace_manifest.json",
+      "hypergraph_identifiability_gate.json"
+    ],
+    "action": [
+      "shared_coordination_branch_manifest.csv",
+      "shared_coordination_candidate_audit.csv",
+      "shared_coordination_pairs.csv",
+      "shared_coordination_delayed_credit.csv",
+      "shared_coordination_budget_ledger.csv",
+      "shared_coordination_manifest.json",
+      "shared_coordination_gate.json"
+    ],
+    "runtime_model_bundle_allowed": false
+  }
+}
