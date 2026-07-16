@@ -290,6 +290,11 @@ def test_config_freezes_two_arms_and_one_component_wide_dose() -> None:
         "a0_v37",
         "a1_precision_component_once",
     )
+    assert config["action"]["phase_rescue_must_be_inactive"] is True
+    assert (
+        config["action"]["active_auxiliary_fe_route"]
+        == "abstain_without_consuming_once_lock"
+    )
     assert config["action"]["dose"] == "all_component_groups_once"
     assert (
         config["action"]["execution"]

@@ -5949,10 +5949,16 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             config.max_fes - terminal_completion_tolerance_fe,
                         ),
                     )
+                # A0 stays native v37; an active rescue can change later
+                # requested group budgets and invalidate the frozen pair.
+                auxiliary_fe_quiescent = bool(
+                    not controller_v31_run_state.phase_rescue_enabled
+                )
                 component_unlocked = bool(
                     controller_v31_run_state.pending_trajectory_recovery is None
                     and controller_v31_run_state.pending_action_trust is None
                     and not cc_harm_guard_consumed
+                    and auxiliary_fe_quiescent
                 )
                 horizon_reachable = bool(
                     len(frozen_group_budgets)
@@ -6002,6 +6008,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ):
                         component_atomic_last_reason = (
                             "component_prior_visit_incomplete"
+                        )
+                    elif not auxiliary_fe_quiescent:
+                        component_atomic_last_reason = (
+                            "active_auxiliary_fe_route"
                         )
                     else:
                         component_atomic_last_reason = atomic_plan.reason

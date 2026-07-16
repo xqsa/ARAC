@@ -31,7 +31,12 @@ def _read_rows(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
-def _install_fake_runtime(runner, monkeypatch: pytest.MonkeyPatch):
+def _install_fake_runtime(
+    runner,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    auxiliary_fe_route_active: bool = False,
+):
     options_seen: list[dict[str, object]] = []
 
     class FakeFunction:
@@ -102,6 +107,19 @@ def _install_fake_runtime(runner, monkeypatch: pytest.MonkeyPatch):
         runner,
         "calculate_cmaes_population_size",
         lambda _dimension: 4,
+    )
+    original_state_builder = runner.build_evidence_action_controller_v31_run_state
+
+    def build_state(*args, **kwargs):
+        state = original_state_builder(*args, **kwargs)
+        state.phase_rescue_retired = not auxiliary_fe_route_active
+        state.phase_rescue_productive_mature = auxiliary_fe_route_active
+        return state
+
+    monkeypatch.setattr(
+        runner,
+        "build_evidence_action_controller_v31_run_state",
+        build_state,
     )
     monkeypatch.setattr(
         runner,
@@ -328,6 +346,39 @@ def test_a0_is_publicly_bit_equivalent_and_a1_locks_one_component(
     assert a1_budget[1]["group_start_fe"] == a1_budget[0]["group_end_fe"]
     assert any(float(row["sigma"]) == 0.25 for row in a1_options)
     assert sum(float(row["sigma"]) == 0.125 for row in a1_options) == 2
+
+
+def test_active_auxiliary_fe_route_abstains_without_changing_v37(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = _load_runner_module()
+    _install_fake_runtime(
+        runner,
+        monkeypatch,
+        auxiliary_fe_route_active=True,
+    )
+
+    off_record, _, off_trace = _run_arm(runner, tmp_path / "off", "off")
+    a0_record, _, a0_trace = _run_arm(runner, tmp_path / "a0", "a0_v37")
+    a1_record, _, a1_trace = _run_arm(
+        runner,
+        tmp_path / "a1",
+        "a1_precision_component_once",
+    )
+
+    assert a0_record == off_record == a1_record
+    assert a0_trace == off_trace == a1_trace
+    for arm, root in (
+        ("a0_v37", tmp_path / "a0"),
+        ("a1_precision_component_once", tmp_path / "a1"),
+    ):
+        branch = _read_rows(root / "E2_component_action_branch_manifest.csv")[0]
+        assert branch["component_precision_arm"] == arm
+        assert branch["decision_status"] == "not_applicable"
+        assert branch["not_applicable_reason"] == "active_auxiliary_fe_route"
+        assert branch["action_applied"] == "0"
+        assert branch["component_plan_frozen"] == "0"
 
 
 def test_no_overlap_is_bit_equivalent_across_off_a0_and_a1(
