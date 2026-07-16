@@ -1907,8 +1907,9 @@ def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
         rescue_fe=200,
         refresh_fe=50,
         search_state_fe=100,
+        precision_probe_fe=32,
         separable_continuation_fe=0,
-        overhead_fe=150,
+        overhead_fe=118,
     )
 
     ledger = _ledger_for_result(result)
@@ -1924,13 +1925,15 @@ def test_exp_003_ledger_uses_runtime_stage_breakdown(tmp_path: Path) -> None:
     assert rows[0]["rescue_fe"] == 200
     assert rows[0]["refresh_fe"] == 50
     assert rows[0]["search_state_fe"] == 100
-    assert rows[0]["overhead_fe"] == 150
+    assert rows[0]["precision_probe_fe"] == 32
+    assert rows[0]["overhead_fe"] == 118
     assert (
         rows[0]["phase_i_fe"]
         + rows[0]["cc_phase_fe"]
         + rows[0]["rescue_fe"]
         + rows[0]["refresh_fe"]
         + rows[0]["search_state_fe"]
+        + rows[0]["precision_probe_fe"]
         + rows[0]["separable_continuation_fe"]
         + rows[0]["overhead_fe"]
         == rows[0]["total_fe"]
