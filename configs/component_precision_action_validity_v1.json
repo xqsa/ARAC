@@ -21,6 +21,8 @@
     "dose": "all_component_groups_once",
     "horizon": "complete_component_sequence_with_generation_complete_natural_early_stop",
     "execution": "trajectory_branch_local_sequential_component_horizon",
+    "active_auxiliary_fe_route": "abstain_without_consuming_once_lock",
+    "phase_rescue_must_be_inactive": true,
     "dose_budget_crn_frozen_at_component_start": true,
     "mid_horizon_precision_redispatch_allowed": false,
     "endpoint": "one_unique_h_endpoint_after_last_component_group",

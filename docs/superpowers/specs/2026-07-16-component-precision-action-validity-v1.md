@@ -2,7 +2,28 @@
 
 Date: 2026-07-16
 Executor: Codex
-Status: frozen before optimizer execution
+Status: frozen before optimizer execution; integrity amendment frozen before screen
+
+## Integrity Amendment
+
+The 100k trace smoke exposed an implementation-integrity failure before any
+component or terminal performance outcome was available: v37 could start a
+phase-rescue optimizer inside a frozen component horizon. That auxiliary FE
+changed later native group budgets, so A0 could no longer remain both
+unmodified v37 and identical to A1 in frozen requested group budgets.
+
+The safe-opportunity definition therefore requires all auxiliary optimizer
+routes that can consume FE between component groups to be quiescent at the
+pre-action snapshot. In v37 this means that phase rescue is inactive (retired
+or otherwise disabled). An active auxiliary-FE route causes an explicit
+abstention without consuming the one-action lock; the same canonical
+opportunity may be reconsidered after the route becomes quiescent. The runner
+must retain the budget-drift assertions and must not reserve guessed rescue FE,
+suppress baseline behavior, or shrink a frozen budget after selection.
+
+This amendment changes no sigma, action dose, statistical threshold, case,
+seed, estimand, or experimental matrix. It was made from traceback and FE-path
+evidence only, before screen execution and without inspecting action utility.
 
 ## Question And Boundary
 
@@ -28,9 +49,10 @@ enter the opportunity rule.
 ## Component-Horizon Action
 
 The opportunity is the first safe overlap-component opportunity defined using
-only pre-action topology, lock, scheduler, and remaining-FE state. At that
-point the component, canonical group order, group population sizes, native
-sigmas, FE caps, RNG descriptor, and complete checkpoint are frozen.
+only pre-action topology, lock, scheduler, auxiliary-route quiescence, and
+remaining-FE state. At that point the component, canonical group order, group
+population sizes, native sigmas, FE caps, RNG descriptor, and complete
+checkpoint are frozen.
 
 A component horizon visits every group in the component once in canonical
 order. The A1 dose applies to all component groups, not only the triggering
