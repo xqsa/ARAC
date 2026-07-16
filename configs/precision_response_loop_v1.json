@@ -1,0 +1,36 @@
+{
+  "protocol_version": "precision-response-loop-v1",
+  "baseline_action": "arac_evidence_action_controller_v37",
+  "precision_sigma_source": "arac_evidence_action_controller_v38",
+  "response_arms": [
+    "a0_v37",
+    "a1_probe_only",
+    "a2_probe_gated"
+  ],
+  "probe": {
+    "pair_count": 16,
+    "probe_fe": 32,
+    "boundary_mode": "legacy_none",
+    "precision_to_normal_sigma_ratio": 0.5,
+    "allow_guarded_incumbent_update": true,
+    "allow_group_state_update": false
+  },
+  "gate": {
+    "confidence_level": 0.95,
+    "win_lcb_threshold": 0.55,
+    "large_loss_multiplier": 1.2,
+    "large_loss_ucb_threshold": 0.2,
+    "median_relative_advantage_threshold": 0.0,
+    "standardized_diversity_ratio_min": 0.95,
+    "precision_boundary_hit_rate_max": 0.25,
+    "precision_best_relative_gain_threshold": 0.0
+  },
+  "lease": {
+    "max_probe_per_trajectory": 1,
+    "max_lease_per_trajectory": 1,
+    "lease_horizon": "one_group_block",
+    "review_horizon": "next_canonical_same_group_revisit",
+    "review_diversity_recovery_min": 0.8,
+    "renewal_enabled": false
+  }
+}
