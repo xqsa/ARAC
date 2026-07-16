@@ -229,6 +229,7 @@ class HccAobExecutionRequest:
     car_actionability_arm: str = "off"
     precision_causal_arm: str = "off"
     precision_response_arm: str = "off"
+    component_precision_arm: str = "off"
     offline_frozen_replay: bool = False
     hcc_repo_root: Path | None = None
     hcc_runner: Path | None = None
@@ -508,11 +509,28 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         "arac_evidence_action_controller_v37"
     ):
         raise ValueError("precision response logging requires the frozen v37 action")
-    if (
-        request.precision_response_arm != "off"
-        and request.precision_causal_arm != "off"
+    if request.component_precision_arm not in {
+        "off",
+        "a0_v37",
+        "a1_precision_component_once",
+    }:
+        raise ValueError("unsupported component precision arm")
+    if request.component_precision_arm != "off" and request.arac_action != (
+        "arac_evidence_action_controller_v37"
     ):
-        raise ValueError("precision response and causal logging arms are exclusive")
+        raise ValueError("component precision logging requires the frozen v37 action")
+    active_precision_arms = sum(
+        arm != "off"
+        for arm in (
+            request.precision_causal_arm,
+            request.precision_response_arm,
+            request.component_precision_arm,
+        )
+    )
+    if active_precision_arms > 1:
+        raise ValueError(
+            "causal, response, and component precision arms are mutually exclusive"
+        )
     frozen_action = request.arac_action == "arac_evidence_action_controller_v41"
     if frozen_action and not request.offline_frozen_replay:
         raise ValueError("v41 is frozen; use offline_frozen_replay for historical replay")
@@ -561,6 +579,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         argv.extend(("--precision-causal-arm", request.precision_causal_arm))
     if request.precision_response_arm != "off":
         argv.extend(("--precision-response-arm", request.precision_response_arm))
+    if request.component_precision_arm != "off":
+        argv.extend(("--component-precision-arm", request.component_precision_arm))
     if request.offline_frozen_replay:
         argv.append("--offline-frozen-replay")
     if request.enable_relation_dispatch:
@@ -621,6 +641,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             car_actionability_arm=request.car_actionability_arm,
             precision_causal_arm=request.precision_causal_arm,
             precision_response_arm=request.precision_response_arm,
+            component_precision_arm=request.component_precision_arm,
             offline_frozen_replay=request.offline_frozen_replay,
         )
     )

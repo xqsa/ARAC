@@ -24,6 +24,9 @@ SPEC_PATH = (
     / "2026-07-16-component-precision-action-validity-v1.md"
 )
 PROTOCOL_VERSION = "component-precision-action-validity-v1"
+PREREGISTRATION_GIT_COMMIT = "ad669a4f1e0f3ec5bc8827667cdb6ccf7e2d5964"
+CONFIG_SHA256 = "50ad532fad2277c21e0bdf1a3f6075f89c8af33784faca1a6449c210e3852e68"
+SPEC_SHA256 = "03bd478722a8a871e31962ab3b775915568cc20f300a805b17d35c70331d2bd4"
 ARMS = ("a0_v37", "a1_precision_component_once")
 STAGES = ("screen", "confirm")
 
@@ -41,13 +44,17 @@ BRANCH_COLUMNS = (
     "decision_status",
     "not_applicable_reason",
     "decision_fe",
+    "decision_outer_iter",
     "component_id",
     "component_group_indices",
     "component_group_count",
     "component_shared_var_count",
     "component_horizon_requested_fe",
     "component_horizon_actual_fe",
+    "component_horizon_interval_fe",
+    "component_end_fe",
     "terminal_target_fe",
+    "terminal_completion_tolerance_fe",
     "terminal_observed_fe",
     "horizon_error",
     "terminal_error",
@@ -66,8 +73,12 @@ BRANCH_COLUMNS = (
     "mid_horizon_redispatch_count",
     "unique_h_endpoint",
     "component_horizon_complete",
+    "delayed_review_fe",
+    "delayed_review_outer_iter",
+    "delayed_review_group_index",
     "config_sha256",
     "preregistration_sha256",
+    "preregistration_git_commit",
     "source_git_commit",
 )
 COMPONENT_COLUMNS = (
@@ -93,6 +104,12 @@ SURVIVAL_COLUMNS = (
     "applicable",
     "component_closed",
     "delayed_closed",
+    "a0_shared_path_l1",
+    "a1_shared_path_l1",
+    "a0_shared_net_l1",
+    "a1_shared_net_l1",
+    "a0_delayed_drift_l1",
+    "a1_delayed_drift_l1",
     "a0_s_h",
     "a1_s_h",
     "delta_s_h",
@@ -133,10 +150,14 @@ BUDGET_COLUMNS = (
     "population_sizes",
     "requested_group_fes",
     "actual_group_fes",
+    "interval_group_fes",
+    "auxiliary_group_fes",
     "applied_group_sigmas",
     "normal_sigma",
     "precision_sigma",
     "component_horizon_actual_fe",
+    "component_interval_actual_fe",
+    "component_auxiliary_fe",
     "component_precision_fe",
     "optimizer_fe_used",
     "configured_max_fes",
@@ -183,6 +204,11 @@ def _file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def component_action_pair_id(problem_id: str, seed: int) -> str:
+    material = f"{PROTOCOL_VERSION}|{str(problem_id).upper()}|{int(seed)}"
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
 def _is_hex(value: object, length: int) -> bool:
@@ -358,6 +384,10 @@ def clopper_pearson_upper(
 
 
 def _load_config() -> dict[str, object]:
+    if _file_sha256(CONFIG_PATH) != CONFIG_SHA256:
+        raise ValueError("frozen config hash mismatch")
+    if _file_sha256(SPEC_PATH) != SPEC_SHA256:
+        raise ValueError("frozen preregistration spec hash mismatch")
     config = _read_json(CONFIG_PATH)
     if config.get("protocol_version") != PROTOCOL_VERSION:
         raise ValueError("config protocol mismatch")
@@ -422,7 +452,11 @@ def _validate_matrix(
     blockers: list[str] = []
     for row in pairs:
         try:
-            observed.append((row.get("problem_id", ""), _integer(row, "seed")))
+            problem_id = row.get("problem_id", "")
+            seed = _integer(row, "seed")
+            observed.append((problem_id, seed))
+            if row.get("pair_id") != component_action_pair_id(problem_id, seed):
+                blockers.append(f"pair_id_mismatch:{problem_id}:{seed}")
         except ValueError as exc:
             blockers.append(f"invalid_matrix_identity:{exc}")
     if len(observed) != len(set(observed)):
@@ -443,6 +477,13 @@ def _validate_inputs(
     config: Mapping[str, object],
 ) -> tuple[list[dict[str, object]], list[str]]:
     blockers = _validate_matrix(pairs, stage=stage, config=config)
+    source_commits = {
+        row.get("source_git_commit", "")
+        for row in branches
+        if _is_hex(row.get("source_git_commit", ""), 40)
+    }
+    if len(source_commits) != 1:
+        blockers.append("source_git_commit_not_unique")
     component_by_pair, duplicate = _unique_by_pair(components, artifact="component")
     blockers.extend(duplicate)
     survival_by_pair, duplicate = _unique_by_pair(survival, artifact="survival")
@@ -465,8 +506,8 @@ def _validate_inputs(
     assert isinstance(audit, Mapping)
     floor = float(audit["error_floor"])
     catastrophic_multiplier = float(audit["catastrophic_multiplier"])
-    expected_config_hash = _file_sha256(CONFIG_PATH)
-    expected_spec_hash = _file_sha256(SPEC_PATH)
+    expected_config_hash = CONFIG_SHA256
+    expected_spec_hash = SPEC_SHA256
     normalized: list[dict[str, object]] = []
 
     for pair_id, pair in pair_by_id.items():
@@ -524,6 +565,13 @@ def _validate_inputs(
                     pair_blockers.append(f"config_hash_mismatch:{arm}")
                 if branch.get("preregistration_sha256") != expected_spec_hash:
                     pair_blockers.append(f"preregistration_hash_mismatch:{arm}")
+                if (
+                    branch.get("preregistration_git_commit")
+                    != PREREGISTRATION_GIT_COMMIT
+                ):
+                    pair_blockers.append(
+                        f"preregistration_git_commit_mismatch:{arm}"
+                    )
                 if not _is_hex(branch.get("source_git_commit", ""), 40):
                     pair_blockers.append(f"invalid_source_git_commit:{arm}")
                 for field in (
@@ -536,20 +584,77 @@ def _validate_inputs(
                     branch, "component_horizon_requested_fe"
                 )
                 component_actual_fe = _integer(branch, "component_horizon_actual_fe")
+                component_interval_fe = _integer(
+                    branch, "component_horizon_interval_fe"
+                )
+                decision_fe = _integer(branch, "decision_fe")
+                component_end_fe = _integer(branch, "component_end_fe")
                 if applicable and (
                     component_requested_fe <= 0
                     or component_actual_fe <= 0
                     or component_actual_fe > component_requested_fe
+                    or component_interval_fe < component_actual_fe
+                    or decision_fe <= 0
+                    or component_end_fe - decision_fe != component_interval_fe
                 ):
                     pair_blockers.append(f"component_horizon_fe_invalid:{arm}")
-                if _integer(branch, "terminal_observed_fe") != _integer(
-                    branch, "terminal_target_fe"
-                ):
+                terminal_target = _integer(branch, "terminal_target_fe")
+                terminal_observed = _integer(branch, "terminal_observed_fe")
+                configured_max = _integer(
+                    branch, "configured_max_fes", minimum=1
+                )
+                terminal_tolerance = _integer(
+                    branch, "terminal_completion_tolerance_fe", minimum=1
+                )
+                if terminal_observed != terminal_target:
                     pair_blockers.append(f"terminal_endpoint_not_reached:{arm}")
+                if (
+                    terminal_target != configured_max - terminal_tolerance
+                    or terminal_target <= 0
+                ):
+                    pair_blockers.append(
+                        f"terminal_population_endpoint_contract_mismatch:{arm}"
+                    )
                 if _integer(branch, "optimizer_fe_used") > _integer(
                     branch, "configured_max_fes", minimum=1
                 ):
                     pair_blockers.append(f"optimizer_fe_overspend:{arm}")
+                if applicable:
+                    group_indices = _integer_vector(
+                        branch, "component_group_indices"
+                    )
+                    decision_outer_iter = _integer(
+                        branch, "decision_outer_iter", minimum=1
+                    )
+                    delayed_review_fe = _integer(branch, "delayed_review_fe")
+                    delayed_review_outer_iter = _integer(
+                        branch, "delayed_review_outer_iter", minimum=1
+                    )
+                    delayed_review_group_index = _integer(
+                        branch, "delayed_review_group_index"
+                    )
+                    if (
+                        not group_indices
+                        or delayed_review_outer_iter != decision_outer_iter + 1
+                        or delayed_review_group_index != group_indices[0]
+                        or delayed_review_fe < component_end_fe
+                        or delayed_review_fe > terminal_observed
+                    ):
+                        pair_blockers.append(
+                            f"delayed_review_watermark_invalid:{arm}"
+                        )
+                elif any(
+                    (
+                        decision_fe,
+                        component_end_fe,
+                        _integer(branch, "decision_outer_iter"),
+                        _integer(branch, "delayed_review_fe"),
+                        _integer(branch, "delayed_review_outer_iter"),
+                    )
+                ) or branch.get("delayed_review_group_index", ""):
+                    pair_blockers.append(
+                        f"non_applicable_delayed_watermark_present:{arm}"
+                    )
                 _number(branch, "horizon_error", minimum=0.0)
                 _number(branch, "terminal_error", minimum=0.0)
             identity_fields = (
@@ -561,6 +666,8 @@ def _validate_inputs(
             for field in identity_fields:
                 if a0.get(field) != a1.get(field):
                     pair_blockers.append(f"paired_{field}_mismatch")
+            if a0.get("source_git_commit") != a1.get("source_git_commit"):
+                pair_blockers.append("paired_source_git_commit_mismatch")
             if applicable:
                 if a0.get("decision_status") != "applicable" or a1.get("decision_status") != "applicable":
                     pair_blockers.append("applicable_branch_status_mismatch")
@@ -646,6 +753,8 @@ def _validate_inputs(
                     populations = _integer_vector(budget, "population_sizes")
                     requested = _integer_vector(budget, "requested_group_fes")
                     actual = _integer_vector(budget, "actual_group_fes")
+                    interval = _integer_vector(budget, "interval_group_fes")
+                    auxiliary = _integer_vector(budget, "auxiliary_group_fes")
                     applied_sigmas = _number_vector(budget, "applied_group_sigmas")
                     expected_count = _integer(branch, "component_group_count", minimum=1)
                     if not (
@@ -653,6 +762,8 @@ def _validate_inputs(
                         == len(populations)
                         == len(requested)
                         == len(actual)
+                        == len(interval)
+                        == len(auxiliary)
                         == len(applied_sigmas)
                         == expected_count
                     ):
@@ -677,6 +788,17 @@ def _validate_inputs(
                         pair_blockers.append(
                             f"budget_actual_fe_not_generation_complete:{arm}"
                         )
+                    if any(
+                        interval_fe != actual_fe + auxiliary_fe
+                        or interval_fe < actual_fe
+                        or auxiliary_fe < 0
+                        for interval_fe, actual_fe, auxiliary_fe in zip(
+                            interval, actual, auxiliary, strict=True
+                        )
+                    ):
+                        pair_blockers.append(
+                            f"budget_component_interval_accounting_mismatch:{arm}"
+                        )
                     normal_sigma = _number(budget, "normal_sigma", minimum=0.0)
                     precision_sigma = _number(budget, "precision_sigma", minimum=0.0)
                     if not _close(precision_sigma, 0.5 * normal_sigma):
@@ -692,6 +814,22 @@ def _validate_inputs(
                     ):
                         pair_blockers.append(
                             f"budget_component_horizon_actual_fe_mismatch:{arm}"
+                        )
+                    interval_fe = _integer(
+                        budget, "component_interval_actual_fe", minimum=1
+                    )
+                    auxiliary_fe = _integer(budget, "component_auxiliary_fe")
+                    if (
+                        interval_fe != sum(interval)
+                        or auxiliary_fe != sum(auxiliary)
+                        or interval_fe != horizon_fe + auxiliary_fe
+                        or interval_fe
+                        != _integer(
+                            branch, "component_horizon_interval_fe", minimum=1
+                        )
+                    ):
+                        pair_blockers.append(
+                            f"budget_component_interval_total_mismatch:{arm}"
                         )
                     if sum(requested) != _integer(
                         branch, "component_horizon_requested_fe", minimum=1
@@ -713,6 +851,8 @@ def _validate_inputs(
                         "population_sizes",
                         "requested_group_fes",
                         "actual_group_fes",
+                        "interval_group_fes",
+                        "auxiliary_group_fes",
                         "applied_group_sigmas",
                         "normal_sigma",
                         "precision_sigma",
@@ -723,6 +863,13 @@ def _validate_inputs(
                         budget, "component_precision_fe"
                     ) != 0:
                         pair_blockers.append(f"non_applicable_component_fe_nonzero:{arm}")
+                    if (
+                        _integer(budget, "component_interval_actual_fe") != 0
+                        or _integer(budget, "component_auxiliary_fe") != 0
+                    ):
+                        pair_blockers.append(
+                            f"non_applicable_component_interval_fe_nonzero:{arm}"
+                        )
             if applicable:
                 for field in (
                     "group_indices",
@@ -790,6 +937,24 @@ def _validate_inputs(
             delta_s_h: float | None = None
             delta_s_d: float | None = None
             if applicable:
+                a0_shared_path_l1 = _number(
+                    shared, "a0_shared_path_l1", minimum=0.0
+                )
+                a1_shared_path_l1 = _number(
+                    shared, "a1_shared_path_l1", minimum=0.0
+                )
+                a0_shared_net_l1 = _number(
+                    shared, "a0_shared_net_l1", minimum=0.0
+                )
+                a1_shared_net_l1 = _number(
+                    shared, "a1_shared_net_l1", minimum=0.0
+                )
+                a0_delayed_drift_l1 = _number(
+                    shared, "a0_delayed_drift_l1", minimum=0.0
+                )
+                a1_delayed_drift_l1 = _number(
+                    shared, "a1_delayed_drift_l1", minimum=0.0
+                )
                 a0_s_h = _number(shared, "a0_s_h", minimum=0.0)
                 a1_s_h = _number(shared, "a1_s_h", minimum=0.0)
                 a0_strict_survival = _flag(shared, "a0_strict_survival")
@@ -798,10 +963,45 @@ def _validate_inputs(
                 a1_s_d = _number(shared, "a1_s_d", minimum=0.0)
                 if any(value > 1.0 for value in (a0_s_h, a1_s_h, a0_s_d, a1_s_d)):
                     pair_blockers.append("survival_value_out_of_range")
-                if a0_strict_survival != (a0_s_h > 0.0) or a1_strict_survival != (
-                    a1_s_h > 0.0
+                for arm, path_l1, net_l1, delayed_drift_l1, s_h, s_d, strict in (
+                    (
+                        "a0",
+                        a0_shared_path_l1,
+                        a0_shared_net_l1,
+                        a0_delayed_drift_l1,
+                        a0_s_h,
+                        a0_s_d,
+                        a0_strict_survival,
+                    ),
+                    (
+                        "a1",
+                        a1_shared_path_l1,
+                        a1_shared_net_l1,
+                        a1_delayed_drift_l1,
+                        a1_s_h,
+                        a1_s_d,
+                        a1_strict_survival,
+                    ),
                 ):
-                    pair_blockers.append("strict_survival_mismatch")
+                    expected_strict = net_l1 > floor
+                    expected_s_h = min(
+                        1.0,
+                        max(0.0, net_l1 / (floor + path_l1)),
+                    )
+                    expected_s_d = (
+                        1.0
+                        - min(1.0, delayed_drift_l1 / max(net_l1, floor))
+                        if expected_strict
+                        else 0.0
+                    )
+                    if (
+                        strict != expected_strict
+                        or not _close(s_h, expected_s_h)
+                        or not _close(s_d, expected_s_d)
+                    ):
+                        pair_blockers.append(
+                            f"survival_path_recompute_mismatch:{arm}"
+                        )
                 delta_s_h = a1_s_h - a0_s_h
                 delta_s_d = a1_s_d - a0_s_d
                 if not _close(_number(shared, "delta_s_h"), delta_s_h):
@@ -811,6 +1011,12 @@ def _validate_inputs(
             elif any(
                 shared.get(field, "")
                 for field in (
+                    "a0_shared_path_l1",
+                    "a1_shared_path_l1",
+                    "a0_shared_net_l1",
+                    "a1_shared_net_l1",
+                    "a0_delayed_drift_l1",
+                    "a1_delayed_drift_l1",
                     "a0_s_h",
                     "a1_s_h",
                     "delta_s_h",
@@ -892,6 +1098,10 @@ def _build_gate(
     config: Mapping[str, object],
     resamples: int,
     input_root: Path,
+    upstream_screen_gate: Mapping[str, object] | None = None,
+    input_artifact_sha256: Mapping[str, str] | None = None,
+    upstream_screen_gate_sha256: str | None = None,
+    source_git_commit: str | None = None,
 ) -> dict[str, object]:
     audit = config["audit"]
     stage_config = config[stage]
@@ -964,7 +1174,7 @@ def _build_gate(
         "applicable_minimum": len(att) >= int(stage_config["minimum_applicable"]),
         "applicable_case_minimum": len({row["problem_id"] for row in att})
         >= int(stage_config["minimum_applicable_cases"]),
-        "all_registered_seeds_present": {int(row["seed"]) for row in itt}
+        "all_applicable_seeds_present": {int(row["seed"]) for row in att}
         == set(int(seed) for seed in stage_config["seeds"]),
         "zero_component_catastrophic": component_catastrophic == 0,
         "zero_terminal_catastrophic": terminal_catastrophic == 0,
@@ -1082,6 +1292,8 @@ def _build_gate(
         "runtime_scheduler_authorized": False,
         "full_24_authorized": False,
         "source_root": str(input_root.resolve()),
+        "source_git_commit": source_git_commit,
+        "input_artifact_sha256": dict(sorted((input_artifact_sha256 or {}).items())),
         "population": {
             "itt_definition": "all_registered_pairs_with_no_opportunity_as_zero_effect",
             "att_definition": "pre_action_applicable_pairs",
@@ -1121,6 +1333,15 @@ def _build_gate(
         "checks": checks,
         "blockers": failed,
         "hard_stop": "action_validity_only_no_runtime_or_full24_authorization",
+        "upstream_screen_gate": (
+            None
+            if upstream_screen_gate is None
+            else {
+                "status": upstream_screen_gate.get("status"),
+                "source_root": upstream_screen_gate.get("source_root"),
+                "sha256": upstream_screen_gate_sha256,
+            }
+        ),
     }
 
 
@@ -1144,7 +1365,11 @@ def _blocked_gate(
 
 
 def audit_component_atomic_precision(
-    input_root: Path, *, stage: str, resamples: int = 2000
+    input_root: Path,
+    *,
+    stage: str,
+    resamples: int = 2000,
+    screen_gate_path: Path | None = None,
 ) -> dict[str, object]:
     if stage not in STAGES:
         raise ValueError(f"unsupported stage: {stage}")
@@ -1152,6 +1377,62 @@ def audit_component_atomic_precision(
     try:
         config = _load_config()
         names = _artifact_names(config)
+        artifact_keys = (
+            "branches",
+            "component_outcomes",
+            "survival",
+            "pairs",
+            "budget",
+        )
+        artifact_names = {names[key] for key in artifact_keys}
+        upstream_screen_gate: Mapping[str, object] | None = None
+        if stage == "confirm":
+            if screen_gate_path is None:
+                raise ValueError("confirm requires an explicit screen gate")
+            upstream_screen_gate = _read_json(screen_gate_path.resolve())
+            upstream_screen_gate_sha256 = _file_sha256(screen_gate_path.resolve())
+            screen_checks = upstream_screen_gate.get("checks")
+            screen_integrity = upstream_screen_gate.get("integrity")
+            screen_hashes = upstream_screen_gate.get("input_artifact_sha256")
+            screen_bootstrap = upstream_screen_gate.get("bootstrap")
+            screen_source_root = upstream_screen_gate.get("source_root")
+            if (
+                upstream_screen_gate.get("protocol_version") != PROTOCOL_VERSION
+                or upstream_screen_gate.get("stage") != "screen"
+                or upstream_screen_gate.get("status") != "screen_pass"
+                or not isinstance(screen_checks, Mapping)
+                or not screen_checks
+                or not all(value is True for value in screen_checks.values())
+                or not isinstance(screen_integrity, Mapping)
+                or screen_integrity.get("status") != "pass"
+                or not isinstance(screen_hashes, Mapping)
+                or set(screen_hashes) != artifact_names
+                or not all(_is_hex(value, 64) for value in screen_hashes.values())
+                or not isinstance(screen_bootstrap, Mapping)
+                or int(screen_bootstrap.get("resamples", -1)) != 2000
+                or not _is_hex(
+                    upstream_screen_gate.get("source_git_commit", ""), 40
+                )
+                or not isinstance(screen_source_root, str)
+                or not screen_source_root
+            ):
+                raise ValueError("confirm upstream screen gate did not pass")
+            resolved_screen_source = Path(screen_source_root).resolve()
+            observed_screen_hashes = {
+                name: _file_sha256(resolved_screen_source / name)
+                for name in sorted(artifact_names)
+            }
+            if dict(screen_hashes) != observed_screen_hashes:
+                raise ValueError("confirm upstream screen artifacts changed")
+            recomputed_screen_gate = audit_component_atomic_precision(
+                resolved_screen_source,
+                stage="screen",
+                resamples=2000,
+            )
+            if dict(upstream_screen_gate) != recomputed_screen_gate:
+                raise ValueError(
+                    "confirm upstream gate does not match audited screen artifacts"
+                )
         branch_header, branches = _read_csv(source / names["branches"])
         component_header, components = _read_csv(source / names["component_outcomes"])
         survival_header, survival = _read_csv(source / names["survival"])
@@ -1164,6 +1445,10 @@ def audit_component_atomic_precision(
         _require_columns(survival_header, SURVIVAL_COLUMNS, artifact=names["survival"])
         _require_columns(pair_header, PAIR_COLUMNS, artifact=names["pairs"])
         _require_columns(budget_header, BUDGET_COLUMNS, artifact=names["budget"])
+        input_artifact_sha256 = {
+            names[key]: _file_sha256(source / names[key])
+            for key in artifact_keys
+        }
         rows, blockers = _validate_inputs(
             branches=branches,
             components=components,
@@ -1173,6 +1458,21 @@ def audit_component_atomic_precision(
             stage=stage,
             config=config,
         )
+        source_commits = {
+            row.get("source_git_commit", "")
+            for row in branches
+            if _is_hex(row.get("source_git_commit", ""), 40)
+        }
+        source_git_commit = (
+            next(iter(source_commits)) if len(source_commits) == 1 else None
+        )
+        if (
+            stage == "confirm"
+            and upstream_screen_gate is not None
+            and upstream_screen_gate.get("source_git_commit")
+            != source_git_commit
+        ):
+            blockers.append("confirm_source_git_commit_differs_from_screen")
         return _build_gate(
             stage=stage,
             rows=rows,
@@ -1180,6 +1480,12 @@ def audit_component_atomic_precision(
             config=config,
             resamples=resamples,
             input_root=source,
+            upstream_screen_gate=upstream_screen_gate,
+            input_artifact_sha256=input_artifact_sha256,
+            upstream_screen_gate_sha256=(
+                upstream_screen_gate_sha256 if stage == "confirm" else None
+            ),
+            source_git_commit=source_git_commit,
         )
     except (FileNotFoundError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
         return _blocked_gate(
@@ -1196,6 +1502,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--stage", choices=STAGES, required=True)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--bootstrap-resamples", type=int, default=2000)
+    parser.add_argument(
+        "--screen-gate",
+        type=Path,
+        help="Required for confirm: prior component_action_gate.json with screen_pass.",
+    )
     return parser.parse_args(argv)
 
 
@@ -1204,7 +1515,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     output_root = (args.output_dir or args.input_dir).resolve()
     output_root.mkdir(parents=True, exist_ok=True)
     gate = audit_component_atomic_precision(
-        args.input_dir, stage=args.stage, resamples=args.bootstrap_resamples
+        args.input_dir,
+        stage=args.stage,
+        resamples=args.bootstrap_resamples,
+        screen_gate_path=args.screen_gate,
     )
     output_path = output_root / "component_action_gate.json"
     output_path.write_text(

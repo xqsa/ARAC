@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import json
 import math
 import sys
 from pathlib import Path
@@ -34,6 +35,7 @@ def _dataset(
     stage: str,
     applicable_count: int | None = None,
     effect: float = 0.02,
+    excluded_applicable_seed: int | None = None,
 ) -> Path:
     config = AUDIT._load_config()
     stage_config = config[stage]
@@ -56,8 +58,8 @@ def _dataset(
     budget_rows: list[dict[str, object]] = []
 
     for index, (problem_id, seed) in enumerate(registered):
-        applicable = index < applicable_count
-        pair_id = f"pair_{problem_id}_{seed}"
+        applicable = index < applicable_count and seed != excluded_applicable_seed
+        pair_id = AUDIT.component_action_pair_id(problem_id, seed)
         tau_h = effect if applicable else 0.0
         tau_t = effect if applicable else 0.0
         a0_h = 100.0
@@ -85,6 +87,7 @@ def _dataset(
                     "decision_status": "applicable" if applicable else "not_applicable",
                     "not_applicable_reason": reason,
                     "decision_fe": 1000 if applicable else 0,
+                    "decision_outer_iter": 2 if applicable else 0,
                     "component_id": "component_x" if applicable else "",
                     "component_group_indices": "0;1;2;3" if applicable else "",
                     "component_group_count": 4 if applicable else 0,
@@ -93,8 +96,15 @@ def _dataset(
                     "component_horizon_actual_fe": (
                         (64 if action_arm else 128) if applicable else 0
                     ),
-                    "terminal_target_fe": 3_000_000,
-                    "terminal_observed_fe": 3_000_000,
+                    "component_horizon_interval_fe": (
+                        (80 if action_arm else 144) if applicable else 0
+                    ),
+                    "component_end_fe": (
+                        (1080 if action_arm else 1144) if applicable else 0
+                    ),
+                    "terminal_target_fe": 2_999_984,
+                    "terminal_completion_tolerance_fe": 16,
+                    "terminal_observed_fe": 2_999_984,
                     "horizon_error": a1_h if action_arm else a0_h,
                     "terminal_error": a1_t if action_arm else a0_t,
                     "prefix_record_sha256": digest_a,
@@ -105,15 +115,23 @@ def _dataset(
                     "precision_sigma": 0.25 if applicable else "",
                     "public_trace_sha256": public_a1 if action_arm else public_a0,
                     "terminal_record_sha256": digest_d if action_arm else digest_c,
-                    "optimizer_fe_used": 3_000_000,
+                    "optimizer_fe_used": 2_999_984,
                     "configured_max_fes": 3_000_000,
                     "same_budget_violation": 0,
                     "component_plan_frozen": int(applicable),
                     "mid_horizon_redispatch_count": 0,
                     "unique_h_endpoint": int(applicable),
                     "component_horizon_complete": int(applicable),
+                    "delayed_review_fe": (
+                        (1080 if action_arm else 1144) if applicable else 0
+                    ),
+                    "delayed_review_outer_iter": 3 if applicable else 0,
+                    "delayed_review_group_index": 0 if applicable else "",
                     "config_sha256": config_hash,
                     "preregistration_sha256": spec_hash,
+                    "preregistration_git_commit": (
+                        AUDIT.PREREGISTRATION_GIT_COMMIT
+                    ),
                     "source_git_commit": commit,
                 }
             )
@@ -134,6 +152,14 @@ def _dataset(
                         if applicable
                         else ""
                     ),
+                    "interval_group_fes": (
+                        ("20;20;20;20" if action_arm else "36;36;36;36")
+                        if applicable
+                        else ""
+                    ),
+                    "auxiliary_group_fes": (
+                        "4;4;4;4" if applicable else ""
+                    ),
                     "applied_group_sigmas": (
                         ("0.25;0.25;0.25;0.25" if action_arm else "0.5;0.5;0.5;0.5")
                         if applicable
@@ -144,8 +170,12 @@ def _dataset(
                     "component_horizon_actual_fe": (
                         (64 if action_arm else 128) if applicable else 0
                     ),
+                    "component_interval_actual_fe": (
+                        (80 if action_arm else 144) if applicable else 0
+                    ),
+                    "component_auxiliary_fe": 16 if applicable else 0,
                     "component_precision_fe": 64 if applicable and action_arm else 0,
-                    "optimizer_fe_used": 3_000_000,
+                    "optimizer_fe_used": 2_999_984,
                     "configured_max_fes": 3_000_000,
                     "same_budget_violation": 0,
                     "strict_terminal_reached": 1,
@@ -181,6 +211,12 @@ def _dataset(
                 "applicable": int(applicable),
                 "component_closed": int(applicable),
                 "delayed_closed": int(applicable),
+                "a0_shared_path_l1": 1.0 if applicable else "",
+                "a1_shared_path_l1": 1.0 if applicable else "",
+                "a0_shared_net_l1": 0.4 if applicable else "",
+                "a1_shared_net_l1": 0.6 if applicable else "",
+                "a0_delayed_drift_l1": 0.28 if applicable else "",
+                "a1_delayed_drift_l1": 0.3 if applicable else "",
                 "a0_s_h": 0.4 if applicable else "",
                 "a1_s_h": 0.6 if applicable else "",
                 "delta_s_h": 0.2 if applicable else "",
@@ -233,9 +269,23 @@ def _rewrite_cell(path: Path, row_index: int, field: str, value: str) -> None:
     _write_csv(path, rows, fields)
 
 
+def _screen_gate(path: Path) -> Path:
+    source_root = _dataset(path.parent / f"{path.stem}_source", stage="screen")
+    payload = AUDIT.audit_component_atomic_precision(
+        source_root,
+        stage="screen",
+        resamples=2000,
+    )
+    assert payload["status"] == "screen_pass"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
 def test_config_freezes_two_arms_and_one_component_wide_dose() -> None:
     config = AUDIT._load_config()
 
+    assert AUDIT._file_sha256(AUDIT.CONFIG_PATH) == AUDIT.CONFIG_SHA256
+    assert AUDIT._file_sha256(AUDIT.SPEC_PATH) == AUDIT.SPEC_SHA256
     assert tuple(config["arms"]) == (
         "a0_v37",
         "a1_precision_component_once",
@@ -279,12 +329,33 @@ def test_screen_gate_allows_generation_complete_treatment_early_stop(
     assert gate["effects"]["itt"]["tau_T"]["mean"] > 0.0
     assert gate["runtime_scheduler_authorized"] is False
     assert gate["full_24_authorized"] is False
+    assert len(gate["input_artifact_sha256"]) == 5
+
+
+def test_screen_requires_applicable_coverage_of_every_registered_seed(
+    tmp_path: Path,
+) -> None:
+    root = _dataset(
+        tmp_path / "missing_att_seed",
+        stage="screen",
+        excluded_applicable_seed=69,
+    )
+
+    gate = AUDIT.audit_component_atomic_precision(root, stage="screen")
+
+    assert gate["status"] == "screen_no_go"
+    assert gate["checks"]["all_applicable_seeds_present"] is False
 
 
 def test_confirm_gate_passes_complete_positive_two_arm_matrix(tmp_path: Path) -> None:
     root = _dataset(tmp_path / "confirm", stage="confirm")
+    screen_gate = _screen_gate(tmp_path / "screen_gate.json")
 
-    gate = AUDIT.audit_component_atomic_precision(root, stage="confirm")
+    gate = AUDIT.audit_component_atomic_precision(
+        root,
+        stage="confirm",
+        screen_gate_path=screen_gate,
+    )
 
     assert gate["status"] == "confirm_pass"
     assert gate["population"]["itt_count"] == 192
@@ -295,12 +366,98 @@ def test_confirm_gate_passes_complete_positive_two_arm_matrix(tmp_path: Path) ->
     assert gate["runtime_scheduler_authorized"] is False
 
 
+def test_confirm_requires_an_explicit_passing_screen_gate(tmp_path: Path) -> None:
+    root = _dataset(tmp_path / "confirm_blocked", stage="confirm")
+
+    missing = AUDIT.audit_component_atomic_precision(root, stage="confirm")
+    assert missing["status"] == "confirm_no_go"
+    assert "explicit screen gate" in missing["integrity"]["blockers"][0]
+
+    failed_path = _screen_gate(tmp_path / "failed_screen_gate.json")
+    payload = json.loads(failed_path.read_text(encoding="utf-8"))
+    payload["status"] = "screen_no_go"
+    failed_path.write_text(json.dumps(payload), encoding="utf-8")
+    failed = AUDIT.audit_component_atomic_precision(
+        root,
+        stage="confirm",
+        screen_gate_path=failed_path,
+    )
+    assert failed["status"] == "confirm_no_go"
+    assert "did not pass" in failed["integrity"]["blockers"][0]
+
+    different_source_path = _screen_gate(tmp_path / "different_source_gate.json")
+    different_source = json.loads(
+        different_source_path.read_text(encoding="utf-8")
+    )
+    different_source["source_git_commit"] = "2" * 40
+    different_source_path.write_text(
+        json.dumps(different_source), encoding="utf-8"
+    )
+    mismatched = AUDIT.audit_component_atomic_precision(
+        root,
+        stage="confirm",
+        screen_gate_path=different_source_path,
+    )
+    assert mismatched["status"] == "confirm_no_go"
+    assert "does not match audited screen artifacts" in mismatched[
+        "integrity"
+    ]["blockers"][0]
+
+
+def test_confirm_revalidates_screen_checks_and_artifact_hashes(tmp_path: Path) -> None:
+    root = _dataset(tmp_path / "confirm_revalidation", stage="confirm")
+    string_false_path = _screen_gate(tmp_path / "string_false_gate.json")
+    payload = json.loads(string_false_path.read_text(encoding="utf-8"))
+    payload["checks"] = {"all_hard_gates": "false"}
+    string_false_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    string_false = AUDIT.audit_component_atomic_precision(
+        root,
+        stage="confirm",
+        screen_gate_path=string_false_path,
+    )
+    assert string_false["status"] == "confirm_no_go"
+    assert "did not pass" in string_false["integrity"]["blockers"][0]
+
+    wrong_keys_path = _screen_gate(tmp_path / "wrong_keys_gate.json")
+    wrong_keys_payload = json.loads(wrong_keys_path.read_text(encoding="utf-8"))
+    removed_name, removed_hash = wrong_keys_payload[
+        "input_artifact_sha256"
+    ].popitem()
+    wrong_keys_payload["input_artifact_sha256"][f"forged_{removed_name}"] = (
+        removed_hash
+    )
+    wrong_keys_path.write_text(json.dumps(wrong_keys_payload), encoding="utf-8")
+    wrong_keys = AUDIT.audit_component_atomic_precision(
+        root,
+        stage="confirm",
+        screen_gate_path=wrong_keys_path,
+    )
+    assert wrong_keys["status"] == "confirm_no_go"
+    assert "did not pass" in wrong_keys["integrity"]["blockers"][0]
+
+    changed_path = _screen_gate(tmp_path / "changed_artifact_gate.json")
+    changed_payload = json.loads(changed_path.read_text(encoding="utf-8"))
+    artifact_name = next(iter(changed_payload["input_artifact_sha256"]))
+    (Path(changed_payload["source_root"]) / artifact_name).write_text(
+        "changed\n", encoding="utf-8"
+    )
+    changed = AUDIT.audit_component_atomic_precision(
+        root,
+        stage="confirm",
+        screen_gate_path=changed_path,
+    )
+    assert changed["status"] == "confirm_no_go"
+    assert "screen artifacts changed" in changed["integrity"]["blockers"][0]
+
+
 def test_outcome_or_survival_drift_fails_closed(tmp_path: Path) -> None:
     root = _dataset(tmp_path / "drift", stage="screen", applicable_count=35)
     config = AUDIT._load_config()
     names = AUDIT._artifact_names(config)
     _rewrite_cell(root / names["pairs"], 0, "tau_T", "9")
     _rewrite_cell(root / names["survival"], 1, "delta_s_d", "-0.5")
+    _rewrite_cell(root / names["survival"], 1, "a0_shared_net_l1", "0.9")
 
     gate = AUDIT.audit_component_atomic_precision(root, stage="screen")
 
@@ -309,6 +466,25 @@ def test_outcome_or_survival_drift_fails_closed(tmp_path: Path) -> None:
     blockers = "\n".join(gate["integrity"]["blockers"])
     assert "pair_recompute_mismatch:tau_T" in blockers
     assert "survival_recompute_mismatch:delta_s_d" in blockers
+    assert "survival_path_recompute_mismatch:a0" in blockers
+
+
+def test_pair_identity_and_component_interval_accounting_fail_closed(
+    tmp_path: Path,
+) -> None:
+    root = _dataset(tmp_path / "identity_interval", stage="screen")
+    names = AUDIT._artifact_names(AUDIT._load_config())
+    _rewrite_cell(root / names["pairs"], 0, "pair_id", "forged")
+    _rewrite_cell(root / names["budget"], 2, "component_auxiliary_fe", "15")
+    _rewrite_cell(root / names["branches"], 2, "delayed_review_group_index", "3")
+
+    gate = AUDIT.audit_component_atomic_precision(root, stage="screen")
+
+    assert gate["status"] == "screen_no_go"
+    blockers = "\n".join(gate["integrity"]["blockers"])
+    assert "pair_id_mismatch" in blockers
+    assert "component_interval_total_mismatch" in blockers
+    assert "delayed_review_watermark_invalid" in blockers
 
 
 def test_non_applicable_pair_must_be_bit_equivalent(tmp_path: Path) -> None:

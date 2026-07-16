@@ -79,8 +79,17 @@ from src.arac.policy.action_trust_policy import (
 from src.arac.policy.component_delayed_credit import (
     COMPONENT_CREDIT_TRACE_FIELDS,
     ComponentDelayedCreditTrace,
+    build_overlap_components,
     calculate_scheduler_revisit_cap,
     decide_component_lease,
+)
+from arac.policy.component_atomic_precision import (
+    COMPONENT_ATOMIC_SCHEMA_VERSION,
+    ComponentAtomicPlan,
+    ComponentEndpointResult,
+    build_component_endpoint_result,
+    build_component_reward,
+    plan_component_atomic_precision,
 )
 from src.arac.actions.controller_profiles import (
     controller_has_capability,
@@ -792,6 +801,7 @@ class SmokeConfig:
     car_actionability_arm: str = "off"
     precision_causal_arm: str = "off"
     precision_response_arm: str = "off"
+    component_precision_arm: str = "off"
     offline_frozen_replay: bool = False
 
 
@@ -829,6 +839,126 @@ class PrecisionCausalDecisionSnapshot:
     random_descriptor_sha256: str
     normal_sigma: float
     candidate_sigma: float
+
+
+COMPONENT_PRECISION_PROTOCOL_VERSION = "component-precision-action-validity-v1"
+COMPONENT_ACTION_BRANCH_FIELDS = [
+    "protocol_version",
+    "schema_version",
+    "fresh_optimizer_execution",
+    "problem_id",
+    "seed",
+    "component_precision_arm",
+    "decision_id",
+    "decision_status",
+    "not_applicable_reason",
+    "decision_fe",
+    "outer_iter",
+    "component_id",
+    "component_group_indices",
+    "component_group_count",
+    "component_shared_var_count",
+    "prefix_record_sha256",
+    "checkpoint_candidate_sha256",
+    "crn_descriptor_sha256",
+    "component_plan_sha256",
+    "normal_sigma",
+    "precision_sigma",
+    "action_applied",
+    "component_plan_frozen",
+    "mid_horizon_redispatch_count",
+    "atomic_closed",
+    "unique_h_endpoint",
+    "component_horizon_requested_fe",
+    "component_horizon_actual_fe",
+    "component_horizon_interval_fe",
+    "component_end_fe",
+    "h_endpoint_count",
+    "plan_integrity_valid",
+    "delayed_review_fe",
+    "delayed_review_outer_iter",
+    "delayed_review_group_index",
+    "delayed_status",
+    "terminal_target_fe",
+    "terminal_completion_tolerance_fe",
+    "terminal_observed_fe",
+    "terminal_error",
+    "terminal_record_sha256",
+    "terminal_status",
+]
+COMPONENT_ENDPOINT_FIELDS = [
+    "decision_id",
+    "component_precision_arm",
+    "checkpoint_error",
+    "endpoint_error",
+    "component_log_gain",
+    "material",
+    "component_start_fe",
+    "component_end_fe",
+    "component_requested_fe",
+    "component_actual_fe",
+    "component_interval_fe",
+    "group_endpoint_errors",
+]
+COMPONENT_SHARED_SURVIVAL_FIELDS = [
+    "decision_id",
+    "component_precision_arm",
+    "shared_path_l1",
+    "shared_net_l1",
+    "s_h",
+    "delayed_drift_l1",
+    "s_d",
+    "strict_survival",
+    "delayed_status",
+]
+COMPONENT_BUDGET_LEDGER_FIELDS = [
+    "decision_id",
+    "component_precision_arm",
+    "group_position",
+    "group_index",
+    "population_size",
+    "requested_fe",
+    "actual_fe",
+    "interval_actual_fe",
+    "auxiliary_actual_fe",
+    "sigma",
+    "group_start_fe",
+    "group_end_fe",
+    "group_endpoint_error",
+]
+
+
+@dataclass
+class ComponentAtomicRuntimeState:
+    plan: ComponentAtomicPlan
+    component_id: str
+    decision_id: str
+    decision_fe: int
+    outer_iter: int
+    prefix_record_sha256: str
+    checkpoint_candidate_sha256: str
+    crn_descriptor_sha256: str
+    component_plan_sha256: str
+    checkpoint_error: float
+    shared_indices: tuple[int, ...]
+    canonical_shared_path: list[tuple[float, ...]]
+    action_applied: bool
+    component_start_fe: int
+    plan_evaluation_count_at_start: int
+    group_endpoint_errors: list[float] = field(default_factory=list)
+    budget_rows: list[dict[str, str]] = field(default_factory=list)
+    next_group_position: int = 0
+    atomic_closed: bool = False
+    endpoint_error: float | None = None
+    component_end_fe: int | None = None
+    delayed_review_fe: int | None = None
+    delayed_review_outer_iter: int | None = None
+    delayed_review_group_index: int | None = None
+    delayed_shared_values: tuple[float, ...] | None = None
+    endpoint_result: ComponentEndpointResult | None = None
+    delayed_status: str = "pending_component_endpoint"
+    h_endpoint_count: int = 0
+    plan_integrity_valid: bool = True
 
 
 PRECISION_RESPONSE_CONFIG_PATH = (
@@ -4209,6 +4339,100 @@ def _canonical_payload_sha256(payload: object) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _component_atomic_plan_sha256(plan: ComponentAtomicPlan) -> str:
+    return _canonical_payload_sha256(
+        {
+            "group_indices": plan.group_indices,
+            "group_budgets": plan.group_budgets,
+            "population_sizes": plan.population_sizes,
+            "normal_sigma": plan.normal_sigma,
+            "precision_sigma": plan.precision_sigma,
+        }
+    )
+
+
+def _plan_component_group_budgets(
+    *,
+    group_indices: tuple[int, ...],
+    current_group_index: int,
+    current_optimizer_budget: int,
+    current_group_budget_fe: int,
+    population_sizes: tuple[int, ...],
+    decision_fe: int,
+    cc_budget_limit_fe: int,
+    terminal_target_fe: int,
+) -> tuple[int, ...]:
+    """Freeze the canonical population-complete budgets for one component."""
+
+    if (
+        not group_indices
+        or group_indices[0] != int(current_group_index)
+        or any(
+            right != left + 1
+            for left, right in zip(group_indices, group_indices[1:])
+        )
+        or len(population_sizes) <= group_indices[-1]
+    ):
+        return ()
+    simulated_fe = int(decision_fe)
+    budgets: list[int] = []
+    for position, group_index in enumerate(group_indices):
+        population = int(population_sizes[group_index])
+        if position == 0:
+            budget = int(current_optimizer_budget)
+        else:
+            # The canonical loop evaluates the current incumbent once before
+            # every group optimizer block.
+            simulated_fe += 1
+            budget = bounded_population_budget(
+                requested_fes=max(int(current_group_budget_fe), population),
+                remaining_fes=int(cc_budget_limit_fe) - simulated_fe,
+                population_size=population,
+            )
+        if budget <= 0 or budget % population != 0:
+            return ()
+        budgets.append(budget)
+        simulated_fe += budget
+    if simulated_fe >= int(terminal_target_fe):
+        return ()
+    return tuple(budgets)
+
+
+def _component_shared_path_metrics(
+    path: list[tuple[float, ...]],
+    next_shared_values: tuple[float, ...] | None,
+) -> tuple[float, float, float, float]:
+    if len(path) < 2:
+        return 0.0, 0.0, 0.0, 0.0
+    arrays = [np.asarray(values, dtype=float) for values in path]
+    travelled = float(
+        sum(
+            np.linalg.norm(current - previous, ord=1)
+            for previous, current in zip(arrays, arrays[1:], strict=False)
+        )
+    )
+    net = float(np.linalg.norm(arrays[-1] - arrays[0], ord=1))
+    s_h = min(1.0, max(0.0, net / (1e-300 + travelled)))
+    if next_shared_values is None:
+        return travelled, net, s_h, 0.0
+    next_values = np.asarray(next_shared_values, dtype=float)
+    delayed_drift = float(np.linalg.norm(next_values - arrays[-1], ord=1))
+    return travelled, net, s_h, delayed_drift
+
+
+def _is_next_component_canonical_entry(
+    *,
+    decision_outer_iter: int,
+    current_outer_iter: int,
+    canonical_group_index: int,
+    current_group_index: int,
+) -> bool:
+    return bool(
+        int(current_outer_iter) == int(decision_outer_iter) + 1
+        and int(current_group_index) == int(canonical_group_index)
+    )
+
+
 def _linear_slope(values: tuple[float, ...] | list[float]) -> float:
     samples = tuple(float(value) for value in values)
     if len(samples) < 2:
@@ -5107,6 +5331,26 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError("precision response logging requires the frozen v37 action")
     if config.precision_response_arm != "off" and config.precision_causal_arm != "off":
         raise ValueError("precision response and causal logging arms are exclusive")
+    if config.component_precision_arm not in {
+        "off",
+        "a0_v37",
+        "a1_precision_component_once",
+    }:
+        raise ValueError("unsupported component precision arm")
+    if config.component_precision_arm != "off" and not is_evidence_action_controller_v37(
+        config.arac_action
+    ):
+        raise ValueError("component precision action validity requires frozen v37")
+    enabled_precision_protocols = sum(
+        arm != "off"
+        for arm in (
+            config.precision_causal_arm,
+            config.precision_response_arm,
+            config.component_precision_arm,
+        )
+    )
+    if enabled_precision_protocols > 1:
+        raise ValueError("precision causal, response, and component arms are exclusive")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -5332,6 +5576,22 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     precision_response_prior_group_progress = 0.0
     precision_response_group_progress: dict[int, float] = {}
     precision_response_group_visits = [0 for _ in grouping_result]
+    component_atomic_enabled = config.component_precision_arm != "off"
+    component_atomic_topology = (
+        build_overlap_components(grouping_result) if component_atomic_enabled else None
+    )
+    component_atomic_state: ComponentAtomicRuntimeState | None = None
+    component_atomic_once_consumed = False
+    component_atomic_saw_shared_overlap = bool(
+        component_atomic_topology is not None
+        and any(
+            component.shared_variables
+            for component in component_atomic_topology.components
+        )
+    )
+    component_atomic_last_reason = ""
+    component_atomic_group_visits = [0 for _ in grouping_result]
+    component_atomic_plan_evaluation_count = 0
     group_stagnation_counts = [0 for _ in grouping_result]
     bipop_global_cooldown = 0
     bipop_restart_count = 0
@@ -5512,11 +5772,48 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             precision_response_review_current_group = False
             population_size = population_sizes[index]
             if (
+                component_atomic_state is not None
+                and component_atomic_state.atomic_closed
+                and component_atomic_state.endpoint_result is None
+                and _is_next_component_canonical_entry(
+                    decision_outer_iter=component_atomic_state.outer_iter,
+                    current_outer_iter=outer_iter,
+                    canonical_group_index=(
+                        component_atomic_state.plan.group_indices[0]
+                    ),
+                    current_group_index=index,
+                )
+            ):
+                next_shared_values = tuple(
+                    float(value)
+                    for value in best_individual[
+                        list(component_atomic_state.shared_indices)
+                    ]
+                )
+                component_atomic_state.endpoint_result = (
+                    build_component_endpoint_result(
+                        checkpoint_error=component_atomic_state.checkpoint_error,
+                        endpoint_error=float(component_atomic_state.endpoint_error),
+                        canonical_shared_path=(
+                            component_atomic_state.canonical_shared_path
+                        ),
+                        next_shared_values=next_shared_values,
+                    )
+                )
+                component_atomic_state.delayed_review_fe = (
+                    current_fitness_evaluations(fun)
+                )
+                component_atomic_state.delayed_review_outer_iter = outer_iter
+                component_atomic_state.delayed_review_group_index = index
+                component_atomic_state.delayed_shared_values = next_shared_values
+                component_atomic_state.delayed_status = "resolved_next_component_entry"
+            if (
                 config.budget_accounting == "strict"
                 and cc_budget_limit_fes - current_fitness_evaluations(fun)
                 <= population_size
             ):
                 break
+            group_interval_start_fe = current_fitness_evaluations(fun)
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
             if component_credit_trace is not None:
@@ -5551,6 +5848,36 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                     population_size=population_size,
                 )
+            if (
+                component_atomic_state is not None
+                and not component_atomic_state.atomic_closed
+            ):
+                position = component_atomic_state.next_group_position
+                if position >= len(component_atomic_state.plan.group_indices):
+                    raise RuntimeError("component atomic group position overflow")
+                expected_group = component_atomic_state.plan.group_indices[position]
+                if index != expected_group:
+                    raise RuntimeError(
+                        "component atomic group order diverged from frozen plan"
+                    )
+                expected_budget = component_atomic_state.plan.group_budgets[position]
+                if component_atomic_state.action_applied:
+                    reachable_budget = bounded_population_budget(
+                        requested_fes=expected_budget,
+                        remaining_fes=(
+                            cc_budget_limit_fes - current_fitness_evaluations(fun)
+                        ),
+                        population_size=population_size,
+                    )
+                    if reachable_budget != expected_budget:
+                        raise RuntimeError(
+                            "component atomic frozen budget became unreachable"
+                        )
+                    optimizer_budget = expected_budget
+                if optimizer_budget != expected_budget:
+                    raise RuntimeError(
+                        "component atomic baseline requested budget drift"
+                    )
             if optimizer_budget <= 0:
                 break
             cc_mean = np.asarray(best_individual[dims], dtype=float).copy()
@@ -5563,6 +5890,188 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     upper=info["upper"],
                 )
             primary_evaluations_before = current_fitness_evaluations(fun)
+            if (
+                component_atomic_enabled
+                and component_atomic_topology is not None
+                and component_atomic_state is None
+                and not component_atomic_once_consumed
+                and outer_iter >= 1
+                and component_atomic_group_visits[index] > 0
+                and controller_v31_run_state is not None
+                and controller_v31_run_state.v37_enabled
+            ):
+                atomic_component = component_atomic_topology.for_group(index)
+                component_atomic_saw_shared_overlap = bool(
+                    component_atomic_saw_shared_overlap
+                    or atomic_component.shared_variables
+                )
+                contiguous_groups = all(
+                    right == left + 1
+                    for left, right in zip(
+                        atomic_component.group_indices,
+                        atomic_component.group_indices[1:],
+                    )
+                )
+                candidate_feasible = bool(
+                    index == atomic_component.group_indices[0]
+                    and atomic_component.shared_variables
+                    and contiguous_groups
+                    and not controller_v31_run_state.dense_overlap
+                    and all(
+                        component_atomic_group_visits[group_index] > 0
+                        for group_index in atomic_component.group_indices
+                    )
+                )
+                normal_sigma = refine_sigma_for_action(
+                    config.arac_action,
+                    config.sigma,
+                    controller_v31_run_state=controller_v31_run_state,
+                    precision_reanchor_active=False,
+                )
+                precision_sigma = refine_sigma_for_action(
+                    config.arac_action,
+                    config.sigma,
+                    controller_v31_run_state=controller_v31_run_state,
+                    precision_reanchor_active=True,
+                )
+                frozen_group_budgets: tuple[int, ...] = ()
+                if candidate_feasible:
+                    frozen_group_budgets = _plan_component_group_budgets(
+                        group_indices=atomic_component.group_indices,
+                        current_group_index=index,
+                        current_optimizer_budget=optimizer_budget,
+                        current_group_budget_fe=sub_fes,
+                        population_sizes=tuple(population_sizes),
+                        decision_fe=primary_evaluations_before,
+                        cc_budget_limit_fe=cc_budget_limit_fes,
+                        terminal_target_fe=max(
+                            0,
+                            config.max_fes - terminal_completion_tolerance_fe,
+                        ),
+                    )
+                component_unlocked = bool(
+                    controller_v31_run_state.pending_trajectory_recovery is None
+                    and controller_v31_run_state.pending_action_trust is None
+                    and not cc_harm_guard_consumed
+                )
+                horizon_reachable = bool(
+                    len(frozen_group_budgets)
+                    == len(atomic_component.group_indices)
+                )
+                execution_group_indices = (
+                    atomic_component.group_indices if contiguous_groups else (index,)
+                )
+                component_atomic_plan_evaluation_count += 1
+                atomic_plan = plan_component_atomic_precision(
+                    candidate_feasible=candidate_feasible,
+                    component_unlocked=component_unlocked,
+                    horizon_reachable=horizon_reachable,
+                    once_lock_consumed=component_atomic_once_consumed,
+                    group_indices=execution_group_indices,
+                    group_budgets=(
+                        frozen_group_budgets
+                        if frozen_group_budgets
+                        else tuple(
+                            population_sizes[group_index]
+                            for group_index in execution_group_indices
+                        )
+                    ),
+                    population_sizes=tuple(
+                        population_sizes[group_index]
+                        for group_index in execution_group_indices
+                    ),
+                    normal_sigma=normal_sigma,
+                    precision_sigma=precision_sigma,
+                )
+                if index == atomic_component.group_indices[0]:
+                    if not atomic_component.shared_variables:
+                        component_atomic_last_reason = (
+                            "no_shared_overlap_component_candidate"
+                        )
+                    elif not contiguous_groups:
+                        component_atomic_last_reason = (
+                            "non_contiguous_component_not_supported"
+                        )
+                    elif controller_v31_run_state.dense_overlap:
+                        component_atomic_last_reason = (
+                            "dense_overlap_component_not_supported"
+                        )
+                    elif not all(
+                        component_atomic_group_visits[group_index] > 0
+                        for group_index in atomic_component.group_indices
+                    ):
+                        component_atomic_last_reason = (
+                            "component_prior_visit_incomplete"
+                        )
+                    else:
+                        component_atomic_last_reason = atomic_plan.reason
+                if atomic_plan.execute_precision:
+                    component_atomic_once_consumed = True
+                    prefix_sha256 = _fitness_record_sha256(
+                        tuple(float(value) for value in fun.fitness_record)
+                    )
+                    checkpoint_sha256 = _canonical_payload_sha256(
+                        tuple(float(value) for value in best_individual)
+                    )
+                    crn_sha256 = _canonical_payload_sha256(
+                        {
+                            "protocol": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                            "base_seed": 0 if config.seed is None else int(config.seed),
+                            "function_name": fun_name,
+                            "function_id": int(fun_id),
+                            "decision_fe": primary_evaluations_before,
+                            "component_id": atomic_component.component_id,
+                            "group_indices": atomic_plan.group_indices,
+                            "group_budgets": atomic_plan.group_budgets,
+                            "population_sizes": atomic_plan.population_sizes,
+                            "optimizer_seed_schedule": (
+                                "derive_optimizer_seed_stage_index_v1"
+                            ),
+                        }
+                    )
+                    decision_id = _canonical_payload_sha256(
+                        {
+                            "protocol": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                            "prefix": prefix_sha256,
+                            "checkpoint": checkpoint_sha256,
+                            "crn": crn_sha256,
+                        }
+                    )
+                    component_plan_sha256 = _component_atomic_plan_sha256(
+                        atomic_plan
+                    )
+                    shared_indices = tuple(atomic_component.shared_variables)
+                    checkpoint_archive_error = min(
+                        float(value)
+                        for value in fun.fitness_record[:primary_evaluations_before]
+                    )
+                    component_atomic_state = ComponentAtomicRuntimeState(
+                        plan=atomic_plan,
+                        component_id=atomic_component.component_id,
+                        decision_id=decision_id,
+                        decision_fe=primary_evaluations_before,
+                        outer_iter=outer_iter,
+                        prefix_record_sha256=prefix_sha256,
+                        checkpoint_candidate_sha256=checkpoint_sha256,
+                        crn_descriptor_sha256=crn_sha256,
+                        component_plan_sha256=component_plan_sha256,
+                        checkpoint_error=checkpoint_archive_error,
+                        shared_indices=shared_indices,
+                        canonical_shared_path=[
+                            tuple(
+                                float(value)
+                                for value in best_individual[list(shared_indices)]
+                            )
+                        ],
+                        action_applied=(
+                            config.component_precision_arm
+                            == "a1_precision_component_once"
+                        ),
+                        component_start_fe=primary_evaluations_before,
+                        plan_evaluation_count_at_start=(
+                            component_atomic_plan_evaluation_count
+                        ),
+                    )
             precision_reanchor_requested = uses_post_retirement_precision_reanchor(
                 config.arac_action,
                 controller_v31_run_state,
@@ -6106,6 +6615,28 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     dims,
                     cma_sigma_reference,
                 )
+            component_atomic_group_active = bool(
+                component_atomic_state is not None
+                and not component_atomic_state.atomic_closed
+                and component_atomic_state.next_group_position
+                < len(component_atomic_state.plan.group_indices)
+                and component_atomic_state.plan.group_indices[
+                    component_atomic_state.next_group_position
+                ]
+                == index
+            )
+            if component_atomic_group_active:
+                current_plan_sha256 = _component_atomic_plan_sha256(
+                    component_atomic_state.plan
+                )
+                if current_plan_sha256 != component_atomic_state.component_plan_sha256:
+                    component_atomic_state.plan_integrity_valid = False
+                    raise RuntimeError("component atomic frozen plan mutated")
+                cc_sigma = (
+                    component_atomic_state.plan.precision_sigma
+                    if component_atomic_state.action_applied
+                    else component_atomic_state.plan.normal_sigma
+                )
             cma_batch_diversities: list[float] = []
 
             def objective_function(x_batch, dims=dims):
@@ -6439,6 +6970,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         )
                         precision_response_lease_row = precision_trace_row
             precision_response_group_visits[index] += 1
+            component_atomic_group_visits[index] += 1
             if (
                 controller_v31_run_state is not None
                 and controller_v31_run_state.v39_enabled
@@ -7247,6 +7779,67 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             action_value_delta_norm=overlap_writeback_norm,
                             downstream_consumed=index < sub_num - 1,
                         )
+                    )
+            if component_atomic_group_active and component_atomic_state is not None:
+                position = component_atomic_state.next_group_position
+                expected_budget = component_atomic_state.plan.group_budgets[position]
+                if optimizer_budget != expected_budget:
+                    raise RuntimeError("component atomic requested budget drift")
+                component_end_fe = current_fitness_evaluations(fun)
+                component_group_start_fe = (
+                    component_atomic_state.component_start_fe
+                    if position == 0
+                    else group_interval_start_fe
+                )
+                interval_actual_fe = component_end_fe - component_group_start_fe
+                auxiliary_actual_fe = interval_actual_fe - primary_cc_fe
+                if interval_actual_fe < primary_cc_fe or auxiliary_actual_fe < 0:
+                    raise RuntimeError("component atomic FE interval accounting drift")
+                component_endpoint_error = min(
+                    float(value) for value in fun.fitness_record[:component_end_fe]
+                )
+                component_atomic_state.canonical_shared_path.append(
+                    tuple(
+                        float(value)
+                        for value in best_individual[
+                            list(component_atomic_state.shared_indices)
+                        ]
+                    )
+                )
+                component_atomic_state.group_endpoint_errors.append(
+                    component_endpoint_error
+                )
+                component_atomic_state.budget_rows.append(
+                    {
+                        "decision_id": component_atomic_state.decision_id,
+                        "component_precision_arm": config.component_precision_arm,
+                        "group_position": str(position),
+                        "group_index": str(index),
+                        "population_size": str(population_size),
+                        "requested_fe": str(optimizer_budget),
+                        "actual_fe": str(primary_cc_fe),
+                        "interval_actual_fe": str(interval_actual_fe),
+                        "auxiliary_actual_fe": str(auxiliary_actual_fe),
+                        "sigma": f"{cc_sigma:.17e}",
+                        "group_start_fe": str(component_group_start_fe),
+                        "group_end_fe": str(component_end_fe),
+                        "group_endpoint_error": f"{component_endpoint_error:.17e}",
+                    }
+                )
+                component_atomic_state.next_group_position += 1
+                if component_atomic_state.next_group_position == len(
+                    component_atomic_state.plan.group_indices
+                ):
+                    component_atomic_state.h_endpoint_count += 1
+                    if component_atomic_state.h_endpoint_count != 1:
+                        raise RuntimeError(
+                            "component atomic emitted more than one H endpoint"
+                        )
+                    component_atomic_state.atomic_closed = True
+                    component_atomic_state.endpoint_error = component_endpoint_error
+                    component_atomic_state.component_end_fe = component_end_fe
+                    component_atomic_state.delayed_status = (
+                        "pending_next_component_entry"
                     )
             if config.search_state_backend != "diagonal_cma" and uses_cc_harm_guard_during_run(
                 config.arac_action,
@@ -8193,6 +8786,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         precision_response_trace_row.update(
             {
                 "terminal_target_fe": str(terminal_target_fe),
+                "terminal_completion_tolerance_fe": str(
+                    terminal_completion_tolerance_fe
+                ),
                 "terminal_observed_fe": str(terminal_observed_fe),
                 "terminal_error": (
                     "" if not terminal_record else f"{min(terminal_record):.17e}"
@@ -8257,6 +8853,278 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             ),
             fieldnames=PRECISION_LEASE_CREDIT_FIELDS,
             rows=lease_rows,
+        )
+    if component_atomic_enabled:
+        terminal_target_fe = max(
+            0,
+            int(config.max_fes) - int(terminal_completion_tolerance_fe),
+        )
+        terminal_observed_fe = min(
+            terminal_target_fe,
+            current_fitness_evaluations(fun),
+        )
+        terminal_record = tuple(
+            float(value) for value in fun.fitness_record[:terminal_observed_fe]
+        )
+        terminal_error = min(terminal_record) if terminal_record else math.inf
+        terminal_complete = terminal_observed_fe == terminal_target_fe
+        if component_atomic_state is None:
+            if not any(overlapping_elements):
+                not_applicable_reason = "no_overlap_component_candidate"
+            elif not component_atomic_saw_shared_overlap:
+                not_applicable_reason = "no_shared_overlap_component_candidate"
+            else:
+                not_applicable_reason = (
+                    component_atomic_last_reason
+                    or "no_safe_component_horizon_opportunity"
+                )
+            component_branch_row = {
+                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                "schema_version": COMPONENT_ATOMIC_SCHEMA_VERSION,
+                "fresh_optimizer_execution": "1",
+                "problem_id": problem_id,
+                "seed": "" if config.seed is None else str(config.seed),
+                "component_precision_arm": config.component_precision_arm,
+                "decision_id": "",
+                "decision_status": "not_applicable",
+                "not_applicable_reason": not_applicable_reason,
+                "decision_fe": "",
+                "outer_iter": "",
+                "component_id": "",
+                "component_group_indices": "",
+                "component_group_count": "0",
+                "component_shared_var_count": "0",
+                "prefix_record_sha256": "",
+                "checkpoint_candidate_sha256": "",
+                "crn_descriptor_sha256": "",
+                "component_plan_sha256": "",
+                "normal_sigma": "",
+                "precision_sigma": "",
+                "action_applied": "0",
+                "component_plan_frozen": "0",
+                "mid_horizon_redispatch_count": "0",
+                "atomic_closed": "0",
+                "unique_h_endpoint": "0",
+                "component_horizon_requested_fe": "0",
+                "component_horizon_actual_fe": "0",
+                "component_horizon_interval_fe": "0",
+                "component_end_fe": "",
+                "h_endpoint_count": "0",
+                "plan_integrity_valid": "1",
+                "delayed_review_fe": "",
+                "delayed_review_outer_iter": "",
+                "delayed_review_group_index": "",
+                "delayed_status": "not_applicable",
+                "terminal_target_fe": str(terminal_target_fe),
+                "terminal_completion_tolerance_fe": str(
+                    terminal_completion_tolerance_fe
+                ),
+                "terminal_observed_fe": str(terminal_observed_fe),
+                "terminal_error": (
+                    "" if not math.isfinite(terminal_error) else f"{terminal_error:.17e}"
+                ),
+                "terminal_record_sha256": _fitness_record_sha256(terminal_record),
+                "terminal_status": "complete" if terminal_complete else "incomplete",
+            }
+            component_endpoint_rows: list[dict[str, str]] = []
+            component_survival_rows: list[dict[str, str]] = []
+            component_budget_rows: list[dict[str, str]] = []
+        else:
+            state = component_atomic_state
+            component_complete = bool(
+                state.atomic_closed
+                and state.endpoint_error is not None
+                and state.h_endpoint_count == 1
+                and state.plan_integrity_valid
+                and len(state.budget_rows) == len(state.plan.group_indices)
+            )
+            component_branch_row = {
+                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                "schema_version": COMPONENT_ATOMIC_SCHEMA_VERSION,
+                "fresh_optimizer_execution": "1",
+                "problem_id": problem_id,
+                "seed": "" if config.seed is None else str(config.seed),
+                "component_precision_arm": config.component_precision_arm,
+                "decision_id": state.decision_id,
+                "decision_status": "applicable",
+                "not_applicable_reason": "",
+                "decision_fe": str(state.decision_fe),
+                "outer_iter": str(state.outer_iter),
+                "component_id": state.component_id,
+                "component_group_indices": ";".join(
+                    str(value) for value in state.plan.group_indices
+                ),
+                "component_group_count": str(len(state.plan.group_indices)),
+                "component_shared_var_count": str(len(state.shared_indices)),
+                "prefix_record_sha256": state.prefix_record_sha256,
+                "checkpoint_candidate_sha256": state.checkpoint_candidate_sha256,
+                "crn_descriptor_sha256": state.crn_descriptor_sha256,
+                "component_plan_sha256": state.component_plan_sha256,
+                "normal_sigma": f"{state.plan.normal_sigma:.17e}",
+                "precision_sigma": f"{state.plan.precision_sigma:.17e}",
+                "action_applied": str(int(state.action_applied)),
+                "component_plan_frozen": "1",
+                "mid_horizon_redispatch_count": str(
+                    max(
+                        0,
+                        component_atomic_plan_evaluation_count
+                        - state.plan_evaluation_count_at_start,
+                    )
+                ),
+                "atomic_closed": str(int(state.atomic_closed)),
+                "unique_h_endpoint": str(int(state.h_endpoint_count == 1)),
+                "component_horizon_requested_fe": str(
+                    sum(state.plan.group_budgets)
+                ),
+                "component_horizon_actual_fe": str(
+                    sum(int(row["actual_fe"]) for row in state.budget_rows)
+                ),
+                "component_horizon_interval_fe": str(
+                    sum(
+                        int(row["interval_actual_fe"])
+                        for row in state.budget_rows
+                    )
+                ),
+                "component_end_fe": (
+                    "" if state.component_end_fe is None else str(state.component_end_fe)
+                ),
+                "h_endpoint_count": str(state.h_endpoint_count),
+                "plan_integrity_valid": str(
+                    int(
+                        state.plan_integrity_valid
+                        and _component_atomic_plan_sha256(state.plan)
+                        == state.component_plan_sha256
+                    )
+                ),
+                "delayed_review_fe": (
+                    "" if state.delayed_review_fe is None else str(state.delayed_review_fe)
+                ),
+                "delayed_review_outer_iter": (
+                    ""
+                    if state.delayed_review_outer_iter is None
+                    else str(state.delayed_review_outer_iter)
+                ),
+                "delayed_review_group_index": (
+                    ""
+                    if state.delayed_review_group_index is None
+                    else str(state.delayed_review_group_index)
+                ),
+                "delayed_status": state.delayed_status,
+                "terminal_target_fe": str(terminal_target_fe),
+                "terminal_completion_tolerance_fe": str(
+                    terminal_completion_tolerance_fe
+                ),
+                "terminal_observed_fe": str(terminal_observed_fe),
+                "terminal_error": (
+                    "" if not math.isfinite(terminal_error) else f"{terminal_error:.17e}"
+                ),
+                "terminal_record_sha256": _fitness_record_sha256(terminal_record),
+                "terminal_status": "complete" if terminal_complete else "incomplete",
+            }
+            component_endpoint_rows = []
+            component_survival_rows = []
+            if component_complete:
+                shared_path_l1, shared_net_l1, s_h, delayed_drift_l1 = (
+                    _component_shared_path_metrics(
+                        state.canonical_shared_path,
+                        (
+                            state.delayed_shared_values
+                            if state.endpoint_result is not None
+                            else None
+                        ),
+                    )
+                )
+                component_log_gain = math.log(
+                    max(state.checkpoint_error, 1e-300)
+                ) - math.log(max(float(state.endpoint_error), 1e-300))
+                material = component_log_gain >= math.log(1.01)
+                s_d = ""
+                strict_survival = shared_net_l1 > 1e-300
+                if state.endpoint_result is not None:
+                    reward = build_component_reward(state.endpoint_result)
+                    s_h = reward.s_h
+                    s_d = f"{reward.s_d:.17e}"
+                    strict_survival = reward.strict_survival
+                component_endpoint_rows.append(
+                    {
+                        "decision_id": state.decision_id,
+                        "component_precision_arm": config.component_precision_arm,
+                        "checkpoint_error": f"{state.checkpoint_error:.17e}",
+                        "endpoint_error": f"{float(state.endpoint_error):.17e}",
+                        "component_log_gain": f"{component_log_gain:.17e}",
+                        "material": str(int(material)),
+                        "component_start_fe": str(state.component_start_fe),
+                        "component_end_fe": str(state.component_end_fe),
+                        "component_requested_fe": str(
+                            sum(int(row["requested_fe"]) for row in state.budget_rows)
+                        ),
+                        "component_actual_fe": str(
+                            sum(int(row["actual_fe"]) for row in state.budget_rows)
+                        ),
+                        "component_interval_fe": str(
+                            sum(
+                                int(row["interval_actual_fe"])
+                                for row in state.budget_rows
+                            )
+                        ),
+                        "group_endpoint_errors": ";".join(
+                            f"{value:.17e}" for value in state.group_endpoint_errors
+                        ),
+                    }
+                )
+                component_survival_rows.append(
+                    {
+                        "decision_id": state.decision_id,
+                        "component_precision_arm": config.component_precision_arm,
+                        "shared_path_l1": f"{shared_path_l1:.17e}",
+                        "shared_net_l1": f"{shared_net_l1:.17e}",
+                        "s_h": f"{s_h:.17e}",
+                        "delayed_drift_l1": (
+                            ""
+                            if state.endpoint_result is None
+                            else f"{delayed_drift_l1:.17e}"
+                        ),
+                        "s_d": s_d,
+                        "strict_survival": str(int(strict_survival)),
+                        "delayed_status": state.delayed_status,
+                    }
+                )
+            component_budget_rows = state.budget_rows
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "component_action_branch_manifest.csv",
+            ),
+            fieldnames=COMPONENT_ACTION_BRANCH_FIELDS,
+            rows=[component_branch_row],
+        )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "component_endpoint_outcomes.csv",
+            ),
+            fieldnames=COMPONENT_ENDPOINT_FIELDS,
+            rows=component_endpoint_rows,
+        )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "component_shared_survival.csv",
+            ),
+            fieldnames=COMPONENT_SHARED_SURVIVAL_FIELDS,
+            rows=component_survival_rows,
+        )
+        _write_car_rows(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "component_budget_ledger.csv",
+            ),
+            fieldnames=COMPONENT_BUDGET_LEDGER_FIELDS,
+            rows=component_budget_rows,
         )
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
@@ -8419,6 +9287,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Opt-in v37 current-trajectory precision response pilot arm.",
     )
     parser.add_argument(
+        "--component-precision-arm",
+        choices=["off", "a0_v37", "a1_precision_component_once"],
+        default="off",
+        help="Opt-in v37 component-wide precision action-validity arm.",
+    )
+    parser.add_argument(
         "--offline-frozen-replay",
         action="store_true",
         help="Allow historical replay of the permanently frozen v41 profile.",
@@ -8480,6 +9354,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("--precision-response-arm requires --arac-action v37")
     if args.precision_response_arm != "off" and args.precision_causal_arm != "off":
         parser.error("precision response and causal logging arms are exclusive")
+    if (
+        args.component_precision_arm != "off"
+        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
+    ):
+        parser.error("--component-precision-arm requires --arac-action v37")
+    if (
+        sum(
+            arm != "off"
+            for arm in (
+                args.precision_causal_arm,
+                args.precision_response_arm,
+                args.component_precision_arm,
+            )
+        )
+        > 1
+    ):
+        parser.error("precision causal, response, and component arms are exclusive")
     if args.offline_frozen_replay and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V41:
         parser.error("--offline-frozen-replay is only valid with v41")
     return args
@@ -8516,6 +9407,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         car_actionability_arm=args.car_actionability_arm,
         precision_causal_arm=args.precision_causal_arm,
         precision_response_arm=args.precision_response_arm,
+        component_precision_arm=args.component_precision_arm,
         offline_frozen_replay=args.offline_frozen_replay,
     )
     output_paths = []

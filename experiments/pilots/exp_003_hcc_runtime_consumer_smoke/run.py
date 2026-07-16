@@ -88,6 +88,9 @@ from arac.policy.oracle_actionability import (
     CAR_ACTIONABILITY_PROTOCOL_VERSION,
     log_actionability_advantage,
 )
+from scripts.audit_component_atomic_precision import (
+    audit_component_atomic_precision,
+)
 
 RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
 PROBLEM_ID = "E2"
@@ -131,6 +134,247 @@ PRECISION_RESPONSE_ARMS = (
     "a1_probe_only",
     "a2_probe_gated",
 )
+COMPONENT_PRECISION_ARMS = (
+    "a0_v37",
+    "a1_precision_component_once",
+)
+COMPONENT_PRECISION_PROTOCOL_VERSION = "component-precision-action-validity-v1"
+COMPONENT_PRECISION_STAGES = ("smoke", "screen", "confirm")
+COMPONENT_PRECISION_SPEC_PATH = (
+    "docs/superpowers/specs/2026-07-16-component-precision-action-validity-v1.md"
+)
+COMPONENT_PRECISION_CONFIG_PATH = "configs/component_precision_action_validity_v1.json"
+COMPONENT_PRECISION_SPEC_SHA256 = (
+    "03bd478722a8a871e31962ab3b775915568cc20f300a805b17d35c70331d2bd4"
+)
+COMPONENT_PRECISION_CONFIG_SHA256 = (
+    "50ad532fad2277c21e0bdf1a3f6075f89c8af33784faca1a6449c210e3852e68"
+)
+COMPONENT_PRECISION_PREREGISTRATION_COMMIT = (
+    "ad669a4f1e0f3ec5bc8827667cdb6ccf7e2d5964"
+)
+COMPONENT_BRANCH_RAW_FIELDS = [
+    "protocol_version",
+    "schema_version",
+    "fresh_optimizer_execution",
+    "problem_id",
+    "seed",
+    "component_precision_arm",
+    "decision_id",
+    "decision_status",
+    "not_applicable_reason",
+    "decision_fe",
+    "outer_iter",
+    "component_id",
+    "component_group_indices",
+    "component_group_count",
+    "component_shared_var_count",
+    "prefix_record_sha256",
+    "checkpoint_candidate_sha256",
+    "crn_descriptor_sha256",
+    "component_plan_sha256",
+    "normal_sigma",
+    "precision_sigma",
+    "action_applied",
+    "component_plan_frozen",
+    "mid_horizon_redispatch_count",
+    "atomic_closed",
+    "unique_h_endpoint",
+    "component_horizon_requested_fe",
+    "component_horizon_actual_fe",
+    "component_horizon_interval_fe",
+    "component_end_fe",
+    "h_endpoint_count",
+    "plan_integrity_valid",
+    "delayed_review_fe",
+    "delayed_review_outer_iter",
+    "delayed_review_group_index",
+    "delayed_status",
+    "terminal_target_fe",
+    "terminal_completion_tolerance_fe",
+    "terminal_observed_fe",
+    "terminal_error",
+    "terminal_record_sha256",
+    "terminal_status",
+]
+COMPONENT_BRANCH_ROOT_FIELDS = [
+    "protocol_version",
+    "stage",
+    "pair_id",
+    "problem_id",
+    "seed",
+    "arm",
+    "fresh_optimizer_execution",
+    "status",
+    "result_source",
+    "action_applied",
+    "decision_status",
+    "not_applicable_reason",
+    "decision_fe",
+    "decision_outer_iter",
+    "component_id",
+    "component_group_indices",
+    "component_group_count",
+    "component_shared_var_count",
+    "component_horizon_requested_fe",
+    "component_horizon_actual_fe",
+    "component_horizon_interval_fe",
+    "component_end_fe",
+    "terminal_target_fe",
+    "terminal_completion_tolerance_fe",
+    "terminal_observed_fe",
+    "horizon_error",
+    "terminal_error",
+    "prefix_record_sha256",
+    "checkpoint_candidate_sha256",
+    "crn_descriptor_sha256",
+    "component_plan_sha256",
+    "normal_sigma",
+    "precision_sigma",
+    "public_trace_sha256",
+    "terminal_record_sha256",
+    "optimizer_fe_used",
+    "configured_max_fes",
+    "same_budget_violation",
+    "component_plan_frozen",
+    "mid_horizon_redispatch_count",
+    "unique_h_endpoint",
+    "component_horizon_complete",
+    "delayed_review_fe",
+    "delayed_review_outer_iter",
+    "delayed_review_group_index",
+    "config_sha256",
+    "preregistration_sha256",
+    "preregistration_git_commit",
+    "source_git_commit",
+]
+COMPONENT_ENDPOINT_RAW_FIELDS = [
+    "decision_id",
+    "component_precision_arm",
+    "checkpoint_error",
+    "endpoint_error",
+    "component_log_gain",
+    "material",
+    "component_start_fe",
+    "component_end_fe",
+    "component_requested_fe",
+    "component_actual_fe",
+    "component_interval_fe",
+    "group_endpoint_errors",
+]
+COMPONENT_SURVIVAL_RAW_FIELDS = [
+    "decision_id",
+    "component_precision_arm",
+    "shared_path_l1",
+    "shared_net_l1",
+    "s_h",
+    "delayed_drift_l1",
+    "s_d",
+    "strict_survival",
+    "delayed_status",
+]
+COMPONENT_BUDGET_RAW_FIELDS = [
+    "decision_id",
+    "component_precision_arm",
+    "group_position",
+    "group_index",
+    "population_size",
+    "requested_fe",
+    "actual_fe",
+    "interval_actual_fe",
+    "auxiliary_actual_fe",
+    "sigma",
+    "group_start_fe",
+    "group_end_fe",
+    "group_endpoint_error",
+]
+COMPONENT_ENDPOINT_ROOT_FIELDS = [
+    "protocol_version",
+    "stage",
+    "pair_id",
+    "problem_id",
+    "seed",
+    "applicable",
+    "component_closed",
+    "endpoint_sequence_match",
+    "a0_horizon_error",
+    "a1_horizon_error",
+    "tau_H",
+    "component_catastrophic",
+]
+COMPONENT_SURVIVAL_ROOT_FIELDS = [
+    "protocol_version",
+    "stage",
+    "pair_id",
+    "problem_id",
+    "seed",
+    "applicable",
+    "component_closed",
+    "delayed_closed",
+    "a0_shared_path_l1",
+    "a1_shared_path_l1",
+    "a0_shared_net_l1",
+    "a1_shared_net_l1",
+    "a0_delayed_drift_l1",
+    "a1_delayed_drift_l1",
+    "a0_s_h",
+    "a1_s_h",
+    "delta_s_h",
+    "a0_strict_survival",
+    "a1_strict_survival",
+    "a0_s_d",
+    "a1_s_d",
+    "delta_s_d",
+]
+COMPONENT_ACTION_PAIR_FIELDS = [
+    "protocol_version",
+    "stage",
+    "pair_id",
+    "problem_id",
+    "seed",
+    "pair_integrity",
+    "applicable",
+    "not_applicable_reason",
+    "prefix_match",
+    "checkpoint_match",
+    "plan_match",
+    "action_applied",
+    "abstain_parity",
+    "a0_terminal_error",
+    "a1_terminal_error",
+    "tau_T",
+    "terminal_catastrophic",
+]
+COMPONENT_BUDGET_ROOT_FIELDS = [
+    "protocol_version",
+    "stage",
+    "pair_id",
+    "problem_id",
+    "seed",
+    "arm",
+    "fresh_optimizer_execution",
+    "group_indices",
+    "population_sizes",
+    "requested_group_fes",
+    "actual_group_fes",
+    "interval_group_fes",
+    "auxiliary_group_fes",
+    "applied_group_sigmas",
+    "normal_sigma",
+    "precision_sigma",
+    "component_horizon_actual_fe",
+    "component_interval_actual_fe",
+    "component_auxiliary_fe",
+    "component_precision_fe",
+    "optimizer_fe_used",
+    "configured_max_fes",
+    "same_budget_violation",
+    "strict_terminal_reached",
+    "aob_unchanged",
+    "anti_leakage_pass",
+    "component_endpoint_closed",
+    "delayed_endpoint_closed",
+]
 PRECISION_CAUSAL_FEATURE_FORMULAS = {
     "remaining_fe_ratio": "(max_fes - decision_fe) / max_fes",
     "revisit_cap_remaining_ratio": "scheduler_revisit_cap_fe / remaining_fe",
@@ -166,6 +410,7 @@ class LaneConfig:
     car_actionability_arm: str = "off"
     precision_causal_arm: str = "off"
     precision_response_arm: str = "off"
+    component_precision_arm: str = "off"
 
 
 LANES = (
@@ -592,6 +837,7 @@ def _lane_from_controller_profile(
     car_actionability_arm: str = "off",
     precision_causal_arm: str = "off",
     precision_response_arm: str = "off",
+    component_precision_arm: str = "off",
 ) -> LaneConfig:
     return LaneConfig(
         lane_id or profile.action_name,
@@ -606,6 +852,7 @@ def _lane_from_controller_profile(
         car_actionability_arm=car_actionability_arm,
         precision_causal_arm=precision_causal_arm,
         precision_response_arm=precision_response_arm,
+        component_precision_arm=component_precision_arm,
     )
 
 
@@ -790,6 +1037,15 @@ PRECISION_RESPONSE_LOGGING_LANES = tuple(
     )
     for arm in PRECISION_RESPONSE_ARMS
 )
+COMPONENT_PRECISION_ACTION_VALIDITY_LANES = tuple(
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id=f"component_precision_{arm}",
+        dispatch_scope=f"offline_component_precision_{arm}",
+        component_precision_arm=arm,
+    )
+    for arm in COMPONENT_PRECISION_ARMS
+)
 CAR_W_ACTION_NAMES = frozenset(
     {
         "arac_counterfactual_action_racing_w",
@@ -829,6 +1085,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return PRECISION_CAUSAL_LOGGING_LANES
     if lane_profile == "precision_response_logging":
         return PRECISION_RESPONSE_LOGGING_LANES
+    if lane_profile == "component_precision_action_validity":
+        return COMPONENT_PRECISION_ACTION_VALIDITY_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -2332,6 +2590,1157 @@ def _precision_response_raw_rows(
     return branches, audit_rows, gate_features, lease_rows, triplets, failures
 
 
+def component_precision_pair_id(problem_id: str, seed: int) -> str:
+    material = (
+        f"{COMPONENT_PRECISION_PROTOCOL_VERSION}|"
+        f"{str(problem_id).upper()}|{int(seed)}"
+    )
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+def _component_int_sequence(value: object) -> tuple[int, ...]:
+    text = str(value).strip()
+    if not text:
+        return ()
+    return tuple(int(part) for part in text.split(";") if part != "")
+
+
+def _component_float(value: object) -> float | None:
+    try:
+        parsed = float(str(value))
+    except (TypeError, ValueError):
+        return None
+    return parsed if math.isfinite(parsed) else None
+
+
+def _component_int(value: object) -> int | None:
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _component_close(left: float | None, right: float | None) -> bool:
+    return bool(
+        left is not None
+        and right is not None
+        and math.isclose(left, right, rel_tol=1e-12, abs_tol=1e-15)
+    )
+
+
+def _component_precision_raw_rows(
+    records: list[dict[str, object]],
+    *,
+    stage: str,
+    aob_input_rows: list[dict[str, object]],
+    anti_leakage_rows: list[dict[str, object]],
+) -> tuple[
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[str],
+]:
+    branch_rows: list[dict[str, object]] = []
+    endpoint_rows: list[dict[str, object]] = []
+    survival_rows: list[dict[str, object]] = []
+    budget_rows: list[dict[str, object]] = []
+    pair_rows: list[dict[str, object]] = []
+    failures: list[str] = []
+    grouped: dict[tuple[str, int], dict[str, dict[str, object]]] = {}
+    source_git_commit = _git_commit()
+    anti_leakage_pass = bool(anti_leakage_rows) and all(
+        str(row.get("audit_status", "fail")) == "pass"
+        for row in anti_leakage_rows
+    )
+
+    for record in records:
+        lane = record["lane"]
+        result = record["result"]
+        assert isinstance(lane, LaneConfig)
+        assert isinstance(result, HccAobExecutionResult)
+        arm = lane.component_precision_arm
+        if arm == "off":
+            continue
+        pair_id = component_precision_pair_id(result.problem_id, result.seed)
+        identity = f"{pair_id}:{arm}"
+        by_arm = grouped.setdefault((result.problem_id, result.seed), {})
+        if arm in by_arm:
+            failures.append(f"{identity}:duplicate_arm")
+            continue
+        raw_branches = _read_csv_rows(
+            _find_lane_artifact(result, "component_action_branch_manifest.csv")
+        )
+        raw_endpoints = _read_csv_rows(
+            _find_lane_artifact(result, "component_endpoint_outcomes.csv")
+        )
+        raw_survival = _read_csv_rows(
+            _find_lane_artifact(result, "component_shared_survival.csv")
+        )
+        raw_budget = _read_csv_rows(
+            _find_lane_artifact(result, "component_budget_ledger.csv")
+        )
+        if len(raw_branches) != 1:
+            failures.append(f"{identity}:missing_or_duplicate_branch_manifest")
+            continue
+        branch = raw_branches[0]
+        if branch.get("protocol_version") != COMPONENT_PRECISION_PROTOCOL_VERSION:
+            failures.append(f"{identity}:protocol_version_mismatch")
+        if branch.get("problem_id") != result.problem_id:
+            failures.append(f"{identity}:problem_id_mismatch")
+        if branch.get("seed") != str(result.seed):
+            failures.append(f"{identity}:seed_mismatch")
+        if branch.get("component_precision_arm") != arm:
+            failures.append(f"{identity}:arm_mismatch")
+        actual_fe = _actual_fe_used(result)
+        lane_aob_rows = [
+            row
+            for row in aob_input_rows
+            if str(row.get("problem_id", "")) == result.problem_id
+            and str(row.get("seed", "")) == str(result.seed)
+            and str(row.get("lane_id", "")) == lane.lane_id
+        ]
+        aob_unchanged = bool(lane_aob_rows) and all(
+            str(row.get("unchanged", "0")) == "1" for row in lane_aob_rows
+        )
+        public_trace_path = result.action_trace_path
+        public_trace_sha256 = (
+            _sha256_file(public_trace_path)
+            if public_trace_path is not None and public_trace_path.is_file()
+            else "missing"
+        )
+        if public_trace_sha256 == "missing":
+            failures.append(f"{identity}:missing_public_trace")
+        if not aob_unchanged:
+            failures.append(f"{identity}:aob_input_changed_or_missing")
+        if not anti_leakage_pass:
+            failures.append(f"{identity}:anti_leakage_violation")
+        run_integrity = bool(
+            result.fresh_optimizer_execution
+            and branch.get("fresh_optimizer_execution") == "1"
+            and actual_fe <= result.max_fes
+            and public_trace_sha256 != "missing"
+            and aob_unchanged
+            and anti_leakage_pass
+        )
+        if not run_integrity:
+            failures.append(f"{identity}:fresh_or_budget_integrity_failed")
+        branch_applicable = branch.get("decision_status") == "applicable"
+        horizon_error = (
+            raw_endpoints[0].get("endpoint_error", "")
+            if branch_applicable and len(raw_endpoints) == 1
+            else branch.get("terminal_error", "")
+        )
+        root_branch = {
+            "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+            "stage": stage,
+            "pair_id": pair_id,
+            "problem_id": result.problem_id,
+            "seed": str(result.seed),
+            "arm": arm,
+            "fresh_optimizer_execution": str(
+                int(
+                    result.fresh_optimizer_execution
+                    and branch.get("fresh_optimizer_execution") == "1"
+                )
+            ),
+            "status": (
+                "complete"
+                if result.status in {"complete", "completed"}
+                and branch.get("terminal_status") == "complete"
+                else "incomplete"
+            ),
+            "result_source": result.result_source,
+            "action_applied": branch.get("action_applied", "0"),
+            "decision_status": branch.get("decision_status", ""),
+            "not_applicable_reason": branch.get("not_applicable_reason", ""),
+            "decision_fe": branch.get("decision_fe", "0") or "0",
+            "decision_outer_iter": branch.get("outer_iter", "0") or "0",
+            "component_id": branch.get("component_id", ""),
+            "component_group_indices": branch.get("component_group_indices", ""),
+            "component_group_count": branch.get("component_group_count", "0") or "0",
+            "component_shared_var_count": branch.get(
+                "component_shared_var_count", "0"
+            )
+            or "0",
+            "component_horizon_requested_fe": branch.get(
+                "component_horizon_requested_fe", "0"
+            )
+            or "0",
+            "component_horizon_actual_fe": branch.get(
+                "component_horizon_actual_fe", "0"
+            )
+            or "0",
+            "component_horizon_interval_fe": branch.get(
+                "component_horizon_interval_fe", "0"
+            )
+            or "0",
+            "component_end_fe": branch.get("component_end_fe", "0") or "0",
+            "terminal_target_fe": branch.get("terminal_target_fe", "0") or "0",
+            "terminal_completion_tolerance_fe": branch.get(
+                "terminal_completion_tolerance_fe", "0"
+            )
+            or "0",
+            "terminal_observed_fe": branch.get("terminal_observed_fe", "0") or "0",
+            "horizon_error": horizon_error,
+            "terminal_error": branch.get("terminal_error", ""),
+            "prefix_record_sha256": branch.get("prefix_record_sha256", ""),
+            "checkpoint_candidate_sha256": branch.get(
+                "checkpoint_candidate_sha256", ""
+            ),
+            "crn_descriptor_sha256": branch.get("crn_descriptor_sha256", ""),
+            "component_plan_sha256": branch.get("component_plan_sha256", ""),
+            "normal_sigma": branch.get("normal_sigma", ""),
+            "precision_sigma": branch.get("precision_sigma", ""),
+            "public_trace_sha256": public_trace_sha256,
+            "terminal_record_sha256": branch.get("terminal_record_sha256", ""),
+            "optimizer_fe_used": str(actual_fe),
+            "configured_max_fes": str(result.max_fes),
+            "same_budget_violation": str(int(actual_fe > result.max_fes)),
+            "component_plan_frozen": branch.get("component_plan_frozen", "0"),
+            "mid_horizon_redispatch_count": branch.get(
+                "mid_horizon_redispatch_count", "0"
+            ),
+            "unique_h_endpoint": str(
+                int(_component_int(branch.get("h_endpoint_count")) == 1)
+            ),
+            "component_horizon_complete": str(
+                int(
+                    branch.get("atomic_closed") == "1"
+                    and _component_int(branch.get("h_endpoint_count")) == 1
+                    and branch.get("plan_integrity_valid") == "1"
+                )
+            ),
+            "delayed_review_fe": branch.get("delayed_review_fe", "0") or "0",
+            "delayed_review_outer_iter": branch.get(
+                "delayed_review_outer_iter", "0"
+            )
+            or "0",
+            "delayed_review_group_index": branch.get(
+                "delayed_review_group_index", ""
+            ),
+            "config_sha256": COMPONENT_PRECISION_CONFIG_SHA256,
+            "preregistration_sha256": COMPONENT_PRECISION_SPEC_SHA256,
+            "preregistration_git_commit": COMPONENT_PRECISION_PREREGISTRATION_COMMIT,
+            "source_git_commit": source_git_commit,
+        }
+        branch_rows.append(root_branch)
+        by_arm[arm] = {
+            "branch": branch,
+            "root_branch": root_branch,
+            "endpoints": raw_endpoints,
+            "survival": raw_survival,
+            "budget": raw_budget,
+            "run_integrity": run_integrity,
+            "aob_unchanged": aob_unchanged,
+            "anti_leakage_pass": anti_leakage_pass,
+            "result": result,
+        }
+
+    def append_budget_root(
+        *,
+        pair_id: str,
+        problem_id: str,
+        seed: int,
+        arm: str,
+        bundle: dict[str, object],
+        rows: list[dict[str, str]],
+        applicable: bool,
+        component_closed: bool,
+        delayed_closed: bool,
+    ) -> None:
+        root_branch = bundle["root_branch"]
+        result = bundle["result"]
+        assert isinstance(root_branch, dict)
+        assert isinstance(result, HccAobExecutionResult)
+        ordered = sorted(
+            rows,
+            key=lambda row: _component_int(row.get("group_position")) or 0,
+        )
+        vector = lambda field: ";".join(row.get(field, "") for row in ordered)
+        actual_values = [
+            _component_int(row.get("actual_fe")) or 0 for row in ordered
+        ]
+        interval_values = [
+            _component_int(row.get("interval_actual_fe")) or 0 for row in ordered
+        ]
+        auxiliary_values = [
+            _component_int(row.get("auxiliary_actual_fe")) or 0 for row in ordered
+        ]
+        budget_rows.append(
+            {
+                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                "stage": stage,
+                "pair_id": pair_id,
+                "problem_id": problem_id,
+                "seed": str(seed),
+                "arm": arm,
+                "fresh_optimizer_execution": root_branch.get(
+                    "fresh_optimizer_execution", "0"
+                ),
+                "group_indices": vector("group_index") if applicable else "",
+                "population_sizes": vector("population_size") if applicable else "",
+                "requested_group_fes": vector("requested_fe") if applicable else "",
+                "actual_group_fes": vector("actual_fe") if applicable else "",
+                "interval_group_fes": (
+                    vector("interval_actual_fe") if applicable else ""
+                ),
+                "auxiliary_group_fes": (
+                    vector("auxiliary_actual_fe") if applicable else ""
+                ),
+                "applied_group_sigmas": vector("sigma") if applicable else "",
+                "normal_sigma": (
+                    root_branch.get("normal_sigma", "") if applicable else ""
+                ),
+                "precision_sigma": (
+                    root_branch.get("precision_sigma", "") if applicable else ""
+                ),
+                "component_horizon_actual_fe": (
+                    str(sum(actual_values)) if applicable else "0"
+                ),
+                "component_interval_actual_fe": (
+                    str(sum(interval_values)) if applicable else "0"
+                ),
+                "component_auxiliary_fe": (
+                    str(sum(auxiliary_values)) if applicable else "0"
+                ),
+                "component_precision_fe": (
+                    str(sum(actual_values))
+                    if applicable and arm == "a1_precision_component_once"
+                    else "0"
+                ),
+                "optimizer_fe_used": root_branch.get("optimizer_fe_used", "0"),
+                "configured_max_fes": str(result.max_fes),
+                "same_budget_violation": root_branch.get(
+                    "same_budget_violation", "1"
+                ),
+                "strict_terminal_reached": str(
+                    int(
+                        root_branch.get("status") == "complete"
+                        and root_branch.get("terminal_observed_fe")
+                        == root_branch.get("terminal_target_fe")
+                    )
+                ),
+                "aob_unchanged": str(int(bool(bundle["aob_unchanged"]))),
+                "anti_leakage_pass": str(
+                    int(bool(bundle["anti_leakage_pass"]))
+                ),
+                "component_endpoint_closed": str(int(component_closed)),
+                "delayed_endpoint_closed": str(int(delayed_closed)),
+            }
+        )
+
+    for (problem_id, seed), by_arm in sorted(grouped.items()):
+        pair_id = component_precision_pair_id(problem_id, seed)
+        missing = set(COMPONENT_PRECISION_ARMS) - set(by_arm)
+        if missing:
+            failures.append(
+                f"{pair_id}:missing_arms:{','.join(sorted(missing))}"
+            )
+            continue
+        a0_bundle = by_arm["a0_v37"]
+        a1_bundle = by_arm["a1_precision_component_once"]
+        a0 = a0_bundle["branch"]
+        a1 = a1_bundle["branch"]
+        assert isinstance(a0, dict) and isinstance(a1, dict)
+        a0_endpoints = a0_bundle["endpoints"]
+        a1_endpoints = a1_bundle["endpoints"]
+        a0_survival = a0_bundle["survival"]
+        a1_survival = a1_bundle["survival"]
+        a0_budget = a0_bundle["budget"]
+        a1_budget = a1_bundle["budget"]
+        a0_result = a0_bundle["result"]
+        a1_result = a1_bundle["result"]
+        assert isinstance(a0_endpoints, list) and isinstance(a1_endpoints, list)
+        assert isinstance(a0_survival, list) and isinstance(a1_survival, list)
+        assert isinstance(a0_budget, list) and isinstance(a1_budget, list)
+        assert isinstance(a0_result, HccAobExecutionResult)
+        assert isinstance(a1_result, HccAobExecutionResult)
+
+        status_match = a0.get("decision_status") == a1.get("decision_status")
+        reason_match = a0.get("not_applicable_reason") == a1.get(
+            "not_applicable_reason"
+        )
+        applicable = bool(
+            status_match and a0.get("decision_status") == "applicable"
+        )
+        not_applicable = bool(
+            status_match and a0.get("decision_status") == "not_applicable"
+        )
+        a0_action = a0.get("action_applied") == "1"
+        a1_action = a1.get("action_applied") == "1"
+        terminal_target_match = bool(
+            a0.get("terminal_target_fe") == a1.get("terminal_target_fe")
+            and a0.get("terminal_completion_tolerance_fe")
+            == a1.get("terminal_completion_tolerance_fe")
+            and a0.get("terminal_status") == "complete"
+            and a1.get("terminal_status") == "complete"
+            and a0.get("terminal_observed_fe") == a0.get("terminal_target_fe")
+            and a1.get("terminal_observed_fe") == a1.get("terminal_target_fe")
+            and (_component_int(a0.get("terminal_completion_tolerance_fe")) or 0)
+            > 0
+            and _component_int(a0.get("terminal_target_fe"))
+            == a0_result.max_fes
+            - (_component_int(a0.get("terminal_completion_tolerance_fe")) or 0)
+            and _component_int(a1.get("terminal_target_fe"))
+            == a1_result.max_fes
+            - (_component_int(a1.get("terminal_completion_tolerance_fe")) or 0)
+        )
+        fresh_and_same_budget = bool(
+            a0_bundle["run_integrity"] and a1_bundle["run_integrity"]
+        )
+
+        if not_applicable:
+            no_secondary_rows = not any(
+                (a0_endpoints, a1_endpoints, a0_survival, a1_survival, a0_budget, a1_budget)
+            )
+            a0_terminal = _component_float(a0.get("terminal_error"))
+            a1_terminal = _component_float(a1.get("terminal_error"))
+            no_op_parity = bool(
+                a0.get("terminal_error")
+                and a0.get("terminal_error") == a1.get("terminal_error")
+                and a0.get("terminal_record_sha256")
+                == a1.get("terminal_record_sha256")
+                and a0_bundle["root_branch"].get("public_trace_sha256")
+                == a1_bundle["root_branch"].get("public_trace_sha256")
+            )
+            checks = {
+                "decision_status_match": status_match,
+                "not_applicable_reason_match": reason_match,
+                "decision_id_match": not a0.get("decision_id") and not a1.get("decision_id"),
+                "prefix_match": not a0.get("prefix_record_sha256") and not a1.get("prefix_record_sha256"),
+                "checkpoint_match": not a0.get("checkpoint_candidate_sha256") and not a1.get("checkpoint_candidate_sha256"),
+                "component_match": not a0.get("component_id") and not a1.get("component_id"),
+                "component_plan_match": not a0.get("component_plan_sha256") and not a1.get("component_plan_sha256"),
+                "group_order_match": no_secondary_rows,
+                "population_match": no_secondary_rows,
+                "crn_match": not a0.get("crn_descriptor_sha256") and not a1.get("crn_descriptor_sha256"),
+                "terminal_target_match": terminal_target_match,
+                "requested_budgets_match": no_secondary_rows,
+                "complete_populations": no_secondary_rows,
+                "a0_normal_sigma_valid": not a0_action,
+                "a1_half_sigma_valid": not a1_action,
+                "atomic_closure": no_secondary_rows,
+                "delayed_closure": no_secondary_rows,
+                "a0_no_action": not a0_action,
+                "a1_action_contract": not a1_action,
+                "no_op_parity": no_op_parity,
+                "fresh_and_same_budget": fresh_and_same_budget,
+            }
+            pair_integrity = all(checks.values())
+            tau_terminal = (
+                0.0
+                if a0_terminal is None or a1_terminal is None
+                else math.log(max(a0_terminal, 1e-300) / max(a1_terminal, 1e-300))
+            )
+            pair_rows.append(
+                {
+                    "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                    "stage": stage,
+                    "pair_id": pair_id,
+                    "problem_id": problem_id,
+                    "seed": str(seed),
+                    "pair_integrity": str(int(pair_integrity)),
+                    "applicable": "0",
+                    "not_applicable_reason": a0.get(
+                        "not_applicable_reason", ""
+                    ),
+                    "prefix_match": str(int(checks["prefix_match"])),
+                    "checkpoint_match": str(int(checks["checkpoint_match"])),
+                    "plan_match": str(int(checks["component_plan_match"])),
+                    "action_applied": "0",
+                    "abstain_parity": str(int(no_op_parity)),
+                    "a0_terminal_error": "" if a0_terminal is None else f"{a0_terminal:.17e}",
+                    "a1_terminal_error": "" if a1_terminal is None else f"{a1_terminal:.17e}",
+                    "tau_T": f"{tau_terminal:.17e}",
+                    "terminal_catastrophic": str(
+                        int(
+                            a0_terminal is not None
+                            and a1_terminal is not None
+                            and a1_terminal >= 1.2 * a0_terminal
+                        )
+                    ),
+                }
+            )
+            endpoint_rows.append(
+                {
+                    "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                    "stage": stage,
+                    "pair_id": pair_id,
+                    "problem_id": problem_id,
+                    "seed": str(seed),
+                    "applicable": "0",
+                    "component_closed": "0",
+                    "endpoint_sequence_match": "1",
+                    "a0_horizon_error": "" if a0_terminal is None else f"{a0_terminal:.17e}",
+                    "a1_horizon_error": "" if a1_terminal is None else f"{a1_terminal:.17e}",
+                    "tau_H": "0.00000000000000000e+00",
+                    "component_catastrophic": "0",
+                }
+            )
+            survival_rows.append(
+                {
+                    "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                    "stage": stage,
+                    "pair_id": pair_id,
+                    "problem_id": problem_id,
+                    "seed": str(seed),
+                    "applicable": "0",
+                    "component_closed": "0",
+                    "delayed_closed": "0",
+                    "a0_s_h": "",
+                    "a1_s_h": "",
+                    "delta_s_h": "",
+                    "a0_strict_survival": "",
+                    "a1_strict_survival": "",
+                    "a0_s_d": "",
+                    "a1_s_d": "",
+                    "delta_s_d": "",
+                }
+            )
+            for arm, bundle in (
+                ("a0_v37", a0_bundle),
+                ("a1_precision_component_once", a1_bundle),
+            ):
+                append_budget_root(
+                    pair_id=pair_id,
+                    problem_id=problem_id,
+                    seed=seed,
+                    arm=arm,
+                    bundle=bundle,
+                    rows=[],
+                    applicable=False,
+                    component_closed=False,
+                    delayed_closed=False,
+                )
+            if not pair_integrity:
+                for name, passed in checks.items():
+                    if not passed:
+                        failures.append(f"{pair_id}:{name}")
+            continue
+
+        def sorted_budget(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+            try:
+                return sorted(rows, key=lambda row: int(row.get("group_position", "")))
+            except ValueError:
+                return list(rows)
+
+        a0_budget = sorted_budget(a0_budget)
+        a1_budget = sorted_budget(a1_budget)
+        try:
+            a0_groups = _component_int_sequence(a0.get("component_group_indices"))
+            a1_groups = _component_int_sequence(a1.get("component_group_indices"))
+            a0_positions = tuple(int(row.get("group_position", "")) for row in a0_budget)
+            a1_positions = tuple(int(row.get("group_position", "")) for row in a1_budget)
+            a0_budget_groups = tuple(int(row.get("group_index", "")) for row in a0_budget)
+            a1_budget_groups = tuple(int(row.get("group_index", "")) for row in a1_budget)
+            a0_populations = tuple(int(row.get("population_size", "")) for row in a0_budget)
+            a1_populations = tuple(int(row.get("population_size", "")) for row in a1_budget)
+            a0_requested = tuple(int(row.get("requested_fe", "")) for row in a0_budget)
+            a1_requested = tuple(int(row.get("requested_fe", "")) for row in a1_budget)
+            a0_actual = tuple(int(row.get("actual_fe", "")) for row in a0_budget)
+            a1_actual = tuple(int(row.get("actual_fe", "")) for row in a1_budget)
+            a0_interval = tuple(
+                int(row.get("interval_actual_fe", "")) for row in a0_budget
+            )
+            a1_interval = tuple(
+                int(row.get("interval_actual_fe", "")) for row in a1_budget
+            )
+            a0_auxiliary = tuple(
+                int(row.get("auxiliary_actual_fe", "")) for row in a0_budget
+            )
+            a1_auxiliary = tuple(
+                int(row.get("auxiliary_actual_fe", "")) for row in a1_budget
+            )
+            a0_starts = tuple(
+                int(row.get("group_start_fe", "")) for row in a0_budget
+            )
+            a1_starts = tuple(
+                int(row.get("group_start_fe", "")) for row in a1_budget
+            )
+            a0_ends = tuple(
+                int(row.get("group_end_fe", "")) for row in a0_budget
+            )
+            a1_ends = tuple(
+                int(row.get("group_end_fe", "")) for row in a1_budget
+            )
+        except ValueError:
+            a0_groups = a1_groups = ()
+            a0_positions = a1_positions = ()
+            a0_budget_groups = a1_budget_groups = ()
+            a0_populations = a1_populations = ()
+            a0_requested = a1_requested = ()
+            a0_actual = a1_actual = ()
+            a0_interval = a1_interval = ()
+            a0_auxiliary = a1_auxiliary = ()
+            a0_starts = a1_starts = ()
+            a0_ends = a1_ends = ()
+
+        group_order_match = bool(
+            a0_groups
+            and a0_groups == a1_groups
+            and _component_int(a0.get("component_group_count")) == len(a0_groups)
+            and _component_int(a1.get("component_group_count")) == len(a1_groups)
+            and a0_positions == tuple(range(len(a0_groups)))
+            and a1_positions == tuple(range(len(a1_groups)))
+            and a0_budget_groups == a0_groups
+            and a1_budget_groups == a1_groups
+            and all(
+                row.get("decision_id") == branch.get("decision_id")
+                and row.get("component_precision_arm")
+                == branch.get("component_precision_arm")
+                for rows, branch in ((a0_budget, a0), (a1_budget, a1))
+                for row in rows
+            )
+        )
+        population_match = bool(
+            a0_populations and a0_populations == a1_populations
+        )
+        requested_budgets_match = bool(
+            a0_requested and a0_requested == a1_requested
+        )
+        budget_shapes_valid = bool(
+            group_order_match
+            and len(a0_populations)
+            == len(a0_requested)
+            == len(a0_actual)
+            == len(a0_interval)
+            == len(a0_auxiliary)
+            == len(a0_starts)
+            == len(a0_ends)
+            == len(a1_populations)
+            == len(a1_requested)
+            == len(a1_actual)
+            == len(a1_interval)
+            == len(a1_auxiliary)
+            == len(a1_starts)
+            == len(a1_ends)
+        )
+        complete_populations = bool(
+            budget_shapes_valid
+            and _component_int(a0.get("decision_fe")) == a0_starts[0]
+            and _component_int(a1.get("decision_fe")) == a1_starts[0]
+            and all(
+                current_start == previous_end
+                for starts, ends in (
+                    (a0_starts, a0_ends),
+                    (a1_starts, a1_ends),
+                )
+                for previous_end, current_start in zip(ends, starts[1:])
+            )
+            and all(
+                population > 0
+                and requested > 0
+                and actual > 0
+                and requested % population == 0
+                and actual % population == 0
+                and actual <= requested
+                for populations, requested_values, actual_values in (
+                    (a0_populations, a0_requested, a0_actual),
+                    (a1_populations, a1_requested, a1_actual),
+                )
+                for population, requested, actual in zip(
+                    populations, requested_values, actual_values
+                )
+            )
+            and all(
+                interval == end - start
+                and interval == actual + auxiliary
+                and interval >= actual
+                and auxiliary >= 0
+                for actual_values, interval_values, auxiliary_values, starts, ends in (
+                    (a0_actual, a0_interval, a0_auxiliary, a0_starts, a0_ends),
+                    (a1_actual, a1_interval, a1_auxiliary, a1_starts, a1_ends),
+                )
+                for actual, interval, auxiliary, start, end in zip(
+                    actual_values,
+                    interval_values,
+                    auxiliary_values,
+                    starts,
+                    ends,
+                )
+            )
+        )
+        a0_normal = _component_float(a0.get("normal_sigma"))
+        a1_normal = _component_float(a1.get("normal_sigma"))
+        a1_precision = _component_float(a1.get("precision_sigma"))
+        a0_sigmas = tuple(_component_float(row.get("sigma")) for row in a0_budget)
+        a1_sigmas = tuple(_component_float(row.get("sigma")) for row in a1_budget)
+        a0_normal_sigma_valid = bool(
+            a0_sigmas
+            and all(_component_close(value, a0_normal) for value in a0_sigmas)
+        )
+        a1_half_sigma_valid = bool(
+            _component_close(a0_normal, a1_normal)
+            and a0_normal is not None
+            and _component_close(a1_precision, 0.5 * a0_normal)
+            and a1_sigmas
+            and all(_component_close(value, a1_precision) for value in a1_sigmas)
+        )
+        decision_id_match = bool(
+            a0.get("decision_id")
+            and a0.get("decision_id") == a1.get("decision_id")
+        )
+        prefix_match = bool(
+            a0.get("prefix_record_sha256")
+            and a0.get("prefix_record_sha256")
+            == a1.get("prefix_record_sha256")
+        )
+        checkpoint_match = bool(
+            a0.get("checkpoint_candidate_sha256")
+            and a0.get("checkpoint_candidate_sha256")
+            == a1.get("checkpoint_candidate_sha256")
+        )
+        component_match = bool(
+            a0.get("component_id")
+            and all(
+                a0.get(field) == a1.get(field)
+                for field in (
+                    "component_id",
+                    "component_group_count",
+                    "component_shared_var_count",
+                )
+            )
+        )
+        component_plan_match = bool(
+            a0.get("component_plan_sha256")
+            and a0.get("component_plan_sha256")
+            == a1.get("component_plan_sha256")
+        )
+        crn_match = bool(
+            a0.get("crn_descriptor_sha256")
+            and a0.get("crn_descriptor_sha256")
+            == a1.get("crn_descriptor_sha256")
+        )
+        a0_no_action = not a0_action
+        a1_action_contract = a1_action
+
+        endpoint_shape = len(a0_endpoints) == 1 and len(a1_endpoints) == 1
+        survival_shape = len(a0_survival) == 1 and len(a1_survival) == 1
+        a0_endpoint = a0_endpoints[0] if len(a0_endpoints) == 1 else {}
+        a1_endpoint = a1_endpoints[0] if len(a1_endpoints) == 1 else {}
+        a0_survival_row = a0_survival[0] if len(a0_survival) == 1 else {}
+        a1_survival_row = a1_survival[0] if len(a1_survival) == 1 else {}
+        endpoint_binding = bool(
+            endpoint_shape
+            and all(
+                endpoint.get("decision_id") == branch.get("decision_id")
+                and endpoint.get("component_precision_arm")
+                == branch.get("component_precision_arm")
+                for endpoint, branch in ((a0_endpoint, a0), (a1_endpoint, a1))
+            )
+        )
+        endpoint_summaries = bool(
+            endpoint_shape
+            and all(
+                _component_int(endpoint.get("component_start_fe")) == starts[0]
+                and _component_int(endpoint.get("component_end_fe")) == ends[-1]
+                and _component_int(endpoint.get("component_requested_fe"))
+                == sum(requested)
+                and _component_int(endpoint.get("component_actual_fe"))
+                == sum(actual)
+                and _component_int(endpoint.get("component_interval_fe"))
+                == sum(interval)
+                for endpoint, requested, actual, interval, starts, ends in (
+                    (
+                        a0_endpoint,
+                        a0_requested,
+                        a0_actual,
+                        a0_interval,
+                        a0_starts,
+                        a0_ends,
+                    ),
+                    (
+                        a1_endpoint,
+                        a1_requested,
+                        a1_actual,
+                        a1_interval,
+                        a1_starts,
+                        a1_ends,
+                    ),
+                )
+            )
+        ) if a0_requested and a1_requested else False
+        branch_horizon_summaries = bool(
+            all(
+                branch.get("component_horizon_requested_fe") == str(sum(requested))
+                and branch.get("component_horizon_actual_fe") == str(sum(actual))
+                and branch.get("component_horizon_interval_fe")
+                == str(sum(interval))
+                for branch, requested, actual, interval in (
+                    (a0, a0_requested, a0_actual, a0_interval),
+                    (a1, a1_requested, a1_actual, a1_interval),
+                )
+            )
+        ) if a0_requested and a1_requested else False
+        atomic_closure = bool(
+            endpoint_binding
+            and endpoint_summaries
+            and branch_horizon_summaries
+            and all(
+                branch.get("component_plan_frozen") == "1"
+                and branch.get("mid_horizon_redispatch_count") == "0"
+                and branch.get("atomic_closed") == "1"
+                and _component_int(branch.get("h_endpoint_count")) == 1
+                and branch.get("plan_integrity_valid") == "1"
+                for branch in (a0, a1)
+            )
+        )
+        a0_shared_path_l1 = _component_float(
+            a0_survival_row.get("shared_path_l1")
+        )
+        a1_shared_path_l1 = _component_float(
+            a1_survival_row.get("shared_path_l1")
+        )
+        a0_shared_net_l1 = _component_float(a0_survival_row.get("shared_net_l1"))
+        a1_shared_net_l1 = _component_float(a1_survival_row.get("shared_net_l1"))
+        a0_delayed_drift_l1 = _component_float(
+            a0_survival_row.get("delayed_drift_l1")
+        )
+        a1_delayed_drift_l1 = _component_float(
+            a1_survival_row.get("delayed_drift_l1")
+        )
+        a0_s_h = _component_float(a0_survival_row.get("s_h"))
+        a1_s_h = _component_float(a1_survival_row.get("s_h"))
+        a0_s_d = _component_float(a0_survival_row.get("s_d"))
+        a1_s_d = _component_float(a1_survival_row.get("s_d"))
+
+        def survival_metrics_match_path(survival: dict[str, str]) -> bool:
+            path_l1 = _component_float(survival.get("shared_path_l1"))
+            net_l1 = _component_float(survival.get("shared_net_l1"))
+            delayed_drift_l1 = _component_float(
+                survival.get("delayed_drift_l1")
+            )
+            s_h = _component_float(survival.get("s_h"))
+            s_d = _component_float(survival.get("s_d"))
+            if any(
+                value is None or value < 0.0
+                for value in (path_l1, net_l1, delayed_drift_l1, s_h, s_d)
+            ):
+                return False
+            assert path_l1 is not None
+            assert net_l1 is not None
+            assert delayed_drift_l1 is not None
+            strict_survival = net_l1 > 1e-300
+            expected_s_h = min(1.0, max(0.0, net_l1 / (1e-300 + path_l1)))
+            expected_s_d = (
+                1.0
+                - min(1.0, delayed_drift_l1 / max(net_l1, 1e-300))
+                if strict_survival
+                else 0.0
+            )
+            return bool(
+                _component_close(s_h, expected_s_h)
+                and _component_close(s_d, expected_s_d)
+                and survival.get("strict_survival") == str(int(strict_survival))
+            )
+
+        def delayed_review_matches_frozen_entry(
+            branch: dict[str, str], group_indices: tuple[int, ...]
+        ) -> bool:
+            decision_outer_iter = _component_int(branch.get("outer_iter"))
+            review_outer_iter = _component_int(
+                branch.get("delayed_review_outer_iter")
+            )
+            review_group_index = _component_int(
+                branch.get("delayed_review_group_index")
+            )
+            return bool(
+                group_indices
+                and decision_outer_iter is not None
+                and review_outer_iter is not None
+                and review_outer_iter == decision_outer_iter + 1
+                and review_group_index == group_indices[0]
+            )
+
+        delayed_closure = bool(
+            survival_shape
+            and all(value is not None for value in (a0_s_h, a1_s_h, a0_s_d, a1_s_d))
+            and survival_metrics_match_path(a0_survival_row)
+            and survival_metrics_match_path(a1_survival_row)
+            and delayed_review_matches_frozen_entry(a0, a0_groups)
+            and delayed_review_matches_frozen_entry(a1, a1_groups)
+            and all(
+                branch.get("delayed_status") == "resolved_next_component_entry"
+                and branch.get("delayed_review_fe")
+                and survival.get("decision_id") == branch.get("decision_id")
+                and survival.get("component_precision_arm")
+                == branch.get("component_precision_arm")
+                and survival.get("delayed_status")
+                == "resolved_next_component_entry"
+                and survival.get("strict_survival")
+                == str(int((_component_float(survival.get("s_h")) or 0.0) > 0.0))
+                for branch, survival in (
+                    (a0, a0_survival_row),
+                    (a1, a1_survival_row),
+                )
+            )
+        )
+        a0_component_error = _component_float(a0_endpoint.get("endpoint_error"))
+        a1_component_error = _component_float(a1_endpoint.get("endpoint_error"))
+        a0_checkpoint = _component_float(a0_endpoint.get("checkpoint_error"))
+        a1_checkpoint = _component_float(a1_endpoint.get("checkpoint_error"))
+        checkpoint_match = bool(
+            checkpoint_match and _component_close(a0_checkpoint, a1_checkpoint)
+        )
+        a0_terminal = _component_float(a0.get("terminal_error"))
+        a1_terminal = _component_float(a1.get("terminal_error"))
+        outcome_values_present = all(
+            value is not None
+            for value in (
+                a0_component_error,
+                a1_component_error,
+                a0_terminal,
+                a1_terminal,
+                a0_s_h,
+                a1_s_h,
+                a0_s_d,
+                a1_s_d,
+                a0_shared_path_l1,
+                a1_shared_path_l1,
+                a0_shared_net_l1,
+                a1_shared_net_l1,
+                a0_delayed_drift_l1,
+                a1_delayed_drift_l1,
+            )
+        )
+        checks = {
+            "decision_status_match": status_match and applicable,
+            "not_applicable_reason_match": reason_match,
+            "decision_id_match": decision_id_match,
+            "prefix_match": prefix_match,
+            "checkpoint_match": checkpoint_match,
+            "component_match": component_match,
+            "component_plan_match": component_plan_match,
+            "group_order_match": group_order_match,
+            "population_match": population_match,
+            "crn_match": crn_match,
+            "terminal_target_match": terminal_target_match,
+            "requested_budgets_match": requested_budgets_match,
+            "complete_populations": complete_populations,
+            "a0_normal_sigma_valid": a0_normal_sigma_valid,
+            "a1_half_sigma_valid": a1_half_sigma_valid,
+            "atomic_closure": atomic_closure,
+            "delayed_closure": delayed_closure,
+            "a0_no_action": a0_no_action,
+            "a1_action_contract": a1_action_contract,
+            "fresh_and_same_budget": fresh_and_same_budget,
+        }
+        pair_integrity = bool(outcome_values_present and all(checks.values()))
+        if not pair_integrity:
+            if not outcome_values_present:
+                failures.append(f"{pair_id}:missing_or_nonfinite_outcome")
+            for name, passed in checks.items():
+                if not passed:
+                    failures.append(f"{pair_id}:{name}")
+        if outcome_values_present:
+            assert a0_component_error is not None and a1_component_error is not None
+            assert a0_terminal is not None and a1_terminal is not None
+            assert a0_s_h is not None and a1_s_h is not None
+            assert a0_s_d is not None and a1_s_d is not None
+            tau_h = math.log(
+                max(a0_component_error, 1e-300)
+                / max(a1_component_error, 1e-300)
+            )
+            tau_t = math.log(
+                max(a0_terminal, 1e-300) / max(a1_terminal, 1e-300)
+            )
+            delta_s_h = a1_s_h - a0_s_h
+            delta_s_d = a1_s_d - a0_s_d
+        else:
+            tau_h = tau_t = delta_s_h = delta_s_d = float("nan")
+        pair_rows.append(
+            {
+                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                "stage": stage,
+                "pair_id": pair_id,
+                "problem_id": problem_id,
+                "seed": str(seed),
+                "pair_integrity": str(int(pair_integrity)),
+                "applicable": str(int(applicable)),
+                "not_applicable_reason": "" if applicable else a0.get(
+                    "not_applicable_reason", "decision_mismatch"
+                ),
+                "prefix_match": str(int(prefix_match)),
+                "checkpoint_match": str(int(checkpoint_match)),
+                "plan_match": str(int(component_plan_match)),
+                "action_applied": str(int(applicable and a1_action)),
+                "abstain_parity": "0",
+                "a0_terminal_error": "" if a0_terminal is None else f"{a0_terminal:.17e}",
+                "a1_terminal_error": "" if a1_terminal is None else f"{a1_terminal:.17e}",
+                "tau_T": "" if not math.isfinite(tau_t) else f"{tau_t:.17e}",
+                "terminal_catastrophic": str(
+                    int(
+                        a0_terminal is not None
+                        and a1_terminal is not None
+                        and a1_terminal >= 1.2 * a0_terminal
+                    )
+                ),
+            }
+        )
+        endpoint_rows.append(
+            {
+                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                "stage": stage,
+                "pair_id": pair_id,
+                "problem_id": problem_id,
+                "seed": str(seed),
+                "applicable": str(int(applicable)),
+                "component_closed": str(int(applicable and atomic_closure)),
+                "endpoint_sequence_match": str(
+                    int(applicable and group_order_match and endpoint_binding)
+                ),
+                "a0_horizon_error": (
+                    "" if a0_component_error is None else f"{a0_component_error:.17e}"
+                ),
+                "a1_horizon_error": (
+                    "" if a1_component_error is None else f"{a1_component_error:.17e}"
+                ),
+                "tau_H": "" if not math.isfinite(tau_h) else f"{tau_h:.17e}",
+                "component_catastrophic": str(
+                    int(
+                        a0_component_error is not None
+                        and a1_component_error is not None
+                        and a1_component_error >= 1.2 * a0_component_error
+                    )
+                ),
+            }
+        )
+        survival_rows.append(
+            {
+                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+                "stage": stage,
+                "pair_id": pair_id,
+                "problem_id": problem_id,
+                "seed": str(seed),
+                "applicable": str(int(applicable)),
+                "component_closed": str(int(applicable and atomic_closure)),
+                "delayed_closed": str(int(applicable and delayed_closure)),
+                "a0_shared_path_l1": (
+                    ""
+                    if a0_shared_path_l1 is None
+                    else f"{a0_shared_path_l1:.17e}"
+                ),
+                "a1_shared_path_l1": (
+                    ""
+                    if a1_shared_path_l1 is None
+                    else f"{a1_shared_path_l1:.17e}"
+                ),
+                "a0_shared_net_l1": (
+                    "" if a0_shared_net_l1 is None else f"{a0_shared_net_l1:.17e}"
+                ),
+                "a1_shared_net_l1": (
+                    "" if a1_shared_net_l1 is None else f"{a1_shared_net_l1:.17e}"
+                ),
+                "a0_delayed_drift_l1": (
+                    ""
+                    if a0_delayed_drift_l1 is None
+                    else f"{a0_delayed_drift_l1:.17e}"
+                ),
+                "a1_delayed_drift_l1": (
+                    ""
+                    if a1_delayed_drift_l1 is None
+                    else f"{a1_delayed_drift_l1:.17e}"
+                ),
+                "a0_s_h": "" if a0_s_h is None else f"{a0_s_h:.17e}",
+                "a1_s_h": "" if a1_s_h is None else f"{a1_s_h:.17e}",
+                "delta_s_h": "" if not math.isfinite(delta_s_h) else f"{delta_s_h:.17e}",
+                "a0_strict_survival": (
+                    "" if a0_s_h is None else a0_survival_row.get("strict_survival", "")
+                ),
+                "a1_strict_survival": (
+                    "" if a1_s_h is None else a1_survival_row.get("strict_survival", "")
+                ),
+                "a0_s_d": "" if a0_s_d is None else f"{a0_s_d:.17e}",
+                "a1_s_d": "" if a1_s_d is None else f"{a1_s_d:.17e}",
+                "delta_s_d": "" if not math.isfinite(delta_s_d) else f"{delta_s_d:.17e}",
+            }
+        )
+        for arm, bundle, rows in (
+            ("a0_v37", a0_bundle, a0_budget),
+            ("a1_precision_component_once", a1_bundle, a1_budget),
+        ):
+            append_budget_root(
+                pair_id=pair_id,
+                problem_id=problem_id,
+                seed=seed,
+                arm=arm,
+                bundle=bundle,
+                rows=rows,
+                applicable=applicable,
+                component_closed=applicable and atomic_closure,
+                delayed_closed=applicable and delayed_closure,
+            )
+
+    return (
+        branch_rows,
+        endpoint_rows,
+        survival_rows,
+        budget_rows,
+        pair_rows,
+        list(dict.fromkeys(failures)),
+    )
+
+
+def _component_precision_manifest(
+    *,
+    output_root: Path,
+    stage: str,
+    lanes: tuple[LaneConfig, ...],
+    branch_rows: list[dict[str, object]],
+    pair_rows: list[dict[str, object]],
+    integrity_failures: list[str],
+) -> dict[str, object]:
+    source_artifacts = [
+        "component_action_branch_manifest.csv",
+        "component_endpoint_outcomes.csv",
+        "component_shared_survival.csv",
+        "component_action_pairs.csv",
+        "component_budget_ledger.csv",
+    ]
+    return {
+        "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
+        "stage": stage,
+        "status": "pass" if not integrity_failures else "blocked",
+        "runtime_scheduler_authorized": False,
+        "gate_evaluated": False,
+        "portfolio_evaluated": False,
+        "precision_response_dependency": False,
+        "precision_response_artifacts_consumed": [],
+        "arms": [lane.component_precision_arm for lane in lanes],
+        "run_count": len(branch_rows),
+        "pair_count": len(pair_rows),
+        "applicable_pair_count": sum(
+            row.get("applicable") == "1" for row in pair_rows
+        ),
+        "integrity_pair_count": sum(
+            row.get("pair_integrity") == "1" for row in pair_rows
+        ),
+        "source_artifacts": source_artifacts,
+        "input_artifact_sha256": {
+            name: _sha256_file(output_root / name) for name in source_artifacts
+        },
+        "spec": {
+            "path": COMPONENT_PRECISION_SPEC_PATH,
+            "sha256": _sha256_file(ARAC_REPO_ROOT / COMPONENT_PRECISION_SPEC_PATH),
+        },
+        "config": {
+            "path": COMPONENT_PRECISION_CONFIG_PATH,
+            "sha256": _sha256_file(ARAC_REPO_ROOT / COMPONENT_PRECISION_CONFIG_PATH),
+        },
+        "preregistration_git_commit": COMPONENT_PRECISION_PREREGISTRATION_COMMIT,
+        "source_git_commit": _git_commit(),
+        "integrity_failures": integrity_failures,
+        "forbidden_outputs": [
+            "component_action_gate.json",
+            "causal_risk_precision_model.json",
+            "runtime_profile",
+            "portfolio_selection",
+        ],
+    }
+
+
 def _trace_rows_for_record(record: dict[str, object]) -> list[dict[str, str]]:
     result = record["result"]
     assert isinstance(result, HccAobExecutionResult)
@@ -2560,6 +3969,7 @@ def _records(
                             car_actionability_arm=lane.car_actionability_arm,
                             precision_causal_arm=lane.precision_causal_arm,
                             precision_response_arm=lane.precision_response_arm,
+                            component_precision_arm=lane.component_precision_arm,
                             skip_plots=True,
                         ),
                     }
@@ -6073,6 +7483,43 @@ def _git_commit() -> str:
     return result.stdout.strip() or "unknown"
 
 
+def _require_component_precision_source_binding() -> None:
+    head = _git_commit()
+    try:
+        remote = subprocess.run(
+            ["git", "rev-parse", "origin/main"],
+            cwd=ARAC_REPO_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
+        for command in (
+            ["git", "diff", "--quiet"],
+            ["git", "diff", "--cached", "--quiet"],
+        ):
+            completed = subprocess.run(
+                command,
+                cwd=ARAC_REPO_ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if completed.returncode != 0:
+                raise RuntimeError(
+                    "component precision execution requires a clean tracked tree"
+                )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(
+            "component precision source binding could not be verified"
+        ) from exc
+    if not remote or head == "unknown" or head != remote:
+        raise RuntimeError(
+            "component precision execution requires HEAD == origin/main"
+        )
+
+
 def _dependency_version(distribution: str) -> str:
     try:
         return importlib.metadata.version(distribution)
@@ -6142,6 +7589,11 @@ def _config_fingerprint(
                 "car_candidate_mode": lane.car_candidate_mode,
                 "car_actionability_arm": lane.car_actionability_arm,
                 "precision_causal_arm": lane.precision_causal_arm,
+                **(
+                    {"component_precision_arm": lane.component_precision_arm}
+                    if lane.component_precision_arm != "off"
+                    else {}
+                ),
             }
             for lane in lanes
         ],
@@ -6463,6 +7915,9 @@ def run_hcc_runtime_consumer_smoke(
     mmes_restart: bool = True,
     lane_profile: str = "runtime_smoke",
     response_arms: tuple[str, ...] | None = None,
+    component_precision_arms: tuple[str, ...] | None = None,
+    component_precision_stage: str | None = None,
+    component_precision_screen_gate: Path | str | None = None,
     search_state_backend: str = "phase_i_mmes",
     environment_probe: EnvironmentProbe | None = None,
 ) -> Path:
@@ -6489,6 +7944,27 @@ def run_hcc_runtime_consumer_smoke(
         )
         if not lanes:
             raise ValueError("response_arms selected no lanes")
+    if component_precision_arms is not None:
+        requested_arms = tuple(
+            dict.fromkeys(str(arm) for arm in component_precision_arms)
+        )
+        if lane_profile != "component_precision_action_validity":
+            raise ValueError(
+                "component_precision_arms requires "
+                "component_precision_action_validity"
+            )
+        invalid_arms = sorted(set(requested_arms) - set(COMPONENT_PRECISION_ARMS))
+        if invalid_arms:
+            raise ValueError(
+                f"unsupported component precision arms: {','.join(invalid_arms)}"
+            )
+        lanes = tuple(
+            lane
+            for lane in lanes
+            if lane.component_precision_arm in requested_arms
+        )
+        if not lanes:
+            raise ValueError("component_precision_arms selected no lanes")
     precision_causal_profile_enabled = any(
         lane.precision_causal_arm != "off" for lane in lanes
     )
@@ -6515,6 +7991,138 @@ def run_hcc_runtime_consumer_smoke(
             != PRECISION_RESPONSE_CONFIG_SHA256
         ):
             raise RuntimeError("precision response config hash mismatch")
+    component_precision_profile_enabled = any(
+        lane.component_precision_arm != "off" for lane in lanes
+    )
+    if component_precision_profile_enabled:
+        if component_precision_stage not in COMPONENT_PRECISION_STAGES:
+            raise ValueError(
+                "component_precision_stage must be explicit for "
+                "component_precision_action_validity"
+            )
+        if (
+            _sha256_file(ARAC_REPO_ROOT / COMPONENT_PRECISION_SPEC_PATH)
+            != COMPONENT_PRECISION_SPEC_SHA256
+        ):
+            raise RuntimeError("component precision preregistration hash mismatch")
+        if (
+            _sha256_file(ARAC_REPO_ROOT / COMPONENT_PRECISION_CONFIG_PATH)
+            != COMPONENT_PRECISION_CONFIG_SHA256
+        ):
+            raise RuntimeError("component precision config hash mismatch")
+        _require_component_precision_source_binding()
+        if component_precision_stage in {"screen", "confirm"}:
+            config = json.loads(
+                (ARAC_REPO_ROOT / COMPONENT_PRECISION_CONFIG_PATH).read_text(
+                    encoding="utf-8"
+                )
+            )
+            registered = config[component_precision_stage]
+            expected_cases = tuple(str(value) for value in registered["cases"])
+            expected_seeds = tuple(int(value) for value in registered["seeds"])
+            if (
+                len(problem_ids) != len(set(problem_ids))
+                or set(problem_ids) != set(expected_cases)
+                or len(seeds) != len(set(seeds))
+                or set(seeds) != set(expected_seeds)
+            ):
+                raise ValueError(
+                    f"component precision {component_precision_stage} matrix mismatch"
+                )
+            if max_fes != 3_000_000 or budget_accounting != "strict":
+                raise ValueError(
+                    "formal component precision stages require strict 3M FE"
+                )
+            if worker_count != 24:
+                raise ValueError(
+                    "formal component precision stages require jobs=24"
+                )
+            if tuple(lane.component_precision_arm for lane in lanes) != (
+                COMPONENT_PRECISION_ARMS
+            ):
+                raise ValueError(
+                    "formal component precision stages require both frozen arms"
+                )
+        if component_precision_stage == "confirm":
+            if component_precision_screen_gate is None:
+                raise ValueError(
+                    "component precision confirm requires prior screen gate"
+                )
+            screen_gate = json.loads(
+                resolve_repository_path(component_precision_screen_gate).read_text(
+                    encoding="utf-8"
+                )
+            )
+            screen_hashes = screen_gate.get("input_artifact_sha256")
+            screen_bootstrap = screen_gate.get("bootstrap")
+            screen_checks = screen_gate.get("checks")
+            screen_integrity = screen_gate.get("integrity")
+            screen_source_root = screen_gate.get("source_root")
+            artifact_names = {
+                str(config["artifacts"][key])
+                for key in (
+                    "branches",
+                    "component_outcomes",
+                    "survival",
+                    "pairs",
+                    "budget",
+                )
+            }
+            if (
+                screen_gate.get("protocol_version")
+                != COMPONENT_PRECISION_PROTOCOL_VERSION
+                or screen_gate.get("stage") != "screen"
+                or screen_gate.get("status") != "screen_pass"
+                or not isinstance(screen_integrity, dict)
+                or screen_integrity.get("status") != "pass"
+                or not isinstance(screen_checks, dict)
+                or not screen_checks
+                or not all(value is True for value in screen_checks.values())
+                or not isinstance(screen_hashes, dict)
+                or set(screen_hashes) != artifact_names
+                or not all(
+                    isinstance(value, str)
+                    and len(value) == 64
+                    and all(character in "0123456789abcdef" for character in value)
+                    for value in screen_hashes.values()
+                )
+                or not isinstance(screen_bootstrap, dict)
+                or int(screen_bootstrap.get("resamples", -1)) != 2000
+                or screen_gate.get("source_git_commit") != _git_commit()
+                or not isinstance(screen_source_root, str)
+                or not screen_source_root
+            ):
+                raise ValueError(
+                    "component precision confirm screen gate is not an audited pass"
+                )
+            resolved_screen_source = resolve_repository_path(screen_source_root)
+            observed_screen_hashes = {
+                name: _sha256_file(resolved_screen_source / name)
+                for name in sorted(artifact_names)
+            }
+            if screen_hashes != observed_screen_hashes:
+                raise ValueError(
+                    "component precision confirm screen artifacts changed"
+                )
+            recomputed_screen_gate = audit_component_atomic_precision(
+                resolved_screen_source,
+                stage="screen",
+                resamples=2000,
+            )
+            if recomputed_screen_gate != screen_gate:
+                raise ValueError(
+                    "component precision confirm screen gate does not match "
+                    "audited artifacts"
+                )
+        elif component_precision_screen_gate is not None:
+            raise ValueError(
+                "component_precision_screen_gate is valid only for confirm"
+            )
+    elif component_precision_stage is not None or component_precision_screen_gate is not None:
+        raise ValueError(
+            "component precision stage options require "
+            "component_precision_action_validity"
+        )
     car_w_enabled = any(
         lane.runner_action_name in CAR_W_ACTION_NAMES
         for lane in lanes
@@ -6529,6 +8137,14 @@ def run_hcc_runtime_consumer_smoke(
             environment_probe=environment_probe,
         )
     output = resolve_repository_path(output_dir).resolve()
+    if (
+        component_precision_profile_enabled
+        and output.exists()
+        and any(output.iterdir())
+    ):
+        raise ValueError(
+            "component precision output directory must be absent or empty"
+        )
     vendor_paths = resolve_hcc_vendor_paths(
         hcc_root,
         repo_root=hcc_repo_root,
@@ -6624,6 +8240,45 @@ def run_hcc_runtime_consumer_smoke(
         if precision_response_profile_enabled
         else ([], [], [], [], [], [])
     )
+    (
+        component_branch_rows,
+        component_endpoint_rows,
+        component_survival_rows,
+        component_budget_rows,
+        component_pair_rows,
+        component_precision_integrity_failures,
+    ) = (
+        _component_precision_raw_rows(
+            records,
+            stage=str(component_precision_stage),
+            aob_input_rows=aob_input_rows,
+            anti_leakage_rows=anti_leakage_rows,
+        )
+        if component_precision_profile_enabled
+        else ([], [], [], [], [], [])
+    )
+    if component_precision_profile_enabled:
+        expected_pairs = len(problem_ids) * len(seeds)
+        if len(component_pair_rows) != expected_pairs:
+            component_precision_integrity_failures.append(
+                "component_pair_count_mismatch"
+            )
+        if len(component_branch_rows) != 2 * expected_pairs:
+            component_precision_integrity_failures.append(
+                "component_branch_count_mismatch"
+            )
+        if len(component_endpoint_rows) != expected_pairs:
+            component_precision_integrity_failures.append(
+                "component_endpoint_count_mismatch"
+            )
+        if len(component_survival_rows) != expected_pairs:
+            component_precision_integrity_failures.append(
+                "component_survival_count_mismatch"
+            )
+        if len(component_budget_rows) != 2 * expected_pairs:
+            component_precision_integrity_failures.append(
+                "component_budget_count_mismatch"
+            )
     car_dispatch_boundary_rows = (
         _car_dispatch_boundary_rows()
         if car_w_enabled
@@ -6934,6 +8589,44 @@ def run_hcc_runtime_consumer_smoke(
             *action_trace_fields_for_lanes(lanes),
         ],
     )
+    if component_precision_profile_enabled:
+        _write_csv(
+            output / "component_action_branch_manifest.csv",
+            component_branch_rows,
+            COMPONENT_BRANCH_ROOT_FIELDS,
+        )
+        _write_csv(
+            output / "component_endpoint_outcomes.csv",
+            component_endpoint_rows,
+            COMPONENT_ENDPOINT_ROOT_FIELDS,
+        )
+        _write_csv(
+            output / "component_shared_survival.csv",
+            component_survival_rows,
+            COMPONENT_SURVIVAL_ROOT_FIELDS,
+        )
+        _write_csv(
+            output / "component_budget_ledger.csv",
+            component_budget_rows,
+            COMPONENT_BUDGET_ROOT_FIELDS,
+        )
+        _write_csv(
+            output / "component_action_pairs.csv",
+            component_pair_rows,
+            COMPONENT_ACTION_PAIR_FIELDS,
+        )
+        component_manifest = _component_precision_manifest(
+            output_root=output,
+            stage=str(component_precision_stage),
+            lanes=lanes,
+            branch_rows=component_branch_rows,
+            pair_rows=component_pair_rows,
+            integrity_failures=component_precision_integrity_failures,
+        )
+        (output / "component_precision_manifest.json").write_text(
+            json.dumps(component_manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     if precision_response_profile_enabled:
         _write_csv(
             output / "precision_response_branch_manifest.csv",
@@ -7704,6 +9397,11 @@ def run_hcc_runtime_consumer_smoke(
             "precision response integrity gate blocked: "
             + ";".join(precision_response_integrity_failures)
         )
+    if component_precision_integrity_failures:
+        raise RuntimeError(
+            "component precision integrity checks blocked: "
+            + ";".join(component_precision_integrity_failures)
+        )
     if paired_runtime_utility_rows:
         manifest_path = output / "run_manifest.md"
         manifest = manifest_path.read_text(encoding="utf-8")
@@ -7795,6 +9493,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "car_actionability_audit",
             "precision_causal_logging",
             "precision_response_logging",
+            "component_precision_action_validity",
             "canonical_evidence_controller_v1",
         ],
     )
@@ -7804,6 +9503,25 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=list(PRECISION_RESPONSE_ARMS),
         default=None,
         help="Run only selected arms from precision_response_logging.",
+    )
+    parser.add_argument(
+        "--component-precision-arms",
+        nargs="+",
+        choices=list(COMPONENT_PRECISION_ARMS),
+        default=None,
+        help="Run only selected arms from component_precision_action_validity.",
+    )
+    parser.add_argument(
+        "--component-precision-stage",
+        choices=list(COMPONENT_PRECISION_STAGES),
+        default=None,
+        help="Explicit component action-validity stage.",
+    )
+    parser.add_argument(
+        "--component-precision-screen-gate",
+        type=Path,
+        default=None,
+        help="Prior audited screen gate required by the confirm stage.",
     )
     return parser.parse_args(argv)
 
@@ -7830,6 +9548,13 @@ def main(argv: list[str] | None = None) -> Path:
         response_arms=(
             None if args.response_arms is None else tuple(args.response_arms)
         ),
+        component_precision_arms=(
+            None
+            if args.component_precision_arms is None
+            else tuple(args.component_precision_arms)
+        ),
+        component_precision_stage=args.component_precision_stage,
+        component_precision_screen_gate=args.component_precision_screen_gate,
         search_state_backend=str(args.search_state_backend),
     )
 
