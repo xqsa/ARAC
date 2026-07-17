@@ -29,7 +29,7 @@ from .hcc_plan import (
     build_hcc_action_execution_plan,
 )
 from .hcc_shared_writeback import hcc_backend_semantics_for
-from .hcc_trace import _find_hcc_action_trace, _tail
+from .hcc_trace import _find_hcc_action_trace, _find_hcc_named_csv, _tail
 
 
 ARAC_REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -223,6 +223,7 @@ class HccAobExecutionRequest:
     budget_accounting: str = "strict"
     cmaes_restart: bool = True
     mmes_restart: bool = True
+    early_stopping_evaluations: int = 1000
     skip_plots: bool = False
     search_state_backend: str = "phase_i_mmes"
     car_candidate_mode: str = "graph"
@@ -231,6 +232,7 @@ class HccAobExecutionRequest:
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
     hypergraph_trace_mode: str = "off"
+    cma_sampling_mode: str = "iid"
     offline_frozen_replay: bool = False
     hcc_repo_root: Path | None = None
     hcc_runner: Path | None = None
@@ -254,6 +256,10 @@ class HccAobExecutionResult:
     stderr_tail: str = ""
     action_trace_path: Path | None = None
     action_trace_rows: int = 0
+    mos_sampling_audit_path: Path | None = None
+    mos_sampling_audit_rows: int = 0
+    mos_branch_provenance_path: Path | None = None
+    mos_branch_provenance_rows: int = 0
     optimizer_final_fe_used: int | None = None
     global_phase_fe: int | None = None
     cc_phase_fe: int | None = None
@@ -542,6 +548,32 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError(
             "hypergraph observer and frozen precision experiment arms are mutually exclusive"
         )
+    if request.cma_sampling_mode not in {"iid", "mirrored_orthogonal"}:
+        raise ValueError(
+            "cma_sampling_mode must be 'iid' or 'mirrored_orthogonal'"
+        )
+    mos_profile_enabled = request.config_name == "v37_mos_sampling"
+    if request.cma_sampling_mode == "mirrored_orthogonal" and not mos_profile_enabled:
+        raise ValueError("mirrored orthogonal sampling requires v37_mos_sampling")
+    if mos_profile_enabled:
+        if request.arac_action != "arac_evidence_action_controller_v37":
+            raise ValueError("v37_mos_sampling requires frozen v37")
+        if not request.enable_relation_dispatch:
+            raise ValueError("v37_mos_sampling requires relation dispatch")
+        if request.relation_policy_mode != "controller_v31":
+            raise ValueError("v37_mos_sampling requires controller_v31")
+        if request.budget_accounting != "strict":
+            raise ValueError("v37_mos_sampling requires strict FE accounting")
+        if not request.cmaes_restart or not request.mmes_restart:
+            raise ValueError("v37_mos_sampling requires frozen restart settings")
+        if request.search_state_backend != "phase_i_mmes":
+            raise ValueError("v37_mos_sampling requires phase_i_mmes")
+        if request.early_stopping_evaluations != 1000:
+            raise ValueError("v37_mos_sampling requires frozen early stopping")
+        if active_precision_arms or request.hypergraph_trace_mode != "off":
+            raise ValueError("v37_mos_sampling cannot combine with frozen pilots")
+        if request.car_actionability_arm != "off":
+            raise ValueError("v37_mos_sampling cannot combine with CAR arms")
     frozen_action = request.arac_action == "arac_evidence_action_controller_v41"
     if frozen_action and not request.offline_frozen_replay:
         raise ValueError("v41 is frozen; use offline_frozen_replay for historical replay")
@@ -556,6 +588,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
     if not requested_data_root.is_absolute():
         requested_data_root = ARAC_REPO_ROOT / requested_data_root
     aob_data_root = validate_aob_data_root(requested_data_root, function_id)
+    if mos_profile_enabled and aob_data_root != DEFAULT_AOB_DATA_ROOT:
+        raise ValueError("v37_mos_sampling requires the canonical AOB data root")
     output_dir = _normalize_hcc_output_dir(request.output_dir)
 
     argv = [
@@ -582,6 +616,17 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         "--search-state-backend",
         request.search_state_backend,
     ]
+    if mos_profile_enabled:
+        argv.extend(
+            (
+                "--lane-profile",
+                "v37_mos_sampling",
+                "--cma-sampling-mode",
+                request.cma_sampling_mode,
+                "--early-stopping-evaluations",
+                str(request.early_stopping_evaluations),
+            )
+        )
     if request.car_candidate_mode != "graph":
         argv.extend(("--car-candidate-mode", request.car_candidate_mode))
     if request.car_actionability_arm != "off":
@@ -648,6 +693,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             budget_accounting=request.budget_accounting,
             cmaes_restart=request.cmaes_restart,
             mmes_restart=request.mmes_restart,
+            early_stopping_evaluations=request.early_stopping_evaluations,
             skip_plots=request.skip_plots,
             search_state_backend=request.search_state_backend,
             car_candidate_mode=request.car_candidate_mode,
@@ -656,6 +702,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             precision_response_arm=request.precision_response_arm,
             component_precision_arm=request.component_precision_arm,
             hypergraph_trace_mode=request.hypergraph_trace_mode,
+            cma_sampling_mode=request.cma_sampling_mode,
             offline_frozen_replay=request.offline_frozen_replay,
         )
     )
@@ -693,6 +740,17 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         )
     )
     action_trace_path, action_trace_rows = _find_hcc_action_trace(output_dir)
+    mos_profile_enabled = request.config_name == "v37_mos_sampling"
+    if mos_profile_enabled:
+        mos_sampling_audit_path, mos_sampling_audit_rows = _find_hcc_named_csv(
+            output_dir, "mos_sampling_audit.csv"
+        )
+        mos_branch_provenance_path, mos_branch_provenance_rows = (
+            _find_hcc_named_csv(output_dir, "mos_branch_provenance.csv")
+        )
+    else:
+        mos_sampling_audit_path, mos_sampling_audit_rows = None, 0
+        mos_branch_provenance_path, mos_branch_provenance_rows = None, 0
     budget_breakdown = _parse_hcc_budget_summary(output_dir)
     return HccAobExecutionResult(
         problem_id=_problem_parts(request.problem_id)[0],
@@ -709,6 +767,10 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         stderr_tail=_tail(completed.stderr),
         action_trace_path=action_trace_path,
         action_trace_rows=action_trace_rows,
+        mos_sampling_audit_path=mos_sampling_audit_path,
+        mos_sampling_audit_rows=mos_sampling_audit_rows,
+        mos_branch_provenance_path=mos_branch_provenance_path,
+        mos_branch_provenance_rows=mos_branch_provenance_rows,
         optimizer_final_fe_used=optimizer_final_fe_used,
         global_phase_fe=budget_breakdown.get("global_phase_fe"),
         cc_phase_fe=budget_breakdown.get("cc_phase_fe"),

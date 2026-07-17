@@ -105,6 +105,72 @@ RUN_ID = "exp_003_hcc_runtime_consumer_smoke"
 PROBLEM_ID = "E2"
 DEFAULT_SEEDS = (1, 2, 3)
 MAX_FES = 2_000
+MOS_STABILITY_PROTOCOL_VERSION = "v37-mos-single-seed-stability-v1"
+MOS_STABILITY_CONFIG_PATH = (
+    ARAC_REPO_ROOT / "configs" / "v37_mos_single_seed_stability_v1.json"
+)
+MOS_STABILITY_CONFIG_SHA256 = (
+    "9778cd77d9c1d6f0a881c67e18a6a98a9ac5e507cc1e96ff7ff1debf115edda0"
+)
+MOS_STAGES = ("cli_smoke", "trace_smoke", "development", "confirmation")
+MOS_SAMPLING_AUDIT_SOURCE_FIELDS = (
+    "run_id",
+    "sampling_mode",
+    "problem_id",
+    "seed",
+    "outer_iter",
+    "group_index",
+    "cma_scope",
+    "candidate_index",
+    "optimizer_seed",
+    "optimizer_restart_index",
+    "generation",
+    "population",
+    "dimension",
+    "pair_count",
+    "block_count",
+    "raw_draw_sha256",
+    "sample_sha256",
+    "max_orthogonality_error",
+    "rng_draw_count",
+    "evaluated_count",
+    "complete_population",
+)
+MOS_SAMPLING_AUDIT_FIELDS = (
+    "run_id",
+    "lane_id",
+    *MOS_SAMPLING_AUDIT_SOURCE_FIELDS[1:],
+)
+MOS_BRANCH_PROVENANCE_SOURCE_FIELDS = (
+    "protocol_version",
+    "run_id",
+    "sampling_mode",
+    "problem_id",
+    "seed",
+    "status",
+    "terminal_target_fe",
+    "terminal_completion_tolerance_fe",
+    "phase_i_fe",
+    "phase_i_record_sha256",
+    "phase_i_candidate_sha256",
+    "first_cma_prestate_sha256",
+    "first_cma_prestate_status",
+    "rng_descriptor_sha256",
+    "terminal_record_sha256",
+    "mos_generation_rows",
+    "mos_primary_generation_rows",
+    "mos_rescue_generation_rows",
+)
+MOS_BRANCH_PROVENANCE_FIELDS = (
+    "protocol_version",
+    "run_id",
+    "lane_id",
+    *MOS_BRANCH_PROVENANCE_SOURCE_FIELDS[2:],
+    "source_git_commit",
+    "source_bundle_sha256",
+    "config_sha256",
+    "runtime_environment_sha256",
+)
 LOW_ACTIVE_DENSITY_THRESHOLD = 0.20
 MEANINGFUL_GAIN_THRESHOLD = 0.05
 FORMAL_SOTA_MIN_SEEDS = 25
@@ -435,6 +501,7 @@ class LaneConfig:
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
     hypergraph_trace_mode: str = "off"
+    cma_sampling_mode: str = "iid"
 
 
 LANES = (
@@ -863,6 +930,7 @@ def _lane_from_controller_profile(
     precision_response_arm: str = "off",
     component_precision_arm: str = "off",
     hypergraph_trace_mode: str = "off",
+    cma_sampling_mode: str = "iid",
 ) -> LaneConfig:
     return LaneConfig(
         lane_id or profile.action_name,
@@ -879,6 +947,7 @@ def _lane_from_controller_profile(
         precision_response_arm=precision_response_arm,
         component_precision_arm=component_precision_arm,
         hypergraph_trace_mode=hypergraph_trace_mode,
+        cma_sampling_mode=cma_sampling_mode,
     )
 
 
@@ -1094,6 +1163,20 @@ HYPERGRAPH_V37_LOGGING_LANES = (
         hypergraph_trace_mode="observer",
     ),
 )
+V37_MOS_SAMPLING_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id="a0_v37_iid",
+        dispatch_scope="v37_iid_sampling_baseline",
+        cma_sampling_mode="iid",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id="a1_v37_mos",
+        dispatch_scope="v37_mirrored_orthogonal_sampling_treatment",
+        cma_sampling_mode="mirrored_orthogonal",
+    ),
+)
 CAR_W_ACTION_NAMES = frozenset(
     {
         "arac_counterfactual_action_racing_w",
@@ -1139,6 +1222,8 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return HYPERGRAPH_V37_PARITY_LANES
     if lane_profile == "hypergraph_v37_logging":
         return HYPERGRAPH_V37_LOGGING_LANES
+    if lane_profile == "v37_mos_sampling":
+        return V37_MOS_SAMPLING_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -1429,6 +1514,174 @@ def _car_actionability_execution_dependencies(
             + ",".join(missing)
         )
     return hashes
+
+
+def _mos_execution_source_bundle(
+    vendor_paths: HccVendorPaths,
+) -> dict[str, object]:
+    dependencies = _car_actionability_execution_dependencies(vendor_paths)
+    mos_sources = {
+        "src/arac/backends/hcc_mos_cma.py": (
+            ARAC_SRC_ROOT / "arac" / "backends" / "hcc_mos_cma.py"
+        ),
+        "scripts/audit_v37_mos_stability.py": (
+            ARAC_REPO_ROOT / "scripts" / "audit_v37_mos_stability.py"
+        ),
+    }
+    for name, path in mos_sources.items():
+        digest = _sha256_file(path)
+        if digest == "missing":
+            raise RuntimeError(f"missing MOS source: {name}")
+        dependencies[name] = digest
+    dependencies = dict(sorted(dependencies.items()))
+    return {
+        "schema_version": 1,
+        "files": dependencies,
+        "bundle_sha256": _fingerprint_payload(dependencies),
+    }
+
+
+def _load_mos_stability_config() -> dict[str, object]:
+    if _sha256_file(MOS_STABILITY_CONFIG_PATH) != MOS_STABILITY_CONFIG_SHA256:
+        raise RuntimeError("MOS stability config hash mismatch")
+    try:
+        config = json.loads(MOS_STABILITY_CONFIG_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("MOS stability config is unreadable") from exc
+    if (
+        not isinstance(config, dict)
+        or config.get("protocol_version") != MOS_STABILITY_PROTOCOL_VERSION
+        or config.get("status") != "frozen_before_new_optimizer_fe"
+    ):
+        raise RuntimeError("MOS stability config identity mismatch")
+    return config
+
+
+def _validate_mos_stage_matrix(
+    *,
+    stage: str,
+    problem_ids: tuple[str, ...],
+    seeds: tuple[int, ...],
+    max_fes: int,
+    worker_count: int,
+    budget_accounting: str,
+    cmaes_restart: bool,
+    mmes_restart: bool,
+    search_state_backend: str,
+) -> dict[str, object]:
+    if stage not in MOS_STAGES:
+        raise ValueError(f"mos_stage must be one of {MOS_STAGES}")
+    config = _load_mos_stability_config()
+    matrices = config.get("matrices")
+    if not isinstance(matrices, dict):
+        raise RuntimeError("MOS stability matrices are missing")
+    matrix = matrices.get(stage)
+    if not isinstance(matrix, dict):
+        raise RuntimeError(f"MOS stability matrix is missing: {stage}")
+    registered_cases = matrix.get("cases", config.get("cases"))
+    registered_seeds = matrix.get("seeds")
+    registered_arms = matrix.get("arms")
+    if not isinstance(registered_cases, list) or not isinstance(registered_seeds, list):
+        raise RuntimeError(f"MOS stability matrix is invalid: {stage}")
+    if registered_arms != ["a0_v37_iid", "a1_v37_mos"]:
+        raise RuntimeError("MOS stability arm registration changed")
+    expected_cases = tuple(str(value) for value in registered_cases)
+    expected_seeds = tuple(int(value) for value in registered_seeds)
+    if (
+        len(problem_ids) != len(set(problem_ids))
+        or tuple(problem_ids) != expected_cases
+        or len(seeds) != len(set(seeds))
+        or tuple(seeds) != expected_seeds
+    ):
+        raise ValueError(f"MOS {stage} case/seed matrix mismatch")
+    registered_terminal = int(matrix["terminal_fe"])
+    allowed_terminals = {registered_terminal}
+    if stage == "trace_smoke":
+        allowed_terminals.add(int(matrix["single_escalation_terminal_fe"]))
+    if int(max_fes) not in allowed_terminals:
+        raise ValueError(f"MOS {stage} terminal FE mismatch")
+    if (
+        worker_count != 24
+        or budget_accounting != "strict"
+        or not cmaes_restart
+        or not mmes_restart
+        or search_state_backend != "phase_i_mmes"
+    ):
+        raise ValueError(
+            "MOS stages require jobs=24, strict accounting, frozen restarts, "
+            "and phase_i_mmes"
+        )
+    return config
+
+
+def _validated_mos_development_gate(
+    gate_path: Path | str,
+    *,
+    source_bundle_sha256: str,
+) -> dict[str, object]:
+    resolved_gate = resolve_repository_path(gate_path).resolve()
+    try:
+        payload = json.loads(resolved_gate.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("MOS development gate is unreadable") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("MOS development gate must be a JSON object")
+    source_root_value = payload.get("source_root")
+    if not isinstance(source_root_value, str) or not source_root_value:
+        raise ValueError("MOS development gate has no source root")
+    source_root = resolve_repository_path(source_root_value).resolve()
+    checks = payload.get("checks")
+    integrity = payload.get("integrity")
+    input_hashes = payload.get("input_artifact_sha256")
+    if (
+        resolved_gate
+        != (source_root / "single_seed_stability_gate.json").resolve()
+        or payload.get("protocol_version") != MOS_STABILITY_PROTOCOL_VERSION
+        or payload.get("stage") != "development"
+        or payload.get("status") != "development_pass"
+        or payload.get("config_sha256") != MOS_STABILITY_CONFIG_SHA256
+        or payload.get("source_git_commit") != _git_commit()
+        or payload.get("source_bundle_sha256") != source_bundle_sha256
+        or not isinstance(checks, dict)
+        or not checks
+        or not all(value is True for value in checks.values())
+        or not isinstance(integrity, dict)
+        or integrity.get("blockers") != []
+        or not isinstance(input_hashes, dict)
+        or not input_hashes
+    ):
+        raise ValueError("MOS development gate protocol/status/binding failed")
+    for name, expected_sha256 in input_hashes.items():
+        if (
+            not isinstance(name, str)
+            or not isinstance(expected_sha256, str)
+            or len(expected_sha256) != 64
+            or any(
+                character not in "0123456789abcdef"
+                for character in expected_sha256
+            )
+        ):
+            raise ValueError("MOS development gate input hash schema is invalid")
+        artifact = (source_root / name).resolve()
+        try:
+            artifact.relative_to(source_root)
+        except ValueError as exc:
+            raise ValueError("MOS development gate input escaped source root") from exc
+        if _sha256_file(artifact) != expected_sha256:
+            raise ValueError(f"MOS development artifact changed: {name}")
+
+    from scripts.audit_v37_mos_stability import audit_v37_mos_stability
+
+    recomputed = audit_v37_mos_stability(source_root, stage="development")
+    if recomputed != payload:
+        raise ValueError("MOS development gate does not match recomputed evidence")
+    return {
+        "path": str(resolved_gate),
+        "sha256": _sha256_file(resolved_gate),
+        "source_root": str(source_root),
+        "source_bundle_sha256": source_bundle_sha256,
+        "status": "development_pass",
+    }
 
 
 def _car_actionability_aob_inputs(
@@ -1972,6 +2225,10 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
     except (FileNotFoundError, ValueError):
         return None
     budget_breakdown = _parse_hcc_budget_summary(Path(request.output_dir))
+    mos_sampling_audit_path = _latest_car_artifact(
+        Path(request.output_dir), "mos_sampling_audit.csv"
+    )
+    mos_sampling_audit_rows = len(_read_csv_rows(mos_sampling_audit_path))
     return HccAobExecutionResult(
         problem_id=request.problem_id,
         seed=request.seed,
@@ -1991,6 +2248,8 @@ def _existing_completed_result(request: HccAobExecutionRequest) -> HccAobExecuti
         ),
         action_trace_path=action_trace_path,
         action_trace_rows=action_trace_rows,
+        mos_sampling_audit_path=mos_sampling_audit_path,
+        mos_sampling_audit_rows=mos_sampling_audit_rows,
         optimizer_final_fe_used=optimizer_final_fe_used,
         global_phase_fe=budget_breakdown.get("global_phase_fe"),
         cc_phase_fe=budget_breakdown.get("cc_phase_fe"),
@@ -4754,6 +5013,12 @@ def _records(
     search_state_backend: str = "phase_i_mmes",
 ) -> list[dict[str, object]]:
     contexts: list[dict[str, object]] = []
+    v37_mos_profile = tuple(
+        (lane.lane_id, lane.cma_sampling_mode) for lane in lanes
+    ) == (
+        ("a0_v37_iid", "iid"),
+        ("a1_v37_mos", "mirrored_orthogonal"),
+    )
     for problem_id in problem_ids:
         for seed in seeds:
             for lane in lanes:
@@ -4796,6 +5061,11 @@ def _records(
                             aob_data_root=aob_data_root,
                             python_executable=python_executable,
                             timestamp=f"{RUN_ID}-{problem_id}-seed{seed}-{lane.lane_id}",
+                            config_name=(
+                                "v37_mos_sampling"
+                                if v37_mos_profile
+                                else "quick_smoke"
+                            ),
                             arac_action=lane.runner_action_name,
                             enable_relation_dispatch=lane.relation_dispatch_enabled,
                             relation_policy_mode=lane.relation_policy_mode,
@@ -4809,6 +5079,7 @@ def _records(
                             precision_response_arm=lane.precision_response_arm,
                             component_precision_arm=lane.component_precision_arm,
                             hypergraph_trace_mode=lane.hypergraph_trace_mode,
+                            cma_sampling_mode=lane.cma_sampling_mode,
                             skip_plots=True,
                         ),
                     }
@@ -5000,6 +5271,8 @@ def _utility_rows(records: list[dict[str, object]]) -> list[dict[str, object]]:
 def _our_result_rows(
     records: list[dict[str, object]],
     utility_rows: list[dict[str, object]],
+    *,
+    include_cma_sampling_mode: bool = False,
 ) -> list[dict[str, object]]:
     utility_claim_by_lane = {
         (row["problem_id"], row["lane_id"], row["seed"]): row["claim_allowed"]
@@ -5027,7 +5300,16 @@ def _our_result_rows(
                 "seed": result.seed,
                 "selected_action_family": decision.action_family.value,
                 "selected_action_name": lane.selected_action_name,
-                "hcc_smoke_final_error": f"{result.final_error:.6e}",
+                **(
+                    {"cma_sampling_mode": lane.cma_sampling_mode}
+                    if include_cma_sampling_mode
+                    else {}
+                ),
+                "hcc_smoke_final_error": (
+                    f"{result.final_error:.17e}"
+                    if include_cma_sampling_mode
+                    else f"{result.final_error:.6e}"
+                ),
                 "hcc_smoke_fe_used": result.fe_used,
                 "hcc_smoke_status": result.status,
                 "fresh_optimizer_execution": int(result.fresh_optimizer_execution),
@@ -5399,6 +5681,292 @@ def _car_artifact_rows(
             )
         )
     return rows
+
+
+def _mos_sampling_audit_rows(
+    records: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        lane = record["lane"]
+        result = record["result"]
+        assert isinstance(lane, LaneConfig)
+        assert isinstance(result, HccAobExecutionResult)
+        path = result.mos_sampling_audit_path
+        if path is None:
+            path = _find_lane_artifact(result, "mos_sampling_audit.csv")
+        source_rows = _read_csv_rows(path)
+        if result.mos_sampling_audit_rows != len(source_rows):
+            raise ValueError(
+                f"MOS audit row count mismatch: {result.problem_id}/"
+                f"seed{result.seed}/{lane.lane_id}"
+            )
+        if lane.cma_sampling_mode == "iid" and source_rows:
+            raise ValueError(
+                f"iid lane emitted MOS audit rows: {result.problem_id}/"
+                f"seed{result.seed}/{lane.lane_id}"
+            )
+        for source_row in source_rows:
+            missing = [
+                field
+                for field in MOS_SAMPLING_AUDIT_SOURCE_FIELDS
+                if field not in source_row
+            ]
+            if missing:
+                raise ValueError(
+                    "MOS audit schema mismatch: " + ",".join(missing)
+                )
+            if (
+                source_row["sampling_mode"] != lane.cma_sampling_mode
+                or source_row["problem_id"] != result.problem_id
+                or source_row["seed"] != str(result.seed)
+            ):
+                raise ValueError(
+                    f"MOS audit identity mismatch: {result.problem_id}/"
+                    f"seed{result.seed}/{lane.lane_id}"
+                )
+            rows.append(
+                {
+                    **{
+                        field: source_row[field]
+                        for field in MOS_SAMPLING_AUDIT_SOURCE_FIELDS
+                    },
+                    "lane_id": lane.lane_id,
+                }
+            )
+    return rows
+
+
+def _mos_branch_provenance_rows(
+    records: list[dict[str, object]],
+    *,
+    source_git_commit: str,
+    source_bundle_sha256: str,
+    runtime_environment_sha256: str,
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for record in records:
+        lane = record["lane"]
+        result = record["result"]
+        assert isinstance(lane, LaneConfig)
+        assert isinstance(result, HccAobExecutionResult)
+        source_rows = _read_csv_rows(
+            _find_lane_artifact(result, "mos_branch_provenance.csv")
+        )
+        if len(source_rows) != 1:
+            raise ValueError(
+                f"MOS branch provenance count mismatch: {result.problem_id}/"
+                f"seed{result.seed}/{lane.lane_id}"
+            )
+        source_row = source_rows[0]
+        missing = [
+            field
+            for field in MOS_BRANCH_PROVENANCE_SOURCE_FIELDS
+            if field not in source_row
+        ]
+        if missing:
+            raise ValueError(
+                "MOS branch provenance schema mismatch: " + ",".join(missing)
+            )
+        expected_run_id = (
+            f"{RUN_ID}-{result.problem_id}-seed{result.seed}-{lane.lane_id}"
+        )
+        if (
+            source_row["protocol_version"] != MOS_STABILITY_PROTOCOL_VERSION
+            or source_row["run_id"] != expected_run_id
+            or source_row["sampling_mode"] != lane.cma_sampling_mode
+            or source_row["problem_id"] != result.problem_id
+            or source_row["seed"] != str(result.seed)
+            or source_row["status"] != "completed"
+        ):
+            raise ValueError(
+                f"MOS branch provenance identity mismatch: {result.problem_id}/"
+                f"seed{result.seed}/{lane.lane_id}"
+            )
+        rows.append(
+            {
+                **{
+                    field: source_row[field]
+                    for field in MOS_BRANCH_PROVENANCE_SOURCE_FIELDS
+                },
+                "lane_id": lane.lane_id,
+                "source_git_commit": source_git_commit,
+                "source_bundle_sha256": source_bundle_sha256,
+                "config_sha256": _sha256_file(
+                    ARAC_REPO_ROOT
+                    / "configs"
+                    / "v37_mos_single_seed_stability_v1.json"
+                ),
+                "runtime_environment_sha256": runtime_environment_sha256,
+            }
+        )
+    return rows
+
+
+def _validate_mos_pair_provenance(
+    branches: list[dict[str, object]],
+    sampling_rows: list[dict[str, object]],
+    *,
+    mos_stage: str | None = None,
+    records: list[dict[str, object]] | None = None,
+    ledger_rows: list[dict[str, object]] | None = None,
+) -> None:
+    def is_hex(value: object, length: int) -> bool:
+        text = str(value)
+        return len(text) == length and all(
+            character in "0123456789abcdef" for character in text
+        )
+
+    by_pair: dict[tuple[str, str], dict[str, dict[str, object]]] = {}
+    by_run_id: dict[str, dict[str, object]] = {}
+    for row in branches:
+        pair_key = (str(row["problem_id"]), str(row["seed"]))
+        lane_id = str(row["lane_id"])
+        pair = by_pair.setdefault(pair_key, {})
+        if lane_id in pair:
+            raise ValueError(f"duplicate MOS branch provenance: {pair_key}/{lane_id}")
+        pair[lane_id] = row
+        run_id = str(row["run_id"])
+        if run_id in by_run_id:
+            raise ValueError(f"duplicate MOS branch run id: {run_id}")
+        by_run_id[run_id] = row
+        if not is_hex(row.get("source_git_commit"), 40):
+            raise ValueError(f"invalid MOS source commit: {run_id}")
+        for field in (
+            "phase_i_record_sha256",
+            "phase_i_candidate_sha256",
+            "first_cma_prestate_sha256",
+            "rng_descriptor_sha256",
+            "terminal_record_sha256",
+            "source_bundle_sha256",
+            "config_sha256",
+            "runtime_environment_sha256",
+        ):
+            if not is_hex(row.get(field), 64):
+                raise ValueError(f"invalid MOS provenance hash: {run_id}/{field}")
+        prestate_status = str(row.get("first_cma_prestate_status", ""))
+        if prestate_status not in {"observed", "not_reached"}:
+            raise ValueError(f"invalid MOS first-CMA status: {run_id}")
+        if mos_stage in {"development", "confirmation"} and prestate_status != "observed":
+            raise ValueError(f"formal MOS run did not reach the first CMA: {run_id}")
+
+    sampling_count_by_run: dict[str, int] = {}
+    scope_count_by_run: dict[str, dict[str, int]] = {}
+    for row in sampling_rows:
+        run_id = str(row["run_id"])
+        branch = by_run_id.get(run_id)
+        if branch is None or row["lane_id"] != branch["lane_id"]:
+            raise ValueError(f"MOS sampling row has no matching branch: {run_id}")
+        sampling_count_by_run[run_id] = sampling_count_by_run.get(run_id, 0) + 1
+        scope = str(row.get("cma_scope", ""))
+        if scope not in {
+            "v37_primary_group_cma",
+            "v37_phase_rescue_multistart_cma",
+        }:
+            raise ValueError(f"invalid MOS sampling scope: {run_id}/{scope}")
+        scope_counts = scope_count_by_run.setdefault(run_id, {})
+        scope_counts[scope] = scope_counts.get(scope, 0) + 1
+        for field in ("raw_draw_sha256", "sample_sha256"):
+            if not is_hex(row.get(field), 64):
+                raise ValueError(f"invalid MOS sampling hash: {run_id}/{field}")
+
+    prefix_fields = (
+        "terminal_target_fe",
+        "terminal_completion_tolerance_fe",
+        "phase_i_fe",
+        "phase_i_record_sha256",
+        "phase_i_candidate_sha256",
+        "first_cma_prestate_sha256",
+        "first_cma_prestate_status",
+        "rng_descriptor_sha256",
+    )
+    for pair_key, pair in by_pair.items():
+        if set(pair) != {"a0_v37_iid", "a1_v37_mos"}:
+            raise ValueError(f"incomplete MOS branch pair: {pair_key}")
+        baseline = pair["a0_v37_iid"]
+        treatment = pair["a1_v37_mos"]
+        if any(baseline[field] != treatment[field] for field in prefix_fields):
+            raise ValueError(f"MOS branch prefix mismatch: {pair_key}")
+        for lane_id, branch in pair.items():
+            run_id = str(branch["run_id"])
+            observed_rows = sampling_count_by_run.get(str(branch["run_id"]), 0)
+            expected_rows = int(str(branch["mos_generation_rows"]))
+            expected_primary = int(str(branch["mos_primary_generation_rows"]))
+            expected_rescue = int(str(branch["mos_rescue_generation_rows"]))
+            observed_scopes = scope_count_by_run.get(run_id, {})
+            if (
+                min(expected_rows, expected_primary, expected_rescue) < 0
+                or expected_primary + expected_rescue != expected_rows
+                or observed_rows != expected_rows
+                or observed_scopes.get("v37_primary_group_cma", 0)
+                != expected_primary
+                or observed_scopes.get("v37_phase_rescue_multistart_cma", 0)
+                != expected_rescue
+            ):
+                raise ValueError(
+                    f"MOS sampling/provenance row mismatch: {pair_key}/{lane_id}"
+                )
+            if lane_id == "a0_v37_iid" and observed_rows != 0:
+                raise ValueError(f"iid branch contains MOS generations: {pair_key}")
+            if (
+                lane_id == "a1_v37_mos"
+                and mos_stage in {"development", "confirmation"}
+                and observed_rows == 0
+            ):
+                raise ValueError(f"formal MOS branch has no generations: {pair_key}")
+
+    if (records is None) != (ledger_rows is None):
+        raise ValueError("MOS result and ledger provenance must be provided together")
+    if records is None or ledger_rows is None:
+        return
+    result_index: dict[tuple[str, str, str], HccAobExecutionResult] = {}
+    for record in records:
+        result = record["result"]
+        assert isinstance(result, HccAobExecutionResult)
+        key = (str(record["lane_id"]), result.problem_id, str(result.seed))
+        if key in result_index:
+            raise ValueError(f"duplicate MOS result identity: {key}")
+        result_index[key] = result
+    ledger_index = {
+        (str(row["lane_id"]), str(row["problem_id"]), str(row["seed"])): row
+        for row in ledger_rows
+    }
+    branch_keys = {
+        (str(row["lane_id"]), str(row["problem_id"]), str(row["seed"]))
+        for row in branches
+    }
+    if set(result_index) != branch_keys or set(ledger_index) != branch_keys:
+        raise ValueError("MOS branch/result/ledger matrix mismatch")
+    for branch in branches:
+        key = (
+            str(branch["lane_id"]),
+            str(branch["problem_id"]),
+            str(branch["seed"]),
+        )
+        result = result_index[key]
+        ledger = ledger_index[key]
+        target = int(str(branch["terminal_target_fe"]))
+        tolerance = int(str(branch["terminal_completion_tolerance_fe"]))
+        phase_i_fe = int(str(branch["phase_i_fe"]))
+        actual = int(str(ledger["actual_fe_used"]))
+        if (
+            target != result.max_fes
+            or tolerance <= 0
+            or not target - tolerance <= actual <= target
+            or phase_i_fe != int(str(ledger["phase_i_fe"]))
+            or int(str(ledger["total_fe"])) != actual
+            or int(str(ledger["budget_limit"])) != target
+            or int(str(ledger["configured_budget_limit"])) != target
+            or _actual_fe_used(result) != actual
+            or result.fe_used != actual
+            or str(ledger["same_budget_violation"]) != "0"
+            or str(ledger["fresh_execution"]) != "1"
+            or not result.fresh_optimizer_execution
+            or result.status != "completed"
+            or not math.isfinite(result.final_error)
+            or result.final_error < 0.0
+        ):
+            raise ValueError(f"MOS terminal/result/ledger binding failed: {key}")
 
 
 def _car_actionability_rows_for_record(
@@ -8491,6 +9059,66 @@ def _require_component_precision_source_binding() -> None:
         )
 
 
+def _require_mos_source_binding(
+    vendor_paths: HccVendorPaths,
+) -> tuple[str, dict[str, object]]:
+    _require_component_precision_source_binding()
+    if vendor_paths.vendor_root != HCC_VENDOR_ROOT:
+        raise RuntimeError("MOS execution requires the canonical vendor/hcc root")
+    source_git_commit = _git_commit()
+    source_bundle = _mos_execution_source_bundle(vendor_paths)
+    files = source_bundle.get("files")
+    if not isinstance(files, dict) or not files:
+        raise RuntimeError("MOS source bundle is empty")
+    try:
+        runner_path = vendor_paths.runner.resolve().relative_to(ARAC_REPO_ROOT)
+    except ValueError as exc:
+        raise RuntimeError("MOS runner must belong to the ARAC repository") from exc
+    tracked_paths = [
+        (
+            Path(__file__).resolve().relative_to(ARAC_REPO_ROOT).as_posix()
+            if name == "experiment_runner"
+            else runner_path.as_posix()
+            if name == "hcc_smoke_runner"
+            else name
+        )
+        for name in files
+    ]
+    tracked_paths.extend(
+        [
+            "configs/v37_mos_single_seed_stability_v1.json",
+            "docs/design/v37-mos-single-seed-stability-v1.md",
+        ]
+    )
+    try:
+        completed = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", *tracked_paths],
+            cwd=ARAC_REPO_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError("MOS tracked source binding could not be verified") from exc
+    if completed.returncode != 0:
+        raise RuntimeError("MOS execution requires a fully tracked source bundle")
+    return source_git_commit, source_bundle
+
+
+def _require_mos_source_unchanged(
+    vendor_paths: HccVendorPaths,
+    *,
+    source_git_commit: str,
+    source_bundle: dict[str, object],
+) -> None:
+    if (
+        _git_commit() != source_git_commit
+        or _mos_execution_source_bundle(vendor_paths) != source_bundle
+    ):
+        raise RuntimeError("MOS source HEAD/bundle changed during execution")
+
+
 def _dependency_version(distribution: str) -> str:
     try:
         return importlib.metadata.version(distribution)
@@ -8543,6 +9171,8 @@ def _config_fingerprint(
     aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
     vendor_paths: HccVendorPaths = HCC_VENDOR_PATHS,
     search_state_backend: str = "phase_i_mmes",
+    mos_stage: str | None = None,
+    mos_development_gate_sha256: str | None = None,
 ) -> str:
     mmes_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "mmes.py"
     mmes_state_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "state.py"
@@ -8560,6 +9190,11 @@ def _config_fingerprint(
                 "car_candidate_mode": lane.car_candidate_mode,
                 "car_actionability_arm": lane.car_actionability_arm,
                 "precision_causal_arm": lane.precision_causal_arm,
+                **(
+                    {"cma_sampling_mode": lane.cma_sampling_mode}
+                    if lane_profile == "v37_mos_sampling"
+                    else {}
+                ),
                 **(
                     {"component_precision_arm": lane.component_precision_arm}
                     if lane.component_precision_arm != "off"
@@ -8589,6 +9224,14 @@ def _config_fingerprint(
         "mmes_restart": bool(mmes_restart),
         "problem_ids": list(problem_ids),
         "search_state_backend": search_state_backend,
+        **(
+            {
+                "mos_stage": mos_stage,
+                "mos_development_gate_sha256": mos_development_gate_sha256,
+            }
+            if lane_profile == "v37_mos_sampling"
+            else {}
+        ),
         "seeds": list(seeds),
         "aob_data_root": str(Path(aob_data_root).resolve()),
         "hcc_vendor_root": str(vendor_paths.vendor_root),
@@ -8599,6 +9242,18 @@ def _config_fingerprint(
         "mmes_optimizer_sha256": _sha256_file(mmes_path),
         "mmes_state_sha256": _sha256_file(mmes_state_path),
         "cmaes_optimizer_sha256": _sha256_file(cmaes_path),
+        **(
+            {
+                "mos_sampler_sha256": _sha256_file(
+                    ARAC_SRC_ROOT / "arac" / "backends" / "hcc_mos_cma.py"
+                )
+            }
+            if any(
+                lane.cma_sampling_mode == "mirrored_orthogonal"
+                for lane in lanes
+            )
+            else {}
+        ),
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
@@ -8623,6 +9278,10 @@ def _write_manifest(
     vendor_paths: HccVendorPaths = HCC_VENDOR_PATHS,
     search_state_backend: str = "phase_i_mmes",
     runtime_environment: dict[str, str] | None = None,
+    mos_stage: str | None = None,
+    mos_development_gate_binding: dict[str, object] | None = None,
+    mos_source_git_commit: str | None = None,
+    mos_source_bundle: dict[str, object] | None = None,
 ) -> None:
     aob_input_rows = [] if aob_input_rows is None else aob_input_rows
     mmes_path = vendor_paths.hcc_root / "NDAs" / "MMES" / "mmes.py"
@@ -8725,6 +9384,23 @@ def _write_manifest(
     ]
     if runtime_environment is not None:
         artifacts.append("runtime_environment.json")
+    mos_sampling_enabled = any(
+        lane.cma_sampling_mode == "mirrored_orthogonal" for lane in lanes
+    )
+    if mos_sampling_enabled and (
+        mos_stage is None
+        or mos_source_git_commit is None
+        or mos_source_bundle is None
+    ):
+        raise ValueError("MOS run manifest is missing start provenance")
+    if mos_sampling_enabled:
+        artifacts.extend(
+            [
+                "mos_sampling_audit.csv",
+                "mos_branch_provenance.csv",
+                "mos_source_bundle.json",
+            ]
+        )
     if lane_profile == "paired_v33_v36_runtime_utility":
         artifacts.extend(
             [
@@ -8786,6 +9462,7 @@ def _write_manifest(
                 f"{' '.join(problem_ids)} --jobs {max(1, int(jobs))} "
                 f"--max-fes {max_fes} --budget-accounting {budget_accounting} "
                 f"--lane-profile {lane_profile} "
+                f"{'' if mos_stage is None else f'--mos-stage {mos_stage} '}"
                 f"--hcc-root {vendor_paths.vendor_root} "
                 f"--hcc-runner {vendor_paths.runner}"
                 f"{'' if cmaes_restart else ' --no-cmaes-restart'}"
@@ -8801,6 +9478,32 @@ def _write_manifest(
             ),
             f"Parallel jobs: {max(1, int(jobs))}",
             f"Lanes: {', '.join(lane.lane_id for lane in lanes)}",
+            *(
+                [
+                    "CMA sampling modes: "
+                    + ", ".join(
+                        f"{lane.lane_id}={lane.cma_sampling_mode}"
+                        for lane in lanes
+                    )
+                ]
+                if mos_sampling_enabled
+                else []
+            ),
+            *(
+                [f"MOS stage: {mos_stage}"]
+                if mos_sampling_enabled
+                else []
+            ),
+            *(
+                [
+                    "MOS development gate: "
+                    + str(mos_development_gate_binding["path"])
+                    + "; sha256="
+                    + str(mos_development_gate_binding["sha256"])
+                ]
+                if mos_development_gate_binding is not None
+                else []
+            ),
             f"AOB data root: {Path(aob_data_root).resolve()}",
             f"HCC vendor root: {vendor_paths.vendor_root}",
             f"HCC AOB root: {vendor_paths.aob_root}",
@@ -8824,10 +9527,10 @@ def _write_manifest(
             f"Thread environment: {_thread_environment()}",
             "",
             "Freeze evidence:",
-            f"- git commit: {_git_commit()}",
+            f"- git commit: {mos_source_git_commit or _git_commit()}",
             (
                 "- config fingerprint: "
-                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root, vendor_paths, search_state_backend)}"
+                f"{_config_fingerprint(seeds, problem_ids, jobs, max_fes, budget_accounting, cmaes_restart, mmes_restart, lanes, lane_profile, aob_data_root, vendor_paths, search_state_backend, mos_stage, None if mos_development_gate_binding is None else str(mos_development_gate_binding['sha256']))}"
             ),
             f"- policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'relation_policy.py')}",
             f"- search-state policy sha256: {_sha256_file(ARAC_SRC_ROOT / 'arac' / 'policy' / 'search_state_policy.py')}",
@@ -8837,6 +9540,18 @@ def _write_manifest(
             f"- MMES optimizer sha256: {_sha256_file(mmes_path)}",
             f"- MMES state model sha256: {_sha256_file(mmes_state_path)}",
             f"- CMAES optimizer sha256: {_sha256_file(cmaes_path)}",
+            *(
+                [
+                    "- MOS sampler sha256: "
+                    + _sha256_file(
+                        ARAC_SRC_ROOT / "arac" / "backends" / "hcc_mos_cma.py"
+                    ),
+                    "- MOS source bundle sha256: "
+                    + str(mos_source_bundle["bundle_sha256"]),
+                ]
+                if mos_sampling_enabled
+                else []
+            ),
             (
                 "- AOB input hashes: aob_input_manifest.csv; "
                 f"rows={len(aob_input_rows)}; "
@@ -8890,6 +9605,8 @@ def run_hcc_runtime_consumer_smoke(
     cmaes_restart: bool = True,
     mmes_restart: bool = True,
     lane_profile: str = "runtime_smoke",
+    mos_stage: str | None = None,
+    mos_development_gate: Path | str | None = None,
     response_arms: tuple[str, ...] | None = None,
     component_precision_arms: tuple[str, ...] | None = None,
     component_precision_stage: str | None = None,
@@ -8943,6 +9660,43 @@ def run_hcc_runtime_consumer_smoke(
         )
         if not lanes:
             raise ValueError("component_precision_arms selected no lanes")
+    mos_sampling_profile_enabled = any(
+        lane.cma_sampling_mode == "mirrored_orthogonal" for lane in lanes
+    )
+    if mos_sampling_profile_enabled:
+        expected_mos_lanes = (
+            ("a0_v37_iid", "iid"),
+            ("a1_v37_mos", "mirrored_orthogonal"),
+        )
+        observed_mos_lanes = tuple(
+            (lane.lane_id, lane.cma_sampling_mode) for lane in lanes
+        )
+        if (
+            lane_profile != "v37_mos_sampling"
+            or observed_mos_lanes != expected_mos_lanes
+        ):
+            raise ValueError("MOS sampling requires the frozen v37_mos_sampling lanes")
+        if mos_stage is None:
+            raise ValueError("v37_mos_sampling requires an explicit mos_stage")
+        _validate_mos_stage_matrix(
+            stage=mos_stage,
+            problem_ids=tuple(problem_ids),
+            seeds=tuple(seeds),
+            max_fes=max_fes,
+            worker_count=worker_count,
+            budget_accounting=budget_accounting,
+            cmaes_restart=cmaes_restart,
+            mmes_restart=mmes_restart,
+            search_state_backend=search_state_backend,
+        )
+        if mos_stage != "confirmation" and mos_development_gate is not None:
+            raise ValueError(
+                "mos_development_gate is valid only for MOS confirmation"
+            )
+        if mos_stage == "confirmation" and mos_development_gate is None:
+            raise ValueError("MOS confirmation requires mos_development_gate")
+    elif mos_stage is not None or mos_development_gate is not None:
+        raise ValueError("MOS stage options require v37_mos_sampling")
     precision_causal_profile_enabled = any(
         lane.precision_causal_arm != "off" for lane in lanes
     )
@@ -9183,7 +9937,11 @@ def run_hcc_runtime_consumer_smoke(
         )
     output = resolve_repository_path(output_dir).resolve()
     if (
-        (component_precision_profile_enabled or hypergraph_trace_enabled)
+        (
+            component_precision_profile_enabled
+            or hypergraph_trace_enabled
+            or mos_sampling_profile_enabled
+        )
         and output.exists()
         and any(output.iterdir())
     ):
@@ -9195,7 +9953,26 @@ def run_hcc_runtime_consumer_smoke(
         repo_root=hcc_repo_root,
         runner_path=hcc_runner,
     )
+    mos_source_git_commit: str | None = None
+    mos_source_bundle: dict[str, object] | None = None
+    if mos_sampling_profile_enabled:
+        mos_source_git_commit, mos_source_bundle = _require_mos_source_binding(
+            vendor_paths
+        )
+    mos_development_gate_binding: dict[str, object] | None = None
+    if mos_stage == "confirmation":
+        assert mos_development_gate is not None
+        assert mos_source_bundle is not None
+        mos_development_gate_binding = _validated_mos_development_gate(
+            mos_development_gate,
+            source_bundle_sha256=str(mos_source_bundle["bundle_sha256"]),
+        )
     resolved_aob_data_root = resolve_repository_path(aob_data_root).resolve()
+    if (
+        mos_sampling_profile_enabled
+        and resolved_aob_data_root != Path(DEFAULT_AOB_DATA_ROOT).resolve()
+    ):
+        raise ValueError("MOS execution requires the canonical AOB data root")
     output.mkdir(parents=True, exist_ok=True)
     if runtime_environment is not None:
         (output / "runtime_environment.json").write_text(
@@ -9209,6 +9986,11 @@ def run_hcc_runtime_consumer_smoke(
                 sort_keys=True,
             )
             + "\n",
+            encoding="utf-8",
+        )
+    if mos_source_bundle is not None:
+        (output / "mos_source_bundle.json").write_text(
+            json.dumps(mos_source_bundle, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
     records = _records(
@@ -9228,6 +10010,14 @@ def run_hcc_runtime_consumer_smoke(
         hcc_runner=vendor_paths.runner,
         search_state_backend=search_state_backend,
     )
+    if mos_sampling_profile_enabled:
+        assert mos_source_git_commit is not None
+        assert mos_source_bundle is not None
+        _require_mos_source_unchanged(
+            vendor_paths,
+            source_git_commit=mos_source_git_commit,
+            source_bundle=mos_source_bundle,
+        )
     aob_input_rows = _aob_input_manifest_rows(records)
     ledger_rows = _ledger_rows(records)
     utility_rows = _utility_rows(records)
@@ -9243,6 +10033,29 @@ def run_hcc_runtime_consumer_smoke(
     car_probe_trace_rows = _car_artifact_rows(records, "car_probe_trace.csv")
     car_state_ledger_rows = _car_artifact_rows(records, "car_state_ledger.csv")
     car_branch_manifest_rows = _car_artifact_rows(records, "car_branch_manifest.csv")
+    mos_sampling_audit_rows = (
+        _mos_sampling_audit_rows(records) if mos_sampling_profile_enabled else []
+    )
+    mos_branch_provenance_rows = (
+        _mos_branch_provenance_rows(
+            records,
+            source_git_commit=str(mos_source_git_commit),
+            source_bundle_sha256=str(mos_source_bundle["bundle_sha256"]),
+            runtime_environment_sha256=_sha256_file(
+                output / "runtime_environment.json"
+            ),
+        )
+        if mos_sampling_profile_enabled
+        else []
+    )
+    if mos_sampling_profile_enabled:
+        _validate_mos_pair_provenance(
+            mos_branch_provenance_rows,
+            mos_sampling_audit_rows,
+            mos_stage=mos_stage,
+            records=records,
+            ledger_rows=ledger_rows,
+        )
     car_actionability_enabled = any(
         lane.car_actionability_arm != "off" for lane in lanes
     )
@@ -9478,7 +10291,11 @@ def run_hcc_runtime_consumer_smoke(
     )
     _write_csv(
         output / "our_result_by_case.csv",
-        _our_result_rows(records, utility_rows),
+        _our_result_rows(
+            records,
+            utility_rows,
+            include_cma_sampling_mode=mos_sampling_profile_enabled,
+        ),
         [
             "run_id",
             "lane_id",
@@ -9486,6 +10303,7 @@ def run_hcc_runtime_consumer_smoke(
             "seed",
             "selected_action_family",
             "selected_action_name",
+            *(["cma_sampling_mode"] if mos_sampling_profile_enabled else []),
             "hcc_smoke_final_error",
             "hcc_smoke_fe_used",
             "hcc_smoke_status",
@@ -9652,6 +10470,17 @@ def run_hcc_runtime_consumer_smoke(
             *action_trace_fields_for_lanes(lanes),
         ],
     )
+    if mos_sampling_profile_enabled:
+        _write_csv(
+            output / "mos_sampling_audit.csv",
+            mos_sampling_audit_rows,
+            list(MOS_SAMPLING_AUDIT_FIELDS),
+        )
+        _write_csv(
+            output / "mos_branch_provenance.csv",
+            mos_branch_provenance_rows,
+            list(MOS_BRANCH_PROVENANCE_FIELDS),
+        )
     if hypergraph_trace_enabled:
         _write_csv(
             output / "hyperedge_cycle_features.csv",
@@ -10478,6 +11307,14 @@ def run_hcc_runtime_consumer_smoke(
             "claim_blockers",
         ],
     )
+    if mos_sampling_profile_enabled:
+        assert mos_source_git_commit is not None
+        assert mos_source_bundle is not None
+        _require_mos_source_unchanged(
+            vendor_paths,
+            source_git_commit=mos_source_git_commit,
+            source_bundle=mos_source_bundle,
+        )
     _write_manifest(
         output,
         tuple(seeds),
@@ -10497,7 +11334,19 @@ def run_hcc_runtime_consumer_smoke(
         vendor_paths,
         search_state_backend,
         runtime_environment,
+        mos_stage,
+        mos_development_gate_binding,
+        mos_source_git_commit,
+        mos_source_bundle,
     )
+    if mos_sampling_profile_enabled:
+        assert mos_source_git_commit is not None
+        assert mos_source_bundle is not None
+        _require_mos_source_unchanged(
+            vendor_paths,
+            source_git_commit=mos_source_git_commit,
+            source_bundle=mos_source_bundle,
+        )
     if car_actionability_integrity_failures:
         raise RuntimeError(
             "CAR actionability audit integrity gate blocked: "
@@ -10612,6 +11461,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "component_precision_action_validity",
             "hypergraph_v37_parity",
             "hypergraph_v37_logging",
+            "v37_mos_sampling",
             "canonical_evidence_controller_v1",
         ],
     )
@@ -10621,6 +11471,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=list(PRECISION_RESPONSE_ARMS),
         default=None,
         help="Run only selected arms from precision_response_logging.",
+    )
+    parser.add_argument(
+        "--mos-stage",
+        choices=list(MOS_STAGES),
+        default=None,
+        help="Explicit preregistered stage for v37_mos_sampling.",
+    )
+    parser.add_argument(
+        "--mos-development-gate",
+        type=Path,
+        default=None,
+        help="Audited development pass required before MOS confirmation.",
     )
     parser.add_argument(
         "--component-precision-arms",
@@ -10675,6 +11537,8 @@ def main(argv: list[str] | None = None) -> Path:
         cmaes_restart=bool(args.cmaes_restart),
         mmes_restart=bool(args.mmes_restart),
         lane_profile=str(args.lane_profile),
+        mos_stage=args.mos_stage,
+        mos_development_gate=args.mos_development_gate,
         response_arms=(
             None if args.response_arms is None else tuple(args.response_arms)
         ),

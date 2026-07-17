@@ -139,6 +139,15 @@ from arac.backends.hcc_cma_proposals import (
     PairedHccCMAProbeResult,
     run_paired_hcc_cma_probe,
 )
+from arac.backends.hcc_mos_cma import (
+    CMA_SAMPLING_MODE_OPTION,
+    CMA_SAMPLING_MODES,
+    IID_CMA_SAMPLING,
+    MIRRORED_ORTHOGONAL_CMA_SAMPLING,
+    MOS_AUDIT_CONTEXT_OPTION,
+    MOS_AUDIT_SINK_OPTION,
+    create_hcc_cmaes,
+)
 from arac.backends.hcc_hypergraph_trace import (
     HYPERGRAPH_NATIVE_SWEEP_END_STAGE,
     HYPERGRAPH_TRACE_MODES,
@@ -209,6 +218,50 @@ def plot_evaluation_curve_best_so_far(*args, **kwargs):
 DATA_DIR = HCC_VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
 FUNCTION_NAMES = ("elliptic", "schwefel", "rastrigin", "ackley")
 PROBLEM_IDS = (1, 2, 3, 4, 5, 6)
+MOS_STABILITY_PROTOCOL_VERSION = "v37-mos-single-seed-stability-v1"
+MOS_SAMPLING_AUDIT_FIELDS = (
+    "run_id",
+    "sampling_mode",
+    "problem_id",
+    "seed",
+    "outer_iter",
+    "group_index",
+    "cma_scope",
+    "candidate_index",
+    "optimizer_seed",
+    "optimizer_restart_index",
+    "generation",
+    "population",
+    "dimension",
+    "pair_count",
+    "block_count",
+    "raw_draw_sha256",
+    "sample_sha256",
+    "max_orthogonality_error",
+    "rng_draw_count",
+    "evaluated_count",
+    "complete_population",
+)
+MOS_BRANCH_PROVENANCE_FIELDS = (
+    "protocol_version",
+    "run_id",
+    "sampling_mode",
+    "problem_id",
+    "seed",
+    "status",
+    "terminal_target_fe",
+    "terminal_completion_tolerance_fe",
+    "phase_i_fe",
+    "phase_i_record_sha256",
+    "phase_i_candidate_sha256",
+    "first_cma_prestate_status",
+    "first_cma_prestate_sha256",
+    "rng_descriptor_sha256",
+    "terminal_record_sha256",
+    "mos_generation_rows",
+    "mos_primary_generation_rows",
+    "mos_rescue_generation_rows",
+)
 ACTION_TRACE_FIELDS = [
     "problem_id",
     "seed",
@@ -811,6 +864,8 @@ class SmokeConfig:
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
     hypergraph_trace_mode: str = "off"
+    cma_sampling_mode: str = IID_CMA_SAMPLING
+    lane_profile: str = "runtime_smoke"
     offline_frozen_replay: bool = False
 
 
@@ -4223,6 +4278,36 @@ def _write_car_rows(
         writer.writerows(rows)
 
 
+def _write_mos_sampling_audit(
+    path: Path,
+    rows: list[dict[str, object]],
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=list(MOS_SAMPLING_AUDIT_FIELDS),
+            extrasaction="raise",
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _write_mos_branch_provenance(
+    path: Path,
+    row: dict[str, object],
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=list(MOS_BRANCH_PROVENANCE_FIELDS),
+            extrasaction="raise",
+        )
+        writer.writeheader()
+        writer.writerow(row)
+
+
 def _car_controller_state_payload(
     controller: EvidenceActionControllerV31RunState | None,
     *,
@@ -5304,6 +5389,8 @@ def execute_car_w_probe_at_barrier(
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
     if config.budget_accounting not in {"strict", "source"}:
         raise ValueError(f"unsupported budget accounting mode: {config.budget_accounting}")
+    if config.cma_sampling_mode not in CMA_SAMPLING_MODES:
+        raise ValueError("unsupported CMA sampling mode")
     if is_car_w_family_action(config.arac_action) and (
         not config.enable_relation_dispatch
         or config.relation_policy_mode != "controller_v31"
@@ -5370,11 +5457,46 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError(
             "hypergraph observer and frozen precision experiment arms are exclusive"
         )
+    mos_profile_enabled = config.lane_profile == "v37_mos_sampling"
+    if (
+        config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
+        and not mos_profile_enabled
+    ):
+        raise ValueError("mirrored orthogonal sampling requires v37_mos_sampling")
+    if mos_profile_enabled:
+        if not is_evidence_action_controller_v37(config.arac_action):
+            raise ValueError("v37_mos_sampling requires frozen v37")
+        if not config.enable_relation_dispatch:
+            raise ValueError("v37_mos_sampling requires relation dispatch")
+        if config.relation_policy_mode != "controller_v31":
+            raise ValueError("v37_mos_sampling requires controller_v31")
+        if config.seed is None:
+            raise ValueError("v37_mos_sampling requires an explicit seed")
+        if config.budget_accounting != "strict":
+            raise ValueError("v37_mos_sampling requires strict FE accounting")
+        if not config.cmaes_restart or not config.mmes_restart:
+            raise ValueError("v37_mos_sampling requires frozen restart settings")
+        if config.search_state_backend != "phase_i_mmes":
+            raise ValueError("v37_mos_sampling requires phase_i_mmes")
+        if config.early_stopping_evaluations != 1000:
+            raise ValueError("v37_mos_sampling requires frozen early stopping")
+        if config.sigma != 0.5:
+            raise ValueError("v37_mos_sampling requires frozen sigma")
+        if enabled_precision_protocols or config.hypergraph_trace_mode != "off":
+            raise ValueError("v37_mos_sampling cannot combine with frozen pilots")
+        if config.car_actionability_arm != "off" or config.offline_frozen_replay:
+            raise ValueError("v37_mos_sampling cannot combine with frozen replay")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
     info = bench.get_info(fun_name, fun_id)
     problem_id = _problem_id(fun_name, fun_id)
+    mos_sampling_rows: list[dict[str, object]] = []
+    mos_phase_i_record_sha256 = ""
+    mos_phase_i_candidate_sha256 = ""
+    mos_first_cma_prestate_status = "not_reached"
+    mos_first_cma_prestate_sha256 = ""
+    mos_rng_descriptor_sha256 = ""
     grouping_result = decompose_problem(fun_id, config.aob_data_root)
     terminal_completion_tolerance_fe = max(
         1,
@@ -5763,6 +5885,33 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 controller_v31_run_state.search_state_scheduler_state,
                 overlap_edge_count=overlap_edge_count,
             ),
+        )
+
+    if mos_profile_enabled:
+        mos_phase_i_record_sha256 = _fitness_record_sha256(
+            tuple(float(value) for value in fun.fitness_record)
+        )
+        mos_phase_i_candidate_sha256 = _canonical_payload_sha256(
+            tuple(float(value) for value in best_individual)
+        )
+        mos_rng_descriptor_sha256 = _canonical_payload_sha256(
+            {
+                "protocol_version": MOS_STABILITY_PROTOCOL_VERSION,
+                "base_seed": int(config.seed),
+                "function_name": fun_name,
+                "function_id": int(fun_id),
+                "max_fes": int(config.max_fes),
+                "optimizer_seed_schedule": "derive_optimizer_seed_stage_index_v1",
+                "phase_i_seed": derive_optimizer_seed(
+                    config.seed,
+                    fun_name,
+                    fun_id,
+                    0,
+                    0,
+                ),
+                "cmaes_restart": bool(config.cmaes_restart),
+                "mmes_restart": bool(config.mmes_restart),
+            }
         )
 
     outer_iter = 0
@@ -6759,7 +6908,53 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     0,
                     stage_index,
                 )
-            results_cc = CMAES(problem_cc, options_cc).optimize()
+            if mos_profile_enabled and not mos_first_cma_prestate_sha256:
+                mos_first_cma_prestate_sha256 = _canonical_payload_sha256(
+                    {
+                        "fitness_prefix_sha256": _fitness_record_sha256(
+                            tuple(float(value) for value in fun.fitness_record)
+                        ),
+                        "candidate_sha256": _canonical_payload_sha256(
+                            tuple(float(value) for value in best_individual)
+                        ),
+                        "mean_sha256": _canonical_payload_sha256(
+                            tuple(float(value) for value in cc_mean)
+                        ),
+                        "outer_iter": int(outer_iter),
+                        "group_index": int(index),
+                        "group_dimensions": tuple(int(value) for value in dims),
+                        "optimizer_budget": int(optimizer_budget),
+                        "population_size": int(population_size),
+                        "sigma": float(cc_sigma),
+                        "is_restart": bool(config.cmaes_restart),
+                        "early_stopping_evaluations": int(
+                            config.early_stopping_evaluations
+                        ),
+                        "optimizer_seed": options_cc.get("seed_rng", ""),
+                    }
+                )
+                mos_first_cma_prestate_status = "observed"
+            if config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING:
+                options_cc[CMA_SAMPLING_MODE_OPTION] = config.cma_sampling_mode
+                options_cc[MOS_AUDIT_SINK_OPTION] = mos_sampling_rows
+                options_cc[MOS_AUDIT_CONTEXT_OPTION] = {
+                    "run_id": config.run_id,
+                    "sampling_mode": config.cma_sampling_mode,
+                    "problem_id": problem_id,
+                    "seed": "" if config.seed is None else int(config.seed),
+                    "outer_iter": int(outer_iter),
+                    "group_index": int(index),
+                    "cma_scope": "v37_primary_group_cma",
+                    "candidate_index": 0,
+                    "optimizer_seed": options_cc.get("seed_rng", ""),
+                }
+            cc_optimizer = (
+                create_hcc_cmaes(problem_cc, options_cc)
+                if config.cma_sampling_mode
+                == MIRRORED_ORTHOGONAL_CMA_SAMPLING
+                else CMAES(problem_cc, options_cc)
+            )
+            results_cc = cc_optimizer.optimize()
             optimized_any_group = True
             primary_cc_fe = observed_optimizer_fe(
                 fun,
@@ -7331,8 +7526,33 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 outer_iter + 1,
                                 (index + 1) * 17011 + candidate_index,
                             )
+                        if (
+                            config.cma_sampling_mode
+                            == MIRRORED_ORTHOGONAL_CMA_SAMPLING
+                        ):
+                            rescue_options[CMA_SAMPLING_MODE_OPTION] = (
+                                config.cma_sampling_mode
+                            )
+                            rescue_options[MOS_AUDIT_SINK_OPTION] = mos_sampling_rows
+                            rescue_options[MOS_AUDIT_CONTEXT_OPTION] = {
+                                "run_id": config.run_id,
+                                "sampling_mode": config.cma_sampling_mode,
+                                "problem_id": problem_id,
+                                "seed": "" if config.seed is None else int(config.seed),
+                                "outer_iter": int(outer_iter),
+                                "group_index": int(index),
+                                "cma_scope": "v37_phase_rescue_multistart_cma",
+                                "candidate_index": int(candidate_index),
+                                "optimizer_seed": rescue_options.get("seed_rng", ""),
+                            }
                         rescue_evaluations_before = current_fitness_evaluations(fun)
-                        rescue_results = CMAES(problem_cc, rescue_options).optimize()
+                        rescue_optimizer = (
+                            create_hcc_cmaes(problem_cc, rescue_options)
+                            if config.cma_sampling_mode
+                            == MIRRORED_ORTHOGONAL_CMA_SAMPLING
+                            else CMAES(problem_cc, rescue_options)
+                        )
+                        rescue_results = rescue_optimizer.optimize()
                         total_rescue_fes += observed_optimizer_fe(
                             fun,
                             evaluations_before=rescue_evaluations_before,
@@ -9401,6 +9621,65 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             action_decisions,
             relation_policy_mode=config.relation_policy_mode,
         )
+    if (
+        config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
+        and cc_phase_fe > 0
+        and not mos_sampling_rows
+    ):
+        raise RuntimeError("MOS CC execution produced no sampling audit rows")
+    if mos_profile_enabled:
+        if not mos_first_cma_prestate_sha256:
+            mos_first_cma_prestate_sha256 = _canonical_payload_sha256(
+                {
+                    "status": "not_reached",
+                    "phase_i_record_sha256": mos_phase_i_record_sha256,
+                    "phase_i_candidate_sha256": mos_phase_i_candidate_sha256,
+                    "phase_i_fe": int(global_phase_fe),
+                    "terminal_observed_fe": current_fitness_evaluations(fun),
+                }
+            )
+        _write_mos_branch_provenance(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "mos_branch_provenance.csv",
+            ),
+            {
+                "protocol_version": MOS_STABILITY_PROTOCOL_VERSION,
+                "run_id": config.run_id,
+                "sampling_mode": config.cma_sampling_mode,
+                "problem_id": problem_id,
+                "seed": int(config.seed),
+                "status": "completed",
+                "terminal_target_fe": int(config.max_fes),
+                "terminal_completion_tolerance_fe": int(
+                    terminal_completion_tolerance_fe
+                ),
+                "phase_i_fe": int(global_phase_fe),
+                "phase_i_record_sha256": mos_phase_i_record_sha256,
+                "phase_i_candidate_sha256": mos_phase_i_candidate_sha256,
+                "first_cma_prestate_status": mos_first_cma_prestate_status,
+                "first_cma_prestate_sha256": mos_first_cma_prestate_sha256,
+                "rng_descriptor_sha256": mos_rng_descriptor_sha256,
+                "terminal_record_sha256": _fitness_record_sha256(
+                    tuple(float(value) for value in fun.fitness_record)
+                ),
+                "mos_generation_rows": len(mos_sampling_rows),
+                "mos_primary_generation_rows": sum(
+                    row["cma_scope"] == "v37_primary_group_cma"
+                    for row in mos_sampling_rows
+                ),
+                "mos_rescue_generation_rows": sum(
+                    row["cma_scope"] == "v37_phase_rescue_multistart_cma"
+                    for row in mos_sampling_rows
+                ),
+            },
+        )
+    if config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING:
+        _write_mos_sampling_audit(
+            case_artifact_path(output_path, problem_id, "mos_sampling_audit.csv"),
+            mos_sampling_rows,
+        )
     _write_budget_summary(
         case_artifact_path(output_path, problem_id, "budget_summary.csv"),
         problem_id=problem_id,
@@ -9478,6 +9757,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "evidence_action_controller_v2",
             "evidence_action_controller_v3",
             "evidence_action_controller_v31",
+            "v37_mos_sampling",
         ],
         help=(
             "Accepted for experiment-runner CLI compatibility; lane expansion is "
@@ -9541,6 +9821,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=sorted(HYPERGRAPH_TRACE_MODES),
         default="off",
         help="Opt-in side-effect-free v37 overlap-hypergraph observer.",
+    )
+    parser.add_argument(
+        "--cma-sampling-mode",
+        choices=sorted(CMA_SAMPLING_MODES),
+        default=IID_CMA_SAMPLING,
+        help="Opt-in ARAC-owned sampling treatment for frozen v37 group CMA.",
     )
     parser.add_argument(
         "--offline-frozen-replay",
@@ -9635,6 +9921,40 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         )
     ):
         parser.error("hypergraph observer and frozen precision arms are exclusive")
+    mos_profile_enabled = args.lane_profile == "v37_mos_sampling"
+    if (
+        args.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
+        and not mos_profile_enabled
+    ):
+        parser.error("mirrored_orthogonal requires --lane-profile v37_mos_sampling")
+    if mos_profile_enabled:
+        if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
+            parser.error("v37_mos_sampling requires v37")
+        if not args.enable_relation_dispatch:
+            parser.error("v37_mos_sampling requires relation dispatch")
+        if args.relation_policy != "controller_v31":
+            parser.error("v37_mos_sampling requires controller_v31")
+        if args.seed is None:
+            parser.error("v37_mos_sampling requires an explicit seed")
+        if args.budget_accounting != "strict":
+            parser.error("v37_mos_sampling requires strict FE accounting")
+        if not args.cmaes_restart or not args.mmes_restart:
+            parser.error("v37_mos_sampling requires frozen restart settings")
+        if args.search_state_backend != "phase_i_mmes":
+            parser.error("v37_mos_sampling requires phase_i_mmes")
+        if args.early_stopping_evaluations != 1000:
+            parser.error("v37_mos_sampling requires frozen early stopping")
+        if args.hypergraph_trace_mode != "off" or any(
+            arm != "off"
+            for arm in (
+                args.precision_causal_arm,
+                args.precision_response_arm,
+                args.component_precision_arm,
+            )
+        ):
+            parser.error("v37_mos_sampling cannot combine with frozen pilots")
+        if args.car_actionability_arm != "off" or args.offline_frozen_replay:
+            parser.error("v37_mos_sampling cannot combine with frozen replay")
     if args.offline_frozen_replay and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V41:
         parser.error("--offline-frozen-replay is only valid with v41")
     return args
@@ -9673,6 +9993,8 @@ def main(argv: list[str] | None = None) -> list[Path]:
         precision_response_arm=args.precision_response_arm,
         component_precision_arm=args.component_precision_arm,
         hypergraph_trace_mode=args.hypergraph_trace_mode,
+        cma_sampling_mode=args.cma_sampling_mode,
+        lane_profile=args.lane_profile,
         offline_frozen_replay=args.offline_frozen_replay,
     )
     output_paths = []
