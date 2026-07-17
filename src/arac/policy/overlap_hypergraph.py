@@ -16,7 +16,6 @@ HYPERGRAPH_SCHEMA_VERSION = "hypergraph-delayed-credit-v1"
 ERROR_FLOOR = 1e-300
 HISTORY_SWEEPS = 3
 EWMA_ALPHA = 0.5
-MAX_OWNER_WEIGHT = 0.65
 DELAYED_OVERWRITE_PENALTY = math.log(1.01)
 FINAL_OWNER_PROPOSAL_WATERMARK = (
     "after_group_local_rescue_recovery_before_relation_writeback"
@@ -124,9 +123,33 @@ class OverlapHypergraphTopology:
                 raise ValueError("hyperedge variables must be sorted unique integers")
         if len(self.group_shared_variables) != len(self.hyperedges):
             raise ValueError("group_shared_variables must align with hyperedges")
+        if not isinstance(self.stars, tuple) or not isinstance(
+            self.group_shared_variables,
+            tuple,
+        ):
+            raise ValueError("topology collections must be immutable tuples")
         star_variables = tuple(star.variable_index for star in self.stars)
         if star_variables != tuple(sorted(set(star_variables))):
             raise ValueError("stars must be sorted by unique variable index")
+        expected_owners: dict[int, list[int]] = {}
+        for group_index, group in enumerate(self.hyperedges):
+            for variable in group:
+                expected_owners.setdefault(variable, []).append(group_index)
+        expected_stars = tuple(
+            SharedVariableStar(variable, tuple(owners))
+            for variable, owners in sorted(expected_owners.items())
+        )
+        if self.stars != expected_stars:
+            raise ValueError("variable-owner stars do not match raw hyperedges")
+        expected_shared = {
+            star.variable_index for star in expected_stars if star.shared
+        }
+        expected_group_shared = tuple(
+            tuple(variable for variable in group if variable in expected_shared)
+            for group in self.hyperedges
+        )
+        if self.group_shared_variables != expected_group_shared:
+            raise ValueError("group shared variables do not match owner stars")
 
     def star_for_variable(self, variable_index: int) -> SharedVariableStar:
         variable = _integer(variable_index, name="variable_index")
@@ -241,7 +264,8 @@ class SharedProposal:
     group_index: int
     anchor_values: tuple[tuple[int, float], ...]
     proposed_values: tuple[tuple[int, float], ...]
-    capture_watermark: str = FINAL_OWNER_PROPOSAL_WATERMARK
+    capture_stage: str
+    capture_fe: int
 
     def __post_init__(self) -> None:
         _integer(self.group_index, name="group_index")
@@ -253,8 +277,9 @@ class SharedProposal:
             index for index, _ in proposals
         ):
             raise ValueError("anchor and proposed shared variables must align")
-        if self.capture_watermark != FINAL_OWNER_PROPOSAL_WATERMARK:
+        if self.capture_stage != FINAL_OWNER_PROPOSAL_WATERMARK:
             raise ValueError("shared proposal must use the final owner watermark")
+        _integer(self.capture_fe, name="capture_fe")
 
     @property
     def variables(self) -> tuple[int, ...]:
@@ -321,6 +346,8 @@ class GroupCycleObservation:
             raise ValueError("successful must be boolean")
         if self.shared_proposal.group_index != self.group_index:
             raise ValueError("shared proposal group must match observation group")
+        if self.shared_proposal.capture_fe != self.full_interval_end_fe:
+            raise ValueError("proposal capture_fe must equal full_interval_end_fe")
 
 
 def unit_fe_contribution(
@@ -355,6 +382,8 @@ def build_group_cycle_observation(
     full_interval_end_fe: int,
     pre_block_candidate: Sequence[float],
     final_owner_candidate: Sequence[float],
+    capture_stage: str,
+    capture_fe: int,
 ) -> GroupCycleObservation:
     """Extract state after local recovery and before relation writeback.
 
@@ -416,8 +445,165 @@ def build_group_cycle_observation(
             group_index=group,
             anchor_values=anchor_values,
             proposed_values=proposed_values,
-            capture_watermark=FINAL_OWNER_PROPOSAL_WATERMARK,
+            capture_stage=str(capture_stage),
+            capture_fe=_integer(capture_fe, name="capture_fe"),
         ),
+    )
+
+
+@dataclass(frozen=True)
+class CompletedSweepSnapshot:
+    """All raw groups closed once, followed by every native sweep-end handler."""
+
+    topology: OverlapHypergraphTopology
+    sweep_index: int
+    observations: tuple[GroupCycleObservation, ...]
+    sweep_end_candidate: tuple[float, ...]
+    native_sweep_end_completed: bool
+    sweep_end_fe: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.topology, OverlapHypergraphTopology):
+            raise TypeError("topology must be OverlapHypergraphTopology")
+        sweep = _integer(self.sweep_index, name="sweep_index")
+        if not isinstance(self.native_sweep_end_completed, bool):
+            raise ValueError("native_sweep_end_completed must be boolean")
+        if not self.native_sweep_end_completed:
+            raise ValueError("completed sweep requires all native sweep-end handlers")
+        end_fe = _integer(self.sweep_end_fe, name="sweep_end_fe")
+        if not isinstance(self.sweep_end_candidate, tuple):
+            raise ValueError("sweep_end_candidate must be an immutable tuple")
+        endpoint = _finite_vector(
+            self.sweep_end_candidate,
+            name="sweep_end_candidate",
+        )
+        if max(star.variable_index for star in self.topology.stars) >= len(endpoint):
+            raise ValueError("sweep_end_candidate does not cover topology variables")
+        if not isinstance(self.observations, tuple):
+            raise ValueError("observations must be an immutable tuple")
+        group_count = len(self.topology.hyperedges)
+        if len(self.observations) != group_count:
+            raise ValueError("completed sweep must cover every raw group exactly once")
+        expected_groups = tuple(range(group_count))
+        observed_groups = tuple(observation.group_index for observation in self.observations)
+        if observed_groups != expected_groups:
+            raise ValueError("completed sweep observations must use canonical group order")
+        previous_end_fe: int | None = None
+        for group, observation in zip(
+            expected_groups,
+            self.observations,
+            strict=True,
+        ):
+            if not isinstance(observation, GroupCycleObservation):
+                raise TypeError("observations must contain GroupCycleObservation values")
+            if observation.sweep_index != sweep:
+                raise ValueError("group observation belongs to a different sweep")
+            if observation.shared_proposal.variables != self.topology.shared_for_group(group):
+                raise ValueError("group proposal variables do not match the topology")
+            if (
+                previous_end_fe is not None
+                and observation.full_interval_start_fe < previous_end_fe
+            ):
+                raise ValueError("group FE intervals must be ordered and non-overlapping")
+            previous_end_fe = observation.full_interval_end_fe
+        if previous_end_fe is None or end_fe < previous_end_fe:
+            raise ValueError("sweep_end_fe must follow every group observation")
+
+    def observation_for_group(self, group_index: int) -> GroupCycleObservation:
+        group = _integer(group_index, name="group_index")
+        try:
+            return self.observations[group]
+        except IndexError as exc:
+            raise IndexError("group_index is outside the completed sweep") from exc
+
+
+@dataclass(frozen=True)
+class ClosedOwnerCredit:
+    """Owner proposal credit resolved at the immediately following sweep end."""
+
+    group_index: int
+    proposal_sweep_index: int
+    resolution_sweep_index: int
+    proposal_source_fe: int
+    resolution_fe: int
+    all_groups_completed: bool
+    native_sweep_end_completed: bool
+    survival: float
+    overwrite: float
+
+    def __post_init__(self) -> None:
+        _integer(self.group_index, name="group_index")
+        proposal_sweep = _integer(
+            self.proposal_sweep_index,
+            name="proposal_sweep_index",
+        )
+        resolution_sweep = _integer(
+            self.resolution_sweep_index,
+            name="resolution_sweep_index",
+        )
+        source_fe = _integer(self.proposal_source_fe, name="proposal_source_fe")
+        resolution_fe = _integer(self.resolution_fe, name="resolution_fe")
+        if resolution_sweep != proposal_sweep + 1:
+            raise ValueError("owner credit must resolve in the next complete sweep")
+        if resolution_fe <= source_fe:
+            raise ValueError("owner credit resolution must follow its proposal")
+        for name in ("all_groups_completed", "native_sweep_end_completed"):
+            value = getattr(self, name)
+            if not isinstance(value, bool):
+                raise ValueError(f"{name} must be boolean")
+            if not value:
+                raise ValueError(f"{name} must be true for closed owner credit")
+        survival = _unit_interval(self.survival, name="survival")
+        overwrite = _unit_interval(self.overwrite, name="overwrite")
+        if not math.isclose(
+            survival + overwrite,
+            1.0,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        ):
+            raise ValueError("owner survival and overwrite must sum to one")
+
+
+def build_closed_owner_credit(
+    *,
+    proposal_observation: GroupCycleObservation,
+    resolution_snapshot: CompletedSweepSnapshot,
+) -> ClosedOwnerCredit:
+    """Resolve a final owner proposal only at the next complete sweep end."""
+
+    if not isinstance(proposal_observation, GroupCycleObservation):
+        raise TypeError("proposal_observation must be GroupCycleObservation")
+    if not isinstance(resolution_snapshot, CompletedSweepSnapshot):
+        raise TypeError("resolution_snapshot must be CompletedSweepSnapshot")
+    if resolution_snapshot.sweep_index != proposal_observation.sweep_index + 1:
+        raise ValueError("proposal and resolution snapshots must be consecutive")
+    group = proposal_observation.group_index
+    if group >= len(resolution_snapshot.topology.hyperedges):
+        raise ValueError("proposal group is outside the resolution topology")
+    expected_variables = resolution_snapshot.topology.shared_for_group(group)
+    proposal = proposal_observation.shared_proposal
+    if proposal.variables != expected_variables:
+        raise ValueError("proposal variables do not match the resolution topology")
+    if proposal.capture_fe != proposal_observation.full_interval_end_fe:
+        raise ValueError("proposal source FE does not match its observation capture FE")
+    if not expected_variables:
+        raise ValueError("closed owner credit requires shared variables")
+    endpoint = resolution_snapshot.sweep_end_candidate
+    retained = directional_survival(
+        anchor_values=tuple(value for _, value in proposal.anchor_values),
+        candidate_values=tuple(value for _, value in proposal.proposed_values),
+        next_sweep_values=tuple(endpoint[variable] for variable in expected_variables),
+    )
+    return ClosedOwnerCredit(
+        group_index=group,
+        proposal_sweep_index=proposal_observation.sweep_index,
+        resolution_sweep_index=resolution_snapshot.sweep_index,
+        proposal_source_fe=proposal.capture_fe,
+        resolution_fe=resolution_snapshot.sweep_end_fe,
+        all_groups_completed=True,
+        native_sweep_end_completed=resolution_snapshot.native_sweep_end_completed,
+        survival=retained.survival,
+        overwrite=retained.overwrite,
     )
 
 
@@ -483,11 +669,9 @@ class HyperedgeCycleState:
 
     current_unit_fe_contribution: float
     ewma_unit_fe_contribution_3: float
-    success_ratio_3: float
     zero_gain_difficulty: float
     stagnation_ratio_3: float
     direct_owner_proposal_disagreement: float
-    prior_next_sweep_survival: float
     prior_next_sweep_overwrite: float
 
     def __post_init__(self) -> None:
@@ -498,11 +682,9 @@ class HyperedgeCycleState:
             if _finite(getattr(self, name), name=name) < 0.0:
                 raise ValueError(f"{name} must be non-negative")
         for name in (
-            "success_ratio_3",
             "zero_gain_difficulty",
             "stagnation_ratio_3",
             "direct_owner_proposal_disagreement",
-            "prior_next_sweep_survival",
             "prior_next_sweep_overwrite",
         ):
             _unit_interval(getattr(self, name), name=name)
@@ -529,10 +711,10 @@ class HyperedgeScore:
 
 def build_hyperedge_cycle_states(
     topology: OverlapHypergraphTopology,
-    observations: Sequence[GroupCycleObservation],
+    snapshots: Sequence[CompletedSweepSnapshot],
     *,
-    prior_next_sweep_survival_by_group: Mapping[int, float],
-    prior_next_sweep_overwrite_by_group: Mapping[int, float],
+    closed_owner_credits: Sequence[ClosedOwnerCredit],
+    decision_fe: int,
     lower_bound: float,
     upper_bound: float,
 ) -> tuple[HyperedgeCycleState, ...]:
@@ -540,37 +722,76 @@ def build_hyperedge_cycle_states(
 
     if not isinstance(topology, OverlapHypergraphTopology):
         raise TypeError("topology must be OverlapHypergraphTopology")
+    history_snapshots = tuple(snapshots)
+    if len(history_snapshots) != HISTORY_SWEEPS:
+        raise ValueError("state requires exactly three completed sweep snapshots")
+    if not all(
+        isinstance(snapshot, CompletedSweepSnapshot)
+        for snapshot in history_snapshots
+    ):
+        raise TypeError("snapshots must contain CompletedSweepSnapshot values")
+    if any(snapshot.topology != topology for snapshot in history_snapshots):
+        raise ValueError("completed sweep topology does not match state topology")
+    sweep_indices = tuple(snapshot.sweep_index for snapshot in history_snapshots)
+    if sweep_indices != tuple(
+        range(sweep_indices[-1] - HISTORY_SWEEPS + 1, sweep_indices[-1] + 1)
+    ):
+        raise ValueError("state snapshots must be three consecutive sweeps")
+    for previous, current in zip(
+        history_snapshots,
+        history_snapshots[1:],
+    ):
+        if current.sweep_end_fe <= previous.sweep_end_fe:
+            raise ValueError("completed sweep FE watermarks must increase")
+        if current.observations[0].full_interval_start_fe < previous.sweep_end_fe:
+            raise ValueError("completed sweep FE intervals must not overlap")
+    current_snapshot = history_snapshots[-1]
+    current_decision_fe = _integer(decision_fe, name="decision_fe")
+    if current_decision_fe != current_snapshot.sweep_end_fe:
+        raise ValueError("decision_fe must equal the current completed sweep end")
+
     eligible = topology.eligible_group_indices
     if not eligible:
         return ()
-    by_key: dict[tuple[int, int], GroupCycleObservation] = {}
-    for observation in observations:
-        if not isinstance(observation, GroupCycleObservation):
-            raise TypeError("observations must contain GroupCycleObservation values")
-        key = (observation.sweep_index, observation.group_index)
-        if key in by_key:
-            raise ValueError("duplicate group observation in a sweep")
-        by_key[key] = observation
-    sweep_sets = {
-        group: tuple(
-            sorted(sweep for sweep, observed_group in by_key if observed_group == group)
+    credits = tuple(closed_owner_credits)
+    if not all(isinstance(credit, ClosedOwnerCredit) for credit in credits):
+        raise TypeError("closed_owner_credits must contain ClosedOwnerCredit values")
+    credit_by_group = {credit.group_index: credit for credit in credits}
+    if len(credit_by_group) != len(credits):
+        raise ValueError("closed owner credits must have unique group routes")
+    if set(credit_by_group) != set(eligible):
+        raise ValueError("every eligible group requires one closed owner credit")
+    proposal_snapshot = history_snapshots[-2]
+    for group in eligible:
+        credit = credit_by_group[group]
+        proposal_observation = proposal_snapshot.observation_for_group(group)
+        if credit.proposal_sweep_index != proposal_snapshot.sweep_index:
+            raise ValueError("owner credit proposal sweep does not match state history")
+        if credit.resolution_sweep_index != current_snapshot.sweep_index:
+            raise ValueError("owner credit resolution sweep does not match current state")
+        if credit.proposal_source_fe != proposal_observation.shared_proposal.capture_fe:
+            raise ValueError("owner credit source FE does not match its sealed proposal")
+        if credit.resolution_fe != current_snapshot.sweep_end_fe:
+            raise ValueError("owner credit resolution FE does not match current sweep end")
+        if current_decision_fe < credit.resolution_fe:
+            raise ValueError("owner credit was not closed before the decision FE")
+        if not credit.all_groups_completed or not credit.native_sweep_end_completed:
+            raise ValueError("owner credit requires a complete native sweep closure")
+        expected_credit = build_closed_owner_credit(
+            proposal_observation=proposal_observation,
+            resolution_snapshot=current_snapshot,
         )
-        for group in eligible
-    }
-    reference_sweeps = sweep_sets[eligible[0]]
-    if len(reference_sweeps) != HISTORY_SWEEPS or reference_sweeps != tuple(
-        range(reference_sweeps[-1] - HISTORY_SWEEPS + 1, reference_sweeps[-1] + 1)
-    ):
-        raise ValueError("eligible hyperedges require three consecutive complete sweeps")
-    if any(sweeps != reference_sweeps for sweeps in sweep_sets.values()):
-        raise ValueError("eligible hyperedge histories must cover the same sweeps")
+        if credit != expected_credit:
+            raise ValueError("owner credit does not match its sealed sweep evidence")
     current_by_group = {
-        group: by_key[(reference_sweeps[-1], group)] for group in eligible
+        group: current_snapshot.observation_for_group(group) for group in eligible
     }
 
     states: list[HyperedgeCycleState] = []
     for group in eligible:
-        history = tuple(by_key[(sweep, group)] for sweep in reference_sweeps)
+        history = tuple(
+            snapshot.observation_for_group(group) for snapshot in history_snapshots
+        )
         ewma = history[0].unit_fe_contribution
         for observation in history[1:]:
             ewma = EWMA_ALPHA * observation.unit_fe_contribution + (1.0 - EWMA_ALPHA) * ewma
@@ -581,23 +802,11 @@ def build_hyperedge_cycle_states(
             if observation.unit_fe_contribution > 0.0:
                 break
             trailing_zero += 1
-        try:
-            prior_survival = prior_next_sweep_survival_by_group[group]
-            prior_overwrite = prior_next_sweep_overwrite_by_group[group]
-        except KeyError as exc:
-            raise ValueError("missing closed prior survival/overwrite") from exc
-        if not math.isclose(
-            float(prior_survival) + float(prior_overwrite),
-            1.0,
-            rel_tol=0.0,
-            abs_tol=1e-9,
-        ):
-            raise ValueError("prior survival and overwrite must sum to one")
+        prior_credit = credit_by_group[group]
         states.append(
             HyperedgeCycleState(
                 current_unit_fe_contribution=history[-1].unit_fe_contribution,
                 ewma_unit_fe_contribution_3=ewma,
-                success_ratio_3=success_ratio,
                 zero_gain_difficulty=1.0 - success_ratio,
                 stagnation_ratio_3=(
                     min(trailing_zero, HISTORY_SWEEPS) / HISTORY_SWEEPS
@@ -611,8 +820,7 @@ def build_hyperedge_cycle_states(
                     upper_bound=upper_bound,
                     )
                 ),
-                prior_next_sweep_survival=prior_survival,
-                prior_next_sweep_overwrite=prior_overwrite,
+                prior_next_sweep_overwrite=prior_credit.overwrite,
             )
         )
     return tuple(states)
@@ -644,9 +852,6 @@ def score_hyperedge_states(
     disagreement_rank = midrank_percentiles(
         [state.direct_owner_proposal_disagreement for state in converted]
     )
-    survival_rank = midrank_percentiles(
-        [state.prior_next_sweep_survival for state in converted]
-    )
     non_overwrite_rank = midrank_percentiles(
         [1.0 - state.prior_next_sweep_overwrite for state in converted]
     )
@@ -667,9 +872,8 @@ def score_hyperedge_states(
         reliability = (
             current_rank[index]
             + ewma_rank[index]
-            + survival_rank[index]
             + non_overwrite_rank[index]
-        ) / 4.0
+        ) / 3.0
         scored.append(
             HyperedgeScore(
                 contribution_score=contribution,
@@ -679,240 +883,6 @@ def score_hyperedge_states(
             )
         )
     return tuple(scored)
-
-
-def project_owner_weights(
-    reliability: Sequence[float],
-    *,
-    maximum_weight: float = MAX_OWNER_WEIGHT,
-) -> tuple[float, ...]:
-    """Euclidean projection of proportional owner weights onto a capped simplex."""
-
-    values = tuple(_unit_interval(value, name="owner reliability") for value in reliability)
-    if not values:
-        raise ValueError("at least one owner reliability is required")
-    cap = _unit_interval(maximum_weight, name="maximum_weight")
-    if cap <= 0.0 or len(values) * cap < 1.0:
-        raise ValueError("owner weight cap makes the simplex infeasible")
-    denominator = math.fsum(1.0 + item for item in values)
-    raw = tuple((1.0 + value) / denominator for value in values)
-    active = set(range(len(raw)))
-    fixed: dict[int, float] = {}
-    while active:
-        shift = (
-            math.fsum(raw[index] for index in active)
-            + math.fsum(fixed.values())
-            - 1.0
-        ) / len(active)
-        high = {index for index in active if raw[index] - shift > cap}
-        low = {index for index in active if raw[index] - shift < 0.0}
-        if not high and not low:
-            for index in active:
-                fixed[index] = raw[index] - shift
-            active.clear()
-            break
-        for index in high:
-            fixed[index] = cap
-        for index in low:
-            fixed[index] = 0.0
-        active.difference_update(high | low)
-    projected = tuple(fixed[index] for index in range(len(raw)))
-    if not math.isclose(math.fsum(projected), 1.0, rel_tol=0.0, abs_tol=1e-12):
-        raise RuntimeError("capped simplex projection did not conserve weight")
-    return projected
-
-
-@dataclass(frozen=True)
-class SweepCoordinationPlan:
-    """Pure one-hop candidate plan; it cannot evaluate or commit the candidate."""
-
-    selected: bool
-    reason: str
-    focal_group_index: int | None
-    focal_priority: float | None
-    shared_variables: tuple[int, ...]
-    direct_owner_group_indices: tuple[int, ...]
-    owner_weights: tuple[tuple[int, int, float], ...]
-    structural_risk: float | None
-    step_scale: float | None
-    proposal_range_norm: float | None
-    target_displacement_norm: float | None
-    candidate: tuple[float, ...]
-
-    def __post_init__(self) -> None:
-        if not self.reason:
-            raise ValueError("coordination plan reason is required")
-        if self.focal_group_index is not None:
-            _integer(self.focal_group_index, name="focal_group_index")
-        for name in ("focal_priority", "structural_risk", "step_scale"):
-            value = getattr(self, name)
-            if value is not None:
-                _unit_interval(value, name=name)
-        for name in ("proposal_range_norm", "target_displacement_norm"):
-            value = getattr(self, name)
-            if value is not None and _finite(value, name=name) < 0.0:
-                raise ValueError(f"{name} must be non-negative")
-        if self.selected and (
-            self.focal_group_index is None
-            or not self.shared_variables
-            or not self.direct_owner_group_indices
-            or not self.candidate
-        ):
-            raise ValueError("selected coordination plan is incomplete")
-
-
-def _abstain_plan(
-    reason: str,
-    *,
-    focal_group_index: int | None = None,
-    focal_priority: float | None = None,
-    shared_variables: tuple[int, ...] = (),
-    direct_owner_group_indices: tuple[int, ...] = (),
-    owner_weights: tuple[tuple[int, int, float], ...] = (),
-    structural_risk: float | None = None,
-    step_scale: float | None = None,
-    proposal_range_norm: float | None = None,
-    target_displacement_norm: float | None = None,
-) -> SweepCoordinationPlan:
-    return SweepCoordinationPlan(
-        selected=False,
-        reason=reason,
-        focal_group_index=focal_group_index,
-        focal_priority=focal_priority,
-        shared_variables=shared_variables,
-        direct_owner_group_indices=direct_owner_group_indices,
-        owner_weights=owner_weights,
-        structural_risk=structural_risk,
-        step_scale=step_scale,
-        proposal_range_norm=proposal_range_norm,
-        target_displacement_norm=target_displacement_norm,
-        candidate=(),
-    )
-
-
-def plan_sweep_coordination(
-    topology: OverlapHypergraphTopology,
-    *,
-    scores: Sequence[HyperedgeScore],
-    current_observations: Mapping[int, GroupCycleObservation],
-    sweep_end_anchor: Sequence[float],
-    lower_bound: float,
-    upper_bound: float,
-) -> SweepCoordinationPlan:
-    """Select the unique focal hyperedge and build the fixed one-hop candidate."""
-
-    width = _domain_width(lower_bound, upper_bound)
-    if not isinstance(topology, OverlapHypergraphTopology):
-        raise TypeError("topology must be OverlapHypergraphTopology")
-    scored = tuple(scores)
-    if not scored:
-        return _abstain_plan("abstain_no_shared_hyperedge")
-    if not all(isinstance(score, HyperedgeScore) for score in scored):
-        raise TypeError("scores must contain HyperedgeScore values")
-    eligible = topology.eligible_group_indices
-    if len(scored) != len(eligible):
-        raise ValueError("scores must cover every eligible raw hyperedge")
-    score_by_group = dict(zip(eligible, scored, strict=True))
-    try:
-        eligible_observations = tuple(current_observations[group] for group in eligible)
-    except KeyError as exc:
-        raise ValueError("missing eligible current-sweep observation") from exc
-    if any(
-        observation.group_index != group
-        for group, observation in zip(eligible, eligible_observations, strict=True)
-    ):
-        raise ValueError("current observation route does not match its group")
-    proposal_sweeps = {
-        observation.sweep_index for observation in eligible_observations
-    }
-    if len(proposal_sweeps) != 1:
-        raise ValueError("candidate proposals must come from one complete sweep")
-    highest = max(score.focal_priority for score in scored)
-    winners = tuple(
-        (group, score)
-        for group, score in zip(eligible, scored, strict=True)
-        if score.focal_priority == highest
-    )
-    if len(winners) != 1:
-        return _abstain_plan("abstain_focal_priority_tie")
-
-    focal_group, focal = winners[0]
-    scope = topology.focal_scope(focal_group)
-    anchor = _finite_vector(sweep_end_anchor, name="sweep_end_anchor")
-    if max(topology.stars, key=lambda star: star.variable_index).variable_index >= len(anchor):
-        raise ValueError("sweep_end_anchor does not cover hypergraph variables")
-    risk = max(
-        len(scope.shared_variables) / len(topology.hyperedges[focal_group]),
-        len(scope.neighbor_group_indices) / (len(scope.neighbor_group_indices) + 1),
-    )
-
-    owner_weight_rows: list[tuple[int, int, float]] = []
-    targets: list[float] = []
-    normalized_ranges: list[float] = []
-    normalized_displacements: list[float] = []
-    for variable in scope.shared_variables:
-        owners = topology.star_for_variable(variable).owner_group_indices
-        reliability = tuple(score_by_group[owner].owner_reliability for owner in owners)
-        weights = project_owner_weights(reliability)
-        try:
-            proposals = tuple(
-                current_observations[owner].shared_proposal.proposed_value(variable)
-                for owner in owners
-            )
-        except KeyError as exc:
-            raise ValueError("missing direct-owner proposal for candidate") from exc
-        target = math.fsum(
-            weight * proposal
-            for weight, proposal in zip(weights, proposals, strict=True)
-        )
-        targets.append(target)
-        normalized_ranges.append((max(proposals) - min(proposals)) / width)
-        normalized_displacements.append((target - anchor[variable]) / width)
-        owner_weight_rows.extend(
-            (variable, owner, weight)
-            for owner, weight in zip(owners, weights, strict=True)
-        )
-
-    proposal_range = math.sqrt(math.fsum(value * value for value in normalized_ranges))
-    target_displacement = math.sqrt(
-        math.fsum(value * value for value in normalized_displacements)
-    )
-    step_scale = min(
-        1.0,
-        (1.0 - risk) * proposal_range / (target_displacement + ERROR_FLOOR),
-    )
-    candidate = list(anchor)
-    for variable, target in zip(scope.shared_variables, targets, strict=True):
-        candidate[variable] = anchor[variable] + step_scale * (target - anchor[variable])
-    candidate_tuple = tuple(candidate)
-    common = {
-        "focal_group_index": focal_group,
-        "focal_priority": focal.focal_priority,
-        "shared_variables": scope.shared_variables,
-        "direct_owner_group_indices": scope.direct_owner_group_indices,
-        "owner_weights": tuple(owner_weight_rows),
-        "structural_risk": risk,
-        "step_scale": step_scale,
-        "proposal_range_norm": proposal_range,
-        "target_displacement_norm": target_displacement,
-    }
-    if not all(math.isfinite(value) for value in candidate_tuple):
-        return _abstain_plan("abstain_candidate_nonfinite", **common)
-    lower = float(lower_bound)
-    upper = float(upper_bound)
-    if any(value < lower or value > upper for value in candidate_tuple):
-        return _abstain_plan("abstain_candidate_out_of_domain", **common)
-    if not any(
-        candidate_tuple[variable] != anchor[variable]
-        for variable in scope.shared_variables
-    ):
-        return _abstain_plan("abstain_zero_coordination_displacement", **common)
-    return SweepCoordinationPlan(
-        selected=True,
-        reason="coordination_candidate_ready",
-        candidate=candidate_tuple,
-        **common,
-    )
 
 
 @dataclass(frozen=True)
@@ -993,6 +963,13 @@ class DelayedHyperedgeCredit:
             raise ValueError("delayed credit must close at the next complete sweep")
         _unit_interval(self.survival, name="survival")
         _unit_interval(self.overwrite, name="overwrite")
+        if not math.isclose(
+            self.survival + self.overwrite,
+            1.0,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        ):
+            raise ValueError("delayed survival and overwrite must sum to one")
         _finite(self.next_sweep_log_improvement, name="next_sweep_log_improvement")
         _finite(self.penalized_credit, name="penalized_credit")
 
@@ -1015,6 +992,12 @@ def build_delayed_hyperedge_credit(
     resolution = _integer(resolution_sweep_index, name="resolution_sweep_index")
     if resolution != action + 1:
         raise ValueError("delayed credit must wait for the next sweep")
+    for name, value in (
+        ("all_groups_completed", all_groups_completed),
+        ("native_sweep_end_completed", native_sweep_end_completed),
+    ):
+        if not isinstance(value, bool):
+            raise ValueError(f"{name} must be boolean")
     if not all_groups_completed or not native_sweep_end_completed:
         raise ValueError("delayed credit requires the complete native sweep end")
     anchor = _finite(anchor_error, name="anchor_error")

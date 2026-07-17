@@ -64,6 +64,13 @@ from arac.backends.hcc import (
     resolve_hcc_vendor_paths,
     run_hcc_aob_smoke_execution,
 )
+from arac.backends.hcc_hypergraph_trace import (
+    HYPERGRAPH_AUDIT_FIELDS as HCC_HYPERGRAPH_AUDIT_FIELDS,
+    HYPERGRAPH_FEATURE_FIELDS as HCC_HYPERGRAPH_FEATURE_FIELDS,
+    HYPERGRAPH_NATIVE_SWEEP_END_STAGE,
+    HYPERGRAPH_OUTCOME_FIELDS as HCC_HYPERGRAPH_OUTCOME_FIELDS,
+    HYPERGRAPH_PROPOSAL_FIELDS as HCC_HYPERGRAPH_PROPOSAL_FIELDS,
+)
 from arac.evaluation import SameBudgetLedger
 from arac.evaluation import classify_utility, relative_gain
 from arac.evidence import FORBIDDEN_RUNTIME_FIELDS, validate_runtime_payload
@@ -82,6 +89,7 @@ from arac.policy.precision_response_probe import (
     PRECISION_PROBE_GATE_FIELDS,
     PRECISION_RESPONSE_PROTOCOL_VERSION,
 )
+from arac.policy.overlap_hypergraph import HYPERGRAPH_SCHEMA_VERSION
 from arac.policy.oracle_actionability import (
     CAR_ACTIONABILITY_HORIZON_LABELS,
     CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
@@ -153,6 +161,20 @@ COMPONENT_PRECISION_CONFIG_SHA256 = (
 COMPONENT_PRECISION_PREREGISTRATION_COMMIT = (
     "f234f9205f92d3a68ca42e54fb29954c05cdc9e8"
 )
+HYPERGRAPH_TRACE_PROTOCOL_VERSION = HYPERGRAPH_SCHEMA_VERSION
+HYPERGRAPH_TRACE_STAGES = ("screen", "full")
+HYPERGRAPH_TRACE_CONFIG_PATH = "configs/hypergraph_delayed_credit_v1.json"
+HYPERGRAPH_TRACE_SPEC_PATH = "docs/design/hypergraph-delayed-credit-v1.md"
+HYPERGRAPH_TRACE_CONFIG_SHA256 = (
+    "8bfe8b658f6569576fbe8666a0a8dee5bedbb06cc4cd2fc8f9a5f38ba871093d"
+)
+HYPERGRAPH_TRACE_SPEC_SHA256 = (
+    "ed4fb4d9407c4bbc15699107824cd3e3726e725d25f908ea99be2c409d2c9aab"
+)
+HYPERGRAPH_FEATURE_FIELDS = list(HCC_HYPERGRAPH_FEATURE_FIELDS)
+HYPERGRAPH_AUDIT_FIELDS = list(HCC_HYPERGRAPH_AUDIT_FIELDS)
+HYPERGRAPH_OUTCOME_FIELDS = list(HCC_HYPERGRAPH_OUTCOME_FIELDS)
+HYPERGRAPH_PROPOSAL_FIELDS = list(HCC_HYPERGRAPH_PROPOSAL_FIELDS)
 COMPONENT_BRANCH_RAW_FIELDS = [
     "protocol_version",
     "schema_version",
@@ -411,6 +433,7 @@ class LaneConfig:
     precision_causal_arm: str = "off"
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
+    hypergraph_trace_mode: str = "off"
 
 
 LANES = (
@@ -838,6 +861,7 @@ def _lane_from_controller_profile(
     precision_causal_arm: str = "off",
     precision_response_arm: str = "off",
     component_precision_arm: str = "off",
+    hypergraph_trace_mode: str = "off",
 ) -> LaneConfig:
     return LaneConfig(
         lane_id or profile.action_name,
@@ -853,6 +877,7 @@ def _lane_from_controller_profile(
         precision_causal_arm=precision_causal_arm,
         precision_response_arm=precision_response_arm,
         component_precision_arm=component_precision_arm,
+        hypergraph_trace_mode=hypergraph_trace_mode,
     )
 
 
@@ -1046,6 +1071,28 @@ COMPONENT_PRECISION_ACTION_VALIDITY_LANES = tuple(
     )
     for arm in COMPONENT_PRECISION_ARMS
 )
+HYPERGRAPH_V37_PARITY_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id="hypergraph_v37_observer_off",
+        dispatch_scope="v37_hypergraph_trace_parity_off",
+        hypergraph_trace_mode="off",
+    ),
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id="hypergraph_v37_observer_on",
+        dispatch_scope="v37_hypergraph_trace_parity_on",
+        hypergraph_trace_mode="observer",
+    ),
+)
+HYPERGRAPH_V37_LOGGING_LANES = (
+    _lane_from_controller_profile(
+        controller_profile_by_version(37),
+        lane_id="hypergraph_v37_observer",
+        dispatch_scope="v37_hypergraph_delayed_credit_trace_only",
+        hypergraph_trace_mode="observer",
+    ),
+)
 CAR_W_ACTION_NAMES = frozenset(
     {
         "arac_counterfactual_action_racing_w",
@@ -1087,6 +1134,10 @@ def lanes_for_profile(lane_profile: str) -> tuple[LaneConfig, ...]:
         return PRECISION_RESPONSE_LOGGING_LANES
     if lane_profile == "component_precision_action_validity":
         return COMPONENT_PRECISION_ACTION_VALIDITY_LANES
+    if lane_profile == "hypergraph_v37_parity":
+        return HYPERGRAPH_V37_PARITY_LANES
+    if lane_profile == "hypergraph_v37_logging":
+        return HYPERGRAPH_V37_LOGGING_LANES
     if lane_profile == "runtime_smoke":
         return LANES
     if lane_profile == "targeted_ablation":
@@ -1314,6 +1365,16 @@ def _read_csv_rows(path: Path | None) -> list[dict[str, str]]:
         return []
     with path.open(newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def _read_csv_with_header(
+    path: Path | None,
+) -> tuple[tuple[str, ...], list[dict[str, str]]]:
+    if path is None or not path.is_file():
+        return (), []
+    with path.open(newline="", encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        return tuple(reader.fieldnames or ()), list(reader)
 
 
 def _fingerprint_payload(payload: object) -> str:
@@ -2598,6 +2659,637 @@ def component_precision_pair_id(problem_id: str, seed: int) -> str:
     return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
+def _manifest_integrity_passed(payload: dict[str, object]) -> bool:
+    return bool(
+        payload.get("observer_status") == "complete"
+        and payload.get("observer_integrity") == 1
+        and payload.get("hypergraph_trace_mode") == "observer"
+    )
+
+
+_HYPERGRAPH_CENSORED_AUDIT_EMPTY_FIELDS = (
+    "source_end_fe",
+    "decision_fe",
+    "full_interval_start_fe",
+    "full_interval_end_fe",
+    "primary_requested_fe",
+    "primary_actual_fe",
+    "full_interval_actual_fe",
+    "pre_error",
+    "best_error",
+    "successful",
+    "unit_fe_contribution",
+    "feature_sha256",
+    "fitness_record_sha256",
+    "proposal_capture_watermark",
+)
+
+
+def _is_valid_hypergraph_censored_group_audit(row: dict[str, str]) -> bool:
+    """Return whether a never-visited group is an explicit incomplete-sweep placeholder."""
+
+    return bool(
+        row.get("state_complete") == "0"
+        and row.get("unique_focal") == "0"
+        and row.get("applicable") == "0"
+        and row.get("not_applicable_reason") == "incomplete_native_sweep"
+        and row.get("all_raw_groups_completed") == "0"
+        and row.get("native_sweep_end_completed") == "0"
+        and row.get("native_sweep_end_stage") == HYPERGRAPH_NATIVE_SWEEP_END_STAGE
+        and row.get("watermark_valid") == "0"
+        and row.get("observer_integrity") == "1"
+        and all(
+            not row.get(field, "")
+            for field in _HYPERGRAPH_CENSORED_AUDIT_EMPTY_FIELDS
+        )
+    )
+
+
+def _hypergraph_trace_raw_rows(
+    records: list[dict[str, object]],
+    *,
+    output_root: Path,
+    lane_profile: str,
+    aob_input_rows: list[dict[str, object]],
+    anti_leakage_rows: list[dict[str, object]],
+) -> tuple[
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[dict[str, object]],
+    list[str],
+]:
+    features: list[dict[str, object]] = []
+    audits: list[dict[str, object]] = []
+    proposals: list[dict[str, object]] = []
+    outcomes: list[dict[str, object]] = []
+    source_manifests: list[dict[str, object]] = []
+    failures: list[str] = []
+    expected_headers = {
+        "hyperedge_cycle_features.csv": tuple(HYPERGRAPH_FEATURE_FIELDS),
+        "hyperedge_cycle_audit.csv": tuple(HYPERGRAPH_AUDIT_FIELDS),
+        "shared_proposal_audit.csv": tuple(HYPERGRAPH_PROPOSAL_FIELDS),
+        "hyperedge_cycle_outcomes.csv": tuple(HYPERGRAPH_OUTCOME_FIELDS),
+    }
+    aggregate_by_name = {
+        "hyperedge_cycle_features.csv": features,
+        "hyperedge_cycle_audit.csv": audits,
+        "shared_proposal_audit.csv": proposals,
+        "hyperedge_cycle_outcomes.csv": outcomes,
+    }
+    anti_leakage_pass = bool(anti_leakage_rows) and all(
+        str(row.get("audit_status", "fail")) == "pass"
+        for row in anti_leakage_rows
+    )
+    resolved_output_root = output_root.resolve()
+
+    observer_records: dict[tuple[str, int], dict[str, object]] = {}
+    parity_off_records: dict[tuple[str, int], dict[str, object]] = {}
+    for record in records:
+        lane = record["lane"]
+        result = record["result"]
+        assert isinstance(lane, LaneConfig)
+        assert isinstance(result, HccAobExecutionResult)
+        key = (result.problem_id, result.seed)
+        if lane.hypergraph_trace_mode == "observer":
+            if key in observer_records:
+                failures.append(f"{result.problem_id}:seed{result.seed}:duplicate_observer")
+            observer_records[key] = record
+        elif lane_profile == "hypergraph_v37_parity":
+            if key in parity_off_records:
+                failures.append(
+                    f"{result.problem_id}:seed{result.seed}:duplicate_parity_off"
+                )
+            parity_off_records[key] = record
+
+    for key, record in sorted(observer_records.items()):
+        problem_id, seed = key
+        result = record["result"]
+        lane = record["lane"]
+        assert isinstance(result, HccAobExecutionResult)
+        assert isinstance(lane, LaneConfig)
+        prefix = f"{problem_id}:seed{seed}"
+        manifest_path = _find_lane_artifact(result, "hypergraph_manifest.json")
+        if manifest_path is None:
+            failures.append(f"{prefix}:missing_hypergraph_manifest")
+            continue
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            failures.append(f"{prefix}:invalid_hypergraph_manifest")
+            continue
+        if not isinstance(manifest, dict):
+            failures.append(f"{prefix}:invalid_hypergraph_manifest_root")
+            continue
+        expected_manifest = {
+            "protocol_version": HYPERGRAPH_TRACE_PROTOCOL_VERSION,
+            "hypergraph_trace_mode": "observer",
+            "fresh_optimizer_execution": 1,
+            "problem_id": problem_id,
+            "seed": seed,
+            "observer_objective_calls": 0,
+            "observer_rng_calls": 0,
+            "observer_optimizer_calls": 0,
+            "observer_fe": 0,
+            "protocol_config_sha256": HYPERGRAPH_TRACE_CONFIG_SHA256,
+            "protocol_spec_sha256": HYPERGRAPH_TRACE_SPEC_SHA256,
+        }
+        for field, expected in expected_manifest.items():
+            observed = manifest.get(field)
+            if field == "seed":
+                try:
+                    observed = int(observed)
+                except (TypeError, ValueError):
+                    pass
+            if observed != expected:
+                failures.append(f"{prefix}:manifest_{field}_mismatch")
+        if not _manifest_integrity_passed(manifest):
+            failures.append(f"{prefix}:manifest_integrity_failed")
+        current_runner_sha256 = _sha256_file(
+            ARAC_REPO_ROOT / "scripts" / "hcc_smoke_runner.py"
+        )
+        if manifest.get("runner_source_sha256") != current_runner_sha256:
+            failures.append(f"{prefix}:runner_source_hash_mismatch")
+        for field in (
+            "topology_sha256",
+            "rng_descriptor_sha256",
+            "fitness_record_sha256",
+        ):
+            value = str(manifest.get(field, ""))
+            if len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
+                failures.append(f"{prefix}:manifest_{field}_invalid")
+        actual_fe_used = _actual_fe_used(result)
+        if result.status != "completed":
+            failures.append(f"{prefix}:hcc_result_status_not_completed")
+        if not result.fresh_optimizer_execution or actual_fe_used > result.max_fes:
+            failures.append(f"{prefix}:fresh_or_fe_integrity_failed")
+        try:
+            terminal_values = (
+                manifest["terminal_target_fe"],
+                manifest["terminal_observed_fe"],
+                manifest["terminal_completion_tolerance_fe"],
+            )
+            if any(
+                isinstance(value, bool) or not isinstance(value, int)
+                for value in terminal_values
+            ):
+                raise ValueError("terminal completion fields must be integers")
+            (
+                terminal_target_fe,
+                terminal_observed_fe,
+                terminal_tolerance_fe,
+            ) = terminal_values
+        except (KeyError, TypeError, ValueError):
+            failures.append(f"{prefix}:manifest_terminal_completion_invalid")
+        else:
+            if terminal_target_fe != result.max_fes:
+                failures.append(f"{prefix}:manifest_terminal_target_fe_mismatch")
+            if terminal_observed_fe != actual_fe_used:
+                failures.append(f"{prefix}:manifest_terminal_observed_fe_mismatch")
+            if not 1 <= terminal_tolerance_fe <= terminal_target_fe:
+                failures.append(f"{prefix}:manifest_terminal_tolerance_invalid")
+            elif not (
+                terminal_target_fe - terminal_tolerance_fe
+                <= actual_fe_used
+                <= terminal_target_fe
+            ):
+                failures.append(f"{prefix}:manifest_terminal_completion_out_of_bounds")
+        lane_aob = [
+            row
+            for row in aob_input_rows
+            if str(row.get("problem_id", "")) == problem_id
+            and str(row.get("seed", "")) == str(seed)
+            and str(row.get("lane_id", "")) == lane.lane_id
+        ]
+        if not lane_aob or any(str(row.get("unchanged", "0")) != "1" for row in lane_aob):
+            failures.append(f"{prefix}:aob_input_changed_or_missing")
+        if not anti_leakage_pass:
+            failures.append(f"{prefix}:anti_leakage_violation")
+
+        artifact_hashes = manifest.get("artifact_sha256")
+        if not isinstance(artifact_hashes, dict):
+            artifact_hashes = {}
+            failures.append(f"{prefix}:missing_artifact_hashes")
+        run_rows: dict[str, list[dict[str, str]]] = {}
+        for artifact_name, expected_header in expected_headers.items():
+            artifact_path = _find_lane_artifact(result, artifact_name)
+            header, rows = _read_csv_with_header(artifact_path)
+            if artifact_path is None or not artifact_path.is_file():
+                failures.append(f"{prefix}:missing_{artifact_name}")
+                continue
+            if header != expected_header:
+                failures.append(f"{prefix}:{artifact_name}:schema_mismatch")
+                continue
+            expected_hash = artifact_hashes.get(artifact_name)
+            if expected_hash is None:
+                expected_hash = artifact_hashes.get(artifact_path.name)
+            if expected_hash != _sha256_file(artifact_path):
+                failures.append(f"{prefix}:{artifact_name}:hash_mismatch")
+            run_rows[artifact_name] = rows
+            aggregate_by_name[artifact_name].extend(rows)
+
+        manifest_row_counts = {
+            "feature_row_count": len(
+                run_rows.get("hyperedge_cycle_features.csv", [])
+            ),
+            "audit_row_count": len(run_rows.get("hyperedge_cycle_audit.csv", [])),
+            "shared_proposal_row_count": len(
+                run_rows.get("shared_proposal_audit.csv", [])
+            ),
+            "outcome_row_count": len(
+                run_rows.get("hyperedge_cycle_outcomes.csv", [])
+            ),
+        }
+        for field, expected_count in manifest_row_counts.items():
+            try:
+                observed_count = int(manifest.get(field, -1))
+            except (TypeError, ValueError):
+                observed_count = -1
+            if observed_count != expected_count:
+                failures.append(f"{prefix}:manifest_{field}_mismatch")
+
+        audit_rows = run_rows.get("hyperedge_cycle_audit.csv", [])
+        audit_by_id = {
+            row.get("decision_id", ""): row
+            for row in audit_rows
+        }
+        if "" in audit_by_id or len(audit_by_id) != len(audit_rows):
+            failures.append(f"{prefix}:duplicate_or_empty_audit_decision_id")
+        feature_rows = run_rows.get("hyperedge_cycle_features.csv", [])
+        feature_id_sequence = [row.get("decision_id", "") for row in feature_rows]
+        feature_ids = set(feature_id_sequence)
+        if "" in feature_ids or len(feature_ids) != len(feature_id_sequence):
+            failures.append(f"{prefix}:duplicate_or_empty_feature_decision_id")
+        feature_sweeps: set[str] = set()
+        for feature in feature_rows:
+            decision_id = feature.get("decision_id", "")
+            audit = audit_by_id.get(decision_id)
+            if (
+                audit is None
+                or audit.get("cohort_locked") != "1"
+                or audit.get("state_complete") != "1"
+            ):
+                failures.append(f"{prefix}:{decision_id}:feature_without_locked_state")
+                continue
+            feature_sweeps.add(audit.get("sweep_index", ""))
+            numeric_payload = {
+                field: feature.get(field, "")
+                for field in HYPERGRAPH_FEATURE_FIELDS[1:]
+            }
+            if audit.get("feature_sha256") != _fingerprint_payload(numeric_payload):
+                failures.append(f"{prefix}:{decision_id}:feature_hash_mismatch")
+        if len(feature_sweeps) > 1:
+            failures.append(f"{prefix}:multiple_decision_snapshots")
+        for audit in audit_by_id.values():
+            decision_id = audit.get("decision_id", "")
+            if (
+                audit.get("protocol_version") != HYPERGRAPH_TRACE_PROTOCOL_VERSION
+                or audit.get("problem_id") != problem_id
+                or audit.get("seed") != str(seed)
+                or audit.get("topology_sha256") != manifest.get("topology_sha256")
+                or audit.get("rng_descriptor_sha256")
+                != manifest.get("rng_descriptor_sha256")
+                or audit.get("native_sweep_end_stage")
+                != HYPERGRAPH_NATIVE_SWEEP_END_STAGE
+            ):
+                failures.append(f"{prefix}:{decision_id}:audit_identity_mismatch")
+            if _is_valid_hypergraph_censored_group_audit(audit):
+                continue
+            try:
+                start_fe = int(audit["full_interval_start_fe"])
+                end_fe = int(audit["full_interval_end_fe"])
+                actual_fe = int(audit["full_interval_actual_fe"])
+            except (KeyError, TypeError, ValueError):
+                failures.append(f"{prefix}:{decision_id}:invalid_audit_watermark")
+                continue
+            if (
+                end_fe - start_fe != actual_fe
+                or audit.get("watermark_valid") != "1"
+                or audit.get("observer_integrity") != "1"
+                or audit.get("proposal_capture_watermark")
+                != "after_group_local_rescue_recovery_before_relation_writeback"
+            ):
+                failures.append(f"{prefix}:{decision_id}:watermark_failed")
+            complete = (
+                audit.get("all_raw_groups_completed") == "1"
+                and audit.get("native_sweep_end_completed") == "1"
+            )
+            if complete:
+                try:
+                    source_end = int(audit["source_end_fe"])
+                    decision_fe = int(audit["decision_fe"])
+                except (KeyError, ValueError):
+                    failures.append(f"{prefix}:invalid_complete_sweep_watermark")
+                    continue
+                if (
+                    source_end != decision_fe
+                    or end_fe > decision_fe
+                    or audit.get("native_sweep_end_stage")
+                    != HYPERGRAPH_NATIVE_SWEEP_END_STAGE
+                ):
+                    failures.append(
+                        f"{prefix}:{decision_id}:complete_sweep_watermark_failed"
+                    )
+            if audit.get("applicable") == "1" and (
+                audit.get("unique_focal") != "1"
+                or decision_id not in feature_ids
+            ):
+                failures.append(f"{prefix}:{decision_id}:invalid_applicable_route")
+
+        cohort_audits = [
+            row for row in audit_by_id.values() if row.get("cohort_locked") == "1"
+        ]
+        cohort_sweeps = {row.get("sweep_index", "") for row in cohort_audits}
+        if cohort_audits:
+            if len(cohort_sweeps) != 1:
+                failures.append(f"{prefix}:cohort_spans_multiple_sweeps")
+            try:
+                expected_groups = int(manifest.get("raw_group_count", -1))
+            except (TypeError, ValueError):
+                expected_groups = -1
+            observed_groups = {row.get("group_index", "") for row in cohort_audits}
+            if (
+                expected_groups < 0
+                or observed_groups != {str(group) for group in range(expected_groups)}
+            ):
+                failures.append(f"{prefix}:cohort_missing_raw_groups")
+        try:
+            decision_feature_count = int(
+                manifest.get("decision_feature_row_count", -1)
+            )
+            decision_lock_consumed = int(manifest.get("decision_lock_consumed", -1))
+        except (TypeError, ValueError):
+            decision_feature_count = -1
+            decision_lock_consumed = -1
+        if decision_feature_count != len(feature_rows):
+            failures.append(f"{prefix}:manifest_feature_count_mismatch")
+        if decision_lock_consumed not in {0, 1}:
+            failures.append(f"{prefix}:invalid_decision_lock_state")
+        elif decision_lock_consumed == 1:
+            if len(cohort_sweeps) != 1:
+                failures.append(f"{prefix}:missing_locked_decision_cohort")
+            else:
+                locked_sweep = next(iter(cohort_sweeps))
+                try:
+                    manifest_snapshot = str(int(manifest["decision_snapshot_sweep"]))
+                    manifest_cohort = str(int(manifest["cohort_locked_sweep"]))
+                except (KeyError, TypeError, ValueError):
+                    manifest_snapshot = ""
+                    manifest_cohort = ""
+                if locked_sweep not in {manifest_snapshot, manifest_cohort} or (
+                    manifest_snapshot != manifest_cohort
+                ):
+                    failures.append(f"{prefix}:decision_cohort_manifest_mismatch")
+        elif cohort_audits or feature_rows:
+            failures.append(f"{prefix}:unlocked_manifest_has_decision_rows")
+
+        decision_status = str(manifest.get("decision_status", ""))
+        applicable_rows = [row for row in cohort_audits if row.get("applicable") == "1"]
+        if decision_status == "applicable":
+            if decision_lock_consumed != 1 or not applicable_rows:
+                failures.append(f"{prefix}:invalid_applicable_manifest_state")
+        elif decision_status == "inapplicable":
+            if decision_lock_consumed != 1 or applicable_rows:
+                failures.append(f"{prefix}:invalid_inapplicable_manifest_state")
+        elif decision_lock_consumed == 1:
+            failures.append(f"{prefix}:invalid_locked_manifest_status")
+
+        outcome_rows = run_rows.get("hyperedge_cycle_outcomes.csv", [])
+        outcome_id_sequence = [row.get("decision_id", "") for row in outcome_rows]
+        outcome_ids = set(outcome_id_sequence)
+        if (
+            "" in outcome_ids
+            or len(outcome_ids) != len(outcome_id_sequence)
+            or outcome_ids != feature_ids
+        ):
+            failures.append(f"{prefix}:feature_outcome_id_mismatch")
+        for outcome in outcome_rows:
+            decision_id = outcome.get("decision_id", "")
+            audit = audit_by_id.get(decision_id)
+            if (
+                audit is None
+                or outcome.get("problem_id") != problem_id
+                or outcome.get("seed") != str(seed)
+                or outcome.get("sweep_index") != audit.get("sweep_index")
+            ):
+                failures.append(f"{prefix}:{decision_id}:outcome_identity_mismatch")
+            if outcome.get("outcome_complete") == "1":
+                try:
+                    valid_closure = bool(
+                        audit is not None
+                        and int(outcome["resolution_sweep_index"])
+                        == int(outcome["sweep_index"]) + 1
+                        and int(outcome["resolution_end_fe"])
+                        > int(audit["decision_fe"])
+                        and outcome["all_groups_completed"] == "1"
+                        and outcome["native_sweep_end_completed"] == "1"
+                        and outcome.get("terminal_censored") == "0"
+                        and all(
+                            math.isfinite(float(outcome[field]))
+                            for field in (
+                                "next_sweep_unit_fe_contribution",
+                                "next_sweep_survival",
+                                "next_sweep_overwrite",
+                            )
+                        )
+                    )
+                except (KeyError, ValueError):
+                    valid_closure = False
+                if not valid_closure:
+                    failures.append(f"{prefix}:{decision_id}:invalid_delayed_closure")
+            elif not (
+                outcome.get("terminal_censored") == "1"
+                and outcome.get("all_groups_completed") == "0"
+                and outcome.get("native_sweep_end_completed") == "0"
+                and all(
+                    not outcome.get(field, "")
+                    for field in (
+                        "resolution_sweep_index",
+                        "resolution_end_fe",
+                        "next_sweep_unit_fe_contribution",
+                        "next_sweep_survival",
+                        "next_sweep_overwrite",
+                    )
+                )
+            ):
+                failures.append(f"{prefix}:{decision_id}:invalid_censored_outcome")
+
+        if outcome_rows and all(
+            row.get("outcome_complete") == "1" for row in outcome_rows
+        ):
+            expected_label_closure = "closed"
+        elif outcome_rows and all(
+            row.get("terminal_censored") == "1" for row in outcome_rows
+        ):
+            expected_label_closure = "terminal_censored"
+        elif decision_lock_consumed == 1 and not feature_rows:
+            expected_label_closure = "not_applicable"
+        else:
+            expected_label_closure = "not_reached"
+        if manifest.get("label_closure") != expected_label_closure:
+            failures.append(f"{prefix}:manifest_label_closure_mismatch")
+        try:
+            complete_outcome_count = int(manifest.get("complete_outcome_count", -1))
+            censored_outcome_count = int(
+                manifest.get("terminal_censored_outcome_count", -1)
+            )
+        except (TypeError, ValueError):
+            complete_outcome_count = -1
+            censored_outcome_count = -1
+        if complete_outcome_count != sum(
+            row.get("outcome_complete") == "1" for row in outcome_rows
+        ):
+            failures.append(f"{prefix}:manifest_complete_outcome_count_mismatch")
+        if censored_outcome_count != sum(
+            row.get("terminal_censored") == "1" for row in outcome_rows
+        ):
+            failures.append(f"{prefix}:manifest_censored_outcome_count_mismatch")
+
+        for proposal in run_rows.get("shared_proposal_audit.csv", []):
+            decision_id = proposal.get("decision_id", "")
+            proposal_audit = audit_by_id.get(decision_id)
+            if (
+                proposal.get("protocol_version") != HYPERGRAPH_TRACE_PROTOCOL_VERSION
+                or proposal.get("problem_id") != problem_id
+                or proposal.get("seed") != str(seed)
+                or proposal.get("topology_sha256") != manifest.get("topology_sha256")
+                or proposal_audit is None
+                or proposal.get("sweep_index") != proposal_audit.get("sweep_index")
+                or proposal.get("group_index") != proposal_audit.get("group_index")
+            ):
+                failures.append(f"{prefix}:{decision_id}:proposal_identity_mismatch")
+            try:
+                source_fe = int(proposal["proposal_source_end_fe"])
+                sweep_end_fe = int(proposal["sweep_end_fe"])
+            except (KeyError, ValueError):
+                failures.append(f"{prefix}:invalid_proposal_watermark")
+                continue
+            if (
+                proposal.get("capture_watermark")
+                != "after_group_local_rescue_recovery_before_relation_writeback"
+                or source_fe > sweep_end_fe
+                or proposal.get("observer_integrity") != "1"
+            ):
+                failures.append(
+                    f"{prefix}:{proposal.get('decision_id', '')}:proposal_watermark_failed"
+                )
+            next_value = proposal.get("next_sweep_value", "")
+            next_end = proposal.get("next_sweep_end_fe", "")
+            if bool(next_value) != bool(next_end):
+                failures.append(
+                    f"{prefix}:{proposal.get('decision_id', '')}:partial_proposal_closure"
+                )
+            if next_end:
+                try:
+                    if int(next_end) <= sweep_end_fe or not math.isfinite(float(next_value)):
+                        failures.append(
+                            f"{prefix}:{proposal.get('decision_id', '')}:invalid_proposal_closure"
+                        )
+                except ValueError:
+                    failures.append(
+                        f"{prefix}:{proposal.get('decision_id', '')}:invalid_proposal_closure"
+                    )
+
+        try:
+            relative_manifest_path = (
+                manifest_path.resolve()
+                .relative_to(resolved_output_root)
+                .as_posix()
+            )
+        except ValueError:
+            relative_manifest_path = ""
+            failures.append(f"{prefix}:source_manifest_outside_output_root")
+        source_manifests.append(
+            {
+                **manifest,
+                "problem_id": problem_id,
+                "seed": seed,
+                "lane_id": lane.lane_id,
+                "path": relative_manifest_path,
+                "sha256": _sha256_file(manifest_path),
+                "hcc_result_status": result.status,
+                "hcc_result_max_fes": result.max_fes,
+                "hcc_result_actual_fe_used": actual_fe_used,
+            }
+        )
+
+    if lane_profile == "hypergraph_v37_parity":
+        for key in sorted(set(observer_records) | set(parity_off_records)):
+            on_record = observer_records.get(key)
+            off_record = parity_off_records.get(key)
+            prefix = f"{key[0]}:seed{key[1]}"
+            if on_record is None or off_record is None:
+                failures.append(f"{prefix}:missing_parity_lane")
+                continue
+            on_result = on_record["result"]
+            off_result = off_record["result"]
+            assert isinstance(on_result, HccAobExecutionResult)
+            assert isinstance(off_result, HccAobExecutionResult)
+            fields_match = bool(
+                on_result.fresh_optimizer_execution
+                and off_result.fresh_optimizer_execution
+                and on_result.max_fes == off_result.max_fes
+                and on_result.final_error == off_result.final_error
+                and _actual_fe_used(on_result) == _actual_fe_used(off_result)
+                and on_result.optimizer_final_fe_used
+                == off_result.optimizer_final_fe_used
+                and on_result.global_phase_fe == off_result.global_phase_fe
+                and on_result.cc_phase_fe == off_result.cc_phase_fe
+                and on_result.rescue_fe == off_result.rescue_fe
+                and on_result.refresh_fe == off_result.refresh_fe
+                and on_result.search_state_fe == off_result.search_state_fe
+                and on_result.precision_probe_fe == off_result.precision_probe_fe
+                and on_result.separable_continuation_fe
+                == off_result.separable_continuation_fe
+                and on_result.overhead_fe == off_result.overhead_fe
+            )
+            artifact_match = all(
+                (
+                    (on_path := _find_lane_artifact(on_result, artifact_name))
+                    is not None
+                    and (off_path := _find_lane_artifact(off_result, artifact_name))
+                    is not None
+                    and _sha256_file(on_path) == _sha256_file(off_path)
+                )
+                for artifact_name in (
+                    "action_trace.csv",
+                    "aob_input_manifest.csv",
+                    "budget_summary.csv",
+                    "evaluation_record.txt",
+                )
+            )
+            parity_lane_ids = {
+                "on": str(on_record["lane_id"]),
+                "off": str(off_record["lane_id"]),
+            }
+            parity_aob: dict[str, dict[str, tuple[str, str]]] = {}
+            for arm, lane_id in parity_lane_ids.items():
+                parity_aob[arm] = {
+                    str(row.get("file", "")): (
+                        str(row.get("sha256_before", "")),
+                        str(row.get("sha256_after", "")),
+                    )
+                    for row in aob_input_rows
+                    if str(row.get("problem_id", "")) == key[0]
+                    and str(row.get("seed", "")) == str(key[1])
+                    and str(row.get("lane_id", "")) == lane_id
+                    and str(row.get("file", ""))
+                }
+            aob_match = bool(
+                parity_aob["on"]
+                and parity_aob["on"] == parity_aob["off"]
+                and all(
+                    before == after and bool(before)
+                    for before, after in parity_aob["on"].values()
+                )
+            )
+            if not fields_match or not artifact_match or not aob_match:
+                failures.append(f"{prefix}:observer_bit_parity_failed")
+
+    return features, audits, proposals, outcomes, source_manifests, failures
+
+
 def _component_int_sequence(value: object) -> tuple[int, ...]:
     text = str(value).strip()
     if not text:
@@ -3741,6 +4433,105 @@ def _component_precision_manifest(
     }
 
 
+def _hypergraph_trace_manifest(
+    *,
+    output_root: Path,
+    lane_profile: str,
+    stage: str | None,
+    problem_ids: tuple[str, ...],
+    seeds: tuple[int, ...],
+    max_fes: int,
+    source_manifests: list[dict[str, object]],
+    feature_rows: list[dict[str, object]],
+    audit_rows: list[dict[str, object]],
+    proposal_rows: list[dict[str, object]],
+    outcome_rows: list[dict[str, object]],
+    integrity_failures: list[str],
+    prior_screen_gate: dict[str, object] | None = None,
+) -> dict[str, object]:
+    from scripts.audit_hypergraph_trace import (
+        hypergraph_source_bundle,
+        hypergraph_static_ast_audit,
+    )
+
+    artifacts = (
+        "hyperedge_cycle_features.csv",
+        "hyperedge_cycle_audit.csv",
+        "shared_proposal_audit.csv",
+        "hyperedge_cycle_outcomes.csv",
+    )
+    source_bundle = hypergraph_source_bundle()
+    static_ast_audit = hypergraph_static_ast_audit()
+    manifest_failures = list(integrity_failures)
+    static_checks = static_ast_audit.get("checks")
+    if (
+        static_ast_audit.get("status") != "pass"
+        or not isinstance(static_checks, dict)
+        or not static_checks
+        or not all(value is True for value in static_checks.values())
+    ):
+        manifest_failures.append("hypergraph_static_ast_audit_failed")
+    source_git_commit = _git_commit()
+    if stage in HYPERGRAPH_TRACE_STAGES and (
+        len(source_git_commit) != 40
+        or any(
+            character not in "0123456789abcdef"
+            for character in source_git_commit
+        )
+    ):
+        manifest_failures.append("hypergraph_source_git_commit_invalid")
+    return {
+        "protocol_version": HYPERGRAPH_TRACE_PROTOCOL_VERSION,
+        "schema_version": 1,
+        "lane_profile": lane_profile,
+        "stage": "parity" if stage is None else stage,
+        "hypergraph_trace_mode": "observer",
+        "status": "pass" if not manifest_failures else "blocked",
+        "runtime_profile_authorized": False,
+        "runtime_model_bundle_allowed": False,
+        "diagnostic_model_used": False,
+        "problem_ids": list(problem_ids),
+        "seeds": list(seeds),
+        "max_fes": max_fes,
+        "source_manifest_count": len(source_manifests),
+        "source_manifests": source_manifests,
+        "source_bundle": source_bundle,
+        "static_ast_audit": static_ast_audit,
+        "prior_screen_gate": prior_screen_gate,
+        "row_counts": {
+            "features": len(feature_rows),
+            "audit": len(audit_rows),
+            "shared_proposals": len(proposal_rows),
+            "outcomes": len(outcome_rows),
+        },
+        "observer_calls": {
+            "objective": 0,
+            "rng": 0,
+            "optimizer": 0,
+            "fe": 0,
+        },
+        "config": {
+            "path": HYPERGRAPH_TRACE_CONFIG_PATH,
+            "sha256": HYPERGRAPH_TRACE_CONFIG_SHA256,
+        },
+        "spec": {
+            "path": HYPERGRAPH_TRACE_SPEC_PATH,
+            "sha256": HYPERGRAPH_TRACE_SPEC_SHA256,
+        },
+        "source_git_commit": source_git_commit,
+        "artifact_sha256": {
+            name: _sha256_file(output_root / name) for name in artifacts
+        },
+        "integrity_failures": list(dict.fromkeys(manifest_failures)),
+        "forbidden_outputs": [
+            "causal_risk_precision_model.json",
+            "runtime_model_bundle",
+            "runtime_profile",
+            "scheduler",
+        ],
+    }
+
+
 def _trace_rows_for_record(record: dict[str, object]) -> list[dict[str, str]]:
     result = record["result"]
     assert isinstance(result, HccAobExecutionResult)
@@ -3970,6 +4761,7 @@ def _records(
                             precision_causal_arm=lane.precision_causal_arm,
                             precision_response_arm=lane.precision_response_arm,
                             component_precision_arm=lane.component_precision_arm,
+                            hypergraph_trace_mode=lane.hypergraph_trace_mode,
                             skip_plots=True,
                         ),
                     }
@@ -4727,6 +5519,39 @@ def _anti_leakage_rows(records: list[dict[str, object]]) -> list[dict[str, objec
                 "audit_status": "fail" if found or artifact_found else "pass",
             }
         )
+    hypergraph_enabled = any(
+        isinstance(record.get("lane"), LaneConfig)
+        and record["lane"].hypergraph_trace_mode == "observer"
+        for record in records
+    )
+    if hypergraph_enabled:
+        from scripts.audit_hypergraph_trace import hypergraph_static_ast_audit
+
+        static_audit = hypergraph_static_ast_audit()
+        static_checks = static_audit.get("checks")
+        checks = {
+            "status": static_audit.get("status") == "pass",
+            **(static_checks if isinstance(static_checks, dict) else {}),
+        }
+        if not isinstance(static_checks, dict) or not static_checks:
+            checks["checks_present"] = False
+        for check_name, passed in sorted(checks.items()):
+            passed = passed is True
+            rows.append(
+                {
+                    "run_id": RUN_ID,
+                    "artifact_path": str(
+                        static_audit.get(
+                            "policy_path",
+                            "src/arac/policy/overlap_hypergraph.py",
+                        )
+                    ),
+                    "forbidden_field": f"hypergraph_ast:{check_name}",
+                    "found_in_runtime_payload": 0 if passed else 1,
+                    "runtime_dispatch_allowed": 1 if passed else 0,
+                    "audit_status": "pass" if passed else "fail",
+                }
+            )
     return rows
 
 
@@ -7483,6 +8308,105 @@ def _git_commit() -> str:
     return result.stdout.strip() or "unknown"
 
 
+def _require_hypergraph_trace_source_binding() -> None:
+    """Require every formal trace source to be tracked with no staged/unstaged diff."""
+
+    from scripts.audit_hypergraph_trace import hypergraph_source_bundle
+
+    source_bundle = hypergraph_source_bundle()
+    files = source_bundle.get("files")
+    tracked_paths = (
+        [str(row["path"]) for row in files if isinstance(row, dict) and row.get("path")]
+        if isinstance(files, list)
+        else []
+    )
+    if not tracked_paths:
+        raise RuntimeError("hypergraph trace source bundle is empty")
+    head = _git_commit()
+    if len(head) != 40 or any(character not in "0123456789abcdef" for character in head):
+        raise RuntimeError("hypergraph trace source commit could not be verified")
+    commands = (
+        ["git", "ls-files", "--error-unmatch", "--", *tracked_paths],
+        ["git", "diff", "--quiet"],
+        ["git", "diff", "--cached", "--quiet"],
+    )
+    try:
+        results = [
+            subprocess.run(
+                command,
+                cwd=ARAC_REPO_ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            for command in commands
+        ]
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(
+            "hypergraph trace source binding could not be verified"
+        ) from exc
+    if any(result.returncode != 0 for result in results):
+        raise RuntimeError(
+            "formal hypergraph trace execution requires a clean tracked source bundle"
+        )
+
+
+def _validated_hypergraph_screen_gate(
+    screen_gate_path: Path | str,
+) -> dict[str, object]:
+    """Recompute and bind the immutable screen pass required by a full trace run."""
+
+    from scripts.audit_hypergraph_trace import (
+        audit_hypergraph_trace,
+        hypergraph_source_bundle,
+    )
+
+    resolved_gate = resolve_repository_path(screen_gate_path).resolve()
+    try:
+        gate = json.loads(resolved_gate.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("hypergraph full screen gate is unreadable") from exc
+    if not isinstance(gate, dict):
+        raise ValueError("hypergraph full screen gate must be a JSON object")
+    source_root_value = gate.get("source_root")
+    if not isinstance(source_root_value, str) or not source_root_value:
+        raise ValueError("hypergraph full screen gate has no source root")
+    screen_root = resolve_repository_path(source_root_value).resolve()
+    checks = gate.get("checks")
+    expected_bundle = hypergraph_source_bundle()
+    if (
+        resolved_gate != (screen_root / "hypergraph_identifiability_gate.json").resolve()
+        or gate.get("protocol_version") != HYPERGRAPH_TRACE_PROTOCOL_VERSION
+        or gate.get("stage") != "screen"
+        or gate.get("status") != "screen_pass"
+        or gate.get("blockers") != []
+        or not isinstance(checks, dict)
+        or not checks
+        or not all(value is True for value in checks.values())
+        or gate.get("config_sha256") != HYPERGRAPH_TRACE_CONFIG_SHA256
+        or gate.get("spec_sha256") != HYPERGRAPH_TRACE_SPEC_SHA256
+        or gate.get("source_git_commit") != _git_commit()
+        or gate.get("source_bundle") != expected_bundle
+    ):
+        raise ValueError("hypergraph full screen gate is not an audited pass")
+    recomputed = audit_hypergraph_trace(screen_root, stage="screen")
+    if recomputed != gate:
+        raise ValueError(
+            "hypergraph full screen gate does not match recomputed screen evidence"
+        )
+    return {
+        "path": str(resolved_gate),
+        "sha256": _sha256_file(resolved_gate),
+        "source_root": str(screen_root),
+        "status": "screen_pass",
+        "source_git_commit": gate["source_git_commit"],
+        "source_bundle": expected_bundle,
+        "config_sha256": HYPERGRAPH_TRACE_CONFIG_SHA256,
+        "spec_sha256": HYPERGRAPH_TRACE_SPEC_SHA256,
+    }
+
+
 def _require_component_precision_source_binding() -> None:
     head = _git_commit()
     try:
@@ -7592,6 +8516,11 @@ def _config_fingerprint(
                 **(
                     {"component_precision_arm": lane.component_precision_arm}
                     if lane.component_precision_arm != "off"
+                    else {}
+                ),
+                **(
+                    {"hypergraph_trace_mode": lane.hypergraph_trace_mode}
+                    if lane.hypergraph_trace_mode != "off"
                     else {}
                 ),
             }
@@ -7918,6 +8847,8 @@ def run_hcc_runtime_consumer_smoke(
     component_precision_arms: tuple[str, ...] | None = None,
     component_precision_stage: str | None = None,
     component_precision_screen_gate: Path | str | None = None,
+    hypergraph_trace_stage: str | None = None,
+    hypergraph_trace_screen_gate: Path | str | None = None,
     search_state_backend: str = "phase_i_mmes",
     environment_probe: EnvironmentProbe | None = None,
 ) -> Path:
@@ -8123,6 +9054,73 @@ def run_hcc_runtime_consumer_smoke(
             "component precision stage options require "
             "component_precision_action_validity"
         )
+    hypergraph_trace_enabled = any(
+        lane.hypergraph_trace_mode == "observer" for lane in lanes
+    )
+    hypergraph_prior_screen_gate: dict[str, object] | None = None
+    if hypergraph_trace_enabled:
+        if (
+            _sha256_file(ARAC_REPO_ROOT / HYPERGRAPH_TRACE_CONFIG_PATH)
+            != HYPERGRAPH_TRACE_CONFIG_SHA256
+            or _sha256_file(ARAC_REPO_ROOT / HYPERGRAPH_TRACE_SPEC_PATH)
+            != HYPERGRAPH_TRACE_SPEC_SHA256
+        ):
+            raise RuntimeError("hypergraph trace preregistration hash mismatch")
+        if lane_profile == "hypergraph_v37_logging":
+            if hypergraph_trace_stage not in HYPERGRAPH_TRACE_STAGES:
+                raise ValueError(
+                    "hypergraph_v37_logging requires an explicit screen or full stage"
+                )
+            if (
+                hypergraph_trace_stage == "screen"
+                and hypergraph_trace_screen_gate is not None
+            ):
+                raise ValueError("hypergraph trace screen does not accept a prior gate")
+            if (
+                hypergraph_trace_stage == "full"
+                and hypergraph_trace_screen_gate is None
+            ):
+                raise ValueError("hypergraph trace full requires a prior screen gate")
+            hypergraph_config = json.loads(
+                (ARAC_REPO_ROOT / HYPERGRAPH_TRACE_CONFIG_PATH).read_text(
+                    encoding="utf-8"
+                )
+            )
+            matrix_name = (
+                "trace_screen"
+                if hypergraph_trace_stage == "screen"
+                else "trace_full"
+            )
+            matrix = hypergraph_config["matrices"][matrix_name]
+            expected_cases = tuple(str(value) for value in matrix["cases"])
+            expected_seeds = tuple(int(value) for value in matrix["seeds"])
+            if (
+                tuple(problem_ids) != expected_cases
+                or tuple(seeds) != expected_seeds
+                or max_fes != int(matrix["terminal_fe"])
+                or budget_accounting != "strict"
+                or worker_count != 24
+            ):
+                raise ValueError(
+                    f"hypergraph trace {hypergraph_trace_stage} matrix mismatch"
+                )
+            _require_hypergraph_trace_source_binding()
+            if hypergraph_trace_stage == "full":
+                assert hypergraph_trace_screen_gate is not None
+                hypergraph_prior_screen_gate = _validated_hypergraph_screen_gate(
+                    hypergraph_trace_screen_gate
+                )
+        elif lane_profile == "hypergraph_v37_parity":
+            if hypergraph_trace_stage is not None:
+                raise ValueError("hypergraph parity does not accept a predictive stage")
+            if hypergraph_trace_screen_gate is not None:
+                raise ValueError("hypergraph parity does not accept a screen gate")
+        else:
+            raise ValueError("hypergraph observer requires a hypergraph trace lane profile")
+    elif hypergraph_trace_stage is not None or hypergraph_trace_screen_gate is not None:
+        raise ValueError(
+            "hypergraph trace stage/gate options require hypergraph_v37_logging"
+        )
     car_w_enabled = any(
         lane.runner_action_name in CAR_W_ACTION_NAMES
         for lane in lanes
@@ -8138,12 +9136,12 @@ def run_hcc_runtime_consumer_smoke(
         )
     output = resolve_repository_path(output_dir).resolve()
     if (
-        component_precision_profile_enabled
+        (component_precision_profile_enabled or hypergraph_trace_enabled)
         and output.exists()
         and any(output.iterdir())
     ):
         raise ValueError(
-            "component precision output directory must be absent or empty"
+            "formal trace/action output directory must be absent or empty"
         )
     vendor_paths = resolve_hcc_vendor_paths(
         hcc_root,
@@ -8255,6 +9253,24 @@ def run_hcc_runtime_consumer_smoke(
             anti_leakage_rows=anti_leakage_rows,
         )
         if component_precision_profile_enabled
+        else ([], [], [], [], [], [])
+    )
+    (
+        hypergraph_feature_rows,
+        hypergraph_audit_rows,
+        hypergraph_proposal_rows,
+        hypergraph_outcome_rows,
+        hypergraph_source_manifests,
+        hypergraph_integrity_failures,
+    ) = (
+        _hypergraph_trace_raw_rows(
+            records,
+            output_root=output,
+            lane_profile=lane_profile,
+            aob_input_rows=aob_input_rows,
+            anti_leakage_rows=anti_leakage_rows,
+        )
+        if hypergraph_trace_enabled
         else ([], [], [], [], [], [])
     )
     if component_precision_profile_enabled:
@@ -8589,6 +9605,59 @@ def run_hcc_runtime_consumer_smoke(
             *action_trace_fields_for_lanes(lanes),
         ],
     )
+    if hypergraph_trace_enabled:
+        _write_csv(
+            output / "hyperedge_cycle_features.csv",
+            hypergraph_feature_rows,
+            HYPERGRAPH_FEATURE_FIELDS,
+        )
+        _write_csv(
+            output / "hyperedge_cycle_audit.csv",
+            hypergraph_audit_rows,
+            HYPERGRAPH_AUDIT_FIELDS,
+        )
+        _write_csv(
+            output / "shared_proposal_audit.csv",
+            hypergraph_proposal_rows,
+            HYPERGRAPH_PROPOSAL_FIELDS,
+        )
+        _write_csv(
+            output / "hyperedge_cycle_outcomes.csv",
+            hypergraph_outcome_rows,
+            HYPERGRAPH_OUTCOME_FIELDS,
+        )
+        hypergraph_manifest = _hypergraph_trace_manifest(
+            output_root=output,
+            lane_profile=lane_profile,
+            stage=hypergraph_trace_stage,
+            problem_ids=tuple(problem_ids),
+            seeds=tuple(seeds),
+            max_fes=max_fes,
+            source_manifests=hypergraph_source_manifests,
+            feature_rows=hypergraph_feature_rows,
+            audit_rows=hypergraph_audit_rows,
+            proposal_rows=hypergraph_proposal_rows,
+            outcome_rows=hypergraph_outcome_rows,
+            integrity_failures=hypergraph_integrity_failures,
+            prior_screen_gate=hypergraph_prior_screen_gate,
+        )
+        (output / "hypergraph_trace_manifest.json").write_text(
+            json.dumps(hypergraph_manifest, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        if lane_profile == "hypergraph_v37_logging":
+            from scripts.audit_hypergraph_trace import audit_hypergraph_trace
+
+            audit_kwargs: dict[str, object] = {}
+            if hypergraph_trace_stage == "full":
+                audit_kwargs["screen_gate"] = Path(
+                    str(hypergraph_prior_screen_gate["path"])
+                )
+            audit_hypergraph_trace(
+                output,
+                stage=str(hypergraph_trace_stage),
+                **audit_kwargs,
+            )
     if component_precision_profile_enabled:
         _write_csv(
             output / "component_action_branch_manifest.csv",
@@ -9494,6 +10563,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "precision_causal_logging",
             "precision_response_logging",
             "component_precision_action_validity",
+            "hypergraph_v37_parity",
+            "hypergraph_v37_logging",
             "canonical_evidence_controller_v1",
         ],
     )
@@ -9522,6 +10593,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=None,
         help="Prior audited screen gate required by the confirm stage.",
+    )
+    parser.add_argument(
+        "--hypergraph-trace-stage",
+        choices=list(HYPERGRAPH_TRACE_STAGES),
+        default=None,
+        help="Frozen predictive gate stage for hypergraph_v37_logging.",
+    )
+    parser.add_argument(
+        "--hypergraph-trace-screen-gate",
+        type=Path,
+        default=None,
+        help="Prior audited screen gate required by a full hypergraph trace.",
     )
     return parser.parse_args(argv)
 
@@ -9555,6 +10638,8 @@ def main(argv: list[str] | None = None) -> Path:
         ),
         component_precision_stage=args.component_precision_stage,
         component_precision_screen_gate=args.component_precision_screen_gate,
+        hypergraph_trace_stage=args.hypergraph_trace_stage,
+        hypergraph_trace_screen_gate=args.hypergraph_trace_screen_gate,
         search_state_backend=str(args.search_state_backend),
     )
 

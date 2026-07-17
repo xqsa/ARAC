@@ -1,6 +1,6 @@
 # Hypergraph Delayed Credit v1
 
-Date: 2026-07-16
+Date: 2026-07-17
 Executor: Codex
 Status: frozen before new optimizer FE
 
@@ -25,6 +25,12 @@ CSA, population, restart behavior, requested group budgets, optimizer seeds,
 native group writeback, and native sweep-end handlers remain unchanged. The
 observer is opt-in and trace-only. Resource reallocation, visit-frequency
 changes, early-stop changes, repeated actions, and a scheduler are out of scope.
+
+Formal screen and full runs require a clean tracked Git tree. Their aggregate
+manifest binds the Git commit and a canonical source bundle containing the pure
+policy, observer, HCC binding, runner, exp003 entry point, and auditor. The full
+stage must use the same commit and source bundle as a recomputed passing screen
+gate; a standalone full matrix cannot authorize action implementation.
 
 ## Hypergraph And Pre-Action State
 
@@ -58,7 +64,8 @@ block. Raw errors are discarded from the policy snapshot after these derived
 values are computed; they remain only in the audit surface.
 
 The first complete policy state uses exactly three complete sweeps ending at
-`t`:
+`t`. `success_ratio_3` is computed only to derive difficulty; it is not a
+second policy feature because `success_ratio_3 = 1 - difficulty` exactly:
 
 ```text
 ewma_u[g,t] = EWMA(u[g,t-2], u[g,t-1], u[g,t]), alpha = 0.5
@@ -88,8 +95,16 @@ before that owner block, `p[g,v,t-1]` its captured proposal, and `x[v,t]` the
 state after every native handler at the end of sweep `t`. Per-variable
 retention is the clipped directional projection of `x-a` onto `p-a`, weighted
 by `abs(p-a)`. If every shared displacement is exactly zero, survival and
-overwrite are both the neutral value `0.5`. Thus no future or entry-time label
-is backfilled into the snapshot.
+overwrite are both the neutral value `0.5`. The policy snapshot retains only
+prior overwrite; survival remains an audit/outcome value because
+`survival = 1 - overwrite` exactly. Thus no future or entry-time label is
+backfilled into the snapshot, and no complementary signal is double-weighted
+by support distance or reliability.
+
+The six independent policy features are current and EWMA unit-FE contribution,
+difficulty, stagnation, direct-owner proposal disagreement, and prior
+next-sweep overwrite. Success ratio and prior survival are audit-only
+complements.
 
 All scalar ranks are ascending within the same complete sweep and population
 of eligible raw hyperedges or direct owners. Ties use midrank percentiles; a
@@ -105,7 +120,6 @@ priority[H,t] = 0                         if C + Q == 0
 
 reliability[g,t] = mean(rank(u[g,t]),
                         rank(ewma_u[g,t]),
-                        rank(prior_survival[g,t]),
                         rank(1 - prior_overwrite[g,t]))
 ```
 
@@ -115,56 +129,166 @@ tie abstains; neither index order nor identity may break a utility tie.
 
 ## Predictive Gate Before Runtime
 
+The predictive estimand uses exactly one decision snapshot per trajectory: the
+first complete sweep end with three complete history sweeps and a legally
+closed `t-1 -> t` owner outcome. That snapshot contains one row for every
+eligible raw hyperedge. Later sweeps may resolve its `t+1` labels but cannot
+create another decision cohort. A trajectory is decision-eligible using only
+pre-label evidence: the locked snapshot is complete, contains at least two raw
+hyperedges with shared variables, and has one unique highest-priority focal
+hyperedge. Hyperedge rows are repeated measurements inside one case-by-seed
+trajectory, never independent observations or bootstrap units.
+
+A no-overlap state, a complete priority tie, or an incomplete first opportunity
+is explicitly inapplicable and cannot be replaced by a later, more favorable
+snapshot. An incomplete opportunity writes one audit row for every raw group;
+groups never visited because the native sweep ended use empty group-level
+fields and an explicit natural-censor placeholder. A complete decision snapshot
+whose next sweep cannot finish at the terminal budget remains valid integrity
+evidence and remains in the decision-eligible denominator, but its label is
+terminal-censored. It therefore forces the required label-closure gate to fail;
+the auditor cannot delete it and estimate on a more favorable complete subset.
+
+The required-state missing fraction is fixed before state or label filtering.
+Its denominator is every trajectory that reaches its first locked opportunity
+and whose raw topology contains overlap; its numerator is any such trajectory
+for which one or more of the six required state values cannot be reconstructed.
+A zero denominator is undefined and fails closed. This prevents missing states
+from disappearing by first being classified as inapplicable.
+
 The trace label is the complete next-normal-sweep unit-FE contribution
 `u[g,t+1]`. Owner labels are directional survival and overwrite observed only
 after the next sweep and all native sweep-end handlers finish. Entry-time or
 next-group closure is invalid.
 
-The fixed predictive checks are:
+Let trajectory `i=(case, seed)` contain eligible hyperedges `G_i`, unique focal
+`g*`, priority `p_ig`, next-sweep contribution `y_ig`, owner reliability `q_ig`,
+and next-sweep survival `s_ig`. The fixed predictive checks are computed inside
+each trajectory before any cross-trajectory aggregation:
 
-- Spearman correlation between focal priority and next-sweep contribution;
-- next contribution of the top priority quartile minus the bottom quartile;
-- Spearman correlation between owner reliability and next-sweep survival;
-- balanced accuracy for overwrite, where actual overwrite is `> 0.5` and the
-  prediction is reliability below the training-fold median.
+```text
+rho_priority_i = Spearman(p_i, y_i)
+focal_rank_i = midrank_percentile(y_i)[g*] - 0.5
+rho_owner_i = Spearman(q_i, s_i)
+diagnostic_delta_i = y_i,g* - mean(y_i,g for g != g*)
+```
 
-Leave-one-case-out (LCO) and leave-one-seed-out (LSO) validation fit all support
-preprocessing on the training fold. State support uses training median/IQR,
-closed per-feature training ranges, and five-nearest-neighbor distance. Its
-threshold is the training leave-one-out 95th percentile. Case and seed are fold
-keys only and never enter a score.
+If an otherwise decision-eligible trajectory has a constant outcome or an
+undefined correlation, its corresponding rank statistic is preregistered as
+zero: it supplies no predictive evidence and is not removed based on its
+outcome. `diagnostic_delta_i` is reported but is not a cross-case hard gate
+because raw contribution magnitudes vary by problem. The three bounded/rank
+statistics give every case-by-seed trajectory exactly one equal-weight value,
+irrespective of its number of groups.
+
+Overwrite is `overwrite > 0.5`. Leave-one-case-out (LCO) and leave-one-seed-out
+(LSO) folds fit the reliability threshold on their training trajectories using
+row weight `1 / |G_i|`; the threshold is the trajectory-weighted median and the
+prediction is `q_ig < threshold`. The weighted median is the lower weighted
+quantile: the infimum observed reliability whose cumulative normalized weight
+is at least `0.5`. Test-fold confusion contributions use the same
+within-trajectory weights before balanced accuracy is computed. A held-out fold
+may contain one class provided the complete pooled cross-fitted LCO or LSO route
+contains both classes; a single-class pooled route is undefined and fails
+closed. In a bootstrap replicate, a route missing either class remains in the
+bootstrap distribution with balanced accuracy `0`, rather than being deleted.
+Case and seed are fold keys only and never enter a score.
+
+There is no OOD support filter in the hard gate. The score is a fixed
+within-trajectory rank formula, not a learned cross-case runtime model, and the
+conditional action would run on every decision-eligible state. Support may be
+added as a diagnostic in a future learned scheduler but cannot filter rows or
+rescue a negative all-state result here.
 
 All confidence bounds use 2,000 case-by-seed two-way pigeonhole bootstrap
-resamples and the 5th percentile as a one-sided 95% lower bound. Undefined
-correlations, single-class balanced accuracy, incomplete folds, or non-finite
-statistics fail closed. A diagnostic tree or post-hoc threshold cannot rescue
-the fixed score.
+resamples and the 5th percentile as a one-sided 95% lower bound. Cases and seeds
+are sampled independently; each trajectory scalar receives the product of its
+case and seed multiplicities. Balanced-accuracy bounds apply the same weights
+to fixed cross-fitted prediction/confusion rows and are explicitly conditional
+on those fitted thresholds. Non-finite statistics, single-class balanced
+accuracy, incomplete folds, or empty bootstrap replicates fail closed. A
+diagnostic tree or post-hoc threshold cannot rescue the fixed score.
+
+The auditor does not trust either derived CSV as a second source of truth. For
+each trajectory it first derives the earliest lock opportunity from the raw
+complete/incomplete sweep sequence and requires the manifest and every cohort
+flag to name that same sweep. Every complete sweep must cover all raw groups in
+canonical order with non-overlapping FE intervals, one shared decision FE, one
+fitness-prefix hash, and one native endpoint. For every variable, a proposal
+row's `t -> t+1` value and FE must equal the canonical endpoint and decision FE
+recorded by the raw `t+1` sweep; a self-consistent backfill is not trusted.
+
+The auditor then reconstructs the six state values from the `t-2:t` raw group
+audits, raw shared proposals, topology, bounds, and FE watermarks; reconstructs
+within-snapshot ranks, scores, and the unique focal; formats every reconstructed
+state/score value with the runtime `.17e` representation and hashes that exact
+payload; and reconstructs `t+1` unit-FE contribution, directional survival, and
+overwrite from the next raw sweep. Pending, no-overlap, tie, incomplete, closed,
+and terminal-censored manifest status/closure are also derived from raw evidence
+rather than trusted. Any mismatch is an integrity failure, not a missing label
+or an alternative estimand.
+
+The same exact-string rule applies to outcomes. A reported contribution,
+survival, or overwrite must equal the raw reconstruction in runtime `.17e`
+format; a numeric tolerance is not accepted, and only the reconstructed value
+enters any rank or gate statistic. Each per-run manifest path is stored relative
+to and contained by the aggregate result root. Its four raw CSV hashes and
+headers are rechecked, and those per-run rows must reconstruct the four aggregate
+raw CSVs exactly. Editing a root CSV and its root hash therefore cannot create a
+new result while the per-run artifacts remain unchanged.
+
+Every formal run must finish with HCC status `completed` and observed FE in
+`[target - tolerance, target]`, where `target` is the matrix terminal FE and
+`tolerance` is the maximum native group CMA population size recorded by the
+runner. The unique `(case, seed, observer lane)` ledger row must agree with the
+per-run target, observed FE, and tolerance. Early termination, overspend,
+duplicate routes, or a missing route fail the stage.
 
 The trace screen is the eight cases `A4/A5/E1/E2/E3/E4/S2/S5`, seeds `91-95`,
 v37 observer only, strict 3M FE (40 trajectories). It passes only with:
 
 - 100% fresh, FE, AOB, RNG, hash, source-watermark, and observer integrity;
 - at least 30 applicable trajectories, six cases, and all five seeds;
-- complete next-sweep labels and at most 5% missingness in required state;
-- positive focal-priority Spearman direction and overwrite balanced accuracy
-  above `0.55`;
-- positive primary direction in at least three seeds and five overlap cases.
+- complete next-sweep labels for 100% of pre-label decision-eligible
+  trajectories and at most 5% missingness in required state;
+- positive equal-trajectory means for `rho_priority_i` and `focal_rank_i`;
+- trajectory-weighted overwrite balanced accuracy above `0.55` separately for
+  LCO and LSO cross-fitted predictions, without support filtering;
+- positive `focal_rank_i` direction in at least three seeds and five overlap
+  cases.
 
 The full trace matrix is all 24 cases, seeds `96-103`, v37 observer only,
 strict 3M FE (192 trajectories). It passes only with:
 
+- a supplied screen gate that is re-audited as `screen_pass`, with unchanged
+  input hashes, Git commit, config/spec hashes, and source bundle;
 - the same 100% integrity requirements;
 - at least 120 applicable trajectories, 16 cases, and all eight seeds;
-- both LCO and LSO in-support coverage at least 60%;
-- positive LCO and LSO bootstrap lower bounds for priority/contribution
-  Spearman, top-minus-bottom next gain, and reliability/survival Spearman;
-- LCO and LSO overwrite balanced-accuracy lower bounds above `0.5`;
-- positive primary direction in at least 75% of case folds and six of eight
-  seed folds;
-- no case contributing over 50% of absolute predictive advantage.
+- complete next-sweep labels for 100% of pre-label decision-eligible
+  trajectories;
+- positive two-way-cluster bootstrap lower bounds over all equal-weight
+  decision-eligible trajectories for `rho_priority_i`, `focal_rank_i`, and
+  `rho_owner_i`;
+- conditional LCO and LSO overwrite balanced-accuracy lower bounds above
+  `0.5`;
+- positive `focal_rank_i` direction in at least 75% of case means and six of
+  eight seed means;
+- no case mean contributing over 50% of the summed absolute focal-rank
+  advantage.
+
+The final concentration statistic is exactly
+`max_c |mean_i-in-c focal_rank_i| / sum_c |mean_i-in-c focal_rank_i|`. A zero
+denominator is undefined and fails closed.
 
 Failure of either trace gate is the completed scientific result: do not create
 an action runtime profile, model bundle, fresh action run, or scheduler.
+
+Static leakage is not delegated to the generic runtime-payload CSV. The formal
+auditor independently parses the pure policy state/score/build call graph,
+requires the relevant dataclasses to remain frozen, and rejects identity,
+fingerprint, raw-objective, future-outcome, historical-result, or paper-best
+inputs. Problem and seed remain audit/fold identities outside that policy call
+graph.
 
 ## Conditional One-Hop Coordinated Commit
 
@@ -172,9 +296,10 @@ an action runtime profile, model bundle, fresh action run, or scheduler.
 `hypergraph_identifiability_gate.json` is bound by protocol, config, source,
 and data hashes. The first applicable decision occurs once per trajectory at
 the first complete sweep end with three complete history sweeps, a unique focal
-hyperedge, no auxiliary context replacement, and enough remaining FE for the
-two action evaluations, the next complete normal sweep, and the absolute
-terminal target.
+hyperedge among at least two shared hyperedges, no auxiliary context
+replacement, and enough remaining FE for the two action evaluations, the next
+complete normal sweep, and the absolute terminal target. It inherits the trace
+decision-eligibility definition; a singleton cannot become action-eligible.
 
 For each `v` in `S`, direct-owner raw weights are `1 + reliability[g,t]`. After
 normalization, weights use the unique Euclidean projection onto:

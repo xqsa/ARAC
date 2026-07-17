@@ -139,6 +139,14 @@ from arac.backends.hcc_cma_proposals import (
     PairedHccCMAProbeResult,
     run_paired_hcc_cma_probe,
 )
+from arac.backends.hcc_hypergraph_trace import (
+    HYPERGRAPH_NATIVE_SWEEP_END_STAGE,
+    HYPERGRAPH_TRACE_MODES,
+    HypergraphTraceArtifactPaths,
+    HypergraphTraceObserver,
+    write_hypergraph_initialization_failure_manifest,
+)
+from arac.policy.overlap_hypergraph import build_overlap_hypergraph
 from src.arac.policy.trajectory_guard import (
     RecoveryCheckpoint,
     RecoveryResolution,
@@ -802,6 +810,7 @@ class SmokeConfig:
     precision_causal_arm: str = "off"
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
+    hypergraph_trace_mode: str = "off"
     offline_frozen_replay: bool = False
 
 
@@ -5351,13 +5360,22 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     )
     if enabled_precision_protocols > 1:
         raise ValueError("precision causal, response, and component arms are exclusive")
+    if config.hypergraph_trace_mode not in HYPERGRAPH_TRACE_MODES:
+        raise ValueError("unsupported hypergraph trace mode")
+    if config.hypergraph_trace_mode == "observer" and not (
+        is_evidence_action_controller_v37(config.arac_action)
+    ):
+        raise ValueError("hypergraph observer requires the frozen v37 action")
+    if config.hypergraph_trace_mode == "observer" and enabled_precision_protocols:
+        raise ValueError(
+            "hypergraph observer and frozen precision experiment arms are exclusive"
+        )
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
     info = bench.get_info(fun_name, fun_id)
     problem_id = _problem_id(fun_name, fun_id)
     grouping_result = decompose_problem(fun_id, config.aob_data_root)
-    _, overlap_groups, overlapping_elements = remove_overlapping_groups(grouping_result)
     terminal_completion_tolerance_fe = max(
         1,
         max(
@@ -5365,6 +5383,59 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             for group in grouping_result
         ),
     )
+    hypergraph_trace_enabled = config.hypergraph_trace_mode == "observer"
+    hypergraph_observer: HypergraphTraceObserver | None = None
+    hypergraph_observer_active = False
+    hypergraph_initialization_error: BaseException | None = None
+    if hypergraph_trace_enabled:
+        try:
+            hypergraph_observer = HypergraphTraceObserver(
+                topology=build_overlap_hypergraph(grouping_result),
+                problem_id=problem_id,
+                seed=config.seed,
+                run_id=config.run_id,
+                fresh_optimizer_execution=True,
+                lower_bound=float(info["lower"]),
+                upper_bound=float(info["upper"]),
+                rng_descriptor_sha256=_canonical_payload_sha256(
+                    {
+                        "base_seed": 0 if config.seed is None else int(config.seed),
+                        "function_name": fun_name,
+                        "function_id": int(fun_id),
+                        "max_fes": int(config.max_fes),
+                        "optimizer_seed_schedule": (
+                            "derive_optimizer_seed_stage_index_v1"
+                        ),
+                        "cmaes_restart": bool(config.cmaes_restart),
+                        "mmes_restart": bool(config.mmes_restart),
+                    }
+                ),
+                protocol_config_path=(
+                    ARAC_REPO_ROOT
+                    / "configs"
+                    / "hypergraph_delayed_credit_v1.json"
+                ),
+                protocol_spec_path=(
+                    ARAC_REPO_ROOT
+                    / "docs"
+                    / "design"
+                    / "hypergraph-delayed-credit-v1.md"
+                ),
+                runner_source_path=Path(__file__),
+                terminal_target_fe=config.max_fes,
+                terminal_completion_tolerance_fe=(
+                    terminal_completion_tolerance_fe
+                ),
+            )
+            hypergraph_observer_active = True
+        except Exception as error:
+            hypergraph_initialization_error = error
+            print(
+                "hypergraph observer disabled after initialization failure: "
+                f"{type(error).__name__}: {error}",
+                file=sys.stderr,
+            )
+    _, overlap_groups, overlapping_elements = remove_overlapping_groups(grouping_result)
     metadata = load_aob_metadata(fun_id, config.aob_data_root)
     degree = calculate_degree_of_overlap(overlap_groups, metadata["dimension"])
     global_fes = calculate_global_fes(config.max_fes, degree)
@@ -5814,8 +5885,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             ):
                 break
             group_interval_start_fe = current_fitness_evaluations(fun)
+            hypergraph_pre_block_candidate = (
+                best_individual.copy() if hypergraph_observer_active else None
+            )
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
+            hypergraph_pre_error = original_fitness
             if component_credit_trace is not None:
                 resolved_component_actions = component_credit_trace.resolve_group_revisit(
                     group_index=index,
@@ -7382,6 +7457,58 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         original_fitness=original_fitness,
                         current_delta=current_delta,
                     )
+            if hypergraph_observer_active and hypergraph_observer is not None:
+                try:
+                    group_interval_end_fe = current_fitness_evaluations(fun)
+                    if (
+                        hypergraph_pre_block_candidate is None
+                        or group_interval_end_fe <= group_interval_start_fe
+                    ):
+                        raise RuntimeError(
+                            "hypergraph observer group interval is incomplete"
+                        )
+                    if primary_evaluations_before != group_interval_start_fe + 1:
+                        raise RuntimeError(
+                            "hypergraph observer must reuse the single native precheck FE"
+                        )
+                    if (
+                        primary_evaluations_before + primary_cc_fe
+                        > group_interval_end_fe
+                    ):
+                        raise RuntimeError(
+                            "hypergraph observer primary CMA FE exceeds the native interval"
+                        )
+                    group_best_error = min(
+                        float(fun.fitness_record[fe_index])
+                        for fe_index in range(
+                            group_interval_start_fe,
+                            group_interval_end_fe,
+                        )
+                    )
+                    hypergraph_observer.record_group(
+                        sweep_index=outer_iter,
+                        group_index=index,
+                        pre_error=hypergraph_pre_error,
+                        best_error=min(hypergraph_pre_error, group_best_error),
+                        primary_requested_fe=optimizer_budget,
+                        primary_actual_fe=primary_cc_fe,
+                        full_interval_start_fe=group_interval_start_fe,
+                        full_interval_end_fe=group_interval_end_fe,
+                        pre_block_candidate=hypergraph_pre_block_candidate,
+                        final_owner_candidate=best_individual.copy(),
+                    )
+                except Exception as error:
+                    hypergraph_observer.record_failure(
+                        stage="group_capture",
+                        error=error,
+                        source_fe=current_fitness_evaluations(fun),
+                    )
+                    hypergraph_observer_active = False
+                    print(
+                        "hypergraph observer disabled after group capture failure: "
+                        f"{type(error).__name__}: {error}",
+                        file=sys.stderr,
+                    )
             fitness_delta_list.append(current_delta)
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
@@ -8491,6 +8618,36 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         ).append((source_end_fe, sum(values) / len(values)))
         if precision_causal_enabled:
             precision_current_component_disagreements = {}
+        if hypergraph_observer_active and hypergraph_observer is not None:
+            try:
+                hypergraph_observer.complete_sweep(
+                    sweep_index=outer_iter,
+                    optimized_group_count=len(fitness_delta_list),
+                    all_raw_groups_completed=(
+                        len(fitness_delta_list) == sub_num
+                    ),
+                    native_sweep_end_completed=(
+                        len(fitness_delta_list) == sub_num
+                    ),
+                    native_sweep_end_stage=(
+                        HYPERGRAPH_NATIVE_SWEEP_END_STAGE
+                    ),
+                    sweep_end_fe=current_fitness_evaluations(fun),
+                    sweep_end_candidate=best_individual.copy(),
+                    fitness_record=fun.fitness_record,
+                )
+            except Exception as error:
+                hypergraph_observer.record_failure(
+                    stage="sweep_closure",
+                    error=error,
+                    source_fe=current_fitness_evaluations(fun),
+                )
+                hypergraph_observer_active = False
+                print(
+                    "hypergraph observer disabled after sweep closure failure: "
+                    f"{type(error).__name__}: {error}",
+                    file=sys.stderr,
+                )
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
         if cc_harm_guard_consumed:
@@ -9136,6 +9293,83 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             fieldnames=COMPONENT_BUDGET_LEDGER_FIELDS,
             rows=component_budget_rows,
         )
+    if hypergraph_trace_enabled:
+        hypergraph_paths = HypergraphTraceArtifactPaths(
+            manifest=case_artifact_path(
+                output_path,
+                problem_id,
+                "hypergraph_manifest.json",
+            ),
+            features=case_artifact_path(
+                output_path,
+                problem_id,
+                "hyperedge_cycle_features.csv",
+            ),
+            audit=case_artifact_path(
+                output_path,
+                problem_id,
+                "hyperedge_cycle_audit.csv",
+            ),
+            proposals=case_artifact_path(
+                output_path,
+                problem_id,
+                "shared_proposal_audit.csv",
+            ),
+            outcomes=case_artifact_path(
+                output_path,
+                problem_id,
+                "hyperedge_cycle_outcomes.csv",
+            ),
+        )
+        if hypergraph_observer is not None:
+            try:
+                hypergraph_observer.write_artifacts(
+                    paths=hypergraph_paths,
+                    final_fitness_record=fun.fitness_record,
+                )
+            except Exception as error:
+                hypergraph_observer.record_failure(
+                    stage="artifact_write",
+                    error=error,
+                    source_fe=current_fitness_evaluations(fun),
+                )
+                print(
+                    "hypergraph observer artifact write failed: "
+                    f"{type(error).__name__}: {error}",
+                    file=sys.stderr,
+                )
+                try:
+                    hypergraph_observer.write_failure_manifest(
+                        path=hypergraph_paths.manifest,
+                        final_fitness_record=fun.fitness_record,
+                    )
+                except Exception as manifest_error:
+                    print(
+                        "hypergraph observer failure manifest write failed: "
+                        f"{type(manifest_error).__name__}: {manifest_error}",
+                        file=sys.stderr,
+                    )
+        elif hypergraph_initialization_error is not None:
+            try:
+                write_hypergraph_initialization_failure_manifest(
+                    path=hypergraph_paths.manifest,
+                    problem_id=problem_id,
+                    seed=config.seed,
+                    run_id=config.run_id,
+                    fresh_optimizer_execution=True,
+                    terminal_target_fe=config.max_fes,
+                    terminal_completion_tolerance_fe=(
+                        terminal_completion_tolerance_fe
+                    ),
+                    error=hypergraph_initialization_error,
+                    source_fe=current_fitness_evaluations(fun),
+                )
+            except Exception as manifest_error:
+                print(
+                    "hypergraph initialization failure manifest write failed: "
+                    f"{type(manifest_error).__name__}: {manifest_error}",
+                    file=sys.stderr,
+                )
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
         relations,
@@ -9303,6 +9537,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Opt-in v37 component-wide precision action-validity arm.",
     )
     parser.add_argument(
+        "--hypergraph-trace-mode",
+        choices=sorted(HYPERGRAPH_TRACE_MODES),
+        default="off",
+        help="Opt-in side-effect-free v37 overlap-hypergraph observer.",
+    )
+    parser.add_argument(
         "--offline-frozen-replay",
         action="store_true",
         help="Allow historical replay of the permanently frozen v41 profile.",
@@ -9381,6 +9621,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         > 1
     ):
         parser.error("precision causal, response, and component arms are exclusive")
+    if (
+        args.hypergraph_trace_mode == "observer"
+        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
+    ):
+        parser.error("--hypergraph-trace-mode observer requires --arac-action v37")
+    if args.hypergraph_trace_mode == "observer" and any(
+        arm != "off"
+        for arm in (
+            args.precision_causal_arm,
+            args.precision_response_arm,
+            args.component_precision_arm,
+        )
+    ):
+        parser.error("hypergraph observer and frozen precision arms are exclusive")
     if args.offline_frozen_replay and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V41:
         parser.error("--offline-frozen-replay is only valid with v41")
     return args
@@ -9418,6 +9672,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         precision_causal_arm=args.precision_causal_arm,
         precision_response_arm=args.precision_response_arm,
         component_precision_arm=args.component_precision_arm,
+        hypergraph_trace_mode=args.hypergraph_trace_mode,
         offline_frozen_replay=args.offline_frozen_replay,
     )
     output_paths = []

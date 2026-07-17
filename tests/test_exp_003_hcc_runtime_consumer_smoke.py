@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -127,6 +128,716 @@ def test_exp_003_cli_describes_canonical_vendor_runtime_root(
     help_text = capsys.readouterr().out
     assert "canonical vendor/hcc runtime root" in help_text
     assert "HCC-main runtime" not in help_text
+
+
+def _hypergraph_test_observer(
+    tmp_path: Path,
+    *,
+    grouping: list[list[int]] | None = None,
+):
+    from arac.backends.hcc_hypergraph_trace import HypergraphTraceObserver
+    from arac.policy.overlap_hypergraph import build_overlap_hypergraph
+
+    root = Path(__file__).resolve().parents[1]
+    return HypergraphTraceObserver(
+        topology=build_overlap_hypergraph(grouping or [[0, 1], [1, 2]]),
+        problem_id="E2",
+        seed=91,
+        run_id="exp003-hypergraph-integration-test",
+        fresh_optimizer_execution=True,
+        lower_bound=-5.0,
+        upper_bound=5.0,
+        rng_descriptor_sha256="a" * 64,
+        terminal_target_fe=100,
+        terminal_completion_tolerance_fe=50,
+        protocol_config_path=root / "configs" / "hypergraph_delayed_credit_v1.json",
+        protocol_spec_path=root
+        / "docs"
+        / "design"
+        / "hypergraph-delayed-credit-v1.md",
+        runner_source_path=root / "scripts" / "hcc_smoke_runner.py",
+    )
+
+
+def _record_hypergraph_test_sweep(observer, sweep: int) -> list[float]:
+    from arac.backends.hcc_hypergraph_trace import HYPERGRAPH_NATIVE_SWEEP_END_STAGE
+
+    group_count = len(observer.topology.hyperedges)
+    for group in range(group_count):
+        start = sweep * group_count * 10 + group * 10
+        pre_error = 100.0 - sweep * 5.0 - group
+        anchor = [0.0, float(sweep + group), 0.0]
+        proposal = anchor.copy()
+        if 1 in observer.topology.hyperedges[group]:
+            proposal[1] += 0.5 if group == 0 else -0.25
+        observer.record_group(
+            sweep_index=sweep,
+            group_index=group,
+            pre_error=pre_error,
+            best_error=pre_error - 1.0,
+            primary_requested_fe=8,
+            primary_actual_fe=8,
+            full_interval_start_fe=start,
+            full_interval_end_fe=start + 10,
+            pre_block_candidate=anchor,
+            final_owner_candidate=proposal,
+        )
+    decision_fe = (sweep + 1) * group_count * 10
+    record = [100.0 - index * 0.01 for index in range(decision_fe)]
+    assert observer.complete_sweep(
+        sweep_index=sweep,
+        optimized_group_count=group_count,
+        all_raw_groups_completed=True,
+        native_sweep_end_completed=True,
+        native_sweep_end_stage=HYPERGRAPH_NATIVE_SWEEP_END_STAGE,
+        sweep_end_fe=decision_fe,
+        sweep_end_candidate=(0.0, float(sweep) + 0.25, 0.0),
+        fitness_record=record,
+    )
+    return record
+
+
+def _write_hypergraph_test_artifacts(observer, output_root: Path, record: list[float]) -> None:
+    from arac.backends.hcc_hypergraph_trace import HypergraphTraceArtifactPaths
+
+    output_root.mkdir(parents=True, exist_ok=True)
+    observer.write_artifacts(
+        paths=HypergraphTraceArtifactPaths(
+            manifest=output_root / "E2_hypergraph_manifest.json",
+            features=output_root / "E2_hyperedge_cycle_features.csv",
+            audit=output_root / "E2_hyperedge_cycle_audit.csv",
+            proposals=output_root / "E2_shared_proposal_audit.csv",
+            outcomes=output_root / "E2_hyperedge_cycle_outcomes.csv",
+        ),
+        final_fitness_record=record,
+    )
+
+
+def _hypergraph_test_record(output_root: Path, lane) -> dict[str, object]:
+    manifest_path = output_root / "E2_hypergraph_manifest.json"
+    if manifest_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        max_fes = int(manifest["terminal_target_fe"])
+        actual_fe = int(manifest["terminal_observed_fe"])
+    else:
+        max_fes = 100
+        actual_fe = 60
+    return {
+        "lane_id": lane.lane_id,
+        "lane": lane,
+        "payload": {},
+        "result": HccAobExecutionResult(
+            problem_id="E2",
+            seed=91,
+            max_fes=max_fes,
+            final_error=1.0,
+            fe_used=actual_fe,
+            time_seconds=0.1,
+            output_root=output_root,
+            fresh_optimizer_execution=True,
+            status="completed",
+            result_source="test",
+            optimizer_final_fe_used=actual_fe,
+            global_phase_fe=10,
+            cc_phase_fe=50,
+            rescue_fe=0,
+            refresh_fe=0,
+            search_state_fe=0,
+            precision_probe_fe=0,
+            separable_continuation_fe=0,
+            overhead_fe=0,
+        ),
+    }
+
+
+def _hypergraph_aob_rows(lane_ids: tuple[str, ...]) -> list[dict[str, object]]:
+    return [
+        {
+            "problem_id": "E2",
+            "seed": "91",
+            "lane_id": lane_id,
+            "file": "F2-info.txt",
+            "sha256_before": "b" * 64,
+            "sha256_after": "b" * 64,
+            "unchanged": "1",
+        }
+        for lane_id in lane_ids
+    ]
+
+
+def test_exp_003_hypergraph_profiles_and_preregistration_hashes_are_frozen() -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke import run
+
+    parity = run.lanes_for_profile("hypergraph_v37_parity")
+    logging = run.lanes_for_profile("hypergraph_v37_logging")
+
+    assert [lane.hypergraph_trace_mode for lane in parity] == ["off", "observer"]
+    assert [lane.runner_action_name for lane in parity] == [
+        "arac_evidence_action_controller_v37",
+        "arac_evidence_action_controller_v37",
+    ]
+    assert len(logging) == 1
+    assert logging[0].hypergraph_trace_mode == "observer"
+    assert run.parse_args(
+        [
+            "--lane-profile",
+            "hypergraph_v37_logging",
+            "--hypergraph-trace-stage",
+            "screen",
+        ]
+    ).hypergraph_trace_stage == "screen"
+    assert run.parse_args(
+        ["--hypergraph-trace-screen-gate", "screen/gate.json"]
+    ).hypergraph_trace_screen_gate == Path("screen/gate.json")
+    assert run._sha256_file(run.ARAC_REPO_ROOT / run.HYPERGRAPH_TRACE_CONFIG_PATH) == (
+        run.HYPERGRAPH_TRACE_CONFIG_SHA256
+    )
+    assert run._sha256_file(run.ARAC_REPO_ROOT / run.HYPERGRAPH_TRACE_SPEC_PATH) == (
+        run.HYPERGRAPH_TRACE_SPEC_SHA256
+    )
+
+
+def test_exp_003_hypergraph_root_manifest_uses_canonical_mode_key(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke import run
+
+    artifacts = {
+        "hyperedge_cycle_features.csv": run.HYPERGRAPH_FEATURE_FIELDS,
+        "hyperedge_cycle_audit.csv": run.HYPERGRAPH_AUDIT_FIELDS,
+        "shared_proposal_audit.csv": run.HYPERGRAPH_PROPOSAL_FIELDS,
+        "hyperedge_cycle_outcomes.csv": run.HYPERGRAPH_OUTCOME_FIELDS,
+    }
+    for name, fields in artifacts.items():
+        run._write_csv(tmp_path / name, [], fields)
+
+    manifest = run._hypergraph_trace_manifest(
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_parity",
+        stage=None,
+        problem_ids=("E2",),
+        seeds=(91,),
+        max_fes=5_000,
+        source_manifests=[],
+        feature_rows=[],
+        audit_rows=[],
+        proposal_rows=[],
+        outcome_rows=[],
+        integrity_failures=[],
+    )
+
+    assert manifest["hypergraph_trace_mode"] == "observer"
+    assert "mode" not in manifest
+    assert manifest["status"] == "pass"
+    assert set(manifest["artifact_sha256"]) == set(artifacts)
+    assert manifest["source_bundle"]["bundle_sha256"]
+    assert manifest["static_ast_audit"]["status"] == "pass"
+    assert manifest["prior_screen_gate"] is None
+
+
+def test_exp_003_hypergraph_rejects_incomplete_hcc_result_and_external_path(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _hypergraph_trace_raw_rows,
+        lanes_for_profile,
+    )
+
+    lane = lanes_for_profile("hypergraph_v37_logging")[0]
+    observer = _hypergraph_test_observer(tmp_path)
+    record: list[float] = []
+    for sweep in range(3):
+        record = _record_hypergraph_test_sweep(observer, sweep)
+    source_root = tmp_path / "source-run"
+    _write_hypergraph_test_artifacts(observer, source_root, record)
+    execution_record = _hypergraph_test_record(source_root, lane)
+    execution_record["result"] = replace(
+        execution_record["result"],
+        status="early_termination",
+    )
+
+    *_, manifests, failures = _hypergraph_trace_raw_rows(
+        [execution_record],
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_logging",
+        aob_input_rows=_hypergraph_aob_rows((lane.lane_id,)),
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+
+    assert failures == ["E2:seed91:hcc_result_status_not_completed"]
+    assert manifests[0]["hcc_result_status"] == "early_termination"
+    execution_record["result"] = replace(
+        execution_record["result"],
+        status="completed",
+    )
+    *_, manifests, failures = _hypergraph_trace_raw_rows(
+        [execution_record],
+        output_root=tmp_path / "other-aggregate",
+        lane_profile="hypergraph_v37_logging",
+        aob_input_rows=_hypergraph_aob_rows((lane.lane_id,)),
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    assert failures == ["E2:seed91:source_manifest_outside_output_root"]
+    assert manifests[0]["path"] == ""
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "expected_failure"),
+    [
+        ("terminal_target_fe", 101, "manifest_terminal_target_fe_mismatch"),
+        ("terminal_observed_fe", 59, "manifest_terminal_observed_fe_mismatch"),
+        ("terminal_completion_tolerance_fe", 0, "manifest_terminal_tolerance_invalid"),
+        (
+            "terminal_completion_tolerance_fe",
+            30,
+            "manifest_terminal_completion_out_of_bounds",
+        ),
+    ],
+)
+def test_exp_003_hypergraph_recomputes_terminal_completion_integrity(
+    tmp_path: Path,
+    field: str,
+    value: int,
+    expected_failure: str,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _hypergraph_trace_raw_rows,
+        lanes_for_profile,
+    )
+
+    lane = lanes_for_profile("hypergraph_v37_logging")[0]
+    observer = _hypergraph_test_observer(tmp_path)
+    record: list[float] = []
+    for sweep in range(3):
+        record = _record_hypergraph_test_sweep(observer, sweep)
+    source_root = tmp_path / "terminal-tamper"
+    _write_hypergraph_test_artifacts(observer, source_root, record)
+    execution_record = _hypergraph_test_record(source_root, lane)
+    manifest_path = source_root / "E2_hypergraph_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest[field] = value
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    *_, failures = _hypergraph_trace_raw_rows(
+        [execution_record],
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_logging",
+        aob_input_rows=_hypergraph_aob_rows((lane.lane_id,)),
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    assert any(expected_failure in failure for failure in failures)
+
+
+def test_exp_003_hypergraph_static_ast_checks_join_anti_leakage(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _anti_leakage_rows,
+        lanes_for_profile,
+    )
+
+    lane = lanes_for_profile("hypergraph_v37_logging")[0]
+    rows = _anti_leakage_rows([_hypergraph_test_record(tmp_path, lane)])
+    ast_rows = [
+        row
+        for row in rows
+        if str(row["forbidden_field"]).startswith("hypergraph_ast:")
+    ]
+    assert ast_rows
+    assert all(row["audit_status"] == "pass" for row in ast_rows)
+    assert {row["forbidden_field"] for row in ast_rows} >= {
+        "hypergraph_ast:status",
+        "hypergraph_ast:forbidden_identifiers_absent",
+    }
+
+
+def test_exp_003_hypergraph_formal_source_binding_rejects_dirty_tree(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke import run
+
+    class GitResult:
+        def __init__(self, returncode: int) -> None:
+            self.returncode = returncode
+            self.stdout = ""
+            self.stderr = ""
+
+    commands: list[list[str]] = []
+
+    def fake_git(command, **_kwargs):
+        commands.append(command)
+        dirty = command[1:3] == ["diff", "--quiet"]
+        return GitResult(1 if dirty else 0)
+
+    monkeypatch.setattr(run, "_git_commit", lambda: "a" * 40)
+    monkeypatch.setattr(run.subprocess, "run", fake_git)
+    with pytest.raises(RuntimeError, match="clean tracked source bundle"):
+        run._require_hypergraph_trace_source_binding()
+    assert ["git", "diff", "--quiet"] in commands
+    assert ["git", "diff", "--cached", "--quiet"] in commands
+
+
+def test_exp_003_hypergraph_formal_source_binding_rejects_unknown_commit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke import run
+
+    monkeypatch.setattr(run, "_git_commit", lambda: "unknown")
+    with pytest.raises(RuntimeError, match="source commit could not be verified"):
+        run._require_hypergraph_trace_source_binding()
+
+
+def test_exp_003_hypergraph_screen_gate_is_recomputed_and_bound(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke import run
+    from scripts import audit_hypergraph_trace as audit
+
+    source_root = tmp_path / "screen-pass"
+    source_root.mkdir()
+    gate_path = source_root / "hypergraph_identifiability_gate.json"
+    source_bundle = audit.hypergraph_source_bundle()
+    gate = {
+        "protocol_version": run.HYPERGRAPH_TRACE_PROTOCOL_VERSION,
+        "stage": "screen",
+        "status": "screen_pass",
+        "checks": {"integrity": True},
+        "blockers": [],
+        "config_sha256": run.HYPERGRAPH_TRACE_CONFIG_SHA256,
+        "spec_sha256": run.HYPERGRAPH_TRACE_SPEC_SHA256,
+        "source_git_commit": "a" * 40,
+        "source_bundle": source_bundle,
+        "source_root": str(source_root.resolve()),
+    }
+    gate_path.write_text(json.dumps(gate), encoding="utf-8")
+    monkeypatch.setattr(run, "_git_commit", lambda: "a" * 40)
+    monkeypatch.setattr(audit, "audit_hypergraph_trace", lambda *_args, **_kwargs: gate)
+
+    binding = run._validated_hypergraph_screen_gate(gate_path)
+
+    assert binding["status"] == "screen_pass"
+    assert binding["source_bundle"] == source_bundle
+    assert binding["path"] == str(gate_path.resolve())
+    assert binding["sha256"] == run._sha256_file(gate_path)
+
+
+def test_exp_003_hypergraph_formal_stage_validation_fails_before_execution(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from arac.execution.environment import PINNED_HCC_RUNTIME_ENVIRONMENT
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        run_hcc_runtime_consumer_smoke,
+    )
+
+    def forbidden_runner(_request: HccAobExecutionRequest) -> HccAobExecutionResult:
+        raise AssertionError("stage validation must not start optimizer execution")
+
+    with pytest.raises(ValueError, match="requires an explicit screen or full stage"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=tmp_path / "missing-stage",
+            execution_runner=forbidden_runner,
+            lane_profile="hypergraph_v37_logging",
+            problem_ids=("E2",),
+            seeds=(91,),
+        )
+
+    nonempty_output = tmp_path / "nonempty-parity"
+    nonempty_output.mkdir()
+    (nonempty_output / "old-artifact.txt").write_text("old\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="must be absent or empty"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=nonempty_output,
+            execution_runner=forbidden_runner,
+            lane_profile="hypergraph_v37_parity",
+            problem_ids=("E2",),
+            seeds=(91,),
+            environment_probe=lambda _python: dict(PINNED_HCC_RUNTIME_ENVIRONMENT),
+        )
+    with pytest.raises(ValueError, match="does not accept a predictive stage"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=tmp_path / "invalid-parity-stage",
+            execution_runner=forbidden_runner,
+            lane_profile="hypergraph_v37_parity",
+            hypergraph_trace_stage="screen",
+            problem_ids=("E2",),
+            seeds=(91,),
+        )
+
+    config = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "configs"
+            / "hypergraph_delayed_credit_v1.json"
+        ).read_text(encoding="utf-8")
+    )
+    screen = config["matrices"]["trace_screen"]
+    full = config["matrices"]["trace_full"]
+    with pytest.raises(ValueError, match="screen matrix mismatch"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=tmp_path / "reordered-screen",
+            execution_runner=forbidden_runner,
+            lane_profile="hypergraph_v37_logging",
+            hypergraph_trace_stage="screen",
+            problem_ids=tuple(reversed(screen["cases"])),
+            seeds=tuple(screen["seeds"]),
+            jobs=24,
+            max_fes=screen["terminal_fe"],
+            budget_accounting="strict",
+        )
+
+    with pytest.raises(ValueError, match="screen does not accept a prior gate"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=tmp_path / "screen-with-gate",
+            execution_runner=forbidden_runner,
+            lane_profile="hypergraph_v37_logging",
+            hypergraph_trace_stage="screen",
+            hypergraph_trace_screen_gate=tmp_path / "unused-gate.json",
+            problem_ids=tuple(screen["cases"]),
+            seeds=tuple(screen["seeds"]),
+            jobs=24,
+            max_fes=screen["terminal_fe"],
+            budget_accounting="strict",
+        )
+    with pytest.raises(ValueError, match="full requires a prior screen gate"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=tmp_path / "full-without-gate",
+            execution_runner=forbidden_runner,
+            lane_profile="hypergraph_v37_logging",
+            hypergraph_trace_stage="full",
+            problem_ids=tuple(full["cases"]),
+            seeds=tuple(full["seeds"]),
+            jobs=24,
+            max_fes=full["terminal_fe"],
+            budget_accounting="strict",
+        )
+
+    failed_screen_root = tmp_path / "failed-screen"
+    failed_screen_root.mkdir()
+    failed_gate = failed_screen_root / "hypergraph_identifiability_gate.json"
+    failed_gate.write_text(
+        json.dumps(
+            {
+                "protocol_version": "hypergraph-delayed-credit-v1",
+                "stage": "screen",
+                "status": "screen_no_go",
+                "source_root": str(failed_screen_root),
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run._require_hypergraph_trace_source_binding",
+        lambda: None,
+    )
+    with pytest.raises(ValueError, match="not an audited pass"):
+        run_hcc_runtime_consumer_smoke(
+            output_dir=tmp_path / "full-with-failed-gate",
+            execution_runner=forbidden_runner,
+            lane_profile="hypergraph_v37_logging",
+            hypergraph_trace_stage="full",
+            hypergraph_trace_screen_gate=failed_gate,
+            problem_ids=tuple(full["cases"]),
+            seeds=tuple(full["seeds"]),
+            jobs=24,
+            max_fes=full["terminal_fe"],
+            budget_accounting="strict",
+        )
+
+
+def test_exp_003_accepts_incomplete_locked_hypergraph_cohort_placeholders(
+    tmp_path: Path,
+) -> None:
+    from arac.backends.hcc_hypergraph_trace import HYPERGRAPH_NATIVE_SWEEP_END_STAGE
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _hypergraph_trace_raw_rows,
+        lanes_for_profile,
+    )
+
+    observer = _hypergraph_test_observer(tmp_path)
+    for sweep in range(2):
+        _record_hypergraph_test_sweep(observer, sweep)
+    observer.record_group(
+        sweep_index=2,
+        group_index=0,
+        pre_error=90.0,
+        best_error=89.0,
+        primary_requested_fe=8,
+        primary_actual_fe=8,
+        full_interval_start_fe=40,
+        full_interval_end_fe=50,
+        pre_block_candidate=(0.0, 2.0, 0.0),
+        final_owner_candidate=(0.0, 2.5, 0.0),
+    )
+    record = [100.0] * 50
+    assert not observer.complete_sweep(
+        sweep_index=2,
+        optimized_group_count=1,
+        all_raw_groups_completed=False,
+        native_sweep_end_completed=False,
+        native_sweep_end_stage=HYPERGRAPH_NATIVE_SWEEP_END_STAGE,
+        sweep_end_fe=50,
+        sweep_end_candidate=(0.0, 2.25, 0.0),
+        fitness_record=record,
+    )
+    lane = lanes_for_profile("hypergraph_v37_logging")[0]
+    output_root = tmp_path / "incomplete"
+    _write_hypergraph_test_artifacts(observer, output_root, record)
+
+    features, audits, proposals, outcomes, manifests, failures = (
+        _hypergraph_trace_raw_rows(
+            [_hypergraph_test_record(output_root, lane)],
+            output_root=tmp_path,
+            lane_profile="hypergraph_v37_logging",
+            aob_input_rows=_hypergraph_aob_rows((lane.lane_id,)),
+            anti_leakage_rows=[{"audit_status": "pass"}],
+        )
+    )
+
+    locked = [row for row in audits if row["cohort_locked"] == "1"]
+    placeholder = next(row for row in locked if row["group_index"] == "1")
+    assert failures == []
+    assert features == []
+    assert outcomes == []
+    assert len(proposals) == 4
+    assert len(manifests) == 1
+    assert manifests[0]["raw_hyperedges"] == [[0, 1], [1, 2]]
+    assert manifests[0]["variable_owner_groups"] == [
+        [0, [0]],
+        [1, [0, 1]],
+        [2, [1]],
+    ]
+    assert manifests[0]["lower_bound"] == -5.0
+    assert manifests[0]["upper_bound"] == 5.0
+    assert len(manifests[0]["sha256"]) == 64
+    assert manifests[0]["path"] == "incomplete/E2_hypergraph_manifest.json"
+    assert manifests[0]["hcc_result_status"] == "completed"
+    assert manifests[0]["hcc_result_max_fes"] == 100
+    assert manifests[0]["hcc_result_actual_fe_used"] == 50
+    assert manifests[0]["terminal_completion_tolerance_fe"] == 50
+    assert {row["group_index"] for row in locked} == {"0", "1"}
+    assert placeholder["state_complete"] == "0"
+    assert placeholder["full_interval_start_fe"] == ""
+    assert placeholder["observer_integrity"] == "1"
+
+
+@pytest.mark.parametrize(
+    ("grouping", "complete_sweeps", "expected_label_closure"),
+    [
+        ([[0, 1], [1, 2]], 3, "terminal_censored"),
+        ([[0], [1]], 3, "not_applicable"),
+    ],
+)
+def test_exp_003_accepts_terminal_censoring_and_nonapplicable_hypergraph_states(
+    tmp_path: Path,
+    grouping: list[list[int]],
+    complete_sweeps: int,
+    expected_label_closure: str,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _hypergraph_trace_raw_rows,
+        lanes_for_profile,
+    )
+
+    observer = _hypergraph_test_observer(tmp_path, grouping=grouping)
+    record: list[float] = []
+    for sweep in range(complete_sweeps):
+        record = _record_hypergraph_test_sweep(observer, sweep)
+    lane = lanes_for_profile("hypergraph_v37_logging")[0]
+    output_root = tmp_path / expected_label_closure
+    _write_hypergraph_test_artifacts(observer, output_root, record)
+
+    features, audits, _, outcomes, _, failures = _hypergraph_trace_raw_rows(
+        [_hypergraph_test_record(output_root, lane)],
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_logging",
+        aob_input_rows=_hypergraph_aob_rows((lane.lane_id,)),
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    source_manifest = json.loads(
+        (output_root / "E2_hypergraph_manifest.json").read_text(encoding="utf-8")
+    )
+
+    assert failures == []
+    assert source_manifest["label_closure"] == expected_label_closure
+    assert len([row for row in audits if row["cohort_locked"] == "1"]) == 2
+    if expected_label_closure == "terminal_censored":
+        assert features
+        assert outcomes
+        assert all(row["terminal_censored"] == "1" for row in outcomes)
+    else:
+        assert features == []
+        assert outcomes == []
+
+
+def _write_hypergraph_public_parity_artifacts(output_root: Path) -> None:
+    output_root.mkdir(parents=True, exist_ok=True)
+    (output_root / "action_trace.csv").write_text(
+        "problem_id,seed,outer_iter,group_index,selected_action_name\n"
+        "E2,91,0,0,arac_evidence_action_controller_v37\n",
+        encoding="utf-8",
+    )
+    (output_root / "E2_budget_summary.csv").write_text(
+        "fitness_record_fe,optimizer_reported_fe\n60,60\n",
+        encoding="utf-8",
+    )
+    (output_root / "evaluation_record.txt").write_text(
+        "60 1.0\nFin: 60 1.0\n",
+        encoding="utf-8",
+    )
+    (output_root / "E2_aob_input_manifest.csv").write_text(
+        "problem_id,file,path,sha256_before,sha256_after,unchanged\n"
+        f"E2,F2-info.txt,F2-info.txt,{'b' * 64},{'b' * 64},1\n",
+        encoding="utf-8",
+    )
+
+
+def test_exp_003_hypergraph_parity_covers_public_trace_budget_and_aob(
+    tmp_path: Path,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke.run import (
+        _hypergraph_trace_raw_rows,
+        lanes_for_profile,
+    )
+
+    off_lane, on_lane = lanes_for_profile("hypergraph_v37_parity")
+    off_root = tmp_path / "observer-off"
+    on_root = tmp_path / "observer-on"
+    observer = _hypergraph_test_observer(tmp_path)
+    record: list[float] = []
+    for sweep in range(3):
+        record = _record_hypergraph_test_sweep(observer, sweep)
+    _write_hypergraph_test_artifacts(observer, on_root, record)
+    _write_hypergraph_public_parity_artifacts(off_root)
+    _write_hypergraph_public_parity_artifacts(on_root)
+    records = [
+        _hypergraph_test_record(off_root, off_lane),
+        _hypergraph_test_record(on_root, on_lane),
+    ]
+    aob_rows = _hypergraph_aob_rows((off_lane.lane_id, on_lane.lane_id))
+
+    *_, failures = _hypergraph_trace_raw_rows(
+        records,
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_parity",
+        aob_input_rows=aob_rows,
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    assert failures == []
+
+    (off_root / "evaluation_record.txt").write_text(
+        "60 2.0\nFin: 60 2.0\n",
+        encoding="utf-8",
+    )
+    *_, failures = _hypergraph_trace_raw_rows(
+        records,
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_parity",
+        aob_input_rows=aob_rows,
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    assert failures == ["E2:seed91:observer_bit_parity_failed"]
 
 
 def test_exp_003_car_w_diagnostic_profile_has_explicit_controls() -> None:

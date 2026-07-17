@@ -230,6 +230,7 @@ class HccAobExecutionRequest:
     precision_causal_arm: str = "off"
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
+    hypergraph_trace_mode: str = "off"
     offline_frozen_replay: bool = False
     hcc_repo_root: Path | None = None
     hcc_runner: Path | None = None
@@ -531,6 +532,16 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError(
             "causal, response, and component precision arms are mutually exclusive"
         )
+    if request.hypergraph_trace_mode not in {"off", "observer"}:
+        raise ValueError("hypergraph_trace_mode must be 'off' or 'observer'")
+    if request.hypergraph_trace_mode == "observer" and request.arac_action != (
+        "arac_evidence_action_controller_v37"
+    ):
+        raise ValueError("hypergraph observer requires the frozen v37 action")
+    if request.hypergraph_trace_mode == "observer" and active_precision_arms:
+        raise ValueError(
+            "hypergraph observer and frozen precision experiment arms are mutually exclusive"
+        )
     frozen_action = request.arac_action == "arac_evidence_action_controller_v41"
     if frozen_action and not request.offline_frozen_replay:
         raise ValueError("v41 is frozen; use offline_frozen_replay for historical replay")
@@ -581,6 +592,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         argv.extend(("--precision-response-arm", request.precision_response_arm))
     if request.component_precision_arm != "off":
         argv.extend(("--component-precision-arm", request.component_precision_arm))
+    if request.hypergraph_trace_mode != "off":
+        argv.extend(("--hypergraph-trace-mode", request.hypergraph_trace_mode))
     if request.offline_frozen_replay:
         argv.append("--offline-frozen-replay")
     if request.enable_relation_dispatch:
@@ -642,6 +655,7 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             precision_causal_arm=request.precision_causal_arm,
             precision_response_arm=request.precision_response_arm,
             component_precision_arm=request.component_precision_arm,
+            hypergraph_trace_mode=request.hypergraph_trace_mode,
             offline_frozen_replay=request.offline_frozen_replay,
         )
     )

@@ -1,8 +1,8 @@
 {
   "protocol_version": "hypergraph-delayed-credit-v1",
-  "config_schema_version": 1,
+  "config_schema_version": 2,
   "status": "frozen_before_new_optimizer_fe",
-  "preregistration_date": "2026-07-16",
+  "preregistration_date": "2026-07-17",
   "baseline": {
     "profile": "arac_evidence_action_controller_v37",
     "immutable": [
@@ -59,6 +59,28 @@
     "confidence_level": 0.95,
     "bootstrap_lcb_quantile": 0.05
   },
+  "integrity": {
+    "formal_trace_requires_clean_tracked_tree": true,
+    "source_bundle_files": [
+      "src/arac/policy/overlap_hypergraph.py",
+      "src/arac/backends/hcc_hypergraph_trace.py",
+      "src/arac/backends/hcc.py",
+      "scripts/hcc_smoke_runner.py",
+      "experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py",
+      "scripts/audit_hypergraph_trace.py"
+    ],
+    "source_bundle_binding": "canonical_sha256_of_sorted_relative_path_to_file_sha256_mapping",
+    "per_run_artifact_path": "relative_to_aggregate_result_root_and_contained_after_resolution",
+    "per_run_artifact_binding": "manifest_hashes_and_headers_then_exact_ordered_reconstruction_of_all_four_aggregate_raw_csvs",
+    "derived_numeric_binding": "raw_recomputed_values_must_equal_runtime_17e_strings_exactly_and_only_raw_recomputed_values_enter_statistics",
+    "terminal_target_fe": "formal_stage_matrix_terminal_fe",
+    "terminal_completion_tolerance_fe": "maximum_native_group_cma_population_size",
+    "terminal_integrity": "hcc_status_completed_and_target_minus_tolerance_le_actual_fe_le_target",
+    "ledger_route": "exactly_one_row_per_preregistered_case_seed_observer_lane_matching_per_run_manifest",
+    "policy_ast_allowlist": "frozen_state_and_score_call_graph_excludes_identity_fingerprint_raw_objective_future_outcome_and_paper_best",
+    "full_requires_prior_screen": true,
+    "prior_screen_binding": "recomputed_screen_pass_gate_input_hashes_source_git_commit_and_source_bundle_must_match"
+  },
   "topology": {
     "vertices": "decision_variables",
     "hyperedges": "raw_overlapping_groups",
@@ -76,13 +98,16 @@
     "required_derived_features": [
       "current_unit_fe_contribution",
       "ewma_unit_fe_contribution_3",
-      "success_ratio_3",
       "zero_gain_difficulty",
       "stagnation_ratio_3",
       "direct_owner_proposal_disagreement",
-      "prior_next_sweep_survival",
       "prior_next_sweep_overwrite"
     ],
+    "audit_only_complements": [
+      "success_ratio_3",
+      "prior_next_sweep_survival"
+    ],
+    "duplicate_complements_in_policy_state_allowed": false,
     "unit_fe_contribution_formula": "1000/actual_fe*log((pre_error+eps)/(min(pre_error,best_error)+eps))",
     "actual_fe_scope": "full_native_group_interval_from_before_existing_precheck_through_group_local_rescue_recovery_end",
     "proposal_capture_watermark": "after_group_local_rescue_recovery_before_relation_writeback",
@@ -100,11 +125,37 @@
     "contribution_score": "mean(rank_current_u,rank_ewma_u)",
     "need_score": "mean(rank_difficulty,rank_stagnation,rank_disagreement)",
     "focal_priority": "zero_if_contribution_plus_need_zero_else_harmonic_mean",
-    "owner_reliability": "mean(rank_current_u,rank_ewma_u,rank_prior_survival,rank_one_minus_prior_overwrite)",
+    "owner_reliability": "mean(rank_current_u,rank_ewma_u,rank_one_minus_prior_overwrite)",
     "selection": "unique_highest_focal_priority",
     "complete_numeric_tie": "abstain"
   },
   "prediction": {
+    "decision_cohort": "first_history_complete_snapshot_once_per_trajectory",
+    "maximum_decision_snapshots_per_trajectory": 1,
+    "within_snapshot_rows": "all_eligible_raw_hyperedges",
+    "later_sweep_use": "resolve_first_snapshot_labels_only_no_new_decision",
+    "decision_eligibility": "first_locked_state_complete_at_least_two_shared_hyperedges_unique_focal_pre_label_only",
+    "label_completion": "every_decision_hyperedge_has_exact_next_complete_normal_sweep_outcome",
+    "terminal_censoring": "valid_integrity_evidence_but_label_incomplete_and_stage_no_go",
+    "incomplete_group_audit": "explicit_placeholder_for_every_unvisited_raw_group_valid_integrity_not_state",
+    "required_state_missing_fraction": {
+      "numerator": "first_locked_overlap_opportunity_trajectories_missing_any_required_six_feature_state",
+      "denominator": "all_first_locked_overlap_opportunity_trajectories_before_state_completeness_or_label_filtering",
+      "zero_denominator": "undefined_fail_closed"
+    },
+    "auditor_recomputation": {
+      "trusted_derived_rows": false,
+      "first_opportunity": "derive_earliest_lock_from_raw_complete_and_incomplete_sweep_sequence",
+      "complete_sweep": "all_raw_groups_canonical_nonoverlapping_intervals_one_decision_fe_one_fitness_prefix_hash",
+      "proposal_backfill": "t_next_sweep_value_and_fe_must_equal_canonical_t_plus_1_endpoint_and_decision_fe",
+      "state": "rebuild_all_six_features_from_t_minus_2_through_t_raw_audits_proposals_topology_and_bounds",
+      "scores": "rebuild_ranks_scores_unique_focal_and_feature_sha256",
+      "labels": "rebuild_t_plus_1_unit_fe_contribution_survival_and_overwrite_from_raw_audits_and_proposals_then_require_exact_runtime_17e_equality",
+      "derived_hash": "format_raw_recomputed_state_and_scores_with_runtime_17e_then_hash_exact_payload",
+      "nonapplicable_manifest": "rebuild_pending_no_overlap_tie_incomplete_and_terminal_label_closure_status",
+      "mismatch": "integrity_failure"
+    },
+    "bootstrap_unit": "case_by_seed_trajectory_hyperedge_rows_not_independent",
     "label_horizon": "next_complete_normal_sweep_end_after_all_native_handlers",
     "next_gain_label": "next_sweep_unit_fe_contribution",
     "owner_survival_label": "displacement_weighted_directional_survival",
@@ -113,25 +164,36 @@
     "zero_owner_displacement_survival": 0.5,
     "zero_owner_displacement_overwrite": 0.5,
     "overwrite_event": "overwrite_strictly_greater_than_0_5",
-    "overwrite_prediction": "owner_reliability_below_training_fold_median",
-    "metrics": [
-      "spearman_focal_priority_vs_next_gain",
-      "top_priority_quartile_minus_bottom_priority_quartile_next_gain",
-      "spearman_owner_reliability_vs_next_survival",
-      "overwrite_balanced_accuracy"
-    ],
+    "trajectory_equal_weight": true,
+    "trajectory_metrics": {
+      "priority_spearman": "within_trajectory_spearman_focal_priority_vs_next_gain_constant_or_undefined_is_zero",
+      "focal_rank_advantage": "next_gain_midrank_percentile_of_unique_focal_minus_0_5",
+      "owner_survival_spearman": "within_trajectory_spearman_owner_reliability_vs_next_survival_constant_or_undefined_is_zero",
+      "diagnostic_focal_gain_delta": "next_gain_focal_minus_mean_next_gain_nonfocal_not_a_cross_case_gate"
+    },
+    "overwrite_prediction": {
+      "rule": "owner_reliability_strictly_below_training_fold_trajectory_weighted_median",
+      "weighted_median": "lower_weighted_quantile_infimum_value_with_cumulative_weight_at_least_0_5",
+      "row_weight": "one_over_eligible_hyperedge_count_within_trajectory",
+      "test_metric": "trajectory_weighted_balanced_accuracy",
+      "single_class_route": "undefined_fail_closed",
+      "single_class_held_out_fold": "allowed_if_pooled_cross_fitted_route_contains_both_classes",
+      "single_class_bootstrap_replicate": "retain_replicate_with_balanced_accuracy_zero"
+    },
     "cross_validation": [
       "leave_one_case_out",
       "leave_one_seed_out"
     ],
     "support": {
-      "fit_on_training_fold_only": true,
-      "normalization": "median_iqr",
-      "iqr_floor": 1e-12,
-      "per_feature_closed_training_range": true,
-      "knn_k": 5,
-      "knn_threshold": "training_leave_one_out_distance_quantile_0_95",
-      "minimum_training_rows": 6
+      "status": "diagnostic_deferred_no_runtime_model",
+      "used_for_filtering": false,
+      "used_for_gate": false,
+      "cannot_rescue_all_state_result": true
+    },
+    "bootstrap": {
+      "method": "case_seed_two_way_pigeonhole_on_trajectory_scalars",
+      "trajectory_weight": "multinomial_case_count_times_multinomial_seed_count",
+      "overwrite_ci": "conditional_on_fixed_cross_fitted_predictions"
     },
     "diagnostic_model_can_rescue_fixed_score": false
   },
@@ -244,7 +306,8 @@
       "seeds": [96, 97, 98, 99, 100, 101, 102, 103],
       "arms": ["v37_observer"],
       "terminal_fe": 3000000,
-      "run_count": 192
+      "run_count": 192,
+      "requires_prior_screen_pass": true
     },
     "action_cli": {
       "cases": ["E1", "E2"],
@@ -285,31 +348,44 @@
   "trace_gates": {
     "screen": {
       "integrity_fraction": 1.0,
+      "minimum_complete_next_sweep_label_fraction": 1.0,
       "minimum_applicable_trajectories": 30,
       "minimum_cases": 6,
       "minimum_seeds": 5,
       "maximum_required_state_missing_fraction": 0.05,
-      "minimum_focal_priority_spearman": 0.0,
+      "applicable_definition": "decision_eligible_pre_label",
+      "minimum_mean_trajectory_priority_spearman_strictly_above": 0.0,
+      "minimum_mean_trajectory_focal_rank_advantage_strictly_above": 0.0,
+      "metric_scope": "equal_weight_decision_eligible_trajectories_after_required_100_percent_label_closure",
       "minimum_overwrite_balanced_accuracy": 0.55,
+      "overwrite_balanced_accuracy_scope": "both_lco_and_lso_cross_fitted_trajectory_weighted_rows",
+      "support_filter_applied": false,
+      "primary_direction_metric": "trajectory_focal_rank_advantage",
       "minimum_positive_seed_directions": 3,
       "minimum_positive_overlap_case_directions": 5
     },
     "full": {
       "integrity_fraction": 1.0,
+      "minimum_complete_next_sweep_label_fraction": 1.0,
       "minimum_applicable_trajectories": 120,
       "minimum_cases": 16,
       "minimum_seeds": 8,
-      "minimum_lco_in_support_fraction": 0.6,
-      "minimum_lso_in_support_fraction": 0.6,
-      "metric_lcb_strictly_positive": [
-        "spearman_focal_priority_vs_next_gain",
-        "top_priority_quartile_minus_bottom_priority_quartile_next_gain",
-        "spearman_owner_reliability_vs_next_survival"
+      "requires_recomputed_screen_pass_same_source_bundle": true,
+      "applicable_definition": "decision_eligible_pre_label",
+      "metric_scope": "all_decision_eligible_trajectories_equal_weight_no_support_filter",
+      "trajectory_metric_lcb_strictly_positive": [
+        "trajectory_priority_spearman",
+        "trajectory_focal_rank_advantage",
+        "trajectory_owner_survival_spearman"
       ],
       "overwrite_balanced_accuracy_lcb_strictly_above": 0.5,
+      "overwrite_lcb_scope": "conditional_on_fixed_lco_and_lso_cross_fitted_predictions",
+      "primary_direction_metric": "trajectory_focal_rank_advantage",
       "minimum_positive_case_fold_fraction": 0.75,
       "minimum_positive_seed_folds": 6,
-      "maximum_single_case_absolute_advantage_share": 0.5
+      "maximum_single_case_absolute_advantage_share": 0.5,
+      "case_advantage_share_metric": "case_mean_trajectory_focal_rank_advantage",
+      "case_advantage_share_formula": "max_abs_case_mean_divided_by_sum_abs_case_means_zero_denominator_fail_closed"
     }
   },
   "action_gates": {
