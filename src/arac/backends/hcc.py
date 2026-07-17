@@ -740,20 +740,23 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         )
     )
     action_trace_path, action_trace_rows = _find_hcc_action_trace(output_dir)
+    problem_id = _problem_parts(request.problem_id)[0]
     mos_profile_enabled = request.config_name == "v37_mos_sampling"
     if mos_profile_enabled:
         mos_sampling_audit_path, mos_sampling_audit_rows = _find_hcc_named_csv(
-            output_dir, "mos_sampling_audit.csv"
+            output_dir, f"{problem_id}_mos_sampling_audit.csv"
         )
         mos_branch_provenance_path, mos_branch_provenance_rows = (
-            _find_hcc_named_csv(output_dir, "mos_branch_provenance.csv")
+            _find_hcc_named_csv(
+                output_dir, f"{problem_id}_mos_branch_provenance.csv"
+            )
         )
     else:
         mos_sampling_audit_path, mos_sampling_audit_rows = None, 0
         mos_branch_provenance_path, mos_branch_provenance_rows = None, 0
     budget_breakdown = _parse_hcc_budget_summary(output_dir)
     return HccAobExecutionResult(
-        problem_id=_problem_parts(request.problem_id)[0],
+        problem_id=problem_id,
         seed=request.seed,
         max_fes=request.max_fes,
         final_error=final_error,

@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from arac.backends import hcc as hcc_backend
 from arac.backends.hcc import HccAobExecutionRequest, build_hcc_aob_smoke_command
 from arac.backends.hcc import HccAobExecutionResult, resolve_hcc_vendor_paths
 from arac.backends.hcc_mos_cma import create_hcc_cmaes
@@ -82,6 +83,59 @@ def test_mos_cli_accepts_only_the_frozen_profile() -> None:
     assert args.cma_sampling_mode == "mirrored_orthogonal"
     assert args.arac_action == V37_ACTION
     assert args.seed == 1
+
+
+def test_hcc_adapter_reads_case_prefixed_mos_artifacts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from experiments.pilots.exp_003_hcc_runtime_consumer_smoke import run as exp
+
+    case_root = tmp_path / "elliptic"
+    case_root.mkdir()
+    sampling_path = case_root / "E2_mos_sampling_audit.csv"
+    provenance_path = case_root / "E2_mos_branch_provenance.csv"
+    _write_rows(
+        sampling_path,
+        exp.MOS_SAMPLING_AUDIT_SOURCE_FIELDS,
+        [_raw_sampling_row(exp, restart=0), _raw_sampling_row(exp, restart=1)],
+    )
+    provenance_path.write_text("status\ncompleted\n", encoding="utf-8")
+    (case_root / "mos_sampling_audit.csv").write_text(
+        "generation\ndecoy\n", encoding="utf-8"
+    )
+    (case_root / "mos_branch_provenance.csv").write_text(
+        "status\ndecoy\n", encoding="utf-8"
+    )
+
+    monkeypatch.setattr(
+        hcc_backend.subprocess,
+        "run",
+        lambda argv, **_kwargs: hcc_backend.subprocess.CompletedProcess(
+            argv, 0, stdout="", stderr=""
+        ),
+    )
+    monkeypatch.setattr(
+        hcc_backend,
+        "_parse_hcc_evaluation_record_with_optimizer_final_fe",
+        lambda _output_dir, budget_limit: (1.0, budget_limit, budget_limit),
+    )
+    monkeypatch.setattr(
+        hcc_backend, "_find_hcc_action_trace", lambda _output_dir: (None, 0)
+    )
+    monkeypatch.setattr(hcc_backend, "_parse_hcc_budget_summary", lambda _root: {})
+
+    result = hcc_backend.run_hcc_aob_smoke_execution(_request(tmp_path))
+
+    assert result.mos_sampling_audit_path == sampling_path
+    assert result.mos_sampling_audit_rows == 2
+    assert result.mos_branch_provenance_path == provenance_path
+    assert result.mos_branch_provenance_rows == 1
+    _, mos_lane = exp.lanes_for_profile("v37_mos_sampling")
+    aggregated = exp._mos_sampling_audit_rows(
+        [{"lane": mos_lane, "result": result}]
+    )
+    assert len(aggregated) == 2
 
 
 @pytest.mark.parametrize(
