@@ -811,6 +811,22 @@ def test_exp_003_hypergraph_parity_covers_public_trace_budget_and_aob(
     _write_hypergraph_test_artifacts(observer, on_root, record)
     _write_hypergraph_public_parity_artifacts(off_root)
     _write_hypergraph_public_parity_artifacts(on_root)
+    separator = "-" * 120 + "\n"
+    off_evaluation = (
+        "60 1.0\n"
+        "                    Fin: 60 1.0\n"
+        "                    Run Time:                1.000000"
+        "                                1.000000e+00              \n"
+        + separator
+    )
+    on_evaluation = off_evaluation.replace(
+        "1.000000                                1.000000e+00",
+        "2.000000                                2.000000e+00",
+    )
+    off_evaluation_path = off_root / "evaluation_record.txt"
+    on_evaluation_path = on_root / "evaluation_record.txt"
+    off_evaluation_path.write_text(off_evaluation, encoding="utf-8")
+    on_evaluation_path.write_text(on_evaluation, encoding="utf-8")
     records = [
         _hypergraph_test_record(off_root, off_lane),
         _hypergraph_test_record(on_root, on_lane),
@@ -826,10 +842,58 @@ def test_exp_003_hypergraph_parity_covers_public_trace_budget_and_aob(
     )
     assert failures == []
 
-    (off_root / "evaluation_record.txt").write_text(
-        "60 2.0\nFin: 60 2.0\n",
+    extra_runtime = (
+        "                    Run Time:                3.000000"
+        "                                3.000000e+00              \n"
+    )
+    on_evaluation_path.write_text(
+        on_evaluation.replace(separator, extra_runtime + separator),
         encoding="utf-8",
     )
+    *_, failures = _hypergraph_trace_raw_rows(
+        records,
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_parity",
+        aob_input_rows=aob_rows,
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    assert failures == ["E2:seed91:observer_bit_parity_failed"]
+
+    on_evaluation_path.write_text(
+        on_evaluation.replace("Run Time:", "Run Time: invalid"),
+        encoding="utf-8",
+    )
+    *_, failures = _hypergraph_trace_raw_rows(
+        records,
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_parity",
+        aob_input_rows=aob_rows,
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    assert failures == ["E2:seed91:observer_bit_parity_failed"]
+
+    on_evaluation_path.write_text(
+        "".join(
+            line
+            for line in on_evaluation.splitlines(keepends=True)
+            if "Run Time:" not in line
+        ),
+        encoding="utf-8",
+    )
+    *_, failures = _hypergraph_trace_raw_rows(
+        records,
+        output_root=tmp_path,
+        lane_profile="hypergraph_v37_parity",
+        aob_input_rows=aob_rows,
+        anti_leakage_rows=[{"audit_status": "pass"}],
+    )
+    assert failures == ["E2:seed91:observer_bit_parity_failed"]
+
+    off_evaluation_path.write_text(
+        off_evaluation.replace("60 1.0", "60 2.0"),
+        encoding="utf-8",
+    )
+    on_evaluation_path.write_text(on_evaluation, encoding="utf-8")
     *_, failures = _hypergraph_trace_raw_rows(
         records,
         output_root=tmp_path,

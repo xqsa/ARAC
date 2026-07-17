@@ -76,6 +76,7 @@
     "terminal_target_fe": "formal_stage_matrix_terminal_fe",
     "terminal_completion_tolerance_fe": "maximum_native_group_cma_population_size",
     "terminal_integrity": "hcc_status_completed_and_target_minus_tolerance_le_actual_fe_le_target",
+    "observer_parity": "exact_optimizer_result_fe_breakdown_action_trace_aob_budget_and_evaluation_record_bytes_excluding_only_the_Run_Time_wall_clock_line",
     "ledger_route": "exactly_one_row_per_preregistered_case_seed_observer_lane_matching_per_run_manifest",
     "policy_ast_allowlist": "frozen_state_and_score_call_graph_excludes_identity_fingerprint_raw_objective_future_outcome_and_paper_best",
     "full_requires_prior_screen": true,

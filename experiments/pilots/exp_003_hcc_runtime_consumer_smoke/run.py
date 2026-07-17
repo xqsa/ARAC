@@ -8,6 +8,7 @@ import json
 import math
 import os
 import platform
+import re
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -166,10 +167,10 @@ HYPERGRAPH_TRACE_STAGES = ("screen", "full")
 HYPERGRAPH_TRACE_CONFIG_PATH = "configs/hypergraph_delayed_credit_v1.json"
 HYPERGRAPH_TRACE_SPEC_PATH = "docs/design/hypergraph-delayed-credit-v1.md"
 HYPERGRAPH_TRACE_CONFIG_SHA256 = (
-    "8bfe8b658f6569576fbe8666a0a8dee5bedbb06cc4cd2fc8f9a5f38ba871093d"
+    "b2be4e22d3ddc323199f36884d10e792b1e05e48e5bc10924d08a68ff93394f4"
 )
 HYPERGRAPH_TRACE_SPEC_SHA256 = (
-    "ed4fb4d9407c4bbc15699107824cd3e3726e725d25f908ea99be2c409d2c9aab"
+    "0ab7aa3cabd5bb66292b441fce425e0a7d424109a36b7464c2e9a72138cce7f4"
 )
 HYPERGRAPH_FEATURE_FIELDS = list(HCC_HYPERGRAPH_FEATURE_FIELDS)
 HYPERGRAPH_AUDIT_FIELDS = list(HCC_HYPERGRAPH_AUDIT_FIELDS)
@@ -2013,6 +2014,40 @@ def _find_lane_artifact(result: HccAobExecutionResult, artifact_name: str) -> Pa
     return generic[-1] if generic else None
 
 
+def _hypergraph_parity_artifact_sha256(
+    path: Path,
+    artifact_name: str,
+) -> str | None:
+    if artifact_name != "evaluation_record.txt":
+        return _sha256_file(path)
+    lines = path.read_bytes().splitlines(keepends=True)
+    runtime_indices = [
+        index
+        for index, line in enumerate(lines)
+        if line.lstrip().startswith(b"Run Time:")
+    ]
+    if len(runtime_indices) != 1:
+        return None
+    runtime_index = runtime_indices[0]
+    if re.fullmatch(
+        rb"[ \t]+Run Time:[ \t]+[0-9]+(?:\.[0-9]+)?"
+        rb"[ \t]+[0-9]+(?:\.[0-9]+)?[eE][+-][0-9]+[ \t]*(?:\r?\n)?",
+        lines[runtime_index],
+    ) is None:
+        return None
+    if (
+        runtime_index == 0
+        or runtime_index + 1 >= len(lines)
+        or not lines[runtime_index - 1].lstrip().startswith(b"Fin:")
+        or re.fullmatch(rb"-+", lines[runtime_index + 1].strip()) is None
+    ):
+        return None
+    payload = b"".join(
+        line for index, line in enumerate(lines) if index != runtime_index
+    )
+    return hashlib.sha256(payload).hexdigest()
+
+
 def precision_causal_pair_id(problem_id: str, seed: int) -> str:
     material = (
         f"{PRECISION_CAUSAL_PROTOCOL_VERSION}|{str(problem_id).upper()}|{int(seed)}"
@@ -3250,7 +3285,19 @@ def _hypergraph_trace_raw_rows(
                     is not None
                     and (off_path := _find_lane_artifact(off_result, artifact_name))
                     is not None
-                    and _sha256_file(on_path) == _sha256_file(off_path)
+                    and (
+                        on_sha256 := _hypergraph_parity_artifact_sha256(
+                            on_path, artifact_name
+                        )
+                    )
+                    is not None
+                    and (
+                        off_sha256 := _hypergraph_parity_artifact_sha256(
+                            off_path, artifact_name
+                        )
+                    )
+                    is not None
+                    and on_sha256 == off_sha256
                 )
                 for artifact_name in (
                     "action_trace.csv",

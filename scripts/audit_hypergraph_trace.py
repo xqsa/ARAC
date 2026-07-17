@@ -42,8 +42,8 @@ from arac.backends.hcc_hypergraph_trace import (
 
 CONFIG_PATH = ROOT / "configs" / "hypergraph_delayed_credit_v1.json"
 SPEC_PATH = ROOT / "docs" / "design" / "hypergraph-delayed-credit-v1.md"
-CONFIG_SHA256 = "8bfe8b658f6569576fbe8666a0a8dee5bedbb06cc4cd2fc8f9a5f38ba871093d"
-SPEC_SHA256 = "ed4fb4d9407c4bbc15699107824cd3e3726e725d25f908ea99be2c409d2c9aab"
+CONFIG_SHA256 = "b2be4e22d3ddc323199f36884d10e792b1e05e48e5bc10924d08a68ff93394f4"
+SPEC_SHA256 = "0ab7aa3cabd5bb66292b441fce425e0a7d424109a36b7464c2e9a72138cce7f4"
 PROTOCOL_VERSION = "hypergraph-delayed-credit-v1"
 STAGES = ("screen", "full")
 

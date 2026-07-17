@@ -26,6 +26,12 @@ native group writeback, and native sweep-end handlers remain unchanged. The
 observer is opt-in and trace-only. Resource reallocation, visit-frequency
 changes, early-stop changes, repeated actions, and a scheduler are out of scope.
 
+Observer parity requires exact equality of optimizer results, FE breakdown,
+action trace, AOB hashes, budget summary, and the behavioral bytes of
+`evaluation_record.txt`. The sole excluded field is its `Run Time:` wall-clock
+line, which is nondeterministic across fresh subprocesses and is not optimizer
+state. Observer-only trace/audit files are outside the common parity surface.
+
 Formal screen and full runs require a clean tracked Git tree. Their aggregate
 manifest binds the Git commit and a canonical source bundle containing the pure
 policy, observer, HCC binding, runner, exp003 entry point, and auditor. The full
