@@ -1,0 +1,52 @@
+{
+  "schema_version": "exp019-conflict-diagnostic-config-v1",
+  "observer_only": true,
+  "runtime_authorized": false,
+  "benchmark": {
+    "generator_version": "exp019-conflict-generator-v1",
+    "rho": 0.1,
+    "variant_ids": [
+      "E3_conflict_variant_synthetic",
+      "A4_conflict_variant_synthetic",
+      "S5_conflict_variant_synthetic"
+    ]
+  },
+  "smoke": {
+    "case": "A4_conflict_variant_synthetic",
+    "seeds": [1],
+    "max_fes": 100000
+  },
+  "oracle": {
+    "cases": [
+      "E3_conflict_variant_synthetic",
+      "A4_conflict_variant_synthetic",
+      "S5_conflict_variant_synthetic"
+    ],
+    "seeds": [117, 118, 119, 120, 121],
+    "max_fes": 3000000,
+    "jobs": 12,
+    "selected_relations_per_trajectory": 4,
+    "baseline": "higher_reliability_owner_then_left",
+    "bridge_weight": "one_plus_reliability",
+    "bridge_owner_cap": 0.65
+  },
+  "gate": {
+    "epsilon": 1e-300,
+    "material_win_log_ratio": 0.009950330853168092,
+    "large_loss_log_ratio": -0.1823215567939546,
+    "wilson_confidence": 0.95,
+    "conflict_paired_win_lcb_strictly_greater_than": 0.5,
+    "conflict_median_log_ratio_strictly_greater_than": 0.009950330853168092,
+    "conform_paired_win_lcb_at_most": 0.5,
+    "conform_abs_median_log_ratio_at_most": 0.009950330853168092,
+    "large_loss_count": 0
+  },
+  "forbidden_runtime_fields": [
+    "paper_reported_baseline",
+    "oracle",
+    "final_error",
+    "relative_gain",
+    "problem_family_label",
+    "prior_outcome"
+  ]
+}

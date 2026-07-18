@@ -1,0 +1,80 @@
+{
+  "generator_version": "exp019-conflict-generator-v1",
+  "rho": 0.1,
+  "schema_version": "exp019-conflict-benchmark-manifest-v1",
+  "variants": {
+    "A4_conflict_variant_synthetic": {
+      "base_case": "A4",
+      "function_id": 4,
+      "function_name": "ackley",
+      "synthetic_csv": {
+        "path": "A4_conflict_variant_synthetic.csv",
+        "row_count": 1095,
+        "sha256": "a327c3323213507b1f1e8852556a5c5b615d8850984ef312c775804c02ec4235",
+        "shared_global_variable_count": 95,
+        "shared_local_row_count": 190
+      },
+      "vendor_files": {
+        "F4-R105.txt": "32c5d7273444eeab864b4b43c960d3be193e1070e17b6a5f0cc69ef676ddbc11",
+        "F4-R30.txt": "9436d9aff662cc3efc30c29243b36d95d395499e7d4a318c0ca1916e18979bb5",
+        "F4-R50.txt": "99f4296687e7a6451e14365147787bfc198f8d87f7cead77d21096956be5ac92",
+        "F4-R55.txt": "047d627436fd2f3148e9e18f083282d5806c6d69e08b6f73ef159460b89ff99d",
+        "F4-design.txt": "3078049f25433d620dda2106495b57f6c8f26cba7b783c66200d6d481a0c5a0c",
+        "F4-info.txt": "1d9d6cfc7dda04aa00179f5297da23008d741dee2423c90d82c8e303e09b8df2",
+        "F4-p.txt": "921f7ce3dec321c0491d64e39151534991bbd620930d2a9990a0e0d167f7919f",
+        "F4-s.txt": "fb5285f2523b32cf57888e7a4a1fcc03b4b99553222acc541ebfebf70fad150d",
+        "F4-w.txt": "48bedd096e779243b5db55ccc79f979a858abcb232dd1fe66d9456327e668b6d",
+        "F4-xopt.txt": "f80950a31828e0485d63e8688413d6206523d295c80582277e6b830f17c94ab3"
+      }
+    },
+    "E3_conflict_variant_synthetic": {
+      "base_case": "E3",
+      "function_id": 3,
+      "function_name": "elliptic",
+      "synthetic_csv": {
+        "path": "E3_conflict_variant_synthetic.csv",
+        "row_count": 1057,
+        "sha256": "a82f89e2c9c229ce498b8dde8b65f448eca635f08b9be01bb7bbec904b54e6c2",
+        "shared_global_variable_count": 57,
+        "shared_local_row_count": 114
+      },
+      "vendor_files": {
+        "F3-R103.txt": "d7015187de2f76f198a2c74bbf1f68b6f1faeb740a779d1c35e2300468ca51c8",
+        "F3-R28.txt": "e6e889457f56fd53a2317b176b6ebafd2b2c8f6861389822dd360f38865f4219",
+        "F3-R50.txt": "b583cb01fe03acba45b775dff1e3c8e4c73fd79a698cd9cc8a188cf3a02d4e3c",
+        "F3-R53.txt": "c0568a39d860fa2e46be4469c40ff1804a7a27dced67fc193f4f0e36cfa7b759",
+        "F3-design.txt": "c2745ef4282e77a7a067a0efbb7551f923afe6fbc088a594242bc87d362768be",
+        "F3-info.txt": "06efd8c63858a65628783c5a3e9f5d1001c1a52eb78f849b6b69ee894475f715",
+        "F3-p.txt": "921f7ce3dec321c0491d64e39151534991bbd620930d2a9990a0e0d167f7919f",
+        "F3-s.txt": "002a6398720f88c46fec42ced3e87fb68cdf7dc3a1ad601683ed120b5f60b18d",
+        "F3-w.txt": "48bedd096e779243b5db55ccc79f979a858abcb232dd1fe66d9456327e668b6d",
+        "F3-xopt.txt": "f80950a31828e0485d63e8688413d6206523d295c80582277e6b830f17c94ab3"
+      }
+    },
+    "S5_conflict_variant_synthetic": {
+      "base_case": "S5",
+      "function_id": 5,
+      "function_name": "schwefel",
+      "synthetic_csv": {
+        "path": "S5_conflict_variant_synthetic.csv",
+        "row_count": 1133,
+        "sha256": "50f3f5740f6e5b9ddfed25c47ce4c594012e0145caecf28d9772e187d7e963ec",
+        "shared_global_variable_count": 133,
+        "shared_local_row_count": 266
+      },
+      "vendor_files": {
+        "F5-R107.txt": "120dec6a778890b3e2aad08981ae9d1e2230a079c4ea06e50f30f9d4621da81f",
+        "F5-R32.txt": "966008e137006788fa1615700eb8c9099b13953acd04193331ecc9946f40984c",
+        "F5-R50.txt": "ed3aaa4259c32eb25647b83067e267855075a3e0855069c8d0a01eb1a7fd43c9",
+        "F5-R57.txt": "ef7424b9658f00eb2c0bd6ff21022197e819d846fe4179379dd32d3b0dfa546a",
+        "F5-design.txt": "e613ed7f3d484b928164e6f022cd1ed537264203de9c0896e3b76dd8db0bcb36",
+        "F5-info.txt": "62206fdb0eb539c91657ef5798db090ce6d400b1dfcac74531d7001b0cbdf476",
+        "F5-p.txt": "921f7ce3dec321c0491d64e39151534991bbd620930d2a9990a0e0d167f7919f",
+        "F5-s.txt": "a7d60ce7308b5be78f6ae0e2688999424130dc2fc39824de37245b97c1f6794a",
+        "F5-w.txt": "48bedd096e779243b5db55ccc79f979a858abcb232dd1fe66d9456327e668b6d",
+        "F5-xopt.txt": "f80950a31828e0485d63e8688413d6206523d295c80582277e6b830f17c94ab3"
+      }
+    }
+  },
+  "vendor_data_root": "vendor/hcc/AOB/AOBG/datafile"
+}
