@@ -1,7 +1,7 @@
 # exp_019 冲突取值消解研究计划
 
 Date: 2026-07-18
-Status: 第 0.5 步已实现并验证；等待用户 go/no-go
+Status: 第 1 步已运行并得到 `oracle_no_go`；STOP，不进入第 2 步
 Executor: Codex（实现），用户与 Claude（阶段审查）
 
 ## 1. 研究结论与当前起点
@@ -19,6 +19,12 @@ exp_019 先建立隔离的 synthetic conflict 孪生基准，再判断同 checkp
 输入的前提下重算 conflict-side objective。第 1 步因此改为 fresh conflict-side
 HCC trajectory 和四点探测；conform 阴性侧只读取并哈希绑定 exp_018 已有的 15 条
 paired-owner trajectories。
+
+第 0.5 步经用户批准后，第 1 步已按冻结矩阵真实运行。结果为
+`oracle_no_go`：conflict material win 0/15、paired-win LCB 0、median delta
+`-7.307711256377876e-04`、trajectory-level large loss 0。conform 阴性侧通过其
+冻结条件。详细证据见 `docs/design/conflict-resolution-diagnostic.md`。按本计划
+第 4.2 节，当前必须 STOP，第 2/3 步保持未授权。
 
 ## 2. 不可逾越的边界
 

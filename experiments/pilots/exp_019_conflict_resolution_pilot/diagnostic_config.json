@@ -1,4 +1,5 @@
 {
+  "protocol_version": "exp019-conflict-oracle-diagnostic-v1",
   "schema_version": "exp019-conflict-diagnostic-config-v1",
   "observer_only": true,
   "runtime_authorized": false,
@@ -29,6 +30,33 @@
     "baseline": "higher_reliability_owner_then_left",
     "bridge_weight": "one_plus_reliability",
     "bridge_owner_cap": 0.65
+  },
+  "conform_control": {
+    "result_root": "results/exp_018_rddsm_evidence_overlay_pilot/mechanism",
+    "lane_id": "b_rddsm_evidence_overlay",
+    "evidence_overlay_mode": "paired_owner",
+    "cases": ["E3", "A4", "S5"],
+    "seeds": [117, 118, 119, 120, 121],
+    "max_fes": 3000000,
+    "required_integrity_checks": [
+      "preregistered_run_count",
+      "all_runs_completed",
+      "all_runs_fresh",
+      "zero_fe_overrun",
+      "fe_ledger_closed",
+      "terminal_tolerance",
+      "aob_inputs_unchanged",
+      "aob_input_hash_consistency",
+      "anti_leakage",
+      "raw_schemas",
+      "all_raw_rows_runtime_unauthorized",
+      "paired_overlay_integrity",
+      "checkpoint_triplet_parity",
+      "delayed_label_closure",
+      "minimum_applicable_overlap_triplets",
+      "overlap_case_coverage",
+      "overlap_seed_coverage"
+    ]
   },
   "gate": {
     "epsilon": 1e-300,
