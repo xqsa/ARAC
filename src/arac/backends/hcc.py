@@ -9,6 +9,9 @@ HCC baseline.
 from __future__ import annotations
 
 import ast
+import json
+import math
+import os
 import subprocess
 import sys
 import time
@@ -198,6 +201,17 @@ class HccAobSmokeCommand:
     cwd: Path
 
 
+EVIDENCE_OVERLAY_MODES = frozenset(
+    {"off", "native_audit", "paired_owner", "shuffled_owner"}
+)
+EVIDENCE_OVERLAY_SUBPROCESS_ENVIRONMENT = {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+}
+
+
 @dataclass(frozen=True)
 class HccAobExecutionRequest:
     """Request for a single AOB/HCC smoke execution.
@@ -232,6 +246,7 @@ class HccAobExecutionRequest:
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
     hypergraph_trace_mode: str = "off"
+    evidence_overlay_mode: str = "off"
     cma_sampling_mode: str = "iid"
     offline_frozen_replay: bool = False
     hcc_repo_root: Path | None = None
@@ -267,8 +282,13 @@ class HccAobExecutionResult:
     refresh_fe: int | None = None
     search_state_fe: int | None = None
     precision_probe_fe: int | None = None
+    evidence_overlay_fe: int | None = None
     separable_continuation_fe: int | None = None
     overhead_fe: int | None = None
+    native_terminal_error: float | None = None
+    all_evaluation_best_error: float | None = None
+    evidence_overlay_manifest_path: Path | None = None
+    evidence_overlay_status: str = "off"
 
     def to_offline_row(self) -> dict[str, str]:
         actual_fe_used = (
@@ -548,6 +568,38 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         raise ValueError(
             "hypergraph observer and frozen precision experiment arms are mutually exclusive"
         )
+    if request.evidence_overlay_mode not in EVIDENCE_OVERLAY_MODES:
+        raise ValueError(
+            "evidence_overlay_mode must be 'off', 'native_audit', "
+            "'paired_owner', or 'shuffled_owner'"
+        )
+    evidence_overlay_enabled = request.evidence_overlay_mode != "off"
+    if evidence_overlay_enabled:
+        if request.arac_action != "arac_evidence_action_controller_v37":
+            raise ValueError("evidence overlay requires the frozen v37 action")
+        if not request.enable_relation_dispatch:
+            raise ValueError("evidence overlay requires relation dispatch")
+        if request.relation_policy_mode != "controller_v31":
+            raise ValueError("evidence overlay requires controller_v31")
+        if request.budget_accounting != "strict":
+            raise ValueError("evidence overlay requires strict FE accounting")
+        if not request.cmaes_restart or not request.mmes_restart:
+            raise ValueError("evidence overlay requires frozen restart settings")
+        if request.search_state_backend != "phase_i_mmes":
+            raise ValueError("evidence overlay requires phase_i_mmes")
+        if request.cma_sampling_mode != "iid":
+            raise ValueError("evidence overlay requires iid CMA sampling")
+        if request.car_candidate_mode != "graph":
+            raise ValueError("evidence overlay requires the default CAR candidate mode")
+        if active_precision_arms or request.hypergraph_trace_mode != "off":
+            raise ValueError(
+                "evidence overlay, hypergraph observer, and precision arms are "
+                "mutually exclusive"
+            )
+        if request.car_actionability_arm != "off" or request.offline_frozen_replay:
+            raise ValueError(
+                "evidence overlay cannot combine with CAR actionability or frozen replay"
+            )
     if request.cma_sampling_mode not in {"iid", "mirrored_orthogonal"}:
         raise ValueError(
             "cma_sampling_mode must be 'iid' or 'mirrored_orthogonal'"
@@ -574,6 +626,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
             raise ValueError("v37_mos_sampling cannot combine with frozen pilots")
         if request.car_actionability_arm != "off":
             raise ValueError("v37_mos_sampling cannot combine with CAR arms")
+        if evidence_overlay_enabled:
+            raise ValueError("v37_mos_sampling cannot combine with evidence overlay")
     frozen_action = request.arac_action == "arac_evidence_action_controller_v41"
     if frozen_action and not request.offline_frozen_replay:
         raise ValueError("v41 is frozen; use offline_frozen_replay for historical replay")
@@ -639,6 +693,8 @@ def build_hcc_aob_smoke_command(request: HccAobExecutionRequest) -> HccAobSmokeC
         argv.extend(("--component-precision-arm", request.component_precision_arm))
     if request.hypergraph_trace_mode != "off":
         argv.extend(("--hypergraph-trace-mode", request.hypergraph_trace_mode))
+    if request.evidence_overlay_mode != "off":
+        argv.extend(("--evidence-overlay-mode", request.evidence_overlay_mode))
     if request.offline_frozen_replay:
         argv.append("--offline-frozen-replay")
     if request.enable_relation_dispatch:
@@ -659,6 +715,37 @@ def _normalize_hcc_output_dir(output_dir: Path | str) -> Path:
     if not path.is_absolute():
         path = ARAC_REPO_ROOT / path
     return path.resolve()
+
+
+def _parse_hcc_evidence_overlay_manifest(
+    output_dir: Path,
+    *,
+    problem_id: str,
+) -> tuple[Path | None, str, float | None, float | None]:
+    manifests = sorted(
+        Path(output_dir).rglob(f"{problem_id}_evidence_overlay_manifest.json")
+    )
+    if not manifests:
+        return None, "missing", None, None
+    if len(manifests) != 1:
+        return None, "ambiguous", None, None
+    path = manifests[0]
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError("manifest must be an object")
+        native = float(payload["native_terminal_error"])
+        all_best = float(payload["all_evaluation_best_error"])
+        if not math.isfinite(native) or native < 0.0:
+            raise ValueError("native_terminal_error must be finite and non-negative")
+        if not math.isfinite(all_best) or all_best < 0.0:
+            raise ValueError("all_evaluation_best_error must be finite and non-negative")
+        barrier_status = payload.get("barrier_status")
+        if not isinstance(barrier_status, str) or not barrier_status:
+            raise ValueError("barrier_status must be a non-empty string")
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError, OSError):
+        return path, "invalid", None, None
+    return path, barrier_status, native, all_best
 
 
 def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecutionResult:
@@ -702,35 +789,88 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
             precision_response_arm=request.precision_response_arm,
             component_precision_arm=request.component_precision_arm,
             hypergraph_trace_mode=request.hypergraph_trace_mode,
+            evidence_overlay_mode=request.evidence_overlay_mode,
             cma_sampling_mode=request.cma_sampling_mode,
             offline_frozen_replay=request.offline_frozen_replay,
         )
     )
     start = time.time()
+    subprocess_environment = None
+    if request.evidence_overlay_mode != "off":
+        subprocess_environment = {
+            **os.environ,
+            **EVIDENCE_OVERLAY_SUBPROCESS_ENVIRONMENT,
+        }
     completed = subprocess.run(
         command.argv,
         cwd=command.cwd,
         check=False,
         capture_output=True,
         text=True,
+        env=subprocess_environment,
     )
     elapsed = time.time() - start
     if completed.returncode != 0:
+        problem_id = _problem_parts(request.problem_id)[0]
+        budget_breakdown: dict[str, int] = {}
+        overlay_manifest_path = None
+        overlay_status = (
+            "off" if request.evidence_overlay_mode == "off" else "subprocess_failed"
+        )
+        native_terminal_error = None
+        all_evaluation_best_error = None
+        if request.evidence_overlay_mode != "off":
+            try:
+                budget_breakdown = _parse_hcc_budget_summary(output_dir)
+            except (OSError, TypeError, ValueError):
+                budget_breakdown = {}
+            (
+                overlay_manifest_path,
+                parsed_overlay_status,
+                native_terminal_error,
+                all_evaluation_best_error,
+            ) = _parse_hcc_evidence_overlay_manifest(
+                output_dir,
+                problem_id=problem_id,
+            )
+            if overlay_manifest_path is not None:
+                overlay_status = parsed_overlay_status
+        actual_fe = max(0, budget_breakdown.get("fitness_record_fe", 0))
         return HccAobExecutionResult(
-            problem_id=_problem_parts(request.problem_id)[0],
+            problem_id=problem_id,
             seed=request.seed,
             max_fes=request.max_fes,
-            final_error=float("nan"),
-            fe_used=0,
+            final_error=(
+                float("nan")
+                if all_evaluation_best_error is None
+                else all_evaluation_best_error
+            ),
+            fe_used=actual_fe,
             time_seconds=elapsed,
             output_root=output_dir,
-            fresh_optimizer_execution=False,
+            fresh_optimizer_execution=bool(actual_fe or overlay_manifest_path),
             status=f"failed_returncode_{completed.returncode}",
             result_source="hcc_subprocess_smoke_execution",
             stdout_tail=_tail(completed.stdout),
             stderr_tail=_tail(completed.stderr),
             action_trace_path=None,
             action_trace_rows=0,
+            optimizer_final_fe_used=(actual_fe if actual_fe > 0 else None),
+            global_phase_fe=budget_breakdown.get("global_phase_fe"),
+            cc_phase_fe=budget_breakdown.get("cc_phase_fe"),
+            rescue_fe=budget_breakdown.get("rescue_fe"),
+            refresh_fe=budget_breakdown.get("refresh_fe"),
+            search_state_fe=budget_breakdown.get("search_state_fe", 0),
+            precision_probe_fe=budget_breakdown.get("precision_probe_fe", 0),
+            evidence_overlay_fe=budget_breakdown.get("evidence_overlay_fe", 0),
+            separable_continuation_fe=budget_breakdown.get(
+                "separable_continuation_fe"
+            ),
+            overhead_fe=budget_breakdown.get("overhead_fe"),
+            native_terminal_error=native_terminal_error,
+            all_evaluation_best_error=all_evaluation_best_error,
+            evidence_overlay_manifest_path=overlay_manifest_path,
+            evidence_overlay_status=overlay_status,
         )
 
     final_error, fe_used, optimizer_final_fe_used = (
@@ -755,6 +895,21 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         mos_sampling_audit_path, mos_sampling_audit_rows = None, 0
         mos_branch_provenance_path, mos_branch_provenance_rows = None, 0
     budget_breakdown = _parse_hcc_budget_summary(output_dir)
+    if request.evidence_overlay_mode == "off":
+        overlay_manifest_path = None
+        overlay_status = "off"
+        native_terminal_error = None
+        all_evaluation_best_error = None
+    else:
+        (
+            overlay_manifest_path,
+            overlay_status,
+            native_terminal_error,
+            all_evaluation_best_error,
+        ) = _parse_hcc_evidence_overlay_manifest(
+            output_dir,
+            problem_id=problem_id,
+        )
     return HccAobExecutionResult(
         problem_id=problem_id,
         seed=request.seed,
@@ -781,10 +936,15 @@ def run_hcc_aob_smoke_execution(request: HccAobExecutionRequest) -> HccAobExecut
         refresh_fe=budget_breakdown.get("refresh_fe"),
         search_state_fe=budget_breakdown.get("search_state_fe", 0),
         precision_probe_fe=budget_breakdown.get("precision_probe_fe", 0),
+        evidence_overlay_fe=budget_breakdown.get("evidence_overlay_fe", 0),
         separable_continuation_fe=budget_breakdown.get(
             "separable_continuation_fe"
         ),
         overhead_fe=budget_breakdown.get("overhead_fe"),
+        native_terminal_error=native_terminal_error,
+        all_evaluation_best_error=all_evaluation_best_error,
+        evidence_overlay_manifest_path=overlay_manifest_path,
+        evidence_overlay_status=overlay_status,
     )
 
 

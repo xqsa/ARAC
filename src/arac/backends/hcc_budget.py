@@ -80,6 +80,7 @@ def _parse_hcc_budget_summary(output_dir: Path) -> dict[str, int]:
         "refresh_fe",
         "search_state_fe",
         "precision_probe_fe",
+        "evidence_overlay_fe",
         "separable_continuation_fe",
         "overhead_fe",
     ):
@@ -88,4 +89,5 @@ def _parse_hcc_budget_summary(output_dir: Path) -> dict[str, int]:
             parsed[field] = int(float(value))
     parsed.setdefault("search_state_fe", 0)
     parsed.setdefault("precision_probe_fe", 0)
+    parsed.setdefault("evidence_overlay_fe", 0)
     return parsed

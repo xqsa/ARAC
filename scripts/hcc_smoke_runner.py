@@ -5,6 +5,7 @@ import csv
 import hashlib
 import json
 import math
+import random
 import sys
 import time
 from dataclasses import asdict, dataclass, field
@@ -155,6 +156,11 @@ from arac.backends.hcc_hypergraph_trace import (
     HypergraphTraceObserver,
     write_hypergraph_initialization_failure_manifest,
 )
+from arac.backends.hcc_evidence_overlay import (
+    EvidenceOverlayArtifactPaths,
+    HccEvidenceOverlayObserver,
+)
+from arac.policy.evidence_overlay import build_reference_blind_ordering
 from arac.policy.overlap_hypergraph import build_overlap_hypergraph
 from src.arac.policy.trajectory_guard import (
     RecoveryCheckpoint,
@@ -168,7 +174,11 @@ from src.arac.backends.diagonal_cma import (
     initialize_diagonal_cma_state,
     run_diagonal_cma_block,
 )
-from src.arac.backends.hcc import required_aob_data_files, validate_aob_data_root
+from src.arac.backends.hcc import (
+    EVIDENCE_OVERLAY_MODES,
+    required_aob_data_files,
+    validate_aob_data_root,
+)
 from HCC.NDAs.MMES.state import MMESBlockResult, MMESState
 
 from AOB.utils import (
@@ -721,6 +731,8 @@ PRECISION_CAUSAL_TRACE_FIELDS = [
 CAR_W_MIN_EVIDENCE_SWEEPS = 2
 CAR_W_PAIR_COUNT = 3
 CAR_W_PROBE_BUDGET_FRACTION = 0.03
+EVIDENCE_OVERLAY_REQUIRED_SWEEPS = 3
+EVIDENCE_OVERLAY_PROBE_FE = 16
 CAR_W2_FUTILITY_MIN_WRITEBACK_NORM = 1e-12
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
@@ -839,6 +851,180 @@ SHUFFLED_NEGATIVE_CONTROL_ACTIONS = {
 }
 
 
+def evidence_overlay_sweep_barrier_ready(
+    *,
+    mode: str,
+    complete_sweep_count: int,
+    previous_survival_closed: bool,
+    barrier_attempted: bool,
+    all_raw_groups_completed: bool,
+) -> bool:
+    """Return whether the one-shot overlay barrier is ready to execute."""
+
+    if mode not in EVIDENCE_OVERLAY_MODES:
+        raise ValueError("unsupported evidence overlay mode")
+    if isinstance(complete_sweep_count, bool) or complete_sweep_count < 0:
+        raise ValueError("complete_sweep_count must be non-negative")
+    return bool(
+        mode != "off"
+        and not barrier_attempted
+        and all_raw_groups_completed
+        and complete_sweep_count >= EVIDENCE_OVERLAY_REQUIRED_SWEEPS
+        and previous_survival_closed
+    )
+
+
+def evidence_overlay_scheduled_sub_fes(
+    *,
+    mode: str,
+    has_overlap: bool,
+    complete_sweep_count: int,
+    cc_budget_limit_fe: int,
+    current_fe: int,
+    terminal_tolerance_fe: int,
+    sub_num: int,
+    population_sizes: list[int] | tuple[int, ...],
+    frozen_sub_fes: int | None,
+    plan_ready: bool = True,
+    probe_pending: bool = True,
+    barrier_attempted: bool = False,
+    delayed_outcomes_pending: bool = False,
+) -> int | None:
+    """Plan equal evidence slots with a worst-case v37 rescue reserve."""
+
+    if mode not in EVIDENCE_OVERLAY_MODES:
+        raise ValueError("unsupported evidence overlay mode")
+    if not isinstance(plan_ready, bool):
+        raise ValueError("plan_ready must be boolean")
+    if not isinstance(probe_pending, bool):
+        raise ValueError("probe_pending must be boolean")
+    if not isinstance(barrier_attempted, bool):
+        raise ValueError("barrier_attempted must be boolean")
+    if not isinstance(delayed_outcomes_pending, bool):
+        raise ValueError("delayed_outcomes_pending must be boolean")
+    integer_values = {
+        "complete_sweep_count": complete_sweep_count,
+        "cc_budget_limit_fe": cc_budget_limit_fe,
+        "current_fe": current_fe,
+        "terminal_tolerance_fe": terminal_tolerance_fe,
+        "sub_num": sub_num,
+    }
+    if any(
+        isinstance(value, bool) or not isinstance(value, int)
+        for value in integer_values.values()
+    ):
+        raise ValueError("evidence overlay schedule values must be integers")
+    if complete_sweep_count < 0 or current_fe < 0 or terminal_tolerance_fe < 0:
+        raise ValueError("evidence overlay schedule values must be non-negative")
+    if cc_budget_limit_fe < current_fe or sub_num <= 0:
+        raise ValueError("evidence overlay schedule budget is invalid")
+    if mode == "off":
+        return None
+    if barrier_attempted and not delayed_outcomes_pending:
+        return None
+    target_sweeps = EVIDENCE_OVERLAY_REQUIRED_SWEEPS + int(has_overlap)
+    if complete_sweep_count >= target_sweeps and plan_ready:
+        return None
+    effective_complete_sweeps = min(complete_sweep_count, target_sweeps - 1)
+    populations = tuple(int(value) for value in population_sizes)
+    if len(populations) != sub_num or any(value <= 0 for value in populations):
+        raise ValueError("population sizes must align with overlay groups")
+    probe_reserve = (
+        EVIDENCE_OVERLAY_PROBE_FE
+        if has_overlap and probe_pending
+        else 0
+    )
+    available = max(
+        0,
+        cc_budget_limit_fe
+        - current_fe
+        - probe_reserve
+        - terminal_tolerance_fe,
+    )
+    remaining_slots = target_sweeps - effective_complete_sweeps
+    minimum_sub_fes = max(populations)
+
+    def fits(candidate_sub_fes: int) -> bool:
+        return (
+            remaining_slots
+            * evidence_overlay_normal_sweep_reserve(
+                populations,
+                sub_fes=candidate_sub_fes,
+            )
+            <= available
+        )
+
+    if frozen_sub_fes is not None:
+        if frozen_sub_fes < minimum_sub_fes:
+            raise RuntimeError("frozen evidence-overlay group budget is sub-population")
+        if not fits(frozen_sub_fes):
+            raise RuntimeError(
+                "frozen evidence-overlay group budget exceeds remaining reserve"
+            )
+        return frozen_sub_fes
+
+    upper_sub_fes = available // max(1, remaining_slots * sub_num)
+    if upper_sub_fes < minimum_sub_fes:
+        raise RuntimeError(
+            "insufficient budget for frozen evidence-overlay sweep populations"
+        )
+    low = minimum_sub_fes
+    high = upper_sub_fes
+    best = minimum_sub_fes - 1
+    while low <= high:
+        candidate = (low + high) // 2
+        if fits(candidate):
+            best = candidate
+            low = candidate + 1
+        else:
+            high = candidate - 1
+    if best < minimum_sub_fes:
+        raise RuntimeError(
+            "insufficient budget for frozen evidence-overlay sweep populations"
+        )
+    return best
+
+
+def evidence_overlay_normal_sweep_reserve(
+    population_sizes: list[int] | tuple[int, ...],
+    *,
+    sub_fes: int | None = None,
+) -> int:
+    converted = tuple(int(value) for value in population_sizes)
+    if not converted or any(value <= 0 for value in converted):
+        raise ValueError("population sizes must be positive")
+    if sub_fes is None:
+        return sum(value + 1 for value in converted)
+    if isinstance(sub_fes, bool) or not isinstance(sub_fes, int) or sub_fes < 0:
+        raise ValueError("sub_fes must be a non-negative integer")
+    return sum(
+        evidence_overlay_group_interval_reserve(population, sub_fes)
+        for population in converted
+    )
+
+
+def evidence_overlay_group_interval_reserve(
+    population_size: int,
+    sub_fes: int,
+) -> int:
+    if (
+        isinstance(population_size, bool)
+        or not isinstance(population_size, int)
+        or population_size <= 0
+    ):
+        raise ValueError("population_size must be a positive integer")
+    if isinstance(sub_fes, bool) or not isinstance(sub_fes, int) or sub_fes < 0:
+        raise ValueError("sub_fes must be a non-negative integer")
+    return (
+        1
+        + sub_fes
+        + max(
+            PHASE_RESCUE_START_COUNT * population_size,
+            math.ceil(sub_fes * PHASE_RESCUE_ESCAPE_BUDGET_FRACTION),
+        )
+    )
+
+
 @dataclass(frozen=True)
 class SmokeConfig:
     max_fes: int
@@ -864,6 +1050,7 @@ class SmokeConfig:
     precision_response_arm: str = "off"
     component_precision_arm: str = "off"
     hypergraph_trace_mode: str = "off"
+    evidence_overlay_mode: str = "off"
     cma_sampling_mode: str = IID_CMA_SAMPLING
     lane_profile: str = "runtime_smoke"
     offline_frozen_replay: bool = False
@@ -1731,6 +1918,117 @@ def load_design_matrix(fun_id: int, data_root: Path | str | None = None) -> np.n
     return load_aob_design_matrix(root / f"F{fun_id}-design.txt")
 
 
+def load_reference_blind_design_matrix(
+    fun_id: int,
+    data_root: Path | str | None = None,
+) -> np.ndarray:
+    """Load a possibly truncated RDDSM matrix without consulting AOB truth.
+
+    The bundled pilot matrices contain a contiguous prefix of complete rows and
+    an optional truncated tail.  A missing row is recoverable only when its
+    observed symmetric prefix maps to one unique, already observed full-row
+    paradigm.  Any ambiguity or structural inconsistency fails closed instead
+    of falling back to ``F*-info/s/p`` metadata.
+    """
+
+    root = _resolved_aob_data_root(data_root)
+    path = root / f"F{fun_id}-design.txt"
+    rows: list[np.ndarray] = []
+    dimension: int | None = None
+    incomplete_seen = False
+    with path.open(newline="", encoding="utf-8") as handle:
+        for line_number, raw_row in enumerate(csv.reader(handle), start=1):
+            if not raw_row:
+                raise ValueError(
+                    f"reference-blind design matrix has an empty row at line {line_number}"
+                )
+            try:
+                values = np.asarray([float(value) for value in raw_row], dtype=float)
+            except ValueError as error:
+                raise ValueError(
+                    f"reference-blind design matrix has a non-numeric value at line {line_number}"
+                ) from error
+            if not np.all(np.isfinite(values)) or not np.all(
+                np.logical_or(values == 0.0, values == 1.0)
+            ):
+                raise ValueError(
+                    f"reference-blind design matrix must be finite and binary at line {line_number}"
+                )
+            if dimension is None:
+                dimension = int(values.size)
+                if dimension <= 0:
+                    raise ValueError("reference-blind design matrix must be non-empty")
+            if values.size > dimension:
+                raise ValueError(
+                    "reference-blind design matrix row exceeds the first-row dimension"
+                )
+            if values.size < dimension:
+                incomplete_seen = True
+            elif incomplete_seen:
+                raise ValueError(
+                    "reference-blind design matrix complete rows must form one prefix"
+                )
+            rows.append(values.astype(np.uint8, copy=False))
+
+    if dimension is None or not rows:
+        raise ValueError("reference-blind design matrix must be non-empty")
+    if len(rows) > dimension:
+        raise ValueError("reference-blind design matrix has more rows than columns")
+
+    complete_count = 0
+    for row in rows:
+        if row.size != dimension:
+            break
+        complete_count += 1
+    if complete_count == 0:
+        raise ValueError(
+            "reference-blind design matrix requires a complete row prefix"
+        )
+
+    complete_rows = np.stack(rows[:complete_count])
+    prefix_templates: dict[bytes, np.ndarray] = {}
+    ambiguous_prefixes: set[bytes] = set()
+    for row in complete_rows:
+        key = row[:complete_count].tobytes()
+        existing = prefix_templates.get(key)
+        if existing is None:
+            prefix_templates[key] = row
+        elif not np.array_equal(existing, row):
+            ambiguous_prefixes.add(key)
+
+    matrix = np.empty((dimension, dimension), dtype=np.uint8)
+    matrix[:complete_count] = complete_rows
+    for row_index in range(complete_count, dimension):
+        key = complete_rows[:, row_index].tobytes()
+        if key in ambiguous_prefixes:
+            raise ValueError(
+                "reference-blind design row prefix maps to multiple paradigms: "
+                f"row={row_index}"
+            )
+        template = prefix_templates.get(key)
+        if template is None:
+            raise ValueError(
+                "reference-blind design row prefix has no observed paradigm: "
+                f"row={row_index}"
+            )
+        if row_index < len(rows):
+            observed = rows[row_index]
+            if not np.array_equal(template[: observed.size], observed):
+                raise ValueError(
+                    "reference-blind design row conflicts with its observed cells: "
+                    f"row={row_index}"
+                )
+        matrix[row_index] = template
+
+    if not np.array_equal(matrix, matrix.T):
+        raise ValueError("reference-blind reconstructed design matrix is not symmetric")
+    if not np.all(np.diag(matrix) == 1):
+        raise ValueError(
+            "reference-blind reconstructed design matrix has a missing diagonal"
+        )
+    return matrix
+
+
 def load_permutation_vector(fun_id: int, data_root: Path | str | None = None) -> list[int]:
     root = _resolved_aob_data_root(data_root)
     return (np.loadtxt(root / f"F{fun_id}-p.txt", delimiter=",").reshape(-1).astype(int) - 1).tolist()
@@ -1788,6 +2086,42 @@ def decompose_problem(
 ) -> list[list[int]]:
     grouping_result = Decomposition(load_design_matrix(fun_id, data_root)).decomposition()
     return order_grouping_by_aob_topology(grouping_result, fun_id, data_root)
+
+
+def load_runtime_grouping(
+    fun_id: int,
+    data_root: Path | str | None,
+    *,
+    evidence_overlay_mode: str,
+) -> list[list[int]]:
+    if evidence_overlay_mode not in EVIDENCE_OVERLAY_MODES:
+        raise ValueError("unsupported evidence overlay mode")
+    if evidence_overlay_mode == "off":
+        return decompose_problem(fun_id, data_root)
+    raw_groups = Decomposition(
+        load_reference_blind_design_matrix(fun_id, data_root)
+    ).decomposition()
+    ordering = build_reference_blind_ordering(raw_groups)
+    return [list(group) for group in ordering.ordered_groups]
+
+
+def calculate_runtime_overlap_degree(
+    overlap_groups: list[list[int]],
+    *,
+    problem_dimension: int,
+    fun_id: int,
+    data_root: Path | str | None,
+    evidence_overlay_mode: str,
+) -> float:
+    if evidence_overlay_mode not in EVIDENCE_OVERLAY_MODES:
+        raise ValueError("unsupported evidence overlay mode")
+    dimension = int(problem_dimension)
+    if dimension <= 0:
+        raise ValueError("problem_dimension must be positive")
+    if evidence_overlay_mode != "off":
+        return calculate_degree_of_overlap(overlap_groups, dimension)
+    metadata = load_aob_metadata(fun_id, data_root)
+    return calculate_degree_of_overlap(overlap_groups, int(metadata["dimension"]))
 
 
 def calculate_degree_of_overlap(overlap_groups: list[list[int]], problem_dimension: int) -> float:
@@ -4196,6 +4530,7 @@ def _write_budget_summary(
     refresh_fe: int = 0,
     search_state_fe: int = 0,
     precision_probe_fe: int = 0,
+    evidence_overlay_fe: int | None = None,
     separable_continuation_fe: int = 0,
 ) -> None:
     budget_aligned_fe = min(max_fes, fitness_record_fe)
@@ -4206,6 +4541,7 @@ def _write_budget_summary(
         + refresh_fe
         + search_state_fe
         + precision_probe_fe
+        + (0 if evidence_overlay_fe is None else evidence_overlay_fe)
         + separable_continuation_fe
     )
     overhead_fe = max(0, fitness_record_fe - stage_fe)
@@ -4231,6 +4567,9 @@ def _write_budget_summary(
         if precision_probe_fe > 0:
             fieldnames.append("precision_probe_fe")
             row["precision_probe_fe"] = str(precision_probe_fe)
+        if evidence_overlay_fe is not None:
+            fieldnames.append("evidence_overlay_fe")
+            row["evidence_overlay_fe"] = str(evidence_overlay_fe)
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerow(row)
@@ -4431,6 +4770,164 @@ def _canonical_payload_sha256(payload: object) -> str:
         allow_nan=False,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _evidence_overlay_jsonable(value: object) -> object:
+    if isinstance(value, np.ndarray):
+        array = np.ascontiguousarray(value)
+        return {
+            "dtype": array.dtype.str,
+            "shape": list(array.shape),
+            "sha256": hashlib.sha256(array.tobytes()).hexdigest(),
+        }
+    if isinstance(value, np.generic):
+        return value.item()
+    if callable(value):
+        return {
+            "callable": (
+                f"{getattr(value, '__module__', '')}."
+                f"{getattr(value, '__qualname__', type(value).__name__)}"
+            )
+        }
+    if hasattr(type(value), "__dataclass_fields__"):
+        return _evidence_overlay_jsonable(asdict(value))
+    if isinstance(value, dict):
+        return {
+            repr(key): _evidence_overlay_jsonable(item)
+            for key, item in sorted(value.items(), key=lambda pair: repr(pair[0]))
+        }
+    if isinstance(value, (list, tuple)):
+        return [_evidence_overlay_jsonable(item) for item in value]
+    if isinstance(value, (set, frozenset)):
+        return [
+            _evidence_overlay_jsonable(item)
+            for item in sorted(value, key=repr)
+        ]
+    if isinstance(value, float) and not math.isfinite(value):
+        return {"nonfinite": repr(value)}
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    raise TypeError(
+        f"unsupported evidence-overlay fingerprint value: {type(value).__name__}"
+    )
+
+
+def _evidence_overlay_optimizer_payload(optimizer: object | None) -> object:
+    if optimizer is None:
+        return None
+    volatile = {
+        "rng",
+        "rng_initialization",
+        "rng_optimization",
+        "start_time",
+        "runtime",
+        "time_function_evaluations",
+        "fitness_function",
+        "Terminations",
+    }
+    payload: dict[str, object] = {}
+    for name, value in sorted(vars(optimizer).items()):
+        if name in volatile:
+            continue
+        payload[name] = _evidence_overlay_jsonable(value)
+    payload["rng_states"] = {
+        name: _evidence_overlay_jsonable(
+            getattr(optimizer, name).bit_generator.state
+        )
+        for name in ("rng", "rng_initialization", "rng_optimization")
+        if hasattr(getattr(optimizer, name, None), "bit_generator")
+    }
+    return payload
+
+
+def _evidence_overlay_controller_payload(
+    controller: EvidenceActionControllerV31RunState | None,
+) -> object:
+    if controller is None:
+        return None
+    policy = controller.action_trust_policy
+    policy_payload = None
+    if policy is not None:
+        policy_payload = {
+            "config": asdict(policy.config),
+            "states": {
+                key: asdict(state)
+                for key, state in sorted(policy._states.items())
+            },
+        }
+
+    payload: dict[str, object] = {}
+    for name in controller.__dataclass_fields__:
+        value = getattr(controller, name)
+        if name == "action_trust_policy":
+            payload[name] = policy_payload
+        elif name == "phase_i_optimizer":
+            payload[name] = _evidence_overlay_optimizer_payload(value)
+        elif name == "phase_i_state":
+            payload[name] = None if value is None else value.fingerprint()
+        elif name == "diagonal_cma_state":
+            payload[name] = None if value is None else value.fingerprint()
+        else:
+            payload[name] = _evidence_overlay_jsonable(value)
+    return payload
+
+
+def _evidence_overlay_phase_i_payload(
+    controller: EvidenceActionControllerV31RunState | None,
+) -> object:
+    if controller is None:
+        return None
+    optimizer = controller.phase_i_optimizer
+    state = controller.phase_i_state
+    return {
+        "optimizer": _evidence_overlay_optimizer_payload(optimizer),
+        "state_fingerprint": None if state is None else state.fingerprint(),
+    }
+
+
+def evidence_overlay_runtime_fingerprints(
+    *,
+    best_individual: np.ndarray,
+    guarded_incumbent: np.ndarray,
+    guarded_incumbent_fitness: float,
+    grouping_result: list[list[int]],
+    controller: EvidenceActionControllerV31RunState | None,
+    trajectory_mean_cache: dict[int, float],
+    previous_group_contribution_credit: list[float],
+) -> dict[str, str]:
+    phase_i_payload = _evidence_overlay_phase_i_payload(controller)
+    optimizer = None if controller is None else controller.phase_i_optimizer
+    components = {
+        "best_individual": _evidence_overlay_jsonable(best_individual),
+        "guarded_incumbent": _evidence_overlay_jsonable(guarded_incumbent),
+        "guarded_incumbent_fitness": _evidence_overlay_jsonable(
+            float(guarded_incumbent_fitness)
+        ),
+        "grouping": _evidence_overlay_jsonable(grouping_result),
+        "phase_i": phase_i_payload,
+        "controller": {
+            "state": _evidence_overlay_controller_payload(controller),
+            "trajectory_mean_cache": _evidence_overlay_jsonable(
+                trajectory_mean_cache
+            ),
+            "previous_group_contribution_credit": _evidence_overlay_jsonable(
+                previous_group_contribution_credit
+            ),
+        },
+        "rng": {
+            "python": _evidence_overlay_jsonable(random.getstate()),
+            "numpy": _evidence_overlay_jsonable(np.random.get_state()),
+            "phase_i_optimizer": (
+                None
+                if optimizer is None
+                else _evidence_overlay_optimizer_payload(optimizer)["rng_states"]
+            ),
+        },
+    }
+    return {
+        name: _canonical_payload_sha256(_evidence_overlay_jsonable(payload))
+        for name, payload in components.items()
+    }
 
 
 def _component_atomic_plan_sha256(plan: ComponentAtomicPlan) -> str:
@@ -5457,6 +5954,36 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError(
             "hypergraph observer and frozen precision experiment arms are exclusive"
         )
+    if config.evidence_overlay_mode not in EVIDENCE_OVERLAY_MODES:
+        raise ValueError("unsupported evidence overlay mode")
+    evidence_overlay_enabled = config.evidence_overlay_mode != "off"
+    if evidence_overlay_enabled:
+        if not is_evidence_action_controller_v37(config.arac_action):
+            raise ValueError("evidence overlay requires frozen v37")
+        if not config.enable_relation_dispatch:
+            raise ValueError("evidence overlay requires relation dispatch")
+        if config.relation_policy_mode != "controller_v31":
+            raise ValueError("evidence overlay requires controller_v31")
+        if config.seed is None:
+            raise ValueError("evidence overlay requires an explicit seed")
+        if config.budget_accounting != "strict":
+            raise ValueError("evidence overlay requires strict FE accounting")
+        if not config.cmaes_restart or not config.mmes_restart:
+            raise ValueError("evidence overlay requires frozen restart settings")
+        if config.search_state_backend != "phase_i_mmes":
+            raise ValueError("evidence overlay requires phase_i_mmes")
+        if config.cma_sampling_mode != IID_CMA_SAMPLING:
+            raise ValueError("evidence overlay requires iid CMA sampling")
+        if config.car_candidate_mode != "graph":
+            raise ValueError("evidence overlay requires graph CAR candidates")
+        if enabled_precision_protocols or config.hypergraph_trace_mode != "off":
+            raise ValueError(
+                "evidence overlay, hypergraph observer, and precision arms are exclusive"
+            )
+        if config.car_actionability_arm != "off" or config.offline_frozen_replay:
+            raise ValueError(
+                "evidence overlay cannot combine with CAR actionability or frozen replay"
+            )
     mos_profile_enabled = config.lane_profile == "v37_mos_sampling"
     if (
         config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
@@ -5486,6 +6013,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             raise ValueError("v37_mos_sampling cannot combine with frozen pilots")
         if config.car_actionability_arm != "off" or config.offline_frozen_replay:
             raise ValueError("v37_mos_sampling cannot combine with frozen replay")
+        if evidence_overlay_enabled:
+            raise ValueError("v37_mos_sampling cannot combine with evidence overlay")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -5497,13 +6026,33 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     mos_first_cma_prestate_status = "not_reached"
     mos_first_cma_prestate_sha256 = ""
     mos_rng_descriptor_sha256 = ""
-    grouping_result = decompose_problem(fun_id, config.aob_data_root)
+    grouping_result = load_runtime_grouping(
+        fun_id,
+        config.aob_data_root,
+        evidence_overlay_mode=config.evidence_overlay_mode,
+    )
     terminal_completion_tolerance_fe = max(
         1,
         max(
             calculate_cmaes_population_size(len(group))
             for group in grouping_result
         ),
+    )
+    evidence_overlay_observer = (
+        HccEvidenceOverlayObserver(
+            mode=config.evidence_overlay_mode,
+            grouping_result=grouping_result,
+            problem_id=problem_id,
+            seed=int(config.seed),
+            run_id=config.run_id,
+            configured_max_fes=config.max_fes,
+            terminal_tolerance_fe=terminal_completion_tolerance_fe,
+            lower_bound=float(info["lower"]),
+            upper_bound=float(info["upper"]),
+            fresh_optimizer_execution=True,
+        )
+        if evidence_overlay_enabled
+        else None
     )
     hypergraph_trace_enabled = config.hypergraph_trace_mode == "observer"
     hypergraph_observer: HypergraphTraceObserver | None = None
@@ -5558,8 +6107,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 file=sys.stderr,
             )
     _, overlap_groups, overlapping_elements = remove_overlapping_groups(grouping_result)
-    metadata = load_aob_metadata(fun_id, config.aob_data_root)
-    degree = calculate_degree_of_overlap(overlap_groups, metadata["dimension"])
+    degree = calculate_runtime_overlap_degree(
+        overlap_groups,
+        problem_dimension=int(info["dimension"]),
+        fun_id=fun_id,
+        data_root=config.aob_data_root,
+        evidence_overlay_mode=config.evidence_overlay_mode,
+    )
     global_fes = calculate_global_fes(config.max_fes, degree)
     controller_v31_run_state = (
         build_evidence_action_controller_v31_run_state(
@@ -5762,6 +6316,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     precision_response_probe_result: PairedHccCMAProbeResult | None = None
     precision_response_probe_audit_rows: list[dict[str, str]] = []
     precision_response_probe_fe = 0
+    evidence_overlay_fe = 0
+    evidence_overlay_barrier_attempted = False
+    evidence_overlay_frozen_sub_fes: int | None = None
+    evidence_overlay_probe_slice: tuple[int, int] | None = None
+    evidence_overlay_runtime_failure: BaseException | None = None
+    evidence_overlay_has_overlap = bool(any(overlapping_elements))
     precision_response_lease_applied = False
     precision_response_lease_row: dict[str, str] | None = None
     precision_response_lease_group_index: int | None = None
@@ -5952,7 +6512,46 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 else 0
             ),
         )
-        if (
+        population_sizes = [
+            calculate_cmaes_population_size(len(dims)) for dims in grouping_result
+        ]
+        try:
+            overlay_sub_fes = evidence_overlay_scheduled_sub_fes(
+                mode=config.evidence_overlay_mode,
+                has_overlap=evidence_overlay_has_overlap,
+                complete_sweep_count=(
+                    0
+                    if evidence_overlay_observer is None
+                    else evidence_overlay_observer.consecutive_complete_sweep_count
+                ),
+                cc_budget_limit_fe=cc_budget_limit_fes,
+                current_fe=current_fes,
+                terminal_tolerance_fe=terminal_completion_tolerance_fe,
+                sub_num=sub_num,
+                population_sizes=population_sizes,
+                frozen_sub_fes=evidence_overlay_frozen_sub_fes,
+                plan_ready=(
+                    evidence_overlay_observer is None
+                    or evidence_overlay_observer.plan_ready
+                ),
+                probe_pending=not evidence_overlay_barrier_attempted,
+                barrier_attempted=evidence_overlay_barrier_attempted,
+                delayed_outcomes_pending=(
+                    False
+                    if evidence_overlay_observer is None
+                    else evidence_overlay_observer.delayed_outcomes_pending
+                ),
+            )
+        except BaseException as error:
+            if evidence_overlay_observer is None:
+                raise
+            evidence_overlay_runtime_failure = error
+            break
+        if overlay_sub_fes is not None:
+            if evidence_overlay_frozen_sub_fes is None:
+                evidence_overlay_frozen_sub_fes = overlay_sub_fes
+            sub_fes = overlay_sub_fes
+        elif (
             is_car_w_action(config.arac_action)
             and car_probe_enabled
             and not car_probe_attempted
@@ -5965,9 +6564,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
         else:
             sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)
-        population_sizes = [
-            calculate_cmaes_population_size(len(dims)) for dims in grouping_result
-        ]
         trajectory_budgets = []
         trajectory_credit_ready = has_sufficient_trajectory_credit(previous_group_contribution_credit)
         if uses_trajectory_budget_shift(config.arac_action) and trajectory_credit_ready:
@@ -6037,9 +6633,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             hypergraph_pre_block_candidate = (
                 best_individual.copy() if hypergraph_observer_active else None
             )
+            evidence_overlay_pre_block_candidate = (
+                best_individual.copy()
+                if evidence_overlay_observer is not None
+                else None
+            )
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
             hypergraph_pre_error = original_fitness
+            evidence_overlay_pre_error = original_fitness
             if component_credit_trace is not None:
                 resolved_component_actions = component_credit_trace.resolve_group_revisit(
                     group_index=index,
@@ -7303,7 +7905,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 else:
                     group_stagnation_counts[index] = 0
                     outer_stagnation_streak = 0
-                remaining_fes = config.max_fes - current_fitness_evaluations(fun)
+                rescue_budget_limit = (
+                    cc_budget_limit_fes
+                    if evidence_overlay_observer is not None
+                    else config.max_fes
+                )
+                remaining_fes = max(
+                    0,
+                    rescue_budget_limit - current_fitness_evaluations(fun),
+                )
                 restart_rng = np.random.default_rng(
                     derive_optimizer_seed(
                         config.seed if config.seed is not None else 0,
@@ -7438,7 +8048,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 else:
                     group_stagnation_counts[index] = 0
                     outer_stagnation_streak = 0
-                remaining_fes = config.max_fes - current_fitness_evaluations(fun)
+                rescue_budget_limit = (
+                    cc_budget_limit_fes
+                    if evidence_overlay_observer is not None
+                    else config.max_fes
+                )
+                remaining_fes = max(
+                    0,
+                    rescue_budget_limit - current_fitness_evaluations(fun),
+                )
                 rescue_sigma = float(config.sigma) * PHASE_RESCUE_SIGMA_MULTIPLIER
                 rescue_population_size = population_size
                 requested_escape_budget = int(
@@ -7729,6 +8347,49 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         f"{type(error).__name__}: {error}",
                         file=sys.stderr,
                     )
+            if evidence_overlay_observer is not None:
+                group_interval_end_fe = current_fitness_evaluations(fun)
+                if (
+                    evidence_overlay_pre_block_candidate is None
+                    or group_interval_end_fe <= group_interval_start_fe
+                ):
+                    raise RuntimeError(
+                        "evidence overlay group interval is incomplete"
+                    )
+                if primary_evaluations_before != group_interval_start_fe + 1:
+                    raise RuntimeError(
+                        "evidence overlay must reuse the native precheck FE"
+                    )
+                interval_reserve = evidence_overlay_group_interval_reserve(
+                    population_size,
+                    optimizer_budget,
+                )
+                if group_interval_end_fe - group_interval_start_fe > interval_reserve:
+                    raise RuntimeError(
+                        "evidence overlay native group interval exceeded its frozen reserve"
+                    )
+                group_best_error = min(
+                    float(fun.fitness_record[fe_index])
+                    for fe_index in range(
+                        group_interval_start_fe,
+                        group_interval_end_fe,
+                    )
+                )
+                evidence_overlay_observer.record_group(
+                    sweep_index=outer_iter,
+                    group_index=index,
+                    pre_error=evidence_overlay_pre_error,
+                    best_error=min(evidence_overlay_pre_error, group_best_error),
+                    primary_requested_fe=optimizer_budget,
+                    primary_actual_fe=primary_cc_fe,
+                    full_interval_actual_fe=(
+                        group_interval_end_fe - group_interval_start_fe
+                    ),
+                    full_interval_start_fe=group_interval_start_fe,
+                    full_interval_end_fe=group_interval_end_fe,
+                    pre_block_candidate=evidence_overlay_pre_block_candidate,
+                    final_owner_candidate=best_individual.copy(),
+                )
             fitness_delta_list.append(current_delta)
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
@@ -8868,6 +9529,123 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     f"{type(error).__name__}: {error}",
                     file=sys.stderr,
                 )
+        if evidence_overlay_observer is not None:
+            all_groups_completed = len(fitness_delta_list) == sub_num
+            delayed_outcomes_pending = (
+                evidence_overlay_observer.delayed_outcomes_pending
+            )
+            completed = evidence_overlay_observer.complete_sweep(
+                sweep_index=outer_iter,
+                sweep_end_fe=current_fitness_evaluations(fun),
+                sweep_end_candidate=best_individual.copy(),
+                sweep_end_error=float(guarded_incumbent_fitness),
+                fitness_record=fun.fitness_record,
+                all_raw_groups_completed=all_groups_completed,
+                native_sweep_end_completed=all_groups_completed,
+            )
+            if not completed:
+                evidence_overlay_frozen_sub_fes = None
+                if (
+                    evidence_overlay_barrier_attempted
+                    and delayed_outcomes_pending
+                ):
+                    evidence_overlay_runtime_failure = RuntimeError(
+                        "evidence-overlay delayed sweep was incomplete"
+                    )
+            if evidence_overlay_sweep_barrier_ready(
+                mode=config.evidence_overlay_mode,
+                complete_sweep_count=(
+                    evidence_overlay_observer.consecutive_complete_sweep_count
+                ),
+                previous_survival_closed=evidence_overlay_observer.plan_ready,
+                barrier_attempted=evidence_overlay_barrier_attempted,
+                all_raw_groups_completed=all_groups_completed,
+            ):
+                evidence_overlay_barrier_attempted = True
+                probe_start_fe = current_fitness_evaluations(fun)
+                fingerprints_before = evidence_overlay_runtime_fingerprints(
+                    best_individual=best_individual,
+                    guarded_incumbent=guarded_incumbent,
+                    guarded_incumbent_fitness=guarded_incumbent_fitness,
+                    grouping_result=grouping_result,
+                    controller=controller_v31_run_state,
+                    trajectory_mean_cache=trajectory_mean_cache,
+                    previous_group_contribution_credit=(
+                        previous_group_contribution_credit
+                    ),
+                )
+                held_after_boundary = (
+                    scheduled_search_state_hold_fes(
+                        config,
+                        controller_v31_run_state.search_state_scheduler_state,
+                        overlap_edge_count=overlap_edge_count,
+                    )
+                    if controller_v31_run_state is not None
+                    else 0
+                )
+                if evidence_overlay_frozen_sub_fes is None:
+                    raise RuntimeError(
+                        "evidence overlay barrier has no frozen group budget"
+                    )
+                normal_sweep_fe = evidence_overlay_normal_sweep_reserve(
+                    population_sizes,
+                    sub_fes=evidence_overlay_frozen_sub_fes,
+                )
+                barrier_error: BaseException | None = None
+                try:
+                    evidence_overlay_observer.execute_barrier(
+                        lambda candidate: fun(
+                            np.asarray(candidate, dtype=float)
+                        ),
+                        best_individual.copy(),
+                        remaining_fe=max(
+                            0,
+                            config.max_fes
+                            - probe_start_fe
+                            - held_after_boundary,
+                        ),
+                        normal_sweep_fe=normal_sweep_fe,
+                        tolerance_fe=terminal_completion_tolerance_fe,
+                    )
+                except BaseException as error:
+                    barrier_error = error
+                probe_end_fe = current_fitness_evaluations(fun)
+                fingerprints_after = evidence_overlay_runtime_fingerprints(
+                    best_individual=best_individual,
+                    guarded_incumbent=guarded_incumbent,
+                    guarded_incumbent_fitness=guarded_incumbent_fitness,
+                    grouping_result=grouping_result,
+                    controller=controller_v31_run_state,
+                    trajectory_mean_cache=trajectory_mean_cache,
+                    previous_group_contribution_credit=(
+                        previous_group_contribution_credit
+                    ),
+                )
+                if evidence_overlay_observer.barrier_result is not None:
+                    try:
+                        evidence_overlay_observer.record_runtime_audit(
+                            fingerprints_before=fingerprints_before,
+                            fingerprints_after=fingerprints_after,
+                            probe_start_fe=probe_start_fe,
+                            probe_end_fe=probe_end_fe,
+                        )
+                    except BaseException as error:
+                        if barrier_error is None:
+                            barrier_error = error
+                actual_overlay_fe = (
+                    probe_end_fe - probe_start_fe
+                )
+                evidence_overlay_fe += actual_overlay_fe
+                sum_fes += actual_overlay_fe
+                if actual_overlay_fe > 0:
+                    evidence_overlay_probe_slice = (
+                        probe_start_fe,
+                        probe_end_fe,
+                    )
+                if barrier_error is not None:
+                    evidence_overlay_runtime_failure = barrier_error
+        if evidence_overlay_runtime_failure is not None:
+            break
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
         if cc_harm_guard_consumed:
@@ -9590,6 +10368,58 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     f"{type(manifest_error).__name__}: {manifest_error}",
                     file=sys.stderr,
                 )
+    if evidence_overlay_observer is not None:
+        evidence_overlay_paths = EvidenceOverlayArtifactPaths(
+            manifest=case_artifact_path(
+                output_path,
+                problem_id,
+                "evidence_overlay_manifest.json",
+            ),
+            checkpoint=case_artifact_path(
+                output_path,
+                problem_id,
+                "evidence_overlay_checkpoint.csv",
+            ),
+            plan=case_artifact_path(
+                output_path,
+                problem_id,
+                "evidence_overlay_plan.csv",
+            ),
+            probe_evidence=case_artifact_path(
+                output_path,
+                problem_id,
+                "evidence_overlay_probe_evidence.csv",
+            ),
+            delayed_outcomes=case_artifact_path(
+                output_path,
+                problem_id,
+                "evidence_overlay_delayed_outcomes.csv",
+            ),
+            shadow_decisions=case_artifact_path(
+                output_path,
+                problem_id,
+                "evidence_overlay_shadow_decisions.csv",
+            ),
+        )
+        terminal_record = tuple(float(value) for value in fun.fitness_record)
+        native_record = terminal_record
+        if evidence_overlay_probe_slice is not None:
+            probe_start_fe, probe_end_fe = evidence_overlay_probe_slice
+            native_record = (
+                terminal_record[:probe_start_fe]
+                + terminal_record[probe_end_fe:]
+            )
+        if not terminal_record or not native_record:
+            raise RuntimeError("evidence overlay terminal fitness record is empty")
+        try:
+            evidence_overlay_observer.write_artifacts(
+                paths=evidence_overlay_paths,
+                native_terminal_error=min(native_record),
+                all_evaluation_best_error=min(terminal_record),
+            )
+        except Exception as error:
+            if evidence_overlay_runtime_failure is None:
+                evidence_overlay_runtime_failure = error
     _write_overlap_relation_trace(
         case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
         relations,
@@ -9693,7 +10523,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         refresh_fe=refresh_fe,
         search_state_fe=search_state_fe,
         precision_probe_fe=precision_response_probe_fe,
+        evidence_overlay_fe=(
+            evidence_overlay_fe if evidence_overlay_enabled else None
+        ),
     )
+    if evidence_overlay_runtime_failure is not None:
+        raise RuntimeError(
+            "evidence overlay trajectory failed closed after writing artifacts"
+        ) from evidence_overlay_runtime_failure
     print(f"{problem_id} overlap relations extracted: {len(relations)}")
     return fun.fitness_record, time.time() - time_start, action_trace_rows
 
@@ -9823,6 +10660,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Opt-in side-effect-free v37 overlap-hypergraph observer.",
     )
     parser.add_argument(
+        "--evidence-overlay-mode",
+        choices=sorted(EVIDENCE_OVERLAY_MODES),
+        default="off",
+        help="Opt-in Phase-I owner-probe overlay; topology remains frozen.",
+    )
+    parser.add_argument(
         "--cma-sampling-mode",
         choices=sorted(CMA_SAMPLING_MODES),
         default=IID_CMA_SAMPLING,
@@ -9921,6 +10764,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         )
     ):
         parser.error("hypergraph observer and frozen precision arms are exclusive")
+    evidence_overlay_enabled = args.evidence_overlay_mode != "off"
+    if evidence_overlay_enabled:
+        if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
+            parser.error("--evidence-overlay-mode requires --arac-action v37")
+        if not args.enable_relation_dispatch:
+            parser.error("--evidence-overlay-mode requires relation dispatch")
+        if args.relation_policy != "controller_v31":
+            parser.error("--evidence-overlay-mode requires controller_v31")
+        if args.seed is None:
+            parser.error("--evidence-overlay-mode requires an explicit seed")
+        if args.budget_accounting != "strict":
+            parser.error("--evidence-overlay-mode requires strict FE accounting")
+        if not args.cmaes_restart or not args.mmes_restart:
+            parser.error("--evidence-overlay-mode requires frozen restart settings")
+        if args.search_state_backend != "phase_i_mmes":
+            parser.error("--evidence-overlay-mode requires phase_i_mmes")
+        if args.cma_sampling_mode != IID_CMA_SAMPLING:
+            parser.error("--evidence-overlay-mode requires iid CMA sampling")
+        if args.car_candidate_mode != "graph":
+            parser.error("--evidence-overlay-mode requires graph CAR candidates")
+        if args.hypergraph_trace_mode != "off" or any(
+            arm != "off"
+            for arm in (
+                args.precision_causal_arm,
+                args.precision_response_arm,
+                args.component_precision_arm,
+            )
+        ):
+            parser.error(
+                "evidence overlay, hypergraph observer, and precision arms are exclusive"
+            )
+        if args.car_actionability_arm != "off" or args.offline_frozen_replay:
+            parser.error(
+                "evidence overlay cannot combine with CAR actionability or frozen replay"
+            )
     mos_profile_enabled = args.lane_profile == "v37_mos_sampling"
     if (
         args.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
@@ -9955,6 +10833,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             parser.error("v37_mos_sampling cannot combine with frozen pilots")
         if args.car_actionability_arm != "off" or args.offline_frozen_replay:
             parser.error("v37_mos_sampling cannot combine with frozen replay")
+        if evidence_overlay_enabled:
+            parser.error("v37_mos_sampling cannot combine with evidence overlay")
     if args.offline_frozen_replay and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V41:
         parser.error("--offline-frozen-replay is only valid with v41")
     return args
@@ -9993,6 +10873,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         precision_response_arm=args.precision_response_arm,
         component_precision_arm=args.component_precision_arm,
         hypergraph_trace_mode=args.hypergraph_trace_mode,
+        evidence_overlay_mode=args.evidence_overlay_mode,
         cma_sampling_mode=args.cma_sampling_mode,
         lane_profile=args.lane_profile,
         offline_frozen_replay=args.offline_frozen_replay,
