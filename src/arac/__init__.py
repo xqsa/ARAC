@@ -1,14 +1,9 @@
-"""ARAC: evidence-to-intervention utility mapping scaffold."""
+"""ARAC RDDSM evidence-overlay package."""
 
 __all__ = [
-    "action_space",
     "actions",
-    "audit",
-    "audits",
-    "backend_adapter",
-    "evaluation",
+    "backends",
     "evidence",
-    "execution",
     "policy",
 ]
 

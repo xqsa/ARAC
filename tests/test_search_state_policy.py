@@ -4,7 +4,6 @@ from dataclasses import fields, replace
 
 import pytest
 
-from arac.actions import ActionFamily, action_by_name
 import arac.policy.search_state_policy as policy
 
 
@@ -314,14 +313,6 @@ def test_cumulative_intervention_cap_and_reserve_are_hard_limits(eligible_eviden
     assert reserve_plan.requested_fes <= reserve_plan.cc_reserve_fes
 
 
-def test_resume_action_is_registered_as_trajectory_core_intervention() -> None:
-    action = action_by_name(policy.RESUME_PHASE_I_SEARCH_STATE)
-
-    assert action.family == ActionFamily.TRAJECTORY
-    assert action.backend_role == "core_intervention"
-    assert action.requires_semantic_effect is True
-
-
 def test_policy_can_emit_configured_diagonal_trajectory_action(
     eligible_evidence,
 ) -> None:
@@ -332,9 +323,6 @@ def test_policy_can_emit_configured_diagonal_trajectory_action(
     )
 
     assert plan.action_name == policy.CONTINUE_DIAGONAL_SEARCH_STATE
-    action = action_by_name(plan.action_name)
-    assert action.family == ActionFamily.TRAJECTORY
-    assert action.backend_role == "core_intervention"
 
 
 def test_terminal_diagonal_probe_has_no_cc_reserve_and_runs_only_once(

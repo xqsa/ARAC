@@ -254,17 +254,7 @@ def build_execution_request(
         aob_data_root=Path(aob_data_root),
         python_executable=python_executable,
         timestamp=spec.trajectory_id.replace(":", "-"),
-        config_name="rddsm_evidence_overlay_pilot_v1",
-        arac_action=str(execution["baseline_action"]),
-        enable_relation_dispatch=bool(execution["relation_dispatch"]),
-        relation_policy_mode=str(execution["relation_policy"]),
-        budget_accounting=str(execution["budget_accounting"]),
-        cmaes_restart=bool(execution["cmaes_restart"]),
-        mmes_restart=bool(execution["mmes_restart"]),
-        skip_plots=bool(execution["skip_plots"]),
-        search_state_backend=str(execution["search_state_backend"]),
         evidence_overlay_mode=spec.lane.evidence_overlay_mode,
-        cma_sampling_mode=str(execution["cma_sampling_mode"]),
     )
 
 

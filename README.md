@@ -1,149 +1,72 @@
 # ARAC
 
-`ARAC` is a clean extraction package for the core idea pulled out of the
-original `E:\HCC-main` / MI-ARAC-Action workspace.
+This repository contains one active method line: the observer-only RDDSM
+evidence overlay implemented by `exp_018`.
 
-The package keeps the method, boundaries, schemas, and minimum code skeleton.
-It intentionally does not copy the historical Mxx milestone chain, failed
-repair branches, or HCC-specific artifact clutter.
+The overlay does not replace RDDSM and does not alter Phase-II optimization.
+It freezes the RDDSM partition, collects same-checkpoint counterfactual evidence
+for a small number of two-owner overlap relations, and records shadow actions
+for offline identifiability tests. Every probe evaluation is charged to the
+strict FE ledger.
 
-## Core Idea
+## Active Method
 
-The core innovation is not a new low-level optimizer and not decomposition
-alone. It is a reference-blind utility mapping from uncertain overlapping
-structure evidence to executable backend intervention actions.
+1. RDDSM builds the structural partition from the AOB design matrix.
+2. After three complete Phase-I sweeps, the topology and checkpoint are frozen.
+3. The overlay ranks eligible two-owner relations using proposal disagreement
+   and owner priority.
+4. The active lane evaluates `x0`, the two owner proposals, and a reliability-
+   weighted bridge for at most four relations (`16 FE` total).
+5. Probe results never update the incumbent, optimizer state, native RNG,
+   cooperative context, or Phase-II topology. Only an offline shadow decision
+   is emitted.
 
-In one sentence:
+The frozen lanes are:
 
-```text
-Map Phase-I trace-derived evidence about shared variables, overlap relations,
-group behavior, and resource state into coordinate, isolate, protect,
-reassign/repair, or fallback backend interventions, then verify the actions
-under same-budget execution with leakage, semantics, negative-control, and
-catastrophic-loss audits.
+- `a_rddsm_original_order`: native audit, zero probe FE.
+- `b_rddsm_evidence_overlay`: evidence-ranked owner probes.
+- `c_rddsm_shuffled_overlay`: deterministic shuffled negative control.
+
+The active AOB cases are `E1`, `E3`, `A4`, and `S5`. AOB truth is used only
+after execution for offline topology precision/recall; it is forbidden at
+runtime.
+
+## Repository Layout
+
+- `src/arac/`: overlay policy, HCC adapter, execution contracts, and required
+  reference-blind policy dependencies.
+- `scripts/hcc_smoke_runner.py`: canonical real HCC/AOB execution runner.
+- `experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/`: the only active
+  experiment and promotion gate.
+- `configs/rddsm_evidence_overlay_pilot_v1.json`: the only active config.
+- `vendor/hcc/`: the minimal HCC/AOB runtime plus F1/F3/F4/F5 inputs.
+- `tests/`: focused unit, adapter, protocol, budget, and runtime tests.
+- `docs/`: current method boundary and literature positioning only.
+
+Historical experiments, generated results, binary LSGO branches, failed
+controller variants, and copied source trees are intentionally absent. The
+original evidence workspace at `E:\HCC-main` is read-only.
+
+## Setup
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\python.exe -m pip install -e ".[hcc]" pytest
 ```
 
-## What This Folder Keeps
+## Verify
 
-- `docs/design/core-method.md`: clean research framing and contribution statements.
-- `docs/design/boundaries.md`: hard boundaries for runtime legality and claim levels.
-- `docs/schemas.md`: truth-table schemas for evidence, decisions, execution,
-  utility, and audits.
-- `docs/hcc-backbone-extraction.md`: first extraction contract between the HCC
-  grouping/optimizer backbone and the ARAC evidence/action layer.
-- `docs/protocols/aob-final-evaluation-protocol.md`: AOB benchmark protocol, with the
-  current pilot fixed to 1 run and the final target left at 25 runs.
-- `references/paper_reported_table2_hcc_es.csv`: paper-reported HCC-ES Table 2
-  anchor for evaluation-only comparison.
-- `references/hcc_main_historical_result_inventory.csv`: recovered historical
-  `E:\HCC-main` evaluation records, kept as offline evidence only.
-- `references/hcc_main_vs_paper_reported_comparison.csv`: offline comparison
-  between recovered HCC-main historical records and paper-reported Table 2
-  anchors.
-- `docs/hcc-main-historical-results-audit.md`: audit summary showing which
-  historical HCC-main rows beat paper-reported means without entering runtime
-  dispatch.
-- `archive/failed-experiments/v33-late-stagnation-nda-takeover/`: concise
-  provenance record for the non-promoted v3.3 candidate; its implementation is
-  not part of stable runtime.
-- `src/arac/`: minimum Python skeleton for evidence extraction, action space,
-  policy mapping, backend adapter, evaluation, and audit. HCC execution remains
-  orchestrated by `backends/hcc.py`; pure action-plan, budget-parser, trace-reader,
-  and shared-writeback contracts live in the adjacent `hcc_*` modules.
-- `src/arac/benchmarks/binary_lsgo.py`: deterministic binary overlapping LSGO
-  generator, objective evaluator, topology metadata, and the inherited 18-case
-  standard suite. It remains independent of the continuous HCC CMA-ES/MMES
-  runner and is executed by `src/arac/backends/binary_lsgo.py`.
-- `configs/default.yaml`: minimal experiment contract.
-- `configs/aob_pilot.yaml`: current AOB first-look pilot contract.
-- `experiments/README.md`: how to structure future runs without returning to
-  the old Mxx clutter.
-- `experiments/pilots/exp_002_aob_1run_pilot/`: current 1-run AOB pilot scaffold that
-  emits action, semantics, same-budget, leakage, paper-comparison, negative
-  control, and catastrophic-loss audit tables.
-- `experiments/pilots/exp_003_hcc_runtime_consumer_smoke/`: E2 HCC utility smoke with
-  fallback, fixed repair, per-overlap-relation dispatch, and shuffled negative
-  control lanes.
-- `experiments/recovery/exp_004_hcc_main_historical_result_recovery/`: read-only
-  recovery of historical `E:\HCC-main` result artifacts for offline comparison.
-- `experiments/final/exp_005_hcc_final_protocol_pilot/`: canonical v3.2 3M-FE
-  final-protocol pilot entrypoint with same-budget and anti-leakage gates.
-- `experiments/exp_009_binary_lsgo_arac_pilot/`: single-seed, same-budget
-  execution of all 18 binary LSGO cases through native baseline, ARAC policy,
-  and shuffled-evidence negative-control lanes. It is pilot evidence, not a
-  final performance claim.
-- `experiments/exp_010_binary_lsgo_focused_3seed/`: focused three-seed binary
-  LSGO protocol for F07-F09 and F14-F15. It evaluates pre-registered action
-  frequency, no-harm, same-budget, runtime-boundary, and negative-control gates.
-- `experiments/exp_011_binary_lsgo_diagnostic/`: offline mechanism diagnosis
-  that separates proposal-operator capacity from policy triggering.
-- `references/source-index.md`: pointers to the original source evidence inside
-  `E:\HCC-main`.
-
-## Clean Pipeline
-
-```text
-trace data
-  -> evidence_profile.csv
-  -> action_decision.csv
-  -> backend execution / semantic diff
-  -> same_budget_ledger.csv
-  -> action_utility_audit.csv
-  -> final claim gate
+```powershell
+.venv\Scripts\python.exe -m pytest -q
+.venv\Scripts\python.exe -m experiments.pilots.exp_018_rddsm_evidence_overlay_pilot.run --help
 ```
 
-## Runtime Inputs
-
-Allowed runtime inputs are reference-blind features derived from optimization
-process traces, such as:
-
-- overlap degree
-- shared-variable support
-- direction disagreement
-- harmful coordination score
-- group gain asymmetry
-- priority spread
-- rank stability
-- feature coverage
-- budget remaining ratio
-- fallback margin proxy
-
-Forbidden runtime inputs include final answers or identity shortcuts:
-
-- final error
-- relative gain
-- oracle labels
-- user reference best
-- reported baseline values
-- problem family labels
-- problem-id special cases
-- prior final/pilot outcomes
-
-## Minimum Action Taxonomy
-
-- `coordinate`: allow or strengthen beneficial cooperation.
-- `isolate`: isolate harmful overlap or conflicting relations.
-- `protect`: protect important groups, shared variables, or budget lanes.
-- `reassign_repair`: repair ownership, grouping, or shared-variable binding.
-- `fallback`: abstain or use a conservative backend when evidence is unsafe.
-
-Backend optimizers, selectors, and executors are not core actions by themselves.
-They are support surfaces.
+See `experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/README.md` for the
+frozen smoke and mechanism commands. Generated outputs belong under `results/`
+and are not tracked by Git.
 
 ## Claim Boundary
 
-This package is a method scaffold. It does not claim final performance success.
-
-Valid claim ladder:
-
-1. schema complete
-2. preflight valid
-3. runtime connected
-4. fresh same-budget smoke
-5. pilot-level evidence
-6. final evaluation completed
-7. final success claim
-
-Only the last level may be called final success, and only if meaningful wins,
-catastrophic-loss gates, same-budget accounting, anti-leakage, and backend
-semantics audits all pass.
+`exp_018` is an observer-only identifiability pilot. Passing its gate may
+authorize the design of a separate action-v2 experiment; it does not authorize
+runtime writeback, dynamic regrouping, or a performance claim.

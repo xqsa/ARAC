@@ -42,7 +42,6 @@ from src.arac.policy.relation_policy import (
     is_evidence_action_controller_v31_dense_overlap,
     select_evidence_action_controller_v31_dense_lock_mode,
     select_evidence_action_controller_v3_mode,
-    select_evidence_action_controller_v31_mode,
 )
 from src.arac.policy.relation_policy import (
     decide_actions_for_relations,
@@ -82,7 +81,6 @@ from src.arac.policy.component_delayed_credit import (
     ComponentDelayedCreditTrace,
     build_overlap_components,
     calculate_scheduler_revisit_cap,
-    decide_component_lease,
 )
 from arac.policy.component_atomic_precision import (
     COMPONENT_ATOMIC_SCHEMA_VERSION,
@@ -94,7 +92,6 @@ from arac.policy.component_atomic_precision import (
 )
 from src.arac.actions.controller_profiles import (
     controller_has_capability,
-    controller_profile_by_action,
     controller_profile_by_version,
 )
 from arac.backends.hcc_car import (
@@ -226,8 +223,16 @@ def plot_evaluation_curve_best_so_far(*args, **kwargs):
 
 
 DATA_DIR = HCC_VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
-FUNCTION_NAMES = ("elliptic", "schwefel", "rastrigin", "ackley")
-PROBLEM_IDS = (1, 2, 3, 4, 5, 6)
+FUNCTION_NAMES = ("elliptic", "schwefel", "ackley")
+PROBLEM_IDS = (1, 3, 4, 5)
+ACTIVE_FUNCTION_ID_PAIRS = frozenset(
+    {
+        ("elliptic", 1),
+        ("elliptic", 3),
+        ("ackley", 4),
+        ("schwefel", 5),
+    }
+)
 MOS_STABILITY_PROTOCOL_VERSION = "v37-mos-single-seed-stability-v1"
 MOS_SAMPLING_AUDIT_FIELDS = (
     "run_id",
@@ -765,18 +770,18 @@ EVIDENCE_ACTION_CONTROLLER_V2 = "arac_evidence_action_controller_v2"
 EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
 EVIDENCE_ACTION_CONTROLLER_V31 = "arac_evidence_action_controller_v31"
 EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
-EVIDENCE_ACTION_CONTROLLER_V33 = controller_profile_by_version(33).action_name
-EVIDENCE_ACTION_CONTROLLER_V34 = controller_profile_by_version(34).action_name
-EVIDENCE_ACTION_CONTROLLER_V35 = controller_profile_by_version(35).action_name
-EVIDENCE_ACTION_CONTROLLER_V36 = controller_profile_by_version(36).action_name
+EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
+EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
+EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
+EVIDENCE_ACTION_CONTROLLER_V36 = "arac_evidence_action_controller_v36"
 EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
-EVIDENCE_ACTION_CONTROLLER_V38 = controller_profile_by_version(38).action_name
-EVIDENCE_ACTION_CONTROLLER_V39 = controller_profile_by_version(39).action_name
-EVIDENCE_ACTION_CONTROLLER_V40 = controller_profile_by_version(40).action_name
-EVIDENCE_ACTION_CONTROLLER_V41 = controller_profile_by_version(41).action_name
-CAR_W_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w").action_name
-CAR_W2_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w2").action_name
-CAR_W3_ACTION = controller_profile_by_action("arac_counterfactual_action_racing_w3").action_name
+EVIDENCE_ACTION_CONTROLLER_V38 = "arac_evidence_action_controller_v38"
+EVIDENCE_ACTION_CONTROLLER_V39 = "arac_evidence_action_controller_v39"
+EVIDENCE_ACTION_CONTROLLER_V40 = "arac_evidence_action_controller_v40"
+EVIDENCE_ACTION_CONTROLLER_V41 = "arac_evidence_action_controller_v41"
+CAR_W_ACTION = "arac_counterfactual_action_racing_w"
+CAR_W2_ACTION = "arac_counterfactual_action_racing_w2"
+CAR_W3_ACTION = "arac_counterfactual_action_racing_w3"
 TRAJECTORY_ACTION_NAMES = {
     "budget_shift_mean_blend",
     "budget_shift_only",
@@ -10536,9 +10541,22 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="ARAC-owned HCC smoke runner.")
-    parser.add_argument("--functions", nargs="+", choices=FUNCTION_NAMES, required=True)
-    parser.add_argument("--ids", nargs="+", type=int, choices=PROBLEM_IDS, required=True)
+    parser = argparse.ArgumentParser(
+        description="Frozen exp_018 HCC evidence-overlay runner."
+    )
+    parser.add_argument(
+        "--functions",
+        nargs="+",
+        choices=FUNCTION_NAMES,
+        required=True,
+    )
+    parser.add_argument(
+        "--ids",
+        nargs="+",
+        type=int,
+        choices=PROBLEM_IDS,
+        required=True,
+    )
     parser.add_argument("--output-root", required=True)
     parser.add_argument(
         "--aob-data-root",
@@ -10546,297 +10564,61 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=DATA_DIR.resolve(),
     )
     parser.add_argument("--timestamp", default="arac-hcc-smoke")
-    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--max-fes", type=int, required=True)
-    parser.add_argument("--verbose", type=int, default=1000)
-    parser.add_argument("--early-stopping-evaluations", type=int, default=1000)
-    parser.add_argument("--mmes-restart", dest="mmes_restart", action="store_true", default=True)
-    parser.add_argument("--no-mmes-restart", dest="mmes_restart", action="store_false")
-    parser.add_argument("--cmaes-restart", dest="cmaes_restart", action="store_true", default=True)
-    parser.add_argument("--no-cmaes-restart", dest="cmaes_restart", action="store_false")
-    parser.add_argument("--budget-accounting", default="strict", choices=["strict", "source"])
+    parser.add_argument(
+        "--arac-action",
+        choices=[EVIDENCE_ACTION_CONTROLLER_V37],
+        required=True,
+    )
+    parser.add_argument(
+        "--budget-accounting",
+        choices=["strict"],
+        default="strict",
+    )
     parser.add_argument(
         "--search-state-backend",
+        choices=["phase_i_mmes"],
         default="phase_i_mmes",
-        choices=["phase_i_mmes", "diagonal_cma"],
-    )
-    parser.add_argument(
-        "--car-branch-order",
-        choices=["fallback_first", "candidate_first"],
-        default="fallback_first",
-    )
-    parser.add_argument(
-        "--lane-profile",
-        default="runtime_smoke",
-        choices=[
-            "runtime_smoke",
-            "targeted_ablation",
-            "focused_core",
-            "focused_compare",
-            "landscape_escape",
-            "repair_landscape_escape",
-            "repair_refine",
-            "evidence_routed_only",
-            "evidence_routed_v2_only",
-            "evidence_routed_v21_only",
-            "evidence_routed_v22_only",
-            "evidence_routed_v23_only",
-            "evidence_routed_v24_only",
-            "evidence_routed_v25_only",
-            "evidence_routed_v26_only",
-            "paper_best_win_push",
-            "precision_refine_push",
-            "phase_rescue_push",
-            "repair_phase_rescue_push",
-            "cc_harm_sep_refresh",
-            "separable_cmaes_push",
-            "evidence_action_controller_v1",
-            "evidence_action_controller_v2",
-            "evidence_action_controller_v3",
-            "evidence_action_controller_v31",
-            "v37_mos_sampling",
-        ],
-        help=(
-            "Accepted for experiment-runner CLI compatibility; lane expansion is "
-            "handled by experiments/pilots/exp_003_hcc_runtime_consumer_smoke/run.py."
-        ),
     )
     parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument(
         "--relation-policy",
-        default="rule",
-        choices=[
-            "rule",
-            "adaptive_v2",
-            "adaptive_v21",
-            "adaptive_v22",
-            "adaptive_v23",
-            "adaptive_v24",
-            "adaptive_v25",
-            "adaptive_v26",
-            "controller_v3",
-            "controller_v31",
-            "shuffled",
-            "lagged",
-        ],
-    )
-    parser.add_argument("--skip-plots", action="store_true")
-    parser.add_argument(
-        "--car-candidate-mode",
-        choices=["graph", "shuffled_graph", "paired_fallback"],
-        default="graph",
-    )
-    parser.add_argument(
-        "--car-actionability-arm",
-        choices=["off", "fallback", "candidate"],
-        default="off",
-        help="Offline paired-lane actionability condition; never used for runtime dispatch.",
-    )
-    parser.add_argument(
-        "--precision-causal-arm",
-        choices=["off", "baseline", "action"],
-        default="off",
-        help=(
-            "Offline one-shot v37 precision causal logging arm; never used for "
-            "runtime dispatch."
-        ),
-    )
-    parser.add_argument(
-        "--precision-response-arm",
-        choices=["off", "a0_v37", "a1_probe_only", "a2_probe_gated"],
-        default="off",
-        help="Opt-in v37 current-trajectory precision response pilot arm.",
-    )
-    parser.add_argument(
-        "--component-precision-arm",
-        choices=["off", "a0_v37", "a1_precision_component_once"],
-        default="off",
-        help="Opt-in v37 component-wide precision action-validity arm.",
-    )
-    parser.add_argument(
-        "--hypergraph-trace-mode",
-        choices=sorted(HYPERGRAPH_TRACE_MODES),
-        default="off",
-        help="Opt-in side-effect-free v37 overlap-hypergraph observer.",
+        choices=["controller_v31"],
+        required=True,
     )
     parser.add_argument(
         "--evidence-overlay-mode",
         choices=sorted(EVIDENCE_OVERLAY_MODES),
         default="off",
-        help="Opt-in Phase-I owner-probe overlay; topology remains frozen.",
     )
-    parser.add_argument(
-        "--cma-sampling-mode",
-        choices=sorted(CMA_SAMPLING_MODES),
-        default=IID_CMA_SAMPLING,
-        help="Opt-in ARAC-owned sampling treatment for frozen v37 group CMA.",
-    )
-    parser.add_argument(
-        "--offline-frozen-replay",
-        action="store_true",
-        help="Allow historical replay of the permanently frozen v41 profile.",
-    )
-    parser.add_argument("--arac-action-file", type=Path, default=None)
-    parser.add_argument(
-        "--arac-action",
-        default="conservative_no_action",
-        choices=[
-            "conservative_no_action",
-            "repair_shared_variable_binding",
-            "isolate_conflicting_relation",
-            "protect_high_margin_group",
-            "allow_beneficial_coordination",
-            "budget_shift_mean_blend",
-            "budget_shift_only",
-            "mean_blend_only",
-            SEARCH_STATE_BIPOP_ACTION,
-            REPAIR_BIPOP_SEARCH_STATE_ACTION,
-            PHASE_RESCUE_MULTISTART_ACTION,
-            REPAIR_PHASE_RESCUE_MULTISTART_ACTION,
-            CC_HARM_GUARDED_SEP_REFRESH_ACTION,
-            SEPARABLE_CMAES_DISPATCH_ACTION,
-            REPAIR_PROTECT_REFINE_ACTION,
-            REPAIR_PROTECT_DEEP_REFINE_ACTION,
-            EVIDENCE_ACTION_CONTROLLER_V1,
-            EVIDENCE_ACTION_CONTROLLER_V2,
-            EVIDENCE_ACTION_CONTROLLER_V3,
-            EVIDENCE_ACTION_CONTROLLER_V31,
-            EVIDENCE_ACTION_CONTROLLER_V32,
-            EVIDENCE_ACTION_CONTROLLER_V33,
-            EVIDENCE_ACTION_CONTROLLER_V34,
-            EVIDENCE_ACTION_CONTROLLER_V35,
-            EVIDENCE_ACTION_CONTROLLER_V36,
-            EVIDENCE_ACTION_CONTROLLER_V37,
-            EVIDENCE_ACTION_CONTROLLER_V38,
-            EVIDENCE_ACTION_CONTROLLER_V39,
-            EVIDENCE_ACTION_CONTROLLER_V40,
-            EVIDENCE_ACTION_CONTROLLER_V41,
-            CAR_W_ACTION,
-            CAR_W2_ACTION,
-            CAR_W3_ACTION,
-        ],
+    parser.add_argument("--skip-plots", action="store_true")
+    parser.set_defaults(
+        verbose=1000,
+        early_stopping_evaluations=1000,
+        mmes_restart=True,
+        cmaes_restart=True,
+        arac_action_file=None,
+        car_branch_order="fallback_first",
+        car_candidate_mode="graph",
+        car_actionability_arm="off",
+        precision_causal_arm="off",
+        precision_response_arm="off",
+        component_precision_arm="off",
+        hypergraph_trace_mode="off",
+        cma_sampling_mode=IID_CMA_SAMPLING,
+        lane_profile="runtime_smoke",
+        offline_frozen_replay=False,
     )
     args = parser.parse_args(argv)
-    if args.arac_action_file is not None:
-        parser.error("--arac-action-file is not supported by the smoke runner yet")
-    if args.car_actionability_arm != "off" and args.arac_action != CAR_W3_ACTION:
-        parser.error("--car-actionability-arm requires --arac-action CAR-W3")
-    if (
-        args.precision_causal_arm != "off"
-        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
-    ):
-        parser.error("--precision-causal-arm requires --arac-action v37")
-    if (
-        args.precision_response_arm != "off"
-        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
-    ):
-        parser.error("--precision-response-arm requires --arac-action v37")
-    if args.precision_response_arm != "off" and args.precision_causal_arm != "off":
-        parser.error("precision response and causal logging arms are exclusive")
-    if (
-        args.component_precision_arm != "off"
-        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
-    ):
-        parser.error("--component-precision-arm requires --arac-action v37")
-    if (
-        sum(
-            arm != "off"
-            for arm in (
-                args.precision_causal_arm,
-                args.precision_response_arm,
-                args.component_precision_arm,
-            )
-        )
-        > 1
-    ):
-        parser.error("precision causal, response, and component arms are exclusive")
-    if (
-        args.hypergraph_trace_mode == "observer"
-        and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37
-    ):
-        parser.error("--hypergraph-trace-mode observer requires --arac-action v37")
-    if args.hypergraph_trace_mode == "observer" and any(
-        arm != "off"
-        for arm in (
-            args.precision_causal_arm,
-            args.precision_response_arm,
-            args.component_precision_arm,
-        )
-    ):
-        parser.error("hypergraph observer and frozen precision arms are exclusive")
-    evidence_overlay_enabled = args.evidence_overlay_mode != "off"
-    if evidence_overlay_enabled:
-        if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
-            parser.error("--evidence-overlay-mode requires --arac-action v37")
-        if not args.enable_relation_dispatch:
-            parser.error("--evidence-overlay-mode requires relation dispatch")
-        if args.relation_policy != "controller_v31":
-            parser.error("--evidence-overlay-mode requires controller_v31")
-        if args.seed is None:
-            parser.error("--evidence-overlay-mode requires an explicit seed")
-        if args.budget_accounting != "strict":
-            parser.error("--evidence-overlay-mode requires strict FE accounting")
-        if not args.cmaes_restart or not args.mmes_restart:
-            parser.error("--evidence-overlay-mode requires frozen restart settings")
-        if args.search_state_backend != "phase_i_mmes":
-            parser.error("--evidence-overlay-mode requires phase_i_mmes")
-        if args.cma_sampling_mode != IID_CMA_SAMPLING:
-            parser.error("--evidence-overlay-mode requires iid CMA sampling")
-        if args.car_candidate_mode != "graph":
-            parser.error("--evidence-overlay-mode requires graph CAR candidates")
-        if args.hypergraph_trace_mode != "off" or any(
-            arm != "off"
-            for arm in (
-                args.precision_causal_arm,
-                args.precision_response_arm,
-                args.component_precision_arm,
-            )
-        ):
-            parser.error(
-                "evidence overlay, hypergraph observer, and precision arms are exclusive"
-            )
-        if args.car_actionability_arm != "off" or args.offline_frozen_replay:
-            parser.error(
-                "evidence overlay cannot combine with CAR actionability or frozen replay"
-            )
-    mos_profile_enabled = args.lane_profile == "v37_mos_sampling"
-    if (
-        args.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
-        and not mos_profile_enabled
-    ):
-        parser.error("mirrored_orthogonal requires --lane-profile v37_mos_sampling")
-    if mos_profile_enabled:
-        if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
-            parser.error("v37_mos_sampling requires v37")
-        if not args.enable_relation_dispatch:
-            parser.error("v37_mos_sampling requires relation dispatch")
-        if args.relation_policy != "controller_v31":
-            parser.error("v37_mos_sampling requires controller_v31")
-        if args.seed is None:
-            parser.error("v37_mos_sampling requires an explicit seed")
-        if args.budget_accounting != "strict":
-            parser.error("v37_mos_sampling requires strict FE accounting")
-        if not args.cmaes_restart or not args.mmes_restart:
-            parser.error("v37_mos_sampling requires frozen restart settings")
-        if args.search_state_backend != "phase_i_mmes":
-            parser.error("v37_mos_sampling requires phase_i_mmes")
-        if args.early_stopping_evaluations != 1000:
-            parser.error("v37_mos_sampling requires frozen early stopping")
-        if args.hypergraph_trace_mode != "off" or any(
-            arm != "off"
-            for arm in (
-                args.precision_causal_arm,
-                args.precision_response_arm,
-                args.component_precision_arm,
-            )
-        ):
-            parser.error("v37_mos_sampling cannot combine with frozen pilots")
-        if args.car_actionability_arm != "off" or args.offline_frozen_replay:
-            parser.error("v37_mos_sampling cannot combine with frozen replay")
-        if evidence_overlay_enabled:
-            parser.error("v37_mos_sampling cannot combine with evidence overlay")
-    if args.offline_frozen_replay and args.arac_action != EVIDENCE_ACTION_CONTROLLER_V41:
-        parser.error("--offline-frozen-replay is only valid with v41")
+    if args.max_fes <= 0:
+        parser.error("--max-fes must be positive")
+    if len(args.functions) != 1 or len(args.ids) != 1:
+        parser.error("exp_018 runner accepts exactly one function/id pair")
+    if (args.functions[0], args.ids[0]) not in ACTIVE_FUNCTION_ID_PAIRS:
+        parser.error("function/id pair is outside the frozen exp_018 cases")
+    if args.evidence_overlay_mode != "off" and not args.enable_relation_dispatch:
+        parser.error("--evidence-overlay-mode requires relation dispatch")
     return args
 
 

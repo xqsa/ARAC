@@ -1,4 +1,4 @@
-import torch
+import numpy as np
 
 class Decomposition():
     def __init__(self, Matrix, device='cpu'):
@@ -6,10 +6,10 @@ class Decomposition():
         Initialize the Decomposition class.
 
         Args:
-            Matrix (torch.Tensor): The input matrix to be decomposed.
-            device (str): The device to use ('cpu' or 'cuda').
+            Matrix: The input matrix to be decomposed.
+            device (str): Retained for compatibility; decomposition runs on CPU.
         """
-        self.Matrix = Matrix
+        self.Matrix = np.asarray(Matrix)
         self.sub_space = []
         self.device = device
 
@@ -41,23 +41,23 @@ class Decomposition():
 
     def is_subset(self, A, B):
         """
-        Check if tensor A is a subset of tensor B.
+        Check if row A is a subset of row B.
 
         Args:
-            A (torch.Tensor): The first tensor to check.
-            B (torch.Tensor): The second tensor to check against.
+            A: The first row to check.
+            B: The second row to check against.
 
         Returns:
             bool: True if A is a subset of B, otherwise False.
         """
-        return torch.all((A == 0) | (A == B))
+        return bool(np.all((A == 0) | (A == B)))
 
     def find_paradigm(self, sub_Matrix):
         """
         Find and group rows of the matrix with the same pattern.
 
         Args:
-            sub_Matrix (torch.Tensor): The matrix to be processed.
+            sub_Matrix: The matrix to be processed.
 
         Returns:
             list: A list of sets, where each set contains indices of rows that share the same pattern.
@@ -77,7 +77,7 @@ class Decomposition():
         # Check subset relationships and merge indices
         for i in range(len(keys)):
             for j in range(len(keys)):
-                if i != j and self.is_subset(torch.tensor(keys[i], device=self.device), torch.tensor(keys[j], device=self.device)):
+                if i != j and self.is_subset(np.asarray(keys[i]), np.asarray(keys[j])):
                     element_indices[keys[i]].extend(element_indices[keys[j]])
 
         # Remove indices of subsets

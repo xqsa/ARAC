@@ -1,100 +1,52 @@
 # Method Boundaries
 
+Date: 2026-07-18
+Status: exp_018 observer-only boundary
 
-## Positive Scope
+## In Scope
 
-`ARAC` is about:
+- RDDSM structural grouping from the AOB design matrix.
+- Reference-blind ordering of overlapping groups.
+- Same-checkpoint owner and bridge probes at the Phase-I boundary.
+- Strict accounting of native, probe, and overhead FE.
+- Delayed owner survival and overwrite evaluation.
+- Shuffled negative control and catastrophic-risk gates.
 
-- uncertain overlap structures
-- shared-variable conflict
-- relation-level and group-level dynamic evidence
-- reference-blind action selection
-- backend intervention semantics
-- same-budget utility validation
-- negative control and catastrophic-risk auditing
+## Out of Scope
 
-## Negative Scope
+- Replacing RDDSM with a new grouping algorithm.
+- Dynamic regrouping after the Phase-I boundary.
+- Writing probe candidates into the incumbent or cooperative context.
+- Migrating CMA/MMES state between topologies.
+- Selecting a runtime action from oracle labels or final outcomes.
+- Claiming terminal improvement from an observer-only pilot.
 
-`ARAC` is not:
+## Runtime Inputs
 
-- a new low-level optimizer by itself
-- a decomposition-only method
-- a wrapper that chooses the best result after seeing final outcomes
-- a problem-id or family-label special-case table
-- a copy of the historical HCC Mxx milestone chain
-- a claim that the old Route A branch is final-success ready
+Allowed inputs are current-trajectory quantities: group membership reconstructed
+from the design matrix, group intersections, proposal disagreement, owner
+priority and reliability, completed-sweep state, checkpoint hashes, and the
+strict remaining-FE ledger.
 
-## Runtime Legality
+Forbidden inputs include `Pvector`, `subgroups`, AOB truth labels, final error,
+relative gain, paper-reported baselines, problem-family labels, prior pilot
+outcomes, and any offline promotion label. Problem IDs may identify files and
+offline joins but may not trigger policy behavior.
 
-Runtime policy may use:
+## Isolation Contract
 
-- Phase-I trace features
-- relation and group behavior features
-- shared-variable evidence features
-- budget state features
-- feature-coverage and reliability indicators
-- pre-registered action contracts
-
-Runtime policy must not use:
-
-- final error
-- relative gain
-- oracle best action
-- user reference best
-- reported baseline values
-- final success labels
-- problem-family labels
-- problem-id special cases
-- prior final or pilot outcomes
-
-Problem identifiers may appear only for execution identity, file grouping, and
-offline audit joins. They must not be used as policy triggers.
-
-## Backend Boundary
-
-Core actions are:
-
-- `coordinate`
-- `isolate`
-- `protect`
-- `reassign_repair`
-- `fallback`
-
-Backend optimizers and support components are not core actions:
-
-- selector
-- baseline optimizer
-- executor
-- cache materializer
-- final evaluator
-
-They may execute or support an action, but they are not the innovation by
-themselves.
+Probe calls may append evaluation records only. They must not alter native RNG,
+incumbent, cooperative context, optimizer state, grouping result, controller,
+or Phase-II topology. The topology is frozen after the checkpoint. Every shadow
+decision has `runtime_authorized=0`.
 
 ## Claim Ladder
 
-Use the following claim ladder exactly:
+1. Unit and contract tests pass.
+2. Mechanical smoke completes with paired checkpoints and exact FE ledgers.
+3. Mechanism pilot completes with fresh trajectories and closed delayed labels.
+4. The frozen promotion gate returns pass.
+5. A separate action-v2 may then be designed on fresh seeds.
 
-| Level | Name | Meaning |
-| --- | --- | --- |
-| 1 | schema complete | Tables and fields are defined. |
-| 2 | preflight valid | Files, hashes, anti-leakage, and contract checks pass. |
-| 3 | runtime connected | Policy is connected to backend semantics. |
-| 4 | fresh same-budget smoke | Real optimizer run, fresh provenance, FE ledger clear. |
-| 5 | pilot-level evidence | Limited problem set supports local utility. |
-| 6 | final evaluation completed | Full configured evaluation ran to completion. |
-| 7 | final success claim | Meaningful wins and all safety gates pass. |
-
-Never report a lower level as a higher-level success.
-
-## Failure Honesty
-
-Separate these claims:
-
-- concept correctness
-- protocol correctness
-- runtime legality
-- local utility
-- final performance
-
-A green light at one layer does not imply success at another layer.
+Steps 1-4 do not themselves authorize runtime action or establish performance
+improvement.

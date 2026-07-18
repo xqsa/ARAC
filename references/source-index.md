@@ -1,64 +1,26 @@
 # Source Index
 
-This folder is a clean extraction. The original project evidence remains in
-`E:\HCC-main`.
+Date: 2026-07-18
 
-Use these source files only as references, not as code to copy wholesale.
+`E:\HCC-main` is the read-only source and evidence workspace. The following
+paths were rechecked while pruning this repository:
 
-## Core Sources
+- `E:\HCC-main\HCC_SRC\HCC\RDDSM.py`: original RDDSM grouping source.
+- `E:\HCC-main\HCC_SRC\HCC-ES.py`: original HCC optimizer entrypoint.
+- `E:\HCC-main\HCC_SRC\arac_hcc_smoke_runner.py`: historical ARAC/HCC runner
+  from which the retained execution boundary was extracted.
+- `E:\HCC-main\HCC_SRC\AOB\`: original AOB objective and data implementation.
+- `E:\HCC-main\HCC_SRC\HCC\MI_ARAC_ACTION\README.md`: historical method and
+  runtime notes; useful as provenance, not as the current specification.
+- `C:\Users\83718\Desktop\前沿\Two-Phase CC.pdf`: HCC/two-phase paper source.
 
-- `E:\HCC-main\HCC_SRC\HCC\MI_ARAC_ACTION\README.md`
-  - Current module-level summary, runtime boundary, current evidence chain, and
-    active layout.
+The current repository truth is:
 
-- `E:\HCC-main\artifacts\mi_arac_action_MAINLINE_INDEX.md`
-  - Durable evidence index and latest status. Important for claim boundaries.
+- `docs/design/core-method.md`: exp_018 method contract.
+- `configs/rddsm_evidence_overlay_pilot_v1.json`: frozen experiment config.
+- `experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/protocol.py`: gate
+  implementation.
+- `scripts/hcc_smoke_runner.py`: canonical executable HCC/AOB boundary.
 
-- `E:\HCC-main\mi-arac-trace-replay-dfdp-schema.md`
-  - Earlier schema draft for trace replay, action labels, negative controls,
-    fallback, and termination.
-
-- `E:\HCC-main\HCC_SRC\HCC\MI_ARAC_ACTION\final_executor.py`
-  - Historical implementation of action taxonomy fields, active effect fields,
-    and final gate surfaces.
-
-- `E:\HCC-main\HCC_SRC\HCC\MI_ARAC_ACTION\mapping_guard_v2.py`
-  - Historical mapping guard with many repair stages. Treat as evidence of
-    what to simplify, not as the clean policy source.
-
-- `E:\HCC-main\HCC_SRC\arac_hcc_smoke_runner.py`
-  - ARAC-owned HCC smoke wrapper. It imports HCC `Benchmark`, `Decomposition`,
-    `MMES`, and `CMAES` without modifying the original `HCC-ES.py`.
-
-- `C:\Users\83718\Desktop\前沿\Two-Phase CC.pdf`
-  - Source of the AOB protocol and Table 2 paper-reported baselines. The current
-    HCC-ES anchor is `references/paper_reported_table2_hcc_es.csv`. The complete
-    24-case best mean across all Table 2 algorithms is
-    `references/paper_reported_table2_best_by_case.csv`; both files are strictly
-    offline evaluation inputs.
-
-- `E:\HCC-main\HCC_SRC\result\**\evaluation_record.txt`
-  - Historical HCC-main run evidence recovered by
-    `experiments/exp_004_hcc_main_historical_result_recovery`. The clean
-    inventory is `references/hcc_main_historical_result_inventory.csv`, and the
-    paper comparison is `references/hcc_main_vs_paper_reported_comparison.csv`.
-    These values are offline evidence only and never runtime dispatch inputs.
-
-## What Not To Copy
-
-- `scripts\mi_arac_action_legacy\`
-- `tests\mi_arac_action_legacy\`
-- `artifacts\archive\`
-- milestone-specific runner names
-- Route A repair chain as a default branch
-- problem-specific threshold patches
-
-## Portable Lessons
-
-- Keep runtime reference-blind.
-- Separate backend/support labels from core actions.
-- Require fresh same-budget execution for runtime claims.
-- Use negative controls and catastrophic-loss gates.
-- Treat final/reference evidence as evaluation-only.
-- Start AOB validation with `configs/aob_pilot.yaml` (`runs: 1`) before paying
-  the cost of the final 25-run protocol.
+Historical final errors, paper tables, old milestone controllers, and previous
+pilot outputs are not runtime inputs and are not retained here.

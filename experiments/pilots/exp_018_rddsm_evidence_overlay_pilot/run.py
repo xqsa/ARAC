@@ -130,38 +130,33 @@ AOB_FIELDS = (
     "sha256_after",
     "unchanged",
 )
-SOURCE_BUNDLE_FILES = (
-    "configs/rddsm_evidence_overlay_pilot_v1.json",
-    "src/arac/actions/controller_profiles.py",
-    "src/arac/policy/action_trust_policy.py",
-    "src/arac/policy/component_delayed_credit.py",
-    "src/arac/policy/evidence_overlay.py",
-    "src/arac/policy/overlap_hypergraph.py",
-    "src/arac/policy/relation_policy.py",
-    "src/arac/policy/search_state_policy.py",
-    "src/arac/policy/trajectory_guard.py",
-    "src/arac/backends/hcc.py",
-    "src/arac/backends/hcc_budget.py",
-    "src/arac/backends/hcc_evidence_overlay.py",
-    "scripts/hcc_smoke_runner.py",
-    "vendor/hcc/AOB/AOB.py",
-    "vendor/hcc/AOB/Benchmarks.py",
-    "vendor/hcc/AOB/ackley.py",
-    "vendor/hcc/AOB/elliptic.py",
-    "vendor/hcc/AOB/schwefel.py",
-    "vendor/hcc/AOB/utils.py",
-    "vendor/hcc/HCC/RDDSM.py",
-    "vendor/hcc/HCC/NDAs/MMES/es.py",
-    "vendor/hcc/HCC/NDAs/MMES/mmes.py",
-    "vendor/hcc/HCC/NDAs/MMES/optimizer.py",
-    "vendor/hcc/HCC/NDAs/MMES/state.py",
-    "vendor/hcc/HCC/OPT/CMAES/cmaes.py",
-    "vendor/hcc/HCC/OPT/CMAES/es.py",
-    "vendor/hcc/HCC/OPT/CMAES/optimizer.py",
-    "experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/__init__.py",
-    "experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/protocol.py",
-    "experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/run.py",
-)
+def _source_bundle_files() -> tuple[str, ...]:
+    roots = (
+        REPOSITORY_ROOT / "src" / "arac",
+        REPOSITORY_ROOT / "vendor" / "hcc",
+        REPOSITORY_ROOT
+        / "experiments"
+        / "pilots"
+        / "exp_018_rddsm_evidence_overlay_pilot",
+    )
+    files = {
+        "pyproject.toml",
+        "configs/rddsm_evidence_overlay_pilot_v1.json",
+        "scripts/hcc_smoke_runner.py",
+        "experiments/__init__.py",
+        "experiments/pilots/__init__.py",
+    }
+    for root in roots:
+        files.update(
+            path.relative_to(REPOSITORY_ROOT).as_posix()
+            for path in root.rglob("*.py")
+        )
+    return tuple(sorted(files))
+
+
+SOURCE_BUNDLE_FILES = _source_bundle_files()
+
+
 
 
 @dataclass(frozen=True)

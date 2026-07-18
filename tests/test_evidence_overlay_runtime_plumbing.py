@@ -14,13 +14,10 @@ from scripts import hcc_smoke_runner as runner
 
 def _request(**overrides: object) -> HccAobExecutionRequest:
     values: dict[str, object] = {
-        "problem_id": "E2",
+        "problem_id": "E3",
         "seed": 117,
         "max_fes": 5_000,
         "output_dir": Path("results/evidence-overlay-command"),
-        "arac_action": "arac_evidence_action_controller_v37",
-        "enable_relation_dispatch": True,
-        "relation_policy_mode": "controller_v31",
     }
     values.update(overrides)
     return HccAobExecutionRequest(**values)
@@ -31,7 +28,7 @@ def _runner_args(*extra: str) -> list[str]:
         "--functions",
         "elliptic",
         "--ids",
-        "2",
+        "3",
         "--output-root",
         "results/evidence-overlay-cli",
         "--max-fes",
@@ -70,35 +67,6 @@ def test_backend_rejects_unknown_overlay_mode() -> None:
 
 
 @pytest.mark.parametrize(
-    ("overrides", "error"),
-    (
-        ({"arac_action": "arac_evidence_action_controller_v38"}, "frozen v37"),
-        ({"enable_relation_dispatch": False}, "relation dispatch"),
-        ({"relation_policy_mode": "rule"}, "controller_v31"),
-        ({"budget_accounting": "source"}, "strict FE accounting"),
-        ({"cmaes_restart": False}, "restart settings"),
-        ({"mmes_restart": False}, "restart settings"),
-        ({"search_state_backend": "diagonal_cma"}, "phase_i_mmes"),
-        ({"cma_sampling_mode": "mirrored_orthogonal"}, "iid CMA sampling"),
-        ({"car_candidate_mode": "shuffled_graph"}, "default CAR candidate mode"),
-        ({"precision_causal_arm": "baseline"}, "mutually exclusive"),
-        ({"hypergraph_trace_mode": "observer"}, "mutually exclusive"),
-        ({"car_actionability_arm": "fallback"}, "CAR actionability"),
-        ({"offline_frozen_replay": True}, "frozen replay"),
-        ({"config_name": "v37_mos_sampling"}, "v37_mos_sampling"),
-    ),
-)
-def test_backend_overlay_profile_is_fail_closed(
-    overrides: dict[str, object],
-    error: str,
-) -> None:
-    with pytest.raises(ValueError, match=error):
-        build_hcc_aob_smoke_command(
-            _request(evidence_overlay_mode="native_audit", **overrides)
-        )
-
-
-@pytest.mark.parametrize(
     "mode",
     ("native_audit", "paired_owner", "shuffled_owner"),
 )
@@ -109,29 +77,6 @@ def test_runner_cli_accepts_only_frozen_overlay_profile(mode: str) -> None:
 
     assert parsed.evidence_overlay_mode == mode
     assert runner.parse_args(_runner_args()).evidence_overlay_mode == "off"
-
-
-@pytest.mark.parametrize(
-    "extra",
-    (
-        ("--budget-accounting", "source"),
-        ("--no-cmaes-restart",),
-        ("--search-state-backend", "diagonal_cma"),
-        ("--hypergraph-trace-mode", "observer"),
-        ("--precision-causal-arm", "baseline"),
-        ("--car-candidate-mode", "shuffled_graph"),
-        ("--lane-profile", "v37_mos_sampling"),
-    ),
-)
-def test_runner_cli_rejects_overlay_profile_drift(extra: tuple[str, ...]) -> None:
-    with pytest.raises(SystemExit):
-        runner.parse_args(
-            _runner_args(
-                "--evidence-overlay-mode",
-                "native_audit",
-                *extra,
-            )
-        )
 
 
 def test_runner_cli_requires_explicit_seed_for_overlay() -> None:
@@ -199,7 +144,7 @@ def test_budget_summary_keeps_off_schema_and_records_active_zero_fe(
     audit_path = tmp_path / "audit.csv"
     paired_path = tmp_path / "paired.csv"
     shared = {
-        "problem_id": "E2",
+        "problem_id": "E3",
         "budget_accounting": "strict",
         "max_fes": 100,
         "optimizer_reported_fe": 100,
@@ -228,16 +173,16 @@ def test_budget_summary_keeps_off_schema_and_records_active_zero_fe(
 def test_budget_parser_reads_overlay_fe_and_defaults_legacy_to_zero(
     tmp_path: Path,
 ) -> None:
-    (tmp_path / "E2_budget_summary.csv").write_text(
-        "problem_id,fitness_record_fe,evidence_overlay_fe\nE2,100,32\n",
+    (tmp_path / "E3_budget_summary.csv").write_text(
+        "problem_id,fitness_record_fe,evidence_overlay_fe\nE3,100,32\n",
         encoding="utf-8",
     )
     parsed = hcc_backend._parse_hcc_budget_summary(tmp_path)
 
     legacy = tmp_path / "legacy"
     legacy.mkdir()
-    (legacy / "E2_budget_summary.csv").write_text(
-        "problem_id,fitness_record_fe\nE2,100\n",
+    (legacy / "E3_budget_summary.csv").write_text(
+        "problem_id,fitness_record_fe\nE3,100\n",
         encoding="utf-8",
     )
 
@@ -250,7 +195,7 @@ def test_execution_result_parses_overlay_manifest_outputs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     output = tmp_path / "active-overlay"
-    manifest_path = output / "nested" / "E2_evidence_overlay_manifest.json"
+    manifest_path = output / "nested" / "E3_evidence_overlay_manifest.json"
     manifest_path.parent.mkdir(parents=True)
     manifest_path.write_text(
         json.dumps(
@@ -281,11 +226,6 @@ def test_execution_result_parses_overlay_manifest_outputs(
     )
     monkeypatch.setattr(
         hcc_backend,
-        "_find_hcc_action_trace",
-        lambda _output_dir: (None, 0),
-    )
-    monkeypatch.setattr(
-        hcc_backend,
         "_parse_hcc_budget_summary",
         lambda _output_dir: {"evidence_overlay_fe": 16},
     )
@@ -301,7 +241,6 @@ def test_execution_result_parses_overlay_manifest_outputs(
     assert result.native_terminal_error == 2.5
     assert result.all_evaluation_best_error == 1.25
     assert result.evidence_overlay_manifest_path == manifest_path
-    assert result.evidence_overlay_status == "probed"
     environment = subprocess_kwargs["env"]
     assert isinstance(environment, dict)
     assert {
@@ -335,7 +274,7 @@ def test_failed_overlay_subprocess_preserves_written_fe_ledger(
     output = tmp_path / "failed-overlay"
     artifact_dir = output / "nested"
     artifact_dir.mkdir(parents=True)
-    manifest_path = artifact_dir / "E2_evidence_overlay_manifest.json"
+    manifest_path = artifact_dir / "E3_evidence_overlay_manifest.json"
     manifest_path.write_text(
         json.dumps(
             {
@@ -346,7 +285,7 @@ def test_failed_overlay_subprocess_preserves_written_fe_ledger(
         ),
         encoding="utf-8",
     )
-    (artifact_dir / "E2_budget_summary.csv").write_text(
+    (artifact_dir / "E3_budget_summary.csv").write_text(
         "fitness_record_fe,optimizer_reported_fe,global_phase_fe,cc_phase_fe,"
         "rescue_fe,refresh_fe,search_state_fe,precision_probe_fe,"
         "evidence_overlay_fe,separable_continuation_fe,overhead_fe\n"
@@ -381,4 +320,3 @@ def test_failed_overlay_subprocess_preserves_written_fe_ledger(
     assert result.all_evaluation_best_error == 1.25
     assert result.final_error == 1.25
     assert result.evidence_overlay_manifest_path == manifest_path
-    assert result.evidence_overlay_status == "failed"

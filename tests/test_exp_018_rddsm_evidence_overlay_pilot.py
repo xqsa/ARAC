@@ -135,11 +135,10 @@ def test_requests_use_shared_hcc_overlay_modes_without_hypergraph_proxy(tmp_path
         "paired_owner",
         "shuffled_owner",
     ]
-    assert all(request.arac_action == "arac_evidence_action_controller_v37" for request in requests)
-    assert all(request.enable_relation_dispatch for request in requests)
-    assert all(request.relation_policy_mode == "controller_v31" for request in requests)
-    assert all(request.budget_accounting == "strict" for request in requests)
-    assert all(request.hypergraph_trace_mode == "off" for request in requests)
+    assert all(request.python_executable == "python" for request in requests)
+    assert all(request.problem_id == "E1" for request in requests)
+    assert all(request.seed == 1 for request in requests)
+    assert all(request.max_fes == 100_000 for request in requests)
 
 
 def test_nonfresh_source_mode_fails_before_matrix_execution(tmp_path: Path) -> None:

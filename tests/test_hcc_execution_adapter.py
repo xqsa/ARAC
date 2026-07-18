@@ -1,493 +1,199 @@
 from __future__ import annotations
 
 import subprocess
+from dataclasses import fields
 from pathlib import Path
 
 import pytest
 
 from arac.backends import hcc as hcc_backend
-from arac.backends.hcc import (
-    HccAobExecutionRequest,
-    HccAobExecutionResult,
-    build_hcc_aob_smoke_command,
-)
-from arac.evidence import validate_runtime_payload
+from arac.backends.hcc import HccAobExecutionRequest, build_hcc_aob_smoke_command
 
 
-def test_hcc_aob_smoke_command_targets_canonical_vendor_subprocess(tmp_path: Path) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="E1",
-        seed=1,
-        max_fes=2_000,
-        output_dir=tmp_path / "hcc-smoke",
+def _request(tmp_path: Path, **overrides: object) -> HccAobExecutionRequest:
+    values: dict[str, object] = {
+        "problem_id": "E3",
+        "seed": 117,
+        "max_fes": 100_000,
+        "output_dir": tmp_path / "hcc-run",
+        "python_executable": "python-test",
+        "timestamp": "exp018-test",
+    }
+    values.update(overrides)
+    return HccAobExecutionRequest(**values)
+
+
+def test_execution_request_exposes_only_exp_018_inputs() -> None:
+    assert {field.name for field in fields(HccAobExecutionRequest)} == {
+        "problem_id",
+        "seed",
+        "max_fes",
+        "output_dir",
+        "hcc_root",
+        "aob_data_root",
+        "python_executable",
+        "timestamp",
+        "evidence_overlay_mode",
+    }
+
+
+def test_hcc_command_freezes_v37_controller_and_runtime_profile(tmp_path: Path) -> None:
+    command = build_hcc_aob_smoke_command(
+        _request(tmp_path, evidence_overlay_mode="paired_owner")
     )
-
-    command = build_hcc_aob_smoke_command(request)
 
     assert command.cwd == hcc_backend.HCC_VENDOR_ROOT
-    assert command.argv[0] == "python"
+    assert command.argv[0] == "python-test"
     assert Path(command.argv[1]) == hcc_backend.ARAC_HCC_SMOKE_RUNNER
-    assert Path(command.argv[1]).name == "hcc_smoke_runner.py"
-    assert Path(command.argv[1]).is_absolute()
-    assert command.cwd.is_absolute()
-    assert "--functions" in command.argv
-    assert "elliptic" in command.argv
-    assert "--ids" in command.argv
-    assert "1" in command.argv
-    assert "--max-fes" in command.argv
-    assert "2000" in command.argv
-    assert "--seed" in command.argv
-    assert "--output-root" in command.argv
-    assert str(tmp_path / "hcc-smoke") in command.argv
+    assert command.argv[command.argv.index("--functions") + 1] == "elliptic"
+    assert command.argv[command.argv.index("--ids") + 1] == "3"
+    assert command.argv[command.argv.index("--arac-action") + 1] == (
+        "arac_evidence_action_controller_v37"
+    )
+    assert command.argv[command.argv.index("--relation-policy") + 1] == "controller_v31"
+    assert command.argv[command.argv.index("--budget-accounting") + 1] == "strict"
+    assert command.argv[command.argv.index("--search-state-backend") + 1] == (
+        "phase_i_mmes"
+    )
+    assert command.argv[command.argv.index("--evidence-overlay-mode") + 1] == (
+        "paired_owner"
+    )
+    assert "--enable-relation-dispatch" in command.argv
+    assert "--skip-plots" in command.argv
+    assert "--no-cmaes-restart" not in command.argv
+    assert "--no-mmes-restart" not in command.argv
 
 
-def test_hcc_aob_smoke_command_passes_explicit_aob_data_root(tmp_path: Path) -> None:
-    data_root = hcc_backend.HCC_VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
-    request = HccAobExecutionRequest(
-        problem_id="E6",
-        seed=3,
-        max_fes=3_000_000,
-        output_dir=tmp_path / "canonical-e6",
-        aob_data_root=data_root,
+def test_off_mode_omits_only_overlay_option(tmp_path: Path) -> None:
+    command = build_hcc_aob_smoke_command(_request(tmp_path))
+
+    assert "--evidence-overlay-mode" not in command.argv
+    assert "--enable-relation-dispatch" in command.argv
+    assert "--relation-policy" in command.argv
+
+
+def test_hcc_command_passes_explicit_aob_data_root(tmp_path: Path) -> None:
+    command = build_hcc_aob_smoke_command(
+        _request(tmp_path, aob_data_root=hcc_backend.DEFAULT_AOB_DATA_ROOT)
     )
 
-    command = build_hcc_aob_smoke_command(request)
-
-    data_root_index = command.argv.index("--aob-data-root")
-    assert command.argv[data_root_index + 1] == str(data_root.resolve())
+    index = command.argv.index("--aob-data-root")
+    assert command.argv[index + 1] == str(hcc_backend.DEFAULT_AOB_DATA_ROOT)
 
 
-def test_hcc_aob_smoke_command_is_independent_of_process_cwd(
+def test_hcc_command_is_independent_of_process_cwd(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="E1",
-        seed=1,
-        max_fes=2_000,
-        output_dir=tmp_path / "hcc-smoke",
-    )
+    request = _request(tmp_path)
+    expected = build_hcc_aob_smoke_command(request)
+    unrelated = tmp_path / "unrelated"
+    unrelated.mkdir()
+    monkeypatch.chdir(unrelated)
 
-    monkeypatch.chdir(hcc_backend.ARAC_REPO_ROOT)
-    from_repo_root = build_hcc_aob_smoke_command(request)
-    unrelated_cwd = tmp_path / "unrelated"
-    unrelated_cwd.mkdir()
-    monkeypatch.chdir(unrelated_cwd)
-    from_unrelated_cwd = build_hcc_aob_smoke_command(request)
-
-    assert from_unrelated_cwd == from_repo_root
-    assert from_repo_root.cwd == hcc_backend.HCC_VENDOR_ROOT
+    assert build_hcc_aob_smoke_command(request) == expected
 
 
-def test_hcc_execution_rejects_incomplete_aob_data_root_before_subprocess(
+def test_execution_rejects_incomplete_aob_data_before_subprocess(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    subprocess_called = False
+    called = False
 
     def fake_run(*_args, **_kwargs):
-        nonlocal subprocess_called
-        subprocess_called = True
-        raise AssertionError("subprocess must not run for an invalid AOB data root")
+        nonlocal called
+        called = True
+        raise AssertionError("subprocess must not run")
 
     monkeypatch.setattr(hcc_backend.subprocess, "run", fake_run)
-
     with pytest.raises(FileNotFoundError, match="AOB data root"):
         hcc_backend.run_hcc_aob_smoke_execution(
-            HccAobExecutionRequest(
-                problem_id="S6",
-                seed=2,
-                max_fes=3_000_000,
-                output_dir=tmp_path / "invalid-data-root",
-                aob_data_root=tmp_path / "missing-data",
-            )
+            _request(tmp_path, problem_id="S5", aob_data_root=tmp_path / "missing")
         )
-
-    assert subprocess_called is False
-
-
-def test_hcc_aob_smoke_command_passes_arac_action(tmp_path: Path) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="E2",
-        seed=1,
-        max_fes=2_000,
-        output_dir=tmp_path / "hcc-smoke",
-        arac_action="repair_shared_variable_binding",
-    )
-
-    command = build_hcc_aob_smoke_command(request)
-
-    action_arg_index = command.argv.index("--arac-action")
-    assert command.argv[action_arg_index + 1] == "repair_shared_variable_binding"
+    assert called is False
 
 
-def test_hcc_aob_smoke_command_passes_diagonal_search_state_backend(
+@pytest.mark.parametrize(
+    ("overrides", "error"),
+    (
+        ({"problem_id": "R3"}, "exp_018"),
+        ({"problem_id": "E2"}, "exp_018"),
+        ({"seed": -1}, "seed"),
+        ({"seed": True}, "seed"),
+        ({"max_fes": 0}, "max_fes"),
+        ({"evidence_overlay_mode": "unknown"}, "evidence_overlay_mode"),
+    ),
+)
+def test_hcc_command_rejects_inputs_outside_frozen_protocol(
     tmp_path: Path,
+    overrides: dict[str, object],
+    error: str,
 ) -> None:
-    command = build_hcc_aob_smoke_command(
-        HccAobExecutionRequest(
-            problem_id="R3",
-            seed=3,
-            max_fes=3_000_000,
-            output_dir=tmp_path,
-            search_state_backend="diagonal_cma",
-        )
-    )
-
-    option_index = command.argv.index("--search-state-backend")
-    assert command.argv[option_index + 1] == "diagonal_cma"
+    with pytest.raises(ValueError, match=error):
+        build_hcc_aob_smoke_command(_request(tmp_path, **overrides))
 
 
-@pytest.mark.parametrize("mode", ["shuffled_graph", "paired_fallback"])
-def test_hcc_aob_smoke_command_passes_car_candidate_control(
-    tmp_path: Path,
-    mode: str,
-) -> None:
-    command = build_hcc_aob_smoke_command(
-        HccAobExecutionRequest(
-            problem_id="E2",
-            seed=3,
-            max_fes=3_000_000,
-            output_dir=tmp_path,
-            car_candidate_mode=mode,
-        )
-    )
-
-    option_index = command.argv.index("--car-candidate-mode")
-    assert command.argv[option_index + 1] == mode
-
-
-@pytest.mark.parametrize("arm", ["fallback", "candidate"])
-def test_hcc_aob_smoke_command_passes_car_actionability_arm(
-    tmp_path: Path,
-    arm: str,
-) -> None:
-    command = build_hcc_aob_smoke_command(
-        HccAobExecutionRequest(
-            problem_id="E2",
-            seed=3,
-            max_fes=3_000_000,
-            output_dir=tmp_path,
-            arac_action="arac_counterfactual_action_racing_w3",
-            enable_relation_dispatch=True,
-            relation_policy_mode="controller_v31",
-            car_actionability_arm=arm,
-        )
-    )
-
-    option_index = command.argv.index("--car-actionability-arm")
-    assert command.argv[option_index + 1] == arm
-
-
-def test_hcc_aob_smoke_command_rejects_actionability_arm_without_car_w3(
-    tmp_path: Path,
-) -> None:
-    with pytest.raises(ValueError, match="CAR-W3"):
-        build_hcc_aob_smoke_command(
-            HccAobExecutionRequest(
-                problem_id="E2",
-                seed=3,
-                max_fes=3_000_000,
-                output_dir=tmp_path,
-                car_actionability_arm="candidate",
-            )
-        )
-
-
-def test_hcc_aob_smoke_command_rejects_unknown_search_state_backend(
-    tmp_path: Path,
-) -> None:
-    with pytest.raises(ValueError, match="search_state_backend"):
-        build_hcc_aob_smoke_command(
-            HccAobExecutionRequest(
-                problem_id="R3",
-                seed=3,
-                max_fes=3_000_000,
-                output_dir=tmp_path,
-                search_state_backend="oracle_backend",
-            )
-        )
-
-
-def test_hcc_aob_smoke_command_passes_relation_dispatch_options(tmp_path: Path) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="E2",
-        seed=1,
-        max_fes=2_000,
-        output_dir=tmp_path / "hcc-smoke",
-        enable_relation_dispatch=True,
-        relation_policy_mode="rule",
-    )
-
-    command = build_hcc_aob_smoke_command(request)
-
-    assert "--enable-relation-dispatch" in command.argv
-    policy_arg_index = command.argv.index("--relation-policy")
-    assert command.argv[policy_arg_index + 1] == "rule"
-
-    shuffled = build_hcc_aob_smoke_command(
-        HccAobExecutionRequest(
-            problem_id="E2",
-            seed=1,
-            max_fes=2_000,
-            output_dir=tmp_path / "hcc-shuffled-smoke",
-            enable_relation_dispatch=True,
-            relation_policy_mode="shuffled",
-        )
-    )
-
-    shuffled_policy_arg_index = shuffled.argv.index("--relation-policy")
-    assert shuffled.argv[shuffled_policy_arg_index + 1] == "shuffled"
-
-
-def test_hcc_aob_smoke_command_passes_budget_accounting_mode(tmp_path: Path) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="S1",
-        seed=1,
-        max_fes=3_000_000,
-        output_dir=tmp_path / "hcc-source-budget-smoke",
-        budget_accounting="source",
-    )
-
-    command = build_hcc_aob_smoke_command(request)
-
-    budget_arg_index = command.argv.index("--budget-accounting")
-    assert command.argv[budget_arg_index + 1] == "source"
-
-
-def test_hcc_aob_smoke_command_passes_restart_modes(tmp_path: Path) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="S4",
-        seed=1,
-        max_fes=3_000_000,
-        output_dir=tmp_path / "hcc-paper-fidelity-smoke",
-        cmaes_restart=False,
-        mmes_restart=False,
-    )
-
-    command = build_hcc_aob_smoke_command(request)
-
-    assert "--no-cmaes-restart" in command.argv
-    assert "--no-mmes-restart" in command.argv
-
-
-def test_hcc_aob_smoke_command_passes_skip_plots(tmp_path: Path) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="S4",
-        seed=1,
-        max_fes=3_000_000,
-        output_dir=tmp_path / "hcc-fast-smoke",
-        skip_plots=True,
-    )
-
-    command = build_hcc_aob_smoke_command(request)
-
-    assert "--skip-plots" in command.argv
-
-
-def test_hcc_execution_runner_passes_skip_plots_to_subprocess(
+def test_execution_normalizes_output_once_for_command_and_parsers(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    captured: dict[str, tuple[str, ...]] = {}
-
-    def fake_run(argv, **_kwargs):
-        captured["argv"] = tuple(argv)
-        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
-
-    monkeypatch.setattr(hcc_backend.subprocess, "run", fake_run)
-    monkeypatch.setattr(
-        hcc_backend,
-        "_parse_hcc_evaluation_record_with_optimizer_final_fe",
-        lambda _output_dir, budget_limit: (0.0, budget_limit, budget_limit),
-    )
-    monkeypatch.setattr(hcc_backend, "_find_hcc_action_trace", lambda _output_dir: (None, 0))
-
-    result = hcc_backend.run_hcc_aob_smoke_execution(
-        HccAobExecutionRequest(
-            problem_id="S4",
-            seed=1,
-            max_fes=3_000_000,
-            output_dir=tmp_path / "hcc-fast-smoke",
-            skip_plots=True,
-        )
-    )
-
-    assert result.status == "completed"
-    assert "--skip-plots" in captured["argv"]
-
-
-def test_hcc_execution_normalizes_relative_output_once_for_all_consumers(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    relative_output = Path("results") / "relative-hcc-smoke"
+    relative_output = Path("results") / "relative-exp018"
     expected_output = (hcc_backend.ARAC_REPO_ROOT / relative_output).resolve()
     observed: dict[str, Path] = {}
 
     def fake_run(argv, **_kwargs):
-        output_index = argv.index("--output-root")
-        observed["argv"] = Path(argv[output_index + 1])
+        observed["command"] = Path(argv[argv.index("--output-root") + 1])
         return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
 
-    def fake_parse(output_dir: Path, budget_limit: int):
+    def fake_evaluation(output_dir: Path, budget_limit: int):
         observed["evaluation"] = output_dir
-        return 0.0, budget_limit, budget_limit
-
-    def fake_trace(output_dir: Path):
-        observed["trace"] = output_dir
-        return output_dir / "action_trace.csv", 1
+        return 1.0, budget_limit, budget_limit
 
     def fake_budget(output_dir: Path):
         observed["budget"] = output_dir
-        return {}
+        return {
+            "fitness_record_fe": 100_000,
+            "global_phase_fe": 20_000,
+            "cc_phase_fe": 79_984,
+            "evidence_overlay_fe": 16,
+            "overhead_fe": 0,
+        }
 
-    unrelated_cwd = tmp_path / "unrelated"
-    unrelated_cwd.mkdir()
-    monkeypatch.chdir(unrelated_cwd)
     monkeypatch.setattr(hcc_backend.subprocess, "run", fake_run)
     monkeypatch.setattr(
         hcc_backend,
         "_parse_hcc_evaluation_record_with_optimizer_final_fe",
-        fake_parse,
+        fake_evaluation,
     )
-    monkeypatch.setattr(hcc_backend, "_find_hcc_action_trace", fake_trace)
     monkeypatch.setattr(hcc_backend, "_parse_hcc_budget_summary", fake_budget)
 
     result = hcc_backend.run_hcc_aob_smoke_execution(
-        HccAobExecutionRequest(
-            problem_id="E1",
-            seed=1,
-            max_fes=2_000,
-            output_dir=relative_output,
-        )
+        _request(tmp_path, output_dir=relative_output)
     )
 
     assert observed == {
-        "argv": expected_output,
+        "command": expected_output,
         "evaluation": expected_output,
-        "trace": expected_output,
         "budget": expected_output,
     }
     assert result.output_root == expected_output
-    assert result.action_trace_path == expected_output / "action_trace.csv"
+    assert result.status == "completed"
+    assert result.optimizer_final_fe_used == 100_000
 
 
-def test_hcc_aob_smoke_command_rejects_unsupported_action_file(tmp_path: Path) -> None:
-    request = HccAobExecutionRequest(
-        problem_id="E2",
-        seed=1,
-        max_fes=2_000,
-        output_dir=tmp_path / "hcc-smoke",
-        arac_action_file=tmp_path / "actions.csv",
-    )
-
-    with pytest.raises(ValueError, match="arac_action_file"):
-        build_hcc_aob_smoke_command(request)
-
-
-def test_hcc_budget_parser_reads_optional_stage_fe_and_legacy_defaults_to_zero(
-    tmp_path: Path,
-) -> None:
-    summary = tmp_path / "R3_budget_summary.csv"
-    summary.write_text(
-        "problem_id,budget_accounting,max_fes,optimizer_reported_fe,"
-        "fitness_record_fe,budget_aligned_fe,same_budget_violation,global_phase_fe,"
-        "cc_phase_fe,rescue_fe,refresh_fe,search_state_fe,precision_probe_fe,"
-        "separable_continuation_fe,"
-        "overhead_fe\n"
-        "R3,strict,3000000,3000000,3000000,3000000,0,1200000,1500000,0,0,"
-        "30000,32,0,269968\n",
+def test_budget_parser_keeps_exp_018_ledger_columns(tmp_path: Path) -> None:
+    (tmp_path / "E3_budget_summary.csv").write_text(
+        "fitness_record_fe,optimizer_reported_fe,global_phase_fe,cc_phase_fe,"
+        "rescue_fe,refresh_fe,search_state_fe,precision_probe_fe,"
+        "evidence_overlay_fe,separable_continuation_fe,overhead_fe\n"
+        "100000,100000,20000,79984,0,0,0,0,16,0,0\n",
         encoding="utf-8",
     )
 
     parsed = hcc_backend._parse_hcc_budget_summary(tmp_path)
 
-    assert parsed["search_state_fe"] == 30000
-    assert parsed["precision_probe_fe"] == 32
-
-    legacy_dir = tmp_path / "legacy"
-    legacy_dir.mkdir()
-    (legacy_dir / "R3_budget_summary.csv").write_text(
-        "problem_id,fitness_record_fe\nR3,100\n",
-        encoding="utf-8",
-    )
-    legacy = hcc_backend._parse_hcc_budget_summary(legacy_dir)
-    assert legacy["search_state_fe"] == 0
-    assert legacy["precision_probe_fe"] == 0
-
-
-def test_hcc_execution_result_fields_are_offline_only() -> None:
-    result = HccAobExecutionResult(
-        problem_id="E1",
-        seed=1,
-        max_fes=2_000,
-        final_error=123.456,
-        fe_used=2_000,
-        time_seconds=0.5,
-        output_root=Path("results/hcc-smoke"),
-        fresh_optimizer_execution=True,
-        status="completed",
-        result_source="hcc_subprocess_smoke_execution",
-        action_trace_path=Path("results/hcc-smoke/action_trace.csv"),
-        action_trace_rows=3,
-    )
-
-    runtime_payload = {
-        "problem_id": result.problem_id,
-        "seed": result.seed,
-        "budget_limit": result.max_fes,
-        "used_for_runtime": 1,
-    }
-    validate_runtime_payload(runtime_payload)
-
-    offline_row = result.to_offline_row()
-    assert offline_row["final_error"] == "1.234560e+02"
-    assert offline_row["runtime_dispatch_allowed"] == "0"
-    assert offline_row["fresh_optimizer_execution"] == "1"
-    assert offline_row["action_trace_path"] == "results\\hcc-smoke\\action_trace.csv"
-    assert offline_row["action_trace_rows"] == "3"
-    assert offline_row["same_budget_violation"] == "0"
-    assert offline_row["performance_claim_allowed"] == "0"
-
-
-def test_hcc_execution_result_marks_over_budget_not_performance_claimable() -> None:
-    result = HccAobExecutionResult(
-        problem_id="E2",
-        seed=1,
-        max_fes=2_000,
-        final_error=1.0,
-        fe_used=2_128,
-        time_seconds=0.5,
-        output_root=Path("results/hcc-smoke"),
-        fresh_optimizer_execution=True,
-        status="completed",
-        result_source="hcc_subprocess_smoke_execution",
-    )
-
-    offline_row = result.to_offline_row()
-
-    assert offline_row["same_budget_violation"] == "1"
-    assert offline_row["performance_claim_allowed"] == "0"
-
-
-def test_hcc_execution_result_marks_optimizer_final_overrun() -> None:
-    result = HccAobExecutionResult(
-        problem_id="E2",
-        seed=1,
-        max_fes=2_000,
-        final_error=1.0,
-        fe_used=2_000,
-        optimizer_final_fe_used=2_128,
-        time_seconds=0.5,
-        output_root=Path("results/hcc-smoke"),
-        fresh_optimizer_execution=True,
-        status="completed",
-        result_source="hcc_subprocess_smoke_execution",
-    )
-
-    offline_row = result.to_offline_row()
-
-    assert offline_row["fe_used"] == "2000"
-    assert offline_row["optimizer_final_fe_used"] == "2128"
-    assert offline_row["same_budget_violation"] == "1"
+    assert parsed["fitness_record_fe"] == 100_000
+    assert parsed["global_phase_fe"] == 20_000
+    assert parsed["cc_phase_fe"] == 79_984
+    assert parsed["evidence_overlay_fe"] == 16
+    assert parsed["overhead_fe"] == 0

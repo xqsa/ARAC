@@ -1,15 +1,9 @@
-"""Stable action contracts exposed by ARAC."""
+"""Frozen controller metadata used by the exp_018 HCC runner."""
 
-from .contracts import (
-    DEFAULT_ACTION_SPACE,
-    ActionDecision,
-    ActionFamily,
-    ActionSpec,
-    action_by_name,
-)
 from .controller_profiles import (
     CONTROLLER_PROFILES,
     ControllerProfile,
+    controller_action_effects,
     controller_has_capability,
     controller_profile_by_action,
     controller_profile_by_lane,
@@ -17,13 +11,9 @@ from .controller_profiles import (
 )
 
 __all__ = [
-    "ActionDecision",
-    "ActionFamily",
-    "ActionSpec",
-    "DEFAULT_ACTION_SPACE",
-    "action_by_name",
     "CONTROLLER_PROFILES",
     "ControllerProfile",
+    "controller_action_effects",
     "controller_has_capability",
     "controller_profile_by_action",
     "controller_profile_by_lane",
