@@ -837,23 +837,6 @@ def test_overlay_schedule_freezes_slots_and_accounts_for_prechecks() -> None:
     assert runner.evidence_overlay_group_interval_reserve(4, 100) == 161
 
 
-def test_frozen_v37_overlay_has_no_scheduled_search_state_hold() -> None:
-    config = runner.SmokeConfig(
-        max_fes=100_000,
-        seed=1,
-        arac_action="arac_evidence_action_controller_v37",
-        search_state_backend="phase_i_mmes",
-    )
-    state = runner.SearchStateSchedulerState()
-
-    assert not runner.uses_scheduled_search_state(config)
-    assert runner.scheduled_search_state_hold_fes(
-        config,
-        state,
-        overlap_edge_count=19,
-    ) == 0
-
-
 def test_overlay_schedule_fails_closed_when_population_cannot_fit() -> None:
     with pytest.raises(RuntimeError, match="insufficient budget"):
         runner.evidence_overlay_scheduled_sub_fes(
@@ -963,7 +946,7 @@ def test_overlay_runtime_fingerprints_are_stable_and_detect_mutations() -> None:
     changed_incumbent = runner.evidence_overlay_runtime_fingerprints(**kwargs)
     assert changed_incumbent["guarded_incumbent"] != baseline["guarded_incumbent"]
 
-    controller.cc_utility_history.append(0.75)
+    controller.phase_rescue_retired = True
     changed_controller = runner.evidence_overlay_runtime_fingerprints(**kwargs)
     assert changed_controller["controller"] != baseline["controller"]
 
@@ -977,62 +960,6 @@ def test_overlay_runtime_fingerprints_are_stable_and_detect_mutations() -> None:
         random.setstate(python_state)
         np.random.set_state(numpy_state)
     assert changed_rng["rng"] != baseline["rng"]
-
-
-def test_phase_i_fingerprint_covers_optimizer_configuration_and_state() -> None:
-    class FakeOptimizer:
-        def __init__(self) -> None:
-            self.mean = np.array([0.0, 1.0])
-            self.sigma = 0.5
-            self._n_generations = 3
-            self.n_function_evaluations = 12
-            self.termination_signal = 0
-            self.options = {"sigma": 0.5, "n_individuals": 4}
-
-    class FakeState:
-        value = "a"
-
-        def fingerprint(self) -> str:
-            return "a" * 64 if self.value == "a" else "b" * 64
-
-    controller = runner.EvidenceActionControllerV31RunState(dense_overlap=False)
-    optimizer = FakeOptimizer()
-    state = FakeState()
-    controller.phase_i_optimizer = optimizer
-    controller.phase_i_state = state
-    kwargs = {
-        "best_individual": np.zeros(2, dtype=float),
-        "guarded_incumbent": np.zeros(2, dtype=float),
-        "guarded_incumbent_fitness": 1.0,
-        "grouping_result": [[0], [1]],
-        "controller": controller,
-        "trajectory_mean_cache": {},
-        "previous_group_contribution_credit": [],
-    }
-    baseline = runner.evidence_overlay_runtime_fingerprints(**kwargs)
-
-    optimizer.sigma = 0.75
-    assert (
-        runner.evidence_overlay_runtime_fingerprints(**kwargs)["phase_i"]
-        != baseline["phase_i"]
-    )
-    optimizer.sigma = 0.5
-    optimizer._n_generations = 4
-    assert (
-        runner.evidence_overlay_runtime_fingerprints(**kwargs)["phase_i"]
-        != baseline["phase_i"]
-    )
-    optimizer._n_generations = 3
-    optimizer.options["sigma"] = 0.75
-    assert (
-        runner.evidence_overlay_runtime_fingerprints(**kwargs)["phase_i"]
-        != baseline["phase_i"]
-    )
-    state.value = "b"
-    assert (
-        runner.evidence_overlay_runtime_fingerprints(**kwargs)["phase_i"]
-        != baseline["phase_i"]
-    )
 
 
 def test_runtime_fingerprint_mismatch_writes_inapplicable_manifest(

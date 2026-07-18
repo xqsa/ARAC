@@ -41,33 +41,10 @@ from src.arac.policy.relation_policy import (
     relation_policy_mode_for_evidence_action_controller_v31,
     is_evidence_action_controller_v31_dense_overlap,
     select_evidence_action_controller_v31_dense_lock_mode,
-    select_evidence_action_controller_v3_mode,
 )
 from src.arac.policy.relation_policy import (
-    decide_actions_for_relations,
-    decide_actions_for_relations_v2,
-    decide_actions_for_relations_v21,
-    decide_actions_for_relations_v22,
-    decide_actions_for_relations_v23,
     decide_actions_for_relations_v24,
-    decide_actions_for_relations_v25,
     decide_actions_for_relations_v26,
-)
-from src.arac.policy.search_state_policy import (
-    CC_RESERVE_FRACTION,
-    CONTINUE_CANONICAL_CC,
-    CONTINUE_DIAGONAL_SEARCH_STATE,
-    FIRST_PROBE_FRACTION,
-    RESUME_PHASE_I_SEARCH_STATE,
-    SEARCH_STATE_BLOCKED,
-    SEARCH_STATE_INITIAL_PROBE,
-    PreHoldEvidence,
-    SearchStateEvidence,
-    SearchStateSchedulerState,
-    build_pre_hold_evidence,
-    normalized_gain_utility,
-    plan_search_state_action,
-    record_search_state_outcome,
 )
 from src.arac.policy.action_trust_policy import (
     ActionTrustDecision,
@@ -76,107 +53,21 @@ from src.arac.policy.action_trust_policy import (
     normalized_objective_credit,
     robust_damped_writeback,
 )
-from src.arac.policy.component_delayed_credit import (
-    COMPONENT_CREDIT_TRACE_FIELDS,
-    ComponentDelayedCreditTrace,
-    build_overlap_components,
-    calculate_scheduler_revisit_cap,
-)
-from arac.policy.component_atomic_precision import (
-    COMPONENT_ATOMIC_SCHEMA_VERSION,
-    ComponentAtomicPlan,
-    ComponentEndpointResult,
-    build_component_endpoint_result,
-    build_component_reward,
-    plan_component_atomic_precision,
-)
 from src.arac.actions.controller_profiles import (
     controller_has_capability,
     controller_profile_by_version,
-)
-from arac.backends.hcc_car import (
-    CARPlanDecision,
-    CARRelationProposal,
-    GroupOptimizationResult,
-    allocate_component_horizon_budgets,
-    freeze_component_writeback_plan,
-    run_component_horizon,
-    shuffled_component_writeback_plan,
-)
-from arac.policy.counterfactual_action_racing import (
-    AuditEnvelope,
-    BranchState,
-    CARBudgetLedger,
-    CARProbeExecutor,
-    derive_probe_seed,
-    fingerprint_branch_state,
-)
-from arac.policy.oracle_actionability import (
-    CAR_ACTIONABILITY_HORIZON_LABELS,
-    CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
-    CAR_ACTIONABILITY_PROTOCOL_VERSION,
-)
-from arac.policy.causal_risk_scheduler import (
-    FEATURE_SCHEMA_SHA256,
-    PRE_ACTION_UTILITY_SCHEMA_VERSION,
-    PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
-    UTILITY_FEATURE_NAMES,
-    PreActionUtilityState,
-)
-from arac.policy.precision_response_probe import (
-    PRECISION_PROBE_GATE_FIELDS,
-    PRECISION_RESPONSE_PROTOCOL_VERSION,
-    PrecisionProbeConfig,
-    PrecisionProbeGateDecision,
-    PrecisionProbeGateState,
-    build_precision_probe_gate_state,
-    decide_precision_probe,
-    precision_probe_config_from_mapping,
-)
-from arac.backends.hcc_cma_proposals import (
-    PairedHccCMAProbeResult,
-    run_paired_hcc_cma_probe,
-)
-from arac.backends.hcc_mos_cma import (
-    CMA_SAMPLING_MODE_OPTION,
-    CMA_SAMPLING_MODES,
-    IID_CMA_SAMPLING,
-    MIRRORED_ORTHOGONAL_CMA_SAMPLING,
-    MOS_AUDIT_CONTEXT_OPTION,
-    MOS_AUDIT_SINK_OPTION,
-    create_hcc_cmaes,
-)
-from arac.backends.hcc_hypergraph_trace import (
-    HYPERGRAPH_NATIVE_SWEEP_END_STAGE,
-    HYPERGRAPH_TRACE_MODES,
-    HypergraphTraceArtifactPaths,
-    HypergraphTraceObserver,
-    write_hypergraph_initialization_failure_manifest,
 )
 from arac.backends.hcc_evidence_overlay import (
     EvidenceOverlayArtifactPaths,
     HccEvidenceOverlayObserver,
 )
 from arac.policy.evidence_overlay import build_reference_blind_ordering
-from arac.policy.overlap_hypergraph import build_overlap_hypergraph
-from src.arac.policy.trajectory_guard import (
-    RecoveryCheckpoint,
-    RecoveryResolution,
-    make_recovery_checkpoint,
-    preempt_recovery_checkpoint,
-    resolve_recovery_checkpoint,
-)
-from src.arac.backends.diagonal_cma import (
-    DiagonalCMAState,
-    initialize_diagonal_cma_state,
-    run_diagonal_cma_block,
-)
 from src.arac.backends.hcc import (
     EVIDENCE_OVERLAY_MODES,
     required_aob_data_files,
     validate_aob_data_root,
 )
-from HCC.NDAs.MMES.state import MMESBlockResult, MMESState
+from HCC.NDAs.MMES.state import MMESState
 
 from AOB.utils import (
     combine,
@@ -233,50 +124,6 @@ ACTIVE_FUNCTION_ID_PAIRS = frozenset(
         ("schwefel", 5),
     }
 )
-MOS_STABILITY_PROTOCOL_VERSION = "v37-mos-single-seed-stability-v1"
-MOS_SAMPLING_AUDIT_FIELDS = (
-    "run_id",
-    "sampling_mode",
-    "problem_id",
-    "seed",
-    "outer_iter",
-    "group_index",
-    "cma_scope",
-    "candidate_index",
-    "optimizer_seed",
-    "optimizer_restart_index",
-    "generation",
-    "population",
-    "dimension",
-    "pair_count",
-    "block_count",
-    "raw_draw_sha256",
-    "sample_sha256",
-    "max_orthogonality_error",
-    "rng_draw_count",
-    "evaluated_count",
-    "complete_population",
-)
-MOS_BRANCH_PROVENANCE_FIELDS = (
-    "protocol_version",
-    "run_id",
-    "sampling_mode",
-    "problem_id",
-    "seed",
-    "status",
-    "terminal_target_fe",
-    "terminal_completion_tolerance_fe",
-    "phase_i_fe",
-    "phase_i_record_sha256",
-    "phase_i_candidate_sha256",
-    "first_cma_prestate_status",
-    "first_cma_prestate_sha256",
-    "rng_descriptor_sha256",
-    "terminal_record_sha256",
-    "mos_generation_rows",
-    "mos_primary_generation_rows",
-    "mos_rescue_generation_rows",
-)
 ACTION_TRACE_FIELDS = [
     "problem_id",
     "seed",
@@ -330,34 +177,6 @@ ACTION_TRACE_FIELDS = [
     "decision_point",
     "cc_block_fe",
     "cc_utility",
-    "search_state_non_coordinate_fraction",
-    "search_state_active_intervention_fraction",
-    "search_state_conflict_fraction",
-    "search_state_writeback_unstable",
-    "search_state_relative_writeback_max",
-    "search_state_relative_writeback_unstable",
-    "search_state_block_fe",
-    "search_state_utility",
-    "required_utility_ratio",
-    "state_action_fe",
-    "cc_reserve_fe",
-    "state_fingerprint_before",
-    "state_fingerprint_after",
-    "abstain_reason",
-    "pre_hold_phase_i_tail_utility",
-    "pre_hold_group_count",
-    "pre_hold_mean_group_size",
-    "pre_hold_overlap_edge_count",
-    "pre_hold_overlap_edge_fraction",
-    "pre_hold_shared_variable_count",
-    "pre_hold_shared_variable_ratio",
-    "pre_hold_mean_overlap_width",
-    "pre_hold_remaining_fes",
-    "pre_hold_remaining_ratio",
-    "pre_hold_scheduled_hold_fes",
-    "pre_hold_projected_unheld_group_fes",
-    "pre_hold_projected_held_group_fes",
-    "pre_hold_budget_retention_ratio",
     "trust_key",
     "trust_phase",
     "trust_reason",
@@ -379,131 +198,6 @@ ACTION_TRACE_FIELDS = [
     "phase_rescue_rejected_before_maturity",
     "phase_rescue_productive_mature",
     "phase_rescue_retired",
-    "cma_sigma_reference",
-    "cma_sigma_applied_factor",
-    "cma_sigma_terminal",
-    "cma_sigma_next_factor",
-    "cma_sigma_route",
-    "cma_restart_count",
-    *COMPONENT_CREDIT_TRACE_FIELDS,
-    "trajectory_guard_status",
-    "trajectory_guard_pre_fitness",
-    "trajectory_guard_post_writeback_fitness",
-    "trajectory_guard_downstream_fitness",
-    "trajectory_guard_recovery_credit",
-    "trajectory_guard_restored",
-]
-V33_TRUST_TRACE_FIELDS = [
-    "trust_key",
-    "trust_phase",
-    "trust_reason",
-    "trust_score",
-    "trust_exposure",
-    "trust_cooldown",
-    "trust_credit",
-    "trust_unstable",
-    "trust_pre_writeback_fitness",
-    "trust_post_writeback_fitness",
-    "fallback_route",
-]
-V34_RECOVERY_TRACE_FIELDS = [
-    "trajectory_guard_status",
-    "trajectory_guard_pre_fitness",
-    "trajectory_guard_post_writeback_fitness",
-    "trajectory_guard_downstream_fitness",
-    "trajectory_guard_recovery_credit",
-    "trajectory_guard_restored",
-]
-V36_MATURITY_TRACE_FIELDS = [
-    "active_maturity_route",
-    "sweep_evidence_relation_count",
-    "sweep_evidence_active_count",
-    "sweep_evidence_active_fraction",
-    "sweep_evidence_support",
-    "sweep_evidence_reason",
-]
-V37_RESOURCE_TRACE_FIELDS = [
-    "phase_rescue_resource_route",
-    "phase_rescue_rejected_before_maturity",
-    "phase_rescue_productive_mature",
-    "phase_rescue_retired",
-]
-V39_CMA_SIGMA_TRACE_FIELDS = [
-    "cma_sigma_reference",
-    "cma_sigma_applied_factor",
-    "cma_sigma_terminal",
-    "cma_sigma_next_factor",
-    "cma_sigma_route",
-    "cma_restart_count",
-]
-V40_COMPONENT_CREDIT_TRACE_FIELDS = list(COMPONENT_CREDIT_TRACE_FIELDS)
-V33_ACTION_TRACE_FIELDS = [
-    field
-    for field in ACTION_TRACE_FIELDS
-    if field not in V34_RECOVERY_TRACE_FIELDS
-    and field not in V36_MATURITY_TRACE_FIELDS
-    and field not in V37_RESOURCE_TRACE_FIELDS
-    and field not in V39_CMA_SIGMA_TRACE_FIELDS
-    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
-]
-V34_ACTION_TRACE_FIELDS = [
-    field
-    for field in ACTION_TRACE_FIELDS
-    if field not in V36_MATURITY_TRACE_FIELDS
-    and field not in V37_RESOURCE_TRACE_FIELDS
-    and field not in V39_CMA_SIGMA_TRACE_FIELDS
-    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
-]
-V36_ACTION_TRACE_FIELDS = [
-    field
-    for field in ACTION_TRACE_FIELDS
-    if field not in V34_RECOVERY_TRACE_FIELDS
-    and field not in V37_RESOURCE_TRACE_FIELDS
-    and field not in V39_CMA_SIGMA_TRACE_FIELDS
-    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
-]
-V37_ACTION_TRACE_FIELDS = [
-    field
-    for field in ACTION_TRACE_FIELDS
-    if field not in V34_RECOVERY_TRACE_FIELDS
-    and field not in V39_CMA_SIGMA_TRACE_FIELDS
-    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
-]
-V39_ACTION_TRACE_FIELDS = [
-    field
-    for field in ACTION_TRACE_FIELDS
-    if field not in V34_RECOVERY_TRACE_FIELDS
-    and field not in V40_COMPONENT_CREDIT_TRACE_FIELDS
-]
-V40_ACTION_TRACE_FIELDS = [
-    field
-    for field in ACTION_TRACE_FIELDS
-    if field not in V34_RECOVERY_TRACE_FIELDS
-    and field not in V39_CMA_SIGMA_TRACE_FIELDS
-]
-PRECISION_CAUSAL_ACTION_TRACE_FIELDS = [
-    *V40_ACTION_TRACE_FIELDS,
-    *PRECISION_CAUSAL_DIAGNOSTIC_TRACE_FIELDS,
-]
-PRECISION_RESPONSE_ACTION_DIAGNOSTIC_FIELDS = [
-    "response_arm",
-    "gate_state_sha256",
-    "lease_sigma",
-    "lease_diversity",
-    "review_normal_sigma_restored",
-    "review_diversity_recovery",
-    "review_progress_delta",
-    "review_positive",
-    "renewal_enabled",
-]
-PRECISION_RESPONSE_ACTION_TRACE_FIELDS = [
-    *V40_ACTION_TRACE_FIELDS,
-    *PRECISION_RESPONSE_ACTION_DIAGNOSTIC_FIELDS,
-]
-LEGACY_ACTION_TRACE_FIELDS = [
-    field
-    for field in V33_ACTION_TRACE_FIELDS
-    if field not in V33_TRUST_TRACE_FIELDS
 ]
 OVERLAP_RELATION_FIELDS = [
     "relation_id",
@@ -592,153 +286,8 @@ AOB_INPUT_MANIFEST_FIELDS = [
     "sha256_after",
     "unchanged",
 ]
-CAR_PROBE_TRACE_FIELDS = [
-    "problem_id",
-    "seed",
-    "pair_index",
-    "channel",
-    "graph_fingerprint",
-    "component_fingerprint",
-    "action_family",
-    "candidate_mode",
-    "fallback_fe",
-    "candidate_fe",
-    "seed_descriptor",
-    "probe_seed",
-    "phase1_probe_fitness_before",
-    "fallback_after",
-    "candidate_after",
-    "normalized_delta",
-    "lcb",
-    "tail",
-    "gate_result",
-    "abstain_reason",
-]
-CAR_STATE_LEDGER_FIELDS = [
-    "problem_id",
-    "seed",
-    "graph_fingerprint",
-    "component_fingerprint",
-    "candidate_action_name",
-    "candidate_action_family",
-    "candidate_mode",
-    "evidence_sweeps",
-    "checkpoint_fe",
-    "probe_fe",
-    "total_fe_after_probe",
-    "probe_fe_limit",
-    "adopted_branch",
-    "committed_fitness",
-    "evaluated_elite",
-    "state_fingerprint",
-    "gate_result",
-    "abstain_reason",
-]
-CAR_BRANCH_MANIFEST_FIELDS = [
-    "problem_id",
-    "seed",
-    "pair_index",
-    "arm",
-    "candidate_mode",
-    "evaluator_id",
-    "requested_fe",
-    "actual_fe",
-    "record_sha256",
-    "record_best",
-    "state_fingerprint_before",
-    "state_fingerprint_after",
-    "seed_descriptor",
-    "probe_seed",
-]
-CAR_ACTIONABILITY_TRACE_FIELDS = [
-    "protocol_version",
-    "fresh_optimizer_execution",
-    "problem_id",
-    "seed",
-    "audit_arm",
-    "candidate_mode",
-    "horizon_index",
-    "horizon_label",
-    "checkpoint_fe",
-    "checkpoint_fitness",
-    "configured_max_fes",
-    "terminal_completion_tolerance_fe",
-    "termination_reason",
-    "terminal_fe_shortfall",
-    "target_fe",
-    "observed_fe",
-    "best_error",
-    "prefix_state_fingerprint",
-    "prefix_record_sha256",
-    "post_intervention_state_fingerprint",
-    "graph_fingerprint",
-    "component_fingerprint",
-    "candidate_action_name",
-    "candidate_action_family",
-    "candidate_action_applied",
-    "requested_fe",
-    "actual_fe",
-    "seed_descriptor",
-    "probe_seed",
-    "intervention_record_sha256",
-    "fitness_prefix_sha256",
-    "plan_status",
-    "horizon_status",
-    "abstain_reason",
-]
-PRECISION_CAUSAL_PROTOCOL_VERSION = "precision-causal-logging-v2"
-PRECISION_CAUSAL_TRACE_FIELDS = [
-    "protocol_version",
-    "fresh_optimizer_execution",
-    "problem_id",
-    "seed",
-    "audit_arm",
-    "decision_id",
-    "decision_status",
-    "not_applicable_reason",
-    "schema_version",
-    *UTILITY_FEATURE_NAMES,
-    "feature_schema_sha256",
-    "feature_sha256",
-    "decision_fe",
-    "checkpoint_fitness",
-    "remaining_fe",
-    "component_id",
-    "component_group_count",
-    "component_shared_var_count",
-    "component_unlocked",
-    "scheduler_revisit_reachable",
-    "scheduler_revisit_cap_fe",
-    "scheduler_revisit_reason",
-    "source_phase_i_end_fe",
-    "source_cc_history_end_fe",
-    "source_disagreement_history_end_fe",
-    "source_cma_history_end_fe",
-    "source_end_fe",
-    "prefix_record_sha256",
-    "checkpoint_candidate_sha256",
-    "controller_state_sha256",
-    "random_descriptor_sha256",
-    "action_applied",
-    "normal_sigma",
-    "candidate_sigma",
-    "applied_sigma",
-    "requested_fe",
-    "actual_fe",
-    "intervention_end_fe",
-    "configured_max_fes",
-    "terminal_target_fe",
-    "terminal_observed_fe",
-    "terminal_error",
-    "terminal_status",
-    "terminal_record_sha256",
-]
-CAR_W_MIN_EVIDENCE_SWEEPS = 2
-CAR_W_PAIR_COUNT = 3
-CAR_W_PROBE_BUDGET_FRACTION = 0.03
 EVIDENCE_OVERLAY_REQUIRED_SWEEPS = 3
 EVIDENCE_OVERLAY_PROBE_FE = 16
-CAR_W2_FUTILITY_MIN_WRITEBACK_NORM = 1e-12
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 ACTION_TRUST_MIN_WRITEBACK_NORM = 1e-12
@@ -755,92 +304,17 @@ V31_NON_DENSE_LARGE_FALLBACK_NORM_MIN = 10.0
 V31_NON_DENSE_LARGE_FALLBACK_REPAIR_TRIGGER = (
     "controller_v31_non_dense_large_fallback_repair_lock"
 )
-SEARCH_STATE_BIPOP_ACTION = "bipop_search_state_restart"
-REPAIR_BIPOP_SEARCH_STATE_ACTION = "repair_bipop_search_state_restart"
 PHASE_RESCUE_MULTISTART_ACTION = "phase_rescue_multistart"
-REPAIR_PHASE_RESCUE_MULTISTART_ACTION = "repair_phase_rescue_multistart"
-CC_HARM_GUARDED_SEP_REFRESH_ACTION = "cc_harm_guarded_sep_refresh"
-SEPARABLE_CMAES_DISPATCH_ACTION = "separable_cmaes_dispatch_action"
-REPAIR_PROTECT_REFINE_ACTION = "repair_protect_refine"
-REPAIR_PROTECT_DEEP_REFINE_ACTION = "repair_protect_deep_refine"
-POST_RETIREMENT_PRECISION_REANCHOR_ACTION = "post_retirement_precision_reanchor"
-CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION = "cross_sweep_cma_sigma_continuation"
-EVIDENCE_ACTION_CONTROLLER_V1 = "arac_evidence_action_controller_v1"
-EVIDENCE_ACTION_CONTROLLER_V2 = "arac_evidence_action_controller_v2"
-EVIDENCE_ACTION_CONTROLLER_V3 = "arac_evidence_action_controller_v3"
-EVIDENCE_ACTION_CONTROLLER_V31 = "arac_evidence_action_controller_v31"
-EVIDENCE_ACTION_CONTROLLER_V32 = "arac_evidence_action_controller_v32"
-EVIDENCE_ACTION_CONTROLLER_V33 = "arac_evidence_action_controller_v33"
-EVIDENCE_ACTION_CONTROLLER_V34 = "arac_evidence_action_controller_v34"
-EVIDENCE_ACTION_CONTROLLER_V35 = "arac_evidence_action_controller_v35"
-EVIDENCE_ACTION_CONTROLLER_V36 = "arac_evidence_action_controller_v36"
 EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
-EVIDENCE_ACTION_CONTROLLER_V38 = "arac_evidence_action_controller_v38"
-EVIDENCE_ACTION_CONTROLLER_V39 = "arac_evidence_action_controller_v39"
-EVIDENCE_ACTION_CONTROLLER_V40 = "arac_evidence_action_controller_v40"
-EVIDENCE_ACTION_CONTROLLER_V41 = "arac_evidence_action_controller_v41"
-CAR_W_ACTION = "arac_counterfactual_action_racing_w"
-CAR_W2_ACTION = "arac_counterfactual_action_racing_w2"
-CAR_W3_ACTION = "arac_counterfactual_action_racing_w3"
-TRAJECTORY_ACTION_NAMES = {
-    "budget_shift_mean_blend",
-    "budget_shift_only",
-    "mean_blend_only",
-    SEARCH_STATE_BIPOP_ACTION,
-    REPAIR_BIPOP_SEARCH_STATE_ACTION,
-    PHASE_RESCUE_MULTISTART_ACTION,
-    REPAIR_PHASE_RESCUE_MULTISTART_ACTION,
-    CC_HARM_GUARDED_SEP_REFRESH_ACTION,
-    SEPARABLE_CMAES_DISPATCH_ACTION,
-    REPAIR_PROTECT_REFINE_ACTION,
-    REPAIR_PROTECT_DEEP_REFINE_ACTION,
-    POST_RETIREMENT_PRECISION_REANCHOR_ACTION,
-    CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION,
-    EVIDENCE_ACTION_CONTROLLER_V1,
-    EVIDENCE_ACTION_CONTROLLER_V2,
-    EVIDENCE_ACTION_CONTROLLER_V3,
-    EVIDENCE_ACTION_CONTROLLER_V31,
-    EVIDENCE_ACTION_CONTROLLER_V32,
-    EVIDENCE_ACTION_CONTROLLER_V33,
-    EVIDENCE_ACTION_CONTROLLER_V34,
-    EVIDENCE_ACTION_CONTROLLER_V35,
-    EVIDENCE_ACTION_CONTROLLER_V36,
-    EVIDENCE_ACTION_CONTROLLER_V37,
-    EVIDENCE_ACTION_CONTROLLER_V38,
-    EVIDENCE_ACTION_CONTROLLER_V39,
-    CAR_W_ACTION,
-    CAR_W2_ACTION,
-    CAR_W3_ACTION,
-    RESUME_PHASE_I_SEARCH_STATE,
-    CONTINUE_DIAGONAL_SEARCH_STATE,
-}
-TRAJECTORY_BUDGET_SHIFT_STRENGTH = 0.35
-TRAJECTORY_MEAN_BLEND_STRENGTH = 0.25
-TRAJECTORY_MIN_POSITIVE_CREDIT_GROUPS = 2
 REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER = 0.5
-REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER = 0.25
-BIPOP_ESCAPE_BUDGET_FRACTION = 0.50
-BIPOP_LARGE_POPULATION_MULTIPLIER = 2
-BIPOP_LARGE_SIGMA_MULTIPLIER = 2.0
-BIPOP_MIN_POPULATION_SIZE = 4
-BIPOP_MIN_SIGMA_MULTIPLIER = 0.35
 BIPOP_STAGNATION_EPSILON = 1e-8
-BIPOP_STAGNATION_WINDOW = 2
 BIPOP_RESTART_COOLDOWN = 1
-BIPOP_ACCEPT_RELATIVE_IMPROVEMENT = 1e-4
 BIPOP_REJECT_BACKOFF_SWEEP_CAP = 3
 PHASE_RESCUE_START_COUNT = 3
 PHASE_RESCUE_SIGMA_MULTIPLIER = 1.5
 PHASE_RESCUE_ESCAPE_BUDGET_FRACTION = 0.60
 PHASE_RESCUE_STAGNATION_WINDOW = 1
-CC_HARM_MIN_GROUP_UPDATES = 3
-CC_HARM_STAGNATED_FRACTION = 0.67
-CC_HARM_CONFLICT_FRACTION = 0.50
-CC_HARM_LOW_GAIN_RATIO = 1e-6
-CC_HARM_WRITEBACK_NORM = 1e-9
 RELATIVE_WRITEBACK_UNSTABLE_THRESHOLD = 0.10
-CC_HARM_REFRESH_SIGMA_MULTIPLIER = 0.75
-SEPARABLE_CMAES_INITIAL_SIGMA = 0.5
 REPAIR_ACTION_NAMES = {"repair_shared_variable_binding"}
 RELATION_ACTION_FAMILIES = {
     "coordinate": "coordinate",
@@ -1048,249 +522,7 @@ class SmokeConfig:
     skip_plots: bool = False
     aob_data_root: Path = DATA_DIR
     search_state_backend: str = "phase_i_mmes"
-    car_branch_order: str = "fallback_first"
-    car_candidate_mode: str = "graph"
-    car_actionability_arm: str = "off"
-    precision_causal_arm: str = "off"
-    precision_response_arm: str = "off"
-    component_precision_arm: str = "off"
-    hypergraph_trace_mode: str = "off"
     evidence_overlay_mode: str = "off"
-    cma_sampling_mode: str = IID_CMA_SAMPLING
-    lane_profile: str = "runtime_smoke"
-    offline_frozen_replay: bool = False
-
-
-@dataclass(frozen=True)
-class CMATraceOnlyDiagnostic:
-    source_end_fe: int
-    terminal_sigma_ratio: float
-    success_generation_ratio: float
-    offspring_diversity_ratio: float
-
-
-@dataclass(frozen=True)
-class PrecisionCausalDecisionSnapshot:
-    decision_id: str
-    decision_status: str
-    not_applicable_reason: str
-    state: PreActionUtilityState | None
-    decision_fe: int
-    checkpoint_fitness: float
-    remaining_fe: int
-    component_id: str
-    component_group_count: int
-    component_shared_var_count: int
-    component_unlocked: bool
-    scheduler_revisit_cap_fe: int
-    scheduler_revisit_reason: str
-    source_phase_i_end_fe: int
-    source_cc_history_end_fe: int
-    source_disagreement_history_end_fe: int
-    source_cma_history_end_fe: int
-    source_end_fe: int
-    prefix_record_sha256: str
-    checkpoint_candidate_sha256: str
-    controller_state_sha256: str
-    random_descriptor_sha256: str
-    normal_sigma: float
-    candidate_sigma: float
-
-
-COMPONENT_PRECISION_PROTOCOL_VERSION = "component-precision-action-validity-v1"
-COMPONENT_ACTION_BRANCH_FIELDS = [
-    "protocol_version",
-    "schema_version",
-    "fresh_optimizer_execution",
-    "problem_id",
-    "seed",
-    "component_precision_arm",
-    "decision_id",
-    "decision_status",
-    "not_applicable_reason",
-    "decision_fe",
-    "outer_iter",
-    "component_id",
-    "component_group_indices",
-    "component_group_count",
-    "component_shared_var_count",
-    "prefix_record_sha256",
-    "checkpoint_candidate_sha256",
-    "crn_descriptor_sha256",
-    "component_plan_sha256",
-    "normal_sigma",
-    "precision_sigma",
-    "action_applied",
-    "component_plan_frozen",
-    "mid_horizon_redispatch_count",
-    "atomic_closed",
-    "unique_h_endpoint",
-    "component_horizon_requested_fe",
-    "component_horizon_actual_fe",
-    "component_horizon_interval_fe",
-    "component_end_fe",
-    "h_endpoint_count",
-    "plan_integrity_valid",
-    "delayed_review_fe",
-    "delayed_review_outer_iter",
-    "delayed_review_group_index",
-    "delayed_status",
-    "terminal_target_fe",
-    "terminal_completion_tolerance_fe",
-    "terminal_observed_fe",
-    "terminal_error",
-    "terminal_record_sha256",
-    "terminal_status",
-]
-COMPONENT_ENDPOINT_FIELDS = [
-    "decision_id",
-    "component_precision_arm",
-    "checkpoint_error",
-    "endpoint_error",
-    "component_log_gain",
-    "material",
-    "component_start_fe",
-    "component_end_fe",
-    "component_requested_fe",
-    "component_actual_fe",
-    "component_interval_fe",
-    "group_endpoint_errors",
-]
-COMPONENT_SHARED_SURVIVAL_FIELDS = [
-    "decision_id",
-    "component_precision_arm",
-    "shared_path_l1",
-    "shared_net_l1",
-    "s_h",
-    "delayed_drift_l1",
-    "s_d",
-    "strict_survival",
-    "delayed_status",
-]
-COMPONENT_BUDGET_LEDGER_FIELDS = [
-    "decision_id",
-    "component_precision_arm",
-    "group_position",
-    "group_index",
-    "population_size",
-    "requested_fe",
-    "actual_fe",
-    "interval_actual_fe",
-    "auxiliary_actual_fe",
-    "sigma",
-    "group_start_fe",
-    "group_end_fe",
-    "group_endpoint_error",
-]
-
-
-@dataclass
-class ComponentAtomicRuntimeState:
-    plan: ComponentAtomicPlan
-    component_id: str
-    decision_id: str
-    decision_fe: int
-    outer_iter: int
-    prefix_record_sha256: str
-    checkpoint_candidate_sha256: str
-    crn_descriptor_sha256: str
-    component_plan_sha256: str
-    checkpoint_error: float
-    shared_indices: tuple[int, ...]
-    canonical_shared_path: list[tuple[float, ...]]
-    action_applied: bool
-    component_start_fe: int
-    plan_evaluation_count_at_start: int
-    group_endpoint_errors: list[float] = field(default_factory=list)
-    budget_rows: list[dict[str, str]] = field(default_factory=list)
-    next_group_position: int = 0
-    atomic_closed: bool = False
-    endpoint_error: float | None = None
-    component_end_fe: int | None = None
-    delayed_review_fe: int | None = None
-    delayed_review_outer_iter: int | None = None
-    delayed_review_group_index: int | None = None
-    delayed_shared_values: tuple[float, ...] | None = None
-    endpoint_result: ComponentEndpointResult | None = None
-    delayed_status: str = "pending_component_endpoint"
-    h_endpoint_count: int = 0
-    plan_integrity_valid: bool = True
-
-
-PRECISION_RESPONSE_CONFIG_PATH = (
-    ARAC_REPO_ROOT / "configs" / "precision_response_loop_v1.json"
-)
-PRECISION_RESPONSE_TRACE_FIELDS = [
-    "protocol_version",
-    "fresh_optimizer_execution",
-    "problem_id",
-    "seed",
-    "response_arm",
-    "decision_id",
-    "decision_status",
-    "not_applicable_reason",
-    "decision_fe",
-    "outer_iter",
-    "group_index",
-    "component_id",
-    "prefix_record_sha256",
-    "checkpoint_candidate_sha256",
-    "probe_seed",
-    "probe_executed",
-    "probe_fe",
-    "normal_sigma",
-    "precision_sigma",
-    "normal_direction_sha256",
-    "precision_direction_sha256",
-    "gate_state_sha256",
-    "gate_would_release",
-    "lease_applied",
-    "gate_reason",
-    "main_requested_fe",
-    "main_actual_fe",
-    "intervention_end_fe",
-    "delayed_credit_status",
-    "terminal_target_fe",
-    "terminal_observed_fe",
-    "terminal_error",
-    "terminal_status",
-]
-PRECISION_PROBE_AUDIT_FIELDS = [
-    "protocol_version",
-    "problem_id",
-    "seed",
-    "response_arm",
-    "decision_id",
-    "outer_iter",
-    "group_index",
-    "component_id",
-    "pair_index",
-    "normal_objective",
-    "precision_objective",
-    "normal_candidate_sha256",
-    "precision_candidate_sha256",
-    "normal_direction_sha256",
-    "precision_direction_sha256",
-    "boundary_mode",
-]
-PRECISION_PROBE_GATE_FEATURE_FIELDS = ["decision_id", *PRECISION_PROBE_GATE_FIELDS]
-PRECISION_LEASE_CREDIT_FIELDS = [
-    *COMPONENT_CREDIT_TRACE_FIELDS,
-    "response_arm",
-    "gate_state_sha256",
-    "lease_sigma",
-    "lease_diversity",
-    "review_normal_sigma_restored",
-    "review_diversity_recovery",
-    "review_progress_delta",
-    "review_positive",
-    "renewal_enabled",
-]
-
-
-def load_precision_response_config() -> PrecisionProbeConfig:
-    payload = json.loads(PRECISION_RESPONSE_CONFIG_PATH.read_text(encoding="utf-8"))
-    return precision_probe_config_from_mapping(payload)
 
 
 @dataclass(frozen=True)
@@ -1302,14 +534,6 @@ class RelationExecutionContext:
     current_delta: float
 
 
-@dataclass(frozen=True)
-class BipopRestartPlan:
-    restart_mode: str
-    population_size: int
-    sigma: float
-    escape_budget: int
-
-
 @dataclass
 class PendingActionTrustObservation:
     decision: ActionTrustDecision
@@ -1319,21 +543,9 @@ class PendingActionTrustObservation:
 
 
 @dataclass
-class PendingTrajectoryRecovery:
-    checkpoint: RecoveryCheckpoint
-    trace_row: dict[str, str]
-    post_writeback_fitness: float | None = None
-
-
-@dataclass
 class EvidenceActionControllerV31RunState:
     dense_overlap: bool
     action_trust_policy: ActionTrustPolicy | None = field(default=None, repr=False)
-    trajectory_guard_enabled: bool = False
-    pending_trajectory_recovery: PendingTrajectoryRecovery | None = field(
-        default=None,
-        repr=False,
-    )
     pending_action_trust: PendingActionTrustObservation | None = field(
         default=None,
         repr=False,
@@ -1341,18 +553,11 @@ class EvidenceActionControllerV31RunState:
     locked_policy_mode: str | None = None
     non_dense_repair_locked: bool = False
     non_dense_repair_lock_trigger: str = ""
-    search_state_scheduler_state: SearchStateSchedulerState = field(
-        default_factory=SearchStateSchedulerState
-    )
     phase_i_optimizer: object | None = field(default=None, repr=False)
     phase_i_state: MMESState | None = field(default=None, repr=False)
-    diagonal_cma_state: DiagonalCMAState | None = field(default=None, repr=False)
     phase_i_runtime_tail_utility: float = 0.0
-    cc_utility_history: list[float] = field(default_factory=list)
     v36_enabled: bool = False
     v37_enabled: bool = False
-    v38_enabled: bool = False
-    v39_enabled: bool = False
     sweep_evidence_outer_iter: int | None = None
     sweep_evidence_relation_count: int = 0
     sweep_evidence_active_count: int = 0
@@ -1366,10 +571,6 @@ class EvidenceActionControllerV31RunState:
     phase_rescue_productive_mature: bool = False
     phase_rescue_retired: bool = False
     phase_rescue_resource_reason: str = ""
-    _v39_cma_sigma_factors: dict[tuple[int, ...], float] = field(
-        default_factory=dict,
-        repr=False,
-    )
     _non_dense_guarded_prefix: list[tuple[int, int, str, str]] = field(
         default_factory=list,
         repr=False,
@@ -1482,52 +683,6 @@ class EvidenceActionControllerV31RunState:
         self.phase_rescue_retired = True
         self.phase_rescue_resource_reason = "zero_yield_phase_rescue_retired"
         return self.phase_rescue_resource_reason
-
-    def v39_cma_sigma_for_group(
-        self,
-        group_dims: list[int] | tuple[int, ...] | np.ndarray,
-        reference_sigma: float,
-    ) -> tuple[float, float, str]:
-        reference = float(reference_sigma)
-        if not math.isfinite(reference) or reference <= 0.0:
-            raise ValueError("reference sigma must be finite and positive")
-        if not self.v39_enabled:
-            return reference, 1.0, ""
-        key = tuple(int(index) for index in group_dims)
-        factor = self._v39_cma_sigma_factors.get(key)
-        if factor is None:
-            return reference, 1.0, "cold_start"
-        return reference * factor, factor, "continued"
-
-    def observe_v39_cma_terminal_sigma(
-        self,
-        group_dims: list[int] | tuple[int, ...] | np.ndarray,
-        *,
-        reference_sigma: float,
-        terminal_sigma: float,
-    ) -> float:
-        if not self.v39_enabled:
-            return 1.0
-        reference = float(reference_sigma)
-        terminal = float(terminal_sigma)
-        if not math.isfinite(reference) or reference <= 0.0:
-            raise ValueError("reference sigma must be finite and positive")
-        if not math.isfinite(terminal) or terminal <= 0.0:
-            raise ValueError("terminal sigma must be finite and positive")
-        lower_factor = (
-            REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
-            / REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
-        )
-        next_factor = float(
-            np.clip(
-                terminal / reference,
-                lower_factor,
-                PHASE_RESCUE_SIGMA_MULTIPLIER,
-            )
-        )
-        key = tuple(int(index) for index in group_dims)
-        self._v39_cma_sigma_factors[key] = next_factor
-        return next_factor
 
     def lock_from_runtime_prefix(self, relations: list[OverlapRelation]) -> None:
         if not self.dense_overlap or self.locked_policy_mode is not None:
@@ -1685,105 +840,6 @@ class EvidenceActionControllerV31RunState:
         pending.trace_row["trust_post_writeback_fitness"] = ""
         self.pending_action_trust = None
 
-    def register_pending_trajectory_guard(
-        self,
-        *,
-        candidate: np.ndarray,
-        pre_writeback_fitness: float,
-        trace_row: dict[str, str],
-    ) -> RecoveryCheckpoint | None:
-        if not self.trajectory_guard_enabled:
-            return None
-        if self.pending_trajectory_recovery is not None:
-            raise RuntimeError("trajectory recovery checkpoint is already pending")
-        checkpoint = make_recovery_checkpoint(candidate, pre_writeback_fitness)
-        self.pending_trajectory_recovery = PendingTrajectoryRecovery(
-            checkpoint=checkpoint,
-            trace_row=trace_row,
-        )
-        trace_row.update(
-            {
-                "trajectory_guard_status": "pending",
-                "trajectory_guard_pre_fitness": (
-                    f"{checkpoint.fitness:.17e}"
-                ),
-                "trajectory_guard_post_writeback_fitness": "",
-                "trajectory_guard_downstream_fitness": "",
-                "trajectory_guard_recovery_credit": "",
-                "trajectory_guard_restored": "",
-            }
-        )
-        return checkpoint
-
-    def observe_pending_trajectory_guard(
-        self,
-        *,
-        post_writeback_fitness: float,
-    ) -> float | None:
-        pending = self.pending_trajectory_recovery
-        if not self.trajectory_guard_enabled or pending is None:
-            return None
-        fitness = float(post_writeback_fitness)
-        if not math.isfinite(fitness):
-            raise ValueError("post-writeback fitness must be finite")
-        pending.post_writeback_fitness = fitness
-        pending.trace_row["trajectory_guard_post_writeback_fitness"] = (
-            f"{fitness:.17e}"
-        )
-        return fitness
-
-    def resolve_pending_trajectory_guard(
-        self,
-        *,
-        downstream_candidate: np.ndarray,
-        downstream_fitness: float,
-    ) -> RecoveryResolution | None:
-        pending = self.pending_trajectory_recovery
-        if not self.trajectory_guard_enabled or pending is None:
-            return None
-        if pending.post_writeback_fitness is None:
-            raise RuntimeError(
-                "trajectory recovery requires a post-writeback observation"
-            )
-        resolved = resolve_recovery_checkpoint(
-            pending.checkpoint,
-            downstream_candidate=downstream_candidate,
-            downstream_fitness=downstream_fitness,
-        )
-        pending.trace_row.update(
-            {
-                "trajectory_guard_status": resolved.status,
-                "trajectory_guard_downstream_fitness": (
-                    f"{float(downstream_fitness):.17e}"
-                ),
-                "trajectory_guard_recovery_credit": (
-                    ""
-                    if resolved.recovery_credit is None
-                    else f"{resolved.recovery_credit:.6e}"
-                ),
-                "trajectory_guard_restored": str(int(resolved.restored)),
-            }
-        )
-        self.pending_trajectory_recovery = None
-        return resolved
-
-    def preempt_pending_trajectory_guard(self) -> RecoveryResolution | None:
-        pending = self.pending_trajectory_recovery
-        if not self.trajectory_guard_enabled or pending is None:
-            return None
-        resolved = preempt_recovery_checkpoint(pending.checkpoint)
-        pending.trace_row.update(
-            {
-                "trajectory_guard_status": resolved.status,
-                "trajectory_guard_downstream_fitness": "",
-                "trajectory_guard_recovery_credit": "",
-                "trajectory_guard_restored": "1",
-            }
-        )
-        self.pending_trajectory_recovery = None
-        return resolved
-
-
 def build_evidence_action_controller_v31_run_state(
     degree_of_overlap: float,
     *,
@@ -1797,10 +853,6 @@ def build_evidence_action_controller_v31_run_state(
             and controller_has_capability(action_name, "risk_aware_trust")
             else None
         ),
-        trajectory_guard_enabled=(
-            action_name is not None
-            and controller_has_capability(action_name, "trajectory_guard")
-        ),
         v36_enabled=(
             action_name is not None
             and controller_has_capability(action_name, "maturity")
@@ -1809,38 +861,6 @@ def build_evidence_action_controller_v31_run_state(
             action_name is not None
             and controller_has_capability(action_name, "rescue_retirement")
         ),
-        v38_enabled=(
-            action_name is not None
-            and controller_has_capability(action_name, "precision_reanchor")
-        ),
-        v39_enabled=(
-            action_name is not None
-            and controller_has_capability(action_name, "sigma_continuation")
-        ),
-    )
-
-
-def reconcile_trajectory_recovery_context(
-    *,
-    resolution: RecoveryResolution,
-    checkpoint_candidate: np.ndarray,
-    original_best: np.ndarray,
-    original_fitness: float,
-    current_delta: float,
-) -> tuple[np.ndarray, np.ndarray, float, float]:
-    best = resolution.candidate.copy()
-    if not resolution.restored:
-        return (
-            best,
-            np.asarray(original_best, dtype=float).copy(),
-            float(original_fitness),
-            float(current_delta),
-        )
-    return (
-        best,
-        np.asarray(checkpoint_candidate, dtype=float).copy(),
-        float(resolution.fitness),
-        0.0,
     )
 
 
@@ -2172,6 +1192,22 @@ def observed_optimizer_fe(
     return observed
 
 
+def normalized_gain_utility(
+    incumbent_before: float,
+    incumbent_after: float,
+    actual_fes: int,
+) -> float:
+    if not all(
+        math.isfinite(float(value))
+        for value in (incumbent_before, incumbent_after)
+    ):
+        return 0.0
+    improvement = max(0.0, float(incumbent_before) - float(incumbent_after))
+    return improvement / (
+        max(abs(float(incumbent_before)), 1.0) * max(int(actual_fes), 1)
+    )
+
+
 def bounded_population_budget(
     requested_fes: int,
     remaining_fes: int,
@@ -2200,103 +1236,8 @@ def scale_free_writeback_norm(
     return delta_norm / (math.sqrt(shared_count) * span)
 
 
-def is_bipop_search_state_action(action_name: str) -> bool:
-    return action_name in {SEARCH_STATE_BIPOP_ACTION, REPAIR_BIPOP_SEARCH_STATE_ACTION}
-
-
-def is_phase_rescue_multistart_action(action_name: str) -> bool:
-    return action_name in {
-        PHASE_RESCUE_MULTISTART_ACTION,
-        REPAIR_PHASE_RESCUE_MULTISTART_ACTION,
-    }
-
-
-def is_evidence_action_controller_v1(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V1
-
-
-def is_evidence_action_controller_v2(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V2
-
-
-def is_evidence_action_controller_v3(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V3
-
-
-def is_evidence_action_controller_v31(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V31
-
-
-def is_evidence_action_controller_v32(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V32
-
-
-def is_evidence_action_controller_v33(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V33
-
-
-def is_evidence_action_controller_v34(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V34
-
-
-def is_evidence_action_controller_v35(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V35
-
-
-def is_evidence_action_controller_v36(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V36
-
-
 def is_evidence_action_controller_v37(action_name: str) -> bool:
     return action_name == EVIDENCE_ACTION_CONTROLLER_V37
-
-
-def is_evidence_action_controller_v38(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V38
-
-
-def is_evidence_action_controller_v39(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V39
-
-
-def is_evidence_action_controller_v40(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V40
-
-
-def is_evidence_action_controller_v41(action_name: str) -> bool:
-    return action_name == EVIDENCE_ACTION_CONTROLLER_V41
-
-
-def uses_component_credit_state(action_name: str) -> bool:
-    return is_evidence_action_controller_v40(
-        action_name
-    ) or is_evidence_action_controller_v41(action_name)
-
-
-def is_car_w_action(action_name: str) -> bool:
-    return action_name == CAR_W_ACTION
-
-
-def is_car_w2_action(action_name: str) -> bool:
-    return action_name == CAR_W2_ACTION
-
-
-def is_car_w3_action(action_name: str) -> bool:
-    return action_name == CAR_W3_ACTION
-
-
-def is_car_w_family_action(action_name: str) -> bool:
-    return (
-        is_car_w_action(action_name)
-        or is_car_w2_action(action_name)
-        or is_car_w3_action(action_name)
-    )
-
-
-def is_risk_aware_evidence_action_controller(action_name: str) -> bool:
-    return is_evidence_action_controller_v33(
-        action_name
-    ) or is_evidence_action_controller_v34(action_name) or is_car_w_family_action(action_name)
 
 
 def uses_v33_trust_trace_schema(action_name: str) -> bool:
@@ -2331,176 +1272,19 @@ def controller_v33_fallback_route(
     return "non_dense_bounded_0_5"
 
 
-def is_guarded_evidence_action_controller(action_name: str) -> bool:
-    return (
-        is_evidence_action_controller_v3(action_name)
-        or is_evidence_action_controller_v31(action_name)
-        or is_evidence_action_controller_v32(action_name)
-        or is_evidence_action_controller_v33(action_name)
-        or is_evidence_action_controller_v34(action_name)
-        or is_evidence_action_controller_v35(action_name)
-        or is_evidence_action_controller_v36(action_name)
-        or is_evidence_action_controller_v37(action_name)
-        or is_evidence_action_controller_v38(action_name)
-        or is_evidence_action_controller_v39(action_name)
-        or is_evidence_action_controller_v40(action_name)
-        or is_evidence_action_controller_v41(action_name)
-        or is_car_w_family_action(action_name)
-    )
-
-
-def is_evidence_action_controller(action_name: str) -> bool:
-    return (
-        is_evidence_action_controller_v1(action_name)
-        or is_evidence_action_controller_v2(action_name)
-        or is_evidence_action_controller_v3(action_name)
-        or is_evidence_action_controller_v31(action_name)
-        or is_evidence_action_controller_v32(action_name)
-        or is_evidence_action_controller_v33(action_name)
-        or is_evidence_action_controller_v34(action_name)
-        or is_evidence_action_controller_v35(action_name)
-        or is_evidence_action_controller_v36(action_name)
-        or is_evidence_action_controller_v37(action_name)
-        or is_evidence_action_controller_v38(action_name)
-        or is_evidence_action_controller_v39(action_name)
-        or is_evidence_action_controller_v40(action_name)
-        or is_evidence_action_controller_v41(action_name)
-        or is_car_w_family_action(action_name)
-    )
-
-
-def uses_phase_rescue_controller(action_name: str) -> bool:
-    return is_phase_rescue_multistart_action(action_name) or is_evidence_action_controller_v1(action_name)
-
-
-def uses_cc_harm_guard_controller(action_name: str) -> bool:
-    return is_cc_harm_guarded_sep_refresh_action(action_name) or is_evidence_action_controller_v1(action_name)
-
-
-def uses_cc_harm_guard_during_run(
-    action_name: str,
-    *,
-    evidence_controller_search_state_enabled: bool,
-) -> bool:
-    if uses_cc_harm_guard_controller(action_name):
-        return True
-    return (
-        is_evidence_action_controller_v3(action_name)
-        and evidence_controller_search_state_enabled
-    )
-
-
 def uses_phase_rescue_during_run(
     action_name: str,
     *,
-    evidence_controller_search_state_enabled: bool,
+    phase_rescue_enabled: bool,
 ) -> bool:
-    return uses_phase_rescue_controller(action_name) or (
-        (
-            is_evidence_action_controller_v3(action_name)
-            or is_evidence_action_controller_v32(action_name)
-            or is_evidence_action_controller_v33(action_name)
-            or is_evidence_action_controller_v34(action_name)
-            or is_evidence_action_controller_v35(action_name)
-            or is_evidence_action_controller_v36(action_name)
-            or is_evidence_action_controller_v37(action_name)
-            or is_evidence_action_controller_v38(action_name)
-            or is_evidence_action_controller_v39(action_name)
-            or is_evidence_action_controller_v40(action_name)
-            or is_evidence_action_controller_v41(action_name)
-            or is_car_w_family_action(action_name)
-        )
-        and evidence_controller_search_state_enabled
-    )
-
-
-def uses_resumable_phase_i_state_during_run(action_name: str) -> bool:
-    return is_evidence_action_controller_v31(action_name)
-
-
-def uses_scheduled_search_state(config: SmokeConfig) -> bool:
-    if config.search_state_backend == "diagonal_cma":
-        return bool(
-            is_evidence_action_controller_v31(config.arac_action)
-            or is_evidence_action_controller_v32(config.arac_action)
-            or is_evidence_action_controller_v33(config.arac_action)
-            or is_evidence_action_controller_v34(config.arac_action)
-            or is_evidence_action_controller_v35(config.arac_action)
-            or is_evidence_action_controller_v36(config.arac_action)
-            or is_evidence_action_controller_v37(config.arac_action)
-            or is_evidence_action_controller_v38(config.arac_action)
-            or is_evidence_action_controller_v39(config.arac_action)
-            or is_evidence_action_controller_v40(config.arac_action)
-            or is_evidence_action_controller_v41(config.arac_action)
-            or is_car_w_family_action(config.arac_action)
-        )
-    return uses_resumable_phase_i_state_during_run(config.arac_action)
-
-
-def trajectory_action_name_for_backend(config: SmokeConfig) -> str:
-    if config.search_state_backend == "diagonal_cma":
-        return CONTINUE_DIAGONAL_SEARCH_STATE
-    if config.search_state_backend == "phase_i_mmes":
-        return RESUME_PHASE_I_SEARCH_STATE
-    raise ValueError(f"unsupported search_state_backend: {config.search_state_backend}")
-
-
-def scheduled_search_state_hold_fes(
-    config: SmokeConfig,
-    state: SearchStateSchedulerState,
-    *,
-    overlap_edge_count: int | None = None,
-) -> int:
-    if not uses_scheduled_search_state(config) or state.phase == SEARCH_STATE_BLOCKED:
-        return 0
-    if overlap_edge_count is not None and int(overlap_edge_count) <= 0:
-        return 0
-    if config.search_state_backend == "diagonal_cma":
-        return int(math.ceil(config.max_fes * FIRST_PROBE_FRACTION))
-    return int(
-        math.ceil(
-            config.max_fes * (CC_RESERVE_FRACTION + FIRST_PROBE_FRACTION)
-        )
-    )
-
-
-def is_cc_harm_guarded_sep_refresh_action(action_name: str) -> bool:
-    return action_name == CC_HARM_GUARDED_SEP_REFRESH_ACTION
-
-
-def is_separable_cmaes_dispatch_action(action_name: str) -> bool:
-    return action_name == SEPARABLE_CMAES_DISPATCH_ACTION
-
-
-def is_search_state_action(action_name: str) -> bool:
-    return (
-        is_bipop_search_state_action(action_name)
-        or is_phase_rescue_multistart_action(action_name)
-        or is_cc_harm_guarded_sep_refresh_action(action_name)
-        or is_separable_cmaes_dispatch_action(action_name)
-        or action_name
-        in {RESUME_PHASE_I_SEARCH_STATE, CONTINUE_DIAGONAL_SEARCH_STATE}
-        or is_evidence_action_controller(action_name)
+    return bool(
+        is_evidence_action_controller_v37(action_name)
+        and phase_rescue_enabled
     )
 
 
 def overlap_action_name_for_lane(action_name: str) -> str:
-    if action_name in {REPAIR_PROTECT_REFINE_ACTION, REPAIR_PROTECT_DEEP_REFINE_ACTION}:
-        return "repair_shared_variable_binding"
-    if action_name in {REPAIR_BIPOP_SEARCH_STATE_ACTION, REPAIR_PHASE_RESCUE_MULTISTART_ACTION}:
-        return "repair_shared_variable_binding"
-    if is_cc_harm_guarded_sep_refresh_action(action_name):
-        return "conservative_no_action"
-    if is_separable_cmaes_dispatch_action(action_name):
-        return "conservative_no_action"
-    if action_name in {
-        SEARCH_STATE_BIPOP_ACTION,
-        PHASE_RESCUE_MULTISTART_ACTION,
-        RESUME_PHASE_I_SEARCH_STATE,
-        CONTINUE_DIAGONAL_SEARCH_STATE,
-    }:
-        return "conservative_no_action"
-    if is_evidence_action_controller(action_name):
+    if is_evidence_action_controller_v37(action_name):
         return "conservative_no_action"
     return action_name
 
@@ -2510,37 +1294,9 @@ def refine_sigma_for_action(
     base_sigma: float,
     *,
     controller_v31_run_state: EvidenceActionControllerV31RunState | None = None,
-    precision_reanchor_active: bool | None = None,
 ) -> float:
-    if action_name == REPAIR_PROTECT_DEEP_REFINE_ACTION:
-        return float(base_sigma) * REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
-    if action_name in {REPAIR_PROTECT_REFINE_ACTION, REPAIR_PHASE_RESCUE_MULTISTART_ACTION}:
-        return float(base_sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
-    precision_active = (
-        uses_post_retirement_precision_reanchor(
-            action_name,
-            controller_v31_run_state,
-        )
-        if precision_reanchor_active is None
-        else bool(precision_reanchor_active)
-    )
-    if precision_active:
-        return float(base_sigma) * REPAIR_PROTECT_DEEP_REFINE_SIGMA_MULTIPLIER
     if (
-        (
-            is_evidence_action_controller_v31(action_name)
-            or is_evidence_action_controller_v32(action_name)
-            or is_evidence_action_controller_v33(action_name)
-            or is_evidence_action_controller_v34(action_name)
-            or is_evidence_action_controller_v35(action_name)
-            or is_evidence_action_controller_v36(action_name)
-            or is_evidence_action_controller_v37(action_name)
-            or is_evidence_action_controller_v38(action_name)
-            or is_evidence_action_controller_v39(action_name)
-            or is_evidence_action_controller_v40(action_name)
-            or is_evidence_action_controller_v41(action_name)
-            or is_car_w_family_action(action_name)
-        )
+        is_evidence_action_controller_v37(action_name)
         and controller_v31_run_state is not None
         and not controller_v31_run_state.dense_overlap
     ):
@@ -2548,49 +1304,9 @@ def refine_sigma_for_action(
     return float(base_sigma)
 
 
-def uses_post_retirement_precision_reanchor(
-    action_name: str,
-    controller_run_state: EvidenceActionControllerV31RunState | None,
-) -> bool:
-    return bool(
-        (
-            is_evidence_action_controller_v38(action_name)
-            or is_evidence_action_controller_v39(action_name)
-            or is_evidence_action_controller_v40(action_name)
-            or is_evidence_action_controller_v41(action_name)
-        )
-        and controller_run_state is not None
-        and controller_run_state.v38_enabled
-        and not controller_run_state.dense_overlap
-        and controller_run_state.phase_rescue_retired
-    )
-
-
-def should_trigger_bipop_restart(
-    *,
-    stagnation_count: int,
-    cooldown_remaining: int,
-    escape_budget: int,
-) -> bool:
-    return (
-        int(stagnation_count) >= BIPOP_STAGNATION_WINDOW
-        and int(cooldown_remaining) <= 0
-        and int(escape_budget) > 0
-    )
-
-
 def bipop_relative_improvement(candidate_best: float, incumbent_fitness: float) -> float:
     denominator = max(abs(float(incumbent_fitness)), 1e-12)
     return max(0.0, (float(incumbent_fitness) - float(candidate_best)) / denominator)
-
-
-def should_accept_bipop_restart(
-    *,
-    candidate_best: float,
-    incumbent_fitness: float,
-    min_relative_improvement: float = BIPOP_ACCEPT_RELATIVE_IMPROVEMENT,
-) -> bool:
-    return bipop_relative_improvement(candidate_best, incumbent_fitness) >= float(min_relative_improvement)
 
 
 def bipop_cooldown_after_restart(
@@ -2609,48 +1325,6 @@ def bipop_cooldown_after_restart(
     return sweep_size * backoff_sweeps
 
 
-def build_bipop_restart_plan(
-    *,
-    group_index: int,
-    restart_count: int,
-    base_population_size: int,
-    base_sigma: float,
-    base_budget: int,
-    remaining_fes: int,
-    rng: np.random.Generator,
-) -> BipopRestartPlan:
-    base_population = max(2, int(base_population_size))
-    if restart_count % 2 == 0:
-        population_size = base_population * BIPOP_LARGE_POPULATION_MULTIPLIER
-        sigma = float(base_sigma) * BIPOP_LARGE_SIGMA_MULTIPLIER
-        restart_mode = "large_ipop"
-    else:
-        upper_small_population = max(BIPOP_MIN_POPULATION_SIZE, base_population)
-        population_size = int(
-            rng.integers(BIPOP_MIN_POPULATION_SIZE, upper_small_population + 1)
-        )
-        sigma_multiplier = float(
-            rng.uniform(BIPOP_MIN_SIGMA_MULTIPLIER, BIPOP_LARGE_SIGMA_MULTIPLIER)
-        )
-        sigma = float(base_sigma) * sigma_multiplier
-        restart_mode = "small_bipop"
-    requested_budget = max(
-        population_size,
-        int(math.ceil(max(base_budget, population_size) * BIPOP_ESCAPE_BUDGET_FRACTION)),
-    )
-    escape_budget = bounded_population_budget(
-        requested_fes=requested_budget,
-        remaining_fes=remaining_fes,
-        population_size=population_size,
-    )
-    return BipopRestartPlan(
-        restart_mode=restart_mode,
-        population_size=population_size,
-        sigma=sigma,
-        escape_budget=escape_budget,
-    )
-
-
 def perturb_bipop_restart_mean(
     base_mean: np.ndarray,
     lower: float,
@@ -2667,28 +1341,6 @@ def perturb_bipop_restart_mean(
 def group_delta_stagnated(delta: float, reference_fitness: float) -> bool:
     threshold = max(BIPOP_STAGNATION_EPSILON, abs(float(reference_fitness)) * 1e-10)
     return abs(float(delta)) <= threshold
-
-
-def cc_harm_conflict_fraction(fitness_deltas: list[float], reference_fitness: float) -> float:
-    if len(fitness_deltas) <= 1:
-        return 0.0
-    threshold = max(BIPOP_STAGNATION_EPSILON, abs(float(reference_fitness)) * 1e-10)
-    conflicts = 0
-    for left, right in zip(fitness_deltas, fitness_deltas[1:]):
-        left_active = float(left) > threshold
-        right_active = float(right) > threshold
-        if left_active != right_active:
-            conflicts += 1
-    return conflicts / max(1, len(fitness_deltas) - 1)
-
-
-def phase_i_tail_utility(state: MMESState) -> float:
-    window = state.recent_best[-3:]
-    if len(window) < 2:
-        return 0.0
-    start_fe, start_best = window[0]
-    end_fe, end_best = window[-1]
-    return normalized_gain_utility(start_best, end_best, end_fe - start_fe)
 
 
 def runtime_tail_utility(
@@ -2710,484 +1362,6 @@ def runtime_tail_utility(
     )
 
 
-def build_search_state_evidence(
-    *,
-    complete_sweep: bool,
-    overlap_degree: float,
-    phase_rescue_enabled: bool,
-    repair_lock_active: bool,
-    phase_i_tail_utility_value: float,
-    relations: list[OverlapRelation],
-    decisions: list[RelationActionDecision],
-    writeback_norms: list[float],
-    relative_writeback_norms: list[float],
-    fitness_deltas: list[float],
-    reference_fitness: float,
-    cc_utility_history: list[float],
-    remaining_fes: int,
-    max_fes: int,
-    population_size: int,
-) -> SearchStateEvidence:
-    canonical_actions = [
-        _canonical_relation_action_name(decision) for decision in decisions
-    ]
-    non_coordinate = sum(
-        action != "allow_beneficial_coordination" for action in canonical_actions
-    ) / max(1, len(canonical_actions))
-    active_intervention_actions = {
-        "isolate_conflicting_relation",
-        "repair_shared_variable_binding",
-        "protect_high_margin_group",
-    }
-    active_intervention = sum(
-        action in active_intervention_actions for action in canonical_actions
-    ) / max(1, len(canonical_actions))
-    conflict = cc_harm_conflict_fraction(fitness_deltas, reference_fitness)
-    unstable = any(
-        abs(float(norm)) > CC_HARM_WRITEBACK_NORM for norm in writeback_norms
-    )
-    relative_max = max(
-        (max(0.0, float(norm)) for norm in relative_writeback_norms),
-        default=0.0,
-    )
-    return SearchStateEvidence(
-        complete_sweep=bool(complete_sweep and relations),
-        overlap_degree=float(overlap_degree),
-        phase_rescue_enabled=bool(phase_rescue_enabled),
-        repair_lock_active=bool(repair_lock_active),
-        phase_i_tail_utility=float(phase_i_tail_utility_value),
-        non_coordinate_fraction=float(non_coordinate),
-        conflict_fraction=float(conflict),
-        writeback_unstable=bool(unstable),
-        recent_cc_utilities=tuple(float(value) for value in cc_utility_history[-2:]),
-        remaining_fes=int(remaining_fes),
-        max_fes=int(max_fes),
-        population_size=int(population_size),
-        active_intervention_fraction=float(active_intervention),
-        relative_writeback_max=float(relative_max),
-        relative_writeback_unstable=(
-            relative_max >= RELATIVE_WRITEBACK_UNSTABLE_THRESHOLD
-        ),
-    )
-
-
-def run_resumed_phase_i_state_block(
-    *,
-    optimizer,
-    state: MMESState,
-    requested_fes: int,
-    guard_individual: np.ndarray,
-    guard_fitness: float,
-    fun,
-) -> tuple[MMESState, bool, np.ndarray, float, MMESBlockResult]:
-    evaluations_before = current_fitness_evaluations(fun)
-    block = optimizer.run_block(state, requested_fes)
-    observed_fes = current_fitness_evaluations(fun) - evaluations_before
-    if observed_fes != block.actual_fes:
-        raise RuntimeError("stateful MMES FE mismatch")
-    if int(block.actual_fes) < 0 or int(block.actual_fes) > max(0, int(requested_fes)):
-        raise RuntimeError("stateful MMES exceeded requested FE budget")
-
-    candidate = np.asarray(block.state.best_so_far_x, dtype=float).reshape(-1)
-    candidate_fitness = float(block.state.best_so_far_y)
-    guard = np.asarray(guard_individual, dtype=float).reshape(-1)
-    if candidate.shape != guard.shape or not np.all(np.isfinite(candidate)):
-        raise RuntimeError("stateful MMES returned invalid candidate")
-    if not math.isfinite(candidate_fitness):
-        raise RuntimeError("stateful MMES returned non-finite fitness")
-
-    accepted = candidate_fitness < float(guard_fitness)
-    if accepted:
-        return block.state, True, candidate.copy(), candidate_fitness, block
-    return block.state, False, guard.copy(), float(guard_fitness), block
-
-
-def should_trigger_cc_harm_guard(
-    *,
-    fitness_deltas: list[float],
-    overlap_writeback_norms: list[float],
-    reference_fitness: float,
-    remaining_fes: int,
-    minimum_refresh_budget: int,
-) -> tuple[bool, str]:
-    if len(fitness_deltas) < CC_HARM_MIN_GROUP_UPDATES:
-        return False, "insufficient_group_updates"
-    if remaining_fes < minimum_refresh_budget:
-        return False, "insufficient_refresh_budget"
-
-    reference = max(abs(float(reference_fitness)), 1.0)
-    positive_gain = sum(max(0.0, float(delta)) for delta in fitness_deltas)
-    stagnated_count = sum(
-        1 for delta in fitness_deltas
-        if group_delta_stagnated(float(delta), reference)
-    )
-    stagnated_fraction = stagnated_count / max(1, len(fitness_deltas))
-    conflict_fraction = cc_harm_conflict_fraction(fitness_deltas, reference)
-    writeback_unstable = any(
-        abs(float(norm)) > CC_HARM_WRITEBACK_NORM for norm in overlap_writeback_norms
-    )
-    low_gain = positive_gain <= reference * CC_HARM_LOW_GAIN_RATIO
-    severe_stagnation = stagnated_fraction >= CC_HARM_STAGNATED_FRACTION
-    high_conflict = conflict_fraction >= CC_HARM_CONFLICT_FRACTION
-
-    if low_gain and (severe_stagnation or high_conflict or writeback_unstable):
-        reasons = ["low_cc_gain"]
-        if severe_stagnation:
-            reasons.append("severe_group_stagnation")
-        if high_conflict:
-            reasons.append("high_relation_conflict")
-        if writeback_unstable:
-            reasons.append("unstable_overlap_writeback")
-        return True, "+".join(reasons)
-    return False, "cc_harm_evidence_below_threshold"
-
-
-def run_guarded_nda_continuation(
-    *,
-    fun,
-    info: dict,
-    config: SmokeConfig,
-    fun_name: str,
-    fun_id: int,
-    outer_iter: int,
-    guard_individual: np.ndarray,
-    guard_fitness: float,
-    remaining_fes: int,
-    requested_fes: int | None = None,
-    search_state_action: str = CC_HARM_GUARDED_SEP_REFRESH_ACTION,
-) -> tuple[bool, np.ndarray, float, int, float]:
-    population_size = calculate_cmaes_population_size(int(info["dimension"]))
-    requested_budget = remaining_fes if requested_fes is None else min(
-        remaining_fes,
-        max(0, int(requested_fes)),
-    )
-    refresh_budget = bounded_population_budget(
-        requested_fes=requested_budget,
-        remaining_fes=remaining_fes,
-        population_size=population_size,
-    )
-    if refresh_budget <= 0:
-        return False, guard_individual.copy(), float(guard_fitness), 0, math.inf
-    backend_budget = refresh_budget - population_size
-    if backend_budget <= 0:
-        return False, guard_individual.copy(), float(guard_fitness), 0, math.inf
-
-    problem = {
-        "fitness_function": fun,
-        "ndim_problem": info["dimension"],
-        "lower_boundary": info["lower"] * np.ones((info["dimension"],)),
-        "upper_boundary": info["upper"] * np.ones((info["dimension"],)),
-    }
-    options = {
-        "max_function_evaluations": backend_budget,
-        "mean": (np.asarray(guard_individual, dtype=float).copy(),),
-        "sigma": float(config.sigma) * CC_HARM_REFRESH_SIGMA_MULTIPLIER,
-        "n_individuals": population_size,
-        "is_restart": config.mmes_restart,
-        "verbose": config.verbose,
-        "arac_search_state_action": search_state_action,
-        "arac_guard_source": "phase_i_or_current_incumbent",
-    }
-    if config.seed is not None:
-        options["seed_rng"] = derive_optimizer_seed(
-            config.seed,
-            fun_name,
-            fun_id,
-            outer_iter + 1,
-            23011,
-        )
-    evaluations_before = current_fitness_evaluations(fun)
-    results = MMES(problem, options).optimize()
-    candidate_best = float(results["best_so_far_y"])
-    candidate = np.asarray(results["best_so_far_x"], dtype=float).reshape(-1)
-    reported_fes = int(results["n_function_evaluations"])
-    if reported_fes < 0 or reported_fes > refresh_budget:
-        raise RuntimeError("guarded NDA reported invalid FE usage")
-    observed_fes = current_fitness_evaluations(fun) - evaluations_before
-    if observed_fes < 0 or observed_fes > refresh_budget:
-        raise RuntimeError("guarded NDA exceeded objective FE budget")
-    used_fes = observed_fes if hasattr(fun, "fitness_record") else reported_fes
-    if not math.isfinite(candidate_best):
-        raise RuntimeError("guarded NDA returned non-finite fitness")
-    guard_shape = np.asarray(guard_individual).reshape(-1).shape
-    if candidate.shape != guard_shape:
-        raise RuntimeError("guarded NDA returned invalid candidate shape")
-    if not np.all(np.isfinite(candidate)):
-        raise RuntimeError("guarded NDA returned non-finite candidate")
-    accepted = candidate_best < float(guard_fitness)
-    if accepted:
-        return (
-            True,
-            candidate.copy(),
-            candidate_best,
-            used_fes,
-            candidate_best,
-        )
-    return (
-        False,
-        guard_individual.copy(),
-        float(guard_fitness),
-        used_fes,
-        candidate_best,
-    )
-
-
-def run_direct_separable_cmaes_dispatch(
-    *,
-    fun,
-    info: dict,
-    config: SmokeConfig,
-    fun_name: str,
-    fun_id: int,
-    initial_mean: np.ndarray | None = None,
-    incumbent_fitness: float | None = None,
-    max_function_evaluations: int | None = None,
-) -> dict[str, object]:
-    dimension = int(info["dimension"])
-    lower = float(info["lower"]) * np.ones((dimension,))
-    upper = float(info["upper"]) * np.ones((dimension,))
-    if initial_mean is None:
-        mean = np.zeros((dimension,), dtype=float)
-    else:
-        raw_mean = np.asarray(initial_mean, dtype=float).reshape(-1)
-        if raw_mean.size != dimension:
-            raise ValueError(
-                f"initial_mean dimension mismatch: expected {dimension}, got {raw_mean.size}"
-            )
-        mean = np.clip(raw_mean, lower, upper)
-    population_size = calculate_cmaes_population_size(dimension)
-    evaluation_budget = int(
-        config.max_fes if max_function_evaluations is None else max_function_evaluations
-    )
-    if incumbent_fitness is None or not math.isfinite(float(incumbent_fitness)):
-        raise ValueError("direct separable CMA dispatch requires a finite incumbent")
-    optimizer_seed = derive_optimizer_seed(
-        config.seed if config.seed is not None else 0,
-        fun_name,
-        fun_id,
-        0,
-        47011,
-    )
-    state = initialize_diagonal_cma_state(
-        initial_mean=mean,
-        sigma=SEPARABLE_CMAES_INITIAL_SIGMA,
-        lower=lower,
-        upper=upper,
-        seed=optimizer_seed,
-        population_size=population_size,
-        incumbent_fitness=float(incumbent_fitness),
-    )
-    block = run_diagonal_cma_block(
-        state,
-        fun,
-        requested_fes=evaluation_budget,
-    )
-    strategy_stds = np.asarray(state.strategy.stds, dtype=float).reshape(-1)
-
-    return {
-        "best_so_far_x": state.best_x.copy(),
-        "best_so_far_y": float(state.best_y),
-        "n_function_evaluations": int(block.actual_fes),
-        "population_size": population_size,
-        "sigma_mean": float(np.mean(strategy_stds)),
-        "sigma_max": float(np.max(strategy_stds)),
-        "success": bool(np.isfinite(state.best_y)),
-        "optimizer_seed": optimizer_seed,
-        "state_fingerprint_before": block.state_fingerprint_before,
-        "state_fingerprint_after": block.state_fingerprint_after,
-    }
-
-
-def run_diagonal_search_state_block(
-    *,
-    state: DiagonalCMAState | None,
-    requested_fes: int,
-    guard_individual: np.ndarray,
-    guard_fitness: float,
-    fun,
-    info: dict,
-    config: SmokeConfig,
-    fun_name: str,
-    fun_id: int,
-    outer_iter: int,
-):
-    dimension = int(info["dimension"])
-    guard = np.asarray(guard_individual, dtype=float).reshape(-1)
-    if guard.shape != (dimension,):
-        raise ValueError("guard_individual dimension mismatch")
-    optimizer_seed = derive_optimizer_seed(
-        config.seed if config.seed is not None else 0,
-        fun_name,
-        fun_id,
-        outer_iter,
-        32011,
-    )
-    if state is None:
-        lower = float(info["lower"]) * np.ones(dimension)
-        upper = float(info["upper"]) * np.ones(dimension)
-        search_mean = np.clip(guard, lower, upper)
-        state = initialize_diagonal_cma_state(
-            initial_mean=search_mean,
-            sigma=float(config.sigma),
-            lower=lower,
-            upper=upper,
-            seed=optimizer_seed,
-            population_size=calculate_cmaes_population_size(dimension),
-            incumbent_fitness=float(guard_fitness),
-        )
-        state.best_x = guard.copy()
-        state.best_y = float(guard_fitness)
-    elif float(guard_fitness) < float(state.best_y):
-        state.best_x = guard.copy()
-        state.best_y = float(guard_fitness)
-
-    evaluations_before = current_fitness_evaluations(fun)
-    block = run_diagonal_cma_block(
-        state,
-        fun,
-        requested_fes=requested_fes,
-    )
-    if hasattr(fun, "fitness_record"):
-        observed_fes = current_fitness_evaluations(fun) - evaluations_before
-        if observed_fes != int(block.actual_fes):
-            raise RuntimeError(
-                "diagonal search-state FE mismatch: "
-                f"observed={observed_fes}, reported={block.actual_fes}"
-            )
-    accepted = float(block.best_after) < float(guard_fitness)
-    if accepted:
-        candidate = np.asarray(block.state.best_x, dtype=float).reshape(-1).copy()
-        candidate_fitness = float(block.best_after)
-    else:
-        candidate = guard.copy()
-        candidate_fitness = float(guard_fitness)
-    return (
-        block.state,
-        accepted,
-        candidate,
-        candidate_fitness,
-        block,
-        optimizer_seed,
-    )
-
-
-def is_trajectory_action(action_name: str) -> bool:
-    return action_name in TRAJECTORY_ACTION_NAMES
-
-
-def uses_trajectory_budget_shift(action_name: str) -> bool:
-    return action_name in {"budget_shift_mean_blend", "budget_shift_only"}
-
-
-def uses_trajectory_mean_blend(action_name: str) -> bool:
-    return action_name in {"budget_shift_mean_blend", "mean_blend_only"}
-
-
-def has_sufficient_trajectory_credit(contribution_credit: list[float]) -> bool:
-    return sum(1 for value in contribution_credit if float(value) > 0.0) >= TRAJECTORY_MIN_POSITIVE_CREDIT_GROUPS
-
-
-def calculate_group_overlap_support(
-    grouping_result: list[list[int]],
-    overlapping_elements: list,
-) -> list[float]:
-    support = [0.0 for _ in grouping_result]
-    for left_index, shared in enumerate(overlapping_elements):
-        right_index = left_index + 1
-        if right_index >= len(grouping_result):
-            break
-        shared_count = len(shared) if not isinstance(shared, (int, np.integer)) else 1
-        if shared_count <= 0:
-            continue
-        support[left_index] += shared_count / max(1, len(grouping_result[left_index]))
-        support[right_index] += shared_count / max(1, len(grouping_result[right_index]))
-    return support
-
-
-def allocate_trajectory_group_budgets(
-    total_budget: int,
-    population_sizes: list[int],
-    overlap_support: list[float],
-    contribution_credit: list[float] | None = None,
-) -> list[int]:
-    group_count = len(population_sizes)
-    if group_count == 0 or total_budget <= 0:
-        return []
-    min_budgets = [max(0, int(size)) for size in population_sizes]
-    if total_budget <= sum(min_budgets):
-        return _integer_weighted_split(total_budget, [1.0] * group_count)
-    signal = overlap_support
-    if contribution_credit is not None:
-        signal = [
-            max(0.0, float(overlap)) * max(0.0, float(credit))
-            for overlap, credit in zip(overlap_support, contribution_credit)
-        ]
-    mean_signal = sum(signal) / max(1, len(signal))
-    if mean_signal <= 0.0:
-        weights = [1.0] * group_count
-    else:
-        weights = [
-            max(
-                0.25,
-                1.0
-                + TRAJECTORY_BUDGET_SHIFT_STRENGTH
-                * ((float(value) / mean_signal) - 1.0),
-            )
-            for value in signal
-        ]
-    leftover = total_budget - sum(min_budgets)
-    extras = _integer_weighted_split(leftover, weights)
-    return [base + extra for base, extra in zip(min_budgets, extras)]
-
-
-def _integer_weighted_split(total: int, weights: list[float]) -> list[int]:
-    if not weights:
-        return []
-    if total <= 0:
-        return [0 for _ in weights]
-    safe_weights = [max(0.0, float(weight)) for weight in weights]
-    weight_sum = sum(safe_weights)
-    if weight_sum <= 0.0:
-        safe_weights = [1.0 for _ in weights]
-        weight_sum = float(len(weights))
-    raw = [total * weight / weight_sum for weight in safe_weights]
-    values = [int(math.floor(value)) for value in raw]
-    remainder = total - sum(values)
-    order = sorted(
-        range(len(raw)),
-        key=lambda index: (raw[index] - values[index], safe_weights[index], -index),
-        reverse=True,
-    )
-    for index in order[:remainder]:
-        values[index] += 1
-    return values
-
-
-def blend_trajectory_mean(
-    base_mean: np.ndarray,
-    dims: list[int],
-    variable_mean_cache: dict[int, float],
-    lower: float,
-    upper: float,
-    strength: float = TRAJECTORY_MEAN_BLEND_STRENGTH,
-) -> tuple[np.ndarray, int, float]:
-    blended = np.asarray(base_mean, dtype=float).copy()
-    before = blended.copy()
-    applied_count = 0
-    blend_weight = float(np.clip(strength, 0.0, 1.0))
-    for local_index, variable_index in enumerate(dims):
-        cached = variable_mean_cache.get(int(variable_index))
-        if cached is None or not np.isfinite(cached):
-            continue
-        blended[local_index] = (
-            (1.0 - blend_weight) * blended[local_index]
-            + blend_weight * float(cached)
-        )
-        applied_count += 1
-    blended = np.clip(blended, lower, upper)
-    return blended, applied_count, float(np.linalg.norm(blended - before))
-
-
 def iteration_start_budget_remaining_ratio(max_fes: int, sum_fes: int) -> float:
     if max_fes <= 0:
         return 0.0
@@ -3206,30 +1380,6 @@ def derive_optimizer_seed(
     )
     digest = hashlib.blake2b(payload, digest_size=8).digest()
     return int.from_bytes(digest, byteorder="big") & ((1 << 63) - 1)
-
-
-def apply_search_state_candidate(
-    *,
-    context_individual: np.ndarray,
-    guard_individual: np.ndarray,
-    guard_fitness: float,
-    candidate: np.ndarray,
-    candidate_fitness: float,
-    accepted: bool,
-    quarantine_context: bool,
-) -> tuple[np.ndarray, np.ndarray, float, bool, bool]:
-    next_context = np.asarray(context_individual, dtype=float).copy()
-    next_guard = np.asarray(guard_individual, dtype=float).copy()
-    next_guard_fitness = float(guard_fitness)
-    if not accepted:
-        return next_context, next_guard, next_guard_fitness, False, False
-
-    protected_candidate = np.asarray(candidate, dtype=float).copy()
-    next_guard = protected_candidate.copy()
-    next_guard_fitness = float(candidate_fitness)
-    if quarantine_context:
-        return next_context, next_guard, next_guard_fitness, True, False
-    return protected_candidate, next_guard, next_guard_fitness, True, True
 
 
 def blend_overlap_values(
@@ -3267,13 +1417,6 @@ def apply_arac_overlap_action(
     previous_delta: float,
     current_delta: float,
 ) -> np.ndarray:
-    if is_trajectory_action(action_name):
-        return blend_overlap_values(
-            previous_values=previous_values,
-            current_values=current_values,
-            previous_delta=previous_delta,
-            current_delta=current_delta,
-        )
     if action_name == "repair_shared_variable_binding":
         if current_delta >= previous_delta:
             return current_values
@@ -3302,13 +1445,7 @@ def _problem_id(fun_name: str, fun_id: int) -> str:
 
 
 def _owner_selected(action_name: str, previous_delta: float, current_delta: float) -> str:
-    if is_separable_cmaes_dispatch_action(action_name):
-        return "full_space_diagonal_search"
-    if is_cc_harm_guarded_sep_refresh_action(action_name):
-        return "guarded_incumbent_refresh"
-    if is_bipop_search_state_action(action_name):
-        return "search_state_bipop_restart"
-    if is_trajectory_action(action_name):
+    if action_name == PHASE_RESCUE_MULTISTART_ACTION:
         return "trajectory_budget_mean_blend"
     if action_name in REPAIR_ACTION_NAMES:
         if current_delta >= previous_delta:
@@ -3326,13 +1463,7 @@ def _owner_selected(action_name: str, previous_delta: float, current_delta: floa
 
 
 def _semantic_surface(action_name: str) -> str:
-    if is_separable_cmaes_dispatch_action(action_name):
-        return "full_space_diagonal_separable_search_takeover"
-    if is_cc_harm_guarded_sep_refresh_action(action_name):
-        return "cc_harm_guarded_sep_or_nda_refresh"
-    if is_bipop_search_state_action(action_name):
-        return "optimizer_search_state_restart"
-    if is_trajectory_action(action_name):
+    if action_name == PHASE_RESCUE_MULTISTART_ACTION:
         return "optimizer_budget_and_mean_trajectory"
     if action_name in REPAIR_ACTION_NAMES:
         return "shared_variable_owner_rebinding"
@@ -3346,11 +1477,7 @@ def _semantic_surface(action_name: str) -> str:
 
 
 def _state_mutated(action_name: str) -> str:
-    if is_cc_harm_guarded_sep_refresh_action(action_name):
-        return "1"
-    if is_bipop_search_state_action(action_name):
-        return "1"
-    if is_trajectory_action(action_name):
+    if action_name == PHASE_RESCUE_MULTISTART_ACTION:
         return "1"
     if action_name in {
         "repair_shared_variable_binding",
@@ -3363,11 +1490,7 @@ def _state_mutated(action_name: str) -> str:
 
 
 def _optimizer_consumed(action_name: str, downstream_consumed: bool = True) -> str:
-    if is_cc_harm_guarded_sep_refresh_action(action_name):
-        return "1"
-    if is_bipop_search_state_action(action_name):
-        return "1"
-    if is_trajectory_action(action_name):
+    if action_name == PHASE_RESCUE_MULTISTART_ACTION:
         return "1"
     if not downstream_consumed:
         return "0"
@@ -3382,7 +1505,7 @@ def _optimizer_consumed(action_name: str, downstream_consumed: bool = True) -> s
 
 
 def _action_family_for_canonical(action_name: str) -> str:
-    if is_trajectory_action(action_name):
+    if action_name == PHASE_RESCUE_MULTISTART_ACTION:
         return "trajectory"
     if action_name == "repair_shared_variable_binding":
         return "reassign_repair"
@@ -3401,53 +1524,10 @@ def select_relation_action_for_policy(
     relation: OverlapRelation,
     action: RelationActionDecision,
     relation_policy_mode: str,
-    shuffled_source_action: RelationActionDecision | None = None,
 ) -> RelationActionDecision:
-    if not relation.shared_vars:
-        return action
-    if relation_policy_mode in {
-        "rule",
-        "adaptive_v2",
-        "adaptive_v21",
-        "adaptive_v22",
-        "adaptive_v23",
-        "adaptive_v24",
-        "adaptive_v25",
-        "adaptive_v26",
-    }:
-        return action
-    if relation_policy_mode == "shuffled":
-        source_action_name = action.relation_action_name
-        shuffled_action_name = SHUFFLED_NEGATIVE_CONTROL_ACTIONS[source_action_name]
-        return RelationActionDecision(
-            relation_id=relation.relation_id,
-            action_name=shuffled_action_name,
-            action_family=RELATION_ACTION_FAMILIES[shuffled_action_name],
-            confidence=action.confidence if shuffled_action_name != "fallback" else 0.0,
-            trigger_reason=(
-                "deterministic_shuffled_negative_control_from:"
-                f"{source_action_name}"
-            ),
-        )
-    if relation_policy_mode != "lagged":
+    if relation_policy_mode not in {"adaptive_v24", "adaptive_v26"}:
         raise ValueError(f"unsupported relation policy mode: {relation_policy_mode}")
-    source_action = shuffled_source_action or RelationActionDecision(
-        relation_id=relation.relation_id,
-        action_name="fallback",
-        action_family="fallback",
-        confidence=0.0,
-        trigger_reason="first_relation_has_no_previous_rule_action",
-    )
-    return RelationActionDecision(
-        relation_id=relation.relation_id,
-        action_name=source_action.relation_action_name,
-        action_family=source_action.action_family,
-        confidence=source_action.confidence,
-        trigger_reason=(
-            "deterministic_lagged_relation_policy_from:"
-            f"{source_action.relation_action_name}"
-        ),
-    )
+    return action
 
 
 def _canonical_relation_action_name(action: RelationActionDecision) -> str:
@@ -3544,16 +1624,6 @@ def build_action_trace_row(
     decision_point: str = "",
     cc_block_fe: int | None = None,
     cc_utility: float | None = None,
-    search_state_block_fe: int | None = None,
-    search_state_utility: float | None = None,
-    required_utility_ratio: float | None = None,
-    state_action_fe: int | None = None,
-    cc_reserve_fe: int | None = None,
-    state_fingerprint_before: str = "",
-    state_fingerprint_after: str = "",
-    abstain_reason: str = "",
-    search_state_evidence: SearchStateEvidence | None = None,
-    pre_hold_evidence: PreHoldEvidence | None = None,
     trust_decision: ActionTrustDecision | None = None,
     trust_credit: float | None = None,
     trust_unstable: bool | None = None,
@@ -3568,12 +1638,6 @@ def build_action_trace_row(
     phase_rescue_rejected_before_maturity: int | None = None,
     phase_rescue_productive_mature: bool | None = None,
     phase_rescue_retired: bool | None = None,
-    cma_sigma_reference: float | None = None,
-    cma_sigma_applied_factor: float | None = None,
-    cma_sigma_terminal: float | None = None,
-    cma_sigma_next_factor: float | None = None,
-    cma_sigma_route: str = "",
-    cma_restart_count: int | None = None,
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -3655,73 +1719,7 @@ def build_action_trace_row(
         "decision_point": decision_point,
         "cc_block_fe": "" if cc_block_fe is None else str(cc_block_fe),
         "cc_utility": "" if cc_utility is None else f"{cc_utility:.6e}",
-        "search_state_block_fe": ""
-        if search_state_block_fe is None
-        else str(search_state_block_fe),
-        "search_state_utility": ""
-        if search_state_utility is None
-        else f"{search_state_utility:.6e}",
-        "required_utility_ratio": ""
-        if required_utility_ratio is None
-        else f"{required_utility_ratio:.6e}",
-        "state_action_fe": "" if state_action_fe is None else str(state_action_fe),
-        "cc_reserve_fe": "" if cc_reserve_fe is None else str(cc_reserve_fe),
-        "state_fingerprint_before": state_fingerprint_before,
-        "state_fingerprint_after": state_fingerprint_after,
-        "abstain_reason": abstain_reason,
-        "search_state_non_coordinate_fraction": (
-            ""
-            if search_state_evidence is None
-            else f"{search_state_evidence.non_coordinate_fraction:.6e}"
-        ),
-        "search_state_active_intervention_fraction": (
-            ""
-            if search_state_evidence is None
-            else f"{search_state_evidence.active_intervention_fraction:.6e}"
-        ),
-        "search_state_conflict_fraction": (
-            ""
-            if search_state_evidence is None
-            else f"{search_state_evidence.conflict_fraction:.6e}"
-        ),
-        "search_state_writeback_unstable": (
-            ""
-            if search_state_evidence is None
-            else str(int(search_state_evidence.writeback_unstable))
-        ),
-        "search_state_relative_writeback_max": (
-            ""
-            if search_state_evidence is None
-            else f"{search_state_evidence.relative_writeback_max:.6e}"
-        ),
-        "search_state_relative_writeback_unstable": (
-            ""
-            if search_state_evidence is None
-            else str(int(search_state_evidence.relative_writeback_unstable))
-        ),
     }
-    pre_hold_values = {
-        "phase_i_tail_utility": "{:.6e}",
-        "group_count": "{}",
-        "mean_group_size": "{:.6e}",
-        "overlap_edge_count": "{}",
-        "overlap_edge_fraction": "{:.6e}",
-        "shared_variable_count": "{}",
-        "shared_variable_ratio": "{:.6e}",
-        "mean_overlap_width": "{:.6e}",
-        "remaining_fes": "{}",
-        "remaining_ratio": "{:.6e}",
-        "scheduled_hold_fes": "{}",
-        "projected_unheld_group_fes": "{}",
-        "projected_held_group_fes": "{}",
-        "budget_retention_ratio": "{:.6e}",
-    }
-    for name, value_format in pre_hold_values.items():
-        row[f"pre_hold_{name}"] = (
-            ""
-            if pre_hold_evidence is None
-            else value_format.format(getattr(pre_hold_evidence, name))
-        )
     row.update(
         {
             "trust_key": "" if trust_decision is None else trust_decision.key,
@@ -3767,63 +1765,19 @@ def build_action_trace_row(
             "phase_rescue_retired": ""
             if phase_rescue_retired is None
             else str(int(phase_rescue_retired)),
-            "cma_sigma_reference": ""
-            if cma_sigma_reference is None
-            else f"{cma_sigma_reference:.6e}",
-            "cma_sigma_applied_factor": ""
-            if cma_sigma_applied_factor is None
-            else f"{cma_sigma_applied_factor:.6e}",
-            "cma_sigma_terminal": ""
-            if cma_sigma_terminal is None
-            else f"{cma_sigma_terminal:.6e}",
-            "cma_sigma_next_factor": ""
-            if cma_sigma_next_factor is None
-            else f"{cma_sigma_next_factor:.6e}",
-            "cma_sigma_route": cma_sigma_route,
-            "cma_restart_count": ""
-            if cma_restart_count is None
-            else str(cma_restart_count),
         }
     )
-    row.update({field: "" for field in COMPONENT_CREDIT_TRACE_FIELDS})
     return row
 
 
 def _write_action_trace(
     path: Path,
     rows: list[dict[str, str]],
-    *,
-    include_trust_fields: bool = True,
-    include_recovery_fields: bool = False,
-    include_maturity_fields: bool = False,
-    include_resource_fields: bool = False,
-    include_cma_sigma_fields: bool = False,
-    include_component_credit_fields: bool = False,
-    include_precision_causal_fields: bool = False,
-    include_precision_response_fields: bool = False,
 ) -> None:
-    if include_precision_response_fields:
-        fields = PRECISION_RESPONSE_ACTION_TRACE_FIELDS
-    elif include_precision_causal_fields:
-        fields = PRECISION_CAUSAL_ACTION_TRACE_FIELDS
-    elif include_component_credit_fields:
-        fields = V40_ACTION_TRACE_FIELDS
-    elif include_cma_sigma_fields:
-        fields = V39_ACTION_TRACE_FIELDS
-    elif include_resource_fields:
-        fields = V37_ACTION_TRACE_FIELDS
-    elif include_recovery_fields:
-        fields = V34_ACTION_TRACE_FIELDS
-    elif include_maturity_fields:
-        fields = V36_ACTION_TRACE_FIELDS
-    elif include_trust_fields:
-        fields = V33_ACTION_TRACE_FIELDS
-    else:
-        fields = LEGACY_ACTION_TRACE_FIELDS
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(
             handle,
-            fieldnames=fields,
+            fieldnames=ACTION_TRACE_FIELDS,
             extrasaction="ignore",
         )
         writer.writeheader()
@@ -4101,44 +2055,6 @@ def apply_v33_guard_to_executed_relation(
     )
 
 
-def apply_relation_action_with_controller_v33(
-    relation: OverlapRelation,
-    action: RelationActionDecision,
-    previous_values: np.ndarray | None = None,
-    current_values: np.ndarray | None = None,
-    previous_delta: float = 0.0,
-    current_delta: float = 0.0,
-    controller_run_state: EvidenceActionControllerV31RunState | None = None,
-) -> tuple[
-    RelationActionDecision,
-    np.ndarray | None,
-    float,
-    ActionTrustDecision | None,
-    str,
-]:
-    """Apply v31 guards followed by v33 runtime-only trust damping."""
-
-    executed_action, adjusted_values, action_value_delta_norm = (
-        apply_relation_action_with_controller_v31(
-            relation=relation,
-            action=action,
-            previous_values=previous_values,
-            current_values=current_values,
-            previous_delta=previous_delta,
-            current_delta=current_delta,
-            controller_v31_run_state=controller_run_state,
-        )
-    )
-    return apply_v33_guard_to_executed_relation(
-        relation=relation,
-        executed_action=executed_action,
-        adjusted_values=adjusted_values,
-        action_value_delta_norm=action_value_delta_norm,
-        current_values=current_values,
-        controller_run_state=controller_run_state,
-    )
-
-
 def apply_topology_scoped_fallback_guard(
     *,
     executed_action: RelationActionDecision,
@@ -4169,52 +2085,6 @@ def apply_topology_scoped_fallback_guard(
     return (
         bounded,
         float(np.linalg.norm(bounded - current)),
-        fallback_route,
-    )
-
-
-def apply_relation_action_with_controller_v35(
-    relation: OverlapRelation,
-    action: RelationActionDecision,
-    previous_values: np.ndarray | None = None,
-    current_values: np.ndarray | None = None,
-    previous_delta: float = 0.0,
-    current_delta: float = 0.0,
-    controller_run_state: EvidenceActionControllerV31RunState | None = None,
-) -> tuple[
-    RelationActionDecision,
-    np.ndarray | None,
-    float,
-    ActionTrustDecision | None,
-    str,
-]:
-    """Apply v31 active actions with the v33 topology fallback guard only."""
-
-    executed_action, adjusted_values, action_value_delta_norm = (
-        apply_relation_action_with_controller_v31(
-            relation=relation,
-            action=action,
-            previous_values=previous_values,
-            current_values=current_values,
-            previous_delta=previous_delta,
-            current_delta=current_delta,
-            controller_v31_run_state=controller_run_state,
-        )
-    )
-    adjusted_values, action_value_delta_norm, fallback_route = (
-        apply_topology_scoped_fallback_guard(
-            executed_action=executed_action,
-            adjusted_values=adjusted_values,
-            action_value_delta_norm=action_value_delta_norm,
-            current_values=current_values,
-            controller_run_state=controller_run_state,
-        )
-    )
-    return (
-        executed_action,
-        adjusted_values,
-        action_value_delta_norm,
-        None,
         fallback_route,
     )
 
@@ -4298,9 +2168,12 @@ def _format_shared_vars(shared_vars: tuple[int, ...]) -> str:
 
 def _overlap_relation_row(relation: OverlapRelation) -> dict[str, str]:
     raw = asdict(relation)
-    row = {field: str(raw.get(field, "")) for field in OVERLAP_RELATION_FIELDS}
+    row = {
+        field_name: str(raw.get(field_name, ""))
+        for field_name in OVERLAP_RELATION_FIELDS
+    }
     row["shared_vars"] = _format_shared_vars(relation.shared_vars)
-    for field in (
+    for field_name in (
         "overlap_strength",
         "delta_signal",
         "rank_signal",
@@ -4316,7 +2189,7 @@ def _overlap_relation_row(relation: OverlapRelation) -> dict[str, str]:
         "feature_coverage",
         "fallback_margin_proxy",
     ):
-        row[field] = f"{float(raw.get(field, 0.0)):.6f}"
+        row[field_name] = f"{float(raw.get(field_name, 0.0)):.6f}"
     row["both_positive"] = str(int(bool(relation.both_positive)))
     row["one_side_zero"] = str(int(bool(relation.one_side_zero)))
     row["shared_var_count"] = str(relation.shared_var_count)
@@ -4609,164 +2482,6 @@ def build_overlap_relation_for_pair(
     raise ValueError(f"missing overlap relation for groups {group_left}-{group_right}")
 
 
-def _write_car_rows(
-    path: Path,
-    *,
-    fieldnames: list[str],
-    rows: list[dict[str, str]],
-) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def _write_mos_sampling_audit(
-    path: Path,
-    rows: list[dict[str, object]],
-) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=list(MOS_SAMPLING_AUDIT_FIELDS),
-            extrasaction="raise",
-        )
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def _write_mos_branch_provenance(
-    path: Path,
-    row: dict[str, object],
-) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(
-            handle,
-            fieldnames=list(MOS_BRANCH_PROVENANCE_FIELDS),
-            extrasaction="raise",
-        )
-        writer.writeheader()
-        writer.writerow(row)
-
-
-def _car_controller_state_payload(
-    controller: EvidenceActionControllerV31RunState | None,
-    *,
-    trajectory_mean_cache: dict[int, float],
-    previous_group_contribution_credit: list[float],
-) -> dict[str, object]:
-    if controller is None:
-        controller_payload: dict[str, object] = {}
-    else:
-        policy = controller.action_trust_policy
-        trust_states = (
-            {}
-            if policy is None
-            else {
-                key: asdict(state)
-                for key, state in sorted(policy._states.items())
-            }
-        )
-        controller_payload = {
-            "dense_overlap": bool(controller.dense_overlap),
-            "locked_policy_mode": controller.locked_policy_mode,
-            "non_dense_repair_locked": bool(controller.non_dense_repair_locked),
-            "non_dense_repair_lock_trigger": controller.non_dense_repair_lock_trigger,
-            "search_state_scheduler_state": asdict(
-                controller.search_state_scheduler_state
-            ),
-            "trust_states": trust_states,
-            "phase_i_state_fingerprint": (
-                ""
-                if controller.phase_i_state is None
-                else controller.phase_i_state.fingerprint()
-            ),
-            "diagonal_cma_state_present": controller.diagonal_cma_state is not None,
-        }
-    return {
-        "controller": controller_payload,
-        "trajectory_mean_cache": {
-            str(key): float(value)
-            for key, value in sorted(trajectory_mean_cache.items())
-        },
-        "previous_group_contribution_credit": [
-            float(value) for value in previous_group_contribution_credit
-        ],
-    }
-
-
-def _run_car_cma_group(
-    *,
-    evaluator,
-    background: np.ndarray,
-    dims: tuple[int, ...],
-    requested_fes: int,
-    population_size: int,
-    seed: int,
-    info: dict[str, object],
-    config: SmokeConfig,
-) -> GroupOptimizationResult:
-    objective = lambda x_batch: evaluator(combine(x_batch, background, list(dims)))
-    problem = {
-        "fitness_function": objective,
-        "ndim_problem": len(dims),
-        "lower_boundary": float(info["lower"]) * np.ones((len(dims),)),
-        "upper_boundary": float(info["upper"]) * np.ones((len(dims),)),
-    }
-    options = {
-        "max_function_evaluations": int(requested_fes),
-        "mean": (np.asarray(background, dtype=float)[list(dims)].copy(),),
-        "sigma": config.sigma,
-        "n_individuals": int(population_size),
-        "is_restart": config.cmaes_restart,
-        "verbose": config.verbose,
-        "early_stopping_evaluations": config.early_stopping_evaluations,
-        "seed_rng": int(seed),
-    }
-    evaluations_before = current_fitness_evaluations(evaluator)
-    result = CMAES(problem, options).optimize()
-    actual_fes = current_fitness_evaluations(evaluator) - evaluations_before
-    reported_fes = int(result["n_function_evaluations"])
-    if actual_fes != reported_fes:
-        raise RuntimeError(
-            "CAR branch objective FE does not match CMA reported FE: "
-            f"observed={actual_fes}, reported={reported_fes}"
-        )
-    return GroupOptimizationResult(
-        best_x=np.asarray(result["best_so_far_x"], dtype=float).reshape(-1).copy(),
-        best_y=float(result["best_so_far_y"]),
-        actual_fes=actual_fes,
-    )
-
-
-@dataclass(frozen=True)
-class CARBarrierResult:
-    adopted_state: BranchState | None
-    accounting_record: tuple[float, ...]
-    probe_fe: int
-    probe_trace_rows: tuple[dict[str, str], ...]
-    state_ledger_rows: tuple[dict[str, str], ...]
-    branch_manifest_rows: tuple[dict[str, str], ...]
-    abstain_reason: str
-
-
-@dataclass(frozen=True)
-class CARActionabilityArmResult:
-    state: BranchState | None
-    accounting_record: tuple[float, ...]
-    actual_fe: int
-    trace_base_row: dict[str, str]
-    abstain_reason: str
-
-
-def _fitness_record_sha256(values: tuple[float, ...] | list[float]) -> str:
-    normalized = tuple(float(value) for value in values)
-    return hashlib.sha256(repr(normalized).encode("utf-8")).hexdigest()
-
-
 def _canonical_payload_sha256(payload: object) -> str:
     encoded = json.dumps(
         payload,
@@ -4870,10 +2585,24 @@ def _evidence_overlay_controller_payload(
             payload[name] = _evidence_overlay_optimizer_payload(value)
         elif name == "phase_i_state":
             payload[name] = None if value is None else value.fingerprint()
-        elif name == "diagonal_cma_state":
-            payload[name] = None if value is None else value.fingerprint()
         else:
             payload[name] = _evidence_overlay_jsonable(value)
+    payload.update(
+        {
+            "trajectory_guard_enabled": False,
+            "pending_trajectory_recovery": None,
+            "search_state_scheduler_state": {
+                "'phase'": "initial_probe",
+                "'probe_utilities'": [],
+                "'intervention_fe'": 0,
+            },
+            "diagonal_cma_state": None,
+            "cc_utility_history": [],
+            "v38_enabled": False,
+            "v39_enabled": False,
+            "_v39_cma_sigma_factors": {},
+        }
+    )
     return payload
 
 
@@ -4935,1032 +2664,15 @@ def evidence_overlay_runtime_fingerprints(
     }
 
 
-def _component_atomic_plan_sha256(plan: ComponentAtomicPlan) -> str:
-    return _canonical_payload_sha256(
-        {
-            "group_indices": plan.group_indices,
-            "group_budgets": plan.group_budgets,
-            "population_sizes": plan.population_sizes,
-            "normal_sigma": plan.normal_sigma,
-            "precision_sigma": plan.precision_sigma,
-        }
-    )
-
-
-def _plan_component_group_budgets(
-    *,
-    group_indices: tuple[int, ...],
-    current_group_index: int,
-    current_optimizer_budget: int,
-    current_group_budget_fe: int,
-    population_sizes: tuple[int, ...],
-    decision_fe: int,
-    cc_budget_limit_fe: int,
-    terminal_target_fe: int,
-) -> tuple[int, ...]:
-    """Freeze the canonical population-complete budgets for one component."""
-
-    if (
-        not group_indices
-        or group_indices[0] != int(current_group_index)
-        or any(
-            right != left + 1
-            for left, right in zip(group_indices, group_indices[1:])
-        )
-        or len(population_sizes) <= group_indices[-1]
-    ):
-        return ()
-    simulated_fe = int(decision_fe)
-    budgets: list[int] = []
-    for position, group_index in enumerate(group_indices):
-        population = int(population_sizes[group_index])
-        if position == 0:
-            budget = int(current_optimizer_budget)
-        else:
-            # The canonical loop evaluates the current incumbent once before
-            # every group optimizer block.
-            simulated_fe += 1
-            budget = bounded_population_budget(
-                requested_fes=max(int(current_group_budget_fe), population),
-                remaining_fes=int(cc_budget_limit_fe) - simulated_fe,
-                population_size=population,
-            )
-        if budget <= 0 or budget % population != 0:
-            return ()
-        budgets.append(budget)
-        simulated_fe += budget
-    if simulated_fe >= int(terminal_target_fe):
-        return ()
-    return tuple(budgets)
-
-
-def _component_shared_path_metrics(
-    path: list[tuple[float, ...]],
-    next_shared_values: tuple[float, ...] | None,
-) -> tuple[float, float, float, float]:
-    if len(path) < 2:
-        return 0.0, 0.0, 0.0, 0.0
-    arrays = [np.asarray(values, dtype=float) for values in path]
-    travelled = float(
-        sum(
-            np.linalg.norm(current - previous, ord=1)
-            for previous, current in zip(arrays, arrays[1:], strict=False)
-        )
-    )
-    net = float(np.linalg.norm(arrays[-1] - arrays[0], ord=1))
-    s_h = min(1.0, max(0.0, net / (1e-300 + travelled)))
-    if next_shared_values is None:
-        return travelled, net, s_h, 0.0
-    next_values = np.asarray(next_shared_values, dtype=float)
-    delayed_drift = float(np.linalg.norm(next_values - arrays[-1], ord=1))
-    return travelled, net, s_h, delayed_drift
-
-
-def _is_next_component_canonical_entry(
-    *,
-    decision_outer_iter: int,
-    current_outer_iter: int,
-    canonical_group_index: int,
-    current_group_index: int,
-) -> bool:
-    return bool(
-        int(current_outer_iter) == int(decision_outer_iter) + 1
-        and int(current_group_index) == int(canonical_group_index)
-    )
-
-
-def _linear_slope(values: tuple[float, ...] | list[float]) -> float:
-    samples = tuple(float(value) for value in values)
-    if len(samples) < 2:
-        raise ValueError("linear slope requires at least two values")
-    x_mean = (len(samples) - 1) / 2.0
-    denominator = sum((index - x_mean) ** 2 for index in range(len(samples)))
-    return sum(
-        (index - x_mean) * (value - sum(samples) / len(samples))
-        for index, value in enumerate(samples)
-    ) / denominator
-
-
-def offspring_diversity_ratio(
-    x_batch: np.ndarray,
-    *,
-    lower: float,
-    upper: float,
-) -> float:
-    """Measure normalized parameter-space spread without touching the optimizer."""
-
-    values = np.asarray(x_batch, dtype=float)
-    if values.ndim != 2 or values.shape[0] == 0 or values.shape[1] == 0:
-        return float("nan")
-    if not np.all(np.isfinite(values)):
-        return float("nan")
-    span = float(upper) - float(lower)
-    if not math.isfinite(span) or span <= 0.0:
-        return float("nan")
-    centered = values - np.mean(values, axis=0, keepdims=True)
-    scale = span * math.sqrt(values.shape[1])
-    return float(np.mean(np.linalg.norm(centered, axis=1)) / scale)
-
-
-def summarize_cma_trace_only_diagnostic(
-    *,
-    objective_values: tuple[float, ...] | list[float],
-    batch_diversities: tuple[float, ...] | list[float],
-    population_size: int,
-    pre_block_fitness: float,
-    initial_sigma: float,
-    terminal_sigma: float,
-    source_end_fe: int,
-) -> CMATraceOnlyDiagnostic | None:
-    """Summarize already-observed CMA batches; no objective or RNG call is added."""
-
-    values = tuple(float(value) for value in objective_values)
-    population = int(population_size)
-    if not values or population <= 0:
-        return None
-    diversities = tuple(float(value) for value in batch_diversities)
-    if not diversities or any(not math.isfinite(value) for value in diversities):
-        return None
-    initial = float(initial_sigma)
-    terminal = float(terminal_sigma)
-    if (
-        not math.isfinite(initial)
-        or not math.isfinite(terminal)
-        or initial <= 0.0
-        or terminal <= 0.0
-    ):
-        return None
-    running_best = float(pre_block_fitness)
-    successes = 0
-    generations = 0
-    for offset in range(0, len(values), population):
-        generation = tuple(
-            value
-            for value in values[offset : offset + population]
-            if math.isfinite(value)
-        )
-        if not generation:
-            continue
-        generation_best = min(generation)
-        successes += int(generation_best < running_best)
-        running_best = min(running_best, generation_best)
-        generations += 1
-    if generations == 0:
-        return None
-    return CMATraceOnlyDiagnostic(
-        source_end_fe=int(source_end_fe),
-        terminal_sigma_ratio=terminal / initial,
-        success_generation_ratio=successes / generations,
-        offspring_diversity_ratio=sum(diversities) / len(diversities),
-    )
-
-
-def append_precision_cc_trace_only_history(
-    progress_history: list[float],
-    source_end_fes: list[int],
-    *,
-    incumbent_before: float,
-    incumbent_after: float,
-    source_start_fe: int,
-    source_end_fe: int,
-) -> None:
-    """Record a completed CC sweep without mutating controller state."""
-
-    start_fe = int(source_start_fe)
-    end_fe = int(source_end_fe)
-    if end_fe <= start_fe:
-        raise ValueError("precision CC history requires a positive FE interval")
-    if source_end_fes and end_fe <= int(source_end_fes[-1]):
-        raise ValueError("precision CC history watermarks must increase")
-    if len(progress_history) != len(source_end_fes):
-        raise ValueError("precision CC history values and watermarks must align")
-    progress_history.append(
-        normalized_gain_utility(
-            incumbent_before,
-            incumbent_after,
-            end_fe - start_fe,
-        )
-    )
-    source_end_fes.append(end_fe)
-
-
-def component_mean_overlap_ratio(
-    grouping_result: list[list[int]],
-    component_group_indices: tuple[int, ...],
-) -> float | None:
-    ratios: list[float] = []
-    groups = [set(int(value) for value in group) for group in grouping_result]
-    for position, left_index in enumerate(component_group_indices):
-        for right_index in component_group_indices[position + 1 :]:
-            overlap = groups[left_index].intersection(groups[right_index])
-            if not overlap:
-                continue
-            ratios.append(
-                len(overlap) / max(1, min(len(groups[left_index]), len(groups[right_index])))
-            )
-    if not ratios:
-        return None
-    return sum(ratios) / len(ratios)
-
-
-def build_precision_causal_snapshot(
-    *,
-    checkpoint_fitness: float,
-    decision_fe: int,
-    max_fes: int,
-    phase_i_tail_progress_rate: float,
-    phase_i_source_end_fe: int,
-    cc_progress_history: list[float],
-    cc_source_end_fes: list[int],
-    component_disagreement_history: list[tuple[int, float]],
-    cma_history: list[CMATraceOnlyDiagnostic],
-    grouping_result: list[list[int]],
-    dimension: int,
-    component,
-    scheduler_revisit_cap,
-    controller_state_sha256: str,
-    prefix_record_sha256: str,
-    checkpoint_candidate_sha256: str,
-    random_descriptor_sha256: str,
-    normal_sigma: float,
-    candidate_sigma: float,
-) -> PrecisionCausalDecisionSnapshot:
-    """Freeze the first structurally feasible precision decision before execution."""
-
-    missing: list[str] = []
-    if len(cc_progress_history) < 4 or len(cc_source_end_fes) < 4:
-        missing.append("cc_progress_history_4")
-    if len(component_disagreement_history) < 2:
-        missing.append("component_disagreement_history_2")
-    if len(cma_history) < 3:
-        missing.append("group_cma_history_3")
-    overlap_ratio = component_mean_overlap_ratio(
-        grouping_result,
-        component.group_indices,
-    )
-    if overlap_ratio is None:
-        missing.append("component_overlap_ratio")
-
-    remaining_fe = max(0, int(max_fes) - int(decision_fe))
-    source_phase_i = int(phase_i_source_end_fe)
-    source_cc = int(cc_source_end_fes[-1]) if cc_source_end_fes else -1
-    source_disagreement = (
-        int(component_disagreement_history[-1][0])
-        if component_disagreement_history
-        else -1
-    )
-    source_cma = int(cma_history[-1].source_end_fe) if cma_history else -1
-    source_end = max(source_phase_i, source_cc, source_disagreement, source_cma)
-    if source_end >= int(decision_fe):
-        missing.append("history_watermark_not_pre_action")
-
-    state: PreActionUtilityState | None = None
-    if not missing:
-        recent_cc = tuple(float(value) for value in cc_progress_history[-4:])
-        recent_disagreement = tuple(
-            float(value) for _, value in component_disagreement_history[-2:]
-        )
-        recent_sigma = tuple(
-            max(float(item.terminal_sigma_ratio), 1e-300)
-            for item in cma_history[-3:]
-        )
-        stagnation_streak = 0
-        for value in reversed(cc_progress_history):
-            if float(value) > BIPOP_STAGNATION_EPSILON:
-                break
-            stagnation_streak += 1
-        payload = {
-            "schema_version": PRE_ACTION_UTILITY_SCHEMA_VERSION,
-            "remaining_fe_ratio": remaining_fe / max(1, int(max_fes)),
-            "revisit_cap_remaining_ratio": int(scheduler_revisit_cap.cap_fe)
-            / max(1, remaining_fe),
-            "component_group_fraction": len(component.group_indices)
-            / max(1, len(grouping_result)),
-            "component_shared_variable_ratio": len(component.shared_variables)
-            / max(1, int(dimension)),
-            "component_mean_overlap_ratio": float(overlap_ratio),
-            "proposal_disagreement_mean_2": sum(recent_disagreement)
-            / len(recent_disagreement),
-            "candidate_dose_ratio": float(candidate_sigma) / float(normal_sigma),
-            "phase_i_tail_progress_rate": float(phase_i_tail_progress_rate),
-            "cc_progress_rate_last": recent_cc[-1],
-            "cc_progress_rate_slope_4": _linear_slope(recent_cc),
-            "cc_progress_rate_std_4": float(np.std(recent_cc)),
-            "cc_stagnation_streak": float(stagnation_streak),
-            "terminal_sigma_ratio_last": recent_sigma[-1],
-            "log_sigma_slope_3": _linear_slope(
-                tuple(math.log(value) for value in recent_sigma)
-            ),
-            "success_generation_ratio_last": float(
-                cma_history[-1].success_generation_ratio
-            ),
-            "offspring_diversity_ratio_last": float(
-                cma_history[-1].offspring_diversity_ratio
-            ),
-        }
-        state = PreActionUtilityState.from_runtime_payload(payload)
-
-    reason = "" if state is not None else "missing_pre_action_history:" + ",".join(missing)
-    feature_hash = "" if state is None else state.feature_sha256
-    decision_id = "precision_" + _canonical_payload_sha256(
-        {
-            "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
-            "prefix_record_sha256": prefix_record_sha256,
-            "feature_sha256": feature_hash,
-            "not_applicable_reason": reason,
-        }
-    )[:24]
-    return PrecisionCausalDecisionSnapshot(
-        decision_id=decision_id,
-        decision_status="applicable" if state is not None else "not_applicable",
-        not_applicable_reason=reason,
-        state=state,
-        decision_fe=int(decision_fe),
-        checkpoint_fitness=float(checkpoint_fitness),
-        remaining_fe=remaining_fe,
-        component_id=component.component_id,
-        component_group_count=len(component.group_indices),
-        component_shared_var_count=len(component.shared_variables),
-        component_unlocked=True,
-        scheduler_revisit_cap_fe=int(scheduler_revisit_cap.cap_fe),
-        scheduler_revisit_reason=scheduler_revisit_cap.reason,
-        source_phase_i_end_fe=source_phase_i,
-        source_cc_history_end_fe=source_cc,
-        source_disagreement_history_end_fe=source_disagreement,
-        source_cma_history_end_fe=source_cma,
-        source_end_fe=source_end,
-        prefix_record_sha256=prefix_record_sha256,
-        checkpoint_candidate_sha256=checkpoint_candidate_sha256,
-        controller_state_sha256=controller_state_sha256,
-        random_descriptor_sha256=random_descriptor_sha256,
-        normal_sigma=float(normal_sigma),
-        candidate_sigma=float(candidate_sigma),
-    )
-
-
-def precision_causal_snapshot_row(
-    snapshot: PrecisionCausalDecisionSnapshot,
-    *,
-    problem_id: str,
-    seed: int | None,
-    audit_arm: str,
-) -> dict[str, str]:
-    feature_values = (
-        {}
-        if snapshot.state is None
-        else {
-            name: f"{float(getattr(snapshot.state, name)):.17e}"
-            for name in UTILITY_FEATURE_NAMES
-        }
-    )
-    return {
-        "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
-        "fresh_optimizer_execution": "1",
-        "problem_id": problem_id,
-        "seed": "" if seed is None else str(int(seed)),
-        "audit_arm": audit_arm,
-        "decision_id": snapshot.decision_id,
-        "decision_status": snapshot.decision_status,
-        "not_applicable_reason": snapshot.not_applicable_reason,
-        "schema_version": (
-            "" if snapshot.state is None else snapshot.state.schema_version
-        ),
-        **feature_values,
-        "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
-        "feature_sha256": (
-            "" if snapshot.state is None else snapshot.state.feature_sha256
-        ),
-        "decision_fe": str(snapshot.decision_fe),
-        "checkpoint_fitness": f"{snapshot.checkpoint_fitness:.17e}",
-        "remaining_fe": str(snapshot.remaining_fe),
-        "component_id": snapshot.component_id,
-        "component_group_count": str(snapshot.component_group_count),
-        "component_shared_var_count": str(snapshot.component_shared_var_count),
-        "component_unlocked": str(int(snapshot.component_unlocked)),
-        "scheduler_revisit_reachable": "1",
-        "scheduler_revisit_cap_fe": str(snapshot.scheduler_revisit_cap_fe),
-        "scheduler_revisit_reason": snapshot.scheduler_revisit_reason,
-        "source_phase_i_end_fe": str(snapshot.source_phase_i_end_fe),
-        "source_cc_history_end_fe": str(snapshot.source_cc_history_end_fe),
-        "source_disagreement_history_end_fe": str(
-            snapshot.source_disagreement_history_end_fe
-        ),
-        "source_cma_history_end_fe": str(snapshot.source_cma_history_end_fe),
-        "source_end_fe": str(snapshot.source_end_fe),
-        "prefix_record_sha256": snapshot.prefix_record_sha256,
-        "checkpoint_candidate_sha256": snapshot.checkpoint_candidate_sha256,
-        "controller_state_sha256": snapshot.controller_state_sha256,
-        "random_descriptor_sha256": snapshot.random_descriptor_sha256,
-        "normal_sigma": f"{snapshot.normal_sigma:.17e}",
-        "candidate_sigma": f"{snapshot.candidate_sigma:.17e}",
-    }
-
-
-def select_first_complete_precision_snapshot(
-    existing: PrecisionCausalDecisionSnapshot | None,
-    candidate: PrecisionCausalDecisionSnapshot,
-    *,
-    audit_arm: str,
-) -> tuple[PrecisionCausalDecisionSnapshot | None, bool]:
-    """Consume only the first history-complete opportunity in a trajectory."""
-
-    if audit_arm not in {"baseline", "action"}:
-        raise ValueError("precision causal audit arm must be baseline or action")
-    if existing is not None or candidate.state is None:
-        return existing, False
-    return candidate, audit_arm == "action"
-
-
-def finalize_precision_causal_trace_row(
-    *,
-    base_row: dict[str, str],
-    fitness_record: list[float],
-    max_fes: int,
-    terminal_completion_tolerance_fe: int,
-    action_applied: bool,
-    applied_sigma: float | None,
-    requested_fe: int,
-    actual_fe: int,
-    intervention_end_fe: int | None,
-    early_guard: bool,
-) -> dict[str, str]:
-    record = tuple(float(value) for value in fitness_record)
-    terminal_target_fe = max(
-        0,
-        int(max_fes) - int(terminal_completion_tolerance_fe),
-    )
-    terminal_observed_fe = min(terminal_target_fe, len(record))
-    terminal_prefix = record[:terminal_observed_fe]
-    decision_fe = int(base_row.get("decision_fe") or 0)
-    intervention_end = (
-        decision_fe if intervention_end_fe is None else int(intervention_end_fe)
-    )
-    complete = (
-        terminal_observed_fe == terminal_target_fe
-        and not early_guard
-        and (
-            base_row.get("decision_status") != "applicable"
-            or terminal_target_fe > intervention_end
-        )
-    )
-    row = dict(base_row)
-    row.update(
-        {
-            "action_applied": str(int(action_applied)),
-            "applied_sigma": (
-                "" if applied_sigma is None else f"{float(applied_sigma):.17e}"
-            ),
-            "requested_fe": str(int(requested_fe)),
-            "actual_fe": str(int(actual_fe)),
-            "intervention_end_fe": (
-                "" if intervention_end_fe is None else str(intervention_end)
-            ),
-            "configured_max_fes": str(int(max_fes)),
-            "terminal_target_fe": str(terminal_target_fe),
-            "terminal_observed_fe": str(terminal_observed_fe),
-            "terminal_error": (
-                "" if not terminal_prefix else f"{min(terminal_prefix):.17e}"
-            ),
-            "terminal_status": "complete" if complete else "incomplete",
-            "terminal_record_sha256": (
-                ""
-                if not terminal_prefix
-                else _fitness_record_sha256(terminal_prefix)
-            ),
-        }
-    )
-    return row
-
-
-def execute_car_actionability_arm_at_barrier(
-    *,
-    decision: CARPlanDecision,
-    checkpoint: BranchState,
-    checkpoint_fe: int,
-    prefix_record: tuple[float, ...],
-    fun_name: str,
-    fun_id: int,
-    output_path: Path,
-    info: dict[str, object],
-    config: SmokeConfig,
-    problem_id: str,
-) -> CARActionabilityArmResult:
-    """Execute one offline audit arm from the frozen CAR-W3 checkpoint.
-
-    Independent subprocess lanes provide the two long continuations.  This
-    helper applies the candidate writeback only in the candidate lane's first
-    component closure; both lanes then return to the same canonical runtime.
-    """
-
-    arm = config.car_actionability_arm
-    if arm not in {"fallback", "candidate"}:
-        raise ValueError("CAR actionability execution requires fallback or candidate arm")
-    prefix_hash = _fitness_record_sha256(prefix_record)
-    plan = decision.plan
-    evidence = decision.evidence
-
-    def base_row(*, reason: str, plan_status: str) -> dict[str, str]:
-        return {
-            "protocol_version": CAR_ACTIONABILITY_PROTOCOL_VERSION,
-            "fresh_optimizer_execution": "1",
-            "problem_id": problem_id,
-            "seed": "" if config.seed is None else str(int(config.seed)),
-            "audit_arm": arm,
-            "candidate_mode": config.car_candidate_mode,
-            "horizon_index": "",
-            "horizon_label": "",
-            "checkpoint_fe": str(int(checkpoint_fe)),
-            "checkpoint_fitness": f"{checkpoint.committed_fitness:.17e}",
-            "configured_max_fes": str(int(config.max_fes)),
-            "terminal_completion_tolerance_fe": "",
-            "termination_reason": "",
-            "terminal_fe_shortfall": "",
-            "target_fe": "",
-            "observed_fe": "",
-            "best_error": "",
-            "prefix_state_fingerprint": checkpoint.state_fingerprint,
-            "prefix_record_sha256": prefix_hash,
-            "post_intervention_state_fingerprint": "",
-            "graph_fingerprint": "" if evidence is None else evidence.graph_fingerprint,
-            "component_fingerprint": (
-                "" if evidence is None else evidence.component_fingerprint
-            ),
-            "candidate_action_name": (
-                "" if evidence is None else evidence.candidate_action_name
-            ),
-            "candidate_action_family": (
-                "" if evidence is None else evidence.candidate_action_family
-            ),
-            "candidate_action_applied": "0",
-            "requested_fe": "0",
-            "actual_fe": "0",
-            "seed_descriptor": "",
-            "probe_seed": "",
-            "intervention_record_sha256": "",
-            "fitness_prefix_sha256": "",
-            "plan_status": plan_status,
-            "horizon_status": "",
-            "abstain_reason": reason,
-        }
-
-    if plan is None or evidence is None:
-        reason = decision.abstain_reason or "missing_car_writeback_plan"
-        return CARActionabilityArmResult(
-            state=None,
-            accounting_record=(),
-            actual_fe=0,
-            trace_base_row=base_row(reason=reason, plan_status="not_applicable"),
-            abstain_reason=reason,
-        )
-
-    arm_cap = int(math.floor(config.max_fes * CAR_W_PROBE_BUDGET_FRACTION)) // (
-        2 * CAR_W_PAIR_COUNT
-    )
-    remaining_fe = max(0, int(config.max_fes) - int(checkpoint_fe))
-    budgets = allocate_component_horizon_budgets(
-        max_arm_fes=min(arm_cap, remaining_fe),
-        population_sizes=plan.group_population_sizes,
-    )
-    if not budgets:
-        reason = "audit_budget_cannot_fit_complete_component_horizon"
-        return CARActionabilityArmResult(
-            state=None,
-            accounting_record=(),
-            actual_fe=0,
-            trace_base_row=base_row(reason=reason, plan_status="abstain"),
-            abstain_reason=reason,
-        )
-
-    requested_fe = 1 + sum(budgets)
-    evaluator = Benchmark(
-        str(output_path) + "/",
-        data_dir=config.aob_data_root,
-    ).get_function(fun_name, fun_id)
-    seed_descriptor = derive_probe_seed(
-        base_seed=0 if config.seed is None else int(config.seed),
-        sweep_index=evidence.evidence_sweep_count,
-        component_fingerprint=evidence.component_fingerprint,
-        pair_index=0,
-    )
-    candidate_plan = (
-        shuffled_component_writeback_plan(plan)
-        if config.car_candidate_mode == "shuffled_graph"
-        else plan
-    )
-    apply_candidate = (
-        arm == "candidate" and config.car_candidate_mode != "paired_fallback"
-    )
-    state = run_component_horizon(
-        checkpoint=checkpoint.clone(),
-        evaluator=evaluator,
-        seed_descriptor=seed_descriptor,
-        requested_fes=requested_fe,
-        plan=candidate_plan if apply_candidate else plan,
-        apply_candidate=apply_candidate,
-        optimize_group=lambda **kwargs: _run_car_cma_group(
-            **kwargs,
-            info=info,
-            config=config,
-        ),
-    )
-    record = tuple(float(value) for value in state.evaluator_record)
-    if len(record) != requested_fe:
-        raise RuntimeError("CAR actionability arm FE does not match reservation")
-    row = base_row(reason="", plan_status="applied")
-    row.update(
-        {
-            "post_intervention_state_fingerprint": state.state_fingerprint,
-            "candidate_action_applied": "1" if apply_candidate else "0",
-            "requested_fe": str(requested_fe),
-            "actual_fe": str(len(record)),
-            "seed_descriptor": seed_descriptor.canonical_key,
-            "probe_seed": str(seed_descriptor.seed),
-            "intervention_record_sha256": _fitness_record_sha256(record),
-        }
-    )
-    return CARActionabilityArmResult(
-        state=state.clone(),
-        accounting_record=record,
-        actual_fe=len(record),
-        trace_base_row=row,
-        abstain_reason="",
-    )
-
-
-def finalize_car_actionability_trace(
-    *,
-    trace_base_row: dict[str, str],
-    fitness_record: list[float],
-    max_fes: int,
-) -> list[dict[str, str]]:
-    """Materialize exact-FE nested and terminal labels after one fresh lane."""
-
-    record = tuple(float(value) for value in fitness_record)
-    rows: list[dict[str, str]] = []
-    checkpoint_fe = int(trace_base_row.get("checkpoint_fe") or 0)
-    intervention_fe = int(trace_base_row.get("actual_fe") or 0)
-    plan_applied = trace_base_row.get("plan_status") == "applied"
-    try:
-        terminal_tolerance = int(
-            str(trace_base_row.get("terminal_completion_tolerance_fe", "0"))
-        )
-    except ValueError:
-        terminal_tolerance = 0
-    # HCC can end adjacent lanes at different population boundaries. Retain
-    # each natural endpoint in metadata, but pair the same absolute-FE prefix.
-    closure_target = checkpoint_fe + intervention_fe
-    terminal_target = max(
-        closure_target,
-        max(0, int(max_fes) - terminal_tolerance),
-    )
-    terminal_order_valid = not plan_applied or terminal_target > closure_target
-    targets: list[tuple[int, str, int]] = []
-    if plan_applied and intervention_fe > 0:
-        for index, (multiplier, label) in enumerate(
-            zip(
-                CAR_ACTIONABILITY_HORIZON_MULTIPLIERS,
-                CAR_ACTIONABILITY_HORIZON_LABELS,
-                strict=True,
-            )
-        ):
-            target = checkpoint_fe + multiplier * intervention_fe
-            if (index == 0 and target <= terminal_target) or target < terminal_target:
-                targets.append((index, label, target))
-    targets.append((3, "terminal", terminal_target))
-
-    for horizon_index, label, target_fe in targets:
-        observed_fe = min(target_fe, len(record))
-        prefix = record[:observed_fe]
-        if label == "terminal":
-            shortfall = max(0, int(max_fes) - len(record))
-            reason = trace_base_row.get("termination_reason", "")
-            horizon_status = (
-                "complete"
-                if observed_fe == target_fe
-                and shortfall <= terminal_tolerance
-                and reason != "early_guard"
-                and terminal_order_valid
-                else "incomplete"
-            )
-        else:
-            horizon_status = "complete" if observed_fe == target_fe else "incomplete"
-        row = dict(trace_base_row)
-        if label == "terminal" and not terminal_order_valid:
-            row["abstain_reason"] = (
-                "terminal_target_has_no_post_intervention_continuation"
-            )
-        row.update(
-            {
-                "horizon_index": str(horizon_index),
-                "horizon_label": label,
-                "target_fe": str(target_fe),
-                "observed_fe": str(observed_fe),
-                "best_error": (
-                    "" if not prefix else f"{min(prefix):.17e}"
-                ),
-                "fitness_prefix_sha256": (
-                    "" if not prefix else _fitness_record_sha256(prefix)
-                ),
-                "horizon_status": horizon_status,
-                "terminal_fe_shortfall": (
-                    str(max(0, int(max_fes) - len(record)))
-                    if label == "terminal"
-                    else trace_base_row.get("terminal_fe_shortfall", "")
-                ),
-            }
-        )
-        rows.append(row)
-    return rows
-
-
-def execute_car_w_probe_at_barrier(
-    *,
-    decision: CARPlanDecision,
-    checkpoint: BranchState,
-    checkpoint_fe: int,
-    fun_name: str,
-    fun_id: int,
-    output_path: Path,
-    info: dict[str, object],
-    config: SmokeConfig,
-    problem_id: str,
-    branch_order: tuple[str, str] = ("fallback", "candidate"),
-    early_futility_abort: bool = False,
-) -> CARBarrierResult:
-    if config.car_candidate_mode not in {"graph", "shuffled_graph", "paired_fallback"}:
-        raise ValueError(
-            "unsupported CAR candidate mode: " + str(config.car_candidate_mode)
-        )
-    audit = AuditEnvelope(
-        run_id=config.run_id,
-        problem_id=problem_id,
-        seed=0 if config.seed is None else int(config.seed),
-    )
-    probe_limit = int(math.floor(config.max_fes * CAR_W_PROBE_BUDGET_FRACTION))
-    plan = decision.plan
-    evidence = decision.evidence
-    if plan is None or evidence is None:
-        reason = decision.abstain_reason or "missing_car_writeback_plan"
-        row = {
-            "problem_id": audit.problem_id,
-            "seed": "" if config.seed is None else str(audit.seed),
-            "graph_fingerprint": "",
-            "component_fingerprint": "",
-            "candidate_action_name": "",
-            "candidate_action_family": "",
-            "candidate_mode": config.car_candidate_mode,
-            "evidence_sweeps": "0",
-            "checkpoint_fe": str(checkpoint_fe),
-            "probe_fe": "0",
-            "total_fe_after_probe": str(checkpoint_fe),
-            "probe_fe_limit": str(probe_limit),
-            "adopted_branch": "not_probed",
-            "committed_fitness": f"{checkpoint.committed_fitness:.17e}",
-            "evaluated_elite": "",
-            "state_fingerprint": checkpoint.state_fingerprint,
-            "gate_result": "abstain",
-            "abstain_reason": reason,
-        }
-        return CARBarrierResult(None, (), 0, (), (row,), (), reason)
-
-    probe_arm_cap = probe_limit // (2 * CAR_W_PAIR_COUNT)
-    remaining_total_fe = max(0, int(config.max_fes) - int(checkpoint_fe))
-    remaining_arm_cap = remaining_total_fe // (2 * CAR_W_PAIR_COUNT)
-    max_arm_fes = min(probe_arm_cap, remaining_arm_cap)
-    budgets = allocate_component_horizon_budgets(
-        max_arm_fes=max_arm_fes,
-        population_sizes=plan.group_population_sizes,
-    )
-    if not budgets:
-        reason = (
-            "remaining_total_budget_cannot_fit_complete_component_horizon"
-            if remaining_arm_cap < probe_arm_cap
-            else "probe_budget_cannot_fit_complete_component_horizon"
-        )
-        row = {
-            "problem_id": audit.problem_id,
-            "seed": "" if config.seed is None else str(audit.seed),
-            "graph_fingerprint": evidence.graph_fingerprint,
-            "component_fingerprint": evidence.component_fingerprint,
-            "candidate_action_name": evidence.candidate_action_name,
-            "candidate_action_family": evidence.candidate_action_family,
-            "candidate_mode": config.car_candidate_mode,
-            "evidence_sweeps": str(evidence.evidence_sweep_count),
-            "checkpoint_fe": str(checkpoint_fe),
-            "probe_fe": "0",
-            "total_fe_after_probe": str(checkpoint_fe),
-            "probe_fe_limit": str(probe_limit),
-            "adopted_branch": "not_probed",
-            "committed_fitness": f"{checkpoint.committed_fitness:.17e}",
-            "evaluated_elite": "",
-            "state_fingerprint": checkpoint.state_fingerprint,
-            "gate_result": "abstain",
-            "abstain_reason": reason,
-        }
-        return CARBarrierResult(None, (), 0, (), (row,), (), reason)
-
-    arm_fes = 1 + sum(budgets)
-    ledger = CARBudgetLedger(
-        max_fes=config.max_fes,
-        probe_fe_limit=probe_limit,
-        committed_fe=checkpoint_fe,
-    )
-    evaluator_factory = lambda: Benchmark(
-        str(output_path) + "/",
-        data_dir=config.aob_data_root,
-    ).get_function(fun_name, fun_id)
-
-    candidate_plan = (
-        shuffled_component_writeback_plan(plan)
-        if config.car_candidate_mode == "shuffled_graph"
-        else plan
-    )
-
-    def transition(apply_candidate: bool):
-        return lambda state, evaluator, seed_descriptor, requested_fes: run_component_horizon(
-            checkpoint=state,
-            evaluator=evaluator,
-            seed_descriptor=seed_descriptor,
-            requested_fes=requested_fes,
-            plan=candidate_plan if apply_candidate else plan,
-            apply_candidate=(
-                apply_candidate and config.car_candidate_mode != "paired_fallback"
-            ),
-            optimize_group=lambda **kwargs: _run_car_cma_group(
-                **kwargs,
-                info=info,
-                config=config,
-            ),
-        )
-
-    execution = CARProbeExecutor(
-        evaluator_factory=evaluator_factory,
-        ledger=ledger,
-        base_seed=0 if config.seed is None else int(config.seed),
-        sweep_index=evidence.evidence_sweep_count,
-        graph_fingerprint=evidence.graph_fingerprint,
-        component_fingerprint=evidence.component_fingerprint,
-        action_family=evidence.candidate_action_family,
-        arm_fes=arm_fes,
-    ).execute(
-        initial_checkpoint=checkpoint,
-        fallback_transition=transition(False),
-        candidate_transition=transition(True),
-        branch_order=branch_order,
-        early_futility_abort=early_futility_abort,
-    )
-    abstain_reason = ";".join(execution.gate.abstain_reasons)
-    probe_rows = tuple(
-        {
-            "problem_id": audit.problem_id,
-            "seed": "" if config.seed is None else str(audit.seed),
-            "pair_index": str(observation.pair_index),
-            "channel": "writeback",
-            "graph_fingerprint": observation.graph_fingerprint,
-            "component_fingerprint": observation.component_fingerprint,
-            "action_family": observation.action_family,
-            "candidate_mode": config.car_candidate_mode,
-            "fallback_fe": str(observation.fallback_fe),
-            "candidate_fe": str(observation.candidate_fe),
-            "seed_descriptor": observation.seed_descriptor.canonical_key,
-            "probe_seed": str(observation.seed_descriptor.seed),
-            "phase1_probe_fitness_before": (
-                f"{observation.phase1_probe_fitness_before:.17e}"
-            ),
-            "fallback_after": f"{observation.fallback_after:.17e}",
-            "candidate_after": f"{observation.candidate_after:.17e}",
-            "normalized_delta": f"{observation.normalized_delta:.17e}",
-            "lcb": f"{execution.gate.lcb:.17e}",
-            "tail": f"{execution.gate.tail:.17e}",
-            "gate_result": "commit" if execution.gate.committed else "abstain",
-            "abstain_reason": abstain_reason,
-        }
-        for observation in execution.observations
-    )
-    manifest_rows = tuple(
-        {
-            "problem_id": audit.problem_id,
-            "seed": "" if config.seed is None else str(audit.seed),
-            "pair_index": str(manifest.pair_index),
-            "arm": manifest.arm,
-            "candidate_mode": config.car_candidate_mode,
-            "evaluator_id": manifest.evaluator_id,
-            "requested_fe": str(manifest.requested_fe),
-            "actual_fe": str(manifest.actual_fe),
-            "record_sha256": manifest.record_sha256,
-            "record_best": f"{manifest.record_best:.17e}",
-            "state_fingerprint_before": manifest.state_fingerprint_before,
-            "state_fingerprint_after": manifest.state_fingerprint_after,
-            "seed_descriptor": manifest.seed_descriptor.canonical_key,
-            "probe_seed": str(manifest.seed_descriptor.seed),
-        }
-        for manifest in execution.branch_manifests
-    )
-    evaluated_elite = min(manifest.record_best for manifest in execution.branch_manifests)
-    state_row = {
-        "problem_id": audit.problem_id,
-        "seed": "" if config.seed is None else str(audit.seed),
-        "graph_fingerprint": evidence.graph_fingerprint,
-        "component_fingerprint": evidence.component_fingerprint,
-        "candidate_action_name": evidence.candidate_action_name,
-        "candidate_action_family": evidence.candidate_action_family,
-        "candidate_mode": config.car_candidate_mode,
-        "evidence_sweeps": str(evidence.evidence_sweep_count),
-        "checkpoint_fe": str(checkpoint_fe),
-        "probe_fe": str(ledger.probe_fe),
-        "total_fe_after_probe": str(ledger.total_fe),
-        "probe_fe_limit": str(probe_limit),
-        "adopted_branch": execution.gate.adopted_arm,
-        "committed_fitness": f"{execution.adopted_state.committed_fitness:.17e}",
-        "evaluated_elite": f"{evaluated_elite:.17e}",
-        "state_fingerprint": execution.adopted_state.state_fingerprint,
-        "gate_result": "commit" if execution.gate.committed else "abstain",
-        "abstain_reason": abstain_reason,
-    }
-    return CARBarrierResult(
-        adopted_state=execution.adopted_state,
-        accounting_record=execution.accounting_record,
-        probe_fe=ledger.probe_fe,
-        probe_trace_rows=probe_rows,
-        state_ledger_rows=(state_row,),
-        branch_manifest_rows=manifest_rows,
-        abstain_reason=abstain_reason,
-    )
 
 
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
     if config.budget_accounting not in {"strict", "source"}:
         raise ValueError(f"unsupported budget accounting mode: {config.budget_accounting}")
-    if config.cma_sampling_mode not in CMA_SAMPLING_MODES:
-        raise ValueError("unsupported CMA sampling mode")
-    if is_car_w_family_action(config.arac_action) and (
-        not config.enable_relation_dispatch
-        or config.relation_policy_mode != "controller_v31"
-    ):
-        raise ValueError(
-            "CAR-W requires relation dispatch with the controller_v31 proposal policy"
-        )
-    if config.car_branch_order not in {"fallback_first", "candidate_first"}:
-        raise ValueError("unsupported CAR branch order")
-    if config.car_candidate_mode not in {"graph", "shuffled_graph", "paired_fallback"}:
-        raise ValueError("unsupported CAR candidate mode")
-    if config.car_actionability_arm not in {"off", "fallback", "candidate"}:
-        raise ValueError("unsupported CAR actionability arm")
-    if config.car_actionability_arm != "off" and not is_car_w3_action(
-        config.arac_action
-    ):
-        raise ValueError("CAR actionability audit requires the frozen CAR-W3 action")
-    if config.precision_causal_arm not in {"off", "baseline", "action"}:
-        raise ValueError("unsupported precision causal arm")
-    if config.precision_causal_arm != "off" and not is_evidence_action_controller_v37(
-        config.arac_action
-    ):
-        raise ValueError("precision causal logging requires the frozen v37 action")
-    if config.precision_response_arm not in {
-        "off",
-        "a0_v37",
-        "a1_probe_only",
-        "a2_probe_gated",
-    }:
-        raise ValueError("unsupported precision response arm")
-    if config.precision_response_arm != "off" and not is_evidence_action_controller_v37(
-        config.arac_action
-    ):
-        raise ValueError("precision response logging requires the frozen v37 action")
-    if config.precision_response_arm != "off" and config.precision_causal_arm != "off":
-        raise ValueError("precision response and causal logging arms are exclusive")
-    if config.component_precision_arm not in {
-        "off",
-        "a0_v37",
-        "a1_precision_component_once",
-    }:
-        raise ValueError("unsupported component precision arm")
-    if config.component_precision_arm != "off" and not is_evidence_action_controller_v37(
-        config.arac_action
-    ):
-        raise ValueError("component precision action validity requires frozen v37")
-    enabled_precision_protocols = sum(
-        arm != "off"
-        for arm in (
-            config.precision_causal_arm,
-            config.precision_response_arm,
-            config.component_precision_arm,
-        )
-    )
-    if enabled_precision_protocols > 1:
-        raise ValueError("precision causal, response, and component arms are exclusive")
-    if config.hypergraph_trace_mode not in HYPERGRAPH_TRACE_MODES:
-        raise ValueError("unsupported hypergraph trace mode")
-    if config.hypergraph_trace_mode == "observer" and not (
-        is_evidence_action_controller_v37(config.arac_action)
-    ):
-        raise ValueError("hypergraph observer requires the frozen v37 action")
-    if config.hypergraph_trace_mode == "observer" and enabled_precision_protocols:
-        raise ValueError(
-            "hypergraph observer and frozen precision experiment arms are exclusive"
-        )
     if config.evidence_overlay_mode not in EVIDENCE_OVERLAY_MODES:
         raise ValueError("unsupported evidence overlay mode")
+    if not is_evidence_action_controller_v37(config.arac_action):
+        raise ValueError("exp_018 runner requires frozen v37")
     evidence_overlay_enabled = config.evidence_overlay_mode != "off"
     if evidence_overlay_enabled:
         if not is_evidence_action_controller_v37(config.arac_action):
@@ -5977,60 +2689,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             raise ValueError("evidence overlay requires frozen restart settings")
         if config.search_state_backend != "phase_i_mmes":
             raise ValueError("evidence overlay requires phase_i_mmes")
-        if config.cma_sampling_mode != IID_CMA_SAMPLING:
-            raise ValueError("evidence overlay requires iid CMA sampling")
-        if config.car_candidate_mode != "graph":
-            raise ValueError("evidence overlay requires graph CAR candidates")
-        if enabled_precision_protocols or config.hypergraph_trace_mode != "off":
-            raise ValueError(
-                "evidence overlay, hypergraph observer, and precision arms are exclusive"
-            )
-        if config.car_actionability_arm != "off" or config.offline_frozen_replay:
-            raise ValueError(
-                "evidence overlay cannot combine with CAR actionability or frozen replay"
-            )
-    mos_profile_enabled = config.lane_profile == "v37_mos_sampling"
-    if (
-        config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
-        and not mos_profile_enabled
-    ):
-        raise ValueError("mirrored orthogonal sampling requires v37_mos_sampling")
-    if mos_profile_enabled:
-        if not is_evidence_action_controller_v37(config.arac_action):
-            raise ValueError("v37_mos_sampling requires frozen v37")
-        if not config.enable_relation_dispatch:
-            raise ValueError("v37_mos_sampling requires relation dispatch")
-        if config.relation_policy_mode != "controller_v31":
-            raise ValueError("v37_mos_sampling requires controller_v31")
-        if config.seed is None:
-            raise ValueError("v37_mos_sampling requires an explicit seed")
-        if config.budget_accounting != "strict":
-            raise ValueError("v37_mos_sampling requires strict FE accounting")
-        if not config.cmaes_restart or not config.mmes_restart:
-            raise ValueError("v37_mos_sampling requires frozen restart settings")
-        if config.search_state_backend != "phase_i_mmes":
-            raise ValueError("v37_mos_sampling requires phase_i_mmes")
-        if config.early_stopping_evaluations != 1000:
-            raise ValueError("v37_mos_sampling requires frozen early stopping")
-        if config.sigma != 0.5:
-            raise ValueError("v37_mos_sampling requires frozen sigma")
-        if enabled_precision_protocols or config.hypergraph_trace_mode != "off":
-            raise ValueError("v37_mos_sampling cannot combine with frozen pilots")
-        if config.car_actionability_arm != "off" or config.offline_frozen_replay:
-            raise ValueError("v37_mos_sampling cannot combine with frozen replay")
-        if evidence_overlay_enabled:
-            raise ValueError("v37_mos_sampling cannot combine with evidence overlay")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
     info = bench.get_info(fun_name, fun_id)
     problem_id = _problem_id(fun_name, fun_id)
-    mos_sampling_rows: list[dict[str, object]] = []
-    mos_phase_i_record_sha256 = ""
-    mos_phase_i_candidate_sha256 = ""
-    mos_first_cma_prestate_status = "not_reached"
-    mos_first_cma_prestate_sha256 = ""
-    mos_rng_descriptor_sha256 = ""
     grouping_result = load_runtime_grouping(
         fun_id,
         config.aob_data_root,
@@ -6059,58 +2722,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         if evidence_overlay_enabled
         else None
     )
-    hypergraph_trace_enabled = config.hypergraph_trace_mode == "observer"
-    hypergraph_observer: HypergraphTraceObserver | None = None
-    hypergraph_observer_active = False
-    hypergraph_initialization_error: BaseException | None = None
-    if hypergraph_trace_enabled:
-        try:
-            hypergraph_observer = HypergraphTraceObserver(
-                topology=build_overlap_hypergraph(grouping_result),
-                problem_id=problem_id,
-                seed=config.seed,
-                run_id=config.run_id,
-                fresh_optimizer_execution=True,
-                lower_bound=float(info["lower"]),
-                upper_bound=float(info["upper"]),
-                rng_descriptor_sha256=_canonical_payload_sha256(
-                    {
-                        "base_seed": 0 if config.seed is None else int(config.seed),
-                        "function_name": fun_name,
-                        "function_id": int(fun_id),
-                        "max_fes": int(config.max_fes),
-                        "optimizer_seed_schedule": (
-                            "derive_optimizer_seed_stage_index_v1"
-                        ),
-                        "cmaes_restart": bool(config.cmaes_restart),
-                        "mmes_restart": bool(config.mmes_restart),
-                    }
-                ),
-                protocol_config_path=(
-                    ARAC_REPO_ROOT
-                    / "configs"
-                    / "hypergraph_delayed_credit_v1.json"
-                ),
-                protocol_spec_path=(
-                    ARAC_REPO_ROOT
-                    / "docs"
-                    / "design"
-                    / "hypergraph-delayed-credit-v1.md"
-                ),
-                runner_source_path=Path(__file__),
-                terminal_target_fe=config.max_fes,
-                terminal_completion_tolerance_fe=(
-                    terminal_completion_tolerance_fe
-                ),
-            )
-            hypergraph_observer_active = True
-        except Exception as error:
-            hypergraph_initialization_error = error
-            print(
-                "hypergraph observer disabled after initialization failure: "
-                f"{type(error).__name__}: {error}",
-                file=sys.stderr,
-            )
     _, overlap_groups, overlapping_elements = remove_overlapping_groups(grouping_result)
     degree = calculate_runtime_overlap_degree(
         overlap_groups,
@@ -6120,142 +2731,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         evidence_overlay_mode=config.evidence_overlay_mode,
     )
     global_fes = calculate_global_fes(config.max_fes, degree)
-    controller_v31_run_state = (
-        build_evidence_action_controller_v31_run_state(
-            degree,
-            action_name=config.arac_action,
-        )
-        if (
-            is_risk_aware_evidence_action_controller(config.arac_action)
-            or is_evidence_action_controller_v35(config.arac_action)
-            or is_evidence_action_controller_v36(config.arac_action)
-            or is_evidence_action_controller_v37(config.arac_action)
-            or is_evidence_action_controller_v38(config.arac_action)
-            or is_evidence_action_controller_v39(config.arac_action)
-            or is_evidence_action_controller_v40(config.arac_action)
-            or is_evidence_action_controller_v41(config.arac_action)
-        )
-        else build_evidence_action_controller_v31_run_state(degree)
-        if (
-            is_evidence_action_controller_v31(config.arac_action)
-            or is_evidence_action_controller_v32(config.arac_action)
-        )
-        else None
+    controller_v31_run_state = build_evidence_action_controller_v31_run_state(
+        degree,
+        action_name=config.arac_action,
     )
-    if is_separable_cmaes_dispatch_action(config.arac_action):
-        best_individual = np.zeros(info["dimension"])
-        phase_i_fitness = math.inf
-        sum_fes = 0
-        global_phase_fe = 0
-        if global_fes != 0:
-            problem = {
-                "fitness_function": fun,
-                "ndim_problem": info["dimension"],
-                "lower_boundary": info["lower"] * np.ones((info["dimension"],)),
-                "upper_boundary": info["upper"] * np.ones((info["dimension"],)),
-            }
-            options = {
-                "max_function_evaluations": global_fes,
-                "mean": (best_individual,),
-                "sigma": config.sigma,
-                "is_restart": config.mmes_restart,
-                "verbose": config.verbose,
-                "arac_search_state_action": SEPARABLE_CMAES_DISPATCH_ACTION,
-                "arac_guard_source": "phase_i_mmes_incumbent",
-            }
-            if config.seed is not None:
-                options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
-            phase_i_evaluations_before = current_fitness_evaluations(fun)
-            phase_i_results = MMES(problem, options).optimize()
-            best_individual = np.asarray(phase_i_results["best_so_far_x"], dtype=float).copy()
-            phase_i_fitness = float(phase_i_results["best_so_far_y"])
-            global_phase_fe = observed_optimizer_fe(
-                fun,
-                evaluations_before=phase_i_evaluations_before,
-                optimizer_reported_fe=phase_i_results["n_function_evaluations"],
-            )
-            sum_fes += global_phase_fe
-        else:
-            phase_i_fitness = float(fun(best_individual)[0])
-            sum_fes += 1
-
-        reported_current_fe = (
-            sum_fes
-            if config.budget_accounting == "source"
-            else current_fitness_evaluations(fun)
-        )
-        current_fe = max(reported_current_fe, current_fitness_evaluations(fun))
-        remaining_fes = max(0, config.max_fes - current_fe)
-        result = run_direct_separable_cmaes_dispatch(
-            fun=fun,
-            info=info,
-            config=config,
-            fun_name=fun_name,
-            fun_id=fun_id,
-            initial_mean=best_individual,
-            incumbent_fitness=phase_i_fitness,
-            max_function_evaluations=remaining_fes,
-        )
-        separable_fe = int(result["n_function_evaluations"])
-        sum_fes += separable_fe
-        best_y = float(result["best_so_far_y"])
-        candidate_x = np.asarray(result["best_so_far_x"], dtype=float).copy()
-        action_value_delta_norm = float(np.linalg.norm(candidate_x - best_individual))
-        accepted = bool(best_y < phase_i_fitness)
-        if accepted:
-            best_individual = candidate_x.copy()
-        population_size = int(result["population_size"])
-        action_trace_rows = [
-            build_action_trace_row(
-                problem_id=problem_id,
-                seed=config.seed,
-                outer_iter=0,
-                group_index=0,
-                selected_action_name=SEPARABLE_CMAES_DISPATCH_ACTION,
-                overlap_size=0,
-                previous_delta=0.0,
-                current_delta=max(0.0, phase_i_fitness - best_y),
-                state_mutated=accepted,
-                action_value_delta_norm=action_value_delta_norm,
-                downstream_consumed=False,
-                search_state_action_type=SEPARABLE_CMAES_DISPATCH_ACTION,
-                sigma_before=SEPARABLE_CMAES_INITIAL_SIGMA,
-                sigma_after=float(result["sigma_mean"]),
-                population_before=population_size,
-                population_after=population_size,
-                escape_budget=separable_fe,
-                bipop_restart_mode="phase_i_warm_started_direct_full_space_diagonal_separable_cmaes",
-                restart_triggered=separable_fe > 0,
-                restart_accepted=accepted,
-                best_before=phase_i_fitness,
-                restart_candidate_best=best_y,
-                restart_relative_improvement=bipop_relative_improvement(
-                    candidate_best=best_y,
-                    incumbent_fitness=phase_i_fitness,
-                ),
-                restart_acceptance_threshold=0.0,
-                best_after=best_y if accepted else phase_i_fitness,
-            )
-        ]
-        _write_overlap_relation_trace(
-            case_artifact_path(output_path, problem_id, "overlap_relations.csv"),
-            [],
-        )
-        _write_budget_summary(
-            case_artifact_path(output_path, problem_id, "budget_summary.csv"),
-            problem_id=problem_id,
-            budget_accounting=config.budget_accounting,
-            max_fes=config.max_fes,
-            optimizer_reported_fe=sum_fes,
-            fitness_record_fe=current_fitness_evaluations(fun),
-            global_phase_fe=global_phase_fe,
-            separable_continuation_fe=separable_fe,
-        )
-        print(
-            f"{problem_id} separable CMA-ES warm-start dispatch completed: "
-            f"phase_i={sum_fes - separable_fe} FEs, continuation={separable_fe} FEs"
-        )
-        return fun.fitness_record, time.time() - time_start, action_trace_rows
     best_individual = np.zeros(info["dimension"])
     trajectory_mean_cache: dict[int, float] = {}
     sum_fes = 0
@@ -6268,114 +2747,23 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     relations: list[OverlapRelation] = []
     action_decisions: list[RelationActionDecision] = []
     previous_group_contribution_credit: list[float] = []
-    car_artifacts_enabled = is_car_w_family_action(config.arac_action)
-    car_probe_enabled = car_artifacts_enabled and any(overlapping_elements)
-    car_probe_attempted = False
-    car_proposal_sweeps: list[tuple[CARRelationProposal, ...]] = []
-    car_current_proposals: list[CARRelationProposal] = []
-    car_probe_trace_rows: list[dict[str, str]] = []
-    car_state_ledger_rows: list[dict[str, str]] = []
-    car_branch_manifest_rows: list[dict[str, str]] = []
-    car_actionability_trace_base_row: dict[str, str] | None = None
-    car_probe_fe = 0
-    precision_causal_enabled = config.precision_causal_arm != "off"
-    precision_causal_snapshot: PrecisionCausalDecisionSnapshot | None = None
-    precision_causal_attempted = False
-    precision_causal_saw_retirement = False
-    precision_causal_saw_overlap_component = False
-    precision_causal_saw_reachable_opportunity = False
-    precision_causal_last_incomplete_reason = ""
-    precision_causal_action_applied = False
-    precision_causal_applied_sigma: float | None = None
-    precision_causal_requested_fe = 0
-    precision_causal_actual_fe = 0
-    precision_causal_intervention_end_fe: int | None = None
-    precision_causal_run_random_descriptor_sha256 = _canonical_payload_sha256(
-        {
-            "base_seed": 0 if config.seed is None else int(config.seed),
-            "function_name": fun_name,
-            "function_id": int(fun_id),
-            "max_fes": int(config.max_fes),
-            "optimizer_seed_schedule": "derive_optimizer_seed_stage_index_v1",
-            "cmaes_restart": bool(config.cmaes_restart),
-            "mmes_restart": bool(config.mmes_restart),
-        }
-    )
-    precision_cc_progress_history: list[float] = []
-    precision_cc_source_end_fes: list[int] = []
-    precision_cma_history: dict[int, list[CMATraceOnlyDiagnostic]] = {}
-    precision_component_disagreement_history: dict[
-        str, list[tuple[int, float]]
-    ] = {}
-    precision_current_component_disagreements: dict[str, list[float]] = {}
-    precision_response_enabled = config.precision_response_arm != "off"
-    precision_response_config = (
-        load_precision_response_config() if precision_response_enabled else None
-    )
-    precision_response_attempted = False
-    precision_response_saw_overlap = False
-    precision_response_last_reason = ""
-    precision_response_trace_row: dict[str, str] | None = None
-    precision_response_gate_state: PrecisionProbeGateState | None = None
-    precision_response_gate_decision: PrecisionProbeGateDecision | None = None
-    precision_response_probe_result: PairedHccCMAProbeResult | None = None
-    precision_response_probe_audit_rows: list[dict[str, str]] = []
-    precision_response_probe_fe = 0
     evidence_overlay_fe = 0
     evidence_overlay_barrier_attempted = False
     evidence_overlay_frozen_sub_fes: int | None = None
     evidence_overlay_probe_slice: tuple[int, int] | None = None
     evidence_overlay_runtime_failure: BaseException | None = None
     evidence_overlay_has_overlap = bool(any(overlapping_elements))
-    precision_response_lease_applied = False
-    precision_response_lease_row: dict[str, str] | None = None
-    precision_response_lease_group_index: int | None = None
-    precision_response_lease_diversity = 0.0
-    precision_response_prior_group_progress = 0.0
-    precision_response_group_progress: dict[int, float] = {}
-    precision_response_group_visits = [0 for _ in grouping_result]
-    component_atomic_enabled = config.component_precision_arm != "off"
-    component_atomic_topology = (
-        build_overlap_components(grouping_result) if component_atomic_enabled else None
-    )
-    component_atomic_state: ComponentAtomicRuntimeState | None = None
-    component_atomic_once_consumed = False
-    component_atomic_saw_shared_overlap = bool(
-        component_atomic_topology is not None
-        and any(
-            component.shared_variables
-            for component in component_atomic_topology.components
-        )
-    )
-    component_atomic_last_reason = ""
-    component_atomic_group_visits = [0 for _ in grouping_result]
-    component_atomic_plan_evaluation_count = 0
     group_stagnation_counts = [0 for _ in grouping_result]
     bipop_global_cooldown = 0
     bipop_restart_count = 0
     bipop_rejected_restart_streak = 0
     guarded_incumbent = best_individual.copy()
     guarded_incumbent_fitness = math.inf
-    cc_harm_guard_consumed = False
-    evidence_controller_search_state_enabled = (
+    phase_rescue_enabled = (
         controller_v31_run_state.phase_rescue_enabled
         if controller_v31_run_state is not None
         else False
     )
-    component_credit_trace = (
-        ComponentDelayedCreditTrace(
-            grouping_result,
-            lower=float(info["lower"]),
-            upper=float(info["upper"]),
-        )
-        if (
-            uses_component_credit_state(config.arac_action)
-            or precision_causal_enabled
-            or precision_response_enabled
-        )
-        else None
-    )
-
     if global_fes != 0:
         problem = {
             "fitness_function": fun,
@@ -6392,18 +2780,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         }
         if config.seed is not None:
             options["seed_rng"] = derive_optimizer_seed(config.seed, fun_name, fun_id, 0, 0)
-        phase_i_optimizer = MMES(problem, options)
         phase_i_evaluations_before = current_fitness_evaluations(fun)
-        capture_phase_i_state = (
-            config.search_state_backend == "phase_i_mmes"
-            and uses_resumable_phase_i_state_during_run(config.arac_action)
-        )
-        if not capture_phase_i_state:
-            results = phase_i_optimizer.optimize()
-        else:
-            results, phase_i_state = phase_i_optimizer.optimize_with_state()
-            controller_v31_run_state.phase_i_optimizer = phase_i_optimizer
-            controller_v31_run_state.phase_i_state = phase_i_state
+        results = MMES(problem, options).optimize()
         best_individual = results["best_so_far_x"].copy()
         guarded_incumbent = best_individual.copy()
         guarded_incumbent_fitness = float(results["best_so_far_y"])
@@ -6421,66 +2799,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     calculate_cmaes_population_size(int(info["dimension"])),
                 )
             )
-    elif is_cc_harm_guarded_sep_refresh_action(config.arac_action):
-        guarded_incumbent_fitness = float(fun(best_individual)[0])
-
-    pre_hold_evidence_snapshot: PreHoldEvidence | None = None
-    overlap_edge_count = sum(1 for shared in overlapping_elements if shared)
-    if controller_v31_run_state is not None:
-        pre_hold_current_fes = (
-            sum_fes
-            if config.budget_accounting == "source"
-            else current_fitness_evaluations(fun)
-        )
-        pre_hold_remaining_fes = max(0, config.max_fes - pre_hold_current_fes)
-        pre_hold_evidence_snapshot = build_pre_hold_evidence(
-            phase_i_tail_utility=(
-                controller_v31_run_state.phase_i_runtime_tail_utility
-            ),
-            group_sizes=tuple(len(group) for group in grouping_result),
-            overlapping_elements=tuple(
-                tuple(int(variable) for variable in shared)
-                for shared in overlapping_elements
-            ),
-            dimension=int(info["dimension"]),
-            remaining_fes=pre_hold_remaining_fes,
-            max_fes=config.max_fes,
-            scheduled_hold_fes=scheduled_search_state_hold_fes(
-                config,
-                controller_v31_run_state.search_state_scheduler_state,
-                overlap_edge_count=overlap_edge_count,
-            ),
-        )
-
-    if mos_profile_enabled:
-        mos_phase_i_record_sha256 = _fitness_record_sha256(
-            tuple(float(value) for value in fun.fitness_record)
-        )
-        mos_phase_i_candidate_sha256 = _canonical_payload_sha256(
-            tuple(float(value) for value in best_individual)
-        )
-        mos_rng_descriptor_sha256 = _canonical_payload_sha256(
-            {
-                "protocol_version": MOS_STABILITY_PROTOCOL_VERSION,
-                "base_seed": int(config.seed),
-                "function_name": fun_name,
-                "function_id": int(fun_id),
-                "max_fes": int(config.max_fes),
-                "optimizer_seed_schedule": "derive_optimizer_seed_stage_index_v1",
-                "phase_i_seed": derive_optimizer_seed(
-                    config.seed,
-                    fun_name,
-                    fun_id,
-                    0,
-                    0,
-                ),
-                "cmaes_restart": bool(config.cmaes_restart),
-                "mmes_restart": bool(config.mmes_restart),
-            }
-        )
-
     outer_iter = 0
-    previous_rule_relation_action: RelationActionDecision | None = None
     while (
         sum_fes if config.budget_accounting == "source" else current_fitness_evaluations(fun)
     ) < config.max_fes:
@@ -6491,32 +2810,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             max_fes=config.max_fes,
             sum_fes=current_fes,
         )
-        sweep_incumbent_before = guarded_incumbent_fitness
-        sweep_fes_before = current_fitness_evaluations(fun)
         sub_num = len(grouping_result)
-        held_search_state_fes = (
-            scheduled_search_state_hold_fes(
-                config,
-                controller_v31_run_state.search_state_scheduler_state,
-                overlap_edge_count=overlap_edge_count,
-            )
-            if controller_v31_run_state is not None
-            else 0
-        )
-        cc_budget_limit_fes = max(
-            current_fes,
-            config.max_fes
-            - held_search_state_fes
-            - (
-                int(math.floor(config.max_fes * CAR_W_PROBE_BUDGET_FRACTION))
-                if (
-                    is_car_w_action(config.arac_action)
-                    and car_probe_enabled
-                    and not car_probe_attempted
-                )
-                else 0
-            ),
-        )
+        cc_budget_limit_fes = config.max_fes
         population_sizes = [
             calculate_cmaes_population_size(len(dims)) for dims in grouping_result
         ]
@@ -6556,78 +2851,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if evidence_overlay_frozen_sub_fes is None:
                 evidence_overlay_frozen_sub_fes = overlay_sub_fes
             sub_fes = overlay_sub_fes
-        elif (
-            is_car_w_action(config.arac_action)
-            and car_probe_enabled
-            and not car_probe_attempted
-            and len(car_proposal_sweeps) < CAR_W_MIN_EVIDENCE_SWEEPS
-        ):
-            sweep_slots_remaining = CAR_W_MIN_EVIDENCE_SWEEPS - len(car_proposal_sweeps)
-            sub_fes = math.ceil(
-                max(0, cc_budget_limit_fes - current_fes)
-                / max(1, sub_num * (sweep_slots_remaining + 1))
-            )
         else:
             sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)
-        trajectory_budgets = []
-        trajectory_credit_ready = has_sufficient_trajectory_credit(previous_group_contribution_credit)
-        if uses_trajectory_budget_shift(config.arac_action) and trajectory_credit_ready:
-            trajectory_budgets = allocate_trajectory_group_budgets(
-                total_budget=config.max_fes - current_fes,
-                population_sizes=population_sizes,
-                overlap_support=calculate_group_overlap_support(
-                    grouping_result,
-                    overlapping_elements,
-                ),
-                contribution_credit=previous_group_contribution_credit,
-            )
         fitness_delta_list: list[float] = []
-        overlap_writeback_norms: list[float] = []
-        relative_writeback_norms: list[float] = []
         current_outer_relations: list[OverlapRelation] = []
-        current_outer_decisions: list[RelationActionDecision] = []
-        car_current_proposals = []
         optimized_any_group = False
         outer_stagnation_streak = 0
         for index, dims in enumerate(grouping_result):
-            precision_response_review_current_group = False
             population_size = population_sizes[index]
-            if (
-                component_atomic_state is not None
-                and component_atomic_state.atomic_closed
-                and component_atomic_state.endpoint_result is None
-                and _is_next_component_canonical_entry(
-                    decision_outer_iter=component_atomic_state.outer_iter,
-                    current_outer_iter=outer_iter,
-                    canonical_group_index=(
-                        component_atomic_state.plan.group_indices[0]
-                    ),
-                    current_group_index=index,
-                )
-            ):
-                next_shared_values = tuple(
-                    float(value)
-                    for value in best_individual[
-                        list(component_atomic_state.shared_indices)
-                    ]
-                )
-                component_atomic_state.endpoint_result = (
-                    build_component_endpoint_result(
-                        checkpoint_error=component_atomic_state.checkpoint_error,
-                        endpoint_error=float(component_atomic_state.endpoint_error),
-                        canonical_shared_path=(
-                            component_atomic_state.canonical_shared_path
-                        ),
-                        next_shared_values=next_shared_values,
-                    )
-                )
-                component_atomic_state.delayed_review_fe = (
-                    current_fitness_evaluations(fun)
-                )
-                component_atomic_state.delayed_review_outer_iter = outer_iter
-                component_atomic_state.delayed_review_group_index = index
-                component_atomic_state.delayed_shared_values = next_shared_values
-                component_atomic_state.delayed_status = "resolved_next_component_entry"
             if (
                 config.budget_accounting == "strict"
                 and cc_budget_limit_fes - current_fitness_evaluations(fun)
@@ -6635,9 +2866,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             ):
                 break
             group_interval_start_fe = current_fitness_evaluations(fun)
-            hypergraph_pre_block_candidate = (
-                best_individual.copy() if hypergraph_observer_active else None
-            )
             evidence_overlay_pre_block_candidate = (
                 best_individual.copy()
                 if evidence_overlay_observer is not None
@@ -6645,33 +2873,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
-            hypergraph_pre_error = original_fitness
             evidence_overlay_pre_error = original_fitness
-            if component_credit_trace is not None:
-                resolved_component_actions = component_credit_trace.resolve_group_revisit(
-                    group_index=index,
-                    resolution_fe=current_fitness_evaluations(fun),
-                    current_fitness=original_fitness,
-                    current_candidate=best_individual,
-                )
-                precision_response_review_current_group = bool(
-                    resolved_component_actions
-                    and precision_response_lease_row is not None
-                    and precision_response_lease_group_index == index
-                )
             if controller_v31_run_state is not None:
                 controller_v31_run_state.observe_pending_action_trust(
-                    post_writeback_fitness=original_fitness,
-                )
-                controller_v31_run_state.observe_pending_trajectory_guard(
                     post_writeback_fitness=original_fitness,
                 )
             if config.budget_accounting == "source":
                 optimizer_budget = sub_fes
             else:
                 requested_fes = max(sub_fes, population_size)
-                if trajectory_budgets:
-                    requested_fes = max(trajectory_budgets[index], population_size)
                 optimizer_budget = bounded_population_budget(
                     requested_fes=requested_fes,
                     remaining_fes=(
@@ -6679,816 +2889,16 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                     population_size=population_size,
                 )
-            if (
-                component_atomic_state is not None
-                and not component_atomic_state.atomic_closed
-            ):
-                position = component_atomic_state.next_group_position
-                if position >= len(component_atomic_state.plan.group_indices):
-                    raise RuntimeError("component atomic group position overflow")
-                expected_group = component_atomic_state.plan.group_indices[position]
-                if index != expected_group:
-                    raise RuntimeError(
-                        "component atomic group order diverged from frozen plan"
-                    )
-                expected_budget = component_atomic_state.plan.group_budgets[position]
-                if component_atomic_state.action_applied:
-                    reachable_budget = bounded_population_budget(
-                        requested_fes=expected_budget,
-                        remaining_fes=(
-                            cc_budget_limit_fes - current_fitness_evaluations(fun)
-                        ),
-                        population_size=population_size,
-                    )
-                    if reachable_budget != expected_budget:
-                        raise RuntimeError(
-                            "component atomic frozen budget became unreachable"
-                        )
-                    optimizer_budget = expected_budget
-                if optimizer_budget != expected_budget:
-                    raise RuntimeError(
-                        "component atomic baseline requested budget drift"
-                    )
             if optimizer_budget <= 0:
                 break
             cc_mean = np.asarray(best_individual[dims], dtype=float).copy()
-            if uses_trajectory_mean_blend(config.arac_action) and trajectory_credit_ready:
-                cc_mean, _, _ = blend_trajectory_mean(
-                    base_mean=cc_mean,
-                    dims=list(dims),
-                    variable_mean_cache=trajectory_mean_cache,
-                    lower=info["lower"],
-                    upper=info["upper"],
-                )
             primary_evaluations_before = current_fitness_evaluations(fun)
-            if (
-                component_atomic_enabled
-                and component_atomic_topology is not None
-                and component_atomic_state is None
-                and not component_atomic_once_consumed
-                and outer_iter >= 1
-                and component_atomic_group_visits[index] > 0
-                and controller_v31_run_state is not None
-                and controller_v31_run_state.v37_enabled
-            ):
-                atomic_component = component_atomic_topology.for_group(index)
-                component_atomic_saw_shared_overlap = bool(
-                    component_atomic_saw_shared_overlap
-                    or atomic_component.shared_variables
-                )
-                contiguous_groups = all(
-                    right == left + 1
-                    for left, right in zip(
-                        atomic_component.group_indices,
-                        atomic_component.group_indices[1:],
-                    )
-                )
-                candidate_feasible = bool(
-                    index == atomic_component.group_indices[0]
-                    and atomic_component.shared_variables
-                    and contiguous_groups
-                    and not controller_v31_run_state.dense_overlap
-                    and all(
-                        component_atomic_group_visits[group_index] > 0
-                        for group_index in atomic_component.group_indices
-                    )
-                )
-                normal_sigma = refine_sigma_for_action(
-                    config.arac_action,
-                    config.sigma,
-                    controller_v31_run_state=controller_v31_run_state,
-                    precision_reanchor_active=False,
-                )
-                precision_sigma = refine_sigma_for_action(
-                    config.arac_action,
-                    config.sigma,
-                    controller_v31_run_state=controller_v31_run_state,
-                    precision_reanchor_active=True,
-                )
-                frozen_group_budgets: tuple[int, ...] = ()
-                if candidate_feasible:
-                    frozen_group_budgets = _plan_component_group_budgets(
-                        group_indices=atomic_component.group_indices,
-                        current_group_index=index,
-                        current_optimizer_budget=optimizer_budget,
-                        current_group_budget_fe=sub_fes,
-                        population_sizes=tuple(population_sizes),
-                        decision_fe=primary_evaluations_before,
-                        cc_budget_limit_fe=cc_budget_limit_fes,
-                        terminal_target_fe=max(
-                            0,
-                            config.max_fes - terminal_completion_tolerance_fe,
-                        ),
-                    )
-                # A0 stays native v37; an active rescue can change later
-                # requested group budgets and invalidate the frozen pair.
-                auxiliary_fe_quiescent = bool(
-                    not controller_v31_run_state.phase_rescue_enabled
-                )
-                component_unlocked = bool(
-                    controller_v31_run_state.pending_trajectory_recovery is None
-                    and controller_v31_run_state.pending_action_trust is None
-                    and not cc_harm_guard_consumed
-                    and auxiliary_fe_quiescent
-                )
-                horizon_reachable = bool(
-                    len(frozen_group_budgets)
-                    == len(atomic_component.group_indices)
-                )
-                execution_group_indices = (
-                    atomic_component.group_indices if contiguous_groups else (index,)
-                )
-                component_atomic_plan_evaluation_count += 1
-                atomic_plan = plan_component_atomic_precision(
-                    candidate_feasible=candidate_feasible,
-                    component_unlocked=component_unlocked,
-                    horizon_reachable=horizon_reachable,
-                    once_lock_consumed=component_atomic_once_consumed,
-                    group_indices=execution_group_indices,
-                    group_budgets=(
-                        frozen_group_budgets
-                        if frozen_group_budgets
-                        else tuple(
-                            population_sizes[group_index]
-                            for group_index in execution_group_indices
-                        )
-                    ),
-                    population_sizes=tuple(
-                        population_sizes[group_index]
-                        for group_index in execution_group_indices
-                    ),
-                    normal_sigma=normal_sigma,
-                    precision_sigma=precision_sigma,
-                )
-                if index == atomic_component.group_indices[0]:
-                    if not atomic_component.shared_variables:
-                        component_atomic_last_reason = (
-                            "no_shared_overlap_component_candidate"
-                        )
-                    elif not contiguous_groups:
-                        component_atomic_last_reason = (
-                            "non_contiguous_component_not_supported"
-                        )
-                    elif controller_v31_run_state.dense_overlap:
-                        component_atomic_last_reason = (
-                            "dense_overlap_component_not_supported"
-                        )
-                    elif not all(
-                        component_atomic_group_visits[group_index] > 0
-                        for group_index in atomic_component.group_indices
-                    ):
-                        component_atomic_last_reason = (
-                            "component_prior_visit_incomplete"
-                        )
-                    elif not auxiliary_fe_quiescent:
-                        component_atomic_last_reason = (
-                            "active_auxiliary_fe_route"
-                        )
-                    else:
-                        component_atomic_last_reason = atomic_plan.reason
-                if atomic_plan.execute_precision:
-                    component_atomic_once_consumed = True
-                    prefix_sha256 = _fitness_record_sha256(
-                        tuple(float(value) for value in fun.fitness_record)
-                    )
-                    checkpoint_sha256 = _canonical_payload_sha256(
-                        tuple(float(value) for value in best_individual)
-                    )
-                    crn_sha256 = _canonical_payload_sha256(
-                        {
-                            "protocol": COMPONENT_PRECISION_PROTOCOL_VERSION,
-                            "base_seed": 0 if config.seed is None else int(config.seed),
-                            "function_name": fun_name,
-                            "function_id": int(fun_id),
-                            "decision_fe": primary_evaluations_before,
-                            "component_id": atomic_component.component_id,
-                            "group_indices": atomic_plan.group_indices,
-                            "group_budgets": atomic_plan.group_budgets,
-                            "population_sizes": atomic_plan.population_sizes,
-                            "optimizer_seed_schedule": (
-                                "derive_optimizer_seed_stage_index_v1"
-                            ),
-                        }
-                    )
-                    decision_id = _canonical_payload_sha256(
-                        {
-                            "protocol": COMPONENT_PRECISION_PROTOCOL_VERSION,
-                            "prefix": prefix_sha256,
-                            "checkpoint": checkpoint_sha256,
-                            "crn": crn_sha256,
-                        }
-                    )
-                    component_plan_sha256 = _component_atomic_plan_sha256(
-                        atomic_plan
-                    )
-                    shared_indices = tuple(atomic_component.shared_variables)
-                    checkpoint_archive_error = min(
-                        float(value)
-                        for value in fun.fitness_record[:primary_evaluations_before]
-                    )
-                    component_atomic_state = ComponentAtomicRuntimeState(
-                        plan=atomic_plan,
-                        component_id=atomic_component.component_id,
-                        decision_id=decision_id,
-                        decision_fe=primary_evaluations_before,
-                        outer_iter=outer_iter,
-                        prefix_record_sha256=prefix_sha256,
-                        checkpoint_candidate_sha256=checkpoint_sha256,
-                        crn_descriptor_sha256=crn_sha256,
-                        component_plan_sha256=component_plan_sha256,
-                        checkpoint_error=checkpoint_archive_error,
-                        shared_indices=shared_indices,
-                        canonical_shared_path=[
-                            tuple(
-                                float(value)
-                                for value in best_individual[list(shared_indices)]
-                            )
-                        ],
-                        action_applied=(
-                            config.component_precision_arm
-                            == "a1_precision_component_once"
-                        ),
-                        component_start_fe=primary_evaluations_before,
-                        plan_evaluation_count_at_start=(
-                            component_atomic_plan_evaluation_count
-                        ),
-                    )
-            precision_reanchor_requested = uses_post_retirement_precision_reanchor(
-                config.arac_action,
-                controller_v31_run_state,
-            )
-            precision_causal_candidate = bool(
-                precision_causal_enabled
-                and not precision_causal_attempted
-                and controller_v31_run_state is not None
-                and controller_v31_run_state.v37_enabled
-                and not controller_v31_run_state.dense_overlap
-                and controller_v31_run_state.phase_rescue_retired
-            )
-            precision_causal_saw_retirement = bool(
-                precision_causal_saw_retirement or precision_causal_candidate
-            )
-            scheduler_revisit_cap = (
-                calculate_scheduler_revisit_cap(
-                    sweep_start_fe=sweep_fes_before,
-                    decision_fe=primary_evaluations_before,
-                    cc_budget_limit_fe=cc_budget_limit_fes,
-                    current_group_index=index,
-                    current_sweep_group_budget_fe=sub_fes,
-                    current_optimizer_budget_fe=optimizer_budget,
-                    group_population_sizes=tuple(population_sizes),
-                )
-                if component_credit_trace is not None
-                and (precision_reanchor_requested or precision_causal_candidate)
-                else None
-            )
-            component_lease_eligibility = (
-                component_credit_trace.component_lease_eligibility(
-                    group_index=index,
-                    scheduler_revisit_cap=scheduler_revisit_cap,
-                )
-                if (
-                    is_evidence_action_controller_v41(config.arac_action)
-                    or precision_causal_candidate
-                )
-                and component_credit_trace is not None
-                and scheduler_revisit_cap is not None
-                else None
-            )
-            precision_causal_action_active = False
-            precision_causal_candidate_snapshot = None
-            precision_causal_candidate_reason = ""
-            precision_causal_shared_component = False
-            precision_causal_cc_history_count = 0
-            precision_causal_disagreement_history_count = 0
-            precision_causal_cma_history_count = 0
-            if precision_causal_candidate and component_credit_trace is not None:
-                component = component_credit_trace.topology.for_group(index)
-                precision_causal_shared_component = bool(component.shared_variables)
-                precision_causal_cc_history_count = len(
-                    precision_cc_progress_history
-                )
-                precision_causal_disagreement_history_count = len(
-                    precision_component_disagreement_history.get(
-                        component.component_id,
-                        [],
-                    )
-                )
-                precision_causal_cma_history_count = len(
-                    precision_cma_history.get(index, [])
-                )
-                precision_causal_saw_overlap_component = bool(
-                    precision_causal_saw_overlap_component
-                    or component.shared_variables
-                )
-                if not component.shared_variables:
-                    precision_causal_candidate_reason = (
-                        "no_shared_overlap_component_candidate"
-                    )
-                elif scheduler_revisit_cap is None:
-                    precision_causal_candidate_reason = (
-                        "scheduler_revisit_cap_unavailable"
-                    )
-                elif not scheduler_revisit_cap.reachable:
-                    precision_causal_candidate_reason = scheduler_revisit_cap.reason
-                elif component_lease_eligibility is None:
-                    precision_causal_candidate_reason = (
-                        "component_lease_eligibility_unavailable"
-                    )
-                elif not component_lease_eligibility.selected:
-                    precision_causal_candidate_reason = (
-                        component_lease_eligibility.reason
-                    )
-                else:
-                    normal_sigma = refine_sigma_for_action(
-                        config.arac_action,
-                        config.sigma,
-                        controller_v31_run_state=controller_v31_run_state,
-                        precision_reanchor_active=False,
-                    )
-                    candidate_sigma = refine_sigma_for_action(
-                        config.arac_action,
-                        config.sigma,
-                        controller_v31_run_state=controller_v31_run_state,
-                        precision_reanchor_active=True,
-                    )
-                    controller_state_sha256 = _canonical_payload_sha256(
-                        {
-                            "controller_state": _car_controller_state_payload(
-                                controller_v31_run_state,
-                                trajectory_mean_cache=trajectory_mean_cache,
-                                previous_group_contribution_credit=(
-                                    previous_group_contribution_credit
-                                ),
-                            ),
-                            "outer_iter": outer_iter,
-                            "group_index": index,
-                            "current_sweep_fitness_deltas": tuple(
-                                float(value) for value in fitness_delta_list
-                            ),
-                            "current_sweep_overlap_writeback_norms": tuple(
-                                float(value) for value in overlap_writeback_norms
-                            ),
-                            "current_sweep_relative_writeback_norms": tuple(
-                                float(value) for value in relative_writeback_norms
-                            ),
-                            "checkpoint_candidate": tuple(
-                                float(value) for value in best_individual
-                            ),
-                            "guarded_incumbent": tuple(
-                                float(value) for value in guarded_incumbent
-                            ),
-                            "group_stagnation_counts": tuple(
-                                int(value) for value in group_stagnation_counts
-                            ),
-                            "bipop_global_cooldown": int(bipop_global_cooldown),
-                            "bipop_restart_count": int(bipop_restart_count),
-                            "bipop_rejected_restart_streak": int(
-                                bipop_rejected_restart_streak
-                            ),
-                            "cc_progress_history": list(
-                                precision_cc_progress_history
-                            ),
-                            "cc_source_end_fes": precision_cc_source_end_fes,
-                            "component_disagreement_history": (
-                                precision_component_disagreement_history.get(
-                                    component.component_id,
-                                    [],
-                                )
-                            ),
-                            "cma_history": [
-                                asdict(value)
-                                for value in precision_cma_history.get(index, [])
-                            ],
-                        }
-                    )
-                    checkpoint_candidate_sha256 = _canonical_payload_sha256(
-                        tuple(float(value) for value in best_individual)
-                    )
-                    stage_index = outer_iter * sub_num + index + 1
-                    random_descriptor_sha256 = _canonical_payload_sha256(
-                        {
-                            "run_random_descriptor_sha256": (
-                                precision_causal_run_random_descriptor_sha256
-                            ),
-                            "base_seed": (
-                                0 if config.seed is None else int(config.seed)
-                            ),
-                            "optimizer_seed": derive_optimizer_seed(
-                                0 if config.seed is None else int(config.seed),
-                                fun_name,
-                                fun_id,
-                                0,
-                                stage_index,
-                            ),
-                            "stage_index": stage_index,
-                            "population_size": population_size,
-                            "requested_fe": optimizer_budget,
-                            "cmaes_restart": bool(config.cmaes_restart),
-                        }
-                    )
-                    precision_causal_candidate_snapshot = (
-                        build_precision_causal_snapshot(
-                            checkpoint_fitness=original_fitness,
-                            decision_fe=primary_evaluations_before,
-                            max_fes=config.max_fes,
-                            phase_i_tail_progress_rate=(
-                                controller_v31_run_state.phase_i_runtime_tail_utility
-                            ),
-                            phase_i_source_end_fe=global_phase_fe,
-                            cc_progress_history=precision_cc_progress_history,
-                            cc_source_end_fes=precision_cc_source_end_fes,
-                            component_disagreement_history=(
-                                precision_component_disagreement_history.get(
-                                    component.component_id,
-                                    [],
-                                )
-                            ),
-                            cma_history=precision_cma_history.get(index, []),
-                            grouping_result=grouping_result,
-                            dimension=int(info["dimension"]),
-                            component=component,
-                            scheduler_revisit_cap=scheduler_revisit_cap,
-                            controller_state_sha256=controller_state_sha256,
-                            prefix_record_sha256=_fitness_record_sha256(
-                                tuple(float(value) for value in fun.fitness_record)
-                            ),
-                            checkpoint_candidate_sha256=(
-                                checkpoint_candidate_sha256
-                            ),
-                            random_descriptor_sha256=random_descriptor_sha256,
-                            normal_sigma=normal_sigma,
-                            candidate_sigma=candidate_sigma,
-                        )
-                    )
-                    precision_causal_saw_reachable_opportunity = True
-                    if precision_causal_candidate_snapshot.state is None:
-                        precision_causal_last_incomplete_reason = (
-                            precision_causal_candidate_snapshot.not_applicable_reason
-                        )
-                        precision_causal_candidate_reason = (
-                            precision_causal_candidate_snapshot.not_applicable_reason
-                        )
-                    else:
-                        precision_causal_candidate_reason = "snapshot_complete"
-                        (
-                            precision_causal_snapshot,
-                            precision_causal_action_active,
-                        ) = select_first_complete_precision_snapshot(
-                            precision_causal_snapshot,
-                            precision_causal_candidate_snapshot,
-                            audit_arm=config.precision_causal_arm,
-                        )
-                        precision_causal_attempted = True
-            precision_response_lease_active = False
-            precision_response_candidate = False
-            precision_response_revisit_cap = None
-            precision_response_lease_eligibility = None
-            if (
-                precision_response_enabled
-                and not precision_response_attempted
-                and precision_response_config is not None
-                and controller_v31_run_state is not None
-                and controller_v31_run_state.v37_enabled
-                and not controller_v31_run_state.dense_overlap
-                and outer_iter >= 1
-                and precision_response_group_visits[index] > 0
-                and controller_v31_run_state.search_state_scheduler_state.phase
-                in {SEARCH_STATE_INITIAL_PROBE, SEARCH_STATE_BLOCKED}
-                and controller_v31_run_state.pending_trajectory_recovery is None
-                and controller_v31_run_state.pending_action_trust is None
-                and component_credit_trace is not None
-            ):
-                response_component = component_credit_trace.topology.for_group(index)
-                precision_response_saw_overlap = bool(
-                    precision_response_saw_overlap or response_component.shared_variables
-                )
-                if not response_component.shared_variables:
-                    precision_response_last_reason = (
-                        "no_shared_overlap_component_candidate"
-                    )
-                else:
-                    adjusted_optimizer_budget = bounded_population_budget(
-                        requested_fes=max(sub_fes, population_size),
-                        remaining_fes=(
-                            cc_budget_limit_fes
-                            - primary_evaluations_before
-                            - precision_response_config.probe_fe
-                        ),
-                        population_size=population_size,
-                    )
-                    if adjusted_optimizer_budget < population_size:
-                        precision_response_last_reason = (
-                            "probe_reserve_leaves_no_complete_group_block"
-                        )
-                    else:
-                        precision_response_revisit_cap = calculate_scheduler_revisit_cap(
-                            sweep_start_fe=sweep_fes_before,
-                            decision_fe=(
-                                primary_evaluations_before
-                                + precision_response_config.probe_fe
-                            ),
-                            cc_budget_limit_fe=cc_budget_limit_fes,
-                            current_group_index=index,
-                            current_sweep_group_budget_fe=sub_fes,
-                            current_optimizer_budget_fe=adjusted_optimizer_budget,
-                            group_population_sizes=tuple(population_sizes),
-                        )
-                        precision_response_lease_eligibility = (
-                            component_credit_trace.component_lease_eligibility(
-                                group_index=index,
-                                scheduler_revisit_cap=precision_response_revisit_cap,
-                            )
-                        )
-                        if not precision_response_revisit_cap.reachable:
-                            precision_response_last_reason = (
-                                precision_response_revisit_cap.reason
-                            )
-                        elif not precision_response_lease_eligibility.selected:
-                            precision_response_last_reason = (
-                                precision_response_lease_eligibility.reason
-                            )
-                        else:
-                            precision_response_candidate = True
-                            precision_response_attempted = True
-                            response_decision_fe = primary_evaluations_before
-                            response_prefix_sha256 = _fitness_record_sha256(
-                                tuple(float(value) for value in fun.fitness_record)
-                            )
-                            response_checkpoint_sha256 = _canonical_payload_sha256(
-                                tuple(float(value) for value in best_individual)
-                            )
-                            response_decision_id = _canonical_payload_sha256(
-                                {
-                                    "protocol": PRECISION_RESPONSE_PROTOCOL_VERSION,
-                                    "prefix": response_prefix_sha256,
-                                    "checkpoint": response_checkpoint_sha256,
-                                    "decision_fe": response_decision_fe,
-                                }
-                            )
-                            response_normal_sigma = refine_sigma_for_action(
-                                config.arac_action,
-                                config.sigma,
-                                controller_v31_run_state=controller_v31_run_state,
-                                precision_reanchor_active=False,
-                            )
-                            response_precision_sigma = refine_sigma_for_action(
-                                config.arac_action,
-                                config.sigma,
-                                controller_v31_run_state=controller_v31_run_state,
-                                precision_reanchor_active=True,
-                            )
-                            response_probe_seed = derive_optimizer_seed(
-                                0 if config.seed is None else config.seed,
-                                fun_name,
-                                fun_id,
-                                97,
-                                outer_iter * sub_num + index + 1,
-                            )
-                            precision_response_prior_group_progress = (
-                                precision_response_group_progress.get(index, 0.0)
-                            )
-                            precision_response_trace_row = {
-                                "protocol_version": PRECISION_RESPONSE_PROTOCOL_VERSION,
-                                "fresh_optimizer_execution": "1",
-                                "problem_id": problem_id,
-                                "seed": "" if config.seed is None else str(config.seed),
-                                "response_arm": config.precision_response_arm,
-                                "decision_id": response_decision_id,
-                                "decision_status": "applicable",
-                                "not_applicable_reason": "",
-                                "decision_fe": str(response_decision_fe),
-                                "outer_iter": str(outer_iter),
-                                "group_index": str(index),
-                                "component_id": response_component.component_id,
-                                "prefix_record_sha256": response_prefix_sha256,
-                                "checkpoint_candidate_sha256": (
-                                    response_checkpoint_sha256
-                                ),
-                                "probe_seed": str(response_probe_seed),
-                                "probe_executed": "0",
-                                "probe_fe": "0",
-                                "normal_sigma": f"{response_normal_sigma:.17e}",
-                                "precision_sigma": f"{response_precision_sigma:.17e}",
-                                "normal_direction_sha256": "",
-                                "precision_direction_sha256": "",
-                                "gate_state_sha256": "",
-                                "gate_would_release": "0",
-                                "lease_applied": "0",
-                                "gate_reason": "a0_shadow_opportunity",
-                                "main_requested_fe": str(optimizer_budget),
-                                "main_actual_fe": "",
-                                "intervention_end_fe": "",
-                                "delayed_credit_status": "not_released",
-                            }
-                            if config.precision_response_arm != "a0_v37":
-                                response_context = best_individual.copy()
-
-                                def response_objective(x_batch, dims=dims):
-                                    return fun(combine(x_batch, response_context, dims))
-
-                                precision_response_probe_result = (
-                                    run_paired_hcc_cma_probe(
-                                        fitness_function=response_objective,
-                                        mean=cc_mean,
-                                        lower=float(info["lower"]),
-                                        upper=float(info["upper"]),
-                                        normal_sigma=response_normal_sigma,
-                                        precision_sigma=response_precision_sigma,
-                                        seed=response_probe_seed,
-                                        pair_count=precision_response_config.pair_count,
-                                    )
-                                )
-                                if (
-                                    precision_response_probe_result.total_fe
-                                    != precision_response_config.probe_fe
-                                ):
-                                    raise RuntimeError(
-                                        "precision response probe FE contract drift"
-                                    )
-                                precision_response_probe_fe += (
-                                    precision_response_probe_result.total_fe
-                                )
-                                sum_fes += precision_response_probe_result.total_fe
-                                optimizer_budget = adjusted_optimizer_budget
-                                primary_evaluations_before = (
-                                    current_fitness_evaluations(fun)
-                                )
-                                normal_probe = precision_response_probe_result.normal
-                                precision_probe = (
-                                    precision_response_probe_result.precision
-                                )
-                                precision_response_gate_state = (
-                                    build_precision_probe_gate_state(
-                                        normal_errors=normal_probe.objectives,
-                                        precision_errors=precision_probe.objectives,
-                                        checkpoint_error=original_fitness,
-                                        direction_hash_match=(
-                                            precision_response_probe_result.direction_hash_match
-                                        ),
-                                        standardized_diversity_ratio=(
-                                            precision_response_probe_result.standardized_diversity_ratio
-                                        ),
-                                        normal_boundary_hit_count=(
-                                            normal_probe.boundary_hit_count
-                                        ),
-                                        precision_boundary_hit_count=(
-                                            precision_probe.boundary_hit_count
-                                        ),
-                                        config=precision_response_config,
-                                    )
-                                )
-                                precision_response_gate_decision = decide_precision_probe(
-                                    precision_response_gate_state,
-                                    precision_response_config,
-                                )
-                                precision_response_lease_active = bool(
-                                    config.precision_response_arm == "a2_probe_gated"
-                                    and precision_response_gate_decision.release
-                                )
-                                precision_response_trace_row.update(
-                                    {
-                                        "probe_executed": "1",
-                                        "probe_fe": str(
-                                            precision_response_probe_result.total_fe
-                                        ),
-                                        "normal_direction_sha256": (
-                                            normal_probe.direction_sha256
-                                        ),
-                                        "precision_direction_sha256": (
-                                            precision_probe.direction_sha256
-                                        ),
-                                        "gate_state_sha256": (
-                                            precision_response_gate_decision.state_sha256
-                                        ),
-                                        "gate_would_release": str(
-                                            int(precision_response_gate_decision.release)
-                                        ),
-                                        "lease_applied": str(
-                                            int(precision_response_lease_active)
-                                        ),
-                                        "gate_reason": (
-                                            precision_response_gate_decision.reason
-                                        ),
-                                        "main_requested_fe": str(optimizer_budget),
-                                        "delayed_credit_status": (
-                                            "pending"
-                                            if precision_response_lease_active
-                                            else "not_released"
-                                        ),
-                                    }
-                                )
-                                best_probe = min(
-                                    (normal_probe, precision_probe),
-                                    key=lambda arm: arm.best_objective,
-                                )
-                                if best_probe.best_objective < guarded_incumbent_fitness:
-                                    guarded_probe = response_context.copy()
-                                    guarded_probe[dims] = best_probe.best_candidate
-                                    guarded_incumbent = guarded_probe
-                                    guarded_incumbent_fitness = best_probe.best_objective
-                                for pair_index in range(
-                                    precision_response_config.pair_count
-                                ):
-                                    precision_response_probe_audit_rows.append(
-                                        {
-                                            "protocol_version": PRECISION_RESPONSE_PROTOCOL_VERSION,
-                                            "problem_id": problem_id,
-                                            "seed": "" if config.seed is None else str(config.seed),
-                                            "response_arm": config.precision_response_arm,
-                                            "decision_id": response_decision_id,
-                                            "outer_iter": str(outer_iter),
-                                            "group_index": str(index),
-                                            "component_id": response_component.component_id,
-                                            "pair_index": str(pair_index),
-                                            "normal_objective": f"{normal_probe.objectives[pair_index]:.17e}",
-                                            "precision_objective": f"{precision_probe.objectives[pair_index]:.17e}",
-                                            "normal_candidate_sha256": _canonical_payload_sha256(
-                                                tuple(
-                                                    float(value)
-                                                    for value in normal_probe.candidates[pair_index]
-                                                )
-                                            ),
-                                            "precision_candidate_sha256": _canonical_payload_sha256(
-                                                tuple(
-                                                    float(value)
-                                                    for value in precision_probe.candidates[pair_index]
-                                                )
-                                            ),
-                                            "normal_direction_sha256": normal_probe.direction_sha256,
-                                            "precision_direction_sha256": precision_probe.direction_sha256,
-                                            "boundary_mode": precision_response_config.boundary_mode,
-                                        }
-                                    )
-                            scheduler_revisit_cap = precision_response_revisit_cap
-                            component_lease_eligibility = (
-                                precision_response_lease_eligibility
-                            )
-            precision_reanchor_active = bool(
-                precision_response_lease_active
-                or precision_causal_action_active
-                or (
-                    precision_reanchor_requested
-                    and (
-                        component_lease_eligibility is None
-                        or component_lease_eligibility.selected
-                    )
-                )
-            )
-            cma_sigma_reference = refine_sigma_for_action(
+            cc_sigma = refine_sigma_for_action(
                 config.arac_action,
                 config.sigma,
                 controller_v31_run_state=controller_v31_run_state,
-                precision_reanchor_active=precision_reanchor_active,
             )
-            cc_sigma = cma_sigma_reference
-            cma_sigma_applied_factor = 1.0
-            cma_sigma_route = ""
-            if (
-                controller_v31_run_state is not None
-                and controller_v31_run_state.v39_enabled
-            ):
-                (
-                    cc_sigma,
-                    cma_sigma_applied_factor,
-                    cma_sigma_route,
-                ) = controller_v31_run_state.v39_cma_sigma_for_group(
-                    dims,
-                    cma_sigma_reference,
-                )
-            component_atomic_group_active = bool(
-                component_atomic_state is not None
-                and not component_atomic_state.atomic_closed
-                and component_atomic_state.next_group_position
-                < len(component_atomic_state.plan.group_indices)
-                and component_atomic_state.plan.group_indices[
-                    component_atomic_state.next_group_position
-                ]
-                == index
-            )
-            if component_atomic_group_active:
-                current_plan_sha256 = _component_atomic_plan_sha256(
-                    component_atomic_state.plan
-                )
-                if current_plan_sha256 != component_atomic_state.component_plan_sha256:
-                    component_atomic_state.plan_integrity_valid = False
-                    raise RuntimeError("component atomic frozen plan mutated")
-                cc_sigma = (
-                    component_atomic_state.plan.precision_sigma
-                    if component_atomic_state.action_applied
-                    else component_atomic_state.plan.normal_sigma
-                )
-            cma_batch_diversities: list[float] = []
-
             def objective_function(x_batch, dims=dims):
-                if precision_causal_enabled or precision_response_enabled:
-                    cma_batch_diversities.append(
-                        offspring_diversity_ratio(
-                            x_batch,
-                            lower=float(info["lower"]),
-                            upper=float(info["upper"]),
-                        )
-                    )
                 return fun(combine(x_batch, best_individual, dims))
 
             problem_cc = {
@@ -7515,52 +2925,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     0,
                     stage_index,
                 )
-            if mos_profile_enabled and not mos_first_cma_prestate_sha256:
-                mos_first_cma_prestate_sha256 = _canonical_payload_sha256(
-                    {
-                        "fitness_prefix_sha256": _fitness_record_sha256(
-                            tuple(float(value) for value in fun.fitness_record)
-                        ),
-                        "candidate_sha256": _canonical_payload_sha256(
-                            tuple(float(value) for value in best_individual)
-                        ),
-                        "mean_sha256": _canonical_payload_sha256(
-                            tuple(float(value) for value in cc_mean)
-                        ),
-                        "outer_iter": int(outer_iter),
-                        "group_index": int(index),
-                        "group_dimensions": tuple(int(value) for value in dims),
-                        "optimizer_budget": int(optimizer_budget),
-                        "population_size": int(population_size),
-                        "sigma": float(cc_sigma),
-                        "is_restart": bool(config.cmaes_restart),
-                        "early_stopping_evaluations": int(
-                            config.early_stopping_evaluations
-                        ),
-                        "optimizer_seed": options_cc.get("seed_rng", ""),
-                    }
-                )
-                mos_first_cma_prestate_status = "observed"
-            if config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING:
-                options_cc[CMA_SAMPLING_MODE_OPTION] = config.cma_sampling_mode
-                options_cc[MOS_AUDIT_SINK_OPTION] = mos_sampling_rows
-                options_cc[MOS_AUDIT_CONTEXT_OPTION] = {
-                    "run_id": config.run_id,
-                    "sampling_mode": config.cma_sampling_mode,
-                    "problem_id": problem_id,
-                    "seed": "" if config.seed is None else int(config.seed),
-                    "outer_iter": int(outer_iter),
-                    "group_index": int(index),
-                    "cma_scope": "v37_primary_group_cma",
-                    "candidate_index": 0,
-                    "optimizer_seed": options_cc.get("seed_rng", ""),
-                }
-            cc_optimizer = (
-                create_hcc_cmaes(problem_cc, options_cc)
-                if config.cma_sampling_mode
-                == MIRRORED_ORTHOGONAL_CMA_SAMPLING
-                else CMAES(problem_cc, options_cc)
-            )
+            cc_optimizer = CMAES(problem_cc, options_cc)
             results_cc = cc_optimizer.optimize()
             optimized_any_group = True
             primary_cc_fe = observed_optimizer_fe(
@@ -7570,59 +2935,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
             cc_phase_fe += primary_cc_fe
             sum_fes += primary_cc_fe
-            if precision_causal_enabled or precision_response_enabled:
-                diagnostic = summarize_cma_trace_only_diagnostic(
-                    objective_values=tuple(
-                        float(value)
-                        for value in fun.fitness_record[
-                            primary_evaluations_before:
-                            primary_evaluations_before + primary_cc_fe
-                        ]
-                    ),
-                    batch_diversities=tuple(cma_batch_diversities),
-                    population_size=population_size,
-                    pre_block_fitness=original_fitness,
-                    initial_sigma=cc_sigma,
-                    terminal_sigma=float(results_cc.get("sigma", float("nan"))),
-                    source_end_fe=current_fitness_evaluations(fun),
-                )
-                if diagnostic is not None:
-                    precision_cma_history.setdefault(index, []).append(diagnostic)
-            if precision_causal_snapshot is not None and (
-                precision_causal_snapshot.decision_fe == primary_evaluations_before
-            ):
-                precision_causal_action_applied = precision_causal_action_active
-                precision_causal_applied_sigma = cc_sigma
-                precision_causal_requested_fe = optimizer_budget
-                precision_causal_actual_fe = primary_cc_fe
-                precision_causal_intervention_end_fe = current_fitness_evaluations(fun)
-            if precision_response_candidate and precision_response_trace_row is not None:
-                precision_response_trace_row.update(
-                    {
-                        "main_actual_fe": str(primary_cc_fe),
-                        "intervention_end_fe": str(current_fitness_evaluations(fun)),
-                    }
-                )
-            cma_sigma_terminal: float | None = None
-            cma_sigma_next_factor: float | None = None
-            cma_restart_count: int | None = None
-            if (
-                controller_v31_run_state is not None
-                and controller_v31_run_state.v39_enabled
-            ):
-                if "sigma" not in results_cc or "_n_restart" not in results_cc:
-                    raise RuntimeError(
-                        "v39 requires terminal CMA sigma and restart count"
-                    )
-                cma_sigma_terminal = float(results_cc["sigma"])
-                cma_restart_count = int(results_cc["_n_restart"])
-                cma_sigma_next_factor = (
-                    controller_v31_run_state.observe_v39_cma_terminal_sigma(
-                        dims,
-                        reference_sigma=cma_sigma_reference,
-                        terminal_sigma=cma_sigma_terminal,
-                    )
-                )
             new_best_y = float(results_cc["best_so_far_y"])
             if new_best_y < original_fitness:
                 best_individual[dims] = results_cc["best_so_far_x"].copy()
@@ -7633,417 +2945,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 ):
                     guarded_incumbent = best_individual.copy()
                     guarded_incumbent_fitness = new_best_y
-                if uses_trajectory_mean_blend(config.arac_action) and trajectory_credit_ready:
-                    accepted_mean = np.asarray(
-                        results_cc["best_so_far_x"],
-                        dtype=float,
-                    ).reshape(-1)
-                    for local_index, variable_index in enumerate(dims):
-                        if local_index < accepted_mean.size and np.isfinite(accepted_mean[local_index]):
-                            trajectory_mean_cache[int(variable_index)] = float(accepted_mean[local_index])
             else:
                 current_delta = 0.0
-            response_block_progress = normalized_gain_utility(
-                original_fitness,
-                original_fitness - current_delta,
-                primary_cc_fe,
-            )
-            if precision_response_review_current_group and precision_response_lease_row is not None:
-                normal_review_sigma = refine_sigma_for_action(
-                    config.arac_action,
-                    config.sigma,
-                    controller_v31_run_state=controller_v31_run_state,
-                    precision_reanchor_active=False,
-                )
-                sigma_restored = math.isclose(
-                    cc_sigma,
-                    normal_review_sigma,
-                    rel_tol=0.0,
-                    abs_tol=1e-15,
-                )
-                review_diversity = (
-                    float(sum(cma_batch_diversities) / len(cma_batch_diversities))
-                    if cma_batch_diversities
-                    else 0.0
-                )
-                diversity_recovery = review_diversity / max(
-                    2.0 * precision_response_lease_diversity,
-                    1e-300,
-                )
-                progress_delta = (
-                    response_block_progress - precision_response_prior_group_progress
-                )
-                component_gain = float(
-                    precision_response_lease_row.get("component_gain") or "-inf"
-                )
-                neighbor_gain = float(
-                    precision_response_lease_row.get("component_neighbor_gain")
-                    or "-inf"
-                )
-                overwrite_text = precision_response_lease_row.get(
-                    "shared_var_overwrite_rate",
-                    "",
-                )
-                not_overwritten = not overwrite_text or float(overwrite_text) <= 0.0
-                review_positive = bool(
-                    component_gain > 0.0
-                    and neighbor_gain >= 0.0
-                    and not_overwritten
-                    and sigma_restored
-                    and diversity_recovery >= 0.8
-                    and progress_delta > 0.0
-                )
-                precision_response_lease_row.update(
-                    {
-                        "review_normal_sigma_restored": str(int(sigma_restored)),
-                        "review_diversity_recovery": f"{diversity_recovery:.17e}",
-                        "review_progress_delta": f"{progress_delta:.17e}",
-                        "review_positive": str(int(review_positive)),
-                    }
-                )
-                if precision_response_trace_row is not None:
-                    precision_response_trace_row["delayed_credit_status"] = (
-                        "review_positive_no_renewal"
-                        if review_positive
-                        else "review_negative_no_renewal"
-                    )
-                precision_response_lease_group_index = None
-            if not precision_response_lease_active:
-                precision_response_group_progress[index] = response_block_progress
-            if precision_reanchor_active or component_lease_eligibility is not None:
-                normal_refine_sigma = (
-                    float(config.sigma) * REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER
-                )
-                precision_trace_row = build_action_trace_row(
-                    problem_id=_problem_id(fun_name, fun_id),
-                    seed=config.seed,
-                    outer_iter=outer_iter,
-                    group_index=index,
-                    selected_action_name=(
-                        POST_RETIREMENT_PRECISION_REANCHOR_ACTION
-                        if precision_reanchor_active
-                        else "conservative_no_action"
-                    ),
-                    overlap_size=0,
-                    previous_delta=0.0,
-                    current_delta=(current_delta if precision_reanchor_active else 0.0),
-                    state_mutated=(
-                        precision_reanchor_active and new_best_y < original_fitness
-                    ),
-                    action_value_delta_norm=abs(normal_refine_sigma - cc_sigma),
-                    downstream_consumed=precision_reanchor_active,
-                    downstream_consumption_scope=(
-                        "current_group_optimizer"
-                        if precision_reanchor_active
-                        else "no_state_change"
-                    ),
-                    search_state_action_type=(
-                        POST_RETIREMENT_PRECISION_REANCHOR_ACTION
-                        if precision_reanchor_active
-                        else ""
-                    ),
-                    sigma_before=normal_refine_sigma,
-                    sigma_after=cc_sigma,
-                    population_before=population_size,
-                    population_after=population_size,
-                    best_before=original_fitness,
-                    best_after=original_fitness - current_delta,
-                    cc_block_fe=primary_cc_fe,
-                    remaining_budget_ratio=(
-                        max(0, config.max_fes - primary_evaluations_before)
-                        / max(config.max_fes, 1)
-                    ),
-                    decision_point=f"group_optimizer:{outer_iter}:{index}",
-                    state_action_fe=(primary_cc_fe if precision_reanchor_active else 0),
-                )
-                if scheduler_revisit_cap is not None:
-                    precision_trace_row.update(
-                        scheduler_revisit_cap.trace_fields()
-                    )
-                if (
-                    component_credit_trace is not None
-                    and component_lease_eligibility is not None
-                ):
-                    component_credit_trace.annotate_lease_eligibility(
-                        precision_trace_row,
-                        group_index=index,
-                        eligibility=component_lease_eligibility,
-                        decision_fe=primary_evaluations_before,
-                        max_fes=config.max_fes,
-                    )
-                if precision_causal_candidate:
-                    precision_trace_row["component_precision_consumed"] = str(
-                        int(precision_causal_action_active)
-                    )
-                    precision_trace_row.update(
-                        {
-                            "precision_causal_candidate": "1",
-                            "precision_causal_shared_component": str(
-                                int(precision_causal_shared_component)
-                            ),
-                            "precision_causal_cc_history_count": str(
-                                precision_causal_cc_history_count
-                            ),
-                            "precision_causal_disagreement_history_count": str(
-                                precision_causal_disagreement_history_count
-                            ),
-                            "precision_causal_cma_history_count": str(
-                                precision_causal_cma_history_count
-                            ),
-                            "precision_causal_snapshot_complete": str(
-                                int(
-                                    precision_causal_candidate_snapshot is not None
-                                    and precision_causal_candidate_snapshot.state
-                                    is not None
-                                )
-                            ),
-                            "precision_causal_candidate_reason": (
-                                precision_causal_candidate_reason
-                                or "candidate_not_evaluated"
-                            ),
-                        }
-                    )
-                if precision_response_candidate:
-                    precision_trace_row["component_precision_consumed"] = str(
-                        int(precision_response_lease_active)
-                    )
-                action_trace_rows.append(precision_trace_row)
-                if component_credit_trace is not None and precision_reanchor_active:
-                    component_credit_trace.register_search_action(
-                        precision_trace_row,
-                        action_name=(
-                            "precision_response_lease"
-                            if precision_response_lease_active
-                            else POST_RETIREMENT_PRECISION_REANCHOR_ACTION
-                        ),
-                        outer_iter=outer_iter,
-                        group_index=index,
-                        decision_fe=primary_evaluations_before,
-                        max_fes=config.max_fes,
-                        pre_action_fitness=original_fitness,
-                        post_action_fitness=original_fitness - current_delta,
-                        pre_action_candidate=original_best,
-                        post_action_candidate=best_individual,
-                        require_component_unlocked=(
-                            precision_response_lease_active
-                            or is_evidence_action_controller_v41(config.arac_action)
-                        ),
-                    )
-                    if precision_response_lease_active:
-                        precision_response_lease_applied = True
-                        precision_response_lease_group_index = index
-                        precision_response_lease_diversity = (
-                            float(
-                                sum(cma_batch_diversities)
-                                / max(1, len(cma_batch_diversities))
-                            )
-                        )
-                        precision_trace_row.update(
-                            {
-                                "response_arm": config.precision_response_arm,
-                                "gate_state_sha256": (
-                                    ""
-                                    if precision_response_gate_decision is None
-                                    else precision_response_gate_decision.state_sha256
-                                ),
-                                "lease_sigma": f"{cc_sigma:.17e}",
-                                "lease_diversity": f"{precision_response_lease_diversity:.17e}",
-                                "review_normal_sigma_restored": "",
-                                "review_diversity_recovery": "",
-                                "review_progress_delta": "",
-                                "review_positive": "",
-                                "renewal_enabled": "0",
-                            }
-                        )
-                        precision_response_lease_row = precision_trace_row
-            precision_response_group_visits[index] += 1
-            component_atomic_group_visits[index] += 1
-            if (
-                controller_v31_run_state is not None
-                and controller_v31_run_state.v39_enabled
-                and cma_sigma_terminal is not None
-                and cma_sigma_next_factor is not None
-                and cma_restart_count is not None
-            ):
-                action_trace_rows.append(
-                    build_action_trace_row(
-                        problem_id=_problem_id(fun_name, fun_id),
-                        seed=config.seed,
-                        outer_iter=outer_iter,
-                        group_index=index,
-                        selected_action_name=(
-                            CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION
-                        ),
-                        overlap_size=0,
-                        previous_delta=0.0,
-                        current_delta=current_delta,
-                        state_mutated=True,
-                        action_value_delta_norm=abs(
-                            cc_sigma - cma_sigma_reference
-                        ),
-                        downstream_consumed=True,
-                        downstream_consumption_scope="current_group_optimizer",
-                        search_state_action_type=(
-                            CROSS_SWEEP_CMA_SIGMA_CONTINUATION_ACTION
-                        ),
-                        sigma_before=cma_sigma_reference,
-                        sigma_after=cc_sigma,
-                        population_before=population_size,
-                        population_after=population_size,
-                        best_before=original_fitness,
-                        best_after=original_fitness - current_delta,
-                        cc_block_fe=primary_cc_fe,
-                        cma_sigma_reference=cma_sigma_reference,
-                        cma_sigma_applied_factor=cma_sigma_applied_factor,
-                        cma_sigma_terminal=cma_sigma_terminal,
-                        cma_sigma_next_factor=cma_sigma_next_factor,
-                        cma_sigma_route=cma_sigma_route,
-                        cma_restart_count=cma_restart_count,
-                    )
-                )
-            if is_bipop_search_state_action(config.arac_action):
-                if bipop_global_cooldown > 0:
-                    bipop_global_cooldown -= 1
-                if group_delta_stagnated(current_delta, original_fitness):
-                    group_stagnation_counts[index] += 1
-                    outer_stagnation_streak += 1
-                else:
-                    group_stagnation_counts[index] = 0
-                    outer_stagnation_streak = 0
-                rescue_budget_limit = (
-                    cc_budget_limit_fes
-                    if evidence_overlay_observer is not None
-                    else config.max_fes
-                )
-                remaining_fes = max(
-                    0,
-                    rescue_budget_limit - current_fitness_evaluations(fun),
-                )
-                restart_rng = np.random.default_rng(
-                    derive_optimizer_seed(
-                        config.seed if config.seed is not None else 0,
-                        fun_name,
-                        fun_id,
-                        outer_iter + 1,
-                        (index + 1) * 1009 + bipop_restart_count,
-                    )
-                )
-                restart_plan = build_bipop_restart_plan(
-                    group_index=index,
-                    restart_count=bipop_restart_count,
-                    base_population_size=population_size,
-                    base_sigma=config.sigma,
-                    base_budget=optimizer_budget,
-                    remaining_fes=remaining_fes,
-                    rng=restart_rng,
-                )
-                if should_trigger_bipop_restart(
-                    stagnation_count=max(group_stagnation_counts[index], outer_stagnation_streak),
-                    cooldown_remaining=bipop_global_cooldown,
-                    escape_budget=restart_plan.escape_budget,
-                ):
-                    stagnation_window_for_trace = max(
-                        group_stagnation_counts[index],
-                        outer_stagnation_streak,
-                    )
-                    primary_delta_for_trace = current_delta
-                    post_primary_fitness = original_fitness - current_delta
-                    restart_mean = perturb_bipop_restart_mean(
-                        base_mean=np.asarray(best_individual[dims], dtype=float),
-                        lower=info["lower"],
-                        upper=info["upper"],
-                        sigma=restart_plan.sigma,
-                        rng=restart_rng,
-                    )
-                    restart_options = {
-                        "max_function_evaluations": restart_plan.escape_budget,
-                        "mean": (restart_mean,),
-                        "sigma": restart_plan.sigma,
-                        "n_individuals": restart_plan.population_size,
-                        "is_restart": config.cmaes_restart,
-                        "verbose": config.verbose,
-                        "early_stopping_evaluations": config.early_stopping_evaluations,
-                        "arac_search_state_action": SEARCH_STATE_BIPOP_ACTION,
-                        "arac_bipop_restart_mode": restart_plan.restart_mode,
-                    }
-                    if config.seed is not None:
-                        restart_options["seed_rng"] = derive_optimizer_seed(
-                            config.seed,
-                            fun_name,
-                            fun_id,
-                            outer_iter + 1,
-                            (index + 1) * 7919 + bipop_restart_count,
-                        )
-                    restart_evaluations_before = current_fitness_evaluations(fun)
-                    restart_results = CMAES(problem_cc, restart_options).optimize()
-                    bipop_restart_count += 1
-                    restart_fe = observed_optimizer_fe(
-                        fun,
-                        evaluations_before=restart_evaluations_before,
-                        optimizer_reported_fe=restart_results["n_function_evaluations"],
-                    )
-                    rescue_fe += restart_fe
-                    sum_fes += restart_fe
-                    restart_best = float(restart_results["best_so_far_y"])
-                    restart_relative_improvement = bipop_relative_improvement(
-                        candidate_best=restart_best,
-                        incumbent_fitness=post_primary_fitness,
-                    )
-                    restart_accepted = should_accept_bipop_restart(
-                        candidate_best=restart_best,
-                        incumbent_fitness=post_primary_fitness,
-                    )
-                    if restart_accepted:
-                        best_individual[dims] = restart_results["best_so_far_x"].copy()
-                        current_delta = original_fitness - restart_best
-                        group_stagnation_counts[index] = 0
-                        outer_stagnation_streak = 0
-                        bipop_rejected_restart_streak = 0
-                    else:
-                        bipop_rejected_restart_streak += 1
-                    bipop_global_cooldown = bipop_cooldown_after_restart(
-                        restart_accepted=restart_accepted,
-                        sub_num=sub_num,
-                        rejected_restart_streak=bipop_rejected_restart_streak,
-                    )
-                    action_trace_rows.append(
-                        build_action_trace_row(
-                            problem_id=_problem_id(fun_name, fun_id),
-                            seed=config.seed,
-                            outer_iter=outer_iter,
-                            group_index=index,
-                            selected_action_name=config.arac_action,
-                            overlap_size=0,
-                            previous_delta=primary_delta_for_trace,
-                            current_delta=0.0 if not restart_accepted else current_delta,
-                            state_mutated=restart_accepted,
-                            action_value_delta_norm=float(
-                                np.linalg.norm(restart_mean - cc_mean)
-                            ),
-                            downstream_consumed=index < sub_num - 1,
-                            search_state_action_type="bipop_restart",
-                            stagnation_window=stagnation_window_for_trace,
-                            delta_mean=float(np.linalg.norm(restart_mean - cc_mean)),
-                            sigma_before=config.sigma,
-                            sigma_after=restart_plan.sigma,
-                            population_before=population_size,
-                            population_after=restart_plan.population_size,
-                            escape_budget=restart_plan.escape_budget,
-                            bipop_restart_mode=restart_plan.restart_mode,
-                            restart_triggered=True,
-                            restart_accepted=restart_accepted,
-                            best_before=post_primary_fitness,
-                            restart_candidate_best=restart_best,
-                            restart_relative_improvement=restart_relative_improvement,
-                            restart_acceptance_threshold=BIPOP_ACCEPT_RELATIVE_IMPROVEMENT,
-                            best_after=restart_best if restart_accepted else post_primary_fitness,
-                        )
-                    )
-            if config.search_state_backend != "diagonal_cma" and uses_phase_rescue_during_run(
+            if uses_phase_rescue_during_run(
                 config.arac_action,
-                evidence_controller_search_state_enabled=(
-                    evidence_controller_search_state_enabled
-                ),
+                phase_rescue_enabled=phase_rescue_enabled,
             ):
                 if bipop_global_cooldown > 0:
                     bipop_global_cooldown -= 1
@@ -8149,32 +3055,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 outer_iter + 1,
                                 (index + 1) * 17011 + candidate_index,
                             )
-                        if (
-                            config.cma_sampling_mode
-                            == MIRRORED_ORTHOGONAL_CMA_SAMPLING
-                        ):
-                            rescue_options[CMA_SAMPLING_MODE_OPTION] = (
-                                config.cma_sampling_mode
-                            )
-                            rescue_options[MOS_AUDIT_SINK_OPTION] = mos_sampling_rows
-                            rescue_options[MOS_AUDIT_CONTEXT_OPTION] = {
-                                "run_id": config.run_id,
-                                "sampling_mode": config.cma_sampling_mode,
-                                "problem_id": problem_id,
-                                "seed": "" if config.seed is None else int(config.seed),
-                                "outer_iter": int(outer_iter),
-                                "group_index": int(index),
-                                "cma_scope": "v37_phase_rescue_multistart_cma",
-                                "candidate_index": int(candidate_index),
-                                "optimizer_seed": rescue_options.get("seed_rng", ""),
-                            }
                         rescue_evaluations_before = current_fitness_evaluations(fun)
-                        rescue_optimizer = (
-                            create_hcc_cmaes(problem_cc, rescue_options)
-                            if config.cma_sampling_mode
-                            == MIRRORED_ORTHOGONAL_CMA_SAMPLING
-                            else CMAES(problem_cc, rescue_options)
-                        )
+                        rescue_optimizer = CMAES(problem_cc, rescue_options)
                         rescue_results = rescue_optimizer.optimize()
                         total_rescue_fes += observed_optimizer_fe(
                             fun,
@@ -8227,9 +3109,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             seed=config.seed,
                             outer_iter=outer_iter,
                             group_index=index,
-                            selected_action_name=PHASE_RESCUE_MULTISTART_ACTION
-                            if is_evidence_action_controller(config.arac_action)
-                            else config.arac_action,
+                            selected_action_name=PHASE_RESCUE_MULTISTART_ACTION,
                             overlap_size=0,
                             previous_delta=primary_delta_for_trace,
                             current_delta=0.0 if not rescue_accepted else current_delta,
@@ -8272,85 +3152,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 else None
                             ),
                         )
-                    )
-            if (
-                controller_v31_run_state is not None
-                and controller_v31_run_state.pending_trajectory_recovery is not None
-            ):
-                checkpoint_candidate = (
-                    controller_v31_run_state.pending_trajectory_recovery
-                    .checkpoint.candidate.copy()
-                )
-                resolved_recovery = (
-                    controller_v31_run_state.resolve_pending_trajectory_guard(
-                        downstream_candidate=best_individual,
-                        downstream_fitness=original_fitness - current_delta,
-                    )
-                )
-                if resolved_recovery is not None:
-                    (
-                        best_individual,
-                        original_best,
-                        original_fitness,
-                        current_delta,
-                    ) = reconcile_trajectory_recovery_context(
-                        resolution=resolved_recovery,
-                        checkpoint_candidate=checkpoint_candidate,
-                        original_best=original_best,
-                        original_fitness=original_fitness,
-                        current_delta=current_delta,
-                    )
-            if hypergraph_observer_active and hypergraph_observer is not None:
-                try:
-                    group_interval_end_fe = current_fitness_evaluations(fun)
-                    if (
-                        hypergraph_pre_block_candidate is None
-                        or group_interval_end_fe <= group_interval_start_fe
-                    ):
-                        raise RuntimeError(
-                            "hypergraph observer group interval is incomplete"
-                        )
-                    if primary_evaluations_before != group_interval_start_fe + 1:
-                        raise RuntimeError(
-                            "hypergraph observer must reuse the single native precheck FE"
-                        )
-                    if (
-                        primary_evaluations_before + primary_cc_fe
-                        > group_interval_end_fe
-                    ):
-                        raise RuntimeError(
-                            "hypergraph observer primary CMA FE exceeds the native interval"
-                        )
-                    group_best_error = min(
-                        float(fun.fitness_record[fe_index])
-                        for fe_index in range(
-                            group_interval_start_fe,
-                            group_interval_end_fe,
-                        )
-                    )
-                    hypergraph_observer.record_group(
-                        sweep_index=outer_iter,
-                        group_index=index,
-                        pre_error=hypergraph_pre_error,
-                        best_error=min(hypergraph_pre_error, group_best_error),
-                        primary_requested_fe=optimizer_budget,
-                        primary_actual_fe=primary_cc_fe,
-                        full_interval_start_fe=group_interval_start_fe,
-                        full_interval_end_fe=group_interval_end_fe,
-                        pre_block_candidate=hypergraph_pre_block_candidate,
-                        final_owner_candidate=best_individual.copy(),
-                    )
-                except Exception as error:
-                    hypergraph_observer.record_failure(
-                        stage="group_capture",
-                        error=error,
-                        source_fe=current_fitness_evaluations(fun),
-                    )
-                    hypergraph_observer_active = False
-                    print(
-                        "hypergraph observer disabled after group capture failure: "
-                        f"{type(error).__name__}: {error}",
-                        file=sys.stderr,
                     )
             if evidence_overlay_observer is not None:
                 group_interval_end_fe = current_fitness_evaluations(fun)
@@ -8399,23 +3200,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
                 if config.enable_relation_dispatch:
-                    if config.relation_policy_mode not in {
-                        "rule",
-                        "adaptive_v2",
-                        "adaptive_v21",
-                        "adaptive_v22",
-                        "adaptive_v23",
-                        "adaptive_v24",
-                        "adaptive_v25",
-                        "adaptive_v26",
-                        "controller_v3",
-                        "controller_v31",
-                        "shuffled",
-                        "lagged",
-                    }:
-                        raise ValueError(
-                            f"unsupported relation policy mode: {config.relation_policy_mode}"
-                        )
+                    if config.relation_policy_mode != "controller_v31":
+                        raise ValueError("v37 requires controller_v31")
                     context = RelationExecutionContext(
                         overlap_indices=list(overlap_indices),
                         previous_values=original_best[overlap_indices].copy(),
@@ -8433,221 +3219,65 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         budget_remaining_ratio=iteration_budget_remaining_ratio,
                     )
                     relation_policy_context = current_outer_relations + [relation]
-                    if (
-                        config.relation_policy_mode == "controller_v31"
-                        and controller_v31_run_state is not None
-                    ):
-                        controller_v31_run_state.lock_from_runtime_prefix(
-                            relation_policy_context
-                        )
-                        effective_policy_mode = (
-                            controller_v31_run_state.effective_policy_mode
-                        )
-                        evidence_controller_search_state_enabled = (
-                            controller_v31_run_state.phase_rescue_enabled
-                        )
-                    else:
-                        effective_policy_mode = effective_relation_policy_mode(
-                            config.relation_policy_mode,
-                            relation_policy_context,
-                        )
-                        if config.relation_policy_mode == "controller_v3":
-                            evidence_controller_search_state_enabled = (
-                                select_evidence_action_controller_v3_mode(
-                                    relation_policy_context
-                                )
-                                == "search_state_assisted"
-                            )
-                    if effective_policy_mode == "adaptive_v23":
-                        rule_action = decide_actions_for_relations_v23(
-                            relation_policy_context
-                        )[-1]
-                    elif effective_policy_mode == "adaptive_v26":
+                    controller_v31_run_state.lock_from_runtime_prefix(
+                        relation_policy_context
+                    )
+                    effective_policy_mode = (
+                        controller_v31_run_state.effective_policy_mode
+                    )
+                    phase_rescue_enabled = (
+                        controller_v31_run_state.phase_rescue_enabled
+                    )
+                    if effective_policy_mode == "adaptive_v26":
                         rule_action = decide_actions_for_relations_v26(
-                            relation_policy_context
-                        )[-1]
-                    elif effective_policy_mode == "adaptive_v25":
-                        rule_action = decide_actions_for_relations_v25(
                             relation_policy_context
                         )[-1]
                     elif effective_policy_mode == "adaptive_v24":
                         rule_action = decide_actions_for_relations_v24(
                             relation_policy_context
                         )[-1]
-                    elif effective_policy_mode == "adaptive_v22":
-                        rule_action = decide_actions_for_relations_v22(
-                            relation_policy_context
-                        )[-1]
-                    elif effective_policy_mode == "adaptive_v21":
-                        rule_action = decide_actions_for_relations_v21(
-                            relation_policy_context
-                        )[-1]
-                    elif effective_policy_mode == "adaptive_v2":
-                        rule_action = decide_actions_for_relations_v2(
-                            relation_policy_context
-                        )[-1]
                     else:
-                        rule_action = decide_actions_for_relations(
-                            relation_policy_context
-                        )[-1]
-                    shuffled_source_action = previous_rule_relation_action
-                    if config.relation_policy_mode == "lagged":
-                        previous_rule_relation_action, _, _ = (
-                            apply_and_guard_action_to_relation(
-                                relation=relation,
-                                action=rule_action,
-                                previous_values=context.previous_values,
-                                current_values=context.current_values,
-                                previous_delta=context.previous_delta,
-                                current_delta=context.current_delta,
-                            )
+                        raise RuntimeError(
+                            f"unsupported v37 policy mode: {effective_policy_mode}"
                         )
                     action = select_relation_action_for_policy(
                         relation=relation,
                         action=rule_action,
-                        relation_policy_mode=effective_policy_mode
-                        if config.relation_policy_mode in {"controller_v3", "controller_v31"}
-                        else config.relation_policy_mode,
-                        shuffled_source_action=shuffled_source_action,
+                        relation_policy_mode=effective_policy_mode,
                     )
-                    if car_probe_enabled and relation.shared_vars:
-                        forced_candidate = (
-                            None
-                            if controller_v31_run_state is None
-                            else controller_v31_run_state.forced_relation_action(relation)
-                        )
-                        candidate_source_action = forced_candidate or action
-                        (
-                            candidate_proposal_action,
-                            candidate_proposed_values,
-                            candidate_writeback_norm,
-                        ) = apply_and_guard_action_to_relation(
-                            relation=relation,
-                            action=candidate_source_action,
-                            previous_values=context.previous_values,
-                            current_values=context.current_values,
-                            previous_delta=context.previous_delta,
-                            current_delta=context.current_delta,
-                        )
-                        proposal_values = (
-                            context.current_values
-                            if candidate_proposed_values is None
-                            else candidate_proposed_values
-                        )
-                        car_current_proposals.append(
-                            CARRelationProposal(
-                                sweep_index=len(car_proposal_sweeps),
-                                group_left=relation.group_left,
-                                group_right=relation.group_right,
-                                shared_indices=tuple(int(value) for value in relation.shared_vars),
-                                target_values=tuple(
-                                    float(value)
-                                    for value in np.asarray(
-                                        proposal_values,
-                                        dtype=float,
-                                    ).reshape(-1)
-                                ),
-                                action_name=_canonical_relation_action_name(
-                                    candidate_proposal_action
-                                ),
-                                action_family=candidate_proposal_action.action_family,
-                                overlap_strength=float(relation.overlap_strength),
-                                feature_coverage=float(relation.feature_coverage),
-                                writeback_norm=float(candidate_writeback_norm),
-                            )
-                        )
                     trust_decision: ActionTrustDecision | None = None
                     fallback_route = ""
                     active_maturity_route = ""
-                    if is_risk_aware_evidence_action_controller(config.arac_action):
-                        (
-                            action,
-                            adjusted_values,
-                            action_value_delta_norm,
-                            trust_decision,
-                            fallback_route,
-                        ) = apply_relation_action_with_controller_v33(
-                            relation=relation,
-                            action=action,
-                            previous_values=context.previous_values,
-                            current_values=context.current_values,
-                            previous_delta=context.previous_delta,
-                            current_delta=context.current_delta,
-                            controller_run_state=controller_v31_run_state,
-                        )
-                    elif is_evidence_action_controller_v35(config.arac_action):
-                        (
-                            action,
-                            adjusted_values,
-                            action_value_delta_norm,
-                            trust_decision,
-                            fallback_route,
-                        ) = apply_relation_action_with_controller_v35(
-                            relation=relation,
-                            action=action,
-                            previous_values=context.previous_values,
-                            current_values=context.current_values,
-                            previous_delta=context.previous_delta,
-                            current_delta=context.current_delta,
-                            controller_run_state=controller_v31_run_state,
-                        )
-                    elif is_evidence_action_controller_v36(
-                        config.arac_action
-                    ) or is_evidence_action_controller_v37(
-                        config.arac_action
-                    ) or is_evidence_action_controller_v38(
-                        config.arac_action
-                    ) or is_evidence_action_controller_v39(
-                        config.arac_action
-                    ) or is_evidence_action_controller_v40(
-                        config.arac_action
-                    ) or is_evidence_action_controller_v41(config.arac_action):
-                        (
-                            action,
-                            adjusted_values,
-                            action_value_delta_norm,
-                            trust_decision,
-                            fallback_route,
-                            active_maturity_route,
-                        ) = apply_relation_action_with_controller_v36(
-                            relation=relation,
-                            action=action,
-                            previous_values=context.previous_values,
-                            current_values=context.current_values,
-                            previous_delta=context.previous_delta,
-                            current_delta=context.current_delta,
-                            controller_run_state=controller_v31_run_state,
-                        )
-                    else:
-                        action, adjusted_values, action_value_delta_norm = (
-                            apply_relation_action_with_controller_v31(
-                                relation=relation,
-                                action=action,
-                                previous_values=context.previous_values,
-                                current_values=context.current_values,
-                                previous_delta=context.previous_delta,
-                                current_delta=context.current_delta,
-                                controller_v31_run_state=controller_v31_run_state,
-                            )
-                        )
-                    trajectory_checkpoint_candidate = best_individual.copy()
+                    (
+                        action,
+                        adjusted_values,
+                        action_value_delta_norm,
+                        trust_decision,
+                        fallback_route,
+                        active_maturity_route,
+                    ) = apply_relation_action_with_controller_v36(
+                        relation=relation,
+                        action=action,
+                        previous_values=context.previous_values,
+                        current_values=context.current_values,
+                        previous_delta=context.previous_delta,
+                        current_delta=context.current_delta,
+                        controller_run_state=controller_v31_run_state,
+                    )
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
-                    overlap_writeback_norms.append(action_value_delta_norm)
                     relative_writeback_norm = scale_free_writeback_norm(
                         delta_norm=action_value_delta_norm,
                         shared_count=len(context.overlap_indices),
                         lower=float(info["lower"]),
                         upper=float(info["upper"]),
                     )
-                    relative_writeback_norms.append(relative_writeback_norm)
                     trust_unstable = (
                         relative_writeback_norm
                         >= RELATIVE_WRITEBACK_UNSTABLE_THRESHOLD
                     )
                     canonical_action_name = _canonical_relation_action_name(action)
                     current_outer_relations.append(relation)
-                    current_outer_decisions.append(action)
                     relations.append(relation)
                     action_decisions.append(action)
                     trust_writeback_active = (
@@ -8730,25 +3360,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 else ""
                             ),
                     )
-                    if component_credit_trace is not None and relation.shared_vars:
-                        disagreement = component_credit_trace.annotate_relation_observation(
-                            action_trace_row,
-                            outer_iter=outer_iter,
-                            group_left=relation.group_left,
-                            group_right=relation.group_right,
-                            previous_values=context.previous_values,
-                            current_values=context.current_values,
-                            decision_fe=current_fitness_evaluations(fun),
-                            max_fes=config.max_fes,
-                        )
-                        if precision_causal_enabled:
-                            component_id = component_credit_trace.topology.for_group(
-                                relation.group_right
-                            ).component_id
-                            precision_current_component_disagreements.setdefault(
-                                component_id,
-                                [],
-                            ).append(disagreement)
                     action_trace_rows.append(action_trace_row)
                     if controller_v31_run_state is not None:
                         controller_v31_run_state.register_pending_action_trust(
@@ -8757,14 +3368,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             unstable=trust_unstable,
                             trace_row=action_trace_row,
                         )
-                        if trust_writeback_active:
-                            controller_v31_run_state.register_pending_trajectory_guard(
-                                candidate=trajectory_checkpoint_candidate,
-                                pre_writeback_fitness=(
-                                    original_fitness - current_delta
-                                ),
-                                trace_row=action_trace_row,
-                            )
                 else:
                     overlap_action_name = overlap_action_name_for_lane(config.arac_action)
                     current_overlap_values = best_individual[overlap_indices].copy()
@@ -8778,15 +3381,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     best_individual[overlap_indices] = adjusted_values
                     overlap_writeback_norm = float(
                         np.linalg.norm(adjusted_values - current_overlap_values)
-                    )
-                    overlap_writeback_norms.append(overlap_writeback_norm)
-                    relative_writeback_norms.append(
-                        scale_free_writeback_norm(
-                            delta_norm=overlap_writeback_norm,
-                            shared_count=len(overlap_indices),
-                            lower=float(info["lower"]),
-                            upper=float(info["upper"]),
-                        )
                     )
                     action_trace_rows.append(
                         build_action_trace_row(
@@ -8803,337 +3397,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             downstream_consumed=index < sub_num - 1,
                         )
                     )
-            if component_atomic_group_active and component_atomic_state is not None:
-                position = component_atomic_state.next_group_position
-                expected_budget = component_atomic_state.plan.group_budgets[position]
-                if optimizer_budget != expected_budget:
-                    raise RuntimeError("component atomic requested budget drift")
-                component_end_fe = current_fitness_evaluations(fun)
-                component_group_start_fe = (
-                    component_atomic_state.component_start_fe
-                    if position == 0
-                    else group_interval_start_fe
-                )
-                interval_actual_fe = component_end_fe - component_group_start_fe
-                auxiliary_actual_fe = interval_actual_fe - primary_cc_fe
-                if interval_actual_fe < primary_cc_fe or auxiliary_actual_fe < 0:
-                    raise RuntimeError("component atomic FE interval accounting drift")
-                component_endpoint_error = min(
-                    float(value) for value in fun.fitness_record[:component_end_fe]
-                )
-                component_atomic_state.canonical_shared_path.append(
-                    tuple(
-                        float(value)
-                        for value in best_individual[
-                            list(component_atomic_state.shared_indices)
-                        ]
-                    )
-                )
-                component_atomic_state.group_endpoint_errors.append(
-                    component_endpoint_error
-                )
-                component_atomic_state.budget_rows.append(
-                    {
-                        "decision_id": component_atomic_state.decision_id,
-                        "component_precision_arm": config.component_precision_arm,
-                        "group_position": str(position),
-                        "group_index": str(index),
-                        "population_size": str(population_size),
-                        "requested_fe": str(optimizer_budget),
-                        "actual_fe": str(primary_cc_fe),
-                        "interval_actual_fe": str(interval_actual_fe),
-                        "auxiliary_actual_fe": str(auxiliary_actual_fe),
-                        "sigma": f"{cc_sigma:.17e}",
-                        "group_start_fe": str(component_group_start_fe),
-                        "group_end_fe": str(component_end_fe),
-                        "group_endpoint_error": f"{component_endpoint_error:.17e}",
-                    }
-                )
-                component_atomic_state.next_group_position += 1
-                if component_atomic_state.next_group_position == len(
-                    component_atomic_state.plan.group_indices
-                ):
-                    component_atomic_state.h_endpoint_count += 1
-                    if component_atomic_state.h_endpoint_count != 1:
-                        raise RuntimeError(
-                            "component atomic emitted more than one H endpoint"
-                        )
-                    component_atomic_state.atomic_closed = True
-                    component_atomic_state.endpoint_error = component_endpoint_error
-                    component_atomic_state.component_end_fe = component_end_fe
-                    component_atomic_state.delayed_status = (
-                        "pending_next_component_entry"
-                    )
-            if config.search_state_backend != "diagonal_cma" and uses_cc_harm_guard_during_run(
-                config.arac_action,
-                evidence_controller_search_state_enabled=(
-                    evidence_controller_search_state_enabled
-                ),
-            ) and not cc_harm_guard_consumed:
-                post_cc_fitness = original_fitness - current_delta
-                if guarded_incumbent_fitness <= post_cc_fitness:
-                    guard_individual = guarded_incumbent.copy()
-                    guard_fitness = guarded_incumbent_fitness
-                    guard_source = "phase_i_incumbent"
-                else:
-                    guard_individual = best_individual.copy()
-                    guard_fitness = post_cc_fitness
-                    guard_source = "current_cc_incumbent"
-                remaining_fes = config.max_fes - current_fitness_evaluations(fun)
-                minimum_refresh_budget = calculate_cmaes_population_size(int(info["dimension"]))
-                guard_triggered, guard_reason = should_trigger_cc_harm_guard(
-                    fitness_deltas=fitness_delta_list,
-                    overlap_writeback_norms=overlap_writeback_norms,
-                    reference_fitness=guard_fitness,
-                    remaining_fes=remaining_fes,
-                    minimum_refresh_budget=minimum_refresh_budget,
-                )
-                if guard_triggered:
-                    accepted, guarded_candidate, guarded_best, refresh_fes, candidate_best = (
-                        run_guarded_nda_continuation(
-                            fun=fun,
-                            info=info,
-                            config=config,
-                            fun_name=fun_name,
-                            fun_id=fun_id,
-                            outer_iter=outer_iter,
-                            guard_individual=guard_individual,
-                            guard_fitness=guard_fitness,
-                            remaining_fes=remaining_fes,
-                        )
-                    )
-                    sum_fes += refresh_fes
-                    refresh_fe += refresh_fes
-                    best_individual = guarded_candidate.copy()
-                    guarded_incumbent = best_individual.copy()
-                    guarded_incumbent_fitness = guarded_best
-                    cc_harm_guard_consumed = True
-                    action_trace_rows.append(
-                        build_action_trace_row(
-                            problem_id=_problem_id(fun_name, fun_id),
-                            seed=config.seed,
-                            outer_iter=outer_iter,
-                            group_index=index,
-                            selected_action_name=CC_HARM_GUARDED_SEP_REFRESH_ACTION,
-                            overlap_size=0,
-                            previous_delta=sum(max(0.0, delta) for delta in fitness_delta_list),
-                            current_delta=max(0.0, guard_fitness - guarded_best),
-                            state_mutated=accepted,
-                            action_value_delta_norm=0.0,
-                            downstream_consumed=False,
-                            search_state_action_type=CC_HARM_GUARDED_SEP_REFRESH_ACTION,
-                            stagnation_window=sum(
-                                1 for delta in fitness_delta_list
-                                if group_delta_stagnated(delta, guard_fitness)
-                            ),
-                            delta_mean=0.0,
-                            sigma_before=config.sigma,
-                            sigma_after=float(config.sigma) * CC_HARM_REFRESH_SIGMA_MULTIPLIER,
-                            population_before=minimum_refresh_budget,
-                            population_after=minimum_refresh_budget,
-                            escape_budget=refresh_fes,
-                            bipop_restart_mode=f"guarded_nda_continuation:{guard_source}:{guard_reason}",
-                            restart_triggered=True,
-                            restart_accepted=accepted,
-                            best_before=guard_fitness,
-                            restart_candidate_best=candidate_best,
-                            restart_relative_improvement=bipop_relative_improvement(
-                                candidate_best=candidate_best,
-                                incumbent_fitness=guard_fitness,
-                            ),
-                            restart_acceptance_threshold=0.0,
-                            best_after=guarded_best,
-                        )
-                    )
-                    break
-        if car_probe_enabled and not car_probe_attempted:
-            expected_proposals = sum(1 for shared in overlapping_elements if shared)
-            complete_evidence_sweep = (
-                optimized_any_group
-                and len(fitness_delta_list) == sub_num
-                and len(car_current_proposals) == expected_proposals
-            )
-            if complete_evidence_sweep:
-                car_proposal_sweeps.append(tuple(car_current_proposals))
-            if len(car_proposal_sweeps) >= CAR_W_MIN_EVIDENCE_SWEEPS:
-                car_probe_attempted = True
-                lazy_car_mode = is_car_w2_action(
-                    config.arac_action
-                ) or is_car_w3_action(config.arac_action)
-                if controller_v31_run_state is not None and not lazy_car_mode:
-                    controller_v31_run_state.invalidate_pending_action_trust(
-                        "car_component_barrier"
-                    )
-                car_decision = freeze_component_writeback_plan(
-                    grouping_result=tuple(
-                        tuple(int(value) for value in group)
-                        for group in grouping_result
-                    ),
-                    overlapping_elements=tuple(
-                        tuple(int(value) for value in shared)
-                        for shared in overlapping_elements
-                    ),
-                    group_population_sizes=tuple(population_sizes),
-                    proposal_sweeps=tuple(car_proposal_sweeps),
-                    lower=float(info["lower"]),
-                    upper=float(info["upper"]),
-                    minimum_writeback_norm=(
-                        CAR_W2_FUTILITY_MIN_WRITEBACK_NORM
-                        if lazy_car_mode
-                        else 0.0
-                    ),
-                )
-                if car_decision.plan is not None:
-                    if lazy_car_mode:
-                        checkpoint_fitness = guarded_incumbent_fitness
-                    else:
-                        checkpoint_fitness = float(fun(best_individual)[0])
-                        sum_fes += 1
-                        cc_phase_fe += 1
-                    checkpoint_incumbent = best_individual.copy()
-                else:
-                    checkpoint_fitness = guarded_incumbent_fitness
-                    checkpoint_incumbent = guarded_incumbent.copy()
-                if not math.isfinite(float(checkpoint_fitness)):
-                    if current_fitness_evaluations(fun) >= config.max_fes:
-                        raise RuntimeError(
-                            "cannot establish a finite CAR actionability checkpoint"
-                        )
-                    checkpoint_fitness = float(fun(checkpoint_incumbent)[0])
-                    sum_fes += 1
-                    cc_phase_fe += 1
-                checkpoint = BranchState(
-                    incumbent=tuple(
-                        float(value) for value in checkpoint_incumbent
-                    ),
-                    committed_fitness=checkpoint_fitness,
-                    evaluator_record=[],
-                    state_fingerprint="",
-                    state_payload=_car_controller_state_payload(
-                        controller_v31_run_state,
-                        trajectory_mean_cache=trajectory_mean_cache,
-                        previous_group_contribution_credit=(
-                            previous_group_contribution_credit
-                        ),
-                    ),
-                )
-                checkpoint.state_fingerprint = fingerprint_branch_state(checkpoint)
-                if config.car_actionability_arm != "off":
-                    audit_result = execute_car_actionability_arm_at_barrier(
-                        decision=car_decision,
-                        checkpoint=checkpoint,
-                        checkpoint_fe=current_fitness_evaluations(fun),
-                        prefix_record=tuple(float(value) for value in fun.fitness_record),
-                        fun_name=fun_name,
-                        fun_id=fun_id,
-                        output_path=output_path,
-                        info=info,
-                        config=config,
-                        problem_id=problem_id,
-                    )
-                    car_actionability_trace_base_row = audit_result.trace_base_row
-                    audit_state = audit_result.state
-                    car_state_ledger_rows.append(
-                        {
-                            "problem_id": problem_id,
-                            "seed": "" if config.seed is None else str(int(config.seed)),
-                            "graph_fingerprint": car_actionability_trace_base_row[
-                                "graph_fingerprint"
-                            ],
-                            "component_fingerprint": car_actionability_trace_base_row[
-                                "component_fingerprint"
-                            ],
-                            "candidate_action_name": car_actionability_trace_base_row[
-                                "candidate_action_name"
-                            ],
-                            "candidate_action_family": car_actionability_trace_base_row[
-                                "candidate_action_family"
-                            ],
-                            "candidate_mode": config.car_candidate_mode,
-                            "evidence_sweeps": (
-                                "0"
-                                if car_decision.evidence is None
-                                else str(car_decision.evidence.evidence_sweep_count)
-                            ),
-                            "checkpoint_fe": car_actionability_trace_base_row[
-                                "checkpoint_fe"
-                            ],
-                            "probe_fe": "0",
-                            "total_fe_after_probe": str(
-                                current_fitness_evaluations(fun) + audit_result.actual_fe
-                            ),
-                            "probe_fe_limit": "0",
-                            "adopted_branch": (
-                                "not_applied"
-                                if audit_state is None
-                                else f"offline_oracle_{config.car_actionability_arm}"
-                            ),
-                            "committed_fitness": (
-                                f"{checkpoint.committed_fitness:.17e}"
-                                if audit_state is None
-                                else f"{audit_state.committed_fitness:.17e}"
-                            ),
-                            "evaluated_elite": "",
-                            "state_fingerprint": (
-                                checkpoint.state_fingerprint
-                                if audit_state is None
-                                else audit_state.state_fingerprint
-                            ),
-                            "gate_result": "offline_actionability_audit",
-                            "abstain_reason": audit_result.abstain_reason,
-                        }
-                    )
-                    if audit_state is not None:
-                        fun.fitness_record.extend(audit_result.accounting_record)
-                        sum_fes += audit_result.actual_fe
-                        cc_phase_fe += audit_result.actual_fe
-                        best_individual = np.asarray(
-                            audit_state.incumbent,
-                            dtype=float,
-                        ).copy()
-                        if audit_state.committed_fitness < guarded_incumbent_fitness:
-                            guarded_incumbent = best_individual.copy()
-                            guarded_incumbent_fitness = audit_state.committed_fitness
-                        previous_group_contribution_credit = []
-                else:
-                    barrier = execute_car_w_probe_at_barrier(
-                        decision=car_decision,
-                        checkpoint=checkpoint,
-                        checkpoint_fe=current_fitness_evaluations(fun),
-                        fun_name=fun_name,
-                        fun_id=fun_id,
-                        output_path=output_path,
-                        info=info,
-                        config=config,
-                        problem_id=problem_id,
-                        branch_order=(
-                            ("candidate", "fallback")
-                            if config.car_branch_order == "candidate_first"
-                            else ("fallback", "candidate")
-                        ),
-                        early_futility_abort=is_car_w3_action(config.arac_action),
-                    )
-                    car_probe_trace_rows.extend(barrier.probe_trace_rows)
-                    car_state_ledger_rows.extend(barrier.state_ledger_rows)
-                    car_branch_manifest_rows.extend(barrier.branch_manifest_rows)
-                    if barrier.adopted_state is not None:
-                        fun.fitness_record.extend(barrier.accounting_record)
-                        car_probe_fe += barrier.probe_fe
-                        sum_fes += barrier.probe_fe
-                        best_individual = np.asarray(
-                            barrier.adopted_state.incumbent,
-                            dtype=float,
-                        ).copy()
-                        if (
-                            barrier.adopted_state.committed_fitness
-                            < guarded_incumbent_fitness
-                        ):
-                            guarded_incumbent = best_individual.copy()
-                            guarded_incumbent_fitness = (
-                                barrier.adopted_state.committed_fitness
-                            )
-                        previous_group_contribution_credit = []
-
         if not optimized_any_group:
             break
         if not config.enable_relation_dispatch:
@@ -9147,393 +3410,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
             relations.extend(iteration_relations)
 
-        if (
-            precision_causal_enabled
-            and optimized_any_group
-            and len(fitness_delta_list) == sub_num
-        ):
-            append_precision_cc_trace_only_history(
-                precision_cc_progress_history,
-                precision_cc_source_end_fes,
-                incumbent_before=sweep_incumbent_before,
-                incumbent_after=guarded_incumbent_fitness,
-                source_start_fe=sweep_fes_before,
-                source_end_fe=current_fitness_evaluations(fun),
-            )
-        if (
-            controller_v31_run_state is not None
-            and uses_scheduled_search_state(config)
-            and optimized_any_group
-            and len(fitness_delta_list) == sub_num
-        ):
-            phase_state = controller_v31_run_state.phase_i_state
-            phase_optimizer = controller_v31_run_state.phase_i_optimizer
-            phase_state_available = phase_state is not None and phase_optimizer is not None
-            search_state_available = (
-                config.search_state_backend == "diagonal_cma"
-                or phase_state_available
-            )
-            sweep_fes = current_fitness_evaluations(fun) - sweep_fes_before
-            cc_utility = normalized_gain_utility(
-                sweep_incumbent_before,
-                guarded_incumbent_fitness,
-                sweep_fes,
-            )
-            controller_v31_run_state.cc_utility_history.append(cc_utility)
-            phase_population_size = (
-                int(phase_state.n_individuals)
-                if phase_state is not None
-                else calculate_cmaes_population_size(int(info["dimension"]))
-            )
-            evidence = build_search_state_evidence(
-                complete_sweep=(
-                    len(current_outer_relations) == max(0, sub_num - 1)
-                    and len(current_outer_decisions) == len(current_outer_relations)
-                ),
-                overlap_degree=degree,
-                phase_rescue_enabled=(
-                    (
-                        controller_v31_run_state.phase_rescue_enabled
-                        or config.search_state_backend == "diagonal_cma"
-                    )
-                    and search_state_available
-                ),
-                repair_lock_active=controller_v31_run_state.non_dense_repair_locked,
-                phase_i_tail_utility_value=(
-                    max(
-                        phase_i_tail_utility(phase_state),
-                        cc_utility,
-                    )
-                    if phase_state is not None
-                    else max(
-                        controller_v31_run_state.phase_i_runtime_tail_utility,
-                        cc_utility,
-                    )
-                ),
-                relations=current_outer_relations,
-                decisions=current_outer_decisions,
-                writeback_norms=overlap_writeback_norms,
-                relative_writeback_norms=relative_writeback_norms,
-                fitness_deltas=fitness_delta_list,
-                reference_fitness=guarded_incumbent_fitness,
-                cc_utility_history=controller_v31_run_state.cc_utility_history,
-                remaining_fes=config.max_fes - current_fitness_evaluations(fun),
-                max_fes=config.max_fes,
-                population_size=phase_population_size,
-            )
-            scheduler_state_before = (
-                controller_v31_run_state.search_state_scheduler_state
-            )
-            state_plan = plan_search_state_action(
-                evidence,
-                controller_v31_run_state.search_state_scheduler_state,
-                new_complete_cc_sweep=True,
-                trajectory_action_name=trajectory_action_name_for_backend(config),
-                terminal_probe=(config.search_state_backend == "diagonal_cma"),
-            )
-            if (
-                state_plan.action_name
-                in {RESUME_PHASE_I_SEARCH_STATE, CONTINUE_DIAGONAL_SEARCH_STATE}
-                and state_plan.requested_fes > 0
-            ):
-                preempted_recovery = (
-                    controller_v31_run_state.preempt_pending_trajectory_guard()
-                )
-                if preempted_recovery is not None:
-                    best_individual = preempted_recovery.candidate.copy()
-                controller_v31_run_state.invalidate_pending_action_trust(
-                    "search_state_intervened_before_credit"
-                )
-                if (
-                    state_plan.action_name == RESUME_PHASE_I_SEARCH_STATE
-                    and not phase_state_available
-                ):
-                    raise RuntimeError(
-                        "stateful MMES action selected without a resumable Phase-I state"
-                    )
-                guard_before = guarded_incumbent_fitness
-                guard_vector = guarded_incumbent.copy()
-                optimizer_seed = None
-                if state_plan.action_name == CONTINUE_DIAGONAL_SEARCH_STATE:
-                    (
-                        next_search_state,
-                        accepted,
-                        state_candidate,
-                        state_candidate_fitness,
-                        block,
-                        optimizer_seed,
-                    ) = run_diagonal_search_state_block(
-                        state=controller_v31_run_state.diagonal_cma_state,
-                        requested_fes=state_plan.requested_fes,
-                        guard_individual=guard_vector,
-                        guard_fitness=guard_before,
-                        fun=fun,
-                        info=info,
-                        config=config,
-                        fun_name=fun_name,
-                        fun_id=fun_id,
-                        outer_iter=outer_iter,
-                    )
-                    controller_v31_run_state.diagonal_cma_state = next_search_state
-                    raw_candidate = np.asarray(
-                        block.state.best_x,
-                        dtype=float,
-                    ).reshape(-1)
-                    sigma_before = float(block.sigma_before)
-                    sigma_after = float(block.sigma_after)
-                    population_before = int(block.population_size)
-                    population_after = int(block.population_size)
-                    raw_candidate_fitness = float(block.candidate_best)
-                else:
-                    (
-                        next_phase_state,
-                        accepted,
-                        state_candidate,
-                        state_candidate_fitness,
-                        block,
-                    ) = run_resumed_phase_i_state_block(
-                        optimizer=phase_optimizer,
-                        state=phase_state,
-                        requested_fes=state_plan.requested_fes,
-                        guard_individual=guard_vector,
-                        guard_fitness=guard_before,
-                        fun=fun,
-                    )
-                    controller_v31_run_state.phase_i_state = next_phase_state
-                    raw_candidate = np.asarray(
-                        block.state.best_so_far_x,
-                        dtype=float,
-                    ).reshape(-1)
-                    sigma_before = float(getattr(phase_state, "sigma", config.sigma))
-                    sigma_after = float(
-                        getattr(next_phase_state, "sigma", config.sigma)
-                    )
-                    population_before = int(
-                        getattr(phase_state, "n_individuals", phase_population_size)
-                    )
-                    population_after = int(
-                        getattr(
-                            next_phase_state,
-                            "n_individuals",
-                            phase_population_size,
-                        )
-                    )
-                    raw_candidate_fitness = float(block.state.best_so_far_y)
-                actual_state_fes = int(block.actual_fes)
-                search_state_fe += actual_state_fes
-                sum_fes += actual_state_fes
-                (
-                    best_individual,
-                    guarded_incumbent,
-                    guarded_incumbent_fitness,
-                    candidate_protected,
-                    cc_context_replaced,
-                ) = apply_search_state_candidate(
-                    context_individual=best_individual,
-                    guard_individual=guarded_incumbent,
-                    guard_fitness=guarded_incumbent_fitness,
-                    candidate=state_candidate,
-                    candidate_fitness=state_candidate_fitness,
-                    accepted=accepted,
-                    quarantine_context=(
-                        state_plan.action_name == CONTINUE_DIAGONAL_SEARCH_STATE
-                    ),
-                )
-                state_utility = normalized_gain_utility(
-                    guard_before,
-                    state_candidate_fitness,
-                    actual_state_fes,
-                )
-                controller_v31_run_state.search_state_scheduler_state = (
-                    record_search_state_outcome(
-                        controller_v31_run_state.search_state_scheduler_state,
-                        stage=state_plan.stage,
-                        accepted=accepted,
-                        utility=state_utility,
-                        required_utility_ratio=state_plan.required_utility_ratio,
-                        cc_utility=cc_utility,
-                        used_fes=actual_state_fes,
-                    )
-                )
-                action_trace_rows.append(
-                    build_action_trace_row(
-                        problem_id=_problem_id(fun_name, fun_id),
-                        seed=config.seed,
-                        outer_iter=outer_iter,
-                        group_index=sub_num - 1,
-                        selected_action_name=state_plan.action_name,
-                        overlap_size=0,
-                        previous_delta=cc_utility,
-                        current_delta=max(0.0, guard_before - state_candidate_fitness),
-                        state_mutated=accepted,
-                        action_value_delta_norm=float(
-                            np.linalg.norm(raw_candidate - guard_vector)
-                        ),
-                        downstream_consumed=True,
-                        downstream_consumption_scope="subsequent_outer_iterations",
-                        search_state_action_type=state_plan.action_name,
-                        search_state_backend=config.search_state_backend,
-                        candidate_protected=candidate_protected,
-                        cc_context_replaced=cc_context_replaced,
-                        stagnation_window=0,
-                        delta_mean=float(np.linalg.norm(raw_candidate - guard_vector)),
-                        sigma_before=sigma_before,
-                        sigma_after=sigma_after,
-                        population_before=population_before,
-                        population_after=population_after,
-                        escape_budget=actual_state_fes,
-                        bipop_restart_mode=state_plan.stage,
-                        restart_triggered=True,
-                        restart_accepted=accepted,
-                        best_before=guard_before,
-                        restart_candidate_best=raw_candidate_fitness,
-                        restart_relative_improvement=bipop_relative_improvement(
-                            candidate_best=raw_candidate_fitness,
-                            incumbent_fitness=guard_before,
-                        ),
-                        restart_acceptance_threshold=0.0,
-                        best_after=state_candidate_fitness,
-                        trace_event=state_plan.stage,
-                        remaining_budget_ratio=(
-                            max(0, config.max_fes - current_fitness_evaluations(fun))
-                            / max(config.max_fes, 1)
-                        ),
-                        shared_var_count=0,
-                        repair_lock_active=(
-                            controller_v31_run_state.non_dense_repair_locked
-                        ),
-                        refresh_budget=state_plan.requested_fes,
-                        continuation_reserve=state_plan.cc_reserve_fes,
-                        optimizer_seed=optimizer_seed,
-                        scheduler_phase=scheduler_state_before.phase,
-                        decision_point=f"complete_cc_sweep:{outer_iter}",
-                        cc_block_fe=sweep_fes,
-                        cc_utility=cc_utility,
-                        search_state_block_fe=actual_state_fes,
-                        search_state_utility=state_utility,
-                        required_utility_ratio=state_plan.required_utility_ratio,
-                        state_action_fe=(
-                            controller_v31_run_state.search_state_scheduler_state.intervention_fe
-                        ),
-                        cc_reserve_fe=state_plan.cc_reserve_fes,
-                        state_fingerprint_before=str(
-                            getattr(block, "state_fingerprint_before", "")
-                        ),
-                        state_fingerprint_after=str(
-                            getattr(block, "state_fingerprint_after", "")
-                        ),
-                        pre_hold_evidence=(
-                            pre_hold_evidence_snapshot if outer_iter == 0 else None
-                        ),
-                        search_state_evidence=evidence,
-                    )
-                )
-            else:
-                action_trace_rows.append(
-                    build_action_trace_row(
-                        problem_id=_problem_id(fun_name, fun_id),
-                        seed=config.seed,
-                        outer_iter=outer_iter,
-                        group_index=sub_num - 1,
-                        selected_action_name=CONTINUE_CANONICAL_CC,
-                        overlap_size=0,
-                        previous_delta=cc_utility,
-                        current_delta=0.0,
-                        state_mutated=False,
-                        action_value_delta_norm=0.0,
-                        downstream_consumed=False,
-                        downstream_consumption_scope="scheduler_abstention",
-                        search_state_action_type=CONTINUE_CANONICAL_CC,
-                        search_state_backend=config.search_state_backend,
-                        restart_triggered=False,
-                        restart_accepted=False,
-                        best_before=guarded_incumbent_fitness,
-                        restart_candidate_best=guarded_incumbent_fitness,
-                        restart_relative_improvement=0.0,
-                        restart_acceptance_threshold=0.0,
-                        best_after=guarded_incumbent_fitness,
-                        trace_event="decision",
-                        remaining_budget_ratio=(
-                            max(0, config.max_fes - current_fitness_evaluations(fun))
-                            / max(config.max_fes, 1)
-                        ),
-                        repair_lock_active=(
-                            controller_v31_run_state.non_dense_repair_locked
-                        ),
-                        scheduler_phase=scheduler_state_before.phase,
-                        decision_point=f"complete_cc_sweep:{outer_iter}",
-                        cc_block_fe=sweep_fes,
-                        cc_utility=cc_utility,
-                        search_state_block_fe=0,
-                        required_utility_ratio=state_plan.required_utility_ratio,
-                        state_action_fe=scheduler_state_before.intervention_fe,
-                        cc_reserve_fe=state_plan.cc_reserve_fes,
-                        abstain_reason=state_plan.trigger_reason,
-                        pre_hold_evidence=(
-                            pre_hold_evidence_snapshot if outer_iter == 0 else None
-                        ),
-                        search_state_evidence=evidence,
-                    )
-                )
-                if config.search_state_backend == "diagonal_cma":
-                    controller_v31_run_state.search_state_scheduler_state = (
-                        SearchStateSchedulerState(
-                            phase=SEARCH_STATE_BLOCKED,
-                            probe_utilities=scheduler_state_before.probe_utilities,
-                            intervention_fe=scheduler_state_before.intervention_fe,
-                        )
-                    )
-
-        if (
-            component_credit_trace is not None
-            and len(fitness_delta_list) == sub_num
-        ):
-            component_credit_trace.complete_sweep(
-                outer_iter=outer_iter,
-                optimized_group_count=len(fitness_delta_list),
-            )
-            if precision_causal_enabled:
-                source_end_fe = current_fitness_evaluations(fun)
-                for component_id, values in (
-                    precision_current_component_disagreements.items()
-                ):
-                    if values:
-                        precision_component_disagreement_history.setdefault(
-                            component_id,
-                            [],
-                        ).append((source_end_fe, sum(values) / len(values)))
-        if precision_causal_enabled:
-            precision_current_component_disagreements = {}
-        if hypergraph_observer_active and hypergraph_observer is not None:
-            try:
-                hypergraph_observer.complete_sweep(
-                    sweep_index=outer_iter,
-                    optimized_group_count=len(fitness_delta_list),
-                    all_raw_groups_completed=(
-                        len(fitness_delta_list) == sub_num
-                    ),
-                    native_sweep_end_completed=(
-                        len(fitness_delta_list) == sub_num
-                    ),
-                    native_sweep_end_stage=(
-                        HYPERGRAPH_NATIVE_SWEEP_END_STAGE
-                    ),
-                    sweep_end_fe=current_fitness_evaluations(fun),
-                    sweep_end_candidate=best_individual.copy(),
-                    fitness_record=fun.fitness_record,
-                )
-            except Exception as error:
-                hypergraph_observer.record_failure(
-                    stage="sweep_closure",
-                    error=error,
-                    source_fe=current_fitness_evaluations(fun),
-                )
-                hypergraph_observer_active = False
-                print(
-                    "hypergraph observer disabled after sweep closure failure: "
-                    f"{type(error).__name__}: {error}",
-                    file=sys.stderr,
-                )
         if evidence_overlay_observer is not None:
             all_groups_completed = len(fitness_delta_list) == sub_num
             delayed_outcomes_pending = (
@@ -9579,15 +3455,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         previous_group_contribution_credit
                     ),
                 )
-                held_after_boundary = (
-                    scheduled_search_state_hold_fes(
-                        config,
-                        controller_v31_run_state.search_state_scheduler_state,
-                        overlap_edge_count=overlap_edge_count,
-                    )
-                    if controller_v31_run_state is not None
-                    else 0
-                )
                 if evidence_overlay_frozen_sub_fes is None:
                     raise RuntimeError(
                         "evidence overlay barrier has no frozen group budget"
@@ -9606,8 +3473,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         remaining_fe=max(
                             0,
                             config.max_fes
-                            - probe_start_fe
-                            - held_after_boundary,
+                            - probe_start_fe,
                         ),
                         normal_sweep_fe=normal_sweep_fe,
                         tolerance_fe=terminal_completion_tolerance_fe,
@@ -9653,726 +3519,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             break
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
-        if cc_harm_guard_consumed:
-            break
-
-    if controller_v31_run_state is not None:
-        preempted_recovery = (
-            controller_v31_run_state.preempt_pending_trajectory_guard()
-        )
-        if preempted_recovery is not None:
-            best_individual = preempted_recovery.candidate.copy()
-    if component_credit_trace is not None:
-        component_credit_trace.finalize_unresolved(
-            resolution_fe=current_fitness_evaluations(fun)
-        )
-
     problem_id = _problem_id(fun_name, fun_id)
-    if car_artifacts_enabled:
-        needs_terminal_checkpoint = (
-            (
-                config.car_actionability_arm != "off"
-                and car_actionability_trace_base_row is None
-            )
-            or not car_state_ledger_rows
-        )
-        if needs_terminal_checkpoint and not math.isfinite(
-            float(guarded_incumbent_fitness)
-        ):
-            if current_fitness_evaluations(fun) >= config.max_fes:
-                raise RuntimeError(
-                    "cannot establish a finite CAR actionability checkpoint"
-                )
-            guarded_incumbent_fitness = float(fun(guarded_incumbent)[0])
-            sum_fes += 1
-            cc_phase_fe += 1
-        if car_actionability_trace_base_row is not None:
-            terminal_fe = current_fitness_evaluations(fun)
-            terminal_shortfall = max(0, config.max_fes - terminal_fe)
-            termination_reason = (
-                "early_guard"
-                if cc_harm_guard_consumed
-                else "early_termination"
-                if terminal_shortfall > terminal_completion_tolerance_fe
-                else "population_complete_budget_endpoint"
-            )
-            car_actionability_trace_base_row = {
-                **car_actionability_trace_base_row,
-                "terminal_completion_tolerance_fe": str(
-                    terminal_completion_tolerance_fe
-                ),
-                "termination_reason": termination_reason,
-                "terminal_fe_shortfall": str(terminal_shortfall),
-            }
-        if (
-            config.car_actionability_arm != "off"
-            and car_actionability_trace_base_row is None
-        ):
-            audit_checkpoint = BranchState(
-                incumbent=tuple(float(value) for value in guarded_incumbent),
-                committed_fitness=guarded_incumbent_fitness,
-                evaluator_record=[],
-                state_fingerprint="",
-                state_payload=_car_controller_state_payload(
-                    controller_v31_run_state,
-                    trajectory_mean_cache=trajectory_mean_cache,
-                    previous_group_contribution_credit=(
-                        previous_group_contribution_credit
-                    ),
-                ),
-            )
-            audit_checkpoint.state_fingerprint = fingerprint_branch_state(
-                audit_checkpoint
-            )
-            missing_audit = execute_car_actionability_arm_at_barrier(
-                decision=CARPlanDecision(
-                    plan=None,
-                    evidence=None,
-                    abstain_reason=(
-                        "insufficient_complete_evidence_sweeps"
-                        if car_probe_enabled
-                        else "no_overlap_component_candidate"
-                    ),
-                ),
-                checkpoint=audit_checkpoint,
-                checkpoint_fe=current_fitness_evaluations(fun),
-                prefix_record=tuple(float(value) for value in fun.fitness_record),
-                fun_name=fun_name,
-                fun_id=fun_id,
-                output_path=output_path,
-                info=info,
-                config=config,
-                problem_id=problem_id,
-            )
-            car_actionability_trace_base_row = {
-                **missing_audit.trace_base_row,
-                "terminal_completion_tolerance_fe": str(
-                    terminal_completion_tolerance_fe
-                ),
-                "termination_reason": (
-                    "early_guard"
-                    if cc_harm_guard_consumed
-                    else "early_termination"
-                    if max(0, config.max_fes - current_fitness_evaluations(fun))
-                    > terminal_completion_tolerance_fe
-                    else "population_complete_budget_endpoint"
-                ),
-                "terminal_fe_shortfall": str(
-                    max(0, config.max_fes - current_fitness_evaluations(fun))
-                ),
-            }
-        if not car_state_ledger_rows:
-            checkpoint = BranchState(
-                incumbent=tuple(float(value) for value in guarded_incumbent),
-                committed_fitness=guarded_incumbent_fitness,
-                evaluator_record=[],
-                state_fingerprint="",
-                state_payload=_car_controller_state_payload(
-                    controller_v31_run_state,
-                    trajectory_mean_cache=trajectory_mean_cache,
-                    previous_group_contribution_credit=(
-                        previous_group_contribution_credit
-                    ),
-                ),
-            )
-            checkpoint.state_fingerprint = fingerprint_branch_state(checkpoint)
-            incomplete = execute_car_w_probe_at_barrier(
-                decision=CARPlanDecision(
-                    plan=None,
-                    evidence=None,
-                    abstain_reason=(
-                        "insufficient_complete_evidence_sweeps"
-                        if car_probe_enabled
-                        else "no_overlap_component_candidate"
-                    ),
-                ),
-                checkpoint=checkpoint,
-                checkpoint_fe=current_fitness_evaluations(fun),
-                fun_name=fun_name,
-                fun_id=fun_id,
-                output_path=output_path,
-                info=info,
-                config=config,
-                problem_id=problem_id,
-            )
-            car_state_ledger_rows.extend(incomplete.state_ledger_rows)
-        _write_car_rows(
-            case_artifact_path(output_path, problem_id, "car_probe_trace.csv"),
-            fieldnames=CAR_PROBE_TRACE_FIELDS,
-            rows=car_probe_trace_rows,
-        )
-        _write_car_rows(
-            case_artifact_path(output_path, problem_id, "car_state_ledger.csv"),
-            fieldnames=CAR_STATE_LEDGER_FIELDS,
-            rows=car_state_ledger_rows,
-        )
-        _write_car_rows(
-            case_artifact_path(output_path, problem_id, "car_branch_manifest.csv"),
-            fieldnames=CAR_BRANCH_MANIFEST_FIELDS,
-            rows=car_branch_manifest_rows,
-        )
-        if (
-            config.car_actionability_arm != "off"
-            and car_actionability_trace_base_row is not None
-        ):
-            _write_car_rows(
-                case_artifact_path(
-                    output_path,
-                    problem_id,
-                    "car_actionability_trace.csv",
-                ),
-                fieldnames=CAR_ACTIONABILITY_TRACE_FIELDS,
-                rows=finalize_car_actionability_trace(
-                    trace_base_row=car_actionability_trace_base_row,
-                    fitness_record=fun.fitness_record,
-                    max_fes=config.max_fes,
-                ),
-            )
-    if precision_causal_enabled:
-        if precision_causal_snapshot is not None:
-            precision_base_row = precision_causal_snapshot_row(
-                precision_causal_snapshot,
-                problem_id=problem_id,
-                seed=config.seed,
-                audit_arm=config.precision_causal_arm,
-            )
-        else:
-            if not any(overlapping_elements):
-                reason = "no_overlap_component_candidate"
-            elif not precision_causal_saw_retirement:
-                reason = "precision_retirement_not_reached"
-            elif not precision_causal_saw_overlap_component:
-                reason = "no_shared_overlap_component_candidate"
-            elif (
-                precision_causal_saw_reachable_opportunity
-                and precision_causal_last_incomplete_reason
-            ):
-                reason = precision_causal_last_incomplete_reason
-            else:
-                reason = "no_scheduler_reachable_unlocked_precision_opportunity"
-            precision_base_row = {
-                "protocol_version": PRECISION_CAUSAL_PROTOCOL_VERSION,
-                "fresh_optimizer_execution": "1",
-                "problem_id": problem_id,
-                "seed": "" if config.seed is None else str(int(config.seed)),
-                "audit_arm": config.precision_causal_arm,
-                "decision_id": "",
-                "decision_status": "not_applicable",
-                "not_applicable_reason": reason,
-                "feature_schema_sha256": FEATURE_SCHEMA_SHA256,
-                "random_descriptor_sha256": (
-                    precision_causal_run_random_descriptor_sha256
-                ),
-            }
-        precision_trace_row = finalize_precision_causal_trace_row(
-            base_row=precision_base_row,
-            fitness_record=fun.fitness_record,
-            max_fes=config.max_fes,
-            terminal_completion_tolerance_fe=terminal_completion_tolerance_fe,
-            action_applied=precision_causal_action_applied,
-            applied_sigma=precision_causal_applied_sigma,
-            requested_fe=precision_causal_requested_fe,
-            actual_fe=precision_causal_actual_fe,
-            intervention_end_fe=precision_causal_intervention_end_fe,
-            early_guard=cc_harm_guard_consumed,
-        )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "precision_causal_trace.csv",
-            ),
-            fieldnames=PRECISION_CAUSAL_TRACE_FIELDS,
-            rows=[precision_trace_row],
-        )
-    if precision_response_enabled:
-        if precision_response_trace_row is None:
-            response_reason = (
-                "no_overlap_component_candidate"
-                if not any(overlapping_elements)
-                else precision_response_last_reason
-                or "no_safe_overlap_revisit_opportunity"
-            )
-            precision_response_trace_row = {
-                "protocol_version": PRECISION_RESPONSE_PROTOCOL_VERSION,
-                "fresh_optimizer_execution": "1",
-                "problem_id": problem_id,
-                "seed": "" if config.seed is None else str(config.seed),
-                "response_arm": config.precision_response_arm,
-                "decision_id": "",
-                "decision_status": "not_applicable",
-                "not_applicable_reason": response_reason,
-                "decision_fe": "",
-                "outer_iter": "",
-                "group_index": "",
-                "component_id": "",
-                "prefix_record_sha256": "",
-                "checkpoint_candidate_sha256": "",
-                "probe_seed": "",
-                "probe_executed": "0",
-                "probe_fe": "0",
-                "normal_sigma": "",
-                "precision_sigma": "",
-                "normal_direction_sha256": "",
-                "precision_direction_sha256": "",
-                "gate_state_sha256": "",
-                "gate_would_release": "0",
-                "lease_applied": "0",
-                "gate_reason": response_reason,
-                "main_requested_fe": "",
-                "main_actual_fe": "",
-                "intervention_end_fe": "",
-                "delayed_credit_status": "not_applicable",
-            }
-        if precision_response_lease_row is not None:
-            credit_status = precision_response_lease_row.get(
-                "component_credit_status",
-                "",
-            )
-            if credit_status != "resolved":
-                precision_response_trace_row["delayed_credit_status"] = credit_status
-        terminal_target_fe = max(
-            0,
-            int(config.max_fes) - int(terminal_completion_tolerance_fe),
-        )
-        terminal_observed_fe = min(
-            terminal_target_fe,
-            current_fitness_evaluations(fun),
-        )
-        terminal_record = tuple(
-            float(value) for value in fun.fitness_record[:terminal_observed_fe]
-        )
-        intervention_end = int(
-            precision_response_trace_row.get("intervention_end_fe") or 0
-        )
-        response_complete = bool(
-            terminal_observed_fe == terminal_target_fe
-            and not cc_harm_guard_consumed
-            and (
-                precision_response_trace_row.get("decision_status") != "applicable"
-                or terminal_target_fe > intervention_end
-            )
-        )
-        precision_response_trace_row.update(
-            {
-                "terminal_target_fe": str(terminal_target_fe),
-                "terminal_completion_tolerance_fe": str(
-                    terminal_completion_tolerance_fe
-                ),
-                "terminal_observed_fe": str(terminal_observed_fe),
-                "terminal_error": (
-                    "" if not terminal_record else f"{min(terminal_record):.17e}"
-                ),
-                "terminal_status": "complete" if response_complete else "incomplete",
-            }
-        )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "precision_response_trace.csv",
-            ),
-            fieldnames=PRECISION_RESPONSE_TRACE_FIELDS,
-            rows=[precision_response_trace_row],
-        )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "precision_probe_audit.csv",
-            ),
-            fieldnames=PRECISION_PROBE_AUDIT_FIELDS,
-            rows=precision_response_probe_audit_rows,
-        )
-        gate_feature_rows = []
-        if (
-            precision_response_gate_state is not None
-            and precision_response_trace_row.get("decision_id")
-        ):
-            gate_feature_rows.append(
-                {
-                    "decision_id": precision_response_trace_row["decision_id"],
-                    **{
-                        field: getattr(precision_response_gate_state, field)
-                        for field in PRECISION_PROBE_GATE_FIELDS
-                    },
-                }
-            )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "precision_probe_gate_features.csv",
-            ),
-            fieldnames=PRECISION_PROBE_GATE_FEATURE_FIELDS,
-            rows=gate_feature_rows,
-        )
-        lease_rows = []
-        if precision_response_lease_row is not None:
-            lease_rows.append(
-                {
-                    field: precision_response_lease_row.get(field, "")
-                    for field in PRECISION_LEASE_CREDIT_FIELDS
-                }
-            )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "precision_lease_credit.csv",
-            ),
-            fieldnames=PRECISION_LEASE_CREDIT_FIELDS,
-            rows=lease_rows,
-        )
-    if component_atomic_enabled:
-        terminal_target_fe = max(
-            0,
-            int(config.max_fes) - int(terminal_completion_tolerance_fe),
-        )
-        terminal_observed_fe = min(
-            terminal_target_fe,
-            current_fitness_evaluations(fun),
-        )
-        terminal_record = tuple(
-            float(value) for value in fun.fitness_record[:terminal_observed_fe]
-        )
-        terminal_error = min(terminal_record) if terminal_record else math.inf
-        terminal_complete = terminal_observed_fe == terminal_target_fe
-        if component_atomic_state is None:
-            if not any(overlapping_elements):
-                not_applicable_reason = "no_overlap_component_candidate"
-            elif not component_atomic_saw_shared_overlap:
-                not_applicable_reason = "no_shared_overlap_component_candidate"
-            else:
-                not_applicable_reason = (
-                    component_atomic_last_reason
-                    or "no_safe_component_horizon_opportunity"
-                )
-            component_branch_row = {
-                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
-                "schema_version": COMPONENT_ATOMIC_SCHEMA_VERSION,
-                "fresh_optimizer_execution": "1",
-                "problem_id": problem_id,
-                "seed": "" if config.seed is None else str(config.seed),
-                "component_precision_arm": config.component_precision_arm,
-                "decision_id": "",
-                "decision_status": "not_applicable",
-                "not_applicable_reason": not_applicable_reason,
-                "decision_fe": "",
-                "outer_iter": "",
-                "component_id": "",
-                "component_group_indices": "",
-                "component_group_count": "0",
-                "component_shared_var_count": "0",
-                "prefix_record_sha256": "",
-                "checkpoint_candidate_sha256": "",
-                "crn_descriptor_sha256": "",
-                "component_plan_sha256": "",
-                "normal_sigma": "",
-                "precision_sigma": "",
-                "action_applied": "0",
-                "component_plan_frozen": "0",
-                "mid_horizon_redispatch_count": "0",
-                "atomic_closed": "0",
-                "unique_h_endpoint": "0",
-                "component_horizon_requested_fe": "0",
-                "component_horizon_actual_fe": "0",
-                "component_horizon_interval_fe": "0",
-                "component_end_fe": "",
-                "h_endpoint_count": "0",
-                "plan_integrity_valid": "1",
-                "delayed_review_fe": "",
-                "delayed_review_outer_iter": "",
-                "delayed_review_group_index": "",
-                "delayed_status": "not_applicable",
-                "terminal_target_fe": str(terminal_target_fe),
-                "terminal_completion_tolerance_fe": str(
-                    terminal_completion_tolerance_fe
-                ),
-                "terminal_observed_fe": str(terminal_observed_fe),
-                "terminal_error": (
-                    "" if not math.isfinite(terminal_error) else f"{terminal_error:.17e}"
-                ),
-                "terminal_record_sha256": _fitness_record_sha256(terminal_record),
-                "terminal_status": "complete" if terminal_complete else "incomplete",
-            }
-            component_endpoint_rows: list[dict[str, str]] = []
-            component_survival_rows: list[dict[str, str]] = []
-            component_budget_rows: list[dict[str, str]] = []
-        else:
-            state = component_atomic_state
-            component_complete = bool(
-                state.atomic_closed
-                and state.endpoint_error is not None
-                and state.h_endpoint_count == 1
-                and state.plan_integrity_valid
-                and len(state.budget_rows) == len(state.plan.group_indices)
-            )
-            component_branch_row = {
-                "protocol_version": COMPONENT_PRECISION_PROTOCOL_VERSION,
-                "schema_version": COMPONENT_ATOMIC_SCHEMA_VERSION,
-                "fresh_optimizer_execution": "1",
-                "problem_id": problem_id,
-                "seed": "" if config.seed is None else str(config.seed),
-                "component_precision_arm": config.component_precision_arm,
-                "decision_id": state.decision_id,
-                "decision_status": "applicable",
-                "not_applicable_reason": "",
-                "decision_fe": str(state.decision_fe),
-                "outer_iter": str(state.outer_iter),
-                "component_id": state.component_id,
-                "component_group_indices": ";".join(
-                    str(value) for value in state.plan.group_indices
-                ),
-                "component_group_count": str(len(state.plan.group_indices)),
-                "component_shared_var_count": str(len(state.shared_indices)),
-                "prefix_record_sha256": state.prefix_record_sha256,
-                "checkpoint_candidate_sha256": state.checkpoint_candidate_sha256,
-                "crn_descriptor_sha256": state.crn_descriptor_sha256,
-                "component_plan_sha256": state.component_plan_sha256,
-                "normal_sigma": f"{state.plan.normal_sigma:.17e}",
-                "precision_sigma": f"{state.plan.precision_sigma:.17e}",
-                "action_applied": str(int(state.action_applied)),
-                "component_plan_frozen": "1",
-                "mid_horizon_redispatch_count": str(
-                    max(
-                        0,
-                        component_atomic_plan_evaluation_count
-                        - state.plan_evaluation_count_at_start,
-                    )
-                ),
-                "atomic_closed": str(int(state.atomic_closed)),
-                "unique_h_endpoint": str(int(state.h_endpoint_count == 1)),
-                "component_horizon_requested_fe": str(
-                    sum(state.plan.group_budgets)
-                ),
-                "component_horizon_actual_fe": str(
-                    sum(int(row["actual_fe"]) for row in state.budget_rows)
-                ),
-                "component_horizon_interval_fe": str(
-                    sum(
-                        int(row["interval_actual_fe"])
-                        for row in state.budget_rows
-                    )
-                ),
-                "component_end_fe": (
-                    "" if state.component_end_fe is None else str(state.component_end_fe)
-                ),
-                "h_endpoint_count": str(state.h_endpoint_count),
-                "plan_integrity_valid": str(
-                    int(
-                        state.plan_integrity_valid
-                        and _component_atomic_plan_sha256(state.plan)
-                        == state.component_plan_sha256
-                    )
-                ),
-                "delayed_review_fe": (
-                    "" if state.delayed_review_fe is None else str(state.delayed_review_fe)
-                ),
-                "delayed_review_outer_iter": (
-                    ""
-                    if state.delayed_review_outer_iter is None
-                    else str(state.delayed_review_outer_iter)
-                ),
-                "delayed_review_group_index": (
-                    ""
-                    if state.delayed_review_group_index is None
-                    else str(state.delayed_review_group_index)
-                ),
-                "delayed_status": state.delayed_status,
-                "terminal_target_fe": str(terminal_target_fe),
-                "terminal_completion_tolerance_fe": str(
-                    terminal_completion_tolerance_fe
-                ),
-                "terminal_observed_fe": str(terminal_observed_fe),
-                "terminal_error": (
-                    "" if not math.isfinite(terminal_error) else f"{terminal_error:.17e}"
-                ),
-                "terminal_record_sha256": _fitness_record_sha256(terminal_record),
-                "terminal_status": "complete" if terminal_complete else "incomplete",
-            }
-            component_endpoint_rows = []
-            component_survival_rows = []
-            if component_complete:
-                shared_path_l1, shared_net_l1, s_h, delayed_drift_l1 = (
-                    _component_shared_path_metrics(
-                        state.canonical_shared_path,
-                        (
-                            state.delayed_shared_values
-                            if state.endpoint_result is not None
-                            else None
-                        ),
-                    )
-                )
-                component_log_gain = math.log(
-                    max(state.checkpoint_error, 1e-300)
-                ) - math.log(max(float(state.endpoint_error), 1e-300))
-                material = component_log_gain >= math.log(1.01)
-                s_d = ""
-                strict_survival = shared_net_l1 > 1e-300
-                if state.endpoint_result is not None:
-                    reward = build_component_reward(state.endpoint_result)
-                    s_h = reward.s_h
-                    s_d = f"{reward.s_d:.17e}"
-                    strict_survival = reward.strict_survival
-                component_endpoint_rows.append(
-                    {
-                        "decision_id": state.decision_id,
-                        "component_precision_arm": config.component_precision_arm,
-                        "checkpoint_error": f"{state.checkpoint_error:.17e}",
-                        "endpoint_error": f"{float(state.endpoint_error):.17e}",
-                        "component_log_gain": f"{component_log_gain:.17e}",
-                        "material": str(int(material)),
-                        "component_start_fe": str(state.component_start_fe),
-                        "component_end_fe": str(state.component_end_fe),
-                        "component_requested_fe": str(
-                            sum(int(row["requested_fe"]) for row in state.budget_rows)
-                        ),
-                        "component_actual_fe": str(
-                            sum(int(row["actual_fe"]) for row in state.budget_rows)
-                        ),
-                        "component_interval_fe": str(
-                            sum(
-                                int(row["interval_actual_fe"])
-                                for row in state.budget_rows
-                            )
-                        ),
-                        "group_endpoint_errors": ";".join(
-                            f"{value:.17e}" for value in state.group_endpoint_errors
-                        ),
-                    }
-                )
-                component_survival_rows.append(
-                    {
-                        "decision_id": state.decision_id,
-                        "component_precision_arm": config.component_precision_arm,
-                        "shared_path_l1": f"{shared_path_l1:.17e}",
-                        "shared_net_l1": f"{shared_net_l1:.17e}",
-                        "s_h": f"{s_h:.17e}",
-                        "delayed_drift_l1": (
-                            ""
-                            if state.endpoint_result is None
-                            else f"{delayed_drift_l1:.17e}"
-                        ),
-                        "s_d": s_d,
-                        "strict_survival": str(int(strict_survival)),
-                        "delayed_status": state.delayed_status,
-                    }
-                )
-            component_budget_rows = state.budget_rows
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "component_action_branch_manifest.csv",
-            ),
-            fieldnames=COMPONENT_ACTION_BRANCH_FIELDS,
-            rows=[component_branch_row],
-        )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "component_endpoint_outcomes.csv",
-            ),
-            fieldnames=COMPONENT_ENDPOINT_FIELDS,
-            rows=component_endpoint_rows,
-        )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "component_shared_survival.csv",
-            ),
-            fieldnames=COMPONENT_SHARED_SURVIVAL_FIELDS,
-            rows=component_survival_rows,
-        )
-        _write_car_rows(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "component_budget_ledger.csv",
-            ),
-            fieldnames=COMPONENT_BUDGET_LEDGER_FIELDS,
-            rows=component_budget_rows,
-        )
-    if hypergraph_trace_enabled:
-        hypergraph_paths = HypergraphTraceArtifactPaths(
-            manifest=case_artifact_path(
-                output_path,
-                problem_id,
-                "hypergraph_manifest.json",
-            ),
-            features=case_artifact_path(
-                output_path,
-                problem_id,
-                "hyperedge_cycle_features.csv",
-            ),
-            audit=case_artifact_path(
-                output_path,
-                problem_id,
-                "hyperedge_cycle_audit.csv",
-            ),
-            proposals=case_artifact_path(
-                output_path,
-                problem_id,
-                "shared_proposal_audit.csv",
-            ),
-            outcomes=case_artifact_path(
-                output_path,
-                problem_id,
-                "hyperedge_cycle_outcomes.csv",
-            ),
-        )
-        if hypergraph_observer is not None:
-            try:
-                hypergraph_observer.write_artifacts(
-                    paths=hypergraph_paths,
-                    final_fitness_record=fun.fitness_record,
-                )
-            except Exception as error:
-                hypergraph_observer.record_failure(
-                    stage="artifact_write",
-                    error=error,
-                    source_fe=current_fitness_evaluations(fun),
-                )
-                print(
-                    "hypergraph observer artifact write failed: "
-                    f"{type(error).__name__}: {error}",
-                    file=sys.stderr,
-                )
-                try:
-                    hypergraph_observer.write_failure_manifest(
-                        path=hypergraph_paths.manifest,
-                        final_fitness_record=fun.fitness_record,
-                    )
-                except Exception as manifest_error:
-                    print(
-                        "hypergraph observer failure manifest write failed: "
-                        f"{type(manifest_error).__name__}: {manifest_error}",
-                        file=sys.stderr,
-                    )
-        elif hypergraph_initialization_error is not None:
-            try:
-                write_hypergraph_initialization_failure_manifest(
-                    path=hypergraph_paths.manifest,
-                    problem_id=problem_id,
-                    seed=config.seed,
-                    run_id=config.run_id,
-                    fresh_optimizer_execution=True,
-                    terminal_target_fe=config.max_fes,
-                    terminal_completion_tolerance_fe=(
-                        terminal_completion_tolerance_fe
-                    ),
-                    error=hypergraph_initialization_error,
-                    source_fe=current_fitness_evaluations(fun),
-                )
-            except Exception as manifest_error:
-                print(
-                    "hypergraph initialization failure manifest write failed: "
-                    f"{type(manifest_error).__name__}: {manifest_error}",
-                    file=sys.stderr,
-                )
     if evidence_overlay_observer is not None:
         evidence_overlay_paths = EvidenceOverlayArtifactPaths(
             manifest=case_artifact_path(
@@ -10456,65 +3603,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             action_decisions,
             relation_policy_mode=config.relation_policy_mode,
         )
-    if (
-        config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING
-        and cc_phase_fe > 0
-        and not mos_sampling_rows
-    ):
-        raise RuntimeError("MOS CC execution produced no sampling audit rows")
-    if mos_profile_enabled:
-        if not mos_first_cma_prestate_sha256:
-            mos_first_cma_prestate_sha256 = _canonical_payload_sha256(
-                {
-                    "status": "not_reached",
-                    "phase_i_record_sha256": mos_phase_i_record_sha256,
-                    "phase_i_candidate_sha256": mos_phase_i_candidate_sha256,
-                    "phase_i_fe": int(global_phase_fe),
-                    "terminal_observed_fe": current_fitness_evaluations(fun),
-                }
-            )
-        _write_mos_branch_provenance(
-            case_artifact_path(
-                output_path,
-                problem_id,
-                "mos_branch_provenance.csv",
-            ),
-            {
-                "protocol_version": MOS_STABILITY_PROTOCOL_VERSION,
-                "run_id": config.run_id,
-                "sampling_mode": config.cma_sampling_mode,
-                "problem_id": problem_id,
-                "seed": int(config.seed),
-                "status": "completed",
-                "terminal_target_fe": int(config.max_fes),
-                "terminal_completion_tolerance_fe": int(
-                    terminal_completion_tolerance_fe
-                ),
-                "phase_i_fe": int(global_phase_fe),
-                "phase_i_record_sha256": mos_phase_i_record_sha256,
-                "phase_i_candidate_sha256": mos_phase_i_candidate_sha256,
-                "first_cma_prestate_status": mos_first_cma_prestate_status,
-                "first_cma_prestate_sha256": mos_first_cma_prestate_sha256,
-                "rng_descriptor_sha256": mos_rng_descriptor_sha256,
-                "terminal_record_sha256": _fitness_record_sha256(
-                    tuple(float(value) for value in fun.fitness_record)
-                ),
-                "mos_generation_rows": len(mos_sampling_rows),
-                "mos_primary_generation_rows": sum(
-                    row["cma_scope"] == "v37_primary_group_cma"
-                    for row in mos_sampling_rows
-                ),
-                "mos_rescue_generation_rows": sum(
-                    row["cma_scope"] == "v37_phase_rescue_multistart_cma"
-                    for row in mos_sampling_rows
-                ),
-            },
-        )
-    if config.cma_sampling_mode == MIRRORED_ORTHOGONAL_CMA_SAMPLING:
-        _write_mos_sampling_audit(
-            case_artifact_path(output_path, problem_id, "mos_sampling_audit.csv"),
-            mos_sampling_rows,
-        )
     _write_budget_summary(
         case_artifact_path(output_path, problem_id, "budget_summary.csv"),
         problem_id=problem_id,
@@ -10527,7 +3615,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         rescue_fe=rescue_fe,
         refresh_fe=refresh_fe,
         search_state_fe=search_state_fe,
-        precision_probe_fe=precision_response_probe_fe,
         evidence_overlay_fe=(
             evidence_overlay_fe if evidence_overlay_enabled else None
         ),
@@ -10599,16 +3686,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         mmes_restart=True,
         cmaes_restart=True,
         arac_action_file=None,
-        car_branch_order="fallback_first",
-        car_candidate_mode="graph",
-        car_actionability_arm="off",
-        precision_causal_arm="off",
-        precision_response_arm="off",
-        component_precision_arm="off",
-        hypergraph_trace_mode="off",
-        cma_sampling_mode=IID_CMA_SAMPLING,
-        lane_profile="runtime_smoke",
-        offline_frozen_replay=False,
     )
     args = parser.parse_args(argv)
     if args.max_fes <= 0:
@@ -10624,12 +3701,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> list[Path]:
     args = parse_args(argv)
-    if args.arac_action == EVIDENCE_ACTION_CONTROLLER_V41 and not (
-        args.offline_frozen_replay
-    ):
-        raise ValueError(
-            "v41 is frozen; pass --offline-frozen-replay for historical replay"
-        )
     for fun_id in args.ids:
         validate_aob_data_root(args.aob_data_root, fun_id)
     config = SmokeConfig(
@@ -10648,17 +3719,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         skip_plots=args.skip_plots,
         aob_data_root=args.aob_data_root,
         search_state_backend=args.search_state_backend,
-        car_branch_order=args.car_branch_order,
-        car_candidate_mode=args.car_candidate_mode,
-        car_actionability_arm=args.car_actionability_arm,
-        precision_causal_arm=args.precision_causal_arm,
-        precision_response_arm=args.precision_response_arm,
-        component_precision_arm=args.component_precision_arm,
-        hypergraph_trace_mode=args.hypergraph_trace_mode,
         evidence_overlay_mode=args.evidence_overlay_mode,
-        cma_sampling_mode=args.cma_sampling_mode,
-        lane_profile=args.lane_profile,
-        offline_frozen_replay=args.offline_frozen_replay,
     )
     output_paths = []
     for fun_name in args.functions:
@@ -10695,36 +3756,6 @@ def main(argv: list[str] | None = None) -> list[Path]:
             _write_action_trace(
                 case_artifact_path(output_path, problem_id, "action_trace.csv"),
                 trace_rows,
-                include_trust_fields=uses_v33_trust_trace_schema(
-                    config.arac_action
-                ),
-                include_recovery_fields=is_evidence_action_controller_v34(
-                    config.arac_action
-                ),
-                include_maturity_fields=is_evidence_action_controller_v36(
-                    config.arac_action
-                )
-                or is_evidence_action_controller_v37(config.arac_action)
-                or is_evidence_action_controller_v38(config.arac_action),
-                include_cma_sigma_fields=is_evidence_action_controller_v39(
-                    config.arac_action
-                ),
-                include_resource_fields=(
-                    is_evidence_action_controller_v37(config.arac_action)
-                    or is_evidence_action_controller_v38(config.arac_action)
-                    or is_evidence_action_controller_v39(config.arac_action)
-                    or is_evidence_action_controller_v40(config.arac_action)
-                    or is_evidence_action_controller_v41(config.arac_action)
-                ),
-                include_component_credit_fields=uses_component_credit_state(
-                    config.arac_action
-                ),
-                include_precision_causal_fields=(
-                    config.precision_causal_arm != "off"
-                ),
-                include_precision_response_fields=(
-                    config.precision_response_arm != "off"
-                ),
             )
             function_trace_rows.extend(trace_rows)
             if config.enable_relation_dispatch:
@@ -10746,36 +3777,6 @@ def main(argv: list[str] | None = None) -> list[Path]:
         _write_action_trace(
             output_path / "action_trace.csv",
             function_trace_rows,
-            include_trust_fields=uses_v33_trust_trace_schema(
-                config.arac_action
-            ),
-            include_recovery_fields=is_evidence_action_controller_v34(
-                config.arac_action
-            ),
-            include_maturity_fields=is_evidence_action_controller_v36(
-                config.arac_action
-            )
-            or is_evidence_action_controller_v37(config.arac_action)
-            or is_evidence_action_controller_v38(config.arac_action),
-            include_cma_sigma_fields=is_evidence_action_controller_v39(
-                config.arac_action
-            ),
-            include_resource_fields=(
-                is_evidence_action_controller_v37(config.arac_action)
-                or is_evidence_action_controller_v38(config.arac_action)
-                or is_evidence_action_controller_v39(config.arac_action)
-                or is_evidence_action_controller_v40(config.arac_action)
-                or is_evidence_action_controller_v41(config.arac_action)
-            ),
-            include_component_credit_fields=uses_component_credit_state(
-                config.arac_action
-            ),
-            include_precision_causal_fields=(
-                config.precision_causal_arm != "off"
-            ),
-            include_precision_response_fields=(
-                config.precision_response_arm != "off"
-            ),
         )
         _write_aob_input_manifest(
             output_path / "aob_input_manifest.csv",
