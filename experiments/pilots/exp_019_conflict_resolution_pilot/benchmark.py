@@ -420,7 +420,8 @@ class _ConflictElliptic(_ConflictComputeMixin, VendorElliptic):
     _objective = VendorElliptic.elliptic
 
     def _transform_conflict(self, values: np.ndarray) -> np.ndarray:
-        return self.transform_osz(values)
+        values = self.transform_osz(values)
+        return self.transform_asy(values, 0.2)
 
 
 class _ConflictAckley(_ConflictComputeMixin, VendorAckley):
@@ -428,8 +429,7 @@ class _ConflictAckley(_ConflictComputeMixin, VendorAckley):
 
     def _transform_conflict(self, values: np.ndarray) -> np.ndarray:
         values = self.transform_osz(values)
-        values = self.transform_asy(values, 0.2)
-        return self.Lambda(values, 10)
+        return self.transform_asy(values, 0.2)
 
 
 class _ConflictSchwefel(_ConflictComputeMixin, VendorSchwefel):

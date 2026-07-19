@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from arac.backends.hcc import EVIDENCE_OVERLAY_MODES
+from arac.policy.action_ceiling import FrozenProbeCandidate, RelationActionSet
 from arac.policy.evidence_overlay import (
     LOCAL_OPTIMUM_TOP_K,
     PROPOSAL_DISAGREEMENT_METRIC,
@@ -579,6 +580,93 @@ class HccEvidenceOverlayObserver:
                 )
             )
         return tuple(actions)
+
+    @property
+    def relation_action_sets(self) -> tuple[RelationActionSet, ...]:
+        """Export complete Phase1 candidates for offline action-ceiling branches."""
+
+        result = self._barrier_result
+        snapshot = self._phase_boundary_snapshot
+        checkpoint_hash = self.runtime_probe_checkpoint_hash
+        if (
+            result is None
+            or result.status != "probed"
+            or snapshot is None
+            or checkpoint_hash is None
+        ):
+            return ()
+        action_sets: list[RelationActionSet] = []
+        for probe_result in self._relation_probe_results:
+            relation = probe_result.scored_relation.relation.key
+            shared = relation.shared_variable_indices
+            probe = probe_result.probe
+            utilities = summarize_probe_utilities(
+                anchor_fitness=probe_result.fitness[0],
+                left_fitness=probe_result.fitness[1],
+                right_fitness=probe_result.fitness[2],
+                bridge_fitness=probe_result.fitness[3],
+            )
+            candidates = (
+                ("anchor", probe.x0, probe_result.fitness[0], 0.0),
+                (
+                    "left_owner",
+                    probe.x_left,
+                    probe_result.fitness[1],
+                    utilities.left_owner,
+                ),
+                (
+                    "right_owner",
+                    probe.x_right,
+                    probe_result.fitness[2],
+                    utilities.right_owner,
+                ),
+                (
+                    "bridge",
+                    probe.x_bridge,
+                    probe_result.fitness[3],
+                    utilities.bridge,
+                ),
+            )
+            frozen = tuple(
+                FrozenProbeCandidate(
+                    name=name,
+                    shared_values=tuple(float(candidate[index]) for index in shared),
+                    shared_values_hash=(
+                        runtime_probe_anchor_hash(
+                            relation,
+                            tuple(float(candidate[index]) for index in shared),
+                        )
+                        if name == "anchor"
+                        else runtime_probe_shared_values_hash(
+                            relation,
+                            tuple(float(candidate[index]) for index in shared),
+                        )
+                    ),
+                    candidate_hash=_vector_hash(candidate),
+                    fitness=fitness,
+                    utility=utility,
+                )
+                for name, candidate, fitness, utility in candidates
+            )
+            action_sets.append(
+                RelationActionSet(
+                    relation=relation,
+                    anchor=frozen[0],
+                    left_owner=frozen[1],
+                    right_owner=frozen[2],
+                    bridge=frozen[3],
+                    bridge_weights=probe.weights,
+                    probe_utilities=utilities,
+                    selector_winner=probe_result.decision.winner,
+                    selector_utility=probe_result.decision.utility,
+                    selector_reason=probe_result.decision.reason,
+                    checkpoint_fe=snapshot.sweep_end_fe,
+                    checkpoint_hash=checkpoint_hash,
+                    issued_sweep=snapshot.sweep_index,
+                    target_sweep=snapshot.sweep_index + 1,
+                )
+            )
+        return tuple(action_sets)
 
     def record_group(
         self,

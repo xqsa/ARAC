@@ -3,81 +3,105 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import math
 from pathlib import Path
 
 import pytest
 
+from arac.policy.action_ceiling import (
+    ACTION_CEILING_ARMS,
+    ACTION_CEILING_HORIZONS,
+    ACTION_CEILING_PROTOCOL_VERSION,
+    actionability_delta,
+)
 from experiments.pilots.exp_019_conflict_resolution_pilot import _diagnostic_worker
 from experiments.pilots.exp_019_conflict_resolution_pilot.benchmark import (
     ConflictBenchmarkFactory,
 )
 from experiments.pilots.exp_019_conflict_resolution_pilot.diagnostic import (
+    ARM_RESULT_FIELDS,
     CONFIG_PATH,
-    LARGE_LOSS_THRESHOLD,
-    MATERIAL_THRESHOLD,
-    ORACLE_MAX_FES,
-    ORACLE_SEEDS,
+    CONTEXT_FIELDS,
+    PILOT_SEEDS,
+    REAL_CASES,
+    SYNTHETIC_CASES,
     TrajectorySpec,
-    _forbidden_runtime_hits,
-    _side_checks,
-    analyze_trajectory,
+    aggregate_action_ceiling,
+    build_integrity_gate,
     build_specs,
     load_config,
-    select_baseline_owner,
-    summarize_side,
-    wilson_bounds,
+    summarize_fe_accounting,
+    validate_raw_rows,
 )
 
 
-def _analysis_bundle(deltas: list[float] | None = None) -> dict[str, object]:
-    relation_deltas = deltas or [0.02, 0.03, 0.04, 0.05]
-    plan_rows = []
-    probe_rows = []
-    for index, delta in enumerate(relation_deltas):
-        relation_id = f"g{index}-{index + 1}:v{index}"
-        plan_rows.append(
-            {
-                "relation_id": relation_id,
-                "selected": "1",
-                "left_owner_reliability": "0.8",
-                "right_owner_reliability": "0.2",
-            }
-        )
-        bridge_fitness = 100.0
-        left_fitness = bridge_fitness * math.exp(delta)
-        candidates = {
-            "x0": 120.0,
-            "left_owner": left_fitness,
-            "right_owner": left_fitness + 20.0,
-            "bridge": bridge_fitness,
+def _context(context_id: str, cohort: str, problem_id: str) -> dict[str, str]:
+    row = {field: "" for field in CONTEXT_FIELDS}
+    row.update(
+        {
+            "protocol_version": ACTION_CEILING_PROTOCOL_VERSION,
+            "cohort": cohort,
+            "problem_id": problem_id,
+            "seed": "117",
+            "context_id": context_id,
+            "relation_id": "g0-1:v4-5",
+            "action_set_hash": "a" * 64,
+            "checkpoint_hash": "b" * 64,
+            "dispatch_checkpoint_hash": "c" * 64,
+            "phase_boundary_fe": "100",
+            "dispatch_fe": "120",
+            "issued_sweep": "2",
+            "target_sweep": "3",
+            "group_index": "1",
+            "horizon_fe": "50",
+            "selector_arm": "true_no_writeback",
+            "selector_reason": "anchor_mismatch",
+            "native_parity": "1",
+            "runtime_authorized": "0",
+            "status": "complete",
         }
-        for candidate, fitness in candidates.items():
-            probe_rows.append(
+    )
+    return row
+
+
+def _arm_rows(
+    context: dict[str, str],
+    *,
+    winning_arm: str,
+) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for arm in ACTION_CEILING_ARMS:
+        for horizon_index, horizon in enumerate(ACTION_CEILING_HORIZONS, start=1):
+            native_error = 100.0 - horizon_index
+            arm_error = native_error
+            if arm == "true_no_writeback":
+                arm_error = native_error * 1.01
+            if arm == winning_arm:
+                arm_error = native_error * 0.90
+            row = {field: "" for field in ARM_RESULT_FIELDS}
+            row.update(
                 {
-                    "relation_id": relation_id,
-                    "candidate": candidate,
-                    "fitness": str(fitness),
+                    "protocol_version": ACTION_CEILING_PROTOCOL_VERSION,
+                    "cohort": context["cohort"],
+                    "problem_id": context["problem_id"],
+                    "seed": context["seed"],
+                    "context_id": context["context_id"],
+                    "arm": arm,
+                    "horizon": horizon,
+                    "target_fe": str(120 + horizon_index),
+                    "natural_endpoint_fe": "500",
+                    "native_error": str(native_error),
+                    "arm_error": str(arm_error),
+                    "delta": str(actionability_delta(native_error, arm_error)),
+                    "extra_fes": "0",
+                    "counterfactual_applied": "1",
+                    "mutation_norm": "0.0",
+                    "selected_candidate": arm,
+                    "runtime_authorized": "0",
+                    "status": "complete",
                 }
             )
-    return {
-        "spec": TrajectorySpec("oracle", "E3", 117, ORACLE_MAX_FES),
-        "plan_rows": plan_rows,
-        "probe_rows": probe_rows,
-    }
-
-
-def _side_rows(delta: float) -> list[dict[str, object]]:
-    return [
-        {
-            "problem_id": problem_id,
-            "seed": seed,
-            "trajectory_delta": delta,
-            "best_owner_trajectory_delta": delta - 0.01,
-        }
-        for problem_id in ("E3", "A4", "S5")
-        for seed in ORACLE_SEEDS
-    ]
+            rows.append(row)
+    return rows
 
 
 def test_frozen_config_and_run_matrices() -> None:
@@ -85,112 +109,117 @@ def test_frozen_config_and_run_matrices() -> None:
 
     assert config["observer_only"] is True
     assert build_specs("smoke") == (
-        TrajectorySpec("smoke", "A4", 1, 100_000),
+        TrajectorySpec("smoke", "real_aob", "A4", 1, 100_000),
     )
-    oracle = build_specs("oracle")
-    assert len(oracle) == 15
-    assert {(spec.problem_id, spec.seed) for spec in oracle} == {
-        (problem_id, seed)
-        for problem_id in ("E3", "A4", "S5")
-        for seed in ORACLE_SEEDS
+    assert ":" not in build_specs("smoke")[0].trajectory_id
+    pilot = build_specs("pilot")
+    assert len(pilot) == 40
+    assert {(spec.problem_id, spec.seed) for spec in pilot if spec.cohort == "real_aob"} == {
+        (case, seed) for case in REAL_CASES for seed in PILOT_SEEDS
     }
+    assert {
+        (spec.problem_id, spec.seed)
+        for spec in pilot
+        if spec.cohort == "synthetic_conflict"
+    } == {(case, seed) for case in SYNTHETIC_CASES for seed in PILOT_SEEDS}
 
 
-def test_config_matrix_drift_fails_closed(tmp_path: Path) -> None:
+def test_legacy_config_fails_closed(tmp_path: Path) -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-    drifted = copy.deepcopy(config)
-    drifted["oracle"]["seeds"] = [117]
+    legacy = copy.deepcopy(config)
+    legacy["protocol_version"] = "exp019-conflict-oracle-diagnostic-v1"
     path = tmp_path / "diagnostic_config.json"
-    path.write_text(json.dumps(drifted), encoding="utf-8")
+    path.write_text(json.dumps(legacy), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="oracle matrix"):
+    with pytest.raises(ValueError, match="legacy exp019"):
         load_config(path)
 
 
-def test_baseline_uses_higher_reliability_and_ties_to_left() -> None:
-    assert select_baseline_owner(0.7, 0.2) == "left_owner"
-    assert select_baseline_owner(0.2, 0.7) == "right_owner"
-    assert select_baseline_owner(0.5, 0.5) == "left_owner"
+def test_raw_rows_require_all_eight_arms_and_three_horizons() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+
+    observations = validate_raw_rows([context], rows)
+
+    assert len(observations) == len(ACTION_CEILING_ARMS) * len(ACTION_CEILING_HORIZONS)
+    with pytest.raises(ValueError, match="all eight arms"):
+        validate_raw_rows([context], rows[:-1])
 
 
-def test_trajectory_delta_is_median_of_four_relations() -> None:
-    deltas = [-0.2, 0.01, 0.03, 0.5]
-    relations, trajectory = analyze_trajectory(_analysis_bundle(deltas), "conflict")
-
-    assert len(relations) == 4
-    assert trajectory["trajectory_delta"] == pytest.approx(0.02)
-    assert trajectory["material_win"] == 1
-    assert trajectory["large_loss"] == 0
-    assert all(row["baseline_owner"] == "left_owner" for row in relations)
-
-
-def test_missing_relation_candidate_fails_closed() -> None:
-    bundle = _analysis_bundle()
-    bundle["probe_rows"] = bundle["probe_rows"][:-1]
-
-    with pytest.raises(ValueError, match="missing relation candidate"):
-        analyze_trajectory(bundle, "conflict")
+def test_incomplete_context_and_unexecuted_branch_fail_closed() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    invalid_context = {**context, "native_parity": "0", "status": "invalid"}
+    with pytest.raises(ValueError, match="native parity"):
+        validate_raw_rows([invalid_context], rows)
+    rows[0]["counterfactual_applied"] = "0"
+    with pytest.raises(ValueError, match="not marked as executed"):
+        validate_raw_rows([context], rows)
 
 
-def test_wilson_one_sided_bounds_cover_extremes() -> None:
-    all_win_lcb, all_win_ucb = wilson_bounds(15, 15)
-    no_win_lcb, no_win_ucb = wilson_bounds(0, 15)
+def test_integrity_gate_and_fe_summary_cover_complete_stage() -> None:
+    spec = TrajectorySpec("smoke", "real_aob", "A4", 1, 100_000)
+    contexts = [
+        _context(f"real:A4:1:r{index}", "real_aob", "A4")
+        for index in range(4)
+    ]
+    for context in contexts:
+        context["seed"] = "1"
+    rows = [
+        row
+        for context in contexts
+        for row in _arm_rows(context, winning_arm="exact_left")
+    ]
 
-    assert all_win_lcb > 0.5
-    assert all_win_ucb == pytest.approx(1.0)
-    assert no_win_lcb == pytest.approx(0.0)
-    assert no_win_ucb < 0.5
-    assert all_win_lcb == pytest.approx(1.0 - no_win_ucb)
+    gate = build_integrity_gate([spec], contexts, rows)
+    fe_summary = summarize_fe_accounting([spec], contexts, rows)
 
-
-def test_side_summary_material_win_and_large_loss_boundaries() -> None:
-    positive = summarize_side(_side_rows(MATERIAL_THRESHOLD + 1e-6), "conflict")
-    negative = summarize_side(_side_rows(LARGE_LOSS_THRESHOLD), "conflict")
-
-    assert positive["material_win_count"] == 15
-    assert positive["paired_win_lcb"] > 0.5
-    assert positive["large_loss_count"] == 0
-    assert negative["material_win_count"] == 0
-    assert negative["large_loss_count"] == 15
-    assert negative["large_loss_ucb"] == pytest.approx(1.0)
-
-
-def test_wrong_case_seed_pairing_fails_closed() -> None:
-    rows = _side_rows(0.0)
-    rows[-1] = {**rows[-1], "seed": 117}
-
-    with pytest.raises(ValueError, match="case-seed pairing"):
-        summarize_side(rows, "conform")
+    assert gate["passed"] == 1
+    assert gate["expected_context_count"] == 1
+    assert gate["expected_arm_result_count"] == 1
+    assert fe_summary["nominal_trajectory_fe_total"] == 100_000
+    assert fe_summary["branch_extra_fe_by_arm"]["native_eq8"] == 0
 
 
-def test_gate_uses_strict_conflict_and_bounded_conform_conditions() -> None:
-    conflict = summarize_side(_side_rows(MATERIAL_THRESHOLD + 1e-6), "conflict")
-    conform = summarize_side(_side_rows(0.0), "conform")
+def test_delta_is_recomputed_from_raw_errors() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    rows[6]["delta"] = "999"
 
-    assert all(_side_checks(conflict, conform).values())
-
-
-def test_runtime_forbidden_fields_are_detected_by_fragment() -> None:
-    forbidden = ("oracle", "final_error", "relative_gain")
-
-    assert _forbidden_runtime_hits(
-        ["remaining_fe", "oracle_owner", "prior_final_error"],
-        forbidden,
-    ) == ["oracle_owner", "prior_final_error"]
-    assert _forbidden_runtime_hits(["remaining_fe", "normal_sweep_fe"], forbidden) == []
-    with pytest.raises(ValueError, match="list of strings"):
-        _forbidden_runtime_hits("oracle", forbidden)
+    with pytest.raises(ValueError, match="delta does not match"):
+        validate_raw_rows([context], rows)
 
 
-def test_conform_trajectory_id_is_not_labeled_conflict() -> None:
-    spec = TrajectorySpec("conform_control", "A4", 117, ORACLE_MAX_FES)
+def test_real_and_synthetic_summaries_are_not_pooled() -> None:
+    real = _context("real:E3:117:r0", "real_aob", "E3")
+    synthetic = _context("synthetic:E3:117:r0", "synthetic_conflict", "E3")
+    summaries = aggregate_action_ceiling(
+        [real, synthetic],
+        _arm_rows(real, winning_arm="exact_left")
+        + _arm_rows(synthetic, winning_arm="exact_right"),
+    )
 
-    assert spec.trajectory_id.startswith("conform:conform_control:A4:")
+    assert {(row["cohort"], row["horizon"]) for row in summaries} == {
+        (cohort, horizon)
+        for cohort in ("real_aob", "synthetic_conflict")
+        for horizon in ACTION_CEILING_HORIZONS
+    }
+    real_primary = next(
+        row for row in summaries if row["cohort"] == "real_aob" and row["horizon"] == "sweep_1"
+    )
+    synthetic_primary = next(
+        row
+        for row in summaries
+        if row["cohort"] == "synthetic_conflict" and row["horizon"] == "sweep_1"
+    )
+    assert real_primary["sbs_arm"] == "exact_left"
+    assert synthetic_primary["sbs_arm"] == "exact_right"
 
 
-def test_worker_builds_frozen_paired_owner_request() -> None:
+def test_worker_builds_explicit_action_ceiling_request() -> None:
     args = argparse.Namespace(
-        case="A4",
+        cohort="real_aob",
+        case="R4",
         seed=1,
         max_fes=100_000,
         output_root="results/test",
@@ -198,14 +227,14 @@ def test_worker_builds_frozen_paired_owner_request() -> None:
     )
     request = _diagnostic_worker.build_runner_args(args)
 
-    assert request[request.index("--functions") + 1] == "ackley"
+    assert request[request.index("--functions") + 1] == "rastrigin"
     assert request[request.index("--ids") + 1] == "4"
-    assert request[request.index("--evidence-overlay-mode") + 1] == "paired_owner"
-    assert "--enable-relation-dispatch" in request
-    assert "--skip-plots" in request
+    assert request[request.index("--relation-policy") + 1] == "action_ceiling"
+    assert request[request.index("--action-ceiling-cohort") + 1] == "real_aob"
+    assert "--action-ceiling-capture" in request
 
 
-def test_worker_replaces_factory_only_in_child_module(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_synthetic_worker_replaces_factory_only_in_child(monkeypatch: pytest.MonkeyPatch) -> None:
     from scripts import hcc_smoke_runner
 
     observed: list[list[str]] = []
@@ -214,6 +243,8 @@ def test_worker_replaces_factory_only_in_child_module(monkeypatch: pytest.Monkey
 
     result = _diagnostic_worker.main(
         [
+            "--cohort",
+            "synthetic_conflict",
             "--case",
             "A4",
             "--seed",

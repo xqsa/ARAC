@@ -62,6 +62,12 @@ from arac.backends.hcc_evidence_overlay import (
     HccEvidenceOverlayObserver,
     RuntimeProbeActionLedger,
 )
+from arac.backends.hcc_action_ceiling_runtime import HccActionCeilingRuntime
+from arac.policy.action_ceiling import (
+    ACTION_CEILING_ARM_RESULT_FIELDS,
+    ACTION_CEILING_CONTEXT_FIELDS,
+    RelationActionSet,
+)
 from arac.policy.evidence_overlay import (
     LOCAL_OPTIMUM_TOP_K,
     RelationKey,
@@ -323,6 +329,9 @@ COHEN_D_RELATION_POLICY = "cohen_d_repair"
 COHEN_D_REPAIR_TRIGGER = "cohen_d_above_0_8"
 COHEN_D_CONSERVATIVE_TRIGGER = "cohen_d_at_or_below_0_8"
 RUNTIME_PROBE_POLICY = "runtime_probe"
+ACTION_CEILING_POLICY = "action_ceiling"
+NATIVE_EQ8_ACTION = "native_eq8"
+TRUE_NO_WRITEBACK_ACTION = "true_no_writeback"
 RUNTIME_PROBE_REPAIR_TRIGGER = "probe_winner_repair"
 RUNTIME_PROBE_COORDINATE_TRIGGER = "probe_winner_coordinate"
 RUNTIME_PROBE_FALLBACK_TRIGGER = "probe_fallback_or_no_data"
@@ -347,6 +356,8 @@ EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
 NON_DISPATCH_OVERLAP_ACTIONS = frozenset(
     {
         "conservative_no_action",
+        NATIVE_EQ8_ACTION,
+        TRUE_NO_WRITEBACK_ACTION,
         "allow_beneficial_coordination",
         "repair_shared_variable_binding",
     }
@@ -413,6 +424,7 @@ def evidence_overlay_scheduled_sub_fes(
     probe_pending: bool = True,
     barrier_attempted: bool = False,
     delayed_outcomes_pending: bool = False,
+    post_barrier_sweeps: int = 1,
 ) -> int | None:
     """Plan equal evidence slots with a worst-case v37 rescue reserve."""
 
@@ -426,6 +438,12 @@ def evidence_overlay_scheduled_sub_fes(
         raise ValueError("barrier_attempted must be boolean")
     if not isinstance(delayed_outcomes_pending, bool):
         raise ValueError("delayed_outcomes_pending must be boolean")
+    if (
+        isinstance(post_barrier_sweeps, bool)
+        or not isinstance(post_barrier_sweeps, int)
+        or post_barrier_sweeps < 1
+    ):
+        raise ValueError("post_barrier_sweeps must be a positive integer")
     integer_values = {
         "complete_sweep_count": complete_sweep_count,
         "cc_budget_limit_fe": cc_budget_limit_fe,
@@ -446,7 +464,9 @@ def evidence_overlay_scheduled_sub_fes(
         return None
     if barrier_attempted and not delayed_outcomes_pending:
         return None
-    target_sweeps = EVIDENCE_OVERLAY_REQUIRED_SWEEPS + int(has_overlap)
+    target_sweeps = EVIDENCE_OVERLAY_REQUIRED_SWEEPS + (
+        post_barrier_sweeps if has_overlap else 0
+    )
     if complete_sweep_count >= target_sweeps and plan_ready:
         return None
     effective_complete_sweeps = min(complete_sweep_count, target_sweeps - 1)
@@ -569,6 +589,8 @@ class SmokeConfig:
     search_state_backend: str = "phase_i_mmes"
     evidence_overlay_mode: str = "off"
     runtime_probe_repair_mode: str = "hard_repair"
+    action_ceiling_capture: bool = False
+    action_ceiling_cohort: str = "real_aob"
 
 
 @dataclass(frozen=True)
@@ -1489,6 +1511,16 @@ def decide_runtime_probe_relation_action(
             "fallback",
             RUNTIME_PROBE_FALLBACK_TRIGGER,
         ),
+        NATIVE_EQ8_ACTION: (
+            "fallback",
+            "fallback",
+            RUNTIME_PROBE_FALLBACK_TRIGGER,
+        ),
+        TRUE_NO_WRITEBACK_ACTION: (
+            "fallback",
+            "fallback",
+            RUNTIME_PROBE_FALLBACK_TRIGGER,
+        ),
     }
     if canonical_action not in actions:
         raise ValueError(f"unsupported runtime probe action: {canonical_action}")
@@ -1497,6 +1529,7 @@ def decide_runtime_probe_relation_action(
         relation_id=relation.relation_id,
         action_name=relation_action,
         action_family=action_family,
+        canonical_action_name=canonical_action,
         confidence=0.0 if relation_action == "fallback" else 1.0,
         trigger_reason=trigger_reason,
     )
@@ -1660,7 +1693,9 @@ def apply_arac_overlap_action(
     current_values: np.ndarray,
     previous_delta: float,
     current_delta: float,
-) -> np.ndarray:
+) -> np.ndarray | None:
+    if action_name == TRUE_NO_WRITEBACK_ACTION:
+        return None
     if action_name == "repair_shared_variable_binding":
         if current_delta >= previous_delta:
             return current_values
@@ -1676,6 +1711,8 @@ def apply_arac_overlap_action(
             previous_delta=previous_delta,
             current_delta=current_delta,
         )
+    if action_name not in {"conservative_no_action", NATIVE_EQ8_ACTION}:
+        raise ValueError(f"unsupported overlap action: {action_name}")
     return blend_overlap_values(
         previous_values=previous_values,
         current_values=current_values,
@@ -1701,8 +1738,10 @@ def _owner_selected(action_name: str, previous_delta: float, current_delta: floa
         return "current"
     if action_name == "allow_beneficial_coordination":
         return "clipped_consensus_blend"
-    if action_name == "conservative_no_action":
+    if action_name in {"conservative_no_action", NATIVE_EQ8_ACTION}:
         return "weighted_blend"
+    if action_name == TRUE_NO_WRITEBACK_ACTION:
+        return "none"
     return "weighted_blend"
 
 
@@ -1715,8 +1754,10 @@ def _semantic_surface(action_name: str) -> str:
         return "overlap_value_selection"
     if action_name == "allow_beneficial_coordination":
         return "coordination_clipped_consensus_blend"
-    if action_name == "conservative_no_action":
+    if action_name in {"conservative_no_action", NATIVE_EQ8_ACTION}:
         return "native_overlap_blend"
+    if action_name == TRUE_NO_WRITEBACK_ACTION:
+        return "no_writeback"
     return "native_overlap_blend"
 
 
@@ -1728,6 +1769,7 @@ def _state_mutated(action_name: str) -> str:
         "isolate_conflicting_relation",
         "allow_beneficial_coordination",
         "conservative_no_action",
+        NATIVE_EQ8_ACTION,
     }:
         return "1"
     return "0"
@@ -1743,6 +1785,7 @@ def _optimizer_consumed(action_name: str, downstream_consumed: bool = True) -> s
         "isolate_conflicting_relation",
         "allow_beneficial_coordination",
         "conservative_no_action",
+        NATIVE_EQ8_ACTION,
     }:
         return "1"
     return "0"
@@ -1757,8 +1800,10 @@ def _action_family_for_canonical(action_name: str) -> str:
         return "isolate"
     if action_name == "allow_beneficial_coordination":
         return "coordinate"
-    if action_name == "conservative_no_action":
+    if action_name in {"conservative_no_action", NATIVE_EQ8_ACTION}:
         return "fallback"
+    if action_name == TRUE_NO_WRITEBACK_ACTION:
+        return "abstain"
     if action_name == "protect_high_margin_group":
         return "protect"
     return ""
@@ -1792,7 +1837,8 @@ def guard_relation_action_by_value_delta(
         else ACTION_VALUE_DELTA_GUARD_THRESHOLD
     )
     if (
-        canonical_action_name == "conservative_no_action"
+        canonical_action_name
+        in {"conservative_no_action", NATIVE_EQ8_ACTION, TRUE_NO_WRITEBACK_ACTION}
         or action_value_delta_norm <= guard_threshold
     ):
         return action
@@ -2097,6 +2143,8 @@ def apply_action_to_relation(
     canonical_action_name = _canonical_relation_action_name(action)
     if canonical_action_name not in {
         "conservative_no_action",
+        NATIVE_EQ8_ACTION,
+        TRUE_NO_WRITEBACK_ACTION,
         "allow_beneficial_coordination",
         "isolate_conflicting_relation",
         "repair_shared_variable_binding",
@@ -2785,6 +2833,24 @@ def build_overlap_relation_for_pair(
     raise ValueError(f"missing overlap relation for groups {group_left}-{group_right}")
 
 
+def build_relation_execution_context(
+    *,
+    relation: OverlapRelation,
+    original_best: np.ndarray,
+    current_best: np.ndarray,
+    previous_delta: float,
+    current_delta: float,
+) -> RelationExecutionContext:
+    shared_indices = list(relation.shared_vars)
+    return RelationExecutionContext(
+        overlap_indices=shared_indices,
+        previous_values=np.asarray(original_best[shared_indices], dtype=float).copy(),
+        current_values=np.asarray(current_best[shared_indices], dtype=float).copy(),
+        previous_delta=float(previous_delta),
+        current_delta=float(current_delta),
+    )
+
+
 def _canonical_payload_sha256(payload: object) -> str:
     encoded = json.dumps(
         payload,
@@ -2967,6 +3033,44 @@ def evidence_overlay_runtime_fingerprints(
     }
 
 
+@dataclass
+class PendingActionCeilingParity:
+    relation: RelationKey
+    expected_sweep: int
+    start_fe: int
+    horizon_fe: int
+    expected_record: tuple[float, ...]
+    context_row: dict[str, str]
+    arm_rows: list[dict[str, str]]
+
+
+def _write_action_ceiling_csv(
+    path: Path,
+    rows: list[dict[str, str]],
+    fields: tuple[str, ...],
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({field: row.get(field, "") for field in fields})
+
+
+def _action_ceiling_optimizer_budgets(
+    population_sizes: list[int],
+    frozen_sub_fes: int,
+) -> tuple[int, ...]:
+    return tuple(
+        bounded_population_budget(
+            requested_fes=max(int(frozen_sub_fes), population),
+            remaining_fes=max(int(frozen_sub_fes), population),
+            population_size=population,
+        )
+        for population in population_sizes
+    )
+
+
 
 
 def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConfig) -> tuple[list[float], float, list[dict[str, str]]]:
@@ -2988,14 +3092,28 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError(
             "G0 runtime_probe requires exact saved candidates; legacy repair modes are disabled"
         )
+    if config.action_ceiling_capture != (
+        config.relation_policy_mode == ACTION_CEILING_POLICY
+    ):
+        raise ValueError(
+            "action_ceiling policy and action_ceiling_capture must be enabled together"
+        )
+    if config.action_ceiling_cohort not in {"real_aob", "synthetic_conflict"}:
+        raise ValueError("unsupported action-ceiling cohort")
     evidence_overlay_enabled = config.evidence_overlay_mode != "off"
     if evidence_overlay_enabled:
         if not is_evidence_action_controller_v37(config.arac_action):
             raise ValueError("evidence overlay requires frozen v37")
         if not config.enable_relation_dispatch:
             raise ValueError("evidence overlay requires relation dispatch")
-        if config.relation_policy_mode not in {"controller_v31", RUNTIME_PROBE_POLICY}:
-            raise ValueError("evidence overlay requires controller_v31 or runtime_probe")
+        if config.relation_policy_mode not in {
+            "controller_v31",
+            RUNTIME_PROBE_POLICY,
+            ACTION_CEILING_POLICY,
+        }:
+            raise ValueError(
+                "evidence overlay requires controller_v31, runtime_probe, or action_ceiling"
+            )
         if config.seed is None:
             raise ValueError("evidence overlay requires an explicit seed")
         if config.budget_accounting != "strict":
@@ -3011,6 +3129,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             "controller_v31",
             COHEN_D_RELATION_POLICY,
             RUNTIME_PROBE_POLICY,
+            ACTION_CEILING_POLICY,
         }:
             raise ValueError("unsupported v37 relation dispatch policy")
     elif config.arac_action not in NON_DISPATCH_OVERLAP_ACTIONS:
@@ -3084,6 +3203,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     evidence_overlay_barrier_attempted = False
     runtime_probe_action_ledger = RuntimeProbeActionLedger()
     runtime_probe_checkpoint_hash: str | None = None
+    action_ceiling_action_sets: dict[RelationKey, RelationActionSet] = {}
+    action_ceiling_context_rows: list[dict[str, str]] = []
+    action_ceiling_arm_rows: list[dict[str, str]] = []
+    action_ceiling_pending_parity: dict[RelationKey, PendingActionCeilingParity] = {}
     evidence_overlay_frozen_sub_fes: int | None = None
     evidence_overlay_probe_slice: tuple[int, int] | None = None
     evidence_overlay_runtime_failure: BaseException | None = None
@@ -3094,10 +3217,31 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     bipop_rejected_restart_streak = 0
     guarded_incumbent = best_individual.copy()
     guarded_incumbent_fitness = math.inf
-    phase_rescue_enabled = (
+    phase_rescue_enabled = False if config.action_ceiling_capture else (
         controller_v31_run_state.phase_rescue_enabled
         if controller_v31_run_state is not None
         else False
+    )
+    action_ceiling_runtime = (
+        HccActionCeilingRuntime(
+            benchmark_factory=Benchmark,
+            cmaes_factory=CMAES,
+            mmes_factory=MMES,
+            combine=combine,
+            derive_seed=derive_optimizer_seed,
+            fun_name=fun_name,
+            fun_id=fun_id,
+            output_path=output_path,
+            data_root=config.aob_data_root,
+            sigma=config.sigma,
+            cmaes_restart=config.cmaes_restart,
+            early_stopping_evaluations=config.early_stopping_evaluations,
+            lower=float(info["lower"]),
+            upper=float(info["upper"]),
+            dimension=int(info["dimension"]),
+        )
+        if config.action_ceiling_capture
+        else None
     )
     if global_fes != 0:
         problem = {
@@ -3151,32 +3295,40 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             calculate_cmaes_population_size(len(dims)) for dims in grouping_result
         ]
         try:
-            overlay_sub_fes = evidence_overlay_scheduled_sub_fes(
-                mode=config.evidence_overlay_mode,
-                has_overlap=evidence_overlay_has_overlap,
-                complete_sweep_count=(
-                    0
-                    if evidence_overlay_observer is None
-                    else evidence_overlay_observer.consecutive_complete_sweep_count
-                ),
-                cc_budget_limit_fe=cc_budget_limit_fes,
-                current_fe=current_fes,
-                terminal_tolerance_fe=terminal_completion_tolerance_fe,
-                sub_num=sub_num,
-                population_sizes=population_sizes,
-                frozen_sub_fes=evidence_overlay_frozen_sub_fes,
-                plan_ready=(
-                    evidence_overlay_observer is None
-                    or evidence_overlay_observer.plan_ready
-                ),
-                probe_pending=not evidence_overlay_barrier_attempted,
-                barrier_attempted=evidence_overlay_barrier_attempted,
-                delayed_outcomes_pending=(
-                    False
-                    if evidence_overlay_observer is None
-                    else evidence_overlay_observer.delayed_outcomes_pending
-                ),
-            )
+            if (
+                config.action_ceiling_capture
+                and action_ceiling_pending_parity
+                and evidence_overlay_frozen_sub_fes is not None
+            ):
+                overlay_sub_fes = evidence_overlay_frozen_sub_fes
+            else:
+                overlay_sub_fes = evidence_overlay_scheduled_sub_fes(
+                    mode=config.evidence_overlay_mode,
+                    has_overlap=evidence_overlay_has_overlap,
+                    complete_sweep_count=(
+                        0
+                        if evidence_overlay_observer is None
+                        else evidence_overlay_observer.consecutive_complete_sweep_count
+                    ),
+                    cc_budget_limit_fe=cc_budget_limit_fes,
+                    current_fe=current_fes,
+                    terminal_tolerance_fe=terminal_completion_tolerance_fe,
+                    sub_num=sub_num,
+                    population_sizes=population_sizes,
+                    frozen_sub_fes=evidence_overlay_frozen_sub_fes,
+                    plan_ready=(
+                        evidence_overlay_observer is None
+                        or evidence_overlay_observer.plan_ready
+                    ),
+                    probe_pending=not evidence_overlay_barrier_attempted,
+                    barrier_attempted=evidence_overlay_barrier_attempted,
+                    delayed_outcomes_pending=(
+                        False
+                        if evidence_overlay_observer is None
+                        else evidence_overlay_observer.delayed_outcomes_pending
+                    ),
+                    post_barrier_sweeps=(2 if config.action_ceiling_capture else 1),
+                )
         except BaseException as error:
             if evidence_overlay_observer is None:
                 raise
@@ -3194,6 +3346,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         optimized_any_group = False
         outer_stagnation_streak = 0
         for index, dims in enumerate(grouping_result):
+            action_ceiling_expected_post_action: tuple[float, ...] | None = None
+            action_ceiling_expected_post_action_hash: str | None = None
             population_size = population_sizes[index]
             if (
                 config.budget_accounting == "strict"
@@ -3239,10 +3393,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 break
             cc_mean = np.asarray(best_individual[dims], dtype=float).copy()
             primary_evaluations_before = current_fitness_evaluations(fun)
-            cc_sigma = refine_sigma_for_action(
-                config.arac_action,
-                config.sigma,
-                controller_v31_run_state=controller_v31_run_state,
+            cc_sigma = (
+                float(config.sigma)
+                if config.action_ceiling_capture
+                else refine_sigma_for_action(
+                    config.arac_action,
+                    config.sigma,
+                    controller_v31_run_state=controller_v31_run_state,
+                )
             )
             local_top_candidates: list[tuple[float, tuple[float, ...]]] = []
 
@@ -3561,13 +3719,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
                 if config.enable_relation_dispatch:
-                    context = RelationExecutionContext(
-                        overlap_indices=list(overlap_indices),
-                        previous_values=original_best[overlap_indices].copy(),
-                        current_values=best_individual[overlap_indices].copy(),
-                        previous_delta=fitness_delta_list[index - 1],
-                        current_delta=current_delta,
-                    )
                     relation = build_overlap_relation_for_pair(
                         problem_id=_problem_id(fun_name, fun_id),
                         outer_iter=outer_iter,
@@ -3582,11 +3733,171 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             else None
                         ),
                     )
+                    context = build_relation_execution_context(
+                        relation=relation,
+                        original_best=original_best,
+                        current_best=best_individual,
+                        previous_delta=fitness_delta_list[index - 1],
+                        current_delta=current_delta,
+                    )
                     runtime_probe_consumption = None
                     _probe_utility = 0.0
                     if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
                         effective_policy_mode = COHEN_D_RELATION_POLICY
                         action = decide_cohen_d_relation_action(relation)
+                    elif config.relation_policy_mode == ACTION_CEILING_POLICY:
+                        effective_policy_mode = "action_ceiling_native_eq8"
+                        relation_key = RelationKey(
+                            (relation.group_left, relation.group_right),
+                            tuple(relation.shared_vars),
+                        )
+                        pending_parity = action_ceiling_pending_parity.get(
+                            relation_key
+                        )
+                        if (
+                            pending_parity is not None
+                            and outer_iter == pending_parity.expected_sweep
+                        ):
+                            actual_record = tuple(
+                                float(value)
+                                for value in fun.fitness_record[
+                                    pending_parity.start_fe :
+                                    pending_parity.start_fe
+                                    + pending_parity.horizon_fe
+                                ]
+                            )
+                            parity_passed = (
+                                len(actual_record) == pending_parity.horizon_fe
+                                and actual_record == pending_parity.expected_record
+                            )
+                            pending_parity.context_row["native_parity"] = str(
+                                int(parity_passed)
+                            )
+                            pending_parity.context_row["status"] = (
+                                "complete" if parity_passed else "invalid"
+                            )
+                            pending_parity.context_row["invalidation_reason"] = (
+                                "" if parity_passed else "native_prefix_parity_mismatch"
+                            )
+                            for arm_row in pending_parity.arm_rows:
+                                arm_row["status"] = (
+                                    "complete" if parity_passed else "invalid"
+                                )
+                                arm_row["invalidation_reason"] = (
+                                    ""
+                                    if parity_passed
+                                    else "native_prefix_parity_mismatch"
+                                )
+                            action_ceiling_pending_parity.pop(relation_key)
+                            if not parity_passed:
+                                mismatch_index = next(
+                                    (
+                                        item
+                                        for item, (expected, actual) in enumerate(
+                                            zip(
+                                                pending_parity.expected_record,
+                                                actual_record,
+                                            )
+                                        )
+                                        if expected != actual
+                                    ),
+                                    min(
+                                        len(pending_parity.expected_record),
+                                        len(actual_record),
+                                    ),
+                                )
+                                evidence_overlay_runtime_failure = RuntimeError(
+                                    "action-ceiling native continuation parity mismatch: "
+                                    f"relation={relation_key}, index={mismatch_index}, "
+                                    f"expected_len={len(pending_parity.expected_record)}, "
+                                    f"actual_len={len(actual_record)}, "
+                                    f"expected_value={pending_parity.expected_record[mismatch_index] if mismatch_index < len(pending_parity.expected_record) else None}, "
+                                    f"actual_value={actual_record[mismatch_index] if mismatch_index < len(actual_record) else None}, "
+                                    f"expected_hash={_canonical_payload_sha256(list(pending_parity.expected_record))}, "
+                                    f"actual_hash={_canonical_payload_sha256(list(actual_record))}"
+                                )
+
+                        action_set = action_ceiling_action_sets.pop(
+                            relation_key,
+                            None,
+                        )
+                        if action_set is not None:
+                            if outer_iter != action_set.target_sweep:
+                                raise RuntimeError(
+                                    "action-ceiling relation dispatched outside target sweep"
+                                )
+                            if (
+                                action_ceiling_runtime is None
+                                or evidence_overlay_observer is None
+                                or evidence_overlay_frozen_sub_fes is None
+                            ):
+                                raise RuntimeError(
+                                    "action-ceiling capture dependencies are incomplete"
+                                )
+                            optimizer_budgets = _action_ceiling_optimizer_budgets(
+                                population_sizes,
+                                evidence_overlay_frozen_sub_fes,
+                            )
+                            python_rng_state = random.getstate()
+                            numpy_rng_state = np.random.get_state()
+                            try:
+                                captured = action_ceiling_runtime.capture(
+                                    action_set=action_set,
+                                    cohort=config.action_ceiling_cohort,
+                                    problem_id=problem_id,
+                                    seed=int(config.seed),
+                                    dispatch_fe=current_fitness_evaluations(fun),
+                                    outer_iter=outer_iter,
+                                    group_index=index,
+                                    incumbent=best_individual.copy(),
+                                    incumbent_fitness=(
+                                        original_fitness - current_delta
+                                    ),
+                                    previous_values=context.previous_values,
+                                    current_values=context.current_values,
+                                    previous_delta=context.previous_delta,
+                                    current_delta=context.current_delta,
+                                    completed_group_deltas=fitness_delta_list,
+                                    group_dims=grouping_result,
+                                    overlapping_elements=overlapping_elements,
+                                    population_sizes=population_sizes,
+                                    optimizer_budgets=optimizer_budgets,
+                                    fitness_prefix=tuple(fun.fitness_record),
+                                    topology_hash=(
+                                        evidence_overlay_observer.ordering.topology_sha256
+                                    ),
+                                    order_hash=(
+                                        evidence_overlay_observer.ordering.ordering_sha256
+                                    ),
+                                )
+                            finally:
+                                random.setstate(python_rng_state)
+                                np.random.set_state(numpy_rng_state)
+                            context_row = captured.context_row
+                            arm_rows = list(captured.arm_rows)
+                            action_ceiling_context_rows.append(context_row)
+                            action_ceiling_arm_rows.extend(arm_rows)
+                            action_ceiling_pending_parity[relation_key] = (
+                                PendingActionCeilingParity(
+                                    relation=relation_key,
+                                    expected_sweep=outer_iter + 1,
+                                    start_fe=current_fitness_evaluations(fun),
+                                    horizon_fe=int(context_row["horizon_fe"]),
+                                    expected_record=captured.expected_native_record,
+                                    context_row=context_row,
+                                    arm_rows=arm_rows,
+                                )
+                            )
+                            action_ceiling_expected_post_action_hash = (
+                                captured.expected_native_incumbent_hash
+                            )
+                            action_ceiling_expected_post_action = (
+                                captured.expected_native_incumbent
+                            )
+                        action = decide_runtime_probe_relation_action(
+                            relation,
+                            NATIVE_EQ8_ACTION,
+                        )
                     elif config.relation_policy_mode == RUNTIME_PROBE_POLICY:
                         effective_policy_mode = "runtime_probe_exact_candidate"
                         relation_key = RelationKey(
@@ -3636,7 +3947,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             else runtime_probe_consumption.action
                         )
                         _probe_canonical = (
-                            "conservative_no_action"
+                            TRUE_NO_WRITEBACK_ACTION
                             if runtime_action is None
                             else runtime_action.canonical_action
                         )
@@ -3688,7 +3999,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 )
                             )
                         )
-                    elif config.relation_policy_mode == COHEN_D_RELATION_POLICY:
+                    elif config.relation_policy_mode in {
+                        COHEN_D_RELATION_POLICY,
+                        ACTION_CEILING_POLICY,
+                    }:
                         adjusted_values = apply_action_to_relation(
                             relation=relation,
                             action=action,
@@ -3728,6 +4042,41 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         and config.relation_policy_mode != RUNTIME_PROBE_POLICY
                     ):
                         best_individual[context.overlap_indices] = adjusted_values
+                    if action_ceiling_expected_post_action_hash is not None:
+                        actual_post_action_hash = _canonical_payload_sha256(
+                            [float(value) for value in best_individual]
+                        )
+                        if (
+                            actual_post_action_hash
+                            != action_ceiling_expected_post_action_hash
+                        ):
+                            if action_ceiling_expected_post_action is None:
+                                raise RuntimeError(
+                                    "action-ceiling target writeback diagnostic is incomplete"
+                                )
+                            expected_post_action = np.asarray(
+                                action_ceiling_expected_post_action,
+                                dtype=float,
+                            )
+                            different_indices = np.flatnonzero(
+                                expected_post_action != best_individual
+                            )
+                            first_difference = int(different_indices[0])
+                            raise RuntimeError(
+                                "action-ceiling target writeback parity mismatch: "
+                                f"relation={relation_key}, "
+                                f"context_indices={context.overlap_indices}, "
+                                f"previous_values={context.previous_values.tolist()}, "
+                                f"current_values={context.current_values.tolist()}, "
+                                f"adjusted_values={adjusted_values.tolist()}, "
+                                f"expected_shared={expected_post_action[np.asarray(relation_key.shared_variable_indices, dtype=int)].tolist()}, "
+                                f"different_count={different_indices.size}, "
+                                f"first_index={first_difference}, "
+                                f"expected_value={expected_post_action[first_difference]}, "
+                                f"actual_value={best_individual[first_difference]}, "
+                                f"expected_hash={action_ceiling_expected_post_action_hash}, "
+                                f"actual_hash={actual_post_action_hash}"
+                            )
                     relative_writeback_norm = scale_free_writeback_norm(
                         delta_norm=action_value_delta_norm,
                         shared_count=len(context.overlap_indices),
@@ -4025,6 +4374,24 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         runtime_probe_checkpoint_hash = (
                             evidence_overlay_observer.runtime_probe_checkpoint_hash
                         )
+                    elif (
+                        config.relation_policy_mode == ACTION_CEILING_POLICY
+                        and evidence_overlay_observer.barrier_result.status == "probed"
+                    ):
+                        exported = evidence_overlay_observer.relation_action_sets
+                        if len(exported) > TOP_RELATION_COUNT:
+                            raise RuntimeError(
+                                "action-ceiling exported more than four relations"
+                            )
+                        action_ceiling_action_sets = {
+                            item.relation: item for item in exported
+                        }
+                        if len(action_ceiling_action_sets) != len(exported):
+                            raise RuntimeError(
+                                "action-ceiling relation action sets are duplicated"
+                            )
+                        runtime_probe_action_ledger.issue(())
+                        runtime_probe_checkpoint_hash = None
                     else:
                         runtime_probe_action_ledger.issue(())
                         runtime_probe_checkpoint_hash = None
@@ -4055,6 +4422,40 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
     problem_id = _problem_id(fun_name, fun_id)
+    if config.action_ceiling_capture:
+        if action_ceiling_action_sets and evidence_overlay_runtime_failure is None:
+            evidence_overlay_runtime_failure = RuntimeError(
+                "action-ceiling target relations were not dispatched"
+            )
+        for pending in action_ceiling_pending_parity.values():
+            pending.context_row["native_parity"] = "0"
+            pending.context_row["status"] = "invalid"
+            pending.context_row["invalidation_reason"] = "native_parity_not_closed"
+            for row in pending.arm_rows:
+                row["status"] = "invalid"
+                row["invalidation_reason"] = "native_parity_not_closed"
+        if action_ceiling_pending_parity and evidence_overlay_runtime_failure is None:
+            evidence_overlay_runtime_failure = RuntimeError(
+                "action-ceiling native parity did not close"
+            )
+        _write_action_ceiling_csv(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "action_ceiling_contexts.csv",
+            ),
+            action_ceiling_context_rows,
+            ACTION_CEILING_CONTEXT_FIELDS,
+        )
+        _write_action_ceiling_csv(
+            case_artifact_path(
+                output_path,
+                problem_id,
+                "action_ceiling_arm_results.csv",
+            ),
+            action_ceiling_arm_rows,
+            ACTION_CEILING_ARM_RESULT_FIELDS,
+        )
     if evidence_overlay_observer is not None:
         evidence_overlay_paths = EvidenceOverlayArtifactPaths(
             manifest=case_artifact_path(
@@ -4212,7 +4613,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument(
         "--relation-policy",
-        choices=["controller_v31", COHEN_D_RELATION_POLICY, RUNTIME_PROBE_POLICY],
+        choices=[
+            "controller_v31",
+            COHEN_D_RELATION_POLICY,
+            RUNTIME_PROBE_POLICY,
+            ACTION_CEILING_POLICY,
+        ],
         required=True,
     )
     parser.add_argument(
@@ -4224,6 +4630,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--runtime-probe-repair-mode",
         choices=sorted(RUNTIME_PROBE_REPAIR_MODES),
         default="hard_repair",
+    )
+    parser.add_argument("--action-ceiling-capture", action="store_true")
+    parser.add_argument(
+        "--action-ceiling-cohort",
+        choices=["real_aob", "synthetic_conflict"],
+        default="real_aob",
     )
     parser.add_argument("--skip-plots", action="store_true")
     parser.set_defaults(
@@ -4245,8 +4657,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             parser.error("--evidence-overlay-mode requires frozen v37")
         if not args.enable_relation_dispatch:
             parser.error("--evidence-overlay-mode requires relation dispatch")
-        if args.relation_policy not in {"controller_v31", "runtime_probe"}:
-            parser.error("--evidence-overlay-mode requires controller_v31 or runtime_probe")
+        if args.relation_policy not in {
+            "controller_v31",
+            RUNTIME_PROBE_POLICY,
+            ACTION_CEILING_POLICY,
+        }:
+            parser.error(
+                "--evidence-overlay-mode requires controller_v31, runtime_probe, or action_ceiling"
+            )
     elif args.enable_relation_dispatch:
         if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
             parser.error("--enable-relation-dispatch requires frozen v37")
@@ -4262,6 +4680,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         and args.runtime_probe_repair_mode != "hard_repair"
     ):
         parser.error("G0 runtime_probe disables legacy repair modes")
+    if args.action_ceiling_capture != (
+        args.relation_policy == ACTION_CEILING_POLICY
+    ):
+        parser.error(
+            "--action-ceiling-capture requires --relation-policy action_ceiling"
+        )
     return args
 
 
@@ -4287,6 +4711,8 @@ def main(argv: list[str] | None = None) -> list[Path]:
         search_state_backend=args.search_state_backend,
         evidence_overlay_mode=args.evidence_overlay_mode,
         runtime_probe_repair_mode=args.runtime_probe_repair_mode,
+        action_ceiling_capture=args.action_ceiling_capture,
+        action_ceiling_cohort=args.action_ceiling_cohort,
     )
     output_paths = []
     for fun_name in args.functions:

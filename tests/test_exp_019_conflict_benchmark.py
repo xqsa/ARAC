@@ -80,17 +80,17 @@ def test_diagnostic_config_freezes_stage_one_without_runtime_authority() -> None
 
     assert config["observer_only"] is True
     assert config["runtime_authorized"] is False
-    assert config["benchmark"]["rho"] == FROZEN_RHO
+    assert config["synthetic_benchmark"]["rho"] == FROZEN_RHO
     assert config["smoke"] == {
-        "case": "A4_conflict_variant_synthetic",
+        "cohort": "real_aob",
+        "cases": ["A4"],
         "seeds": [1],
         "max_fes": 100000,
+        "jobs": 1,
     }
-    assert config["oracle"]["seeds"] == [117, 118, 119, 120, 121]
-    assert config["oracle"]["max_fes"] == 3000000
-    assert config["oracle"]["jobs"] == 12
-    assert config["gate"]["epsilon"] == 1e-300
-    assert config["gate"]["large_loss_count"] == 0
+    assert config["pilot"]["real_aob"]["cases"] == ["E1", "E3", "A4", "R4", "S5"]
+    assert config["pilot"]["synthetic_conflict"]["cases"] == ["E3", "A4", "S5"]
+    assert config["statistics"]["epsilon"] == 1e-300
 
 
 def test_generator_is_byte_deterministic(tmp_path: Path) -> None:

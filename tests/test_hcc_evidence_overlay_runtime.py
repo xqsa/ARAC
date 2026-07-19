@@ -894,6 +894,29 @@ def test_runtime_action_artifact_reports_authorization_and_consumption_truth(
     assert manifest["runtime_actions_abstained"] == len(actions) - 1
 
 
+def test_public_relation_action_sets_preserve_all_four_probe_candidates() -> None:
+    observer = _observer()
+    anchor = _prepare(observer)
+    observer.execute_barrier(
+        _objective,
+        anchor,
+        remaining_fe=100,
+        normal_sweep_fe=60,
+        tolerance_fe=0,
+    )
+
+    action_sets = observer.relation_action_sets
+
+    assert len(action_sets) == 4
+    first = action_sets[0]
+    assert first.target_sweep == first.issued_sweep + 1
+    assert first.anchor.fitness >= 0.0
+    assert first.left_owner.name == "left_owner"
+    assert first.right_owner.name == "right_owner"
+    assert first.bridge.name == "bridge"
+    assert len(first.action_set_hash) == 64
+
+
 def test_terminal_tolerance_is_frozen_even_without_sweeps_or_barrier(
     tmp_path: Path,
 ) -> None:
