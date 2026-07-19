@@ -60,12 +60,16 @@ from src.arac.actions.controller_profiles import (
 from arac.backends.hcc_evidence_overlay import (
     EvidenceOverlayArtifactPaths,
     HccEvidenceOverlayObserver,
+    RuntimeProbeActionLedger,
 )
 from arac.policy.evidence_overlay import (
     LOCAL_OPTIMUM_TOP_K,
+    RelationKey,
     SHADOW_GAIN_THRESHOLD,
+    TOP_RELATION_COUNT,
     build_reference_blind_ordering,
     cohen_d_from_moments,
+    runtime_probe_anchor_hash,
 )
 from src.arac.backends.hcc import (
     EVIDENCE_OVERLAY_MODES,
@@ -2977,6 +2981,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         and config.runtime_probe_repair_mode != "hard_repair"
     ):
         raise ValueError("runtime probe repair mode requires runtime_probe policy")
+    if (
+        config.relation_policy_mode == RUNTIME_PROBE_POLICY
+        and config.runtime_probe_repair_mode != "hard_repair"
+    ):
+        raise ValueError(
+            "G0 runtime_probe requires exact saved candidates; legacy repair modes are disabled"
+        )
     evidence_overlay_enabled = config.evidence_overlay_mode != "off"
     if evidence_overlay_enabled:
         if not is_evidence_action_controller_v37(config.arac_action):
@@ -3071,9 +3082,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     previous_group_contribution_credit: list[float] = []
     evidence_overlay_fe = 0
     evidence_overlay_barrier_attempted = False
-    runtime_relation_action_map: dict[
-        tuple[tuple[int, int], tuple[int, ...]], tuple[str, float]
-    ] = {}
+    runtime_probe_action_ledger = RuntimeProbeActionLedger()
+    runtime_probe_checkpoint_hash: str | None = None
     evidence_overlay_frozen_sub_fes: int | None = None
     evidence_overlay_probe_slice: tuple[int, int] | None = None
     evidence_overlay_runtime_failure: BaseException | None = None
@@ -3572,18 +3582,66 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             else None
                         ),
                     )
+                    runtime_probe_consumption = None
+                    _probe_utility = 0.0
                     if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
                         effective_policy_mode = COHEN_D_RELATION_POLICY
                         action = decide_cohen_d_relation_action(relation)
                     elif config.relation_policy_mode == RUNTIME_PROBE_POLICY:
-                        effective_policy_mode = config.runtime_probe_repair_mode
-                        _probe_canonical, _probe_utility = runtime_relation_action_map.get(
-                            runtime_probe_relation_key(
-                                relation.group_left,
-                                relation.group_right,
-                                relation.shared_vars,
-                            ),
-                            ("conservative_no_action", 0.0),
+                        effective_policy_mode = "runtime_probe_exact_candidate"
+                        relation_key = RelationKey(
+                            (relation.group_left, relation.group_right),
+                            tuple(relation.shared_vars),
+                        )
+                        ledger_action = runtime_probe_action_ledger.action_for(
+                            relation_key
+                        )
+                        adjusted_values = None
+                        if runtime_probe_checkpoint_hash is not None:
+                            anchor_shared_values = tuple(
+                                float(best_individual[variable])
+                                for variable in relation.shared_vars
+                            )
+
+                            def write_runtime_probe_values(
+                                shared_values: tuple[float, ...],
+                            ) -> None:
+                                nonlocal adjusted_values
+                                saved = np.asarray(shared_values, dtype=float)
+                                if saved.shape != context.current_values.shape:
+                                    raise ValueError(
+                                        "runtime probe shared values do not match "
+                                        "the relation context"
+                                    )
+                                best_individual[context.overlap_indices] = saved
+                                adjusted_values = saved.copy()
+
+                            runtime_probe_consumption = (
+                                runtime_probe_action_ledger.consume(
+                                    action=ledger_action,
+                                    relation=relation_key,
+                                    anchor_hash=runtime_probe_anchor_hash(
+                                        relation_key,
+                                        anchor_shared_values,
+                                    ),
+                                    checkpoint_hash=runtime_probe_checkpoint_hash,
+                                    current_sweep=outer_iter,
+                                    current_fe=current_fitness_evaluations(fun),
+                                    write_shared_values=write_runtime_probe_values,
+                                )
+                            )
+                        runtime_action = (
+                            None
+                            if runtime_probe_consumption is None
+                            else runtime_probe_consumption.action
+                        )
+                        _probe_canonical = (
+                            "conservative_no_action"
+                            if runtime_action is None
+                            else runtime_action.canonical_action
+                        )
+                        _probe_utility = (
+                            0.0 if runtime_action is None else runtime_action.utility
                         )
                         action = decide_runtime_probe_relation_action(
                             relation,
@@ -3620,36 +3678,25 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     trust_decision: ActionTrustDecision | None = None
                     fallback_route = ""
                     active_maturity_route = ""
-                    if config.relation_policy_mode in {
-                        COHEN_D_RELATION_POLICY,
-                        RUNTIME_PROBE_POLICY,
-                    }:
-                        _canonical_for_apply = _canonical_relation_action_name(action)
-                        if (
-                            config.relation_policy_mode == RUNTIME_PROBE_POLICY
-                            and config.runtime_probe_repair_mode
-                            == "conflict_conditioned_blend"
-                            and _canonical_for_apply == "repair_shared_variable_binding"
-                            and context.previous_values is not None
-                            and context.current_values is not None
-                        ):
-                            # Replace hard winner-take-all with soft conflict-conditioned blend
-                            adjusted_values = conflict_conditioned_context_blend(
-                                previous_values=context.previous_values,
-                                current_values=context.current_values,
-                                previous_delta=context.previous_delta,
-                                current_delta=context.current_delta,
-                                probe_utility=_probe_utility,
+                    if config.relation_policy_mode == RUNTIME_PROBE_POLICY:
+                        action_value_delta_norm = (
+                            0.0
+                            if adjusted_values is None
+                            else float(
+                                np.linalg.norm(
+                                    adjusted_values - context.current_values
+                                )
                             )
-                        else:
-                            adjusted_values = apply_action_to_relation(
-                                relation=relation,
-                                action=action,
-                                previous_values=context.previous_values,
-                                current_values=context.current_values,
-                                previous_delta=context.previous_delta,
-                                current_delta=context.current_delta,
-                            )
+                        )
+                    elif config.relation_policy_mode == COHEN_D_RELATION_POLICY:
+                        adjusted_values = apply_action_to_relation(
+                            relation=relation,
+                            action=action,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            previous_delta=context.previous_delta,
+                            current_delta=context.current_delta,
+                        )
                         action_value_delta_norm = (
                             0.0
                             if adjusted_values is None
@@ -3676,7 +3723,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             current_delta=context.current_delta,
                             controller_run_state=controller_v31_run_state,
                         )
-                    if adjusted_values is not None:
+                    if (
+                        adjusted_values is not None
+                        and config.relation_policy_mode != RUNTIME_PROBE_POLICY
+                    ):
                         best_individual[context.overlap_indices] = adjusted_values
                     relative_writeback_norm = scale_free_writeback_norm(
                         delta_norm=action_value_delta_norm,
@@ -3965,26 +4015,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                 )
                 if evidence_overlay_observer.barrier_result is not None:
-                    # Build per-relation runtime action map for runtime_probe policy
                     if (
                         config.relation_policy_mode == RUNTIME_PROBE_POLICY
                         and evidence_overlay_observer.barrier_result.status == "probed"
                     ):
-                        for _pr in evidence_overlay_observer._relation_probe_results:
-                            if _pr.decision.shadow_action in ("repair", "coordinate"):
-                                _probe_relation = _pr.scored_relation.relation
-                                runtime_relation_action_map[
-                                    runtime_probe_relation_key(
-                                        _probe_relation.key.owner_group_indices[0],
-                                        _probe_relation.key.owner_group_indices[1],
-                                        _probe_relation.key.shared_variable_indices,
-                                    )
-                                ] = (
-                                    "repair_shared_variable_binding"
-                                    if _pr.decision.shadow_action == "repair"
-                                    else "allow_beneficial_coordination",
-                                    _pr.decision.utility,
-                                )
+                        runtime_probe_action_ledger.issue(
+                            evidence_overlay_observer.runtime_probe_actions
+                        )
+                        runtime_probe_checkpoint_hash = (
+                            evidence_overlay_observer.runtime_probe_checkpoint_hash
+                        )
+                    else:
+                        runtime_probe_action_ledger.issue(())
+                        runtime_probe_checkpoint_hash = None
                     try:
                         evidence_overlay_observer.record_runtime_audit(
                             fingerprints_before=fingerprints_before,
@@ -4044,6 +4087,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 problem_id,
                 "evidence_overlay_shadow_decisions.csv",
             ),
+            runtime_actions=case_artifact_path(
+                output_path,
+                problem_id,
+                "evidence_overlay_runtime_actions.csv",
+            ),
         )
         terminal_record = tuple(float(value) for value in fun.fitness_record)
         native_record = terminal_record
@@ -4060,6 +4108,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 paths=evidence_overlay_paths,
                 native_terminal_error=min(native_record),
                 all_evaluation_best_error=min(terminal_record),
+                runtime_action_ledger=runtime_probe_action_ledger,
             )
         except Exception as error:
             if evidence_overlay_runtime_failure is None:
@@ -4208,6 +4257,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         and args.relation_policy != RUNTIME_PROBE_POLICY
     ):
         parser.error("--runtime-probe-repair-mode requires runtime_probe")
+    if (
+        args.relation_policy == RUNTIME_PROBE_POLICY
+        and args.runtime_probe_repair_mode != "hard_repair"
+    ):
+        parser.error("G0 runtime_probe disables legacy repair modes")
     return args
 
 

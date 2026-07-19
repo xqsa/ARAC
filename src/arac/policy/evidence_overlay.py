@@ -779,6 +779,111 @@ class ShadowDecision:
         _finite(self.utility, name="shadow utility")
 
 
+def runtime_probe_shared_values_hash(
+    relation: RelationKey,
+    shared_values: Sequence[float],
+) -> str:
+    """Hash the exact shared block that Phase2 is allowed to write."""
+
+    values = tuple(_finite(value, name="runtime shared value") for value in shared_values)
+    if len(values) != len(relation.shared_variable_indices):
+        raise ValueError("runtime shared values must match the relation variables")
+    return _canonical_sha256(
+        {
+            "owner_group_indices": relation.owner_group_indices,
+            "shared_variable_indices": relation.shared_variable_indices,
+            "shared_values": values,
+        }
+    )
+
+
+def runtime_probe_anchor_hash(
+    relation: RelationKey,
+    anchor_shared_values: Sequence[float],
+) -> str:
+    """Hash only the relation-local phase-boundary anchor context."""
+
+    values = tuple(
+        _finite(value, name="runtime anchor shared value")
+        for value in anchor_shared_values
+    )
+    if len(values) != len(relation.shared_variable_indices):
+        raise ValueError("runtime anchor values must match the relation variables")
+    return _canonical_sha256(
+        {
+            "owner_group_indices": relation.owner_group_indices,
+            "shared_variable_indices": relation.shared_variable_indices,
+            "anchor_shared_values": values,
+        }
+    )
+
+
+@dataclass(frozen=True)
+class RuntimeProbeAction:
+    """Immutable candidate compiled from one Phase1 relation probe."""
+
+    relation: RelationKey
+    winner: str
+    shared_values: tuple[float, ...]
+    shared_values_hash: str
+    candidate_hash: str
+    bridge_weights: BridgeWeights
+    utility: float
+    anchor_hash: str
+    checkpoint_fe: int
+    checkpoint_hash: str
+    issued_sweep: int
+    ttl_sweeps: int
+    expires_sweep: int
+
+    def __post_init__(self) -> None:
+        if self.winner not in {"left_owner", "right_owner", "bridge"}:
+            raise ValueError("unsupported runtime probe winner")
+        values = tuple(
+            _finite(value, name="runtime shared value")
+            for value in self.shared_values
+        )
+        if values != self.shared_values:
+            object.__setattr__(self, "shared_values", values)
+        if len(values) != len(self.relation.shared_variable_indices):
+            raise ValueError("runtime shared values must match the relation variables")
+        for field_name in (
+            "shared_values_hash",
+            "candidate_hash",
+            "anchor_hash",
+            "checkpoint_hash",
+        ):
+            value = getattr(self, field_name)
+            if (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError(f"{field_name} must be a lowercase SHA-256 hash")
+        if self.shared_values_hash != runtime_probe_shared_values_hash(
+            self.relation,
+            values,
+        ):
+            raise ValueError("shared_values_hash does not match shared_values")
+        _finite(self.utility, name="runtime probe utility")
+        _integer(self.checkpoint_fe, name="checkpoint_fe")
+        _integer(self.issued_sweep, name="issued_sweep")
+        ttl = _integer(self.ttl_sweeps, name="ttl_sweeps", minimum=1)
+        if ttl != 1:
+            raise ValueError("runtime probe actions must have ttl_sweeps=1")
+        expires = _integer(self.expires_sweep, name="expires_sweep")
+        if expires != self.issued_sweep + ttl:
+            raise ValueError("expires_sweep must equal issued_sweep plus ttl_sweeps")
+
+    @property
+    def canonical_action(self) -> str:
+        return (
+            "allow_beneficial_coordination"
+            if self.winner == "bridge"
+            else "repair_shared_variable_binding"
+        )
+
+
 def decide_shadow_action(utilities: ProbeUtilities) -> ShadowDecision:
     """Record an observer-only action; no decision can authorize runtime use."""
 
@@ -825,6 +930,7 @@ def assert_runtime_schema_is_reference_blind() -> None:
         FourPointProbe,
         ProbeUtilities,
         ShadowDecision,
+        RuntimeProbeAction,
     )
     names = {item.name.lower() for record in record_types for item in fields(record)}
     leaked = sorted(

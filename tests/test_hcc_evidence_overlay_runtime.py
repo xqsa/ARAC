@@ -5,6 +5,7 @@ import hashlib
 import json
 import random
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -19,16 +20,24 @@ from arac.backends.hcc_evidence_overlay import (
     EVIDENCE_OVERLAY_SOURCE_MODE,
     PLAN_FIELDS,
     PROBE_EVIDENCE_FIELDS,
+    RUNTIME_ACTION_FIELDS,
     RUNTIME_INPUT_FIELDS,
     SHADOW_DECISION_FIELDS,
     TERMINAL_TOLERANCE_RULE,
     EvidenceOverlayArtifactPaths,
     EvidenceOverlayRuntimeError,
     HccEvidenceOverlayObserver,
+    RuntimeProbeActionLedger,
+    RuntimeProbeConsumption,
 )
 from arac.policy.evidence_overlay import (
+    BridgeWeights,
     LOCAL_OPTIMUM_TOP_K,
     PROPOSAL_DISAGREEMENT_METRIC,
+    RelationKey,
+    RuntimeProbeAction,
+    runtime_probe_anchor_hash,
+    runtime_probe_shared_values_hash,
 )
 
 
@@ -152,6 +161,7 @@ def _read_csv(path: Path) -> tuple[tuple[str, ...], list[dict[str, str]]]:
 def _write_complete_artifacts(
     observer: HccEvidenceOverlayObserver,
     root: Path,
+    ledger: RuntimeProbeActionLedger | None = None,
 ) -> tuple[EvidenceOverlayArtifactPaths, dict[str, object]]:
     paths = EvidenceOverlayArtifactPaths(
         manifest=root / "A4_evidence_overlay_manifest.json",
@@ -160,13 +170,227 @@ def _write_complete_artifacts(
         probe_evidence=root / "A4_evidence_overlay_probe_evidence.csv",
         delayed_outcomes=root / "A4_evidence_overlay_delayed_outcomes.csv",
         shadow_decisions=root / "A4_evidence_overlay_shadow_decisions.csv",
+        runtime_actions=root / "A4_evidence_overlay_runtime_actions.csv",
     )
     manifest = observer.write_artifacts(
         paths=paths,
         native_terminal_error=70.0,
         all_evaluation_best_error=60.0,
+        runtime_action_ledger=ledger,
     )
     return paths, manifest
+
+
+def _runtime_action(
+    *,
+    winner: str = "left_owner",
+    shared_values: tuple[float, ...] = (1.25,),
+    anchor_values: tuple[float, ...] = (0.5,),
+) -> RuntimeProbeAction:
+    relation = RelationKey((0, 1), (1,))
+    return RuntimeProbeAction(
+        relation=relation,
+        winner=winner,
+        shared_values=shared_values,
+        shared_values_hash=runtime_probe_shared_values_hash(
+            relation,
+            shared_values,
+        ),
+        candidate_hash="a" * 64,
+        bridge_weights=BridgeWeights(0.4, 0.6),
+        utility=0.2,
+        anchor_hash=runtime_probe_anchor_hash(relation, anchor_values),
+        checkpoint_fe=180,
+        checkpoint_hash="b" * 64,
+        issued_sweep=2,
+        ttl_sweeps=1,
+        expires_sweep=3,
+    )
+
+
+def test_runtime_probe_action_ledger_is_local_next_sweep_and_one_shot() -> None:
+    action = _runtime_action()
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue((action,))
+    writes: list[tuple[float, ...]] = []
+
+    early = ledger.consume(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=2,
+        current_fe=181,
+        write_shared_values=writes.append,
+    )
+    assert not early.consumed
+    assert early.reason == "not_next_sweep"
+    assert writes == []
+
+    consumed = ledger.consume(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=3,
+        current_fe=200,
+        write_shared_values=writes.append,
+    )
+    assert consumed == RuntimeProbeConsumption(action, True, "consumed")
+    assert writes == [action.shared_values]
+
+    repeated = ledger.consume(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=3,
+        current_fe=201,
+        write_shared_values=writes.append,
+    )
+    assert not repeated.consumed
+    assert repeated.reason == "already_consumed"
+    assert writes == [action.shared_values]
+
+
+def test_runtime_probe_action_ttl_is_frozen_to_one_sweep() -> None:
+    with pytest.raises(ValueError, match="ttl_sweeps=1"):
+        replace(_runtime_action(), ttl_sweeps=2, expires_sweep=4)
+
+
+def test_runtime_probe_anchor_ignores_unrelated_values_and_invalidates_shared_change() -> None:
+    action = _runtime_action()
+    original = np.array([9.0, 0.5, 8.0])
+    unrelated_change = np.array([-9.0, 0.5, -8.0])
+    shared_change = np.array([9.0, 0.6, 8.0])
+
+    assert runtime_probe_anchor_hash(action.relation, original[[1]]) == (
+        runtime_probe_anchor_hash(action.relation, unrelated_change[[1]])
+    )
+    assert runtime_probe_anchor_hash(action.relation, shared_change[[1]]) != (
+        action.anchor_hash
+    )
+
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue((action,))
+    mismatch = ledger.consume(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=runtime_probe_anchor_hash(action.relation, shared_change[[1]]),
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=3,
+        current_fe=200,
+        write_shared_values=lambda _: pytest.fail("anchor mismatch wrote values"),
+    )
+    assert not mismatch.consumed
+    assert mismatch.reason == "anchor_mismatch"
+    assert ledger.records[0].status == "abstained"
+
+
+@pytest.mark.parametrize(
+    ("checkpoint_hash", "current_sweep", "reason"),
+    [("c" * 64, 3, "checkpoint_mismatch"), ("b" * 64, 4, "ttl_expired")],
+)
+def test_runtime_probe_action_invalidates_checkpoint_or_ttl(
+    checkpoint_hash: str,
+    current_sweep: int,
+    reason: str,
+) -> None:
+    action = _runtime_action()
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue((action,))
+
+    result = ledger.consume(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=checkpoint_hash,
+        current_sweep=current_sweep,
+        current_fe=200,
+        write_shared_values=lambda _: pytest.fail(f"{reason} wrote values"),
+    )
+    assert not result.consumed
+    assert result.reason == reason
+
+
+def test_runtime_probe_uses_saved_bridge_not_current_delta_blend() -> None:
+    action = _runtime_action(winner="bridge", shared_values=(0.75,))
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue((action,))
+    writes: list[tuple[float, ...]] = []
+
+    consumed = ledger.consume(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=3,
+        current_fe=200,
+        write_shared_values=writes.append,
+    )
+    assert consumed.consumed
+    assert writes == [(0.75,)]
+
+
+def test_runtime_probe_uses_saved_owner_when_phase2_delta_prefers_other_owner() -> None:
+    action = _runtime_action(winner="left_owner", shared_values=(1.25,))
+    phase2_previous_delta = -1.0
+    phase2_current_delta = 10.0
+    assert phase2_current_delta > phase2_previous_delta
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue((action,))
+    writes: list[tuple[float, ...]] = []
+
+    consumed = ledger.consume(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=3,
+        current_fe=200,
+        write_shared_values=writes.append,
+    )
+    assert consumed.consumed
+    assert writes == [(1.25,)]
+
+
+def test_runtime_probe_relation_mismatch_and_write_failure_abstain() -> None:
+    action = _runtime_action()
+    mismatch_relation = RelationKey((0, 2), (1,))
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue((action,))
+
+    mismatch = ledger.consume(
+        action=action,
+        relation=mismatch_relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=3,
+        current_fe=200,
+        write_shared_values=lambda _: pytest.fail("relation mismatch wrote values"),
+    )
+    assert not mismatch.consumed
+    assert mismatch.reason == "relation_mismatch"
+    assert ledger.records[0].invalidation_reason == "relation_mismatch"
+
+    ledger.issue((action,))
+
+    def fail_write(_: tuple[float, ...]) -> None:
+        raise RuntimeError("write failed")
+
+    with pytest.raises(RuntimeError, match="write failed"):
+        ledger.consume(
+            action=action,
+            relation=action.relation,
+            anchor_hash=action.anchor_hash,
+            checkpoint_hash=action.checkpoint_hash,
+            current_sweep=3,
+            current_fe=200,
+            write_shared_values=fail_write,
+        )
+    assert not ledger.records[0].runtime_consumed
+    assert ledger.records[0].status == "abstained"
+    assert ledger.records[0].invalidation_reason == "write_failed"
 
 
 def test_plan_requires_three_complete_sweeps_with_prior_credit_closed(
@@ -483,12 +707,15 @@ def test_artifact_schemas_hashes_and_reference_blind_manifest_are_frozen(
     probe_fields, probe_rows = _read_csv(paths.probe_evidence)
     delayed_fields, delayed_rows = _read_csv(paths.delayed_outcomes)
     shadow_fields, shadow_rows = _read_csv(paths.shadow_decisions)
+    runtime_fields, runtime_rows = _read_csv(paths.runtime_actions)
 
     assert checkpoint_fields == CHECKPOINT_FIELDS
     assert plan_fields == PLAN_FIELDS
     assert probe_fields == PROBE_EVIDENCE_FIELDS
     assert delayed_fields == DELAYED_OUTCOME_FIELDS
     assert shadow_fields == SHADOW_DECISION_FIELDS
+    assert runtime_fields == RUNTIME_ACTION_FIELDS
+    assert runtime_rows == []
     assert len(checkpoint_rows) == 1
     assert len(plan_rows) == 5
     assert sum(row["selected"] == "1" for row in plan_rows) == 4
@@ -588,6 +815,7 @@ def test_artifact_schemas_hashes_and_reference_blind_manifest_are_frozen(
             paths.probe_evidence,
             paths.delayed_outcomes,
             paths.shadow_decisions,
+            paths.runtime_actions,
         )
     }
     assert manifest["artifacts"] == {
@@ -596,6 +824,7 @@ def test_artifact_schemas_hashes_and_reference_blind_manifest_are_frozen(
         "probe_evidence": paths.probe_evidence.name,
         "delayed_outcomes": paths.delayed_outcomes.name,
         "shadow_decisions": paths.shadow_decisions.name,
+        "runtime_actions": paths.runtime_actions.name,
     }
     assert set(manifest["artifact_sha256"]) == set(artifact_paths)
     assert manifest["artifact_sha256"] == {
@@ -603,6 +832,66 @@ def test_artifact_schemas_hashes_and_reference_blind_manifest_are_frozen(
         for name, path in artifact_paths.items()
     }
     assert json.loads(paths.manifest.read_text(encoding="utf-8")) == manifest
+
+
+def test_runtime_action_artifact_reports_authorization_and_consumption_truth(
+    tmp_path: Path,
+) -> None:
+    observer = _observer()
+    anchor = _prepare(observer)
+    observer.execute_barrier(
+        _objective,
+        anchor,
+        remaining_fe=100,
+        normal_sweep_fe=60,
+        tolerance_fe=0,
+    )
+    observer.record_runtime_audit(
+        fingerprints_before={"runtime": "a" * 64},
+        fingerprints_after={"runtime": "a" * 64},
+        probe_start_fe=180,
+        probe_end_fe=196,
+    )
+    actions = observer.runtime_probe_actions
+    assert actions
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue(actions)
+    first = actions[0]
+    result = ledger.consume(
+        action=ledger.action_for(first.relation),
+        relation=first.relation,
+        anchor_hash=first.anchor_hash,
+        checkpoint_hash=first.checkpoint_hash,
+        current_sweep=first.expires_sweep,
+        current_fe=196,
+        write_shared_values=lambda _: None,
+    )
+    assert result.consumed
+
+    _record_complete_sweep(observer, 3)
+    paths, manifest = _write_complete_artifacts(observer, tmp_path, ledger)
+    fields, rows = _read_csv(paths.runtime_actions)
+    assert fields == RUNTIME_ACTION_FIELDS
+    assert len(rows) == len(actions)
+    expected_relation_id = "g{}:v{}".format(
+        "-".join(str(value) for value in first.relation.owner_group_indices),
+        "-".join(str(value) for value in first.relation.shared_variable_indices),
+    )
+    consumed = next(
+        row for row in rows if row["relation_id"] == expected_relation_id
+    )
+    assert consumed["runtime_authorized"] == "1"
+    assert consumed["runtime_consumed"] == "1"
+    assert consumed["status"] == "consumed"
+    assert consumed["consumed_sweep"] == str(first.expires_sweep)
+    abstained = [row for row in rows if row["runtime_consumed"] == "0"]
+    assert all(row["status"] == "abstained" for row in abstained)
+    assert all(row["invalidation_reason"] == "not_dispatched" for row in abstained)
+    assert manifest["runtime_authorized"] == 1
+    assert manifest["runtime_consumed"] == 1
+    assert manifest["runtime_actions_issued"] == len(actions)
+    assert manifest["runtime_actions_consumed"] == 1
+    assert manifest["runtime_actions_abstained"] == len(actions) - 1
 
 
 def test_terminal_tolerance_is_frozen_even_without_sweeps_or_barrier(

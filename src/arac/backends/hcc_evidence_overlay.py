@@ -19,12 +19,15 @@ from arac.policy.evidence_overlay import (
     FourPointProbe,
     RelationKey,
     RelationSelection,
+    RuntimeProbeAction,
     ScoredRelation,
     ShadowDecision,
     build_four_point_probe,
     build_reference_blind_ordering,
     build_relation_candidates,
     relation_cohen_d,
+    runtime_probe_anchor_hash,
+    runtime_probe_shared_values_hash,
     decide_shadow_action,
     score_relations,
     select_top_relations,
@@ -45,7 +48,7 @@ from arac.policy.overlap_hypergraph import (
 )
 
 
-EVIDENCE_OVERLAY_PROTOCOL_VERSION = "rddsm-evidence-overlay-pilot-v2"
+EVIDENCE_OVERLAY_PROTOCOL_VERSION = "rddsm-evidence-overlay-pilot-v3"
 EVIDENCE_OVERLAY_SOURCE_MODE = "fresh_runtime_probe"
 TERMINAL_TOLERANCE_RULE = "maximum_native_group_population"
 RUNTIME_INPUT_FIELDS = (
@@ -144,6 +147,34 @@ SHADOW_DECISION_FIELDS = (
     "reason",
     "runtime_authorized",
 )
+RUNTIME_ACTION_FIELDS = (
+    "problem_id",
+    "seed",
+    "mode",
+    "relation_id",
+    "owner_groups",
+    "shared_variables",
+    "winner",
+    "canonical_action",
+    "shared_values",
+    "shared_values_hash",
+    "candidate_hash",
+    "bridge_weight_left",
+    "bridge_weight_right",
+    "utility",
+    "anchor_hash",
+    "checkpoint_fe",
+    "checkpoint_hash",
+    "issued_sweep",
+    "ttl_sweeps",
+    "expires_sweep",
+    "runtime_authorized",
+    "runtime_consumed",
+    "consumed_sweep",
+    "consumed_fe",
+    "status",
+    "invalidation_reason",
+)
 
 
 class EvidenceOverlayRuntimeError(RuntimeError):
@@ -158,6 +189,7 @@ class EvidenceOverlayArtifactPaths:
     probe_evidence: Path
     delayed_outcomes: Path
     shadow_decisions: Path
+    runtime_actions: Path
 
     @classmethod
     def under(cls, directory: Path | str) -> "EvidenceOverlayArtifactPaths":
@@ -169,6 +201,7 @@ class EvidenceOverlayArtifactPaths:
             probe_evidence=root / "probe_evidence.csv",
             delayed_outcomes=root / "delayed_outcomes.csv",
             shadow_decisions=root / "shadow_decisions.csv",
+            runtime_actions=root / "evidence_overlay_runtime_actions.csv",
         )
 
 
@@ -201,6 +234,108 @@ class _PendingOwnerOutcome:
     anchor_shared_values: tuple[float, ...]
     left_shared_values: tuple[float, ...]
     right_shared_values: tuple[float, ...]
+
+
+@dataclass
+class RuntimeProbeActionRecord:
+    action: RuntimeProbeAction
+    status: str = "issued"
+    runtime_consumed: bool = False
+    consumed_sweep: int | None = None
+    consumed_fe: int | None = None
+    invalidation_reason: str = ""
+
+
+@dataclass(frozen=True)
+class RuntimeProbeConsumption:
+    action: RuntimeProbeAction | None
+    consumed: bool
+    reason: str
+
+
+class RuntimeProbeActionLedger:
+    """Own one-shot runtime actions and their auditable lifecycle."""
+
+    def __init__(self) -> None:
+        self._records: dict[RelationKey, RuntimeProbeActionRecord] = {}
+
+    def issue(self, actions: Sequence[RuntimeProbeAction]) -> None:
+        records: dict[RelationKey, RuntimeProbeActionRecord] = {}
+        for action in actions:
+            if action.relation in records:
+                raise ValueError("duplicate runtime probe relation action")
+            records[action.relation] = RuntimeProbeActionRecord(action=action)
+        self._records = records
+
+    @property
+    def records(self) -> tuple[RuntimeProbeActionRecord, ...]:
+        return tuple(
+            self._records[key]
+            for key in sorted(self._records)
+        )
+
+    def action_for(self, relation: RelationKey) -> RuntimeProbeAction | None:
+        record = self._records.get(relation)
+        return None if record is None else record.action
+
+    def consume(
+        self,
+        *,
+        action: RuntimeProbeAction | None,
+        relation: RelationKey,
+        anchor_hash: str,
+        checkpoint_hash: str,
+        current_sweep: int,
+        current_fe: int,
+        write_shared_values: Callable[[tuple[float, ...]], None],
+    ) -> RuntimeProbeConsumption:
+        if action is None:
+            return RuntimeProbeConsumption(None, False, "no_action_for_relation")
+        record = self._records.get(action.relation)
+        if record is None or record.action != action:
+            return RuntimeProbeConsumption(None, False, "unknown_action")
+        sweep = _integer(current_sweep, name="current_sweep")
+        consumed_fe = _integer(current_fe, name="current_fe")
+        if record.runtime_consumed:
+            record.invalidation_reason = "already_consumed"
+            return RuntimeProbeConsumption(None, False, "already_consumed")
+        if record.status == "abstained":
+            return RuntimeProbeConsumption(
+                None,
+                False,
+                record.invalidation_reason,
+            )
+        if checkpoint_hash != action.checkpoint_hash:
+            record.status = "abstained"
+            record.invalidation_reason = "checkpoint_mismatch"
+            return RuntimeProbeConsumption(None, False, record.invalidation_reason)
+        if sweep < action.expires_sweep:
+            record.invalidation_reason = "not_next_sweep"
+            return RuntimeProbeConsumption(None, False, "not_next_sweep")
+        if sweep > action.expires_sweep:
+            record.status = "abstained"
+            record.invalidation_reason = "ttl_expired"
+            return RuntimeProbeConsumption(None, False, record.invalidation_reason)
+        if relation != action.relation:
+            record.status = "abstained"
+            record.invalidation_reason = "relation_mismatch"
+            return RuntimeProbeConsumption(None, False, record.invalidation_reason)
+        if anchor_hash != action.anchor_hash:
+            record.status = "abstained"
+            record.invalidation_reason = "anchor_mismatch"
+            return RuntimeProbeConsumption(None, False, record.invalidation_reason)
+        try:
+            write_shared_values(action.shared_values)
+        except Exception:
+            record.status = "abstained"
+            record.invalidation_reason = "write_failed"
+            raise
+        record.status = "consumed"
+        record.runtime_consumed = True
+        record.consumed_sweep = sweep
+        record.consumed_fe = consumed_fe
+        record.invalidation_reason = ""
+        return RuntimeProbeConsumption(action, True, "consumed")
 
 
 def _finite(value: float, *, name: str, non_negative: bool = False) -> float:
@@ -275,7 +410,7 @@ def _objective_value(raw: object) -> float:
 
 
 class HccEvidenceOverlayObserver:
-    """Collect three native sweeps and run an observer-only four-point probe."""
+    """Collect native evidence and expose explicit actions after the Phase1 probe."""
 
     def __init__(
         self,
@@ -371,6 +506,79 @@ class HccEvidenceOverlayObserver:
     @property
     def barrier_result(self) -> EvidenceOverlayBarrierResult | None:
         return self._barrier_result
+
+    @property
+    def runtime_probe_checkpoint_hash(self) -> str | None:
+        snapshot = self._phase_boundary_snapshot
+        if snapshot is None:
+            return None
+        return _canonical_hash(
+            {
+                "problem_id": self.problem_id,
+                "seed": self.seed,
+                "checkpoint_fe": snapshot.sweep_end_fe,
+                "fitness_prefix_hash": self._fitness_prefix_hashes[
+                    snapshot.sweep_index
+                ],
+                "incumbent_hash": _vector_hash(snapshot.sweep_end_candidate),
+                "rddsm_topology_hash": self.ordering.topology_sha256,
+                "rddsm_order_hash": self.ordering.ordering_sha256,
+            }
+        )
+
+    @property
+    def runtime_probe_actions(self) -> tuple[RuntimeProbeAction, ...]:
+        """Compile public runtime actions without exposing raw probe internals."""
+
+        result = self._barrier_result
+        snapshot = self._phase_boundary_snapshot
+        checkpoint_hash = self.runtime_probe_checkpoint_hash
+        if (
+            result is None
+            or result.status != "probed"
+            or snapshot is None
+            or checkpoint_hash is None
+        ):
+            return ()
+        actions: list[RuntimeProbeAction] = []
+        for probe_result in self._relation_probe_results:
+            winner = probe_result.decision.winner
+            if winner not in {"left_owner", "right_owner", "bridge"}:
+                continue
+            probe = probe_result.probe
+            candidate = {
+                "left_owner": probe.x_left,
+                "right_owner": probe.x_right,
+                "bridge": probe.x_bridge,
+            }[winner]
+            relation = probe_result.scored_relation.relation.key
+            shared = relation.shared_variable_indices
+            shared_values = tuple(candidate[index] for index in shared)
+            anchor_shared_values = tuple(probe.x0[index] for index in shared)
+            actions.append(
+                RuntimeProbeAction(
+                    relation=relation,
+                    winner=winner,
+                    shared_values=shared_values,
+                    shared_values_hash=runtime_probe_shared_values_hash(
+                        relation,
+                        shared_values,
+                    ),
+                    candidate_hash=_vector_hash(candidate),
+                    bridge_weights=probe.weights,
+                    utility=probe_result.decision.utility,
+                    anchor_hash=runtime_probe_anchor_hash(
+                        relation,
+                        anchor_shared_values,
+                    ),
+                    checkpoint_fe=snapshot.sweep_end_fe,
+                    checkpoint_hash=checkpoint_hash,
+                    issued_sweep=snapshot.sweep_index,
+                    ttl_sweeps=1,
+                    expires_sweep=snapshot.sweep_index + 1,
+                )
+            )
+        return tuple(actions)
 
     def record_group(
         self,
@@ -1109,12 +1317,68 @@ class HccEvidenceOverlayObserver:
             for result in self._relation_probe_results
         ]
 
+    def _runtime_action_rows(
+        self,
+        ledger: RuntimeProbeActionLedger | None,
+    ) -> list[dict[str, str]]:
+        if ledger is None:
+            return []
+        return [
+            {
+                "problem_id": self.problem_id,
+                "seed": str(self.seed),
+                "mode": self.mode,
+                "relation_id": _relation_id(record.action.relation),
+                "owner_groups": _csv_values(
+                    record.action.relation.owner_group_indices
+                ),
+                "shared_variables": _csv_values(
+                    record.action.relation.shared_variable_indices
+                ),
+                "winner": record.action.winner,
+                "canonical_action": record.action.canonical_action,
+                "shared_values": _csv_float_values(record.action.shared_values),
+                "shared_values_hash": record.action.shared_values_hash,
+                "candidate_hash": record.action.candidate_hash,
+                "bridge_weight_left": _format_float(
+                    record.action.bridge_weights.left_owner
+                ),
+                "bridge_weight_right": _format_float(
+                    record.action.bridge_weights.right_owner
+                ),
+                "utility": _format_float(record.action.utility),
+                "anchor_hash": record.action.anchor_hash,
+                "checkpoint_fe": str(record.action.checkpoint_fe),
+                "checkpoint_hash": record.action.checkpoint_hash,
+                "issued_sweep": str(record.action.issued_sweep),
+                "ttl_sweeps": str(record.action.ttl_sweeps),
+                "expires_sweep": str(record.action.expires_sweep),
+                "runtime_authorized": "1",
+                "runtime_consumed": str(int(record.runtime_consumed)),
+                "consumed_sweep": (
+                    "" if record.consumed_sweep is None else str(record.consumed_sweep)
+                ),
+                "consumed_fe": (
+                    "" if record.consumed_fe is None else str(record.consumed_fe)
+                ),
+                "status": (
+                    record.status if record.runtime_consumed else "abstained"
+                ),
+                "invalidation_reason": (
+                    record.invalidation_reason
+                    or ("" if record.runtime_consumed else "not_dispatched")
+                ),
+            }
+            for record in ledger.records
+        ]
+
     def write_artifacts(
         self,
         *,
         paths: EvidenceOverlayArtifactPaths,
         native_terminal_error: float,
         all_evaluation_best_error: float,
+        runtime_action_ledger: RuntimeProbeActionLedger | None = None,
     ) -> dict[str, object]:
         native_terminal = _finite(
             native_terminal_error,
@@ -1130,12 +1394,14 @@ class HccEvidenceOverlayObserver:
             self._append_unclosed_owner_rows(item, "terminal_censored")
             self._pending_outcomes.remove(item)
 
+        runtime_action_rows = self._runtime_action_rows(runtime_action_ledger)
         artifact_rows = (
             (paths.checkpoint, CHECKPOINT_FIELDS, self._checkpoint_rows()),
             (paths.plan, PLAN_FIELDS, self._plan_rows()),
             (paths.probe_evidence, PROBE_EVIDENCE_FIELDS, self._probe_rows()),
             (paths.delayed_outcomes, DELAYED_OUTCOME_FIELDS, self._delayed_rows),
             (paths.shadow_decisions, SHADOW_DECISION_FIELDS, self._shadow_rows()),
+            (paths.runtime_actions, RUNTIME_ACTION_FIELDS, runtime_action_rows),
         )
         for path, fields, rows in artifact_rows:
             _write_csv(path, fields, rows)
@@ -1145,6 +1411,7 @@ class HccEvidenceOverlayObserver:
             "probe_evidence": paths.probe_evidence.name,
             "delayed_outcomes": paths.delayed_outcomes.name,
             "shadow_decisions": paths.shadow_decisions.name,
+            "runtime_actions": paths.runtime_actions.name,
         }
         artifact_hashes = {
             path.name: _file_hash(path) for path, _, _ in artifact_rows
@@ -1183,7 +1450,7 @@ class HccEvidenceOverlayObserver:
             )
         manifest: dict[str, object] = {
             "protocol_version": EVIDENCE_OVERLAY_PROTOCOL_VERSION,
-            "schema_version": 1,
+            "schema_version": 2,
             "problem_id": self.problem_id,
             "seed": self.seed,
             "evidence_overlay_mode": self.mode,
@@ -1193,7 +1460,18 @@ class HccEvidenceOverlayObserver:
             "terminal_tolerance_fe": self.terminal_tolerance_fe,
             "run_id": self.run_id,
             "fresh_optimizer_execution": int(self.fresh_optimizer_execution),
-            "runtime_authorized": 0,
+            "runtime_authorized": int(bool(runtime_action_rows)),
+            "runtime_consumed": int(
+                any(row["runtime_consumed"] == "1" for row in runtime_action_rows)
+            ),
+            "runtime_actions_issued": len(runtime_action_rows),
+            "runtime_actions_authorized": len(runtime_action_rows),
+            "runtime_actions_consumed": sum(
+                row["runtime_consumed"] == "1" for row in runtime_action_rows
+            ),
+            "runtime_actions_abstained": sum(
+                row["runtime_consumed"] != "1" for row in runtime_action_rows
+            ),
             "aob_truth_runtime_used": 0,
             "runtime_input_fields": list(RUNTIME_INPUT_FIELDS),
             "proposal_disagreement_metric": PROPOSAL_DISAGREEMENT_METRIC,
@@ -1253,7 +1531,11 @@ __all__ = [
     "HccEvidenceOverlayObserver",
     "PLAN_FIELDS",
     "PROBE_EVIDENCE_FIELDS",
+    "RUNTIME_ACTION_FIELDS",
     "RUNTIME_INPUT_FIELDS",
+    "RuntimeProbeActionLedger",
+    "RuntimeProbeActionRecord",
+    "RuntimeProbeConsumption",
     "SHADOW_DECISION_FIELDS",
     "TERMINAL_TOLERANCE_RULE",
 ]

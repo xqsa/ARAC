@@ -7,8 +7,9 @@ required by the RDDSM evidence-overlay experiment:
 - `HCC/RDDSM.py`: structural decomposition from the AOB design matrix.
 - `HCC/NDAs/MMES/`: Phase-I MMES optimizer and resumable state.
 - `HCC/OPT/CMAES/`: cooperative group-level CMA-ES optimizer.
-- `AOB/`: benchmark objectives, shared utilities, and the canonical F1/F3/F4/F5
-  inputs used by `E1`, `E3`, `A4`, and `S5`.
+- `AOB/`: benchmark objectives, shared utilities, and AOBG data-bundle IDs
+  `1/3/4/5` (stored as `F*-*.txt`) used by the real cases `E1`, `E3`, `A4`,
+  `R4`, and `S5`. The `F*` prefix is not a benchmark case name.
 
 The ARAC-owned execution entry remains `scripts/hcc_smoke_runner.py`. Runtime
 adapters pass explicit vendor and AOB data roots, so execution does not depend

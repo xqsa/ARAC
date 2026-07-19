@@ -38,7 +38,9 @@ offline joins but may not trigger policy behavior.
 Probe calls may append evaluation records only. They must not alter native RNG,
 incumbent, cooperative context, optimizer state, grouping result, controller,
 or Phase-II topology. The topology is frozen after the checkpoint. Every shadow
-decision has `runtime_authorized=0`.
+Shadow decision artifacts have `runtime_authorized=0`. A separately compiled
+`RuntimeProbeAction` may be authorized only by the runtime ledger, with exact
+shared values, local anchor/checkpoint validation, and one-shot consumption.
 
 ## Claim Ladder
 

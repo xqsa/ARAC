@@ -78,8 +78,9 @@ conform/conflict 的受控差异锁定为共享变量局部最优值，而不是
 
 唯一的机器可读事实源是：
 `experiments/pilots/exp_019_conflict_resolution_pilot/data/conflict_variants_manifest.json`。
-manifest 固定 generator version 和 `rho`，并逐文件绑定所有 F3/F4/F5 info、xopt、
-Pvector、subgroup sizes、weights、rotation 和 design 文件。加载任一 variant 前会
+manifest 固定 generator version 和 `rho`，并逐文件绑定 AOBG 数据包 ID
+3/4/5 的 info、xopt、Pvector、subgroup sizes、weights、rotation 和 design
+文件（相应磁盘文件仍使用 `F3/F4/F5-*` 前缀）。加载任一 variant 前会
 验证整个 bundle；缺失、重复、schema 错误或任一 hash 不一致均直接失败。
 
 | Synthetic CSV | SHA256 |

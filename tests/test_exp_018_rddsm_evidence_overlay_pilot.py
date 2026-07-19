@@ -784,6 +784,7 @@ def test_e1_no_overlap_still_writes_paired_checkpoint_for_all_lanes(
             probe_evidence=raw / "E1_evidence_overlay_probe_evidence.csv",
             delayed_outcomes=raw / "E1_evidence_overlay_delayed_outcomes.csv",
             shadow_decisions=raw / "E1_evidence_overlay_shadow_decisions.csv",
+            runtime_actions=raw / "E1_evidence_overlay_runtime_actions.csv",
         )
         manifest = observer.write_artifacts(
             paths=paths,
@@ -892,6 +893,7 @@ def test_real_observer_writer_round_trips_through_collector(tmp_path: Path) -> N
         probe_evidence=raw / f"{spec.problem_id}_evidence_overlay_probe_evidence.csv",
         delayed_outcomes=raw / f"{spec.problem_id}_evidence_overlay_delayed_outcomes.csv",
         shadow_decisions=raw / f"{spec.problem_id}_evidence_overlay_shadow_decisions.csv",
+        runtime_actions=raw / f"{spec.problem_id}_evidence_overlay_runtime_actions.csv",
     )
     manifest = observer.write_artifacts(
         paths=paths,

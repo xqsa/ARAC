@@ -103,7 +103,7 @@ def test_r4_vendor_binding_evaluates_native_dimension(tmp_path: Path) -> None:
     function = benchmark.get_function("rastrigin", 4)
     info = function.info()
 
-    assert info["dimension"] == 1095
+    assert info["dimension"] == 1000
     assert np.isfinite(function(np.zeros(info["dimension"]))[0])
 
 

@@ -1,5 +1,5 @@
 {
-  "protocol_version": "rddsm-evidence-overlay-pilot-v2",
+  "protocol_version": "rddsm-evidence-overlay-pilot-v3",
   "config_schema_version": 1,
   "status": "frozen_before_new_optimizer_fe",
   "preregistration_date": "2026-07-19",
@@ -138,6 +138,7 @@
     "probe_evidence.csv",
     "delayed_outcomes.csv",
     "shadow_decisions.csv",
+    "runtime_actions.csv",
     "run_results.csv",
     "lane_summary.csv",
     "promotion_gate.json",

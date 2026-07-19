@@ -25,6 +25,7 @@ from arac.backends.hcc_evidence_overlay import (
     EVIDENCE_OVERLAY_PROTOCOL_VERSION,
     PLAN_FIELDS,
     PROBE_EVIDENCE_FIELDS as PROBE_FIELDS,
+    RUNTIME_ACTION_FIELDS as RUNTIME_FIELDS,  # noqa: F401 - aggregate schema export
     SHADOW_DECISION_FIELDS as SHADOW_FIELDS,
 )
 
@@ -55,6 +56,7 @@ AGGREGATE_ARTIFACTS = (
     "probe_evidence.csv",
     "delayed_outcomes.csv",
     "shadow_decisions.csv",
+    "runtime_actions.csv",
     "run_results.csv",
     "lane_summary.csv",
     "promotion_gate.json",

@@ -15,6 +15,7 @@ from arac.policy.evidence_overlay import (
     RelationCandidate,
     RelationKey,
     RelationSelection,
+    RuntimeProbeAction,
     ScoredRelation,
     ShadowDecision,
     bridge_weights,
@@ -416,6 +417,7 @@ def test_runtime_records_have_no_aob_identity_or_outcome_fields() -> None:
         FourPointProbe,
         ProbeUtilities,
         ShadowDecision,
+        RuntimeProbeAction,
     )
     names = {item.name.lower() for record in record_types for item in fields(record)}
 

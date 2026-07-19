@@ -3,11 +3,9 @@
 Design:
 - evidence_overlay_mode="paired_owner" triggers the 4-point probe barrier at the
   Phase-I/II boundary.
-- relation_policy="runtime_probe" reads the per-relation ShadowDecision results
-  from the barrier and applies them at runtime:
-    * shadow_action == "repair"      -> repair_shared_variable_binding
-    * shadow_action == "coordinate"  -> allow_beneficial_coordination
-    * shadow_action == "fallback"    -> conservative_no_action (HCC Eq.8)
+- relation_policy="runtime_probe" compiles an explicit RuntimeProbeAction from
+  each unique winning candidate and consumes its exact shared values once in
+  the next sweep when checkpoint and local anchor still match.
 - All relations are probed (no VoI cutoff), costing ~76 FE/run (0.0025% of budget).
 
 Cases: E3 (conflicting target), S5 (conflicting target), R4 (conforming control).

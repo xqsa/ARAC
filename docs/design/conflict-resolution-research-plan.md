@@ -55,7 +55,8 @@ paired-owner trajectories。
   `v + rho * (lower - v)` 和 `v + rho * (upper - v)`；非共享变量保持 `v`。
 - 三个 ID 固定为 `E3_conflict_variant_synthetic`、
   `A4_conflict_variant_synthetic`、`S5_conflict_variant_synthetic`。
-- manifest 绑定 generator version、rho、全部 F3/F4/F5 vendor 基础文件 SHA256
+- manifest 绑定 generator version、rho、AOBG 数据包 ID 3/4/5 的全部
+  vendor 基础文件 SHA256（磁盘前缀为 `F3/F4/F5-*`）
   和 synthetic CSV SHA256。任一缺失、schema 不符或 hash 不符均 fail-closed。
 - CEC 2013 f13/f14 本轮暂缓，待 AOB conflict 阳性 gate 通过后再独立处理许可和
   适配。

@@ -13,7 +13,8 @@ class schwefel(Benchmarks):
             data = yaml.safe_load(file)
         
         self.s_size = data['sub_num']
-        self.dimension = data['dimension']  # Because of overlapping
+        self.dimension = data['dimension']
+        self.dimension_real = data.get('dimension_real', self.dimension)
         self.overlap = data['overlap_degree']
         
         # Read vectors and matrices (NumPy arrays instead of tensors)
@@ -46,8 +47,7 @@ class schwefel(Benchmarks):
     def compute(self, x):
 
         # Make sure x is a 2D array if it is 1D
-        if x.ndim == 1:
-            x = np.expand_dims(x, axis=0)
+        x = self.prepare_input(x)
         
         result = np.zeros(x.shape[0])
 

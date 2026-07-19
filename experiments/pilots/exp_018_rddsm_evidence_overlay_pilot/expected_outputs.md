@@ -10,6 +10,7 @@ tree retains per-trajectory raw evidence):
 - `probe_evidence.csv`: candidate-level four-point evidence (16 rows per probe bundle).
 - `delayed_outcomes.csv`: owner-level next-sweep labels (8 rows per probe bundle).
 - `shadow_decisions.csv`: observer-only repair/coordinate/fallback decisions.
+- `runtime_actions.csv`: explicit runtime authorization, consumption, and invalidation records.
 - `run_results.csv`: native terminal error and all-evaluation best error kept separate.
 - `lane_summary.csv`: completion, fresh execution, applicability, FE, and terminal summaries.
 - `promotion_gate.json`: mechanical or mechanism checks and all blockers.
@@ -17,9 +18,9 @@ tree retains per-trajectory raw evidence):
 - `anti_leakage_audit.csv`: runtime-field, AOB-truth, and authorization audit.
 
 For every trajectory the shared runner must write a case-prefixed overlay
-manifest plus `checkpoint.csv`, `plan.csv`, `probe_evidence.csv`,
-`delayed_outcomes.csv`, and `shadow_decisions.csv`. The manifest supplies the
-five relative paths and a separate SHA-256 mapping. Absolute paths, paths
+manifest plus checkpoint, plan, probe, delayed-outcome, shadow-decision, and
+`*_evidence_overlay_runtime_actions.csv` artifacts. The manifest supplies the
+six relative paths and a separate SHA-256 mapping. Absolute paths, paths
 escaping the trajectory directory, renamed case artifacts, and hash mismatches
 are rejected.
 

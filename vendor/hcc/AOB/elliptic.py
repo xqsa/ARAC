@@ -13,7 +13,8 @@ class elliptic(Benchmarks):
             data = yaml.safe_load(file)
 
         self.s_size = data['sub_num']
-        self.dimension = data['dimension_real']
+        self.dimension = data['dimension']
+        self.dimension_real = data.get('dimension_real', self.dimension)
         self.overlap = data['overlap_degree']
         self.subgroups_type = data['subgroups_type']
 
@@ -38,15 +39,14 @@ class elliptic(Benchmarks):
         return info
 
     def compute(self, x):
-        # Make sure x is a 2D array if it is 1D
-        if x.ndim == 1:
-            x = np.expand_dims(x, axis=0)
+        x = self.prepare_input(x)
         result = np.zeros(x.shape[0])
         c = 0
         self.anotherz = x - self.Ovector
         for i in range(self.s_size):
             anotherz1 = self.rotateVectorConform(i, c)
             anotherz1 = self.transform_osz(anotherz1)
+            anotherz1 = self.transform_asy(anotherz1, 0.2)
             result += self.w[i] * self.elliptic(anotherz1)
             c += self.s[i]  
         

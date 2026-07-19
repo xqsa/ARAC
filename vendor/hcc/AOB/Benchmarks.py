@@ -1,7 +1,9 @@
-import numpy as np
-import sys
+import csv
 import os
+import sys
 from pathlib import Path
+
+import numpy as np
 
 class Benchmarks:
     def __init__(self, output_path, data_dir=None):
@@ -38,24 +40,37 @@ class Benchmarks:
         # 评估器
         self.fitness_record = []
 
+    def prepare_input(self, x):
+        """Normalize one candidate or a batch and enforce the AOB dimension."""
+
+        candidate = np.asarray(x, dtype=float)
+        if candidate.ndim == 1:
+            candidate = np.expand_dims(candidate, axis=0)
+        if candidate.ndim != 2 or candidate.shape[1] != self.dimension:
+            raise ValueError(f"candidate must have shape (n, {self.dimension})")
+        return candidate
+
+    def _read_flat_values(self, suffix):
+        file_path = self.data_dir / f"F{self.ID}-{suffix}.txt"
+        with file_path.open(newline="", encoding="utf-8") as handle:
+            values = [
+                cell.strip()
+                for row in csv.reader(handle)
+                for cell in row
+                if cell.strip()
+            ]
+        if len(values) != self.dimension:
+            raise ValueError(
+                f"{file_path.name} must contain exactly {self.dimension} values"
+            )
+        return values
+
     # 读取Ovector
     def readOvector(self):
-        d = np.zeros(self.dimension)
-        file_path = f"{self.data_dir}/F{self.ID}-xopt.txt"
-        
-        try:
-            with open(file_path, 'r') as file:
-                c = 0
-                for line in file:
-                    values = line.strip().split(',')
-                    for value in values:
-                        if c < self.dimension:
-                            d[c] = float(value)
-                            c += 1
-        except FileNotFoundError:
-            print(f"Cannot open the datafile '{file_path}'")
-        
-        return d
+        values = np.asarray(self._read_flat_values("xopt"), dtype=float)
+        if not np.all(np.isfinite(values)):
+            raise ValueError(f"F{self.ID}-xopt.txt must contain only finite values")
+        return values
     
     # 读取OvectorVec，根据子空间的大小分割，得到一个向量数组
     def readOvectorVec(self):
@@ -85,22 +100,13 @@ class Benchmarks:
     
     # 读取PermVector
     def readPermVector(self):
-        d = np.zeros(self.dimension, dtype=int)
-        file_path = f"{self.data_dir}/F{self.ID}-p.txt"
-        
-        try:
-            with open(file_path, 'r') as file:
-                c = 0
-                for line in file:
-                    values = line.strip().split(',')
-                    for value in values:
-                        if c < self.dimension:
-                            d[c] = int(float(value)) - 1
-                            c += 1
-        except FileNotFoundError:
-            print(f"Cannot open the datafile '{file_path}'")
-        
-        return d
+        numeric = np.asarray(self._read_flat_values("p"), dtype=float)
+        if not np.all(np.isfinite(numeric)) or not np.all(numeric == np.floor(numeric)):
+            raise ValueError(f"F{self.ID}-p.txt must contain only integer values")
+        values = numeric.astype(int) - 1
+        if not np.array_equal(np.sort(values), np.arange(self.dimension)):
+            raise ValueError(f"F{self.ID}-p.txt must be a permutation of 1..{self.dimension}")
+        return values
     
     # 读取R，即为各个子空间的向量
     def readR(self, sub_dim):

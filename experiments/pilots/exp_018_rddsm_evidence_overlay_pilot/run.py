@@ -40,6 +40,7 @@ from .protocol import (
     PROTOCOL_VERSION,
     REPOSITORY_ROOT,
     RUN_ID,
+    RUNTIME_FIELDS,
     SHADOW_FIELDS,
     SOURCE_MODE,
     RunSpec,
@@ -57,6 +58,7 @@ RAW_ARTIFACTS = {
     "probe_evidence": ("probe_evidence.csv", PROBE_FIELDS),
     "delayed_outcomes": ("delayed_outcomes.csv", DELAYED_FIELDS),
     "shadow_decisions": ("shadow_decisions.csv", SHADOW_FIELDS),
+    "runtime_actions": ("runtime_actions.csv", RUNTIME_FIELDS),
 }
 IDENTITY_FIELDS = (
     "run_id",
@@ -176,6 +178,7 @@ class CollectedArtifacts:
     probe_rows: list[dict[str, object]]
     delayed_rows: list[dict[str, object]]
     shadow_rows: list[dict[str, object]]
+    runtime_rows: list[dict[str, object]]
     aob_rows: list[dict[str, object]]
     anti_leakage_rows: list[dict[str, object]]
     per_run_manifests: list[dict[str, object]]
@@ -281,6 +284,7 @@ def _validate_manifest(
     failures: list[str] = []
     expected = {
         "protocol_version": PROTOCOL_VERSION,
+        "schema_version": 2,
         "problem_id": spec.problem_id,
         "seed": spec.seed,
         "evidence_overlay_mode": spec.lane.evidence_overlay_mode,
@@ -289,6 +293,7 @@ def _validate_manifest(
         "terminal_tolerance_rule": "maximum_native_group_population",
         "fresh_optimizer_execution": 1,
         "runtime_authorized": 0,
+        "runtime_consumed": 0,
         "optimizer_calls": 0,
         "rng_calls": 0,
         "observer_integrity": 1,
@@ -596,6 +601,9 @@ def _collect_record(
         collected.shadow_rows.extend(
             _prefix_rows(raw_rows["shadow_decisions"], spec, collected.blockers, "shadow_decisions")
         )
+        collected.runtime_rows.extend(
+            _prefix_rows(raw_rows["runtime_actions"], spec, collected.blockers, "runtime_actions")
+        )
         try:
             aob_path = _one_recursive(run_output, f"{spec.problem_id}_aob_input_manifest.csv")
             header, rows = _read_csv(aob_path)
@@ -666,7 +674,7 @@ def collect_artifacts(
     *,
     aob_data_root: Path | str = DEFAULT_AOB_DATA_ROOT,
 ) -> CollectedArtifacts:
-    collected = CollectedArtifacts([], [], {}, [], [], [], [], [], [], [], [])
+    collected = CollectedArtifacts([], [], {}, [], [], [], [], [], [], [], [], [])
     expected_aob = _expected_aob_bindings(
         aob_data_root,
         [record.spec.problem_id for record in records],
@@ -1083,6 +1091,11 @@ def write_aggregate(
         output / "shadow_decisions.csv",
         collected.shadow_rows,
         required_fields=(*IDENTITY_FIELDS, *SHADOW_FIELDS),
+    )
+    _write_csv(
+        output / "runtime_actions.csv",
+        collected.runtime_rows,
+        required_fields=(*IDENTITY_FIELDS, *RUNTIME_FIELDS),
     )
     _write_csv(output / "aob_input_manifest.csv", collected.aob_rows, required_fields=AOB_FIELDS)
     _write_csv(

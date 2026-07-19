@@ -133,7 +133,21 @@ u_a = log((f(x0) + eps) / (f(xa) + eps))
 
 A unique best owner with `u_a >= log(1.01)` maps to a shadow repair; a unique
 best bridge maps to a shadow coordinate action. Every other outcome maps to
-fallback. `runtime_authorized` is always `0`.
+fallback. Shadow-decision rows remain observer-only, so their
+`runtime_authorized` value is always `0`.
+
+## Runtime Probe Action
+
+A runtime-enabled lane compiles a separate immutable `RuntimeProbeAction` from
+the winning Phase-I candidate. The action binds the structural relation, exact
+shared values and hashes, bridge weights, local anchor hash, checkpoint, issued
+sweep, and one-sweep TTL. Phase II may write only those saved shared values.
+Changed relation-local anchor values, checkpoint mismatch, expiry, or repeated
+consumption abstain without recomputing an owner or bridge.
+
+Authorization and consumption are recorded only in
+`evidence_overlay_runtime_actions.csv`; observer checkpoint, plan, probe,
+delayed-outcome, and shadow rows remain unauthorized.
 
 The next complete native sweep supplies delayed owner survival and overwrite
 labels. Those labels are evaluation targets only and cannot affect the frozen
@@ -141,14 +155,14 @@ Phase-II route.
 
 ## Experiment Contract
 
-The only active experiment is `exp_018`:
+The reference-blind observer contract remains frozen in `exp_018`:
 
 - lane A: native RDDSM audit;
 - lane B: evidence-ranked owner/bridge probes;
 - lane C: shuffled negative control;
 - cases: `E1/E3/A4/S5`;
 - observer-only in every lane;
-- no Dynamic-CC lane and no action writeback in v1.
+- no Dynamic-CC lane and no action writeback in its observer lanes.
 
 The mechanical and mechanism gates are implemented in
 `experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/protocol.py`. Any

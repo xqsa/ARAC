@@ -19,8 +19,9 @@ HCC RDDSM + MMES/CMA-ES + AOB objective
   equivalent to the extracted PyTorch version.
 - `vendor/hcc/HCC/NDAs/MMES/`: Phase-I optimizer state.
 - `vendor/hcc/HCC/OPT/CMAES/`: cooperative group optimizer.
-- `vendor/hcc/AOB/`: objective functions and only the F1/F3/F4/F5 inputs needed
-  by `E1/E3/A4/S5`.
+- `vendor/hcc/AOB/`: objective functions and only AOBG data-bundle IDs
+  `1/3/4/5` needed by the real cases `E1/E3/A4/R4/S5`; their on-disk `F*`
+  prefix is a data filename, not a case identifier.
 - `scripts/hcc_smoke_runner.py`: canonical subprocess runner and FE ledger.
 
 `src/arac/backends/hcc.py` validates AOB inputs, constructs the real runner
@@ -33,7 +34,7 @@ contains the pure selection and four-point policy logic.
 
 - `E:\HCC-main` remains read-only.
 - Historical milestones, result artifacts, plotting code, binary LSGO, and
-  unused F2/F6 data are not part of the retained runtime.
+  unused AOBG data-bundle IDs 2 and 6 are not part of the retained runtime.
 - AOB truth and final outcomes are offline evaluation inputs only.
 - The overlay is disabled unless explicitly requested; the default HCC command
   surface remains unchanged.

@@ -1,9 +1,10 @@
 # ARAC
 
-This repository contains one active method line: the observer-only RDDSM
-evidence overlay implemented by `exp_018`.
+This repository contains the RDDSM evidence overlay and its explicit
+one-sweep `RuntimeProbeAction` contract. `exp_018` remains the observer-only
+reference protocol.
 
-The overlay does not replace RDDSM and does not alter Phase-II optimization.
+The overlay does not replace RDDSM.
 It freezes the RDDSM partition, collects same-checkpoint counterfactual evidence
 for a small number of two-owner overlap relations, and records shadow actions
 for offline identifiability tests. Every probe evaluation is charged to the
@@ -17,9 +18,12 @@ strict FE ledger.
    and owner priority.
 4. The active lane evaluates `x0`, the two owner proposals, and a reliability-
    weighted bridge for at most four relations (`16 FE` total).
-5. Probe results never update the incumbent, optimizer state, native RNG,
-   cooperative context, or Phase-II topology. Only an offline shadow decision
-   is emitted.
+5. Probe evaluation itself never updates the incumbent, optimizer state,
+   native RNG, cooperative context, or Phase-II topology. Shadow decisions
+   remain observer-only.
+6. A runtime-enabled lane compiles a separate exact shared-block action. The
+   next sweep consumes it once only when relation, checkpoint, TTL, and local
+   anchor all match; otherwise it abstains.
 
 The frozen lanes are:
 
@@ -27,7 +31,7 @@ The frozen lanes are:
 - `b_rddsm_evidence_overlay`: evidence-ranked owner probes.
 - `c_rddsm_shuffled_overlay`: deterministic shuffled negative control.
 
-The active AOB cases are `E1`, `E3`, `A4`, and `S5`. AOB truth is used only
+The bound AOB cases are `E1`, `E3`, `A4`, `R4`, and `S5`. AOB truth is used only
 after execution for offline topology precision/recall; it is forbidden at
 runtime.
 
@@ -36,10 +40,12 @@ runtime.
 - `src/arac/`: overlay policy, HCC adapter, execution contracts, and required
   reference-blind policy dependencies.
 - `scripts/hcc_smoke_runner.py`: canonical real HCC/AOB execution runner.
-- `experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/`: the only active
+- `experiments/pilots/exp_018_rddsm_evidence_overlay_pilot/`: observer reference
   experiment and promotion gate.
-- `configs/rddsm_evidence_overlay_pilot_v1.json`: the only active config.
-- `vendor/hcc/`: the minimal HCC/AOB runtime plus F1/F3/F4/F5 inputs.
+- `configs/rddsm_evidence_overlay_pilot_v1.json`: observer reference config.
+- `vendor/hcc/`: the minimal HCC/AOB runtime and data bound to the listed AOB
+  cases; internal `F*.txt` prefixes identify AOBG data bundles, not benchmark
+  cases.
 - `tests/`: focused unit, adapter, protocol, budget, and runtime tests.
 - `docs/`: current method boundary and literature positioning only.
 
