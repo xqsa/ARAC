@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Sequence
 
-from experiments.pilots.exp_020_beneficial_coordination_pilot.run import (
+from experiments.pilots.paired_overlap_action_runner import (
     main as paired_action_main,
 )
 

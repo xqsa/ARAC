@@ -282,6 +282,61 @@ class RelationCandidate:
         _unit_interval(self.owner_priority, name="owner_priority")
 
 
+def cohen_d_from_moments(
+    left_centers: Sequence[float],
+    right_centers: Sequence[float],
+    left_standard_deviations: Sequence[float],
+    right_standard_deviations: Sequence[float],
+) -> float:
+    """Return the mean per-variable absolute Cohen's d for two owners."""
+
+    vectors = tuple(
+        tuple(_finite(value, name=name) for value in values)
+        for name, values in (
+            ("left_centers", left_centers),
+            ("right_centers", right_centers),
+            ("left_standard_deviations", left_standard_deviations),
+            ("right_standard_deviations", right_standard_deviations),
+        )
+    )
+    if not vectors[0]:
+        return 0.0
+    if any(len(vector) != len(vectors[0]) for vector in vectors[1:]):
+        raise ValueError("Cohen's d moment vectors must have equal non-zero length")
+    if any(value < 0.0 for vector in vectors[2:] for value in vector):
+        raise ValueError("standard deviations must be non-negative")
+
+    left_mu, right_mu, left_std, right_std = vectors
+    effects = []
+    for mu_left, mu_right, std_left, std_right in zip(
+        left_mu,
+        right_mu,
+        left_std,
+        right_std,
+        strict=True,
+    ):
+        pooled_variance = (std_left**2 + std_right**2) / 2.0
+        effects.append(
+            abs(mu_left - mu_right) / math.sqrt(pooled_variance)
+            if pooled_variance > 0.0
+            else 0.0
+        )
+    return math.fsum(effects) / len(effects)
+
+
+def relation_cohen_d(relation: RelationCandidate) -> float:
+    """Calculate Cohen's d from a relation candidate's top-k moments."""
+
+    if not isinstance(relation, RelationCandidate):
+        raise TypeError("relation must be a RelationCandidate")
+    return cohen_d_from_moments(
+        relation.owner_population_centers[0],
+        relation.owner_population_centers[1],
+        relation.owner_population_standard_deviations[0],
+        relation.owner_population_standard_deviations[1],
+    )
+
+
 def build_relation_candidates(
     groups: Sequence[Sequence[int]],
     owner_proposals: Mapping[tuple[int, int], float],

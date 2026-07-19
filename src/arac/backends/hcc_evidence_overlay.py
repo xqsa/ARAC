@@ -23,6 +23,7 @@ from arac.policy.evidence_overlay import (
     build_four_point_probe,
     build_reference_blind_ordering,
     build_relation_candidates,
+    relation_cohen_d,
     decide_shadow_action,
     score_relations,
     select_top_relations,
@@ -85,6 +86,7 @@ PLAN_FIELDS = (
     "voi",
     "native_voi",
     "proposal_disagreement",
+    "cohen_d",
     "disagreement_metric",
     "left_top_k_count",
     "right_top_k_count",
@@ -992,6 +994,7 @@ class HccEvidenceOverlayObserver:
                 "proposal_disagreement": _format_float(
                     item.relation.proposal_disagreement
                 ),
+                "cohen_d": _format_float(relation_cohen_d(item.relation)),
                 "disagreement_metric": PROPOSAL_DISAGREEMENT_METRIC,
                 "left_top_k_count": str(item.relation.owner_population_sizes[0]),
                 "right_top_k_count": str(item.relation.owner_population_sizes[1]),

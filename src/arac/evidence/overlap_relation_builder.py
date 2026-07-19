@@ -33,6 +33,13 @@ class OverlapRelation:
     shared_var_support_ratio: float = 0.0
     feature_coverage: float = 0.0
     fallback_margin_proxy: float = 1.0
+    cohen_d: float = 0.0
+    left_top_k_count: int = 0
+    right_top_k_count: int = 0
+    left_distribution_centers: tuple[float, ...] = ()
+    right_distribution_centers: tuple[float, ...] = ()
+    left_distribution_standard_deviations: tuple[float, ...] = ()
+    right_distribution_standard_deviations: tuple[float, ...] = ()
 
 
 _ITERATION_KEYS = ("iterations", "outer_iterations", "trace_windows")

@@ -1,6 +1,7 @@
 from AOB.schwefel import schwefel
 from AOB.elliptic import elliptic
 from AOB.ackley import ackley
+from AOB.rastrigin import rastrigin
 import os
 
 class Benchmark():
@@ -16,6 +17,8 @@ class Benchmark():
             return ackley(func_id, self.output_path, data_dir=self.data_dir)
         elif func_name == 'schwefel':
             return schwefel(func_id, self.output_path, data_dir=self.data_dir)
+        elif func_name == 'rastrigin':
+            return rastrigin(func_id, self.output_path, data_dir=self.data_dir)
         else:
             raise ValueError("Function name is wrong.")
 
@@ -28,6 +31,9 @@ class Benchmark():
             return fun_.info()
         elif func_name == 'schwefel':
             fun_ = schwefel(func_id, self.output_path, data_dir=self.data_dir)
+            return fun_.info()
+        elif func_name == 'rastrigin':
+            fun_ = rastrigin(func_id, self.output_path, data_dir=self.data_dir)
             return fun_.info()
         else:
             raise ValueError("Function name is wrong.")

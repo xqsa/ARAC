@@ -1,0 +1,41 @@
+{
+  "protocol_version": "cohen-d-dispatch-pilot-v1",
+  "experiment_id": "exp_020_cohen_d_dispatch_pilot",
+  "config_schema_version": 1,
+  "status": "authorized_by_user_for_fresh_runtime_pilot",
+  "preregistration_date": "2026-07-19",
+  "executor": "Codex",
+  "execution": {
+    "cases": ["E3", "A4", "S5", "R4"],
+    "seeds": [1, 2, 3, 4, 5],
+    "max_fes": 100000,
+    "jobs": 4,
+    "budget_accounting": "strict",
+    "search_state_backend": "phase_i_mmes",
+    "arac_action": "arac_evidence_action_controller_v37",
+    "relation_policy": "cohen_d_repair",
+    "cohen_d_threshold": 0.8,
+    "enable_relation_dispatch": true,
+    "evidence_overlay_mode": "off",
+    "cmaes_restart": true,
+    "mmes_restart": true,
+    "skip_plots": true
+  },
+  "controls": {
+    "conforming_overlap_cases": ["R4"],
+    "interpretation": "descriptive_distribution_control_not_a_runtime_dispatch_input"
+  },
+  "acceptance": {
+    "required_trigger_consistency": 1.0,
+    "maximum_trigger_mismatches": 0,
+    "maximum_terminal_fe_shortfall": 200
+  },
+  "forbidden_runtime_inputs": [
+    "paper_reported_baseline",
+    "oracle",
+    "final_error",
+    "relative_gain",
+    "problem_family_label",
+    "prior_final_outcome"
+  ]
+}

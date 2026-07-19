@@ -1,4 +1,4 @@
-"""Run the paired E3/A4/S5 beneficial-coordination pilot."""
+"""Shared runner for paired non-dispatch overlap-action pilots."""
 
 from __future__ import annotations
 
@@ -18,18 +18,24 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Mapping, Sequence
 
-from arac.backends.hcc_budget import (
+from src.arac.backends.hcc_budget import (
     _parse_hcc_budget_summary,
     _parse_hcc_evaluation_record_with_optimizer_final_fe,
 )
 
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 RUNNER_PATH = REPOSITORY_ROOT / "scripts" / "hcc_smoke_runner.py"
 VENDOR_ROOT = REPOSITORY_ROOT / "vendor" / "hcc"
 DEFAULT_AOB_DATA_ROOT = VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
-DEFAULT_CONFIG_PATH = Path(__file__).with_name("config.json")
-DEFAULT_OUTPUT_ROOT = REPOSITORY_ROOT / "results" / "exp_020_beneficial_coordination_pilot"
+DEFAULT_CONFIG_PATH = (
+    REPOSITORY_ROOT
+    / "experiments"
+    / "pilots"
+    / "exp_021_shared_variable_repair_pilot"
+    / "config.json"
+)
+DEFAULT_OUTPUT_ROOT = REPOSITORY_ROOT / "results" / "exp_021_shared_variable_repair_pilot"
 CASE_TO_FUNCTION = {
     "E3": ("elliptic", 3),
     "A4": ("ackley", 4),

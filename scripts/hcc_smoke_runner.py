@@ -8,7 +8,7 @@ import math
 import random
 import sys
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
 import numpy as np
@@ -61,7 +61,11 @@ from arac.backends.hcc_evidence_overlay import (
     EvidenceOverlayArtifactPaths,
     HccEvidenceOverlayObserver,
 )
-from arac.policy.evidence_overlay import LOCAL_OPTIMUM_TOP_K, build_reference_blind_ordering
+from arac.policy.evidence_overlay import (
+    LOCAL_OPTIMUM_TOP_K,
+    build_reference_blind_ordering,
+    cohen_d_from_moments,
+)
 from src.arac.backends.hcc import (
     EVIDENCE_OVERLAY_MODES,
     required_aob_data_files,
@@ -114,13 +118,14 @@ def plot_evaluation_curve_best_so_far(*args, **kwargs):
 
 
 DATA_DIR = HCC_VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
-FUNCTION_NAMES = ("elliptic", "schwefel", "ackley")
+FUNCTION_NAMES = ("elliptic", "schwefel", "ackley", "rastrigin")
 PROBLEM_IDS = (1, 3, 4, 5)
 ACTIVE_FUNCTION_ID_PAIRS = frozenset(
     {
         ("elliptic", 1),
         ("elliptic", 3),
         ("ackley", 4),
+        ("rastrigin", 4),
         ("schwefel", 5),
     }
 )
@@ -198,6 +203,11 @@ ACTION_TRACE_FIELDS = [
     "phase_rescue_rejected_before_maturity",
     "phase_rescue_productive_mature",
     "phase_rescue_retired",
+    "cohen_d",
+    "cohen_d_threshold",
+    "left_top_k_count",
+    "right_top_k_count",
+    "expected_action_name",
 ]
 OVERLAP_RELATION_FIELDS = [
     "relation_id",
@@ -223,6 +233,13 @@ OVERLAP_RELATION_FIELDS = [
     "shared_var_support_ratio",
     "feature_coverage",
     "fallback_margin_proxy",
+    "cohen_d",
+    "left_top_k_count",
+    "right_top_k_count",
+    "left_distribution_centers",
+    "right_distribution_centers",
+    "left_distribution_standard_deviations",
+    "right_distribution_standard_deviations",
 ]
 ACTION_DECISION_FIELDS = [
     "run_id",
@@ -291,6 +308,10 @@ EVIDENCE_OVERLAY_PROBE_FE = 16
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 ACTION_TRUST_MIN_WRITEBACK_NORM = 1e-12
+COHEN_D_REPAIR_THRESHOLD = 0.8
+COHEN_D_RELATION_POLICY = "cohen_d_repair"
+COHEN_D_REPAIR_TRIGGER = "cohen_d_above_0_8"
+COHEN_D_CONSERVATIVE_TRIGGER = "cohen_d_at_or_below_0_8"
 V36_FIRST_SWEEP_OUTER_ITER = 0
 V36_MIN_ACTIVE_COUNT = 4
 V36_MIN_ACTIVE_FRACTION = 0.20
@@ -1207,6 +1228,69 @@ def _update_local_top_candidates(
     del archive[LOCAL_OPTIMUM_TOP_K:]
 
 
+def _shared_population_moments(
+    group: list[int],
+    shared_vars: tuple[int, ...],
+    candidates: tuple[tuple[float, ...], ...],
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+    if not candidates:
+        raise ValueError("Cohen's d dispatch requires non-empty top-k candidates")
+    local_index = {variable: index for index, variable in enumerate(group)}
+    if any(variable not in local_index for variable in shared_vars):
+        raise ValueError("shared variable is missing from its owner group")
+    if any(len(candidate) != len(group) for candidate in candidates):
+        raise ValueError("top-k candidate dimension does not match owner group")
+
+    samples = tuple(
+        tuple(candidate[local_index[variable]] for candidate in candidates)
+        for variable in shared_vars
+    )
+    centers = tuple(math.fsum(values) / len(values) for values in samples)
+    standard_deviations = tuple(
+        math.sqrt(
+            math.fsum((value - center) ** 2 for value in values) / len(values)
+        )
+        for values, center in zip(samples, centers, strict=True)
+    )
+    return centers, standard_deviations
+
+
+def with_relation_population_evidence(
+    relation: OverlapRelation,
+    grouping_result: list[list[int]],
+    top_candidates_by_group: dict[int, tuple[tuple[float, ...], ...]],
+) -> OverlapRelation:
+    """Attach owner-local top-k moments and Cohen's d to one relation."""
+
+    left_candidates = top_candidates_by_group.get(relation.group_left, ())
+    right_candidates = top_candidates_by_group.get(relation.group_right, ())
+    left_centers, left_stds = _shared_population_moments(
+        grouping_result[relation.group_left],
+        relation.shared_vars,
+        left_candidates,
+    )
+    right_centers, right_stds = _shared_population_moments(
+        grouping_result[relation.group_right],
+        relation.shared_vars,
+        right_candidates,
+    )
+    return replace(
+        relation,
+        cohen_d=cohen_d_from_moments(
+            left_centers,
+            right_centers,
+            left_stds,
+            right_stds,
+        ),
+        left_top_k_count=len(left_candidates),
+        right_top_k_count=len(right_candidates),
+        left_distribution_centers=left_centers,
+        right_distribution_centers=right_centers,
+        left_distribution_standard_deviations=left_stds,
+        right_distribution_standard_deviations=right_stds,
+    )
+
+
 def current_fitness_evaluations(fun) -> int:
     return len(getattr(fun, "fitness_record", []))
 
@@ -1319,10 +1403,44 @@ def uses_phase_rescue_during_run(
     )
 
 
-def overlap_action_name_for_lane(action_name: str) -> str:
+def overlap_action_name_for_lane(
+    action_name: str,
+    relation: OverlapRelation | None = None,
+) -> str:
     if is_evidence_action_controller_v37(action_name):
-        return "conservative_no_action"
+        if relation is None:
+            raise ValueError("v37 overlap action requires per-relation evidence")
+        return (
+            "repair_shared_variable_binding"
+            if relation.cohen_d > COHEN_D_REPAIR_THRESHOLD
+            else "conservative_no_action"
+        )
     return action_name
+
+
+def decide_cohen_d_relation_action(
+    relation: OverlapRelation,
+) -> RelationActionDecision:
+    canonical_action = overlap_action_name_for_lane(
+        EVIDENCE_ACTION_CONTROLLER_V37,
+        relation,
+    )
+    repair = canonical_action == "repair_shared_variable_binding"
+    return RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name="reassign_repair" if repair else "fallback",
+        relation_action_name="reassign_repair" if repair else "fallback",
+        canonical_action_name=canonical_action,
+        action_family="reassign_repair" if repair else "fallback",
+        confidence=(
+            min(1.0, relation.cohen_d / COHEN_D_REPAIR_THRESHOLD)
+            if repair
+            else max(0.0, 1.0 - relation.cohen_d / COHEN_D_REPAIR_THRESHOLD)
+        ),
+        trigger_reason=(
+            COHEN_D_REPAIR_TRIGGER if repair else COHEN_D_CONSERVATIVE_TRIGGER
+        ),
+    )
 
 
 def refine_sigma_for_action(
@@ -1674,6 +1792,11 @@ def build_action_trace_row(
     phase_rescue_rejected_before_maturity: int | None = None,
     phase_rescue_productive_mature: bool | None = None,
     phase_rescue_retired: bool | None = None,
+    cohen_d: float | None = None,
+    cohen_d_threshold: float | None = None,
+    left_top_k_count: int | None = None,
+    right_top_k_count: int | None = None,
+    expected_action_name: str = "",
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
     action_family = action_family or _action_family_for_canonical(canonical_action_name)
@@ -1801,6 +1924,17 @@ def build_action_trace_row(
             "phase_rescue_retired": ""
             if phase_rescue_retired is None
             else str(int(phase_rescue_retired)),
+            "cohen_d": "" if cohen_d is None else f"{cohen_d:.17e}",
+            "cohen_d_threshold": ""
+            if cohen_d_threshold is None
+            else f"{cohen_d_threshold:.17e}",
+            "left_top_k_count": ""
+            if left_top_k_count is None
+            else str(left_top_k_count),
+            "right_top_k_count": ""
+            if right_top_k_count is None
+            else str(right_top_k_count),
+            "expected_action_name": expected_action_name,
         }
     )
     return row
@@ -2202,6 +2336,10 @@ def _format_shared_vars(shared_vars: tuple[int, ...]) -> str:
     return ";".join(str(variable) for variable in shared_vars)
 
 
+def _format_float_tuple(values: tuple[float, ...]) -> str:
+    return ";".join(f"{value:.17e}" for value in values)
+
+
 def _overlap_relation_row(relation: OverlapRelation) -> dict[str, str]:
     raw = asdict(relation)
     row = {
@@ -2229,6 +2367,21 @@ def _overlap_relation_row(relation: OverlapRelation) -> dict[str, str]:
     row["both_positive"] = str(int(bool(relation.both_positive)))
     row["one_side_zero"] = str(int(bool(relation.one_side_zero)))
     row["shared_var_count"] = str(relation.shared_var_count)
+    row["left_top_k_count"] = str(relation.left_top_k_count)
+    row["right_top_k_count"] = str(relation.right_top_k_count)
+    row["cohen_d"] = f"{relation.cohen_d:.17e}"
+    row["left_distribution_centers"] = _format_float_tuple(
+        relation.left_distribution_centers
+    )
+    row["right_distribution_centers"] = _format_float_tuple(
+        relation.right_distribution_centers
+    )
+    row["left_distribution_standard_deviations"] = _format_float_tuple(
+        relation.left_distribution_standard_deviations
+    )
+    row["right_distribution_standard_deviations"] = _format_float_tuple(
+        relation.right_distribution_standard_deviations
+    )
     return row
 
 
@@ -2340,6 +2493,8 @@ def relation_policy_source_name(
     *,
     action: RelationActionDecision | None = None,
 ) -> str:
+    if relation_policy_mode == COHEN_D_RELATION_POLICY:
+        return f"{COHEN_D_RELATION_POLICY}:threshold_gt_{COHEN_D_REPAIR_THRESHOLD}"
     if relation_policy_mode == "controller_v3":
         controller_mode = (
             "relation_first"
@@ -2502,6 +2657,7 @@ def build_overlap_relation_for_pair(
     fitness_delta_list: list[float],
     group_right: int,
     budget_remaining_ratio: float,
+    top_candidates_by_group: dict[int, tuple[tuple[float, ...], ...]] | None = None,
 ) -> OverlapRelation:
     relations = build_overlap_relation_trace(
         problem_id=problem_id,
@@ -2514,7 +2670,15 @@ def build_overlap_relation_for_pair(
     group_left = group_right - 1
     for relation in relations:
         if relation.group_left == group_left and relation.group_right == group_right:
-            return relation
+            return (
+                relation
+                if top_candidates_by_group is None
+                else with_relation_population_evidence(
+                    relation,
+                    grouping_result,
+                    top_candidates_by_group,
+                )
+            )
     raise ValueError(f"missing overlap relation for groups {group_left}-{group_right}")
 
 
@@ -2726,6 +2890,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     elif config.enable_relation_dispatch:
         if not is_evidence_action_controller_v37(config.arac_action):
             raise ValueError("relation dispatch requires frozen v37")
+        if config.relation_policy_mode not in {
+            "controller_v31",
+            COHEN_D_RELATION_POLICY,
+        }:
+            raise ValueError("unsupported v37 relation dispatch policy")
     elif config.arac_action not in NON_DISPATCH_OVERLAP_ACTIONS:
         raise ValueError("non-dispatch execution requires a supported overlap action")
     time_start = time.time()
@@ -2894,6 +3063,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)
         fitness_delta_list: list[float] = []
         current_outer_relations: list[OverlapRelation] = []
+        top_candidates_by_group: dict[int, tuple[tuple[float, ...], ...]] = {}
         optimized_any_group = False
         outer_stagnation_streak = 0
         for index, dims in enumerate(grouping_result):
@@ -2941,7 +3111,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
             def objective_function(x_batch, dims=dims):
                 values = fun(combine(x_batch, best_individual, dims))
-                if evidence_overlay_observer is not None:
+                if (
+                    evidence_overlay_observer is not None
+                    or config.relation_policy_mode == COHEN_D_RELATION_POLICY
+                ):
                     _update_local_top_candidates(local_top_candidates, x_batch, values)
                 return values
 
@@ -3244,11 +3417,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                 )
             fitness_delta_list.append(current_delta)
+            if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
+                top_candidates_by_group[index] = tuple(
+                    candidate for _, candidate in local_top_candidates
+                )
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
                 if config.enable_relation_dispatch:
-                    if config.relation_policy_mode != "controller_v31":
-                        raise ValueError("v37 requires controller_v31")
                     context = RelationExecutionContext(
                         overlap_indices=list(overlap_indices),
                         previous_values=original_best[overlap_indices].copy(),
@@ -3264,53 +3439,81 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         fitness_delta_list=fitness_delta_list,
                         group_right=index,
                         budget_remaining_ratio=iteration_budget_remaining_ratio,
+                        top_candidates_by_group=(
+                            top_candidates_by_group
+                            if config.relation_policy_mode == COHEN_D_RELATION_POLICY
+                            else None
+                        ),
                     )
-                    relation_policy_context = current_outer_relations + [relation]
-                    controller_v31_run_state.lock_from_runtime_prefix(
-                        relation_policy_context
-                    )
-                    effective_policy_mode = (
-                        controller_v31_run_state.effective_policy_mode
-                    )
-                    phase_rescue_enabled = (
-                        controller_v31_run_state.phase_rescue_enabled
-                    )
-                    if effective_policy_mode == "adaptive_v26":
-                        rule_action = decide_actions_for_relations_v26(
-                            relation_policy_context
-                        )[-1]
-                    elif effective_policy_mode == "adaptive_v24":
-                        rule_action = decide_actions_for_relations_v24(
-                            relation_policy_context
-                        )[-1]
+                    if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
+                        effective_policy_mode = COHEN_D_RELATION_POLICY
+                        action = decide_cohen_d_relation_action(relation)
                     else:
-                        raise RuntimeError(
-                            f"unsupported v37 policy mode: {effective_policy_mode}"
+                        relation_policy_context = current_outer_relations + [relation]
+                        controller_v31_run_state.lock_from_runtime_prefix(
+                            relation_policy_context
                         )
-                    action = select_relation_action_for_policy(
-                        relation=relation,
-                        action=rule_action,
-                        relation_policy_mode=effective_policy_mode,
-                    )
+                        effective_policy_mode = (
+                            controller_v31_run_state.effective_policy_mode
+                        )
+                        phase_rescue_enabled = (
+                            controller_v31_run_state.phase_rescue_enabled
+                        )
+                        if effective_policy_mode == "adaptive_v26":
+                            rule_action = decide_actions_for_relations_v26(
+                                relation_policy_context
+                            )[-1]
+                        elif effective_policy_mode == "adaptive_v24":
+                            rule_action = decide_actions_for_relations_v24(
+                                relation_policy_context
+                            )[-1]
+                        else:
+                            raise RuntimeError(
+                                f"unsupported v37 policy mode: {effective_policy_mode}"
+                            )
+                        action = select_relation_action_for_policy(
+                            relation=relation,
+                            action=rule_action,
+                            relation_policy_mode=effective_policy_mode,
+                        )
                     trust_decision: ActionTrustDecision | None = None
                     fallback_route = ""
                     active_maturity_route = ""
-                    (
-                        action,
-                        adjusted_values,
-                        action_value_delta_norm,
-                        trust_decision,
-                        fallback_route,
-                        active_maturity_route,
-                    ) = apply_relation_action_with_controller_v36(
-                        relation=relation,
-                        action=action,
-                        previous_values=context.previous_values,
-                        current_values=context.current_values,
-                        previous_delta=context.previous_delta,
-                        current_delta=context.current_delta,
-                        controller_run_state=controller_v31_run_state,
-                    )
+                    if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
+                        adjusted_values = apply_action_to_relation(
+                            relation=relation,
+                            action=action,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            previous_delta=context.previous_delta,
+                            current_delta=context.current_delta,
+                        )
+                        action_value_delta_norm = (
+                            0.0
+                            if adjusted_values is None
+                            else float(
+                                np.linalg.norm(
+                                    adjusted_values - context.current_values
+                                )
+                            )
+                        )
+                    else:
+                        (
+                            action,
+                            adjusted_values,
+                            action_value_delta_norm,
+                            trust_decision,
+                            fallback_route,
+                            active_maturity_route,
+                        ) = apply_relation_action_with_controller_v36(
+                            relation=relation,
+                            action=action,
+                            previous_values=context.previous_values,
+                            current_values=context.current_values,
+                            previous_delta=context.previous_delta,
+                            current_delta=context.current_delta,
+                            controller_run_state=controller_v31_run_state,
+                        )
                     if adjusted_values is not None:
                         best_individual[context.overlap_indices] = adjusted_values
                     relative_writeback_norm = scale_free_writeback_norm(
@@ -3406,9 +3609,45 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 and controller_v31_run_state.v36_enabled
                                 else ""
                             ),
+                            cohen_d=(
+                                relation.cohen_d
+                                if config.relation_policy_mode
+                                == COHEN_D_RELATION_POLICY
+                                else None
+                            ),
+                            cohen_d_threshold=(
+                                COHEN_D_REPAIR_THRESHOLD
+                                if config.relation_policy_mode
+                                == COHEN_D_RELATION_POLICY
+                                else None
+                            ),
+                            left_top_k_count=(
+                                relation.left_top_k_count
+                                if config.relation_policy_mode
+                                == COHEN_D_RELATION_POLICY
+                                else None
+                            ),
+                            right_top_k_count=(
+                                relation.right_top_k_count
+                                if config.relation_policy_mode
+                                == COHEN_D_RELATION_POLICY
+                                else None
+                            ),
+                            expected_action_name=(
+                                overlap_action_name_for_lane(
+                                    config.arac_action,
+                                    relation,
+                                )
+                                if config.relation_policy_mode
+                                == COHEN_D_RELATION_POLICY
+                                else ""
+                            ),
                     )
                     action_trace_rows.append(action_trace_row)
-                    if controller_v31_run_state is not None:
+                    if (
+                        controller_v31_run_state is not None
+                        and trust_decision is not None
+                    ):
                         controller_v31_run_state.register_pending_action_trust(
                             decision=trust_decision,
                             pre_writeback_fitness=original_fitness - current_delta,
@@ -3718,7 +3957,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument(
         "--relation-policy",
-        choices=["controller_v31"],
+        choices=["controller_v31", COHEN_D_RELATION_POLICY],
         required=True,
     )
     parser.add_argument(
@@ -3738,14 +3977,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     if args.max_fes <= 0:
         parser.error("--max-fes must be positive")
     if len(args.functions) != 1 or len(args.ids) != 1:
-        parser.error("exp_018 runner accepts exactly one function/id pair")
+        parser.error("runner accepts exactly one function/id pair")
     if (args.functions[0], args.ids[0]) not in ACTIVE_FUNCTION_ID_PAIRS:
-        parser.error("function/id pair is outside the frozen exp_018 cases")
+        parser.error("function/id pair is outside the supported AOB cases")
     if args.evidence_overlay_mode != "off":
         if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
             parser.error("--evidence-overlay-mode requires frozen v37")
         if not args.enable_relation_dispatch:
             parser.error("--evidence-overlay-mode requires relation dispatch")
+        if args.relation_policy != "controller_v31":
+            parser.error("--evidence-overlay-mode requires controller_v31")
     elif args.enable_relation_dispatch:
         if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
             parser.error("--enable-relation-dispatch requires frozen v37")

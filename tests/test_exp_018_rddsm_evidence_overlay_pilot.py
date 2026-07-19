@@ -361,6 +361,7 @@ def _mechanism_gate_fixture() -> tuple[dict[str, object], tuple, GateInputs]:
                     "voi": float(relation_index + 1),
                     "native_voi": float(relation_index + 1),
                     "proposal_disagreement": float(relation_index + 1),
+                    "cohen_d": float(relation_index + 1),
                     "disagreement_metric": PROPOSAL_DISAGREEMENT_METRIC,
                     "left_top_k_count": 5,
                     "right_top_k_count": 5,
