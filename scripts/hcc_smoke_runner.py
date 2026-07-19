@@ -183,6 +183,11 @@ ACTION_TRACE_FIELDS = [
     "decision_point",
     "cc_block_fe",
     "cc_utility",
+    "probe_utility",
+    "probe_utility_threshold",
+    "local_pre_writeback_fitness",
+    "local_post_writeback_fitness",
+    "local_objective_credit",
     "trust_key",
     "trust_phase",
     "trust_reason",
@@ -1859,6 +1864,8 @@ def build_action_trace_row(
     decision_point: str = "",
     cc_block_fe: int | None = None,
     cc_utility: float | None = None,
+    probe_utility: float | None = None,
+    probe_utility_threshold: float | None = None,
     trust_decision: ActionTrustDecision | None = None,
     trust_credit: float | None = None,
     trust_unstable: bool | None = None,
@@ -1959,6 +1966,15 @@ def build_action_trace_row(
         "decision_point": decision_point,
         "cc_block_fe": "" if cc_block_fe is None else str(cc_block_fe),
         "cc_utility": "" if cc_utility is None else f"{cc_utility:.6e}",
+        "probe_utility": ""
+        if probe_utility is None
+        else f"{probe_utility:.17e}",
+        "probe_utility_threshold": ""
+        if probe_utility_threshold is None
+        else f"{probe_utility_threshold:.17e}",
+        "local_pre_writeback_fitness": "",
+        "local_post_writeback_fitness": "",
+        "local_objective_credit": "",
     }
     row.update(
         {
@@ -3049,6 +3065,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     refresh_fe = 0
     search_state_fe = 0
     action_trace_rows: list[dict[str, str]] = []
+    pending_relation_impact: tuple[dict[str, str], float] | None = None
     relations: list[OverlapRelation] = []
     action_decisions: list[RelationActionDecision] = []
     previous_group_contribution_credit: list[float] = []
@@ -3183,6 +3200,16 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             original_best = best_individual.copy()
             original_fitness = float(fun(best_individual)[0])
             evidence_overlay_pre_error = original_fitness
+            if pending_relation_impact is not None:
+                # This native precheck is the first objective call after the writeback.
+                pending_trace_row, pre_writeback_fitness = pending_relation_impact
+                pending_trace_row["local_post_writeback_fitness"] = (
+                    f"{original_fitness:.17e}"
+                )
+                pending_trace_row["local_objective_credit"] = (
+                    f"{normalized_objective_credit(pre_writeback_fitness, original_fitness):.17e}"
+                )
+                pending_relation_impact = None
             if controller_v31_run_state is not None:
                 controller_v31_run_state.observe_pending_action_trust(
                     post_writeback_fitness=original_fitness,
@@ -3688,6 +3715,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 effective_policy_mode,
                                 action=action,
                             ),
+                            probe_utility=(
+                                _probe_utility
+                                if config.relation_policy_mode
+                                == RUNTIME_PROBE_POLICY
+                                else None
+                            ),
+                            probe_utility_threshold=(
+                                SHADOW_GAIN_THRESHOLD
+                                if config.relation_policy_mode
+                                == RUNTIME_PROBE_POLICY
+                                else None
+                            ),
                             state_mutated=(
                                 adjusted_values is not None
                                 and trust_writeback_active
@@ -3779,6 +3818,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             ),
                     )
                     action_trace_rows.append(action_trace_row)
+                    if (
+                        config.relation_policy_mode == RUNTIME_PROBE_POLICY
+                        and adjusted_values is not None
+                    ):
+                        pre_writeback_fitness = original_fitness - current_delta
+                        action_trace_row["local_pre_writeback_fitness"] = (
+                            f"{pre_writeback_fitness:.17e}"
+                        )
+                        pending_relation_impact = (
+                            action_trace_row,
+                            pre_writeback_fitness,
+                        )
                     if (
                         controller_v31_run_state is not None
                         and trust_decision is not None

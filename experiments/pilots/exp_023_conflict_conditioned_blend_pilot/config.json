@@ -38,6 +38,16 @@
         "lco_lso_improvement_bootstrap_lcb_must_be_positive": true,
         "extra_degradation_vs_exp022_maximum": 0.05
     },
+    "relation_impact_analysis": {
+        "outcome": "immediate normalized objective credit of the writeback; conservative_no_action is exactly zero",
+        "utility_feature": "log(probe_utility / probe_utility_threshold)",
+        "delta_gap_feature": "abs(previous_delta - current_delta) / max(abs(previous_delta), abs(current_delta))",
+        "boundary_utility_ratio_max": 2.0,
+        "bootstrap_cluster": "problem_id + seed + owner-group pair + shared-vars hash",
+        "sensitivity_bootstrap_cluster": "problem_id + seed",
+        "bootstrap_samples": 5000,
+        "bootstrap_seed": 20260719
+    },
     "hypotheses": {
         "H1": "E3/S5 final error improves over exp_022 (soft blend < hard repair degradation) because loser group is not forced to recover from a disruptive mean shift",
         "H2": "R4 final error remains comparable to exp_022 (R4 repair rate = 0, so blend is never called; R4 is pure HCC Eq.8 in both experiments)",
