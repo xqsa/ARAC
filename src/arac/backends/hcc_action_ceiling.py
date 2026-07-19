@@ -390,25 +390,25 @@ class ContinuationResult:
     incumbent: tuple[float, ...]
     sweep_index: int
     next_group_index: int
+    completed_group_deltas: tuple[float, ...]
     fitness_record: tuple[float, ...]
 
 
-def run_native_continuation(
+def _run_native_group_steps(
     state: NativeContinuationState,
     *,
     evaluate: Callable[[np.ndarray], np.ndarray],
     fitness_record: list[float],
     optimize_group: GroupOptimizer,
     group_seed: Callable[[int, int], int],
-    target_relative_fe: int,
+    should_continue: Callable[[int], bool],
 ) -> ContinuationResult:
-    if target_relative_fe <= 0:
-        raise ValueError("target_relative_fe must be positive")
     incumbent = np.asarray(state.incumbent, dtype=float).copy()
     sweep_index = int(state.sweep_index)
     group_index = int(state.next_group_index)
     deltas = list(float(value) for value in state.completed_group_deltas)
-    while len(fitness_record) < target_relative_fe:
+    completed_steps = 0
+    while should_continue(completed_steps):
         if group_index == len(state.group_dims):
             sweep_index += 1
             group_index = 0
@@ -426,8 +426,9 @@ def run_native_continuation(
             population_size=state.population_sizes[group_index],
             seed=int(group_seed(sweep_index, group_index)),
         )
-        if result.actual_fes != state.optimizer_budgets[group_index]:
-            raise ValueError("native group optimizer did not consume its frozen budget")
+        budget = state.optimizer_budgets[group_index]
+        if result.actual_fes <= 0 or result.actual_fes > budget:
+            raise ValueError("native group optimizer exceeded or skipped its frozen budget")
         if len(result.best_x) != len(dims):
             raise ValueError("native group optimizer returned the wrong dimension")
         if result.best_y < original_fitness:
@@ -446,12 +447,55 @@ def run_native_continuation(
                     current_delta,
                 )
         group_index += 1
+        completed_steps += 1
 
     return ContinuationResult(
         incumbent=tuple(float(value) for value in incumbent),
         sweep_index=sweep_index,
         next_group_index=group_index,
+        completed_group_deltas=tuple(float(value) for value in deltas),
         fitness_record=tuple(float(value) for value in fitness_record),
+    )
+
+
+def run_native_group_cycle(
+    state: NativeContinuationState,
+    *,
+    evaluate: Callable[[np.ndarray], np.ndarray],
+    fitness_record: list[float],
+    optimize_group: GroupOptimizer,
+    group_seed: Callable[[int, int], int],
+) -> ContinuationResult:
+    """Run exactly one relation-to-same-relation native group cycle."""
+
+    return _run_native_group_steps(
+        state,
+        evaluate=evaluate,
+        fitness_record=fitness_record,
+        optimize_group=optimize_group,
+        group_seed=group_seed,
+        should_continue=lambda completed: completed < len(state.group_dims),
+    )
+
+
+def run_native_continuation(
+    state: NativeContinuationState,
+    *,
+    evaluate: Callable[[np.ndarray], np.ndarray],
+    fitness_record: list[float],
+    optimize_group: GroupOptimizer,
+    group_seed: Callable[[int, int], int],
+    target_relative_fe: int,
+) -> ContinuationResult:
+    if target_relative_fe <= 0:
+        raise ValueError("target_relative_fe must be positive")
+    return _run_native_group_steps(
+        state,
+        evaluate=evaluate,
+        fitness_record=fitness_record,
+        optimize_group=optimize_group,
+        group_seed=group_seed,
+        should_continue=lambda _completed: len(fitness_record) < target_relative_fe,
     )
 
 

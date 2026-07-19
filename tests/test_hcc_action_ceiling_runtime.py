@@ -100,6 +100,21 @@ class FakeOptimizer:
         }
 
 
+class EarlyStoppingGroupOptimizer(FakeOptimizer):
+    def optimize(self):
+        requested = int(self.options["max_function_evaluations"])
+        if requested != 4:
+            return super().optimize()
+        mean = np.asarray(self.options["mean"][0], dtype=float)
+        batch = np.repeat(mean[None, :], 2, axis=0)
+        values = np.asarray(self.problem["fitness_function"](batch), dtype=float)
+        return {
+            "best_so_far_x": mean,
+            "best_so_far_y": float(np.min(values)),
+            "n_function_evaluations": 2,
+        }
+
+
 def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> None:
     runtime = HccActionCeilingRuntime(
         benchmark_factory=FakeBenchmark,
@@ -154,6 +169,54 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     assert {row["extra_fes"] for row in rescue} == {"97"}
     assert all(row["runtime_authorized"] == "0" for row in captured.arm_rows)
     assert all(row["counterfactual_applied"] == "1" for row in captured.arm_rows)
+
+
+def test_runtime_horizon_uses_actual_native_cycle_fe(tmp_path: Path) -> None:
+    runtime = HccActionCeilingRuntime(
+        benchmark_factory=FakeBenchmark,
+        cmaes_factory=EarlyStoppingGroupOptimizer,
+        mmes_factory=FakeOptimizer,
+        combine=lambda x, background, dims: runner.combine(x, background, dims),
+        derive_seed=runner.derive_optimizer_seed,
+        fun_name="elliptic",
+        fun_id=3,
+        output_path=tmp_path,
+        data_root=tmp_path,
+        sigma=0.5,
+        cmaes_restart=True,
+        early_stopping_evaluations=1000,
+        lower=-100.0,
+        upper=100.0,
+        dimension=1000,
+    )
+    incumbent = np.ones(1000)
+    incumbent[4:6] = 0.0
+    captured = runtime.capture(
+        action_set=_action_set(),
+        cohort="real_aob",
+        problem_id="E3",
+        seed=117,
+        dispatch_fe=120,
+        outer_iter=3,
+        group_index=1,
+        incumbent=incumbent,
+        incumbent_fitness=998.0,
+        previous_values=(1.0, 1.0),
+        current_values=(0.0, 0.0),
+        previous_delta=1.0,
+        current_delta=2.0,
+        completed_group_deltas=(1.0, 2.0),
+        group_dims=((0, 1, 4, 5), (2, 3, 4, 5)),
+        overlapping_elements=((4, 5),),
+        population_sizes=(2, 2),
+        optimizer_budgets=(4, 4),
+        fitness_prefix=(1200.0, 1000.0, 998.0),
+        topology_hash=_hash("topology"),
+        order_hash=_hash("order"),
+    )
+
+    assert captured.context_row["horizon_fe"] == "6"
+    assert len(captured.expected_native_record) == 6
 
 
 def test_relation_context_uses_structural_shared_variable_order() -> None:

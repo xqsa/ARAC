@@ -18,6 +18,7 @@ from arac.backends.hcc_action_ceiling import (
     branch_horizon_errors,
     execute_action_ceiling_arm,
     paired_arm_rows,
+    run_native_group_cycle,
     run_native_continuation,
     selector_arm_for_context,
 )
@@ -272,7 +273,103 @@ class HccActionCeilingRuntime:
             population_sizes=tuple(int(value) for value in population_sizes),
             optimizer_budgets=tuple(int(value) for value in optimizer_budgets),
         )
-        horizon_fe = continuation_state.sweep_horizon_fe
+        def group_seed(sweep: int, group: int) -> int:
+            return self.derive_seed(
+                int(seed),
+                self.fun_name,
+                self.fun_id,
+                0,
+                sweep * len(group_dims) + group + 1,
+            )
+
+        def start_branch(arm: str):
+            objective = self._fresh_objective()
+            record = getattr(objective, "fitness_record")
+
+            def evaluate(values: np.ndarray) -> np.ndarray:
+                return np.asarray(objective(values), dtype=float)
+
+            action_result = execute_action_ceiling_arm(
+                ActionExecutionRequest(
+                    arm=arm,
+                    context_hash=dispatch_checkpoint_hash,
+                    action_set=action_set,
+                    incumbent=tuple(float(value) for value in incumbent_array),
+                    incumbent_fitness=float(incumbent_fitness),
+                    previous_values=tuple(float(value) for value in previous_values),
+                    current_values=tuple(float(value) for value in current_values),
+                    previous_delta=float(previous_delta),
+                    current_delta=float(current_delta),
+                    lower=self.lower,
+                    upper=self.upper,
+                ),
+                evaluate=evaluate,
+                shared_optimizer=self._shared_optimizer(objective, evaluate),
+                full_optimizer=self._full_optimizer(objective),
+            )
+            return objective, record, action_result, evaluate
+
+        branch_results: dict[str, dict[str, object]] = {}
+        native_objective, native_record, native_action, native_evaluate = start_branch(
+            "native_eq8"
+        )
+        native_optimizer = self._group_optimizer(native_objective, native_evaluate)
+        native_cycle = run_native_group_cycle(
+            replace(continuation_state, incumbent=native_action.incumbent),
+            evaluate=native_evaluate,
+            fitness_record=native_record,
+            optimize_group=native_optimizer,
+            group_seed=group_seed,
+        )
+        horizon_fe = len(native_cycle.fitness_record)
+        if horizon_fe <= 0:
+            raise RuntimeError("native action-ceiling cycle consumed no FEs")
+        native_continuation = run_native_continuation(
+            replace(
+                continuation_state,
+                incumbent=native_cycle.incumbent,
+                sweep_index=native_cycle.sweep_index,
+                next_group_index=native_cycle.next_group_index,
+                completed_group_deltas=native_cycle.completed_group_deltas,
+            ),
+            evaluate=native_evaluate,
+            fitness_record=native_record,
+            optimize_group=native_optimizer,
+            group_seed=group_seed,
+            target_relative_fe=3 * horizon_fe,
+        )
+        branch_results["native_eq8"] = {
+            "action": native_action,
+            "record": native_continuation.fitness_record,
+            "errors": branch_horizon_errors(
+                prefix_best_error=min(prefix),
+                post_checkpoint_record=native_continuation.fitness_record,
+                sweep_horizon_fe=horizon_fe,
+            ),
+        }
+
+        for arm in ACTION_CEILING_ARMS:
+            if arm == "native_eq8":
+                continue
+            objective, record, action_result, evaluate = start_branch(arm)
+            continuation = run_native_continuation(
+                replace(continuation_state, incumbent=action_result.incumbent),
+                evaluate=evaluate,
+                fitness_record=record,
+                optimize_group=self._group_optimizer(objective, evaluate),
+                group_seed=group_seed,
+                target_relative_fe=3 * horizon_fe,
+            )
+            branch_results[arm] = {
+                "action": action_result,
+                "record": continuation.fitness_record,
+                "errors": branch_horizon_errors(
+                    prefix_best_error=min(prefix),
+                    post_checkpoint_record=continuation.fitness_record,
+                    sweep_horizon_fe=horizon_fe,
+                ),
+            }
+
         context_row = {
             "protocol_version": ACTION_CEILING_PROTOCOL_VERSION,
             "cohort": cohort,
@@ -310,57 +407,6 @@ class HccActionCeilingRuntime:
             "status": "pending_native_parity",
             "invalidation_reason": "",
         }
-
-        branch_results: dict[str, dict[str, object]] = {}
-        for arm in ACTION_CEILING_ARMS:
-            objective = self._fresh_objective()
-            record = getattr(objective, "fitness_record")
-
-            def evaluate(values: np.ndarray) -> np.ndarray:
-                return np.asarray(objective(values), dtype=float)
-
-            action_result = execute_action_ceiling_arm(
-                ActionExecutionRequest(
-                    arm=arm,
-                    context_hash=dispatch_checkpoint_hash,
-                    action_set=action_set,
-                    incumbent=tuple(float(value) for value in incumbent_array),
-                    incumbent_fitness=float(incumbent_fitness),
-                    previous_values=tuple(float(value) for value in previous_values),
-                    current_values=tuple(float(value) for value in current_values),
-                    previous_delta=float(previous_delta),
-                    current_delta=float(current_delta),
-                    lower=self.lower,
-                    upper=self.upper,
-                ),
-                evaluate=evaluate,
-                shared_optimizer=self._shared_optimizer(objective, evaluate),
-                full_optimizer=self._full_optimizer(objective),
-            )
-            continuation = run_native_continuation(
-                replace(continuation_state, incumbent=action_result.incumbent),
-                evaluate=evaluate,
-                fitness_record=record,
-                optimize_group=self._group_optimizer(objective, evaluate),
-                group_seed=lambda sweep, group: self.derive_seed(
-                    int(seed),
-                    self.fun_name,
-                    self.fun_id,
-                    0,
-                    sweep * len(group_dims) + group + 1,
-                ),
-                target_relative_fe=3 * horizon_fe,
-            )
-            errors = branch_horizon_errors(
-                prefix_best_error=min(prefix),
-                post_checkpoint_record=continuation.fitness_record,
-                sweep_horizon_fe=horizon_fe,
-            )
-            branch_results[arm] = {
-                "action": action_result,
-                "record": continuation.fitness_record,
-                "errors": errors,
-            }
 
         native = branch_results["native_eq8"]
         targets = {"immediate": 1, "sweep_1": horizon_fe, "sweep_3": 3 * horizon_fe}

@@ -14,6 +14,7 @@ from arac.backends.hcc_action_ceiling import (
     branch_horizon_errors,
     execute_action_ceiling_arm,
     native_eq8_values,
+    run_native_group_cycle,
     run_native_continuation,
     selector_arm_for_context,
     shared_population_size,
@@ -386,6 +387,53 @@ def test_native_continuation_uses_frozen_budgets_and_eq8() -> None:
     assert len(result.fitness_record) >= state.sweep_horizon_fe
     assert result.sweep_index >= 2
     assert len(record) == len(result.fitness_record)
+
+
+def test_native_group_cycle_uses_actual_fe_when_optimizer_stops_early() -> None:
+    record: list[float] = []
+
+    def evaluate(values: np.ndarray) -> np.ndarray:
+        rows = np.asarray(values, dtype=float)
+        if rows.ndim == 1:
+            rows = rows[None, :]
+        result = np.sum(np.square(rows), axis=1)
+        record.extend(float(value) for value in result)
+        return result
+
+    def optimize(**kwargs) -> OptimizationResult:
+        background = kwargs["background"]
+        dims = kwargs["dims"]
+        actual_fes = kwargs["population_size"]
+        batch = np.repeat(background[None, :], actual_fes, axis=0)
+        values = evaluate(batch)
+        return OptimizationResult(
+            tuple(float(background[index]) for index in dims),
+            float(np.min(values)),
+            actual_fes,
+        )
+
+    state = NativeContinuationState(
+        incumbent=(2.0, 3.0, 4.0),
+        sweep_index=1,
+        next_group_index=1,
+        completed_group_deltas=(1.0,),
+        group_dims=((0, 1), (1, 2)),
+        overlapping_elements=((1,),),
+        population_sizes=(2, 2),
+        optimizer_budgets=(4, 4),
+    )
+    result = run_native_group_cycle(
+        state,
+        evaluate=evaluate,
+        fitness_record=record,
+        optimize_group=optimize,
+        group_seed=lambda sweep, group: sweep * 10 + group,
+    )
+
+    assert len(result.fitness_record) == 6
+    assert result.sweep_index == 2
+    assert result.next_group_index == 1
+    assert len(result.completed_group_deltas) == 1
 
 
 def test_horizon_errors_charge_extra_fes_before_native_continuation() -> None:
