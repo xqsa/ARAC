@@ -307,7 +307,11 @@ V31_NON_DENSE_LARGE_FALLBACK_REPAIR_TRIGGER = (
 PHASE_RESCUE_MULTISTART_ACTION = "phase_rescue_multistart"
 EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
 NON_DISPATCH_OVERLAP_ACTIONS = frozenset(
-    {"conservative_no_action", "allow_beneficial_coordination"}
+    {
+        "conservative_no_action",
+        "allow_beneficial_coordination",
+        "repair_shared_variable_binding",
+    }
 )
 REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER = 0.5
 BIPOP_STAGNATION_EPSILON = 1e-8

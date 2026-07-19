@@ -35,10 +35,11 @@ CASE_TO_FUNCTION = {
     "A4": ("ackley", 4),
     "S5": ("schwefel", 5),
 }
-EXPECTED_LANES = {
-    "hcc_baseline": "conservative_no_action",
-    "beneficial_coordination": "allow_beneficial_coordination",
-}
+BASELINE_LANE_ID = "hcc_baseline"
+BASELINE_ACTION = "conservative_no_action"
+SUPPORTED_TARGET_ACTIONS = frozenset(
+    {"allow_beneficial_coordination", "repair_shared_variable_binding"}
+)
 SUBPROCESS_ENVIRONMENT = {
     "OPENBLAS_NUM_THREADS": "1",
     "OMP_NUM_THREADS": "1",
@@ -49,6 +50,7 @@ SUBPROCESS_ENVIRONMENT = {
 
 @dataclass(frozen=True)
 class RunSpec:
+    experiment_id: str
     case: str
     seed: int
     max_fes: int
@@ -58,7 +60,7 @@ class RunSpec:
 
     @property
     def trajectory_id(self) -> str:
-        return f"exp020-{self.case.lower()}-seed{self.seed}-{self.lane_id}"
+        return f"{self.experiment_id}-{self.case.lower()}-seed{self.seed}-{self.lane_id}"
 
 
 @dataclass(frozen=True)
@@ -87,6 +89,9 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("experiment config must be a JSON object")
+    experiment_id = payload.get("experiment_id")
+    if not isinstance(experiment_id, str) or not experiment_id:
+        raise ValueError("experiment config requires experiment_id")
     execution = payload.get("execution")
     lanes = payload.get("lanes")
     comparison = payload.get("comparison")
@@ -95,15 +100,15 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, object]:
     if not isinstance(comparison, dict):
         raise ValueError("experiment config requires comparison")
     if execution.get("enable_relation_dispatch") is not False:
-        raise ValueError("exp_020 requires enable_relation_dispatch=false")
+        raise ValueError("paired action pilot requires enable_relation_dispatch=false")
     if execution.get("evidence_overlay_mode") != "off":
-        raise ValueError("exp_020 requires evidence_overlay_mode=off")
+        raise ValueError("paired action pilot requires evidence_overlay_mode=off")
     if execution.get("budget_accounting") != "strict":
-        raise ValueError("exp_020 requires strict FE accounting")
+        raise ValueError("paired action pilot requires strict FE accounting")
     if execution.get("search_state_backend") != "phase_i_mmes":
-        raise ValueError("exp_020 requires phase_i_mmes")
+        raise ValueError("paired action pilot requires phase_i_mmes")
     if tuple(execution.get("cases", ())) != tuple(CASE_TO_FUNCTION):
-        raise ValueError("exp_020 cases must be E3, A4, and S5")
+        raise ValueError("paired action pilot cases must be E3, A4, and S5")
     seeds = execution.get("seeds")
     if not isinstance(seeds, list) or not seeds or any(
         isinstance(seed, bool) or not isinstance(seed, int) or seed < 0 for seed in seeds
@@ -117,12 +122,17 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, object]:
         for lane in lanes
         if isinstance(lane, dict)
     }
-    if lane_actions != EXPECTED_LANES:
-        raise ValueError("exp_020 requires the frozen HCC baseline and coordination lanes")
-    if comparison.get("baseline_lane") != "hcc_baseline":
+    if len(lane_actions) != 2 or len(lane_actions) != len(lanes):
+        raise ValueError("paired action pilot requires exactly two unique lanes")
+    if comparison.get("baseline_lane") != BASELINE_LANE_ID:
         raise ValueError("comparison baseline must be hcc_baseline")
-    if comparison.get("action_lane") != "beneficial_coordination":
-        raise ValueError("comparison action lane must be beneficial_coordination")
+    action_lane = str(comparison.get("action_lane", ""))
+    if set(lane_actions) != {BASELINE_LANE_ID, action_lane}:
+        raise ValueError("comparison lanes must match configured lanes")
+    if lane_actions[BASELINE_LANE_ID] != BASELINE_ACTION:
+        raise ValueError("hcc_baseline must use conservative_no_action")
+    if lane_actions[action_lane] not in SUPPORTED_TARGET_ACTIONS:
+        raise ValueError("comparison action is not a supported non-dispatch target")
     return payload
 
 
@@ -132,6 +142,7 @@ def build_run_matrix(config: Mapping[str, object], output_root: Path) -> list[Ru
     assert isinstance(execution, dict) and isinstance(lanes, list)
     return [
         RunSpec(
+            experiment_id=str(config["experiment_id"]),
             case=str(case),
             seed=int(seed),
             max_fes=int(execution["max_fes"]),
@@ -440,6 +451,7 @@ def build_decision(
             else "No positive effect was established in this single-seed 100k-FE pilot."
         )
     return {
+        "experiment_id": config["experiment_id"],
         "protocol_version": config["protocol_version"],
         "status": status,
         "answer": answer,
@@ -521,6 +533,7 @@ def run_experiment(
     )
     manifest = {
         "protocol_version": config["protocol_version"],
+        "experiment_id": config["experiment_id"],
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "executor": "Codex",
         "git_commit": _git_commit(),
@@ -531,6 +544,11 @@ def run_experiment(
         "trajectory_count": len(results),
         "enable_relation_dispatch": False,
         "evidence_overlay_mode": "off",
+        "target_action": next(
+            str(lane["arac_action"])
+            for lane in config["lanes"]
+            if lane["lane_id"] == config["comparison"]["action_lane"]
+        ),
         "action_logic_changed_by_experiment": False,
         "fresh_optimizer_execution": all(result.status == "completed" for result in results),
     }
@@ -541,8 +559,12 @@ def run_experiment(
     return results, paired_rows, decision
 
 
-def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+def parse_args(
+    argv: Sequence[str] | None = None,
+    *,
+    description: str | None = None,
+) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=description or __doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--python-executable", default=sys.executable)
@@ -553,8 +575,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return args
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    args = parse_args(argv)
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    description: str | None = None,
+) -> int:
+    args = parse_args(argv, description=description)
     results, paired_rows, decision = run_experiment(
         config_path=args.config,
         output_root=args.output_root,
