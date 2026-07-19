@@ -24,7 +24,10 @@ for import_root in (ARAC_REPO_ROOT, ARAC_SRC_ROOT, HCC_VENDOR_ROOT):
 from src.arac.evidence.overlap_relation_builder import (
     OverlapRelation,
     build_overlap_relations,
+    owner_dominance_direction_from_centers,
+    population_spread_asymmetry_from_standard_deviations,
 )
+from src.arac.evidence.trajectory_accumulator import TrajectoryAccumulator
 from src.arac.policy.relation_policy import (
     ActionDecision as RelationActionDecision,
     RELATION_ACTION_ALIASES,
@@ -37,11 +40,13 @@ from src.arac.policy.relation_policy import (
     score_actions_for_relations_v24,
     score_actions_for_relations_v25,
     score_actions_for_relations_v26,
+    soft_score_actions,
     relation_policy_mode_for_evidence_action_controller_v3,
     relation_policy_mode_for_evidence_action_controller_v31,
     is_evidence_action_controller_v31_dense_overlap,
     select_evidence_action_controller_v31_dense_lock_mode,
 )
+from src.arac.policy.evidence_model import ScoredActionDecision
 from src.arac.policy.relation_policy import (
     decide_actions_for_relations_v24,
     decide_actions_for_relations_v26,
@@ -223,6 +228,11 @@ ACTION_TRACE_FIELDS = [
     "cohen_d_threshold",
     "left_top_k_count",
     "right_top_k_count",
+    "soft_shadow_action",
+    "soft_shadow_candidate_scores",
+    "soft_shadow_margin",
+    "soft_shadow_differs",
+    "soft_shadow_runtime_authorized",
     "expected_action_name",
 ]
 OVERLAP_RELATION_FIELDS = [
@@ -256,6 +266,13 @@ OVERLAP_RELATION_FIELDS = [
     "right_distribution_centers",
     "left_distribution_standard_deviations",
     "right_distribution_standard_deviations",
+    "owner_dominance_direction",
+    "population_spread_asymmetry",
+    "delta_sign_agreement",
+    "delta_momentum",
+    "conflict_trend",
+    "stagnation_score",
+    "probe_synergy",
 ]
 ACTION_DECISION_FIELDS = [
     "run_id",
@@ -1328,6 +1345,16 @@ def with_relation_population_evidence(
         right_distribution_centers=right_centers,
         left_distribution_standard_deviations=left_stds,
         right_distribution_standard_deviations=right_stds,
+        owner_dominance_direction=owner_dominance_direction_from_centers(
+            left_centers,
+            right_centers,
+        ),
+        population_spread_asymmetry=(
+            population_spread_asymmetry_from_standard_deviations(
+                left_stds,
+                right_stds,
+            )
+        ),
     )
 
 
@@ -1934,6 +1961,7 @@ def build_action_trace_row(
     cohen_d_threshold: float | None = None,
     left_top_k_count: int | None = None,
     right_top_k_count: int | None = None,
+    soft_shadow_decision: ScoredActionDecision | None = None,
     expected_action_name: str = "",
 ) -> dict[str, str]:
     canonical_action_name = canonical_action_name or selected_action_name
@@ -1942,6 +1970,11 @@ def build_action_trace_row(
         _state_mutated(selected_action_name)
         if state_mutated is None
         else str(int(state_mutated))
+    )
+    soft_shadow_action = (
+        ""
+        if soft_shadow_decision is None
+        else soft_shadow_decision.final_action.canonical_action_name
     )
     row = {
         "problem_id": problem_id,
@@ -2081,6 +2114,22 @@ def build_action_trace_row(
             "right_top_k_count": ""
             if right_top_k_count is None
             else str(right_top_k_count),
+            "soft_shadow_action": soft_shadow_action,
+            "soft_shadow_candidate_scores": ""
+            if soft_shadow_decision is None
+            else ";".join(
+                f"{name}={score:.17e}"
+                for name, score in soft_shadow_decision.candidate_scores.items()
+            ),
+            "soft_shadow_margin": ""
+            if soft_shadow_decision is None
+            else f"{soft_shadow_decision.margin:.17e}",
+            "soft_shadow_differs": ""
+            if soft_shadow_decision is None
+            else str(int(soft_shadow_action != canonical_action_name)),
+            "soft_shadow_runtime_authorized": ""
+            if soft_shadow_decision is None
+            else "0",
             "expected_action_name": expected_action_name,
         }
     )
@@ -2511,6 +2560,12 @@ def _overlap_relation_row(relation: OverlapRelation) -> dict[str, str]:
         "shared_var_support_ratio",
         "feature_coverage",
         "fallback_margin_proxy",
+        "population_spread_asymmetry",
+        "delta_sign_agreement",
+        "delta_momentum",
+        "conflict_trend",
+        "stagnation_score",
+        "probe_synergy",
     ):
         row[field_name] = f"{float(raw.get(field_name, 0.0)):.6f}"
     row["both_positive"] = str(int(bool(relation.both_positive)))
@@ -2518,6 +2573,7 @@ def _overlap_relation_row(relation: OverlapRelation) -> dict[str, str]:
     row["shared_var_count"] = str(relation.shared_var_count)
     row["left_top_k_count"] = str(relation.left_top_k_count)
     row["right_top_k_count"] = str(relation.right_top_k_count)
+    row["owner_dominance_direction"] = str(relation.owner_dominance_direction)
     row["cohen_d"] = f"{relation.cohen_d:.17e}"
     row["left_distribution_centers"] = _format_float_tuple(
         relation.left_distribution_centers
@@ -3197,6 +3253,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     action_trace_rows: list[dict[str, str]] = []
     pending_relation_impact: tuple[dict[str, str], float] | None = None
     relations: list[OverlapRelation] = []
+    relation_trajectory_accumulator = TrajectoryAccumulator(window=4)
+    probe_synergy_by_relation: dict[RelationKey, tuple[int, float]] = {}
     action_decisions: list[RelationActionDecision] = []
     previous_group_contribution_credit: list[float] = []
     evidence_overlay_fe = 0
@@ -3406,10 +3464,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
             def objective_function(x_batch, dims=dims):
                 values = fun(combine(x_batch, best_individual, dims))
-                if (
-                    evidence_overlay_observer is not None
-                    or config.relation_policy_mode == COHEN_D_RELATION_POLICY
-                ):
+                if config.enable_relation_dispatch:
                     _update_local_top_candidates(local_top_candidates, x_batch, values)
                 return values
 
@@ -3712,7 +3767,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                 )
             fitness_delta_list.append(current_delta)
-            if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
+            if config.enable_relation_dispatch:
                 top_candidates_by_group[index] = tuple(
                     candidate for _, candidate in local_top_candidates
                 )
@@ -3727,12 +3782,23 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         fitness_delta_list=fitness_delta_list,
                         group_right=index,
                         budget_remaining_ratio=iteration_budget_remaining_ratio,
-                        top_candidates_by_group=(
-                            top_candidates_by_group
-                            if config.relation_policy_mode == COHEN_D_RELATION_POLICY
-                            else None
-                        ),
+                        top_candidates_by_group=top_candidates_by_group,
                     )
+                    relation_key = RelationKey(
+                        (relation.group_left, relation.group_right),
+                        tuple(relation.shared_vars),
+                    )
+                    probe_synergy = probe_synergy_by_relation.get(relation_key)
+                    if probe_synergy is not None and probe_synergy[0] == outer_iter:
+                        relation = replace(relation, probe_synergy=probe_synergy[1])
+                    trajectory_features = relation_trajectory_accumulator.update(relation)
+                    relation = replace(
+                        relation,
+                        delta_momentum=trajectory_features.delta_momentum,
+                        conflict_trend=trajectory_features.conflict_trend,
+                        stagnation_score=trajectory_features.stagnation_score,
+                    )
+                    soft_shadow_decision = soft_score_actions(relation)
                     context = build_relation_execution_context(
                         relation=relation,
                         original_best=original_best,
@@ -4182,30 +4248,16 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 and controller_v31_run_state.v36_enabled
                                 else ""
                             ),
-                            cohen_d=(
-                                relation.cohen_d
-                                if config.relation_policy_mode
-                                == COHEN_D_RELATION_POLICY
-                                else None
-                            ),
+                            cohen_d=relation.cohen_d,
                             cohen_d_threshold=(
                                 COHEN_D_REPAIR_THRESHOLD
                                 if config.relation_policy_mode
                                 == COHEN_D_RELATION_POLICY
                                 else None
                             ),
-                            left_top_k_count=(
-                                relation.left_top_k_count
-                                if config.relation_policy_mode
-                                == COHEN_D_RELATION_POLICY
-                                else None
-                            ),
-                            right_top_k_count=(
-                                relation.right_top_k_count
-                                if config.relation_policy_mode
-                                == COHEN_D_RELATION_POLICY
-                                else None
-                            ),
+                            left_top_k_count=relation.left_top_k_count,
+                            right_top_k_count=relation.right_top_k_count,
+                            soft_shadow_decision=soft_shadow_decision,
                             expected_action_name=(
                                 overlap_action_name_for_lane(
                                     config.arac_action,
@@ -4364,6 +4416,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                 )
                 if evidence_overlay_observer.barrier_result is not None:
+                    if evidence_overlay_observer.barrier_result.status == "probed":
+                        probe_synergy_by_relation = {
+                            relation: (
+                                outer_iter + 1,
+                                utilities.interaction_type_signal,
+                            )
+                            for relation, utilities in (
+                                evidence_overlay_observer.relation_probe_utilities
+                            )
+                        }
+                    else:
+                        probe_synergy_by_relation = {}
                     if (
                         config.relation_policy_mode == RUNTIME_PROBE_POLICY
                         and evidence_overlay_observer.barrier_result.status == "probed"

@@ -726,6 +726,19 @@ class ProbeUtilities:
         _finite(self.right_owner, name="right_owner utility")
         _finite(self.bridge, name="bridge utility")
 
+    @property
+    def bridge_synergy(self) -> float:
+        """Return bridge utility above the additive owner expectation."""
+
+        return self.bridge - (self.left_owner + self.right_owner) / 2.0
+
+    @property
+    def interaction_type_signal(self) -> float:
+        """Normalize bridge synergy to [-1, 1] for policy evidence."""
+
+        scale = max(abs(self.left_owner), abs(self.right_owner), 1e-12)
+        return max(-1.0, min(1.0, self.bridge_synergy / scale))
+
 
 def summarize_probe_utilities(
     *,

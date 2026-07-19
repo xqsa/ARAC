@@ -49,6 +49,36 @@ GROUPS = (
     (4, 5),
     (5, 6),
 )
+
+
+def test_action_trace_records_soft_policy_as_unauthorized_shadow() -> None:
+    relation = runner.build_overlap_relation_trace(
+        problem_id="E3",
+        outer_iter=1,
+        grouping_result=[[0, 1], [1, 2]],
+        overlapping_elements=[[1]],
+        fitness_delta_list=[2.0, 1.0],
+        budget_remaining_ratio=0.5,
+    )[0]
+    shadow = runner.soft_score_actions(relation)
+    row = runner.build_action_trace_row(
+        problem_id="E3",
+        seed=117,
+        outer_iter=1,
+        group_index=1,
+        selected_action_name="conservative_no_action",
+        overlap_size=1,
+        previous_delta=2.0,
+        current_delta=1.0,
+        soft_shadow_decision=shadow,
+    )
+
+    assert row["soft_shadow_action"]
+    assert "fallback=" in row["soft_shadow_candidate_scores"]
+    assert row["soft_shadow_runtime_authorized"] == "0"
+    assert row["soft_shadow_differs"] in {"0", "1"}
+
+
 DIMENSION = 7
 RELATION_COUNT = 5
 CONFIGURED_MAX_FES = 1_000
@@ -906,8 +936,17 @@ def test_public_relation_action_sets_preserve_all_four_probe_candidates() -> Non
     )
 
     action_sets = observer.relation_action_sets
+    probe_utilities = observer.relation_probe_utilities
 
     assert len(action_sets) == 4
+    assert len(probe_utilities) == 4
+    assert {key for key, _utilities in probe_utilities} == {
+        action_set.relation for action_set in action_sets
+    }
+    assert all(
+        -1.0 <= utilities.interaction_type_signal <= 1.0
+        for _key, utilities in probe_utilities
+    )
     first = action_sets[0]
     assert first.target_sweep == first.issued_sweep + 1
     assert first.anchor.fitness >= 0.0

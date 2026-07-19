@@ -360,6 +360,14 @@ def test_probe_utility_is_fixed_log_ratio_and_rejects_invalid_fitness() -> None:
     assert utilities.left_owner == pytest.approx(math.log(2.0))
     assert utilities.right_owner == pytest.approx(0.0)
     assert utilities.bridge == pytest.approx(math.log(4.0))
+    assert utilities.bridge_synergy == pytest.approx(
+        math.log(4.0) - math.log(2.0) / 2.0
+    )
+    assert utilities.interaction_type_signal == 1.0
+
+    antagonistic = ProbeUtilities(0.4, 0.2, -0.1)
+    assert antagonistic.bridge_synergy == pytest.approx(-0.4)
+    assert antagonistic.interaction_type_signal == pytest.approx(-1.0)
 
     optimum = summarize_probe_utilities(
         anchor_fitness=1.0,

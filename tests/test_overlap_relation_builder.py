@@ -87,3 +87,86 @@ def test_build_overlap_relations_from_iteration_payloads_and_overlap_groups() ->
     assert relations[2].delta_signal == 5.0
     assert relations[2].rank_signal == 0.0
     assert relations[2].budget_remaining_ratio == 0.75
+
+
+def test_build_overlap_relations_extracts_shared_population_moments() -> None:
+    trace = {
+        "outer_iter": 2,
+        "groups": [
+            {
+                "variables": [5, 2, 9],
+                "population_centers": [10.0, 1.0, 30.0],
+                "population_stds": [3.0, 1.0, 5.0],
+                "top_k_count": 5,
+            },
+            {
+                "variables": [7, 2, 8],
+                "population_centers": [40.0, 5.0, 50.0],
+                "population_stds": [6.0, 2.0, 7.0],
+                "top_k_count": 4,
+            },
+        ],
+        "fitness_deltas": [2.0, -1.0],
+        "group_ranks": [1, 2],
+        "budget_remaining_ratio": 0.5,
+    }
+
+    relation = build_overlap_relations(trace, "E3")[0]
+
+    assert relation.shared_vars == (2,)
+    assert relation.left_distribution_centers == (1.0,)
+    assert relation.right_distribution_centers == (5.0,)
+    assert relation.left_distribution_standard_deviations == (1.0,)
+    assert relation.right_distribution_standard_deviations == (2.0,)
+    assert relation.left_top_k_count == 5
+    assert relation.right_top_k_count == 4
+    assert relation.cohen_d == pytest.approx(4.0 / (2.5**0.5))
+    assert relation.owner_dominance_direction == -1
+    assert relation.population_spread_asymmetry == pytest.approx(0.5)
+    assert relation.delta_sign_agreement == -1.0
+
+
+def test_population_moments_fail_closed_when_one_owner_is_missing() -> None:
+    trace = {
+        "groups": [
+            {
+                "variables": [0, 1],
+                "population_centers": {"1": {"mean": 2.0}},
+                "population_stds": {"1": {"std": 0.5}},
+            },
+            {"variables": [1, 2]},
+        ],
+        "fitness_deltas": [1.0, 1.0],
+    }
+
+    relation = build_overlap_relations(trace, "A4")[0]
+
+    assert relation.cohen_d == 0.0
+    assert relation.left_distribution_centers == ()
+    assert relation.right_distribution_centers == ()
+
+
+def test_population_moments_fail_closed_when_shared_variable_key_is_missing() -> None:
+    trace = {
+        "groups": [
+            {
+                "variables": [1, 2],
+                "population_centers": {"2": {"mean": 4.0}},
+                "population_stds": {"2": {"std": 0.5}},
+            },
+            {
+                "variables": [1, 3],
+                "population_centers": {"1": {"mean": 2.0}},
+                "population_stds": {"1": {"std": 1.0}},
+            },
+        ],
+        "fitness_deltas": [2.0, 1.0],
+    }
+
+    relation = build_overlap_relations(trace, "A4")[0]
+
+    assert relation.cohen_d == 0.0
+    assert relation.left_distribution_centers == ()
+    assert relation.right_distribution_centers == ()
+    assert relation.left_distribution_standard_deviations == ()
+    assert relation.right_distribution_standard_deviations == ()

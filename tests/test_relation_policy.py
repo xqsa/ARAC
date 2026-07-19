@@ -17,6 +17,7 @@ from arac.policy.relation_policy import (
     score_relation_actions,
     select_evidence_action_controller_v31_dense_lock_mode,
     select_evidence_action_controller_v31_mode,
+    soft_score_actions,
 )
 
 
@@ -625,3 +626,87 @@ def test_balanced_batch_coordinate_mode_respects_budget_gate() -> None:
     assert decisions[0].trigger_reason == "balanced_mid_support_coordinate_mode"
     assert decisions[1].relation_action_name == "fallback"
     assert decisions[1].trigger_reason == "insufficient_relation_policy_safety_margin"
+
+
+def test_soft_policy_changes_continuously_around_conflict_threshold() -> None:
+    below = soft_score_actions(
+        make_relation(
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.749,
+            rank_stability=0.80,
+            fallback_margin_proxy=0.50,
+            cohen_d=1.0,
+        )
+    )
+    above = soft_score_actions(
+        make_relation(
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.751,
+            rank_stability=0.80,
+            fallback_margin_proxy=0.50,
+            cohen_d=1.0,
+        )
+    )
+
+    assert abs(
+        below.candidate_scores["reassign_repair"]
+        - above.candidate_scores["reassign_repair"]
+    ) < 0.01
+
+
+def test_soft_policy_uses_population_trajectory_and_synergy_evidence() -> None:
+    stable = make_relation(
+        shared_var_support_ratio=0.10,
+        delta_ratio_gap=0.10,
+        rank_stability=0.90,
+        fallback_margin_proxy=0.50,
+        cohen_d=2.0,
+        delta_momentum=1.0,
+        probe_synergy=0.8,
+    )
+    oscillating = make_relation(
+        shared_var_support_ratio=0.10,
+        delta_ratio_gap=0.10,
+        rank_stability=0.90,
+        fallback_margin_proxy=0.50,
+        cohen_d=2.0,
+        delta_momentum=-1.0,
+        probe_synergy=-0.8,
+    )
+
+    stable_score = soft_score_actions(stable)
+    oscillating_score = soft_score_actions(oscillating)
+
+    assert stable_score.candidate_scores["coordinate"] > (
+        oscillating_score.candidate_scores["coordinate"]
+    )
+
+    no_separation = soft_score_actions(
+        make_relation(
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.90,
+            rank_stability=0.40,
+            fallback_margin_proxy=0.50,
+            cohen_d=0.0,
+        )
+    )
+    separated = soft_score_actions(
+        make_relation(
+            shared_var_support_ratio=0.10,
+            delta_ratio_gap=0.90,
+            rank_stability=0.40,
+            fallback_margin_proxy=0.50,
+            cohen_d=2.0,
+            population_spread_asymmetry=1.0,
+        )
+    )
+
+    assert no_separation.candidate_scores["reassign_repair"] == 0.0
+    assert separated.candidate_scores["reassign_repair"] > 0.0
+
+
+def test_soft_policy_safety_gate_is_fail_closed() -> None:
+    scored = soft_score_actions(make_relation(feature_coverage=0.5))
+
+    assert scored.final_action.relation_action_name == "fallback"
+    assert scored.abstain_reason == "insufficient_relation_policy_safety_margin"

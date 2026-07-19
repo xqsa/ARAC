@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 
 from arac.evidence.overlap_relation_builder import OverlapRelation
 
@@ -397,6 +398,156 @@ def score_relation_actions(relation: OverlapRelation) -> ScoredActionDecision:
         margin=_clamp(margin),
         abstain_reason=abstain_reason,
     )
+
+
+def soft_score_actions(relation: OverlapRelation) -> ScoredActionDecision:
+    """Continuously score the existing actions for shadow-only comparison."""
+
+    if (
+        relation.overlap_strength < HIGH_OVERLAP_THRESHOLD
+        or relation.shared_var_count <= 0
+    ):
+        return _soft_fallback_decision(relation, "no_shared_overlap_support")
+    if (
+        relation.feature_coverage < MIN_FEATURE_COVERAGE
+        or relation.budget_remaining_ratio < MIN_BUDGET_REMAINING_RATIO
+        or relation.fallback_margin_proxy < MIN_FALLBACK_MARGIN_PROXY
+    ):
+        return _soft_fallback_decision(
+            relation,
+            "insufficient_relation_policy_safety_margin",
+        )
+
+    support = relation.shared_var_support_ratio
+    conflict_score = _sigmoid(
+        relation.delta_ratio_gap,
+        slope=10.0,
+        center=CONFLICT_THRESHOLD,
+    )
+    conflict_score = _clamp(
+        conflict_score
+        + 0.15 * max(0.0, relation.conflict_trend)
+        - 0.10 * max(0.0, -relation.conflict_trend)
+    )
+    rank_stability = relation.rank_stability or relation.rank_signal
+    stability_score = _sigmoid(
+        rank_stability,
+        slope=8.0,
+        center=STABILITY_THRESHOLD,
+    ) * (1.0 - 0.5 * conflict_score)
+    support_gate = _clamp(
+        4.0
+        * _sigmoid(support, slope=20.0, center=0.05)
+        * (1.0 - _sigmoid(support, slope=20.0, center=0.25))
+    )
+    dominance_clarity = _clamp(relation.cohen_d / 2.0)
+    oscillation = max(0.0, -relation.delta_momentum)
+    trajectory_gate = _clamp(
+        1.0 - 0.5 * oscillation - 0.25 * relation.stagnation_score
+    )
+    positive_synergy = max(0.0, relation.probe_synergy)
+    negative_synergy = max(0.0, -relation.probe_synergy)
+
+    coordinate_score = _clamp(
+        stability_score
+        * support_gate
+        * relation.fallback_margin_proxy
+        * (1.0 - 0.3 * conflict_score)
+        * trajectory_gate
+        * max(0.0, 1.0 + 0.25 * positive_synergy - 0.50 * negative_synergy)
+    )
+    repair_score = _clamp(
+        conflict_score
+        * support_gate
+        * dominance_clarity
+        * relation.fallback_margin_proxy
+        * trajectory_gate
+        * (1.0 + 0.20 * relation.population_spread_asymmetry)
+        * (1.0 + 0.25 * negative_synergy)
+    )
+    scores = {
+        "coordinate": coordinate_score,
+        "isolate_conflicting_relation": 0.0,
+        "reassign_repair": repair_score,
+        "fallback": _clamp(
+            relation.fallback_margin_proxy - FALLBACK_SCORE_DISCOUNT
+        ),
+    }
+    ranked = sorted(
+        scores.items(),
+        key=lambda item: (-item[1], _action_sort_order(item[0])),
+    )
+    best_action_name, best_score = ranked[0]
+    second_best_action_name, second_best_score = ranked[1]
+    margin = best_score - second_best_score
+    if best_action_name != "fallback" and margin >= ACTION_MARGIN_THRESHOLD:
+        final_action = _decision(
+            relation,
+            best_action_name,
+            _action_family(best_action_name),
+            best_score,
+            "soft_score_shadow_v1",
+        )
+        abstain_reason = ""
+    else:
+        abstain_reason = (
+            "candidate_margin_below_threshold"
+            if best_action_name != "fallback"
+            else "soft_score_fallback"
+        )
+        final_action = _decision(
+            relation,
+            "fallback",
+            "fallback",
+            0.0,
+            abstain_reason,
+        )
+    return ScoredActionDecision(
+        relation_id=relation.relation_id,
+        candidate_scores={name: _clamp(value) for name, value in scores.items()},
+        final_action=final_action,
+        best_action_name=best_action_name,
+        best_score=_clamp(best_score),
+        second_best_action_name=second_best_action_name,
+        second_best_score=_clamp(second_best_score),
+        margin=_clamp(margin),
+        abstain_reason=abstain_reason,
+    )
+
+
+def _soft_fallback_decision(
+    relation: OverlapRelation,
+    reason: str,
+) -> ScoredActionDecision:
+    scores = {name: 0.0 for name in ACTION_NAMES}
+    scores["fallback"] = _clamp(
+        relation.fallback_margin_proxy - FALLBACK_SCORE_DISCOUNT
+    )
+    return ScoredActionDecision(
+        relation_id=relation.relation_id,
+        candidate_scores=scores,
+        final_action=_decision(
+            relation,
+            "fallback",
+            "fallback",
+            0.0,
+            reason,
+        ),
+        best_action_name="fallback",
+        best_score=scores["fallback"],
+        second_best_action_name="coordinate",
+        second_best_score=0.0,
+        margin=scores["fallback"],
+        abstain_reason=reason,
+    )
+
+
+def _sigmoid(value: float, *, slope: float, center: float) -> float:
+    scaled = slope * (value - center)
+    if scaled >= 0.0:
+        return 1.0 / (1.0 + math.exp(-scaled))
+    exponential = math.exp(scaled)
+    return exponential / (1.0 + exponential)
 
 
 def action_mismatch_audit_row(

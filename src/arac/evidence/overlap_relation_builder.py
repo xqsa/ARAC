@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from numbers import Integral, Real
@@ -40,6 +41,13 @@ class OverlapRelation:
     right_distribution_centers: tuple[float, ...] = ()
     left_distribution_standard_deviations: tuple[float, ...] = ()
     right_distribution_standard_deviations: tuple[float, ...] = ()
+    owner_dominance_direction: int = 0
+    population_spread_asymmetry: float = 0.0
+    delta_sign_agreement: float = 0.0
+    delta_momentum: float = 0.0
+    conflict_trend: float = 0.0
+    stagnation_score: float = 0.0
+    probe_synergy: float = 0.0
 
 
 _ITERATION_KEYS = ("iterations", "outer_iterations", "trace_windows")
@@ -69,6 +77,21 @@ _DELTA_KEYS = (
 _GROUP_DELTA_KEYS = ("fitness_delta", "delta", "score", "fitness_score", "group_score")
 _RANK_KEYS = ("group_ranks", "ranks", "rankings", "priority_ranks")
 _GROUP_RANK_KEYS = ("rank", "priority_rank", "group_rank")
+_POP_CENTERS_KEYS = (
+    "population_centers",
+    "top_k_centers",
+    "group_centers",
+    "centers",
+)
+_POP_STDS_KEYS = (
+    "population_stds",
+    "top_k_stds",
+    "group_stds",
+    "stds",
+)
+_POP_COUNT_KEYS = ("population_size", "top_k_count", "sample_count")
+_GROUP_CENTER_KEYS = ("center", "mean", "centroid")
+_GROUP_STD_KEYS = ("std", "standard_deviation", "sigma")
 _BUDGET_RATIO_KEYS = (
     "budget_remaining_ratio",
     "remaining_budget_ratio",
@@ -103,6 +126,42 @@ def build_overlap_relations(
         for group_left in range(pair_count):
             group_right = group_left + 1
             shared_vars = _shared_vars_for_pair(groups, overlap_groups, group_left, group_right)
+            left_centers = _extract_group_moments(
+                payload,
+                group_left,
+                shared_vars,
+                _POP_CENTERS_KEYS,
+                _GROUP_CENTER_KEYS,
+            )
+            right_centers = _extract_group_moments(
+                payload,
+                group_right,
+                shared_vars,
+                _POP_CENTERS_KEYS,
+                _GROUP_CENTER_KEYS,
+            )
+            left_stds = _extract_group_moments(
+                payload,
+                group_left,
+                shared_vars,
+                _POP_STDS_KEYS,
+                _GROUP_STD_KEYS,
+            )
+            right_stds = _extract_group_moments(
+                payload,
+                group_right,
+                shared_vars,
+                _POP_STDS_KEYS,
+                _GROUP_STD_KEYS,
+            )
+            complete_moments = bool(shared_vars) and all(
+                len(values) == len(shared_vars)
+                for values in (left_centers, right_centers, left_stds, right_stds)
+            )
+            if complete_moments and any(
+                value < 0.0 for values in (left_stds, right_stds) for value in values
+            ):
+                raise ValueError("population standard deviations must be non-negative")
             previous_delta = _pair_value(deltas, group_left)
             current_delta = _pair_value(deltas, group_right)
             delta_signed_gap = current_delta - previous_delta
@@ -153,6 +212,54 @@ def build_overlap_relations(
                         delta_ratio_gap,
                         rank_stability,
                         shared_var_support_ratio,
+                    ),
+                    cohen_d=(
+                        _cohen_d_from_moments(
+                            left_centers,
+                            right_centers,
+                            left_stds,
+                            right_stds,
+                        )
+                        if complete_moments
+                        else 0.0
+                    ),
+                    left_top_k_count=_extract_group_population_count(
+                        payload,
+                        group_left,
+                    ),
+                    right_top_k_count=_extract_group_population_count(
+                        payload,
+                        group_right,
+                    ),
+                    left_distribution_centers=left_centers if complete_moments else (),
+                    right_distribution_centers=(
+                        right_centers if complete_moments else ()
+                    ),
+                    left_distribution_standard_deviations=(
+                        left_stds if complete_moments else ()
+                    ),
+                    right_distribution_standard_deviations=(
+                        right_stds if complete_moments else ()
+                    ),
+                    owner_dominance_direction=(
+                        owner_dominance_direction_from_centers(
+                            left_centers,
+                            right_centers,
+                        )
+                        if complete_moments
+                        else 0
+                    ),
+                    population_spread_asymmetry=(
+                        population_spread_asymmetry_from_standard_deviations(
+                            left_stds,
+                            right_stds,
+                        )
+                        if complete_moments
+                        else 0.0
+                    ),
+                    delta_sign_agreement=_delta_sign_agreement(
+                        previous_delta,
+                        current_delta,
                     ),
                 )
             )
@@ -209,6 +316,188 @@ def _extract_numeric_sequence(
             return []
         values.append(_as_float(value, 0.0))
     return values
+
+
+def _extract_group_moments(
+    payload: dict,
+    group_index: int,
+    shared_vars: tuple[int, ...],
+    sequence_keys: tuple[str, ...],
+    field_keys: tuple[str, ...],
+) -> tuple[float, ...]:
+    if not shared_vars:
+        return ()
+    raw_groups = _first_present(payload, _GROUP_KEYS)
+    if raw_groups is None:
+        return ()
+    groups = _ordered_values(raw_groups)
+    if group_index >= len(groups) or not isinstance(groups[group_index], dict):
+        return ()
+    group = groups[group_index]
+    raw_sequence = _first_present(group, sequence_keys)
+    if raw_sequence is None:
+        return ()
+
+    def scalar(raw: Any) -> float:
+        value = _first_present(raw, field_keys) if isinstance(raw, dict) else raw
+        if value is None:
+            raise ValueError("population moment entry is missing its scalar value")
+        converted = _as_float(value, 0.0)
+        if not math.isfinite(converted):
+            raise ValueError("population moments must be finite")
+        return converted
+
+    if isinstance(raw_sequence, dict):
+        by_variable = []
+        for variable in shared_vars:
+            if variable in raw_sequence:
+                by_variable.append(scalar(raw_sequence[variable]))
+            elif str(variable) in raw_sequence:
+                by_variable.append(scalar(raw_sequence[str(variable)]))
+            else:
+                by_variable = []
+                break
+        if by_variable:
+            return tuple(by_variable)
+        return ()
+
+    group_vars = _ordered_group_vars(group)
+    values = _ordered_values(raw_sequence)
+    local_index = {variable: index for index, variable in enumerate(group_vars)}
+    if any(variable not in local_index for variable in shared_vars):
+        return ()
+    result = []
+    for variable in shared_vars:
+        index = local_index[variable]
+        if index >= len(values):
+            return ()
+        result.append(scalar(values[index]))
+    return tuple(result)
+
+
+def _extract_group_population_count(payload: dict, group_index: int) -> int:
+    raw_groups = _first_present(payload, _GROUP_KEYS)
+    if raw_groups is None:
+        return 0
+    groups = _ordered_values(raw_groups)
+    if group_index >= len(groups) or not isinstance(groups[group_index], dict):
+        return 0
+    raw_count = _first_present(groups[group_index], _POP_COUNT_KEYS)
+    if raw_count is None:
+        return 0
+    count = _as_int(raw_count, 0)
+    if count < 0:
+        raise ValueError("population sample count must be non-negative")
+    return count
+
+
+def _ordered_group_vars(group: dict) -> tuple[int, ...]:
+    raw_vars = _first_present(
+        group,
+        ("variables", "vars", "members", "dims", "indices", "elements", "values"),
+    )
+    if raw_vars is None:
+        return ()
+    values: list[int] = []
+
+    def visit(raw: Any) -> None:
+        if raw is None:
+            return
+        if isinstance(raw, bool):
+            values.append(int(raw))
+            return
+        if isinstance(raw, Integral):
+            values.append(int(raw))
+            return
+        if isinstance(raw, Real):
+            numeric = float(raw)
+            if not numeric.is_integer():
+                raise ValueError(f"variable index must be integer-like: {raw!r}")
+            values.append(int(numeric))
+            return
+        if isinstance(raw, str):
+            for token in re.split(r"[\s,;]+", raw.strip()):
+                if token:
+                    visit(float(token))
+            return
+        try:
+            iterable = _ordered_values(raw) if isinstance(raw, dict) else iter(raw)
+        except TypeError as exc:
+            raise TypeError(f"cannot read variable index from {raw!r}") from exc
+        for item in iterable:
+            visit(item)
+
+    visit(raw_vars)
+    if len(set(values)) != len(values):
+        raise ValueError("group variables must be unique")
+    return tuple(values)
+
+
+def _cohen_d_from_moments(
+    left_centers: tuple[float, ...],
+    right_centers: tuple[float, ...],
+    left_standard_deviations: tuple[float, ...],
+    right_standard_deviations: tuple[float, ...],
+) -> float:
+    vectors = (
+        left_centers,
+        right_centers,
+        left_standard_deviations,
+        right_standard_deviations,
+    )
+    if not left_centers:
+        return 0.0
+    if any(len(vector) != len(left_centers) for vector in vectors[1:]):
+        raise ValueError("Cohen's d moment vectors must have equal length")
+    effects = []
+    for left_mu, right_mu, left_std, right_std in zip(*vectors, strict=True):
+        pooled_variance = (left_std**2 + right_std**2) / 2.0
+        effects.append(
+            abs(left_mu - right_mu) / math.sqrt(pooled_variance)
+            if pooled_variance > 0.0
+            else 0.0
+        )
+    return math.fsum(effects) / len(effects)
+
+
+def owner_dominance_direction_from_centers(
+    left_centers: tuple[float, ...],
+    right_centers: tuple[float, ...],
+) -> int:
+    if not left_centers or len(left_centers) != len(right_centers):
+        return 0
+    difference = math.fsum(left_centers) / len(left_centers) - math.fsum(
+        right_centers
+    ) / len(right_centers)
+    if abs(difference) <= 1e-12:
+        return 0
+    return 1 if difference > 0.0 else -1
+
+
+def population_spread_asymmetry_from_standard_deviations(
+    left_standard_deviations: tuple[float, ...],
+    right_standard_deviations: tuple[float, ...],
+) -> float:
+    if not left_standard_deviations or len(left_standard_deviations) != len(
+        right_standard_deviations
+    ):
+        return 0.0
+    left_spread = math.fsum(left_standard_deviations) / len(
+        left_standard_deviations
+    )
+    right_spread = math.fsum(right_standard_deviations) / len(
+        right_standard_deviations
+    )
+    maximum = max(left_spread, right_spread)
+    if maximum <= 0.0:
+        return 0.0
+    return _clamp_ratio(abs(left_spread - right_spread) / maximum)
+
+
+def _delta_sign_agreement(previous_delta: float, current_delta: float) -> float:
+    if previous_delta == 0.0 or current_delta == 0.0:
+        return 0.0
+    return 1.0 if (previous_delta > 0.0) == (current_delta > 0.0) else -1.0
 
 
 def _shared_vars_for_pair(

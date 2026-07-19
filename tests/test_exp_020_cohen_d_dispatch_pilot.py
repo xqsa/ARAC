@@ -167,6 +167,8 @@ def test_top_k_local_coordinates_map_to_global_shared_variable() -> None:
     assert relation.right_distribution_standard_deviations == (1.0,)
     assert relation.left_top_k_count == relation.right_top_k_count == 2
     assert math.isclose(relation.cohen_d, 4.0)
+    assert relation.owner_dominance_direction == -1
+    assert relation.population_spread_asymmetry == 0.0
 
 
 def test_summary_and_decision_require_exact_trigger_consistency() -> None:

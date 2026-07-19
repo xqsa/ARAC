@@ -18,6 +18,7 @@ from arac.policy.evidence_overlay import (
     PROPOSAL_DISAGREEMENT_METRIC,
     TOP_RELATION_COUNT,
     FourPointProbe,
+    ProbeUtilities,
     RelationKey,
     RelationSelection,
     RuntimeProbeAction,
@@ -667,6 +668,28 @@ class HccEvidenceOverlayObserver:
                 )
             )
         return tuple(action_sets)
+
+    @property
+    def relation_probe_utilities(
+        self,
+    ) -> tuple[tuple[RelationKey, ProbeUtilities], ...]:
+        """Export Phase1 interaction evidence without exposing observer internals."""
+
+        result = self._barrier_result
+        if result is None or result.status != "probed":
+            return ()
+        return tuple(
+            (
+                probe_result.scored_relation.relation.key,
+                summarize_probe_utilities(
+                    anchor_fitness=probe_result.fitness[0],
+                    left_fitness=probe_result.fitness[1],
+                    right_fitness=probe_result.fitness[2],
+                    bridge_fitness=probe_result.fitness[3],
+                ),
+            )
+            for probe_result in self._relation_probe_results
+        )
 
     def record_group(
         self,
