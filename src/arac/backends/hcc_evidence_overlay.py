@@ -13,6 +13,8 @@ from typing import Any
 
 from arac.backends.hcc import EVIDENCE_OVERLAY_MODES
 from arac.policy.evidence_overlay import (
+    LOCAL_OPTIMUM_TOP_K,
+    PROPOSAL_DISAGREEMENT_METRIC,
     FourPointProbe,
     RelationKey,
     RelationSelection,
@@ -41,7 +43,7 @@ from arac.policy.overlap_hypergraph import (
 )
 
 
-EVIDENCE_OVERLAY_PROTOCOL_VERSION = "rddsm-evidence-overlay-pilot-v1"
+EVIDENCE_OVERLAY_PROTOCOL_VERSION = "rddsm-evidence-overlay-pilot-v2"
 EVIDENCE_OVERLAY_SOURCE_MODE = "fresh_runtime_probe"
 TERMINAL_TOLERANCE_RULE = "maximum_native_group_population"
 RUNTIME_INPUT_FIELDS = (
@@ -83,6 +85,13 @@ PLAN_FIELDS = (
     "voi",
     "native_voi",
     "proposal_disagreement",
+    "disagreement_metric",
+    "left_top_k_count",
+    "right_top_k_count",
+    "left_distribution_centers",
+    "right_distribution_centers",
+    "left_distribution_standard_deviations",
+    "right_distribution_standard_deviations",
     "owner_priority",
     "left_owner_reliability",
     "right_owner_reliability",
@@ -234,6 +243,10 @@ def _csv_values(values: Sequence[int]) -> str:
     return ";".join(str(value) for value in values)
 
 
+def _csv_float_values(values: Sequence[float]) -> str:
+    return ";".join(_format_float(value) for value in values)
+
+
 def _format_float(value: float | None) -> str:
     return "" if value is None else f"{float(value):.17e}"
 
@@ -366,6 +379,7 @@ class HccEvidenceOverlayObserver:
         full_interval_end_fe: int,
         pre_block_candidate: Sequence[float],
         final_owner_candidate: Sequence[float],
+        local_top_candidates: Sequence[Sequence[float]],
     ) -> None:
         key = (
             _integer(sweep_index, name="sweep_index"),
@@ -386,6 +400,7 @@ class HccEvidenceOverlayObserver:
             full_interval_end_fe=full_interval_end_fe,
             pre_block_candidate=pre_block_candidate,
             final_owner_candidate=final_owner_candidate,
+            local_top_candidates=local_top_candidates,
             capture_stage=FINAL_OWNER_PROPOSAL_WATERMARK,
             capture_fe=full_interval_end_fe,
         )
@@ -496,9 +511,17 @@ class HccEvidenceOverlayObserver:
                 group
             ).shared_proposal.proposed_values
         }
+        owner_population_samples = {
+            (group, variable): samples
+            for group in eligible
+            for variable, samples in current.observation_for_group(
+                group
+            ).shared_top_k_population.variable_samples
+        }
         candidates = build_relation_candidates(
             self.groups,
             owner_proposals,
+            owner_population_samples,
             priorities,
             reliabilities,
             lower_bound=self.lower_bound,
@@ -969,6 +992,21 @@ class HccEvidenceOverlayObserver:
                 "proposal_disagreement": _format_float(
                     item.relation.proposal_disagreement
                 ),
+                "disagreement_metric": PROPOSAL_DISAGREEMENT_METRIC,
+                "left_top_k_count": str(item.relation.owner_population_sizes[0]),
+                "right_top_k_count": str(item.relation.owner_population_sizes[1]),
+                "left_distribution_centers": _csv_float_values(
+                    item.relation.owner_population_centers[0]
+                ),
+                "right_distribution_centers": _csv_float_values(
+                    item.relation.owner_population_centers[1]
+                ),
+                "left_distribution_standard_deviations": _csv_float_values(
+                    item.relation.owner_population_standard_deviations[0]
+                ),
+                "right_distribution_standard_deviations": _csv_float_values(
+                    item.relation.owner_population_standard_deviations[1]
+                ),
                 "owner_priority": _format_float(item.relation.owner_priority),
                 "left_owner_reliability": _format_float(
                     item.relation.owner_reliabilities[0]
@@ -1150,6 +1188,8 @@ class HccEvidenceOverlayObserver:
             "runtime_authorized": 0,
             "aob_truth_runtime_used": 0,
             "runtime_input_fields": list(RUNTIME_INPUT_FIELDS),
+            "proposal_disagreement_metric": PROPOSAL_DISAGREEMENT_METRIC,
+            "local_optimum_top_k": LOCAL_OPTIMUM_TOP_K,
             "runtime_fingerprint_before": self._runtime_fingerprint_before,
             "runtime_fingerprint_after": self._runtime_fingerprint_after,
             "state_fingerprints": self._state_fingerprints,

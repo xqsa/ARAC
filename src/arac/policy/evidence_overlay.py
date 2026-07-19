@@ -14,6 +14,8 @@ from .overlap_hypergraph import midrank_percentiles
 EVIDENCE_OVERLAY_SCHEMA_VERSION = "rddsm-evidence-overlay-v1"
 SHUFFLE_SALT = "arac-evidence-overlay-shuffled-v1"
 TOP_RELATION_COUNT = 4
+LOCAL_OPTIMUM_TOP_K = 5
+PROPOSAL_DISAGREEMENT_METRIC = "mean_normalized_gaussian_w2"
 SHADOW_GAIN_THRESHOLD = math.log(1.01)
 UTILITY_EPSILON = 1e-300
 FORBIDDEN_RUNTIME_FIELD_FRAGMENTS = (
@@ -216,16 +218,30 @@ class RelationKey:
 
 @dataclass(frozen=True)
 class RelationCandidate:
-    """One owner group-pair and its aligned shared-coordinate proposals."""
+    """One owner pair with point proposals and top-k distribution evidence."""
 
     key: RelationKey
     owner_proposals: tuple[tuple[float, ...], tuple[float, ...]]
     owner_reliabilities: tuple[float, float]
     proposal_disagreement: float
     owner_priority: float
+    owner_population_centers: tuple[tuple[float, ...], tuple[float, ...]]
+    owner_population_standard_deviations: tuple[
+        tuple[float, ...], tuple[float, ...]
+    ]
+    owner_population_sizes: tuple[int, int]
 
     def __post_init__(self) -> None:
-        if len(self.owner_proposals) != 2 or len(self.owner_reliabilities) != 2:
+        owner_vectors = (
+            self.owner_proposals,
+            self.owner_population_centers,
+            self.owner_population_standard_deviations,
+        )
+        if (
+            any(len(vectors) != 2 for vectors in owner_vectors)
+            or len(self.owner_reliabilities) != 2
+            or len(self.owner_population_sizes) != 2
+        ):
             raise ValueError("relation evidence must align with exactly two owners")
         proposals = tuple(
             tuple(_finite(value, name="owner_proposals") for value in vector)
@@ -234,6 +250,27 @@ class RelationCandidate:
         shared_count = len(self.key.shared_variable_indices)
         if any(len(vector) != shared_count for vector in proposals):
             raise ValueError("owner proposal vectors must align with shared variables")
+        for name, vectors in (
+            ("owner_population_centers", self.owner_population_centers),
+            (
+                "owner_population_standard_deviations",
+                self.owner_population_standard_deviations,
+            ),
+        ):
+            converted = tuple(
+                tuple(_finite(value, name=name) for value in vector)
+                for vector in vectors
+            )
+            if any(len(vector) != shared_count for vector in converted):
+                raise ValueError(f"{name} must align with shared variables")
+        if any(
+            value < 0.0
+            for vector in self.owner_population_standard_deviations
+            for value in vector
+        ):
+            raise ValueError("owner population standard deviations must be non-negative")
+        for size in self.owner_population_sizes:
+            _integer(size, name="owner_population_sizes", minimum=1)
         for value in self.owner_reliabilities:
             _unit_interval(value, name="owner_reliabilities")
         disagreement = _finite(
@@ -248,6 +285,7 @@ class RelationCandidate:
 def build_relation_candidates(
     groups: Sequence[Sequence[int]],
     owner_proposals: Mapping[tuple[int, int], float],
+    owner_population_samples: Mapping[tuple[int, int], Sequence[float]],
     group_priorities: Sequence[float],
     owner_reliabilities: Sequence[float],
     *,
@@ -285,6 +323,21 @@ def build_relation_candidates(
             name="owner proposal value",
         )
 
+    population_samples: dict[tuple[int, int], tuple[float, ...]] = {}
+    for raw_key, raw_samples in owner_population_samples.items():
+        if not isinstance(raw_key, tuple) or len(raw_key) != 2:
+            raise ValueError("population sample keys must be (group, variable) tuples")
+        group = _integer(raw_key[0], name="population sample group")
+        variable = _integer(raw_key[1], name="population sample variable")
+        if group >= len(canonical) or variable not in canonical[group]:
+            raise ValueError("population samples must belong to their structural group")
+        samples = tuple(
+            _finite(value, name="owner population sample") for value in raw_samples
+        )
+        if not samples:
+            raise ValueError("owner population samples must be non-empty")
+        population_samples[(group, variable)] = samples
+
     owners_by_variable: dict[int, list[int]] = {}
     for group_index, group in enumerate(canonical):
         for variable in group:
@@ -307,8 +360,41 @@ def build_relation_candidates(
             right_values = tuple(
                 proposals[(owners[1], variable)] for variable in shared_variables
             )
+            left_samples = tuple(
+                population_samples[(owners[0], variable)]
+                for variable in shared_variables
+            )
+            right_samples = tuple(
+                population_samples[(owners[1], variable)]
+                for variable in shared_variables
+            )
         except KeyError as exc:
-            raise ValueError("missing proposal from a direct relation owner") from exc
+            raise ValueError(
+                "missing proposal or population samples from a direct relation owner"
+            ) from exc
+        population_sizes = (len(left_samples[0]), len(right_samples[0]))
+        if any(len(samples) != population_sizes[0] for samples in left_samples) or any(
+            len(samples) != population_sizes[1] for samples in right_samples
+        ):
+            raise ValueError("owner population sample counts must align across variables")
+
+        def moments(samples_by_variable: Sequence[Sequence[float]]) -> tuple[
+            tuple[float, ...], tuple[float, ...]
+        ]:
+            centers = tuple(
+                math.fsum(samples) / len(samples) for samples in samples_by_variable
+            )
+            standard_deviations = tuple(
+                math.sqrt(
+                    math.fsum((value - center) ** 2 for value in samples)
+                    / len(samples)
+                )
+                for samples, center in zip(samples_by_variable, centers)
+            )
+            return centers, standard_deviations
+
+        left_centers, left_standard_deviations = moments(left_samples)
+        right_centers, right_standard_deviations = moments(right_samples)
         candidates.append(
             RelationCandidate(
                 key=RelationKey(owners, shared_variables),
@@ -318,11 +404,23 @@ def build_relation_candidates(
                     reliabilities[owners[1]],
                 ),
                 proposal_disagreement=math.fsum(
-                    abs(left - right) / domain_width
-                    for left, right in zip(left_values, right_values)
+                    math.hypot(left_center - right_center, left_std - right_std)
+                    / domain_width
+                    for left_center, right_center, left_std, right_std in zip(
+                        left_centers,
+                        right_centers,
+                        left_standard_deviations,
+                        right_standard_deviations,
+                    )
                 )
                 / len(shared_variables),
                 owner_priority=max(priorities[owners[0]], priorities[owners[1]]),
+                owner_population_centers=(left_centers, right_centers),
+                owner_population_standard_deviations=(
+                    left_standard_deviations,
+                    right_standard_deviations,
+                ),
+                owner_population_sizes=population_sizes,
             )
         )
     return tuple(candidates)

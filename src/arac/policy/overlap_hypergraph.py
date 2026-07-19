@@ -294,6 +294,51 @@ class SharedProposal:
 
 
 @dataclass(frozen=True)
+class SharedTopKPopulation:
+    """Top-k local candidates projected onto one group's shared variables."""
+
+    group_index: int
+    sample_count: int
+    variable_samples: tuple[tuple[int, tuple[float, ...]], ...]
+    capture_stage: str
+    capture_fe: int
+
+    def __post_init__(self) -> None:
+        _integer(self.group_index, name="group_index")
+        count = _integer(self.sample_count, name="sample_count", minimum=1)
+        converted: list[tuple[int, tuple[float, ...]]] = []
+        seen: set[int] = set()
+        for raw_variable, raw_samples in self.variable_samples:
+            variable = _integer(raw_variable, name="variable_samples variable")
+            if variable in seen:
+                raise ValueError(f"variable_samples contains duplicate variable {variable}")
+            seen.add(variable)
+            samples = tuple(
+                _finite(value, name=f"variable_samples[{variable}]")
+                for value in raw_samples
+            )
+            if len(samples) != count:
+                raise ValueError("every shared variable must have sample_count values")
+            converted.append((variable, samples))
+        if tuple(sorted(converted)) != self.variable_samples:
+            raise ValueError("variable_samples must be sorted and canonical")
+        if self.capture_stage != FINAL_OWNER_PROPOSAL_WATERMARK:
+            raise ValueError("top-k population must use the final owner watermark")
+        _integer(self.capture_fe, name="capture_fe")
+
+    @property
+    def variables(self) -> tuple[int, ...]:
+        return tuple(variable for variable, _ in self.variable_samples)
+
+    def samples_for(self, variable_index: int) -> tuple[float, ...]:
+        variable = _integer(variable_index, name="variable_index")
+        for index, samples in self.variable_samples:
+            if index == variable:
+                return samples
+        raise KeyError(variable)
+
+
+@dataclass(frozen=True)
 class GroupCycleObservation:
     """A trace-only native group observation with raw errors discarded."""
 
@@ -307,6 +352,7 @@ class GroupCycleObservation:
     unit_fe_contribution: float
     successful: bool
     shared_proposal: SharedProposal
+    shared_top_k_population: SharedTopKPopulation
 
     def __post_init__(self) -> None:
         _integer(self.sweep_index, name="sweep_index")
@@ -348,6 +394,12 @@ class GroupCycleObservation:
             raise ValueError("shared proposal group must match observation group")
         if self.shared_proposal.capture_fe != self.full_interval_end_fe:
             raise ValueError("proposal capture_fe must equal full_interval_end_fe")
+        if self.shared_top_k_population.group_index != self.group_index:
+            raise ValueError("top-k population group must match observation group")
+        if self.shared_top_k_population.variables != self.shared_proposal.variables:
+            raise ValueError("top-k population must align with shared proposal variables")
+        if self.shared_top_k_population.capture_fe != self.full_interval_end_fe:
+            raise ValueError("top-k population capture_fe must equal full_interval_end_fe")
 
 
 def unit_fe_contribution(
@@ -382,6 +434,7 @@ def build_group_cycle_observation(
     full_interval_end_fe: int,
     pre_block_candidate: Sequence[float],
     final_owner_candidate: Sequence[float],
+    local_top_candidates: Sequence[Sequence[float]],
     capture_stage: str,
     capture_fe: int,
 ) -> GroupCycleObservation:
@@ -405,11 +458,28 @@ def build_group_cycle_observation(
     proposal = _finite_vector(final_owner_candidate, name="final_owner_candidate")
     if len(before) != len(proposal):
         raise ValueError("pre-block and final owner candidates must align")
+    local_population = tuple(
+        _finite_vector(candidate, name="local_top_candidates")
+        for candidate in local_top_candidates
+    )
+    if not local_population:
+        raise ValueError("local_top_candidates must be non-empty")
+    group_variables = topology.hyperedges[group]
+    if any(len(candidate) != len(group_variables) for candidate in local_population):
+        raise ValueError("local top candidates must align with the structural group")
     shared = topology.shared_for_group(group)
     if shared and max(shared) >= len(before):
         raise ValueError("candidate width does not cover shared variables")
     anchor_values = tuple((variable, before[variable]) for variable in shared)
     proposed_values = tuple((variable, proposal[variable]) for variable in shared)
+    local_positions = {variable: index for index, variable in enumerate(group_variables)}
+    variable_samples = tuple(
+        (
+            variable,
+            tuple(candidate[local_positions[variable]] for candidate in local_population),
+        )
+        for variable in shared
+    )
     return GroupCycleObservation(
         sweep_index=_integer(sweep_index, name="sweep_index"),
         group_index=group,
@@ -445,6 +515,13 @@ def build_group_cycle_observation(
             group_index=group,
             anchor_values=anchor_values,
             proposed_values=proposed_values,
+            capture_stage=str(capture_stage),
+            capture_fe=_integer(capture_fe, name="capture_fe"),
+        ),
+        shared_top_k_population=SharedTopKPopulation(
+            group_index=group,
+            sample_count=len(local_population),
+            variable_samples=variable_samples,
             capture_stage=str(capture_stage),
             capture_fe=_integer(capture_fe, name="capture_fe"),
         ),

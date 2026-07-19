@@ -26,6 +26,10 @@ from arac.backends.hcc_evidence_overlay import (
     EvidenceOverlayRuntimeError,
     HccEvidenceOverlayObserver,
 )
+from arac.policy.evidence_overlay import (
+    LOCAL_OPTIMUM_TOP_K,
+    PROPOSAL_DISAGREEMENT_METRIC,
+)
 
 
 GROUPS = (
@@ -88,6 +92,9 @@ def _record_complete_sweep(
             full_interval_end_fe=start + 10,
             pre_block_candidate=before,
             final_owner_candidate=proposal,
+            local_top_candidates=(
+                tuple(proposal[variable] for variable in GROUPS[group]),
+            ),
         )
 
     sweep_end_fe = (sweep + 1) * 60
@@ -114,6 +121,26 @@ def _prepare(observer: HccEvidenceOverlayObserver) -> tuple[float, ...]:
 
 def _objective(candidate: tuple[float, ...]) -> float:
     return 1.0 + sum(value * value for value in candidate)
+
+
+def test_local_top_candidate_archive_keeps_best_five_across_batches() -> None:
+    archive: list[tuple[float, tuple[float, ...]]] = []
+
+    runner._update_local_top_candidates(
+        archive,
+        ((6.0, 60.0), (2.0, 20.0), (4.0, 40.0)),
+        (6.0, 2.0, 4.0),
+    )
+    runner._update_local_top_candidates(
+        archive,
+        ((1.0, 10.0), (7.0, 70.0), (3.0, 30.0), (5.0, 50.0)),
+        (1.0, 7.0, 3.0, 5.0),
+    )
+
+    assert [score for score, _ in archive] == [1.0, 2.0, 3.0, 4.0, 5.0]
+    assert [candidate[0] for _, candidate in archive] == [1.0, 2.0, 3.0, 4.0, 5.0]
+    with pytest.raises(RuntimeError, match="aligned finite"):
+        runner._update_local_top_candidates(archive, ((1.0, 2.0),), (1.0, 2.0))
 
 
 def _read_csv(path: Path) -> tuple[tuple[str, ...], list[dict[str, str]]]:
@@ -465,6 +492,12 @@ def test_artifact_schemas_hashes_and_reference_blind_manifest_are_frozen(
     assert len(checkpoint_rows) == 1
     assert len(plan_rows) == 5
     assert sum(row["selected"] == "1" for row in plan_rows) == 4
+    assert all(
+        row["disagreement_metric"] == PROPOSAL_DISAGREEMENT_METRIC
+        for row in plan_rows
+    )
+    assert all(row["left_top_k_count"] == "1" for row in plan_rows)
+    assert all(row["right_top_k_count"] == "1" for row in plan_rows)
     assert len(probe_rows) == 16
     assert Counter(row["candidate"] for row in probe_rows) == {
         "x0": 4,
@@ -508,6 +541,8 @@ def test_artifact_schemas_hashes_and_reference_blind_manifest_are_frozen(
         "all_evaluation_best_error",
         "runtime_authorized",
         "runtime_input_fields",
+        "proposal_disagreement_metric",
+        "local_optimum_top_k",
         "artifacts",
         "artifact_sha256",
         "applicable",
@@ -533,6 +568,8 @@ def test_artifact_schemas_hashes_and_reference_blind_manifest_are_frozen(
     assert manifest["probe_start_fe"] == 180
     assert manifest["probe_end_fe"] == 196
     assert manifest["runtime_input_fields"] == list(RUNTIME_INPUT_FIELDS)
+    assert manifest["proposal_disagreement_metric"] == PROPOSAL_DISAGREEMENT_METRIC
+    assert manifest["local_optimum_top_k"] == LOCAL_OPTIMUM_TOP_K
     assert manifest["native_terminal_error"] == 70.0
     assert manifest["all_evaluation_best_error"] == 60.0
     assert manifest["delayed_label_expected"] == 8

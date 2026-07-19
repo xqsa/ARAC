@@ -1,8 +1,8 @@
 {
-  "protocol_version": "rddsm-evidence-overlay-pilot-v1",
+  "protocol_version": "rddsm-evidence-overlay-pilot-v2",
   "config_schema_version": 1,
   "status": "frozen_before_new_optimizer_fe",
-  "preregistration_date": "2026-07-17",
+  "preregistration_date": "2026-07-19",
   "executor": "Codex",
   "positioning": "observer_only_active_evidence_overlay_not_a_grouping_algorithm",
   "execution": {

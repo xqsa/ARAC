@@ -16,6 +16,7 @@ from arac.backends.hcc_evidence_overlay import (
     EvidenceOverlayArtifactPaths,
     HccEvidenceOverlayObserver,
 )
+from arac.policy.evidence_overlay import PROPOSAL_DISAGREEMENT_METRIC
 from experiments.pilots.exp_018_rddsm_evidence_overlay_pilot.protocol import (
     AGGREGATE_ARTIFACTS,
     GateInputs,
@@ -360,6 +361,13 @@ def _mechanism_gate_fixture() -> tuple[dict[str, object], tuple, GateInputs]:
                     "voi": float(relation_index + 1),
                     "native_voi": float(relation_index + 1),
                     "proposal_disagreement": float(relation_index + 1),
+                    "disagreement_metric": PROPOSAL_DISAGREEMENT_METRIC,
+                    "left_top_k_count": 5,
+                    "right_top_k_count": 5,
+                    "left_distribution_centers": "0.0",
+                    "right_distribution_centers": "1.0",
+                    "left_distribution_standard_deviations": "0.1",
+                    "right_distribution_standard_deviations": "0.2",
                     "owner_priority": 1.0,
                     "left_owner_reliability": 0.5,
                     "right_owner_reliability": 0.5,
@@ -663,6 +671,9 @@ def _record_overlay_sweep(
             full_interval_end_fe=start + 10,
             pre_block_candidate=before,
             final_owner_candidate=proposal,
+            local_top_candidates=(
+                tuple(proposal[variable] for variable in groups[group]),
+            ),
         )
     endpoint = [0.0] * 7
     for variable in range(1, 6):
@@ -684,6 +695,7 @@ def _record_no_overlap_sweep(
     observer: HccEvidenceOverlayObserver,
     sweep: int,
 ) -> tuple[float, ...]:
+    groups = ((0, 1), (2, 3))
     endpoint = (0.0, 0.0, 0.0, 0.0)
     for group in range(2):
         start = sweep * 20 + group * 10
@@ -699,6 +711,9 @@ def _record_no_overlap_sweep(
             full_interval_end_fe=start + 10,
             pre_block_candidate=endpoint,
             final_owner_candidate=endpoint,
+            local_top_candidates=(
+                tuple(endpoint[variable] for variable in groups[group]),
+            ),
         )
     sweep_end_fe = (sweep + 1) * 20
     assert observer.complete_sweep(

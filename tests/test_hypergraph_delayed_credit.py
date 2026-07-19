@@ -17,6 +17,7 @@ from arac.policy.overlap_hypergraph import (
     HyperedgeScore,
     OverlapHypergraphTopology,
     SharedProposal,
+    SharedTopKPopulation,
     SharedVariableStar,
     build_closed_owner_credit,
     build_delayed_hyperedge_credit,
@@ -55,6 +56,15 @@ def _observation(
             group_index=group,
             anchor_values=tuple((variable, 0.0) for variable, _ in values),
             proposed_values=values,
+            capture_stage=FINAL_OWNER_PROPOSAL_WATERMARK,
+            capture_fe=end_fe,
+        ),
+        shared_top_k_population=SharedTopKPopulation(
+            group_index=group,
+            sample_count=1,
+            variable_samples=tuple(
+                (variable, (value,)) for variable, value in values
+            ),
             capture_stage=FINAL_OWNER_PROPOSAL_WATERMARK,
             capture_fe=end_fe,
         ),
@@ -165,6 +175,7 @@ def test_group_observation_uses_full_interval_and_explicit_capture_evidence() ->
         full_interval_end_fe=35,
         pre_block_candidate=before,
         final_owner_candidate=proposal,
+        local_top_candidates=((7.0, 2.0), (9.0, 4.0)),
         capture_stage=FINAL_OWNER_PROPOSAL_WATERMARK,
         capture_fe=35,
     )
@@ -175,6 +186,9 @@ def test_group_observation_uses_full_interval_and_explicit_capture_evidence() ->
     assert observation.shared_proposal.proposed_values == ((1, 3.0),)
     assert observation.shared_proposal.capture_stage == FINAL_OWNER_PROPOSAL_WATERMARK
     assert observation.shared_proposal.capture_fe == 35
+    assert observation.shared_top_k_population.variable_samples == (
+        (1, (2.0, 4.0)),
+    )
     assert observation.full_interval_actual_fe > observation.primary_requested_fe
     assert math.isclose(observation.unit_fe_contribution, 40.0 * math.log(1.25))
     assert "error" not in observation.__dataclass_fields__
@@ -212,6 +226,7 @@ def test_group_observation_rejects_invalid_capture_evidence(
             full_interval_end_fe=10,
             pre_block_candidate=(0.0, 0.0, 0.0),
             final_owner_candidate=(0.0, 1.0, 0.0),
+            local_top_candidates=((0.0, 1.0),),
             capture_stage=capture_stage,
             capture_fe=capture_fe,
         )

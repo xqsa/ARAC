@@ -1,6 +1,6 @@
 # Evidence-Overlay and Conflict-Resolution Literature Boundary
 
-Date: 2026-07-18
+Date: 2026-07-19
 Scope: positioning for exp_018 and exp_019; not a priority claim
 Executor: Codex
 
@@ -23,6 +23,7 @@ and a frozen Phase-II topology?
 | Blanchard et al., *Investigating Overlapped Strategies to Solve Overlapping Problems in a Cooperative Co-evolutionary Framework*, DOI [10.1007/978-3-030-85672-4_19](https://doi.org/10.1007/978-3-030-85672-4_19) | Direct comparison of strategies for overlapping variables, including the distinction between compatible and conflicting local optima. | It is prior evidence that overlap handling affects optimization; exp_019 isolates one synthetic value-resolution question rather than claiming the topic is untouched. |
 | PACE, *Anytime-Valid Acceptance Tests for Self-Evolving Agents*, [arXiv:2606.08106](https://arxiv.org/abs/2606.08106) | Paired e-process acceptance under optional stopping in self-evolving agents. | This is a cross-domain acceptance-gate precedent, not a cooperative-coevolution or shared-variable value-resolution method. e-process is outside exp_019 v1. |
 | LH-CC, *A Learning-Based Cooperative Coevolution Framework for Heterogeneous Large-Scale Global Optimization*, [arXiv:2604.01241](https://arxiv.org/abs/2604.01241) | Reinforcement-learning-based optimizer selection across heterogeneous subproblems. | It adapts optimizer choice rather than resolving conflicting proposals for one shared variable; it also prevents a broad priority claim over adaptive CC. |
+| NeurELA, *Neural Exploratory Landscape Analysis for Meta-Black-Box Optimization*, ICLR 2025, [arXiv:2408.10672](https://arxiv.org/abs/2408.10672) | Two-stage attention shares information first across candidate solutions and then across problem dimensions. | exp_018 borrows only this information-flow bias: top-five Phase-I candidates are reduced to per-shared-variable means and standard deviations, then compared with Gaussian W2. It does not use NeurELA weights, training, or claim a learned landscape analyser. |
 
 Enhanced differential grouping and related decomposition methods further show
 that structural detection accuracy is an established research objective. That

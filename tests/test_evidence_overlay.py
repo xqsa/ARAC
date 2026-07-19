@@ -45,7 +45,16 @@ def _relation(
         owner_reliabilities=(0.4, 0.6),
         proposal_disagreement=disagreement,
         owner_priority=priority,
+        owner_population_centers=((0.0,), (disagreement,)),
+        owner_population_standard_deviations=((0.0,), (0.0,)),
+        owner_population_sizes=(1, 1),
     )
+
+
+def _point_population_samples(
+    proposals: dict[tuple[int, int], float],
+) -> dict[tuple[int, int], tuple[float, ...]]:
+    return {key: (value,) for key, value in proposals.items()}
 
 
 def _scored(variable: int, score: float) -> ScoredRelation:
@@ -120,6 +129,7 @@ def test_relation_candidates_require_exactly_two_structural_owners() -> None:
     result = build_relation_candidates(
         groups,
         proposals,
+        _point_population_samples(proposals),
         group_priorities=(0.1, 0.8, 0.4, 0.7),
         owner_reliabilities=(0.2, 0.9, 0.3, 0.6),
         lower_bound=-5.0,
@@ -139,6 +149,7 @@ def test_relation_candidate_missing_owner_proposal_fails_closed() -> None:
         build_relation_candidates(
             ((0, 1), (1, 2)),
             {(0, 1): 0.2},
+            {(0, 1): (0.2,)},
             group_priorities=(0.4, 0.6),
             owner_reliabilities=(0.5, 0.5),
             lower_bound=-1.0,
@@ -149,6 +160,7 @@ def test_relation_candidate_missing_owner_proposal_fails_closed() -> None:
         build_relation_candidates(
             ((0, 1), (1, 2)),
             {(0, 2): 0.2, (1, 1): 0.3},
+            {},
             group_priorities=(0.4, 0.6),
             owner_reliabilities=(0.5, 0.5),
             lower_bound=-1.0,
@@ -157,14 +169,16 @@ def test_relation_candidate_missing_owner_proposal_fails_closed() -> None:
 
 
 def test_group_pair_relation_aggregates_aligned_shared_variables() -> None:
+    proposals = {
+        (0, 1): -2.0,
+        (0, 2): 4.0,
+        (1, 1): 2.0,
+        (1, 2): -2.0,
+    }
     result = build_relation_candidates(
         ((0, 1, 2), (1, 2, 3), (4, 5)),
-        {
-            (0, 1): -2.0,
-            (0, 2): 4.0,
-            (1, 1): 2.0,
-            (1, 2): -2.0,
-        },
+        proposals,
+        _point_population_samples(proposals),
         group_priorities=(0.3, 0.7, 0.2),
         owner_reliabilities=(0.4, 0.8, 0.1),
         lower_bound=-10.0,
@@ -177,6 +191,24 @@ def test_group_pair_relation_aggregates_aligned_shared_variables() -> None:
     assert relation.owner_proposals == ((-2.0, 4.0), (2.0, -2.0))
     assert relation.proposal_disagreement == pytest.approx((0.2 + 0.3) / 2.0)
     assert relation.owner_priority == 0.7
+
+
+def test_distribution_disagreement_includes_center_and_variance() -> None:
+    relation = build_relation_candidates(
+        ((0, 1), (1, 2)),
+        {(0, 1): -4.0, (1, 1): 4.0},
+        {(0, 1): (-1.0, 1.0), (1, 1): (0.0, 0.0)},
+        group_priorities=(0.4, 0.6),
+        owner_reliabilities=(0.5, 0.5),
+        lower_bound=-5.0,
+        upper_bound=5.0,
+    )[0]
+
+    assert relation.owner_proposals == ((-4.0,), (4.0,))
+    assert relation.owner_population_centers == ((0.0,), (0.0,))
+    assert relation.owner_population_standard_deviations == ((1.0,), (0.0,))
+    assert relation.owner_population_sizes == (2, 2)
+    assert relation.proposal_disagreement == pytest.approx(0.1)
 
 
 def test_twenty_group_path_builds_nineteen_multivariable_relations() -> None:
@@ -205,6 +237,7 @@ def test_twenty_group_path_builds_nineteen_multivariable_relations() -> None:
     relations = build_relation_candidates(
         groups,
         proposals,
+        _point_population_samples(proposals),
         group_priorities=tuple(group / 20.0 for group in range(20)),
         owner_reliabilities=(0.5,) * 20,
         lower_bound=-100.0,
@@ -298,6 +331,9 @@ def test_four_point_probe_changes_only_the_shared_coordinate() -> None:
         owner_reliabilities=(0.0, 1.0),
         proposal_disagreement=0.5,
         owner_priority=0.8,
+        owner_population_centers=((10.0, 30.0), (-2.0, -4.0)),
+        owner_population_standard_deviations=((0.0, 0.0), (0.0, 0.0)),
+        owner_population_sizes=(1, 1),
     )
 
     probe = build_four_point_probe((1.0, 2.0, 3.0, 4.0), relation)

@@ -61,7 +61,7 @@ from arac.backends.hcc_evidence_overlay import (
     EvidenceOverlayArtifactPaths,
     HccEvidenceOverlayObserver,
 )
-from arac.policy.evidence_overlay import build_reference_blind_ordering
+from arac.policy.evidence_overlay import LOCAL_OPTIMUM_TOP_K, build_reference_blind_ordering
 from src.arac.backends.hcc import (
     EVIDENCE_OVERLAY_MODES,
     required_aob_data_files,
@@ -1174,6 +1174,30 @@ def calculate_global_fes(total_fes: int, degree_of_overlap: float) -> int:
 
 def calculate_cmaes_population_size(subspace_dimension: int) -> int:
     return 4 + 3 * math.ceil(math.log(subspace_dimension))
+
+
+def _update_local_top_candidates(
+    archive: list[tuple[float, tuple[float, ...]]],
+    candidates,
+    objective_values,
+) -> None:
+    population = np.asarray(candidates, dtype=float)
+    if population.ndim == 1:
+        population = population.reshape(1, -1)
+    scores = np.asarray(objective_values, dtype=float).reshape(-1)
+    if (
+        population.ndim != 2
+        or len(population) != len(scores)
+        or not np.all(np.isfinite(population))
+        or not np.all(np.isfinite(scores))
+    ):
+        raise RuntimeError("evidence overlay requires aligned finite CMA candidates")
+    archive.extend(
+        (float(score), tuple(float(value) for value in candidate))
+        for candidate, score in zip(population, scores, strict=True)
+    )
+    archive.sort(key=lambda item: item[0])
+    del archive[LOCAL_OPTIMUM_TOP_K:]
 
 
 def current_fitness_evaluations(fun) -> int:
@@ -2903,8 +2927,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 config.sigma,
                 controller_v31_run_state=controller_v31_run_state,
             )
+            local_top_candidates: list[tuple[float, tuple[float, ...]]] = []
+
             def objective_function(x_batch, dims=dims):
-                return fun(combine(x_batch, best_individual, dims))
+                values = fun(combine(x_batch, best_individual, dims))
+                if evidence_overlay_observer is not None:
+                    _update_local_top_candidates(local_top_candidates, x_batch, values)
+                return values
 
             problem_cc = {
                 "fitness_function": objective_function,
@@ -3200,6 +3229,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     full_interval_end_fe=group_interval_end_fe,
                     pre_block_candidate=evidence_overlay_pre_block_candidate,
                     final_owner_candidate=best_individual.copy(),
+                    local_top_candidates=tuple(
+                        candidate for _, candidate in local_top_candidates
+                    ),
                 )
             fitness_delta_list.append(current_delta)
             if index > 0:

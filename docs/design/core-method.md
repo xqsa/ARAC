@@ -1,6 +1,6 @@
 # Core Method: RDDSM Evidence Overlay
 
-Date: 2026-07-18
+Date: 2026-07-19
 Status: frozen observer-only pilot
 Executor: Codex
 
@@ -53,10 +53,31 @@ RDDSM topology remains frozen through Phase II.
 For relation `e`:
 
 ```text
-D_e = shared-variable proposal disagreement
+D_e = mean normalized Gaussian W2 distance over shared variables
 P_e = max(priority_left, priority_right)
 VOI_e = harmonic_mean(midrank(D_e), midrank(P_e))
 ```
+
+During each native Phase-I group visit, the observer retains the five candidates
+with the lowest objective values across that visit's CMA evaluations. For every
+shared variable `gamma`, it computes the population mean and population standard
+deviation of those candidates. The disagreement for one shared variable is:
+
+```text
+d_gamma = sqrt((mu_left - mu_right)^2 + (sigma_left - sigma_right)^2)
+          / (upper_bound - lower_bound)
+D_e = mean_gamma(d_gamma)
+```
+
+This is the closed-form 2-Wasserstein distance between two univariate Gaussian
+moment estimates. With one sample per owner it reduces exactly to the former
+normalized point distance. The distribution evidence changes relation ranking
+only: `xL`, `xR`, and `xB` continue to use the final owner proposals, so the
+four-point counterfactual semantics are unchanged.
+
+The reduction is inspired by NeurELA's cross-solution then cross-dimension
+information flow. It uses deterministic moment pooling and requires no learned
+attention parameters or additional objective evaluations.
 
 Ranks are computed within one trajectory. The evidence lane probes only when a
 unique top-four boundary exists; a tie at that boundary abstains for the whole
