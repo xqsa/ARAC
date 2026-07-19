@@ -1,0 +1,54 @@
+{
+    "protocol_version": "runtime-probe-dispatch-pilot-v1",
+    "experiment_id": "exp_023_conflict_conditioned_blend_pilot",
+    "config_schema_version": 1,
+    "status": "authorized_by_user_for_fresh_runtime_pilot",
+    "preregistration_date": "2026-07-19",
+    "executor": "Codex",
+    "change_from_exp_022": {
+        "action": "repair_shared_variable_binding replaced by conflict_conditioned_context_blend in runtime_probe path",
+        "mechanism": "winner-take-all hard overwrite replaced with tanh-sharpened HCC Eq.8 blend; sharpening = tanh(max(0, (utility - threshold) / threshold))",
+        "hypothesis": "soft blend preserves CMA-ES starting-mean quality for loser group, reducing recovery cost while still biasing toward probe winner",
+        "probe_utility_flow": "ShadowDecision.utility threaded through runtime_relation_action_map as tuple[str, float]; used by conflict_conditioned_context_blend"
+    },
+    "execution": {
+        "cases": ["E3", "S5", "R4"],
+        "seeds": [117, 119, 120, 121, 122],
+        "max_fes": 3000000,
+        "jobs": 15,
+        "budget_accounting": "strict",
+        "search_state_backend": "phase_i_mmes",
+        "arac_action": "arac_evidence_action_controller_v37",
+        "relation_policy": "runtime_probe",
+        "runtime_probe_repair_mode": "conflict_conditioned_blend",
+        "enable_relation_dispatch": true,
+        "evidence_overlay_mode": "paired_owner",
+        "cmaes_restart": true,
+        "mmes_restart": true,
+        "skip_plots": true
+    },
+    "controls": {
+        "conforming_overlap_cases": ["R4"],
+        "interpretation": "R4 is all-conforming overlap — blend should degrade to HCC Eq.8 (base_w=0.5, sharpening=0 when utility<threshold); any regression in R4 signals systematic disruption"
+    },
+    "gate": {
+        "catastrophic_multiplier": 1.2,
+        "maximum_catastrophic_trajectories": 0,
+        "shadow_non_fallback_count_minimum": 5,
+        "lco_lso_improvement_bootstrap_lcb_must_be_positive": true,
+        "extra_degradation_vs_exp022_maximum": 0.05
+    },
+    "hypotheses": {
+        "H1": "E3/S5 final error improves over exp_022 (soft blend < hard repair degradation) because loser group is not forced to recover from a disruptive mean shift",
+        "H2": "R4 final error remains comparable to exp_022 (R4 repair rate = 0, so blend is never called; R4 is pure HCC Eq.8 in both experiments)",
+        "H3": "Dispatch count (non-fallback) stays similar to exp_022 because probe decision rule is unchanged; only the writeback magnitude changes"
+    },
+    "forbidden_runtime_inputs": [
+        "paper_reported_baseline",
+        "oracle",
+        "final_error",
+        "relative_gain",
+        "problem_family_label",
+        "prior_final_outcome"
+    ]
+}

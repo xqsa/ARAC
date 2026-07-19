@@ -63,6 +63,7 @@ from arac.backends.hcc_evidence_overlay import (
 )
 from arac.policy.evidence_overlay import (
     LOCAL_OPTIMUM_TOP_K,
+    SHADOW_GAIN_THRESHOLD,
     build_reference_blind_ordering,
     cohen_d_from_moments,
 )
@@ -316,6 +317,9 @@ RUNTIME_PROBE_POLICY = "runtime_probe"
 RUNTIME_PROBE_REPAIR_TRIGGER = "probe_winner_repair"
 RUNTIME_PROBE_COORDINATE_TRIGGER = "probe_winner_coordinate"
 RUNTIME_PROBE_FALLBACK_TRIGGER = "probe_fallback_or_no_data"
+RUNTIME_PROBE_REPAIR_MODES = frozenset(
+    {"hard_repair", "conflict_conditioned_blend"}
+)
 V36_FIRST_SWEEP_OUTER_ITER = 0
 V36_MIN_ACTIVE_COUNT = 4
 V36_MIN_ACTIVE_FRACTION = 0.20
@@ -555,6 +559,7 @@ class SmokeConfig:
     aob_data_root: Path = DATA_DIR
     search_state_backend: str = "phase_i_mmes"
     evidence_overlay_mode: str = "off"
+    runtime_probe_repair_mode: str = "hard_repair"
 
 
 @dataclass(frozen=True)
@@ -1609,6 +1614,37 @@ def clipped_consensus_blend(
     return (previous_weight * previous_values) + (current_weight * current_values)
 
 
+def conflict_conditioned_context_blend(
+    previous_values: np.ndarray,
+    current_values: np.ndarray,
+    previous_delta: float,
+    current_delta: float,
+    probe_utility: float,
+    utility_threshold: float = SHADOW_GAIN_THRESHOLD,
+) -> np.ndarray:
+    """Soft blend sharpened toward probe winner, replacing hard winner-take-all repair.
+
+    At probe_utility == utility_threshold: reduces to standard HCC Eq.8 weighted blend.
+    As probe_utility >> utility_threshold: asymptotically approaches winner-take-all.
+    Preserves CMA-ES adaptation by minimising the mean-shift magnitude.
+    """
+    denominator = previous_delta + current_delta
+    if denominator == 0:
+        return (previous_values + current_values) / 2.0
+    # Base HCC Eq.8 weight (clipped per existing convention)
+    base_w_current = float(np.clip(current_delta / denominator, 0.35, 0.65))
+    # Normalised excess utility: 0 at threshold, >0 above threshold
+    u_excess = max(0.0, (probe_utility - utility_threshold) / utility_threshold)
+    sharpening = float(np.tanh(u_excess))  # 0→0, ∞→1
+    if current_delta >= previous_delta:
+        # current is winner: sharpen weight upward
+        w_current = base_w_current + sharpening * (1.0 - base_w_current)
+    else:
+        # previous is winner: sharpen weight downward
+        w_current = base_w_current * (1.0 - sharpening)
+    return w_current * current_values + (1.0 - w_current) * previous_values
+
+
 def apply_arac_overlap_action(
     action_name: str,
     previous_values: np.ndarray,
@@ -2541,7 +2577,7 @@ def relation_policy_source_name(
     if relation_policy_mode == COHEN_D_RELATION_POLICY:
         return f"{COHEN_D_RELATION_POLICY}:threshold_gt_{COHEN_D_REPAIR_THRESHOLD}"
     if relation_policy_mode == RUNTIME_PROBE_POLICY:
-        return RUNTIME_PROBE_POLICY
+        return f"{RUNTIME_PROBE_POLICY}:{effective_mode}"
     if relation_policy_mode == "controller_v3":
         controller_mode = (
             "relation_first"
@@ -2918,6 +2954,13 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError(f"unsupported budget accounting mode: {config.budget_accounting}")
     if config.evidence_overlay_mode not in EVIDENCE_OVERLAY_MODES:
         raise ValueError("unsupported evidence overlay mode")
+    if config.runtime_probe_repair_mode not in RUNTIME_PROBE_REPAIR_MODES:
+        raise ValueError("unsupported runtime probe repair mode")
+    if (
+        config.relation_policy_mode != RUNTIME_PROBE_POLICY
+        and config.runtime_probe_repair_mode != "hard_repair"
+    ):
+        raise ValueError("runtime probe repair mode requires runtime_probe policy")
     evidence_overlay_enabled = config.evidence_overlay_mode != "off"
     if evidence_overlay_enabled:
         if not is_evidence_action_controller_v37(config.arac_action):
@@ -3012,7 +3055,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     evidence_overlay_fe = 0
     evidence_overlay_barrier_attempted = False
     runtime_relation_action_map: dict[
-        tuple[tuple[int, int], tuple[int, ...]], str
+        tuple[tuple[int, int], tuple[int, ...]], tuple[str, float]
     ] = {}
     evidence_overlay_frozen_sub_fes: int | None = None
     evidence_overlay_probe_slice: tuple[int, int] | None = None
@@ -3506,14 +3549,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         effective_policy_mode = COHEN_D_RELATION_POLICY
                         action = decide_cohen_d_relation_action(relation)
                     elif config.relation_policy_mode == RUNTIME_PROBE_POLICY:
-                        effective_policy_mode = RUNTIME_PROBE_POLICY
-                        _probe_canonical = runtime_relation_action_map.get(
+                        effective_policy_mode = config.runtime_probe_repair_mode
+                        _probe_canonical, _probe_utility = runtime_relation_action_map.get(
                             runtime_probe_relation_key(
                                 relation.group_left,
                                 relation.group_right,
                                 relation.shared_vars,
                             ),
-                            "conservative_no_action",
+                            ("conservative_no_action", 0.0),
                         )
                         action = decide_runtime_probe_relation_action(
                             relation,
@@ -3554,14 +3597,32 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         COHEN_D_RELATION_POLICY,
                         RUNTIME_PROBE_POLICY,
                     }:
-                        adjusted_values = apply_action_to_relation(
-                            relation=relation,
-                            action=action,
-                            previous_values=context.previous_values,
-                            current_values=context.current_values,
-                            previous_delta=context.previous_delta,
-                            current_delta=context.current_delta,
-                        )
+                        _canonical_for_apply = _canonical_relation_action_name(action)
+                        if (
+                            config.relation_policy_mode == RUNTIME_PROBE_POLICY
+                            and config.runtime_probe_repair_mode
+                            == "conflict_conditioned_blend"
+                            and _canonical_for_apply == "repair_shared_variable_binding"
+                            and context.previous_values is not None
+                            and context.current_values is not None
+                        ):
+                            # Replace hard winner-take-all with soft conflict-conditioned blend
+                            adjusted_values = conflict_conditioned_context_blend(
+                                previous_values=context.previous_values,
+                                current_values=context.current_values,
+                                previous_delta=context.previous_delta,
+                                current_delta=context.current_delta,
+                                probe_utility=_probe_utility,
+                            )
+                        else:
+                            adjusted_values = apply_action_to_relation(
+                                relation=relation,
+                                action=action,
+                                previous_values=context.previous_values,
+                                current_values=context.current_values,
+                                previous_delta=context.previous_delta,
+                                current_delta=context.current_delta,
+                            )
                         action_value_delta_norm = (
                             0.0
                             if adjusted_values is None
@@ -3870,7 +3931,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 ] = (
                                     "repair_shared_variable_binding"
                                     if _pr.decision.shadow_action == "repair"
-                                    else "allow_beneficial_coordination"
+                                    else "allow_beneficial_coordination",
+                                    _pr.decision.utility,
                                 )
                     try:
                         evidence_overlay_observer.record_runtime_audit(
@@ -4058,6 +4120,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=sorted(EVIDENCE_OVERLAY_MODES),
         default="off",
     )
+    parser.add_argument(
+        "--runtime-probe-repair-mode",
+        choices=sorted(RUNTIME_PROBE_REPAIR_MODES),
+        default="hard_repair",
+    )
     parser.add_argument("--skip-plots", action="store_true")
     parser.set_defaults(
         verbose=1000,
@@ -4085,6 +4152,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             parser.error("--enable-relation-dispatch requires frozen v37")
     elif args.arac_action not in NON_DISPATCH_OVERLAP_ACTIONS:
         parser.error("non-dispatch execution requires a supported overlap action")
+    if (
+        args.runtime_probe_repair_mode != "hard_repair"
+        and args.relation_policy != RUNTIME_PROBE_POLICY
+    ):
+        parser.error("--runtime-probe-repair-mode requires runtime_probe")
     return args
 
 
@@ -4109,6 +4181,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         aob_data_root=args.aob_data_root,
         search_state_backend=args.search_state_backend,
         evidence_overlay_mode=args.evidence_overlay_mode,
+        runtime_probe_repair_mode=args.runtime_probe_repair_mode,
     )
     output_paths = []
     for fun_name in args.functions:
