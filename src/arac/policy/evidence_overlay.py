@@ -545,11 +545,18 @@ class RelationSelection:
 def select_top_relations(
     scored_relations: Sequence[ScoredRelation],
     *,
-    count: int = TOP_RELATION_COUNT,
+    count: int | None = TOP_RELATION_COUNT,
 ) -> RelationSelection:
-    """Select a unique top-k set, abstaining on an ambiguous cutoff."""
+    """Select a unique top-k set, abstaining on an ambiguous cutoff.
 
-    requested = _integer(count, name="count", minimum=1)
+    Pass count=None to select all eligible relations (no VoI cutoff).
+    """
+
+    requested = (
+        len(scored_relations)
+        if count is None
+        else _integer(count, name="count", minimum=1)
+    )
     scored = tuple(scored_relations)
     if len({item.relation.key for item in scored}) != len(scored):
         raise ValueError("scored relations must have unique structural keys")

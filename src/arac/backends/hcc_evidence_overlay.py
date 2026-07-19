@@ -15,6 +15,7 @@ from arac.backends.hcc import EVIDENCE_OVERLAY_MODES
 from arac.policy.evidence_overlay import (
     LOCAL_OPTIMUM_TOP_K,
     PROPOSAL_DISAGREEMENT_METRIC,
+    TOP_RELATION_COUNT,
     FourPointProbe,
     RelationKey,
     RelationSelection,
@@ -289,6 +290,7 @@ class HccEvidenceOverlayObserver:
         lower_bound: float,
         upper_bound: float,
         fresh_optimizer_execution: bool = True,
+        top_relation_count: int | None = TOP_RELATION_COUNT,
     ) -> None:
         if mode not in EVIDENCE_OVERLAY_MODES:
             raise ValueError("unsupported evidence overlay mode")
@@ -319,6 +321,9 @@ class HccEvidenceOverlayObserver:
         self.lower_bound = lower
         self.upper_bound = upper
         self.fresh_optimizer_execution = fresh_optimizer_execution
+        self.top_relation_count: int | None = (
+            int(top_relation_count) if top_relation_count is not None else None
+        )
         self.ordering = build_reference_blind_ordering(grouping_result)
         self.groups = self.ordering.groups
         self.topology = build_overlap_hypergraph(self.groups)
@@ -530,7 +535,7 @@ class HccEvidenceOverlayObserver:
             upper_bound=self.upper_bound,
         )
         native = score_relations(candidates)
-        native_selection = select_top_relations(native)
+        native_selection = select_top_relations(native, count=self.top_relation_count)
 
         selected_scores = native
         selection = native_selection
@@ -540,7 +545,7 @@ class HccEvidenceOverlayObserver:
             except ValueError:
                 selection = RelationSelection((), True, "shuffle_derangement_unavailable")
             else:
-                shuffled_selection = select_top_relations(shuffled)
+                shuffled_selection = select_top_relations(shuffled, count=self.top_relation_count)
                 native_keys = {item.relation.key for item in native_selection.selected}
                 shuffled_keys = {
                     item.relation.key for item in shuffled_selection.selected

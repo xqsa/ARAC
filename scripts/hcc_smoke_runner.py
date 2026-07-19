@@ -312,6 +312,10 @@ COHEN_D_REPAIR_THRESHOLD = 0.8
 COHEN_D_RELATION_POLICY = "cohen_d_repair"
 COHEN_D_REPAIR_TRIGGER = "cohen_d_above_0_8"
 COHEN_D_CONSERVATIVE_TRIGGER = "cohen_d_at_or_below_0_8"
+RUNTIME_PROBE_POLICY = "runtime_probe"
+RUNTIME_PROBE_REPAIR_TRIGGER = "probe_winner_repair"
+RUNTIME_PROBE_COORDINATE_TRIGGER = "probe_winner_coordinate"
+RUNTIME_PROBE_FALLBACK_TRIGGER = "probe_fallback_or_no_data"
 V36_FIRST_SWEEP_OUTER_ITER = 0
 V36_MIN_ACTIVE_COUNT = 4
 V36_MIN_ACTIVE_FRACTION = 0.20
@@ -1443,6 +1447,47 @@ def decide_cohen_d_relation_action(
     )
 
 
+def runtime_probe_relation_key(
+    group_left: int,
+    group_right: int,
+    shared_vars: tuple[int, ...],
+) -> tuple[tuple[int, int], tuple[int, ...]]:
+    return (int(group_left), int(group_right)), tuple(shared_vars)
+
+
+def decide_runtime_probe_relation_action(
+    relation: OverlapRelation,
+    canonical_action: str,
+) -> RelationActionDecision:
+    actions = {
+        "repair_shared_variable_binding": (
+            "reassign_repair",
+            "reassign_repair",
+            RUNTIME_PROBE_REPAIR_TRIGGER,
+        ),
+        "allow_beneficial_coordination": (
+            "coordinate",
+            "coordinate",
+            RUNTIME_PROBE_COORDINATE_TRIGGER,
+        ),
+        "conservative_no_action": (
+            "fallback",
+            "fallback",
+            RUNTIME_PROBE_FALLBACK_TRIGGER,
+        ),
+    }
+    if canonical_action not in actions:
+        raise ValueError(f"unsupported runtime probe action: {canonical_action}")
+    relation_action, action_family, trigger_reason = actions[canonical_action]
+    return RelationActionDecision(
+        relation_id=relation.relation_id,
+        action_name=relation_action,
+        action_family=action_family,
+        confidence=0.0 if relation_action == "fallback" else 1.0,
+        trigger_reason=trigger_reason,
+    )
+
+
 def refine_sigma_for_action(
     action_name: str,
     base_sigma: float,
@@ -2495,6 +2540,8 @@ def relation_policy_source_name(
 ) -> str:
     if relation_policy_mode == COHEN_D_RELATION_POLICY:
         return f"{COHEN_D_RELATION_POLICY}:threshold_gt_{COHEN_D_REPAIR_THRESHOLD}"
+    if relation_policy_mode == RUNTIME_PROBE_POLICY:
+        return RUNTIME_PROBE_POLICY
     if relation_policy_mode == "controller_v3":
         controller_mode = (
             "relation_first"
@@ -2877,8 +2924,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             raise ValueError("evidence overlay requires frozen v37")
         if not config.enable_relation_dispatch:
             raise ValueError("evidence overlay requires relation dispatch")
-        if config.relation_policy_mode != "controller_v31":
-            raise ValueError("evidence overlay requires controller_v31")
+        if config.relation_policy_mode not in {"controller_v31", RUNTIME_PROBE_POLICY}:
+            raise ValueError("evidence overlay requires controller_v31 or runtime_probe")
         if config.seed is None:
             raise ValueError("evidence overlay requires an explicit seed")
         if config.budget_accounting != "strict":
@@ -2893,6 +2940,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         if config.relation_policy_mode not in {
             "controller_v31",
             COHEN_D_RELATION_POLICY,
+            RUNTIME_PROBE_POLICY,
         }:
             raise ValueError("unsupported v37 relation dispatch policy")
     elif config.arac_action not in NON_DISPATCH_OVERLAP_ACTIONS:
@@ -2926,6 +2974,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             lower_bound=float(info["lower"]),
             upper_bound=float(info["upper"]),
             fresh_optimizer_execution=True,
+            # runtime_probe: probe every relation (count=None → select all)
+            top_relation_count=(
+                None
+                if config.relation_policy_mode == RUNTIME_PROBE_POLICY
+                else TOP_RELATION_COUNT
+            ),
         )
         if evidence_overlay_enabled
         else None
@@ -2957,6 +3011,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     previous_group_contribution_credit: list[float] = []
     evidence_overlay_fe = 0
     evidence_overlay_barrier_attempted = False
+    runtime_relation_action_map: dict[
+        tuple[tuple[int, int], tuple[int, ...]], str
+    ] = {}
     evidence_overlay_frozen_sub_fes: int | None = None
     evidence_overlay_probe_slice: tuple[int, int] | None = None
     evidence_overlay_runtime_failure: BaseException | None = None
@@ -3448,6 +3505,20 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
                         effective_policy_mode = COHEN_D_RELATION_POLICY
                         action = decide_cohen_d_relation_action(relation)
+                    elif config.relation_policy_mode == RUNTIME_PROBE_POLICY:
+                        effective_policy_mode = RUNTIME_PROBE_POLICY
+                        _probe_canonical = runtime_relation_action_map.get(
+                            runtime_probe_relation_key(
+                                relation.group_left,
+                                relation.group_right,
+                                relation.shared_vars,
+                            ),
+                            "conservative_no_action",
+                        )
+                        action = decide_runtime_probe_relation_action(
+                            relation,
+                            _probe_canonical,
+                        )
                     else:
                         relation_policy_context = current_outer_relations + [relation]
                         controller_v31_run_state.lock_from_runtime_prefix(
@@ -3479,7 +3550,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     trust_decision: ActionTrustDecision | None = None
                     fallback_route = ""
                     active_maturity_route = ""
-                    if config.relation_policy_mode == COHEN_D_RELATION_POLICY:
+                    if config.relation_policy_mode in {
+                        COHEN_D_RELATION_POLICY,
+                        RUNTIME_PROBE_POLICY,
+                    }:
                         adjusted_values = apply_action_to_relation(
                             relation=relation,
                             action=action,
@@ -3779,6 +3853,25 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     ),
                 )
                 if evidence_overlay_observer.barrier_result is not None:
+                    # Build per-relation runtime action map for runtime_probe policy
+                    if (
+                        config.relation_policy_mode == RUNTIME_PROBE_POLICY
+                        and evidence_overlay_observer.barrier_result.status == "probed"
+                    ):
+                        for _pr in evidence_overlay_observer._relation_probe_results:
+                            if _pr.decision.shadow_action in ("repair", "coordinate"):
+                                _probe_relation = _pr.scored_relation.relation
+                                runtime_relation_action_map[
+                                    runtime_probe_relation_key(
+                                        _probe_relation.key.owner_group_indices[0],
+                                        _probe_relation.key.owner_group_indices[1],
+                                        _probe_relation.key.shared_variable_indices,
+                                    )
+                                ] = (
+                                    "repair_shared_variable_binding"
+                                    if _pr.decision.shadow_action == "repair"
+                                    else "allow_beneficial_coordination"
+                                )
                     try:
                         evidence_overlay_observer.record_runtime_audit(
                             fingerprints_before=fingerprints_before,
@@ -3957,7 +4050,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--enable-relation-dispatch", action="store_true")
     parser.add_argument(
         "--relation-policy",
-        choices=["controller_v31", COHEN_D_RELATION_POLICY],
+        choices=["controller_v31", COHEN_D_RELATION_POLICY, RUNTIME_PROBE_POLICY],
         required=True,
     )
     parser.add_argument(
@@ -3985,8 +4078,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             parser.error("--evidence-overlay-mode requires frozen v37")
         if not args.enable_relation_dispatch:
             parser.error("--evidence-overlay-mode requires relation dispatch")
-        if args.relation_policy != "controller_v31":
-            parser.error("--evidence-overlay-mode requires controller_v31")
+        if args.relation_policy not in {"controller_v31", "runtime_probe"}:
+            parser.error("--evidence-overlay-mode requires controller_v31 or runtime_probe")
     elif args.enable_relation_dispatch:
         if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
             parser.error("--enable-relation-dispatch requires frozen v37")

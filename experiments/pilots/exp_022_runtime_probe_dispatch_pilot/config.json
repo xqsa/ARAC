@@ -1,0 +1,47 @@
+{
+    "protocol_version": "runtime-probe-dispatch-pilot-v1",
+    "experiment_id": "exp_022_runtime_probe_dispatch_pilot",
+    "config_schema_version": 1,
+    "status": "authorized_by_user_for_fresh_runtime_pilot",
+    "preregistration_date": "2026-07-19",
+    "executor": "Codex",
+    "execution": {
+        "cases": ["E3", "S5", "R4"],
+        "seeds": [117, 119, 120, 121, 122],
+        "max_fes": 3000000,
+        "jobs": 3,
+        "budget_accounting": "strict",
+        "search_state_backend": "phase_i_mmes",
+        "arac_action": "arac_evidence_action_controller_v37",
+        "relation_policy": "runtime_probe",
+        "enable_relation_dispatch": true,
+        "evidence_overlay_mode": "paired_owner",
+        "cmaes_restart": true,
+        "mmes_restart": true,
+        "skip_plots": true
+    },
+    "controls": {
+        "conforming_overlap_cases": ["R4"],
+        "interpretation": "R4 is all-conforming overlap — probe should produce near-zero repair rate; any catastrophic event in R4 signals systematic probe bias"
+    },
+    "gate": {
+        "catastrophic_multiplier": 1.2,
+        "maximum_catastrophic_trajectories": 0,
+        "probe_value_vs_shuffle_lcb_must_be_positive": true,
+        "shadow_non_fallback_count_minimum": 5,
+        "lco_lso_improvement_bootstrap_lcb_must_be_positive": true
+    },
+    "hypotheses": {
+        "H1": "Per-relation probe dispatch avoids interference by selectively repairing only relations where probe shows improvement; E3 and S5 should show net improvement vs HCC baseline with zero catastrophic events",
+        "H2": "R4 (conforming overlap) should have repair_state_mutated_rate near zero because probe will see no advantage for repair over HCC Eq.8",
+        "H3": "probe_value_vs_shuffle_lcb will be positive because probe decisions are correlated with actual Phase-II improvement (unlike exp_018 where decisions were never applied)"
+    },
+    "forbidden_runtime_inputs": [
+        "paper_reported_baseline",
+        "oracle",
+        "final_error",
+        "relative_gain",
+        "problem_family_label",
+        "prior_final_outcome"
+    ]
+}
