@@ -306,6 +306,9 @@ V31_NON_DENSE_LARGE_FALLBACK_REPAIR_TRIGGER = (
 )
 PHASE_RESCUE_MULTISTART_ACTION = "phase_rescue_multistart"
 EVIDENCE_ACTION_CONTROLLER_V37 = controller_profile_by_version(37).action_name
+NON_DISPATCH_OVERLAP_ACTIONS = frozenset(
+    {"conservative_no_action", "allow_beneficial_coordination"}
+)
 REPAIR_PROTECT_REFINE_SIGMA_MULTIPLIER = 0.5
 BIPOP_STAGNATION_EPSILON = 1e-8
 BIPOP_RESTART_COOLDOWN = 1
@@ -2700,8 +2703,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError(f"unsupported budget accounting mode: {config.budget_accounting}")
     if config.evidence_overlay_mode not in EVIDENCE_OVERLAY_MODES:
         raise ValueError("unsupported evidence overlay mode")
-    if not is_evidence_action_controller_v37(config.arac_action):
-        raise ValueError("exp_018 runner requires frozen v37")
     evidence_overlay_enabled = config.evidence_overlay_mode != "off"
     if evidence_overlay_enabled:
         if not is_evidence_action_controller_v37(config.arac_action):
@@ -2718,6 +2719,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             raise ValueError("evidence overlay requires frozen restart settings")
         if config.search_state_backend != "phase_i_mmes":
             raise ValueError("evidence overlay requires phase_i_mmes")
+    elif config.enable_relation_dispatch:
+        if not is_evidence_action_controller_v37(config.arac_action):
+            raise ValueError("relation dispatch requires frozen v37")
+    elif config.arac_action not in NON_DISPATCH_OVERLAP_ACTIONS:
+        raise ValueError("non-dispatch execution requires a supported overlap action")
     time_start = time.time()
     bench = Benchmark(str(output_path) + "/", data_dir=config.aob_data_root)
     fun = bench.get_function(fun_name, fun_id)
@@ -3666,7 +3672,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Frozen exp_018 HCC evidence-overlay runner."
+        description="HCC/AOB runner with a frozen evidence-overlay profile."
     )
     parser.add_argument(
         "--functions",
@@ -3692,7 +3698,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--max-fes", type=int, required=True)
     parser.add_argument(
         "--arac-action",
-        choices=[EVIDENCE_ACTION_CONTROLLER_V37],
+        choices=[EVIDENCE_ACTION_CONTROLLER_V37, *sorted(NON_DISPATCH_OVERLAP_ACTIONS)],
         required=True,
     )
     parser.add_argument(
@@ -3731,8 +3737,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("exp_018 runner accepts exactly one function/id pair")
     if (args.functions[0], args.ids[0]) not in ACTIVE_FUNCTION_ID_PAIRS:
         parser.error("function/id pair is outside the frozen exp_018 cases")
-    if args.evidence_overlay_mode != "off" and not args.enable_relation_dispatch:
-        parser.error("--evidence-overlay-mode requires relation dispatch")
+    if args.evidence_overlay_mode != "off":
+        if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
+            parser.error("--evidence-overlay-mode requires frozen v37")
+        if not args.enable_relation_dispatch:
+            parser.error("--evidence-overlay-mode requires relation dispatch")
+    elif args.enable_relation_dispatch:
+        if args.arac_action != EVIDENCE_ACTION_CONTROLLER_V37:
+            parser.error("--enable-relation-dispatch requires frozen v37")
+    elif args.arac_action not in NON_DISPATCH_OVERLAP_ACTIONS:
+        parser.error("non-dispatch execution requires a supported overlap action")
     return args
 
 
