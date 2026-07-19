@@ -71,7 +71,7 @@ def test_external_hcc_main_root_is_rejected_as_offline_only(tmp_path: Path) -> N
         "global_fes",
     ),
     (
-        ("E1", "elliptic", 1, 1000, 0, 0, 0),
+        ("E1", "elliptic", 1, 1000, 0, 0, 600_000),
         ("E3", "elliptic", 3, 1057, 3, 57, 736_800),
         ("A4", "ackley", 4, 1095, 5, 95, 828_000),
         ("S5", "schwefel", 5, 1133, 7, 133, 919_200),
