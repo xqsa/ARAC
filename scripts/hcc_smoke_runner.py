@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+# The standalone runner must register repository/vendor roots before local imports.
+# ruff: noqa: E402
+
 import argparse
 import csv
 import hashlib
@@ -62,12 +65,23 @@ from src.arac.actions.controller_profiles import (
     controller_has_capability,
     controller_profile_by_version,
 )
+from src.arac.actions.shared_variable_blend import (
+    NATIVE_EQ8_ACTION,
+    TRUE_NO_WRITEBACK_ACTION,
+    apply_legacy_shared_variable_policy,
+)
 from arac.backends.hcc_evidence_overlay import (
     EvidenceOverlayArtifactPaths,
     HccEvidenceOverlayObserver,
     RuntimeProbeActionLedger,
 )
 from arac.backends.hcc_action_ceiling import update_efficiency_ewma
+from arac.actions.group_optimizer_type import (
+    DIAGONAL_COVARIANCE_MODE,
+    FULL_CMAES_MODE,
+    GROUP_OPTIMIZER_MODES,
+    resolve_group_optimizer_action,
+)
 from arac.backends.hcc_action_ceiling_runtime import HccActionCeilingRuntime
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARM_RESULT_FIELDS,
@@ -349,8 +363,6 @@ COHEN_D_REPAIR_TRIGGER = "cohen_d_above_0_8"
 COHEN_D_CONSERVATIVE_TRIGGER = "cohen_d_at_or_below_0_8"
 RUNTIME_PROBE_POLICY = "runtime_probe"
 ACTION_CEILING_POLICY = "action_ceiling"
-NATIVE_EQ8_ACTION = "native_eq8"
-TRUE_NO_WRITEBACK_ACTION = "true_no_writeback"
 RUNTIME_PROBE_REPAIR_TRIGGER = "probe_winner_repair"
 RUNTIME_PROBE_COORDINATE_TRIGGER = "probe_winner_coordinate"
 RUNTIME_PROBE_FALLBACK_TRIGGER = "probe_fallback_or_no_data"
@@ -614,6 +626,7 @@ class SmokeConfig:
     runtime_probe_repair_mode: str = "hard_repair"
     action_ceiling_capture: bool = False
     action_ceiling_cohort: str = "real_aob"
+    group_optimizer_mode: str = FULL_CMAES_MODE
 
 
 @dataclass(frozen=True)
@@ -1661,34 +1674,6 @@ def derive_optimizer_seed(
     return int.from_bytes(digest, byteorder="big") & ((1 << 63) - 1)
 
 
-def blend_overlap_values(
-    previous_values: np.ndarray,
-    current_values: np.ndarray,
-    previous_delta: float,
-    current_delta: float,
-) -> np.ndarray:
-    denominator = previous_delta + current_delta
-    if denominator == 0:
-        return (previous_values + current_values) / 2
-    return (previous_delta / denominator) * previous_values + (
-        current_delta / denominator
-    ) * current_values
-
-
-def clipped_consensus_blend(
-    previous_values: np.ndarray,
-    current_values: np.ndarray,
-    previous_delta: float,
-    current_delta: float,
-) -> np.ndarray:
-    denominator = previous_delta + current_delta
-    if denominator == 0:
-        return (previous_values + current_values) / 2
-    current_weight = float(np.clip(current_delta / denominator, 0.35, 0.65))
-    previous_weight = 1.0 - current_weight
-    return (previous_weight * previous_values) + (current_weight * current_values)
-
-
 def conflict_conditioned_context_blend(
     previous_values: np.ndarray,
     current_values: np.ndarray,
@@ -1751,30 +1736,12 @@ def apply_arac_overlap_action(
     previous_delta: float,
     current_delta: float,
 ) -> np.ndarray | None:
-    if action_name == TRUE_NO_WRITEBACK_ACTION:
-        return None
-    if action_name == "repair_shared_variable_binding":
-        if current_delta >= previous_delta:
-            return current_values
-        return previous_values
-    if action_name == "isolate_conflicting_relation":
-        if previous_delta >= current_delta:
-            return previous_values
-        return current_values
-    if action_name == "allow_beneficial_coordination":
-        return clipped_consensus_blend(
-            previous_values=previous_values,
-            current_values=current_values,
-            previous_delta=previous_delta,
-            current_delta=current_delta,
-        )
-    if action_name not in {"conservative_no_action", NATIVE_EQ8_ACTION}:
-        raise ValueError(f"unsupported overlap action: {action_name}")
-    return blend_overlap_values(
-        previous_values=previous_values,
-        current_values=current_values,
-        previous_delta=previous_delta,
-        current_delta=current_delta,
+    return apply_legacy_shared_variable_policy(
+        action_name,
+        previous_values,
+        current_values,
+        previous_delta,
+        current_delta,
     )
 
 
@@ -3179,6 +3146,17 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         )
     if config.action_ceiling_cohort not in {"real_aob", "synthetic_conflict"}:
         raise ValueError("unsupported action-ceiling cohort")
+    if config.group_optimizer_mode not in GROUP_OPTIMIZER_MODES:
+        raise ValueError("unsupported group optimizer mode")
+    if config.group_optimizer_mode == DIAGONAL_COVARIANCE_MODE:
+        if config.enable_relation_dispatch or config.action_ceiling_capture:
+            raise ValueError(
+                "diagonal covariance action must run without relation dispatch"
+            )
+        if config.arac_action != NATIVE_EQ8_ACTION:
+            raise ValueError(
+                "diagonal covariance action requires native_eq8 overlap handling"
+            )
     evidence_overlay_enabled = config.evidence_overlay_mode != "off"
     if evidence_overlay_enabled:
         if not is_evidence_action_controller_v37(config.arac_action):
@@ -3283,6 +3261,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     evidence_overlay_fe = 0
     evidence_overlay_barrier_attempted = False
     runtime_probe_action_ledger = RuntimeProbeActionLedger()
+    group_optimizer_action = resolve_group_optimizer_action(
+        config.group_optimizer_mode
+    )
     runtime_probe_checkpoint_hash: str | None = None
     action_ceiling_action_sets: dict[RelationKey, RelationActionSet] = {}
     action_ceiling_context_rows: list[dict[str, str]] = []
@@ -3508,6 +3489,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 "is_restart": config.cmaes_restart,
                 "verbose": config.verbose,
                 "early_stopping_evaluations": config.early_stopping_evaluations,
+                "diagonal_only": group_optimizer_action.diagonal_only,
             }
             if config.seed is not None:
                 stage_index = outer_iter * sub_num + index + 1
@@ -4786,6 +4768,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=["real_aob", "synthetic_conflict"],
         default="real_aob",
     )
+    parser.add_argument(
+        "--group-optimizer-mode",
+        choices=sorted(GROUP_OPTIMIZER_MODES),
+        default=FULL_CMAES_MODE,
+    )
     parser.add_argument("--skip-plots", action="store_true")
     parser.set_defaults(
         verbose=1000,
@@ -4857,6 +4844,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         runtime_probe_repair_mode=args.runtime_probe_repair_mode,
         action_ceiling_capture=args.action_ceiling_capture,
         action_ceiling_cohort=args.action_ceiling_cohort,
+        group_optimizer_mode=args.group_optimizer_mode,
     )
     output_paths = []
     for fun_name in args.functions:
@@ -4930,6 +4918,19 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 function_action_mismatch_rows,
             )
         evaluation_record(output_data, str(output_path) + "/", record_FEs_list=(args.max_fes,))
+        run_summary = {
+            "protocol_version": "hcc-run-summary-v1",
+            "problem_id": _problem_id(args.functions[0], args.ids[0]),
+            "seed": int(args.seed),
+            "configured_max_fes": int(args.max_fes),
+            "fitness_evaluations": len(record),
+            "final_error": float(min(record)),
+            "group_optimizer_mode": args.group_optimizer_mode,
+        }
+        (output_path / "run_summary.json").write_text(
+            json.dumps(run_summary, indent=2, sort_keys=True, allow_nan=False) + "\n",
+            encoding="utf-8",
+        )
         if not config.skip_plots:
             plot_evaluation_curve(output_data, str(output_path) + "/", font_size=12, log_scale=True)
             plot_evaluation_curve_best_so_far(

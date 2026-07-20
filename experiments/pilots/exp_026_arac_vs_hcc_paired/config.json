@@ -1,0 +1,62 @@
+{
+  "protocol_version": "paired-action-validation-v2",
+  "experiment_id": "exp_026_arac_vs_hcc_paired",
+  "config_schema_version": 2,
+  "stage": "action_validation",
+  "preregistration_date": "2026-07-20",
+  "executor": "Codex",
+  "purpose": "validate_diagonal_covariance_action_against_native_hcc",
+  "description": "Paired same-case, same-seed, same-FE validation of one frozen group-optimizer action. No evidence selector, bandit, relation dispatch, or runtime probe is enabled.",
+  "execution": {
+    "cases": ["E1", "E3", "A4", "R4", "S5"],
+    "seeds": [117, 118, 119, 120, 121],
+    "max_fes": 300000,
+    "jobs": 5,
+    "budget_accounting": "strict",
+    "search_state_backend": "phase_i_mmes",
+    "cmaes_restart": true,
+    "mmes_restart": true,
+    "skip_plots": true,
+    "arm_a": {
+      "label": "native_full_cmaes",
+      "action_surface": "group_optimizer_type",
+      "arac_action": "native_eq8",
+      "group_optimizer_mode": "full_cmaes",
+      "enable_relation_dispatch": false,
+      "relation_policy": "controller_v31",
+      "runtime_probe_repair_mode": "hard_repair",
+      "evidence_overlay_mode": "off"
+    },
+    "arm_b": {
+      "label": "diagonal_covariance",
+      "action_surface": "group_optimizer_type",
+      "arac_action": "native_eq8",
+      "group_optimizer_mode": "diagonal_covariance",
+      "enable_relation_dispatch": false,
+      "relation_policy": "controller_v31",
+      "runtime_probe_repair_mode": "hard_repair",
+      "evidence_overlay_mode": "off"
+    }
+  },
+  "analysis": {
+    "pairing": "same case and seed across both arms",
+    "primary_metric": "final_best_so_far_error",
+    "delta_definition": "log((native_final_error + 1e-300) / (action_final_error + 1e-300))",
+    "case_aggregation": "macro_mean",
+    "bootstrap_method": "within_case_case_seed_cluster_bootstrap",
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 2026071901,
+    "material_positive_multiplier": 1.01,
+    "catastrophic_multiplier": 1.20
+  },
+  "forbidden_runtime_inputs": [
+    "evidence_selector",
+    "action_bandit",
+    "runtime_probe",
+    "relation_dispatch",
+    "oracle",
+    "final_error",
+    "relative_gain",
+    "paper_reported_baseline"
+  ]
+}

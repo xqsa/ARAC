@@ -228,8 +228,13 @@ class CMAES(ES):
         mean = self._initialize_mean(is_restart)  # mean of Gaussian search distribution
         p_s = np.zeros((self.ndim_problem,))  # evolution path (p_σ) for cumulative step-length adaptation (CSA)
         p_c = np.zeros((self.ndim_problem,))  # evolution path for covariance matrix adaptation (CMA)
-        cm = np.eye(self.ndim_problem)  # covariance matrix of Gaussian search distribution
-        e_ve = np.eye(self.ndim_problem)  # eigenvectors of `cm` (orthogonal matrix)
+        diagonal_only = bool(self.options.get('diagonal_only', False))
+        cm = (
+            np.ones((self.ndim_problem,))
+            if diagonal_only
+            else np.eye(self.ndim_problem)
+        )
+        e_ve = None if diagonal_only else np.eye(self.ndim_problem)
         e_va = np.ones((self.ndim_problem,))  # square roots of eigenvalues of `cm` (in diagonal rather matrix form)
         y = np.empty((self.n_individuals,))  # fitness (no evaluation)
         d = np.empty((self.n_individuals, self.ndim_problem))
@@ -242,7 +247,10 @@ class CMAES(ES):
 
         z = self.rng_optimization.standard_normal((self.n_individuals, self.ndim_problem))  # shape: (n_individuals, ndim_problem)
 
-        d = np.dot(z, np.dot(np.diag(e_va), e_ve.T))  # shape: (n_individuals, ndim_problem)
+        if self.options.get('diagonal_only', False):
+            d = z*e_va
+        else:
+            d = np.dot(z, np.dot(np.diag(e_va), e_ve.T))  # shape: (n_individuals, ndim_problem)
 
         x = mean + self.sigma * d  # shape: (n_individuals, ndim_problem)
 
@@ -255,6 +263,35 @@ class CMAES(ES):
         wd = np.dot(self._w[:self.n_parents], d[order[:self.n_parents]])
         # update distribution mean via weighted recombination
         mean = np.dot(self._w[:self.n_parents], x[order[:self.n_parents]])
+        if self.options.get('diagonal_only', False):
+            whitened_d = d/e_va
+            p_s = self._p_s_1*p_s + self._p_s_2*(wd/e_va)
+            self.sigma *= np.exp(self.c_s/self.d_sigma*(np.linalg.norm(p_s)/self._e_chi - 1.0))
+            h_s = 1.0 if np.linalg.norm(p_s)/np.sqrt(
+                1.0 - np.power(1.0 - self.c_s, 2*(self._n_generations + 1))
+            ) < (1.4 + 2.0/(self.ndim_problem + 1.0))*self._e_chi else 0.0
+            p_c = self._p_c_1*p_c + h_s*self._p_c_2*wd
+            w_o = self._w*np.where(
+                self._w >= 0,
+                1.0,
+                self.ndim_problem/(
+                    np.square(np.linalg.norm(whitened_d, axis=1)) + 1e-8
+                ),
+            )
+            covariance_factor = (
+                1.0
+                + self.c_1*(1.0 - h_s)*self.c_c*(2.0 - self.c_c)
+                - self.c_1
+                - self.c_w*np.sum(self._w)
+            )
+            cm = (
+                covariance_factor*cm
+                + self.c_1*np.square(p_c)
+                + self.c_w*np.dot(w_o, np.square(d[order]))
+            )
+            cm = np.maximum(cm, 1e-8)
+            e_va = np.sqrt(cm)
+            return mean, p_s, p_c, cm, None, e_va
         # update global step-size: cumulative path length control / cumulative step-size control /
         #   cumulative step length adaptation (CSA)
         cm_minus_half = e_ve @ np.diag(1.0/e_va) @ e_ve.T
