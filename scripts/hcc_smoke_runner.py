@@ -132,6 +132,12 @@ def CMAES(*args, **kwargs):
     return _CMAES(*args, **kwargs)
 
 
+def SEPCMAES(*args, **kwargs):
+    from HCC.OPT.CMAES.sepcmaes import SEPCMAES as _SEPCMAES
+
+    return _SEPCMAES(*args, **kwargs)
+
+
 def Decomposition(*args, **kwargs):
     from HCC.RDDSM import Decomposition as _Decomposition
 
@@ -3116,8 +3122,54 @@ class PendingActionCeilingParity:
     start_fe: int
     horizon_fe: int
     expected_record: tuple[float, ...]
+    expected_incumbent: tuple[float, ...]
+    expected_incumbent_hash: str
+    expected_sweep_trace: tuple[int, ...]
+    expected_order_trace: tuple[int, ...]
+    expected_budget_trace: tuple[int, ...]
+    expected_start_fe_trace: tuple[int, ...]
     context_row: dict[str, str]
     arm_rows: list[dict[str, str]]
+    actual_sweep_trace: list[int] = field(default_factory=list)
+    actual_order_trace: list[int] = field(default_factory=list)
+    actual_budget_trace: list[int] = field(default_factory=list)
+    actual_start_fe_trace: list[int] = field(default_factory=list)
+
+
+def _action_ceiling_native_cycle_prewriteback_parity(
+    pending: PendingActionCeilingParity,
+    *,
+    relation: RelationKey,
+    current_sweep: int,
+    current_fe: int,
+    fitness_record: Sequence[float],
+) -> tuple[tuple[float, ...], str]:
+    actual_record = tuple(
+        float(value)
+        for value in fitness_record[
+            pending.start_fe : pending.start_fe + pending.horizon_fe
+        ]
+    )
+    if relation != pending.relation:
+        return actual_record, "native_relation_parity_mismatch"
+    if current_sweep != pending.expected_sweep:
+        return actual_record, "native_sweep_parity_mismatch"
+    if (
+        len(actual_record) != pending.horizon_fe
+        or actual_record != pending.expected_record
+    ):
+        return actual_record, "native_prefix_parity_mismatch"
+    if (
+        tuple(pending.actual_sweep_trace) != pending.expected_sweep_trace
+        or tuple(pending.actual_order_trace) != pending.expected_order_trace
+        or tuple(pending.actual_budget_trace) != pending.expected_budget_trace
+        or tuple(pending.actual_start_fe_trace)
+        != pending.expected_start_fe_trace
+    ):
+        return actual_record, "native_dispatch_trace_parity_mismatch"
+    if current_fe != pending.start_fe + pending.horizon_fe:
+        return actual_record, "native_horizon_fe_parity_mismatch"
+    return actual_record, ""
 
 
 def _write_action_ceiling_csv(
@@ -3314,6 +3366,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         HccActionCeilingRuntime(
             benchmark_factory=Benchmark,
             cmaes_factory=CMAES,
+            sepcmaes_factory=SEPCMAES,
             combine=combine,
             derive_seed=derive_optimizer_seed,
             fun_name=fun_name,
@@ -3436,6 +3489,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         for index, dims in enumerate(grouping_result):
             action_ceiling_expected_post_action: tuple[float, ...] | None = None
             action_ceiling_expected_post_action_hash: str | None = None
+            action_ceiling_pending_cycle_parity: PendingActionCeilingParity | None = None
             population_size = population_sizes[index]
             if (
                 config.budget_accounting == "strict"
@@ -3479,6 +3533,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 )
             if optimizer_budget <= 0:
                 break
+            for pending in action_ceiling_pending_parity.values():
+                if len(pending.actual_order_trace) >= sub_num:
+                    continue
+                pending.actual_sweep_trace.append(outer_iter)
+                pending.actual_order_trace.append(index)
+                pending.actual_budget_trace.append(optimizer_budget)
+                pending.actual_start_fe_trace.append(
+                    group_interval_start_fe - pending.start_fe + 1
+                )
             cc_mean = np.asarray(best_individual[dims], dtype=float).copy()
             primary_evaluations_before = current_fitness_evaluations(fun)
             cc_sigma = (
@@ -3863,38 +3926,30 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             pending_parity is not None
                             and outer_iter == pending_parity.expected_sweep
                         ):
-                            actual_record = tuple(
-                                float(value)
-                                for value in fun.fitness_record[
-                                    pending_parity.start_fe :
-                                    pending_parity.start_fe
-                                    + pending_parity.horizon_fe
-                                ]
+                            (
+                                actual_record,
+                                invalidation_reason,
+                            ) = _action_ceiling_native_cycle_prewriteback_parity(
+                                pending_parity,
+                                relation=relation_key,
+                                current_sweep=outer_iter,
+                                current_fe=current_fitness_evaluations(fun),
+                                fitness_record=fun.fitness_record,
                             )
-                            parity_passed = (
-                                len(actual_record) == pending_parity.horizon_fe
-                                and actual_record == pending_parity.expected_record
-                            )
-                            pending_parity.context_row["native_parity"] = str(
-                                int(parity_passed)
-                            )
-                            pending_parity.context_row["status"] = (
-                                "complete" if parity_passed else "invalid"
-                            )
-                            pending_parity.context_row["invalidation_reason"] = (
-                                "" if parity_passed else "native_prefix_parity_mismatch"
-                            )
-                            for arm_row in pending_parity.arm_rows:
-                                arm_row["status"] = (
-                                    "complete" if parity_passed else "invalid"
+                            if not invalidation_reason:
+                                action_ceiling_pending_cycle_parity = pending_parity
+                            else:
+                                pending_parity.context_row["native_parity"] = "0"
+                                pending_parity.context_row["status"] = "invalid"
+                                pending_parity.context_row["invalidation_reason"] = (
+                                    invalidation_reason
                                 )
-                                arm_row["invalidation_reason"] = (
-                                    ""
-                                    if parity_passed
-                                    else "native_prefix_parity_mismatch"
-                                )
-                            action_ceiling_pending_parity.pop(relation_key)
-                            if not parity_passed:
+                                for arm_row in pending_parity.arm_rows:
+                                    arm_row["status"] = "invalid"
+                                    arm_row["invalidation_reason"] = (
+                                        invalidation_reason
+                                    )
+                                action_ceiling_pending_parity.pop(relation_key)
                                 mismatch_index = next(
                                     (
                                         item
@@ -3914,12 +3969,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 evidence_overlay_runtime_failure = RuntimeError(
                                     "action-ceiling native continuation parity mismatch: "
                                     f"relation={relation_key}, index={mismatch_index}, "
+                                    f"reason={invalidation_reason}, "
                                     f"expected_len={len(pending_parity.expected_record)}, "
                                     f"actual_len={len(actual_record)}, "
                                     f"expected_value={pending_parity.expected_record[mismatch_index] if mismatch_index < len(pending_parity.expected_record) else None}, "
                                     f"actual_value={actual_record[mismatch_index] if mismatch_index < len(actual_record) else None}, "
                                     f"expected_hash={_canonical_payload_sha256(list(pending_parity.expected_record))}, "
-                                    f"actual_hash={_canonical_payload_sha256(list(actual_record))}"
+                                    f"actual_hash={_canonical_payload_sha256(list(actual_record))}, "
+                                    f"expected_trace={(pending_parity.expected_sweep_trace, pending_parity.expected_order_trace, pending_parity.expected_budget_trace, pending_parity.expected_start_fe_trace)}, "
+                                    f"actual_trace={(tuple(pending_parity.actual_sweep_trace), tuple(pending_parity.actual_order_trace), tuple(pending_parity.actual_budget_trace), tuple(pending_parity.actual_start_fe_trace))}"
                                 )
 
                         action_set = action_ceiling_action_sets.pop(
@@ -3997,6 +4055,24 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                     start_fe=current_fitness_evaluations(fun),
                                     horizon_fe=int(context_row["horizon_fe"]),
                                     expected_record=captured.expected_native_record,
+                                    expected_incumbent=(
+                                        captured.expected_native_cycle_incumbent
+                                    ),
+                                    expected_incumbent_hash=(
+                                        captured.expected_native_cycle_incumbent_hash
+                                    ),
+                                    expected_sweep_trace=(
+                                        captured.expected_native_cycle_sweep_trace
+                                    ),
+                                    expected_order_trace=(
+                                        captured.expected_native_cycle_order_trace
+                                    ),
+                                    expected_budget_trace=(
+                                        captured.expected_native_cycle_budget_trace
+                                    ),
+                                    expected_start_fe_trace=(
+                                        captured.expected_native_cycle_start_fe_trace
+                                    ),
                                     context_row=context_row,
                                     arm_rows=arm_rows,
                                 )
@@ -4218,6 +4294,55 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 f"actual_value={best_individual[first_difference]}, "
                                 f"expected_hash={action_ceiling_expected_post_action_hash}, "
                                 f"actual_hash={actual_post_action_hash}"
+                            )
+                    if action_ceiling_pending_cycle_parity is not None:
+                        pending_parity = action_ceiling_pending_cycle_parity
+                        actual_cycle_incumbent_hash = _canonical_payload_sha256(
+                            [float(value) for value in best_individual]
+                        )
+                        incumbent_parity_passed = (
+                            actual_cycle_incumbent_hash
+                            == pending_parity.expected_incumbent_hash
+                        )
+                        pending_parity.context_row["native_parity"] = str(
+                            int(incumbent_parity_passed)
+                        )
+                        pending_parity.context_row["status"] = (
+                            "complete" if incumbent_parity_passed else "invalid"
+                        )
+                        pending_parity.context_row["invalidation_reason"] = (
+                            ""
+                            if incumbent_parity_passed
+                            else "native_incumbent_parity_mismatch"
+                        )
+                        for arm_row in pending_parity.arm_rows:
+                            arm_row["status"] = (
+                                "complete" if incumbent_parity_passed else "invalid"
+                            )
+                            arm_row["invalidation_reason"] = (
+                                ""
+                                if incumbent_parity_passed
+                                else "native_incumbent_parity_mismatch"
+                            )
+                        action_ceiling_pending_parity.pop(relation_key)
+                        if not incumbent_parity_passed:
+                            expected_cycle_incumbent = np.asarray(
+                                pending_parity.expected_incumbent,
+                                dtype=float,
+                            )
+                            different_indices = np.flatnonzero(
+                                expected_cycle_incumbent != best_individual
+                            )
+                            first_difference = int(different_indices[0])
+                            evidence_overlay_runtime_failure = RuntimeError(
+                                "action-ceiling native incumbent parity mismatch: "
+                                f"relation={relation_key}, "
+                                f"different_count={different_indices.size}, "
+                                f"first_index={first_difference}, "
+                                f"expected_value={expected_cycle_incumbent[first_difference]}, "
+                                f"actual_value={best_individual[first_difference]}, "
+                                f"expected_hash={pending_parity.expected_incumbent_hash}, "
+                                f"actual_hash={actual_cycle_incumbent_hash}"
                             )
                     relative_writeback_norm = scale_free_writeback_norm(
                         delta_norm=action_value_delta_norm,

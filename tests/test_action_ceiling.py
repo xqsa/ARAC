@@ -7,6 +7,7 @@ import math
 import pytest
 import numpy as np
 
+from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
 from arac.backends.hcc_action_ceiling import (
     ActionExecutionRequest,
     ContinuationResult,
@@ -335,6 +336,7 @@ def test_shared_writeback_repairs_stale_owner_means_even_without_incumbent_delta
         "efficiency_budget_reallocation",
         "delta_priority_scan",
         "stagnation_cross_group_warm_start",
+        FULL_SPACE_SEP_CMA_ACTION,
     ],
 )
 def test_continuation_arms_reuse_native_eq8_at_dispatch(arm: str) -> None:
@@ -344,7 +346,7 @@ def test_continuation_arms_reuse_native_eq8_at_dispatch(arm: str) -> None:
     )
 
     assert result.selected_candidate == arm
-    assert result.extra_fes == 0
+    assert result.action_actual_fes == 0
     np.testing.assert_allclose(
         result.incumbent[4:6],
         native_eq8_values((6.0, 7.0), (8.0, 9.0), 1.0, 3.0),
@@ -663,7 +665,7 @@ def test_native_group_cycle_uses_actual_fe_when_optimizer_stops_early() -> None:
     assert len(result.completed_group_deltas) == 1
 
 
-def test_horizon_errors_charge_extra_fes_before_native_continuation() -> None:
+def test_horizon_errors_charge_action_fes_before_native_continuation() -> None:
     errors = branch_horizon_errors(
         prefix_best_error=100.0,
         post_checkpoint_record=[90.0, 80.0, 70.0, 60.0, 50.0, 40.0],

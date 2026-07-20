@@ -10,6 +10,7 @@ from typing import Callable, Protocol, Sequence
 
 import numpy as np
 
+from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
@@ -143,7 +144,21 @@ class ActionExecutionResult:
     arm: str
     incumbent: tuple[float, ...]
     incumbent_fitness: float
-    extra_fes: int
+    action_budget_fes: int
+    action_actual_fes: int
+    action_instance_hash: str
+    action_lifecycle_payload: str
+    action_lifecycle_hash: str
+    action_accepted: bool
+    action_candidate_hash: str
+    action_candidate_fitness: float | None
+    action_post_incumbent_hash: str
+    optimizer_scope: str
+    optimizer_parameter_hash: str
+    optimizer_initial_state_hash: str
+    optimizer_final_state_hash: str
+    optimizer_population_size: int
+    optimizer_generation_count: int
     counterfactual_applied: bool
     mutation_norm: float
     optimizer_mean_mutation_norm: float
@@ -214,7 +229,6 @@ def execute_action_ceiling_arm(
     indices = np.asarray(request.action_set.relation.shared_variable_indices, dtype=int)
     if np.any(indices < 0) or np.any(indices >= incumbent.size):
         raise ValueError("relation shared index is outside incumbent")
-    extra_fes = 0
     selected_candidate = request.arm
     incumbent_fitness = float(request.incumbent_fitness)
     owner_optimizer_means = request.owner_optimizer_means
@@ -258,6 +272,7 @@ def execute_action_ceiling_arm(
         "efficiency_budget_reallocation",
         "delta_priority_scan",
         "stagnation_cross_group_warm_start",
+        FULL_SPACE_SEP_CMA_ACTION,
     }:
         # Keep the target dispatch identical to native; only continuation changes.
         write_shared_values(
@@ -292,7 +307,30 @@ def execute_action_ceiling_arm(
         arm=request.arm,
         incumbent=tuple(float(value) for value in incumbent),
         incumbent_fitness=incumbent_fitness,
-        extra_fes=extra_fes,
+        action_budget_fes=0,
+        action_actual_fes=0,
+        action_instance_hash="",
+        action_lifecycle_payload="",
+        action_lifecycle_hash="",
+        action_accepted=False,
+        action_candidate_hash="",
+        action_candidate_fitness=None,
+        action_post_incumbent_hash="",
+        optimizer_scope=(
+            "decomposed_groups"
+            if request.arm in {
+                "efficiency_budget_reallocation",
+                "delta_priority_scan",
+                "stagnation_cross_group_warm_start",
+                FULL_SPACE_SEP_CMA_ACTION,
+            }
+            else "relation_writeback"
+        ),
+        optimizer_parameter_hash="",
+        optimizer_initial_state_hash="",
+        optimizer_final_state_hash="",
+        optimizer_population_size=0,
+        optimizer_generation_count=0,
         counterfactual_applied=(
             mutation_norm > 0.0 or optimizer_mean_mutation_norm > 0.0
         ),

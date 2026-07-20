@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from random import Random
 from typing import Mapping, Sequence
 
+from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
 from arac.policy.evidence_overlay import (
     BridgeWeights,
     ProbeUtilities,
@@ -19,7 +20,7 @@ from arac.policy.evidence_overlay import (
 )
 
 
-ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v4"
+ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v5"
 ACTION_CEILING_ARMS = (
     "native_eq8",
     "true_no_writeback",
@@ -29,6 +30,7 @@ ACTION_CEILING_ARMS = (
     "efficiency_budget_reallocation",
     "delta_priority_scan",
     "stagnation_cross_group_warm_start",
+    FULL_SPACE_SEP_CMA_ACTION,
 )
 ACTION_CEILING_HORIZONS = ("immediate", "sweep_1", "sweep_3")
 ACTION_CEILING_CONTEXT_FIELDS = (
@@ -52,6 +54,14 @@ ACTION_CEILING_CONTEXT_FIELDS = (
     "population_sizes",
     "uniform_group_budgets",
     "horizon_fe",
+    "full_space_action_hash",
+    "full_space_action_payload",
+    "full_space_initial_mean_hash",
+    "full_space_parameter_hash",
+    "full_space_optimizer_seed",
+    "full_space_population_size",
+    "full_space_budget_fes",
+    "full_space_acceptance_fitness",
     "selector_arm",
     "selector_reason",
     "anchor_values",
@@ -77,7 +87,21 @@ ACTION_CEILING_ARM_RESULT_FIELDS = (
     "native_error",
     "arm_error",
     "delta",
-    "extra_fes",
+    "action_budget_fes",
+    "action_actual_fes",
+    "action_instance_hash",
+    "action_lifecycle_payload",
+    "action_lifecycle_hash",
+    "action_accepted",
+    "action_candidate_hash",
+    "action_candidate_fitness",
+    "action_post_incumbent_hash",
+    "optimizer_scope",
+    "optimizer_parameter_hash",
+    "optimizer_initial_state_hash",
+    "optimizer_final_state_hash",
+    "optimizer_population_size",
+    "optimizer_generation_count",
     "counterfactual_applied",
     "mutation_norm",
     "optimizer_mean_mutation_norm",
@@ -85,6 +109,7 @@ ACTION_CEILING_ARM_RESULT_FIELDS = (
     "execution_sweep_trace",
     "execution_order_trace",
     "group_budget_trace",
+    "execution_start_fe_trace",
     "warm_start_trigger_count",
     "warm_start_mean_shift_norm",
     "selected_candidate",

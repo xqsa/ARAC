@@ -10,6 +10,18 @@ from typing import Callable, Mapping, Sequence
 
 import numpy as np
 
+from arac.actions.full_space_sep_cma import (
+    CANONICAL_SEP_CMA_PARAMETERIZATION,
+    CANONICAL_SEP_CMA_POPULATION_SIZE,
+    CANONICAL_SEP_CMA_REFERENCE_VERSION,
+    FULL_SPACE_DIMENSION,
+    FULL_SPACE_SEP_CMA_ACTION,
+    NO_RESTART_POLICY,
+    FullSpaceSepCmaAction,
+    FullSpaceSepCmaExecutionState,
+    full_space_sep_cma_anchor_hash,
+    full_space_vector_hash,
+)
 from arac.backends.hcc_action_ceiling import (
     ActionExecutionRequest,
     NativeContinuationState,
@@ -45,12 +57,19 @@ class CapturedActionCeilingContext:
     expected_native_record: tuple[float, ...]
     expected_native_incumbent: tuple[float, ...]
     expected_native_incumbent_hash: str
+    expected_native_cycle_incumbent: tuple[float, ...]
+    expected_native_cycle_incumbent_hash: str
+    expected_native_cycle_sweep_trace: tuple[int, ...]
+    expected_native_cycle_order_trace: tuple[int, ...]
+    expected_native_cycle_budget_trace: tuple[int, ...]
+    expected_native_cycle_start_fe_trace: tuple[int, ...]
 
 
 @dataclass(frozen=True)
 class HccActionCeilingRuntime:
     benchmark_factory: Callable[..., object]
     cmaes_factory: Callable[..., object]
+    sepcmaes_factory: Callable[..., object]
     combine: Callable[..., np.ndarray]
     derive_seed: Callable[[int, str, int, int, int], int]
     fun_name: str
@@ -359,12 +378,212 @@ class HccActionCeilingRuntime:
             ),
         }
 
+        full_space_action: FullSpaceSepCmaAction | None = None
         for arm in ACTION_CEILING_ARMS:
             if arm == "native_eq8":
                 continue
             objective, record, action_result, evaluate, branch_optimizer = start_branch(
                 arm
             )
+            if arm == FULL_SPACE_SEP_CMA_ACTION:
+                if self.dimension != FULL_SPACE_DIMENSION:
+                    raise ValueError("full-space Sep-CMA requires the 1000D AOB space")
+                optimizer_seed = int(
+                    _sha256(
+                        {
+                            "namespace": FULL_SPACE_SEP_CMA_ACTION,
+                            "dispatch_checkpoint_hash": dispatch_checkpoint_hash,
+                        }
+                    )[:16],
+                    16,
+                ) % (2**32)
+                sep_optimizer = self.sepcmaes_factory(
+                    {
+                        "fitness_function": evaluate,
+                        "ndim_problem": self.dimension,
+                        "lower_boundary": self.lower * np.ones((self.dimension,)),
+                        "upper_boundary": self.upper * np.ones((self.dimension,)),
+                    },
+                    {
+                        "max_function_evaluations": horizon_fe,
+                        "mean": (np.asarray(action_result.incumbent, dtype=float),),
+                        "sigma": self.sigma,
+                        "n_individuals": CANONICAL_SEP_CMA_POPULATION_SIZE,
+                        "is_restart": False,
+                        "verbose": 0,
+                        "early_stopping_evaluations": np.inf,
+                        "seed_rng": optimizer_seed,
+                    },
+                )
+                initial_state = sep_optimizer.initialize_state()
+                parameters = sep_optimizer.parameters
+                if (
+                    parameters.parameterization
+                    != CANONICAL_SEP_CMA_PARAMETERIZATION
+                    or parameters.reference_version
+                    != CANONICAL_SEP_CMA_REFERENCE_VERSION
+                    or parameters.dimension != self.dimension
+                    or parameters.population_size
+                    != CANONICAL_SEP_CMA_POPULATION_SIZE
+                ):
+                    raise RuntimeError(
+                        "full-space Sep-CMA canonical parameters drifted"
+                    )
+                trigger_relation_hash = _sha256(
+                    {
+                        "owners": relation.owner_group_indices,
+                        "shared": relation.shared_variable_indices,
+                    }
+                )
+                full_space_action = FullSpaceSepCmaAction(
+                    problem_id=problem_id,
+                    run_seed=int(seed),
+                    checkpoint_fe=int(dispatch_fe),
+                    dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+                    trigger_relation_hash=trigger_relation_hash,
+                    anchor_hash=full_space_sep_cma_anchor_hash(
+                        problem_id,
+                        action_result.incumbent,
+                    ),
+                    initial_mean=tuple(action_result.incumbent),
+                    initial_mean_hash=full_space_vector_hash(
+                        action_result.incumbent
+                    ),
+                    initial_state_hash=initial_state.state_hash,
+                    initial_sigma=self.sigma,
+                    lower_bound=self.lower,
+                    upper_bound=self.upper,
+                    acceptance_fitness=float(action_result.incumbent_fitness),
+                    population_size=CANONICAL_SEP_CMA_POPULATION_SIZE,
+                    budget_fes=horizon_fe,
+                    parameterization=CANONICAL_SEP_CMA_PARAMETERIZATION,
+                    canonical_reference_version=(
+                        CANONICAL_SEP_CMA_REFERENCE_VERSION
+                    ),
+                    canonical_parameters_hash=parameters.parameter_hash,
+                    optimizer_seed=optimizer_seed,
+                    seed_namespace=FULL_SPACE_SEP_CMA_ACTION,
+                    restart_policy=NO_RESTART_POLICY,
+                    issued_sweep=action_set.issued_sweep,
+                    target_sweep=action_set.target_sweep,
+                    ttl_sweeps=1,
+                    expires_sweep=action_set.target_sweep,
+                )
+                execution_state = FullSpaceSepCmaExecutionState.for_action(
+                    full_space_action
+                )
+                execution_state.start(
+                    full_space_action,
+                    current_fe=int(dispatch_fe),
+                    current_sweep=int(outer_iter),
+                    dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+                    trigger_relation_hash=trigger_relation_hash,
+                    anchor_hash=full_space_action.anchor_hash,
+                )
+                before = len(record)
+                sep_result = sep_optimizer.advance(horizon_fe)
+                observed_fes = len(record) - before
+                if (
+                    observed_fes != horizon_fe
+                    or int(sep_result["advanced_function_evaluations"])
+                    != horizon_fe
+                    or int(sep_result["n_function_evaluations"]) != horizon_fe
+                ):
+                    raise RuntimeError(
+                        "full-space Sep-CMA did not consume its frozen FE budget"
+                    )
+                final_state = sep_result["optimizer_state"]
+                if parameters.parameter_hash != full_space_action.canonical_parameters_hash:
+                    raise RuntimeError("full-space Sep-CMA parameter hash drifted")
+                execution_state.complete(
+                    full_space_action,
+                    consumed_fes=observed_fes,
+                    completed_fe=int(dispatch_fe) + observed_fes,
+                    final_state_hash=final_state.state_hash,
+                )
+                execution_state.validate_for(full_space_action)
+                lifecycle_payload = execution_state.audit_payload(
+                    full_space_action
+                )
+
+                candidate = np.asarray(sep_result["best_so_far_x"], dtype=float)
+                candidate_fitness = float(sep_result["best_so_far_y"])
+                if candidate.shape != incumbent_array.shape or not np.all(
+                    np.isfinite(candidate)
+                ):
+                    raise RuntimeError("full-space Sep-CMA returned an invalid candidate")
+                accepted = candidate_fitness < full_space_action.acceptance_fitness
+                post_action_incumbent = (
+                    candidate
+                    if accepted
+                    else np.asarray(action_result.incumbent, dtype=float)
+                )
+                action_result = replace(
+                    action_result,
+                    incumbent=tuple(float(value) for value in post_action_incumbent),
+                    incumbent_fitness=(
+                        candidate_fitness
+                        if accepted
+                        else action_result.incumbent_fitness
+                    ),
+                    action_budget_fes=full_space_action.budget_fes,
+                    action_actual_fes=observed_fes,
+                    action_instance_hash=full_space_action.action_hash,
+                    action_lifecycle_payload=json.dumps(
+                        lifecycle_payload,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                        allow_nan=False,
+                    ),
+                    action_lifecycle_hash=execution_state.state_hash(
+                        full_space_action
+                    ),
+                    action_accepted=accepted,
+                    action_candidate_hash=full_space_vector_hash(candidate),
+                    action_candidate_fitness=candidate_fitness,
+                    action_post_incumbent_hash=full_space_vector_hash(
+                        post_action_incumbent
+                    ),
+                    optimizer_scope="full_space",
+                    optimizer_parameter_hash=parameters.parameter_hash,
+                    optimizer_initial_state_hash=initial_state.state_hash,
+                    optimizer_final_state_hash=final_state.state_hash,
+                    optimizer_population_size=parameters.population_size,
+                    optimizer_generation_count=final_state.generation,
+                    counterfactual_applied=True,
+                    mutation_norm=float(
+                        np.linalg.norm(post_action_incumbent - incumbent_array)
+                    ),
+                    applied_values_hash=_sha256(post_action_incumbent.tolist()),
+                )
+                continuation = run_native_continuation(
+                    replace(
+                        continuation_state,
+                        incumbent=action_result.incumbent,
+                    ),
+                    evaluate=evaluate,
+                    fitness_record=record,
+                    optimize_group=branch_optimizer,
+                    group_seed=group_seed,
+                    target_relative_fe=3 * horizon_fe,
+                    continuation_arm="native_eq8",
+                )
+                continuation = replace(
+                    continuation,
+                    policy_application_fes=(1,),
+                    continuation_policy_applied=True,
+                )
+                branch_results[arm] = {
+                    "action": action_result,
+                    "record": continuation.fitness_record,
+                    "continuation": continuation,
+                    "errors": branch_horizon_errors(
+                        prefix_best_error=min(prefix),
+                        post_checkpoint_record=continuation.fitness_record,
+                        sweep_horizon_fe=horizon_fe,
+                    ),
+                }
+                continue
             continuation = run_native_continuation(
                 replace(continuation_state, incumbent=action_result.incumbent),
                 evaluate=evaluate,
@@ -385,6 +604,8 @@ class HccActionCeilingRuntime:
                 ),
             }
 
+        if full_space_action is None:
+            raise RuntimeError("full-space Sep-CMA action arm was not executed")
         context_row = {
             "protocol_version": ACTION_CEILING_PROTOCOL_VERSION,
             "cohort": cohort,
@@ -409,6 +630,23 @@ class HccActionCeilingRuntime:
             "population_sizes": json.dumps(list(population_sizes)),
             "uniform_group_budgets": json.dumps(list(optimizer_budgets)),
             "horizon_fe": str(horizon_fe),
+            "full_space_action_hash": full_space_action.action_hash,
+            "full_space_action_payload": json.dumps(
+                full_space_action.audit_payload(),
+                sort_keys=True,
+                separators=(",", ":"),
+                allow_nan=False,
+            ),
+            "full_space_initial_mean_hash": full_space_action.initial_mean_hash,
+            "full_space_parameter_hash": (
+                full_space_action.canonical_parameters_hash
+            ),
+            "full_space_optimizer_seed": str(full_space_action.optimizer_seed),
+            "full_space_population_size": str(full_space_action.population_size),
+            "full_space_budget_fes": str(full_space_action.budget_fes),
+            "full_space_acceptance_fitness": (
+                f"{full_space_action.acceptance_fitness:.17e}"
+            ),
             "selector_arm": selector_arm,
             "selector_reason": selector_reason,
             "anchor_values": json.dumps(action_set.anchor.shared_values),
@@ -469,10 +707,55 @@ class HccActionCeilingRuntime:
                         "native_error": f"{float(row['native_error']):.17e}",
                         "arm_error": f"{float(row['arm_error']):.17e}",
                         "delta": f"{float(row['delta']):.17e}",
-                        "extra_fes": str(action_result.extra_fes),
+                        "action_budget_fes": str(
+                            action_result.action_budget_fes
+                        ),
+                        "action_actual_fes": str(
+                            action_result.action_actual_fes
+                        ),
+                        "action_instance_hash": (
+                            action_result.action_instance_hash
+                        ),
+                        "action_lifecycle_payload": (
+                            action_result.action_lifecycle_payload
+                        ),
+                        "action_lifecycle_hash": (
+                            action_result.action_lifecycle_hash
+                        ),
+                        "action_accepted": str(
+                            int(action_result.action_accepted)
+                        ),
+                        "action_candidate_hash": (
+                            action_result.action_candidate_hash
+                        ),
+                        "action_candidate_fitness": (
+                            ""
+                            if action_result.action_candidate_fitness is None
+                            else f"{action_result.action_candidate_fitness:.17e}"
+                        ),
+                        "action_post_incumbent_hash": (
+                            action_result.action_post_incumbent_hash
+                        ),
+                        "optimizer_scope": action_result.optimizer_scope,
+                        "optimizer_parameter_hash": (
+                            action_result.optimizer_parameter_hash
+                        ),
+                        "optimizer_initial_state_hash": (
+                            action_result.optimizer_initial_state_hash
+                        ),
+                        "optimizer_final_state_hash": (
+                            action_result.optimizer_final_state_hash
+                        ),
+                        "optimizer_population_size": str(
+                            action_result.optimizer_population_size
+                        ),
+                        "optimizer_generation_count": str(
+                            action_result.optimizer_generation_count
+                        ),
                         "counterfactual_applied": str(
                             int(
                                 action_result.counterfactual_applied
+                                or action_result.action_actual_fes > 0
                                 or continuation_applied
                             )
                         ),
@@ -491,6 +774,9 @@ class HccActionCeilingRuntime:
                         ),
                         "group_budget_trace": json.dumps(
                             list(continuation.group_budget_trace[:trace_count])
+                        ),
+                        "execution_start_fe_trace": json.dumps(
+                            list(continuation.group_start_fe_trace[:trace_count])
                         ),
                         "warm_start_trigger_count": str(
                             len(warm_shifts)
@@ -513,5 +799,21 @@ class HccActionCeilingRuntime:
             expected_native_incumbent=tuple(native["action"].incumbent),
             expected_native_incumbent_hash=_sha256(
                 list(native["action"].incumbent)
+            ),
+            expected_native_cycle_incumbent=native_cycle.incumbent,
+            expected_native_cycle_incumbent_hash=_sha256(
+                list(native_cycle.incumbent)
+            ),
+            expected_native_cycle_sweep_trace=(
+                native_cycle.execution_sweep_trace
+            ),
+            expected_native_cycle_order_trace=(
+                native_cycle.execution_order_trace
+            ),
+            expected_native_cycle_budget_trace=(
+                native_cycle.group_budget_trace
+            ),
+            expected_native_cycle_start_fe_trace=(
+                native_cycle.group_start_fe_trace
             ),
         )

@@ -7,6 +7,18 @@ from pathlib import Path
 
 import pytest
 
+from arac.actions.full_space_sep_cma import (
+    CANONICAL_SEP_CMA_PARAMETERIZATION,
+    CANONICAL_SEP_CMA_PARAMETERS_HASH,
+    CANONICAL_SEP_CMA_POPULATION_SIZE,
+    CANONICAL_SEP_CMA_REFERENCE_VERSION,
+    FULL_SPACE_SEP_CMA_ACTION,
+    NO_RESTART_POLICY,
+    FullSpaceSepCmaAction,
+    FullSpaceSepCmaExecutionState,
+    full_space_sep_cma_anchor_hash,
+    full_space_vector_hash,
+)
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
@@ -35,6 +47,34 @@ from experiments.pilots.exp_019_conflict_resolution_pilot.diagnostic import (
 
 
 def _context(context_id: str, cohort: str, problem_id: str) -> dict[str, str]:
+    initial_mean = (0.0,) * 1000
+    full_space_action = FullSpaceSepCmaAction(
+        problem_id=problem_id,
+        run_seed=117,
+        checkpoint_fe=120,
+        dispatch_checkpoint_hash="c" * 64,
+        trigger_relation_hash="d" * 64,
+        anchor_hash=full_space_sep_cma_anchor_hash(problem_id, initial_mean),
+        initial_mean=initial_mean,
+        initial_mean_hash=full_space_vector_hash(initial_mean),
+        initial_state_hash="e" * 64,
+        initial_sigma=0.5,
+        lower_bound=-100.0,
+        upper_bound=100.0,
+        acceptance_fitness=50.0,
+        population_size=CANONICAL_SEP_CMA_POPULATION_SIZE,
+        budget_fes=50,
+        parameterization=CANONICAL_SEP_CMA_PARAMETERIZATION,
+        canonical_reference_version=CANONICAL_SEP_CMA_REFERENCE_VERSION,
+        canonical_parameters_hash=CANONICAL_SEP_CMA_PARAMETERS_HASH,
+        optimizer_seed=2026071901,
+        seed_namespace=FULL_SPACE_SEP_CMA_ACTION,
+        restart_policy=NO_RESTART_POLICY,
+        issued_sweep=2,
+        target_sweep=3,
+        ttl_sweeps=1,
+        expires_sweep=3,
+    )
     row = {field: "" for field in CONTEXT_FIELDS}
     row.update(
         {
@@ -58,6 +98,19 @@ def _context(context_id: str, cohort: str, problem_id: str) -> dict[str, str]:
             "population_sizes": "[2, 2]",
             "uniform_group_budgets": "[4, 4]",
             "horizon_fe": "50",
+            "full_space_action_hash": full_space_action.action_hash,
+            "full_space_action_payload": json.dumps(
+                full_space_action.audit_payload(),
+                sort_keys=True,
+                separators=(",", ":"),
+                allow_nan=False,
+            ),
+            "full_space_initial_mean_hash": full_space_action.initial_mean_hash,
+            "full_space_parameter_hash": CANONICAL_SEP_CMA_PARAMETERS_HASH,
+            "full_space_optimizer_seed": "2026071901",
+            "full_space_population_size": "24",
+            "full_space_budget_fes": "50",
+            "full_space_acceptance_fitness": "50.0",
             "selector_arm": "true_no_writeback",
             "selector_reason": "anchor_mismatch",
             "native_parity": "1",
@@ -73,6 +126,33 @@ def _arm_rows(
     *,
     winning_arm: str,
 ) -> list[dict[str, str]]:
+    action_payload = json.loads(context["full_space_action_payload"])
+    action_payload.pop("action")
+    full_space_action = FullSpaceSepCmaAction(**action_payload)
+    execution_state = FullSpaceSepCmaExecutionState.for_action(full_space_action)
+    execution_state.start(
+        full_space_action,
+        current_fe=full_space_action.checkpoint_fe,
+        current_sweep=full_space_action.target_sweep,
+        dispatch_checkpoint_hash=full_space_action.dispatch_checkpoint_hash,
+        trigger_relation_hash=full_space_action.trigger_relation_hash,
+        anchor_hash=full_space_action.anchor_hash,
+    )
+    execution_state.complete(
+        full_space_action,
+        consumed_fes=full_space_action.budget_fes,
+        completed_fe=(
+            full_space_action.checkpoint_fe + full_space_action.budget_fes
+        ),
+        final_state_hash="3" * 64,
+    )
+    lifecycle_payload = json.dumps(
+        execution_state.audit_payload(full_space_action),
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
+    lifecycle_hash = execution_state.state_hash(full_space_action)
     rows: list[dict[str, str]] = []
     for arm in ACTION_CEILING_ARMS:
         for horizon_index, horizon in enumerate(ACTION_CEILING_HORIZONS, start=1):
@@ -90,13 +170,31 @@ def _arm_rows(
                 "efficiency_budget_reallocation",
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
+                "full_space_sep_cma",
             }
             continuation_applied = arm in {
                 "efficiency_budget_reallocation",
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
+                "full_space_sep_cma",
             }
             warm_start_applied = arm == "stagnation_cross_group_warm_start"
+            full_space_sep_cma = arm == "full_space_sep_cma"
+            if full_space_sep_cma and horizon in {"immediate", "sweep_1"}:
+                sweep_trace = "[]"
+                order_trace = "[]"
+                budget_trace = "[]"
+                start_fe_trace = "[]"
+            elif horizon == "immediate":
+                sweep_trace = "[3]"
+                order_trace = "[0]"
+                budget_trace = "[4]"
+                start_fe_trace = "[1]"
+            else:
+                sweep_trace = "[3, 3]"
+                order_trace = "[0, 1]"
+                budget_trace = "[4, 4]"
+                start_fe_trace = "[51, 56]" if full_space_sep_cma else "[1, 6]"
             row = {field: "" for field in ARM_RESULT_FIELDS}
             row.update(
                 {
@@ -107,12 +205,55 @@ def _arm_rows(
                     "context_id": context["context_id"],
                     "arm": arm,
                     "horizon": horizon,
-                    "target_fe": str(120 + horizon_index),
+                    "target_fe": str(
+                        120
+                        + {"immediate": 1, "sweep_1": 50, "sweep_3": 150}[
+                            horizon
+                        ]
+                    ),
                     "natural_endpoint_fe": "500",
                     "native_error": str(native_error),
                     "arm_error": str(arm_error),
                     "delta": str(actionability_delta(native_error, arm_error)),
-                    "extra_fes": "0",
+                    "action_budget_fes": "50" if full_space_sep_cma else "0",
+                    "action_actual_fes": "50" if full_space_sep_cma else "0",
+                    "action_instance_hash": (
+                        context["full_space_action_hash"] if full_space_sep_cma else ""
+                    ),
+                    "action_lifecycle_payload": (
+                        lifecycle_payload if full_space_sep_cma else ""
+                    ),
+                    "action_lifecycle_hash": (
+                        lifecycle_hash if full_space_sep_cma else ""
+                    ),
+                    "action_accepted": str(int(full_space_sep_cma)),
+                    "action_candidate_hash": "1" * 64 if full_space_sep_cma else "",
+                    "action_candidate_fitness": "40.0" if full_space_sep_cma else "",
+                    "action_post_incumbent_hash": (
+                        "1" * 64 if full_space_sep_cma else ""
+                    ),
+                    "optimizer_scope": (
+                        "full_space"
+                        if full_space_sep_cma
+                        else (
+                            "decomposed_groups"
+                            if continuation_applied
+                            else "relation_writeback"
+                        )
+                    ),
+                    "optimizer_parameter_hash": (
+                        context["full_space_parameter_hash"]
+                        if full_space_sep_cma
+                        else ""
+                    ),
+                    "optimizer_initial_state_hash": (
+                        "e" * 64 if full_space_sep_cma else ""
+                    ),
+                    "optimizer_final_state_hash": (
+                        "3" * 64 if full_space_sep_cma else ""
+                    ),
+                    "optimizer_population_size": "24" if full_space_sep_cma else "0",
+                    "optimizer_generation_count": "2" if full_space_sep_cma else "0",
                     "counterfactual_applied": str(
                         int(incumbent_mutated or continuation_applied)
                     ),
@@ -121,9 +262,10 @@ def _arm_rows(
                     "continuation_policy_applied": str(
                         int(continuation_applied)
                     ),
-                    "execution_sweep_trace": "[3, 3]",
-                    "execution_order_trace": "[0, 1]",
-                    "group_budget_trace": "[4, 4]",
+                    "execution_sweep_trace": sweep_trace,
+                    "execution_order_trace": order_trace,
+                    "group_budget_trace": budget_trace,
+                    "execution_start_fe_trace": start_fe_trace,
                     "warm_start_trigger_count": str(int(warm_start_applied)),
                     "warm_start_mean_shift_norm": str(float(warm_start_applied)),
                     "selected_candidate": arm,
@@ -152,6 +294,19 @@ def test_frozen_config_and_run_matrices() -> None:
     assert config["continuation_actions"]["stagnation_cross_group_warm_start"][
         "trigger_streak"
     ] == 3
+    assert config["continuation_actions"]["full_space_sep_cma"] == {
+        "scope": "full_space",
+        "dimension": 1000,
+        "population_size": 24,
+        "parameterization": "ros_hansen_2008_pypop7",
+        "canonical_reference_version": (
+            "pypop7-sepcmaes@67b29061d121cba9a5715897a2eb5d409df04c2d"
+        ),
+        "budget_source": "one_actual_native_sweep_horizon",
+        "resume_native_after_action": True,
+        "restart_policy": "none",
+        "acceptance_rule": "strict_improvement",
+    }
     smoke = build_specs("smoke")
     assert len(smoke) == 6
     assert {(spec.problem_id, spec.seed, spec.max_fes) for spec in smoke} == {
@@ -175,7 +330,7 @@ def test_frozen_config_and_run_matrices() -> None:
 def test_legacy_config_fails_closed(tmp_path: Path) -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     legacy = copy.deepcopy(config)
-    legacy["protocol_version"] = "exp019-conflict-oracle-diagnostic-v1"
+    legacy["protocol_version"] = "exp019-action-ceiling-v4"
     path = tmp_path / "diagnostic_config.json"
     path.write_text(json.dumps(legacy), encoding="utf-8")
 
@@ -183,14 +338,14 @@ def test_legacy_config_fails_closed(tmp_path: Path) -> None:
         load_config(path)
 
 
-def test_raw_rows_require_all_eight_arms_and_three_horizons() -> None:
+def test_raw_rows_require_every_frozen_arm_and_horizon() -> None:
     context = _context("real:E3:117:r0", "real_aob", "E3")
     rows = _arm_rows(context, winning_arm="exact_left")
 
     observations = validate_raw_rows([context], rows)
 
     assert len(observations) == len(ACTION_CEILING_ARMS) * len(ACTION_CEILING_HORIZONS)
-    with pytest.raises(ValueError, match="all eight arms"):
+    with pytest.raises(ValueError, match="every frozen arm and horizon"):
         validate_raw_rows([context], rows[:-1])
 
 
@@ -205,6 +360,119 @@ def test_incomplete_context_and_inconsistent_mutation_flag_fail_closed() -> None
         validate_raw_rows([context], rows)
 
 
+def test_full_space_strict_acceptance_is_recomputed_from_fitness() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    sep_rows = [row for row in rows if row["arm"] == "full_space_sep_cma"]
+
+    for row in sep_rows:
+        row["action_accepted"] = "0"
+        row["action_post_incumbent_hash"] = context[
+            "full_space_initial_mean_hash"
+        ]
+    with pytest.raises(ValueError, match="full-space Sep-CMA arm contract"):
+        validate_raw_rows([context], rows)
+
+    for row in sep_rows:
+        row["action_candidate_fitness"] = "50.0"
+    validate_raw_rows([context], rows)
+
+
+def test_full_space_parameters_must_match_pinned_snapshot() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    context["full_space_parameter_hash"] = "f" * 64
+
+    with pytest.raises(ValueError, match="full-space Sep-CMA context contract"):
+        validate_raw_rows([context], rows)
+
+
+def test_full_space_candidate_outcome_must_match_across_horizons() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    sweep_3 = next(
+        row
+        for row in rows
+        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        and row["horizon"] == "sweep_3"
+    )
+    sweep_3["action_candidate_fitness"] = "41.0"
+
+    with pytest.raises(ValueError, match="action outcome differs across horizons"):
+        validate_raw_rows([context], rows)
+
+    rows = _arm_rows(context, winning_arm="exact_left")
+    sweep_3 = next(
+        row
+        for row in rows
+        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        and row["horizon"] == "sweep_3"
+    )
+    sweep_3["action_candidate_hash"] = "2" * 64
+    sweep_3["action_post_incumbent_hash"] = "2" * 64
+
+    with pytest.raises(ValueError, match="action outcome differs across horizons"):
+        validate_raw_rows([context], rows)
+
+
+def test_full_space_lifecycle_is_bound_and_identical_across_horizons() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    sweep_3 = next(
+        row
+        for row in rows
+        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        and row["horizon"] == "sweep_3"
+    )
+    action_payload = json.loads(context["full_space_action_payload"])
+    action_payload.pop("action")
+    action = FullSpaceSepCmaAction(**action_payload)
+    lifecycle_payload = json.loads(sweep_3["action_lifecycle_payload"])
+    lifecycle_payload.pop("action")
+    lifecycle_payload["final_state_hash"] = "4" * 64
+    lifecycle = FullSpaceSepCmaExecutionState(**lifecycle_payload)
+    lifecycle.validate_for(action)
+    sweep_3["optimizer_final_state_hash"] = "4" * 64
+    sweep_3["action_lifecycle_payload"] = json.dumps(
+        lifecycle.audit_payload(action),
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
+    sweep_3["action_lifecycle_hash"] = lifecycle.state_hash(action)
+
+    with pytest.raises(ValueError, match="action outcome differs across horizons"):
+        validate_raw_rows([context], rows)
+
+    rows = _arm_rows(context, winning_arm="exact_left")
+    sweep_3 = next(
+        row
+        for row in rows
+        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        and row["horizon"] == "sweep_3"
+    )
+    payload = json.loads(sweep_3["action_lifecycle_payload"])
+    payload["completed_fe"] = 169
+    sweep_3["action_lifecycle_payload"] = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
+
+    with pytest.raises(ValueError, match="lifecycle payload is invalid"):
+        validate_raw_rows([context], rows)
+
+
+def test_legacy_raw_row_fails_closed() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    context["protocol_version"] = "exp019-action-ceiling-v4"
+
+    with pytest.raises(ValueError, match="legacy action-ceiling context row"):
+        validate_raw_rows([context], rows)
+
+
 def test_adaptive_budget_trace_must_preserve_complete_sweep_total() -> None:
     context = _context("real:E3:117:r0", "real_aob", "E3")
     rows = _arm_rows(context, winning_arm="exact_left")
@@ -212,6 +480,7 @@ def test_adaptive_budget_trace_must_preserve_complete_sweep_total() -> None:
         row
         for row in rows
         if row["arm"] == "efficiency_budget_reallocation"
+        and row["horizon"] == "sweep_1"
     )
     budget_row["group_budget_trace"] = "[5, 4]"
 
@@ -240,7 +509,8 @@ def test_integrity_gate_and_fe_summary_cover_complete_stage() -> None:
     assert gate["expected_context_count"] == 1
     assert gate["expected_arm_result_count"] == 1
     assert fe_summary["nominal_trajectory_fe_total"] == 300_000
-    assert fe_summary["branch_extra_fe_by_arm"]["native_eq8"] == 0
+    assert fe_summary["branch_action_fe_by_arm"]["native_eq8"] == 0
+    assert fe_summary["branch_action_fe_by_arm"]["full_space_sep_cma"] == 200
 
 
 def test_delta_is_recomputed_from_raw_errors() -> None:

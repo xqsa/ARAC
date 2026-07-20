@@ -1,6 +1,6 @@
 {
-  "protocol_version": "exp019-action-ceiling-v4",
-  "schema_version": "exp019-action-ceiling-config-v4",
+  "protocol_version": "exp019-action-ceiling-v5",
+  "schema_version": "exp019-action-ceiling-config-v5",
   "observer_only": true,
   "runtime_authorized": false,
   "arms": [
@@ -11,7 +11,8 @@
     "exact_bridge",
     "efficiency_budget_reallocation",
     "delta_priority_scan",
-    "stagnation_cross_group_warm_start"
+    "stagnation_cross_group_warm_start",
+    "full_space_sep_cma"
   ],
   "horizons": ["immediate", "sweep_1", "sweep_3"],
   "primary_horizon": "sweep_1",
@@ -36,6 +37,17 @@
       "perturbation_standard_deviation_sigma_multiple": 1.0,
       "perturb_unique_mean_positions_only": true,
       "preserve_shared_mean_positions": true
+    },
+    "full_space_sep_cma": {
+      "scope": "full_space",
+      "dimension": 1000,
+      "population_size": 24,
+      "parameterization": "ros_hansen_2008_pypop7",
+      "canonical_reference_version": "pypop7-sepcmaes@67b29061d121cba9a5715897a2eb5d409df04c2d",
+      "budget_source": "one_actual_native_sweep_horizon",
+      "resume_native_after_action": true,
+      "restart_policy": "none",
+      "acceptance_rule": "strict_improvement"
     }
   },
   "smoke": {

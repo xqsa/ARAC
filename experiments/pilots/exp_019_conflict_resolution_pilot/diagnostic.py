@@ -14,6 +14,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from arac.actions.full_space_sep_cma import (
+    CANONICAL_SEP_CMA_PARAMETERIZATION,
+    CANONICAL_SEP_CMA_PARAMETERS_HASH,
+    CANONICAL_SEP_CMA_POPULATION_SIZE,
+    CANONICAL_SEP_CMA_REFERENCE_VERSION,
+    FULL_SPACE_DIMENSION,
+    FULL_SPACE_SEP_CMA_ACTION,
+    NO_RESTART_POLICY,
+    STRICT_IMPROVEMENT_ACCEPTANCE,
+    FullSpaceSepCmaAction,
+    FullSpaceSepCmaExecutionState,
+)
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_ARM_RESULT_FIELDS,
@@ -43,7 +55,7 @@ from .benchmark import REPO_ROOT, validate_synthetic_bundle
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = EXPERIMENT_DIR / "diagnostic_config.json"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "exp_019_conflict_resolution_pilot"
-CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v4"
+CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v5"
 SMOKE_CASES = ("E3", "S5")
 SMOKE_SEEDS = (117, 118, 119)
 SMOKE_JOBS = 6
@@ -107,6 +119,24 @@ class TrajectorySpec:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _is_sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _canonical_payload_hash(payload: object) -> str:
+    encoded = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -182,6 +212,19 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
             "perturb_unique_mean_positions_only": True,
             "preserve_shared_mean_positions": True,
         },
+        FULL_SPACE_SEP_CMA_ACTION: {
+            "scope": "full_space",
+            "dimension": FULL_SPACE_DIMENSION,
+            "population_size": CANONICAL_SEP_CMA_POPULATION_SIZE,
+            "parameterization": CANONICAL_SEP_CMA_PARAMETERIZATION,
+            "canonical_reference_version": (
+                CANONICAL_SEP_CMA_REFERENCE_VERSION
+            ),
+            "budget_source": "one_actual_native_sweep_horizon",
+            "resume_native_after_action": True,
+            "restart_policy": NO_RESTART_POLICY,
+            "acceptance_rule": STRICT_IMPROVEMENT_ACCEPTANCE,
+        },
     }
     if config.get("continuation_actions") != expected_continuation_actions:
         raise ValueError("action-ceiling continuation action contract drifted")
@@ -251,6 +294,7 @@ def validate_raw_rows(
     arm_rows: Sequence[Mapping[str, str]],
 ) -> tuple[ActionCeilingObservation, ...]:
     contexts: dict[str, Mapping[str, str]] = {}
+    full_space_actions: dict[str, FullSpaceSepCmaAction] = {}
     for row in context_rows:
         if row.get("protocol_version") != ACTION_CEILING_PROTOCOL_VERSION:
             raise ValueError("legacy action-ceiling context row")
@@ -302,7 +346,65 @@ def validate_raw_rows(
             or int(row.get("completed_efficiency_sweeps", "-1")) < 0
         ):
             raise ValueError("action-ceiling continuation context is invalid")
+        horizon_fe = int(row.get("horizon_fe", "0"))
+        acceptance_fitness = float(
+            row.get("full_space_acceptance_fitness", "nan")
+        )
+        try:
+            action_payload = json.loads(
+                str(row.get("full_space_action_payload", ""))
+            )
+            if not isinstance(action_payload, dict):
+                raise ValueError("action payload must be an object")
+            action_fields = dict(action_payload)
+            if action_fields.pop("action", None) != FULL_SPACE_SEP_CMA_ACTION:
+                raise ValueError("action payload name is invalid")
+            full_space_action = FullSpaceSepCmaAction(**action_fields)
+        except (TypeError, ValueError, json.JSONDecodeError) as error:
+            raise ValueError(
+                "full-space Sep-CMA action payload is invalid"
+            ) from error
+        if (
+            horizon_fe < CANONICAL_SEP_CMA_POPULATION_SIZE
+            or int(row.get("full_space_budget_fes", "-1")) != horizon_fe
+            or int(row.get("full_space_population_size", "-1"))
+            != CANONICAL_SEP_CMA_POPULATION_SIZE
+            or int(row.get("full_space_optimizer_seed", "-1")) < 0
+            or not _is_sha256(row.get("full_space_action_hash"))
+            or not _is_sha256(row.get("full_space_initial_mean_hash"))
+            or not _is_sha256(row.get("full_space_parameter_hash"))
+            or row.get("full_space_parameter_hash")
+            != CANONICAL_SEP_CMA_PARAMETERS_HASH
+            or not math.isfinite(acceptance_fitness)
+            or _canonical_payload_hash(action_payload)
+            != row.get("full_space_action_hash")
+            or full_space_action.action_hash
+            != row.get("full_space_action_hash")
+            or full_space_action.problem_id != row.get("problem_id")
+            or full_space_action.run_seed != int(row.get("seed", "-1"))
+            or full_space_action.checkpoint_fe
+            != int(row.get("dispatch_fe", "-1"))
+            or full_space_action.dispatch_checkpoint_hash
+            != row.get("dispatch_checkpoint_hash")
+            or full_space_action.initial_mean_hash
+            != row.get("full_space_initial_mean_hash")
+            or full_space_action.canonical_parameters_hash
+            != row.get("full_space_parameter_hash")
+            or full_space_action.optimizer_seed
+            != int(row.get("full_space_optimizer_seed", "-1"))
+            or full_space_action.population_size
+            != int(row.get("full_space_population_size", "-1"))
+            or full_space_action.budget_fes
+            != int(row.get("full_space_budget_fes", "-1"))
+            or full_space_action.acceptance_fitness != acceptance_fitness
+            or full_space_action.issued_sweep
+            != int(row.get("issued_sweep", "-1"))
+            or full_space_action.target_sweep
+            != int(row.get("target_sweep", "-1"))
+        ):
+            raise ValueError("full-space Sep-CMA context contract is invalid")
         contexts[context_id] = row
+        full_space_actions[context_id] = full_space_action
 
     by_context: dict[str, dict[tuple[str, str], Mapping[str, str]]] = {}
     for row in arm_rows:
@@ -316,6 +418,24 @@ def validate_raw_rows(
             raise ValueError("counterfactual_applied must be a binary truth value")
         if row.get("continuation_policy_applied") not in {"0", "1"}:
             raise ValueError("continuation policy flag must be binary")
+        if row.get("action_accepted") not in {"0", "1"}:
+            raise ValueError("action_accepted must be a binary truth value")
+        action_budget_fes = int(row.get("action_budget_fes", "-1"))
+        action_actual_fes = int(row.get("action_actual_fes", "-1"))
+        optimizer_population_size = int(
+            row.get("optimizer_population_size", "-1")
+        )
+        optimizer_generation_count = int(
+            row.get("optimizer_generation_count", "-1")
+        )
+        if (
+            action_budget_fes < 0
+            or action_actual_fes < 0
+            or action_actual_fes > action_budget_fes
+            or optimizer_population_size < 0
+            or optimizer_generation_count < 0
+        ):
+            raise ValueError("action optimizer accounting is invalid")
         mutation_norm = float(row.get("mutation_norm", "nan"))
         mean_mutation_norm = float(row.get("optimizer_mean_mutation_norm", "nan"))
         warm_start_norm = float(row.get("warm_start_mean_shift_norm", "nan"))
@@ -332,25 +452,58 @@ def validate_raw_rows(
             raise ValueError("action-ceiling mutation norms must be finite and non-negative")
         if (warm_start_count == 0) != (warm_start_norm == 0.0):
             raise ValueError("warm-start count and mutation norm disagree")
+        arm = str(row.get("arm", ""))
+        horizon = str(row.get("horizon", ""))
         sweep_trace = json.loads(str(row.get("execution_sweep_trace", "")))
         order_trace = json.loads(str(row.get("execution_order_trace", "")))
         budget_trace = json.loads(str(row.get("group_budget_trace", "")))
+        start_fe_trace = json.loads(
+            str(row.get("execution_start_fe_trace", ""))
+        )
+        empty_full_space_prefix = (
+            arm == FULL_SPACE_SEP_CMA_ACTION
+            and horizon in {"immediate", PRIMARY_HORIZON}
+        )
         if (
             not isinstance(sweep_trace, list)
             or not isinstance(order_trace, list)
-            or not order_trace
+            or (not order_trace and not empty_full_space_prefix)
             or not isinstance(budget_trace, list)
+            or not isinstance(start_fe_trace, list)
             or len(sweep_trace) != len(order_trace)
             or len(order_trace) != len(budget_trace)
-            or any(isinstance(value, bool) or int(value) < 0 for value in sweep_trace)
-            or any(isinstance(value, bool) or int(value) < 0 for value in order_trace)
-            or any(isinstance(value, bool) or int(value) <= 0 for value in budget_trace)
+            or len(order_trace) != len(start_fe_trace)
+            or any(
+                isinstance(value, bool)
+                or int(value) != value
+                or int(value) < 0
+                for value in sweep_trace
+            )
+            or any(
+                isinstance(value, bool)
+                or int(value) != value
+                or int(value) < 0
+                for value in order_trace
+            )
+            or any(
+                isinstance(value, bool)
+                or int(value) != value
+                or int(value) <= 0
+                for value in budget_trace
+            )
+            or any(
+                isinstance(value, bool)
+                or int(value) != value
+                or int(value) <= 0
+                for value in start_fe_trace
+            )
         ):
             raise ValueError("action-ceiling continuation trace is invalid")
         expected_applied = str(
             int(
                 mutation_norm > 0.0
                 or mean_mutation_norm > 0.0
+                or action_actual_fes > 0
                 or row["continuation_policy_applied"] == "1"
             )
         )
@@ -369,7 +522,118 @@ def validate_raw_rows(
             int(value) for value in json.loads(context["uniform_group_budgets"])
         )
         group_count = len(populations)
-        arm = str(row.get("arm", ""))
+        horizon_fe = int(context["horizon_fe"])
+        horizon_targets = {
+            "immediate": 1,
+            PRIMARY_HORIZON: horizon_fe,
+            "sweep_3": 3 * horizon_fe,
+        }
+        if horizon not in horizon_targets:
+            raise ValueError("action-ceiling horizon is invalid")
+        target_relative_fe = horizon_targets[horizon]
+        dispatch_fe = int(context["dispatch_fe"])
+        if (
+            int(row.get("target_fe", "-1"))
+            != dispatch_fe + target_relative_fe
+            or int(row.get("natural_endpoint_fe", "-1"))
+            < dispatch_fe + 3 * horizon_fe
+            or start_fe_trace != sorted(set(start_fe_trace))
+            or any(int(value) > target_relative_fe for value in start_fe_trace)
+        ):
+            raise ValueError("action-ceiling horizon FE trace is invalid")
+        if arm == FULL_SPACE_SEP_CMA_ACTION:
+            full_space_action = full_space_actions[context_id]
+            try:
+                lifecycle_payload = json.loads(
+                    str(row.get("action_lifecycle_payload", ""))
+                )
+                if not isinstance(lifecycle_payload, dict):
+                    raise ValueError("lifecycle payload must be an object")
+                lifecycle_fields = dict(lifecycle_payload)
+                if lifecycle_fields.pop("action", None) != FULL_SPACE_SEP_CMA_ACTION:
+                    raise ValueError("lifecycle action name is invalid")
+                execution_state = FullSpaceSepCmaExecutionState(
+                    **lifecycle_fields
+                )
+                execution_state.validate_for(full_space_action)
+            except (TypeError, ValueError, json.JSONDecodeError) as error:
+                raise ValueError(
+                    "full-space Sep-CMA lifecycle payload is invalid"
+                ) from error
+            candidate_fitness = float(
+                row.get("action_candidate_fitness", "nan")
+            )
+            expected_accepted = str(
+                int(
+                    candidate_fitness
+                    < float(context["full_space_acceptance_fitness"])
+                )
+            )
+            expected_post_hash = (
+                row.get("action_candidate_hash")
+                if expected_accepted == "1"
+                else context.get("full_space_initial_mean_hash")
+            )
+            if (
+                action_budget_fes != horizon_fe
+                or action_actual_fes != horizon_fe
+                or row.get("action_instance_hash")
+                != context.get("full_space_action_hash")
+                or not _is_sha256(row.get("action_lifecycle_hash"))
+                or _canonical_payload_hash(lifecycle_payload)
+                != row.get("action_lifecycle_hash")
+                or execution_state.state_hash(full_space_action)
+                != row.get("action_lifecycle_hash")
+                or execution_state.status != "completed"
+                or execution_state.consumed_fes != action_actual_fes
+                or execution_state.started_fe != dispatch_fe
+                or execution_state.completed_fe != dispatch_fe + horizon_fe
+                or execution_state.final_state_hash
+                != row.get("optimizer_final_state_hash")
+                or row.get("optimizer_parameter_hash")
+                != context.get("full_space_parameter_hash")
+                or not _is_sha256(row.get("action_candidate_hash"))
+                or not math.isfinite(candidate_fitness)
+                or row.get("action_accepted") != expected_accepted
+                or row.get("action_post_incumbent_hash")
+                != expected_post_hash
+                or not _is_sha256(row.get("optimizer_initial_state_hash"))
+                or row.get("optimizer_initial_state_hash")
+                != full_space_action.initial_state_hash
+                or not _is_sha256(row.get("optimizer_final_state_hash"))
+                or row.get("optimizer_scope") != "full_space"
+                or optimizer_population_size
+                != CANONICAL_SEP_CMA_POPULATION_SIZE
+                or optimizer_generation_count
+                != horizon_fe // CANONICAL_SEP_CMA_POPULATION_SIZE
+                or row.get("continuation_policy_applied") != "1"
+                or any(int(value) <= horizon_fe for value in start_fe_trace)
+                or (
+                    horizon == "sweep_3"
+                    and int(start_fe_trace[0]) != horizon_fe + 1
+                )
+            ):
+                raise ValueError("full-space Sep-CMA arm contract is invalid")
+        elif (
+            action_budget_fes != 0
+            or action_actual_fes != 0
+            or row.get("action_instance_hash")
+            or row.get("action_lifecycle_payload")
+            or row.get("action_lifecycle_hash")
+            or row.get("action_accepted") != "0"
+            or row.get("action_candidate_hash")
+            or row.get("action_candidate_fitness")
+            or row.get("action_post_incumbent_hash")
+            or row.get("optimizer_parameter_hash")
+            or row.get("optimizer_initial_state_hash")
+            or row.get("optimizer_final_state_hash")
+            or optimizer_population_size != 0
+            or optimizer_generation_count != 0
+            or row.get("optimizer_scope")
+            not in {"relation_writeback", "decomposed_groups"}
+            or int(start_fe_trace[0]) != 1
+        ):
+            raise ValueError("non-Sep arm contains full-space optimizer state")
         for group, budget in zip(order_trace, budget_trace, strict=True):
             group_index = int(group)
             group_budget = int(budget)
@@ -410,7 +674,29 @@ def validate_raw_rows(
     for context_id, context in contexts.items():
         result_rows = by_context.get(context_id, {})
         if set(result_rows) != expected:
-            raise ValueError("context does not contain all eight arms and horizons")
+            raise ValueError("context does not contain every frozen arm and horizon")
+        sep_rows = [
+            result_rows[(FULL_SPACE_SEP_CMA_ACTION, horizon)]
+            for horizon in ACTION_CEILING_HORIZONS
+        ]
+        invariant_fields = (
+            "action_candidate_fitness",
+            "action_candidate_hash",
+            "action_accepted",
+            "action_post_incumbent_hash",
+            "optimizer_final_state_hash",
+            "action_lifecycle_payload",
+            "action_lifecycle_hash",
+        )
+        first_sep_row = sep_rows[0]
+        if any(
+            row.get(field) != first_sep_row.get(field)
+            for row in sep_rows[1:]
+            for field in invariant_fields
+        ):
+            raise ValueError(
+                "full-space Sep-CMA action outcome differs across horizons"
+            )
         for horizon in ACTION_CEILING_HORIZONS:
             native = result_rows[("native_eq8", horizon)]
             native_error = float(native["native_error"])
@@ -532,7 +818,8 @@ def summarize_fe_accounting(
         key = (str(row["context_id"]), str(row["arm"]))
         existing = unique_arm_rows.setdefault(key, row)
         if (
-            existing["extra_fes"] != row["extra_fes"]
+            existing["action_budget_fes"] != row["action_budget_fes"]
+            or existing["action_actual_fes"] != row["action_actual_fes"]
             or existing["natural_endpoint_fe"] != row["natural_endpoint_fe"]
         ):
             raise ValueError("arm FE accounting differs across label horizons")
@@ -541,9 +828,9 @@ def summarize_fe_accounting(
             target_max_by_horizon.get(horizon, 0),
             int(row["target_fe"]),
         )
-    extra_by_arm = {
+    action_fes_by_arm = {
         arm: sum(
-            int(row["extra_fes"])
+            int(row["action_actual_fes"])
             for (_context_id, candidate_arm), row in unique_arm_rows.items()
             if candidate_arm == arm
         )
@@ -560,8 +847,8 @@ def summarize_fe_accounting(
         "sweep_horizon_fe_total": sum(
             int(row["horizon_fe"]) for row in context_rows
         ),
-        "branch_extra_fe_total": sum(extra_by_arm.values()),
-        "branch_extra_fe_by_arm": extra_by_arm,
+        "branch_action_fe_total": sum(action_fes_by_arm.values()),
+        "branch_action_fe_by_arm": action_fes_by_arm,
         "branch_evaluated_fe_total": sum(
             int(row["natural_endpoint_fe"])
             - int(contexts[context_id]["dispatch_fe"])
