@@ -280,6 +280,32 @@ class RuntimeProbeActionLedger:
         record = self._records.get(relation)
         return None if record is None else record.action
 
+    def abstain(
+        self,
+        *,
+        action: RuntimeProbeAction | None,
+        relation: RelationKey,
+        anchor_hash: str,
+        checkpoint_hash: str,
+        current_sweep: int,
+        current_fe: int,
+        reason: str,
+    ) -> RuntimeProbeConsumption:
+        """Validate one issued action, then deliberately withhold its writeback."""
+
+        if not isinstance(reason, str) or not reason:
+            raise ValueError("runtime probe abstain reason is required")
+        return self.consume(
+            action=action,
+            relation=relation,
+            anchor_hash=anchor_hash,
+            checkpoint_hash=checkpoint_hash,
+            current_sweep=current_sweep,
+            current_fe=current_fe,
+            write_shared_values=None,
+            abstain_reason=reason,
+        )
+
     def consume(
         self,
         *,
@@ -289,7 +315,8 @@ class RuntimeProbeActionLedger:
         checkpoint_hash: str,
         current_sweep: int,
         current_fe: int,
-        write_shared_values: Callable[[tuple[float, ...]], None],
+        write_shared_values: Callable[[tuple[float, ...]], None] | None,
+        abstain_reason: str = "",
     ) -> RuntimeProbeConsumption:
         if action is None:
             return RuntimeProbeConsumption(None, False, "no_action_for_relation")
@@ -326,6 +353,12 @@ class RuntimeProbeActionLedger:
             record.status = "abstained"
             record.invalidation_reason = "anchor_mismatch"
             return RuntimeProbeConsumption(None, False, record.invalidation_reason)
+        if abstain_reason:
+            record.status = "abstained"
+            record.invalidation_reason = abstain_reason
+            return RuntimeProbeConsumption(action, False, abstain_reason)
+        if write_shared_values is None:
+            raise ValueError("runtime probe consume requires a write callback")
         try:
             write_shared_values(action.shared_values)
         except Exception:

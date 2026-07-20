@@ -353,7 +353,11 @@ RUNTIME_PROBE_REPAIR_TRIGGER = "probe_winner_repair"
 RUNTIME_PROBE_COORDINATE_TRIGGER = "probe_winner_coordinate"
 RUNTIME_PROBE_FALLBACK_TRIGGER = "probe_fallback_or_no_data"
 RUNTIME_PROBE_REPAIR_MODES = frozenset(
-    {"hard_repair", "conflict_conditioned_blend"}
+    {
+        "hard_repair",
+        "boundary_gated_exact",
+        "always_withhold_repair",
+    }
 )
 V36_FIRST_SWEEP_OUTER_ITER = 0
 V36_MIN_ACTIVE_COUNT = 4
@@ -1712,6 +1716,30 @@ def conflict_conditioned_context_blend(
         # previous is winner: sharpen weight downward
         w_current = base_w_current * (1.0 - sharpening)
     return w_current * current_values + (1.0 - w_current) * previous_values
+
+
+RUNTIME_PROBE_BOUNDARY_UTILITY_RATIO_MAX = 2.0
+
+
+def runtime_probe_repair_abstain_reason(
+    *,
+    canonical_action: str,
+    utility: float,
+    mode: str,
+) -> str:
+    """Return the deliberate G0 abstention reason for one exact action."""
+
+    if canonical_action != "repair_shared_variable_binding":
+        return ""
+    if mode == "always_withhold_repair":
+        return "repair_writeback_withheld"
+    if (
+        mode == "boundary_gated_exact"
+        and SHADOW_GAIN_THRESHOLD < utility
+        <= SHADOW_GAIN_THRESHOLD * RUNTIME_PROBE_BOUNDARY_UTILITY_RATIO_MAX
+    ):
+        return "boundary_utility_gate"
+    return ""
 
 
 def apply_arac_overlap_action(
@@ -3141,13 +3169,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         and config.runtime_probe_repair_mode != "hard_repair"
     ):
         raise ValueError("runtime probe repair mode requires runtime_probe policy")
-    if (
-        config.relation_policy_mode == RUNTIME_PROBE_POLICY
-        and config.runtime_probe_repair_mode != "hard_repair"
-    ):
-        raise ValueError(
-            "G0 runtime_probe requires exact saved candidates; legacy repair modes are disabled"
-        )
     if config.action_ceiling_capture != (
         config.relation_policy_mode == ACTION_CEILING_POLICY
     ):
@@ -3965,7 +3986,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             NATIVE_EQ8_ACTION,
                         )
                     elif config.relation_policy_mode == RUNTIME_PROBE_POLICY:
-                        effective_policy_mode = "runtime_probe_exact_candidate"
+                        effective_policy_mode = config.runtime_probe_repair_mode
                         relation_key = RelationKey(
                             (relation.group_left, relation.group_right),
                             tuple(relation.shared_vars),
@@ -3993,8 +4014,32 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 best_individual[context.overlap_indices] = saved
                                 adjusted_values = saved.copy()
 
-                            runtime_probe_consumption = (
-                                runtime_probe_action_ledger.consume(
+                            abstain_reason = (
+                                ""
+                                if ledger_action is None
+                                else runtime_probe_repair_abstain_reason(
+                                    canonical_action=ledger_action.canonical_action,
+                                    utility=ledger_action.utility,
+                                    mode=config.runtime_probe_repair_mode,
+                                )
+                            )
+                            if abstain_reason:
+                                runtime_probe_consumption = (
+                                    runtime_probe_action_ledger.abstain(
+                                        action=ledger_action,
+                                        relation=relation_key,
+                                        anchor_hash=runtime_probe_anchor_hash(
+                                            relation_key,
+                                            anchor_shared_values,
+                                        ),
+                                        checkpoint_hash=runtime_probe_checkpoint_hash,
+                                        current_sweep=outer_iter,
+                                        current_fe=current_fitness_evaluations(fun),
+                                        reason=abstain_reason,
+                                    )
+                                )
+                            else:
+                                runtime_probe_consumption = runtime_probe_action_ledger.consume(
                                     action=ledger_action,
                                     relation=relation_key,
                                     anchor_hash=runtime_probe_anchor_hash(
@@ -4006,11 +4051,16 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                     current_fe=current_fitness_evaluations(fun),
                                     write_shared_values=write_runtime_probe_values,
                                 )
-                            )
                         runtime_action = (
-                            None
-                            if runtime_probe_consumption is None
-                            else runtime_probe_consumption.action
+                            ledger_action
+                            if runtime_probe_consumption is not None
+                            and runtime_probe_consumption.reason
+                            in {"boundary_utility_gate", "repair_writeback_withheld"}
+                            else (
+                                None
+                                if runtime_probe_consumption is None
+                                else runtime_probe_consumption.action
+                            )
                         )
                         _probe_canonical = (
                             TRUE_NO_WRITEBACK_ACTION
@@ -4739,11 +4789,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         and args.relation_policy != RUNTIME_PROBE_POLICY
     ):
         parser.error("--runtime-probe-repair-mode requires runtime_probe")
-    if (
-        args.relation_policy == RUNTIME_PROBE_POLICY
-        and args.runtime_probe_repair_mode != "hard_repair"
-    ):
-        parser.error("G0 runtime_probe disables legacy repair modes")
     if args.action_ceiling_capture != (
         args.relation_policy == ACTION_CEILING_POLICY
     ):

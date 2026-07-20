@@ -283,6 +283,41 @@ def test_runtime_probe_action_ledger_is_local_next_sweep_and_one_shot() -> None:
     assert writes == [action.shared_values]
 
 
+def test_runtime_probe_action_ledger_records_deliberate_abstention() -> None:
+    action = _runtime_action()
+    ledger = RuntimeProbeActionLedger()
+    ledger.issue((action,))
+
+    result = ledger.abstain(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=action.expires_sweep,
+        current_fe=200,
+        reason="repair_writeback_withheld",
+    )
+
+    assert not result.consumed
+    assert result.action == action
+    assert result.reason == "repair_writeback_withheld"
+    assert not ledger.records[0].runtime_consumed
+    assert ledger.records[0].status == "abstained"
+    assert ledger.records[0].invalidation_reason == "repair_writeback_withheld"
+
+    repeated = ledger.abstain(
+        action=ledger.action_for(action.relation),
+        relation=action.relation,
+        anchor_hash=action.anchor_hash,
+        checkpoint_hash=action.checkpoint_hash,
+        current_sweep=3,
+        current_fe=201,
+        reason="repair_writeback_withheld",
+    )
+    assert not repeated.consumed
+    assert repeated.reason == "repair_writeback_withheld"
+
+
 def test_runtime_probe_action_ttl_is_frozen_to_one_sweep() -> None:
     with pytest.raises(ValueError, match="ttl_sweeps=1"):
         replace(_runtime_action(), ttl_sweeps=2, expires_sweep=4)
