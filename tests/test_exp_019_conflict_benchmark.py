@@ -83,10 +83,10 @@ def test_diagnostic_config_freezes_stage_one_without_runtime_authority() -> None
     assert config["synthetic_benchmark"]["rho"] == FROZEN_RHO
     assert config["smoke"] == {
         "cohort": "real_aob",
-        "cases": ["A4"],
-        "seeds": [1],
-        "max_fes": 100000,
-        "jobs": 1,
+        "cases": ["E3", "S5"],
+        "seeds": [117, 118, 119],
+        "max_fes": 300000,
+        "jobs": 6,
     }
     assert config["pilot"]["real_aob"]["cases"] == ["E1", "E3", "A4", "R4", "S5"]
     assert config["pilot"]["synthetic_conflict"]["cases"] == ["E3", "A4", "S5"]

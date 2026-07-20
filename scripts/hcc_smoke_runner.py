@@ -3305,7 +3305,6 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         HccActionCeilingRuntime(
             benchmark_factory=Benchmark,
             cmaes_factory=CMAES,
-            mmes_factory=MMES,
             combine=combine,
             derive_seed=derive_optimizer_seed,
             fun_name=fun_name,

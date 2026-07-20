@@ -7,7 +7,6 @@ import pytest
 import numpy as np
 
 from arac.backends.hcc_action_ceiling import (
-    FULL_SPACE_RESCUE_FE,
     ActionExecutionRequest,
     NativeContinuationState,
     OptimizationResult,
@@ -17,7 +16,6 @@ from arac.backends.hcc_action_ceiling import (
     run_native_group_cycle,
     run_native_continuation,
     selector_arm_for_context,
-    shared_population_size,
 )
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
@@ -26,6 +24,7 @@ from arac.policy.action_ceiling import (
     ActionCeilingObservation,
     FrozenProbeCandidate,
     RelationActionSet,
+    RelationCredit,
     actionability_delta,
     summarize_action_ceiling,
 )
@@ -154,7 +153,7 @@ def test_positive_vbs_but_negative_selector_upgrades_evidence() -> None:
             {"exact_left": MATERIAL_POSITIVE_DELTA + 0.1},
             {"exact_right": MATERIAL_POSITIVE_DELTA + 0.1},
             {"exact_bridge": MATERIAL_POSITIVE_DELTA + 0.1},
-            {"shared_trust_region": MATERIAL_POSITIVE_DELTA + 0.1},
+            {"multi_context_winner": MATERIAL_POSITIVE_DELTA + 0.1},
         ],
         selector_arm="true_no_writeback",
     )
@@ -201,10 +200,28 @@ def test_catastrophic_selector_blocks_runtime_validation() -> None:
     assert summary["recommendation"] == "upgrade_evidence"
 
 
-def _request(arm: str, *, dimension: int = 8) -> ActionExecutionRequest:
+OWNER_GROUP_DIMENSIONS = ((0, 1, 4, 5), (2, 3, 4, 5))
+
+
+def _owner_optimizer_means(
+    incumbent: np.ndarray,
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+    return tuple(
+        tuple(float(incumbent[index]) for index in dimensions)
+        for dimensions in OWNER_GROUP_DIMENSIONS
+    )
+
+
+def _request(
+    arm: str,
+    *,
+    dimension: int = 8,
+    incumbent_shared: tuple[float, float] = (8.0, 9.0),
+    owner_optimizer_means: tuple[tuple[float, ...], tuple[float, ...]] | None = None,
+) -> ActionExecutionRequest:
     actions = _action_set()
     incumbent = np.arange(dimension, dtype=float)
-    incumbent[4:6] = (8.0, 9.0)
+    incumbent[4:6] = incumbent_shared
     return ActionExecutionRequest(
         arm=arm,
         context_hash=_hash("context"),
@@ -212,11 +229,15 @@ def _request(arm: str, *, dimension: int = 8) -> ActionExecutionRequest:
         incumbent=tuple(incumbent),
         incumbent_fitness=100.0,
         previous_values=(6.0, 7.0),
-        current_values=(8.0, 9.0),
+        current_values=incumbent_shared,
         previous_delta=1.0,
         current_delta=3.0,
-        lower=-100.0,
-        upper=100.0,
+        owner_group_dimensions=OWNER_GROUP_DIMENSIONS,
+        owner_optimizer_means=(
+            _owner_optimizer_means(incumbent)
+            if owner_optimizer_means is None
+            else owner_optimizer_means
+        ),
     )
 
 
@@ -232,9 +253,13 @@ def test_native_eq8_and_true_no_writeback_are_distinct() -> None:
 
     assert no_writeback.incumbent[4:6] == (8.0, 9.0)
     np.testing.assert_allclose(native.incumbent[4:6], native_eq8_values((6, 7), (8, 9), 1, 3))
-    assert no_writeback.counterfactual_applied is True
+    assert no_writeback.counterfactual_applied is False
     assert no_writeback.mutation_norm == 0.0
+    assert no_writeback.optimizer_mean_mutation_norm == 0.0
+    assert no_writeback.owner_optimizer_means == ((0.0, 1.0, 8.0, 9.0), (2.0, 3.0, 8.0, 9.0))
     assert native.counterfactual_applied is True
+    assert native.optimizer_mean_mutation_norm == 0.0
+    assert native.owner_optimizer_means == no_writeback.owner_optimizer_means
 
 
 def test_runner_legacy_no_action_is_native_and_explicit_noop_is_none() -> None:
@@ -271,60 +296,204 @@ def test_exact_arms_ignore_phase2_delta(arm: str, expected: tuple[float, ...]) -
     )
 
     assert result.incumbent[4:6] == expected
+    assert result.owner_optimizer_means == (
+        (0.0, 1.0, *expected),
+        (2.0, 3.0, *expected),
+    )
 
 
-def test_reprobe_consumes_four_fes_and_uses_exact_best() -> None:
-    calls: list[int] = []
+def test_shared_writeback_repairs_stale_owner_means_even_without_incumbent_delta() -> None:
+    result = execute_action_ceiling_arm(
+        _request(
+            "exact_right",
+            incumbent_shared=(3.0, 4.0),
+            owner_optimizer_means=(
+                (10.0, 11.0, -1.0, -2.0),
+                (20.0, 21.0, -3.0, -4.0),
+            ),
+        ),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
 
-    def evaluate(values: np.ndarray) -> np.ndarray:
-        calls.append(len(values))
-        return np.asarray([10.0, 5.0, 7.0, 6.0])
+    assert result.mutation_norm == 0.0
+    assert result.optimizer_mean_mutation_norm > 0.0
+    assert result.counterfactual_applied is True
+    assert result.owner_optimizer_means == (
+        (10.0, 11.0, 3.0, 4.0),
+        (20.0, 21.0, 3.0, 4.0),
+    )
 
-    result = execute_action_ceiling_arm(_request("reprobe_then_exact"), evaluate=evaluate)
 
-    assert calls == [4]
-    assert result.extra_fes == 4
+def test_multi_context_winner_picks_best_and_writes_back() -> None:
+    actions = _action_set()
+    dimension = 8
+    incumbent = np.arange(dimension, dtype=float)
+    incumbent[4:6] = (8.0, 9.0)
+    left_bg = incumbent.copy()
+    right_bg = incumbent.copy()
+    request = ActionExecutionRequest(
+        arm="multi_context_winner",
+        context_hash=_hash("ctx"),
+        action_set=actions,
+        incumbent=tuple(incumbent),
+        incumbent_fitness=100.0,
+        previous_values=(6.0, 7.0),
+        current_values=(8.0, 9.0),
+        previous_delta=1.0,
+        current_delta=3.0,
+        owner_group_dimensions=OWNER_GROUP_DIMENSIONS,
+        owner_optimizer_means=_owner_optimizer_means(incumbent),
+        left_background=tuple(left_bg),
+        right_background=tuple(right_bg),
+    )
+
+    eval_calls: list[int] = []
+
+    def evaluate(batch: np.ndarray) -> np.ndarray:
+        eval_calls.append(len(batch))
+        # exact_left (index 1) has lowest fitness in both contexts
+        return np.asarray([100.0, 60.0, 80.0, 75.0])
+
+    result = execute_action_ceiling_arm(request, evaluate=evaluate)
+
+    assert len(eval_calls) == 2
+    assert result.extra_fes == 8
     assert result.selected_candidate == "exact_left"
     assert result.incumbent[4:6] == (1.0, 2.0)
+    assert result.owner_optimizer_means == (
+        (0.0, 1.0, 1.0, 2.0),
+        (2.0, 3.0, 1.0, 2.0),
+    )
+    assert result.counterfactual_applied is True
 
 
-def test_shared_search_changes_only_shared_coordinates() -> None:
-    def optimize(**kwargs) -> OptimizationResult:
-        assert kwargs["requested_fes"] == 4 * shared_population_size(2)
-        return OptimizationResult((0.5, 0.75), 50.0, kwargs["requested_fes"])
+def test_multi_context_winner_falls_back_to_current_when_no_improvement() -> None:
+    actions = _action_set()
+    dimension = 8
+    incumbent = np.arange(dimension, dtype=float)
+    incumbent[4:6] = (8.0, 9.0)
+    request = ActionExecutionRequest(
+        arm="multi_context_winner",
+        context_hash=_hash("ctx"),
+        action_set=actions,
+        incumbent=tuple(incumbent),
+        incumbent_fitness=100.0,
+        previous_values=(6.0, 7.0),
+        current_values=(8.0, 9.0),
+        previous_delta=1.0,
+        current_delta=3.0,
+        owner_group_dimensions=OWNER_GROUP_DIMENSIONS,
+        owner_optimizer_means=_owner_optimizer_means(incumbent),
+        left_background=tuple(incumbent),
+        right_background=tuple(incumbent),
+    )
 
-    request = _request("shared_trust_region")
+    # current (index 0) wins in both contexts — no improvement over itself
     result = execute_action_ceiling_arm(
         request,
-        evaluate=lambda values: np.sum(np.square(values), axis=-1),
-        shared_optimizer=optimize,
+        evaluate=lambda batch: np.asarray([50.0, 80.0, 90.0, 70.0]),
     )
 
-    before = np.asarray(request.incumbent)
-    after = np.asarray(result.incumbent)
-    np.testing.assert_array_equal(np.delete(after, (4, 5)), np.delete(before, (4, 5)))
-    np.testing.assert_allclose(after[4:6], (0.5, 0.75))
-    assert result.extra_fes == 4 * shared_population_size(2)
+    assert result.selected_candidate == "current"
+    assert result.counterfactual_applied is False
 
 
-def test_full_space_rescue_is_1000d_and_charges_97_fes() -> None:
-    observed: dict[str, int] = {}
+def test_initialization_bias_charges_no_fes_and_names_winner() -> None:
+    eval_calls: list[int] = []
+    result = execute_action_ceiling_arm(
+        _request("initialization_bias"),
+        evaluate=lambda batch: (eval_calls.append(len(batch)), None)[1],
+    )
 
-    def optimize(**kwargs) -> OptimizationResult:
-        observed["dimension"] = len(kwargs["mean"])
-        observed["population"] = kwargs["population_size"]
-        best = np.asarray(kwargs["mean"]) * 0.5
-        return OptimizationResult(tuple(best), 50.0, kwargs["requested_fes"])
+    assert eval_calls == []
+    assert result.extra_fes == 0
+    assert result.selected_candidate == "bias_bridge"
+    assert result.counterfactual_applied is True
+    assert result.mutation_norm == 0.0
+    assert result.optimizer_mean_mutation_norm > 0.0
+    assert result.owner_optimizer_means == (
+        (0.0, 1.0, 2.0, 3.0),
+        (2.0, 3.0, 2.0, 3.0),
+    )
+
+
+def test_delayed_sweep_reconciliation_cold_start_no_writeback() -> None:
+    result = execute_action_ceiling_arm(
+        _request("delayed_sweep_reconciliation"),
+        evaluate=lambda batch: np.zeros(len(batch)),
+    )
+
+    assert result.selected_candidate == "cold_start_no_writeback"
+    assert result.counterfactual_applied is False
+
+
+def test_delayed_sweep_reconciliation_warm_applies_last_winner() -> None:
+    credit = RelationCredit(
+        ewma_credit=0.05,
+        last_winner="left_owner",
+        n_sweeps=5,
+        last_updated_sweep=4,
+    )
+    dimension = 8
+    incumbent = np.arange(dimension, dtype=float)
+    incumbent[4:6] = (8.0, 9.0)
+    actions = _action_set()
+    request = ActionExecutionRequest(
+        arm="delayed_sweep_reconciliation",
+        context_hash=_hash("ctx"),
+        action_set=actions,
+        incumbent=tuple(incumbent),
+        incumbent_fitness=100.0,
+        previous_values=(6.0, 7.0),
+        current_values=(8.0, 9.0),
+        previous_delta=1.0,
+        current_delta=3.0,
+        owner_group_dimensions=OWNER_GROUP_DIMENSIONS,
+        owner_optimizer_means=_owner_optimizer_means(incumbent),
+        relation_credit=credit,
+    )
 
     result = execute_action_ceiling_arm(
-        _request("non_decomposition_rescue", dimension=1000),
-        evaluate=lambda values: np.sum(np.square(values), axis=-1),
-        full_optimizer=optimize,
+        request,
+        evaluate=lambda batch: np.zeros(len(batch)),
     )
 
-    assert observed == {"dimension": 1000, "population": 24}
-    assert result.extra_fes == FULL_SPACE_RESCUE_FE == 97
-    assert len(result.incumbent) == 1000
+    assert result.selected_candidate == "delayed_left_owner"
+    assert result.incumbent[4:6] == (1.0, 2.0)
+    assert result.owner_optimizer_means == (
+        (0.0, 1.0, 1.0, 2.0),
+        (2.0, 3.0, 1.0, 2.0),
+    )
+    assert result.counterfactual_applied is True
+
+
+def test_delayed_sweep_reconciliation_negative_credit_no_writeback() -> None:
+    credit = RelationCredit(
+        ewma_credit=-0.01,
+        last_winner="left_owner",
+        n_sweeps=5,
+        last_updated_sweep=4,
+    )
+    result = execute_action_ceiling_arm(
+        ActionExecutionRequest(
+            arm="delayed_sweep_reconciliation",
+            context_hash=_hash("ctx"),
+            action_set=_action_set(),
+            incumbent=tuple(np.arange(8, dtype=float)),
+            incumbent_fitness=100.0,
+            previous_values=(6.0, 7.0),
+            current_values=(8.0, 9.0),
+            previous_delta=1.0,
+            current_delta=3.0,
+            owner_group_dimensions=OWNER_GROUP_DIMENSIONS,
+            owner_optimizer_means=_owner_optimizer_means(np.arange(8, dtype=float)),
+            relation_credit=credit,
+        ),
+        evaluate=lambda batch: np.zeros(len(batch)),
+    )
+
+    assert result.selected_candidate == "credit_negative_no_writeback"
+    assert result.counterfactual_applied is False
 
 
 def test_selector_mismatch_maps_to_true_no_writeback() -> None:

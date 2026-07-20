@@ -14,15 +14,14 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
     RelationActionSet,
+    RelationCredit,
     actionability_delta,
 )
-from arac.policy.evidence_overlay import RelationKey, runtime_probe_anchor_hash
-
-
-FULL_SPACE_DIMENSION = 1_000
-SEARCH_GENERATIONS = 4
-FULL_SPACE_POPULATION = 4 + math.floor(3 * math.log(FULL_SPACE_DIMENSION))
-FULL_SPACE_RESCUE_FE = 1 + SEARCH_GENERATIONS * FULL_SPACE_POPULATION
+from arac.policy.evidence_overlay import (
+    RelationKey,
+    UTILITY_EPSILON,
+    runtime_probe_anchor_hash,
+)
 
 
 def _sha256(payload: object) -> str:
@@ -37,12 +36,6 @@ def _sha256(payload: object) -> str:
 
 def _vector_hash(values: Sequence[float]) -> str:
     return _sha256([float(value) for value in values])
-
-
-def shared_population_size(dimension: int) -> int:
-    if isinstance(dimension, bool) or int(dimension) <= 0:
-        raise ValueError("shared dimension must be positive")
-    return 4 + 3 * math.ceil(math.log(int(dimension)))
 
 
 def native_eq8_values(
@@ -69,37 +62,6 @@ def native_eq8_values(
     ) * current
 
 
-def trust_region_bounds(
-    action_set: RelationActionSet,
-    *,
-    lower: float,
-    upper: float,
-) -> tuple[np.ndarray, np.ndarray]:
-    domain_lower = float(lower)
-    domain_upper = float(upper)
-    if not math.isfinite(domain_lower) or not math.isfinite(domain_upper):
-        raise ValueError("trust-region domain bounds must be finite")
-    if domain_lower >= domain_upper:
-        raise ValueError("trust-region upper bound must exceed lower bound")
-    values = np.asarray(
-        [
-            action_set.anchor.shared_values,
-            action_set.left_owner.shared_values,
-            action_set.right_owner.shared_values,
-            action_set.bridge.shared_values,
-        ],
-        dtype=float,
-    )
-    minimum = np.min(values, axis=0)
-    maximum = np.max(values, axis=0)
-    span = maximum - minimum
-    padding = np.maximum(0.5 * span, 0.01 * (domain_upper - domain_lower))
-    return (
-        np.maximum(domain_lower, minimum - padding),
-        np.minimum(domain_upper, maximum + padding),
-    )
-
-
 @dataclass(frozen=True)
 class OptimizationResult:
     best_x: tuple[float, ...]
@@ -115,34 +77,6 @@ class OptimizationResult:
             raise ValueError("optimizer actual_fes must be non-negative")
 
 
-class SharedOptimizer(Protocol):
-    def __call__(
-        self,
-        *,
-        background: np.ndarray,
-        shared_indices: tuple[int, ...],
-        mean: np.ndarray,
-        lower: np.ndarray,
-        upper: np.ndarray,
-        requested_fes: int,
-        population_size: int,
-        seed: int,
-    ) -> OptimizationResult: ...
-
-
-class FullOptimizer(Protocol):
-    def __call__(
-        self,
-        *,
-        mean: np.ndarray,
-        lower: float,
-        upper: float,
-        requested_fes: int,
-        population_size: int,
-        seed: int,
-    ) -> OptimizationResult: ...
-
-
 @dataclass(frozen=True)
 class ActionExecutionRequest:
     arm: str
@@ -154,8 +88,11 @@ class ActionExecutionRequest:
     current_values: tuple[float, ...]
     previous_delta: float
     current_delta: float
-    lower: float
-    upper: float
+    owner_group_dimensions: tuple[tuple[int, ...], tuple[int, ...]]
+    owner_optimizer_means: tuple[tuple[float, ...], tuple[float, ...]]
+    left_background: tuple[float, ...] | None = None
+    right_background: tuple[float, ...] | None = None
+    relation_credit: RelationCredit | None = None
 
     def __post_init__(self) -> None:
         if self.arm not in ACTION_CEILING_ARMS:
@@ -166,12 +103,49 @@ class ActionExecutionRequest:
         if not incumbent or not all(math.isfinite(value) for value in incumbent):
             raise ValueError("incumbent must be finite and non-empty")
         object.__setattr__(self, "incumbent", incumbent)
-        if len(self.previous_values) != len(self.action_set.relation.shared_variable_indices):
+        shared_count = len(self.action_set.relation.shared_variable_indices)
+        if len(self.previous_values) != shared_count:
             raise ValueError("previous relation values do not match action set")
-        if len(self.current_values) != len(self.action_set.relation.shared_variable_indices):
+        if len(self.current_values) != shared_count:
             raise ValueError("current relation values do not match action set")
         if not math.isfinite(float(self.incumbent_fitness)):
             raise ValueError("incumbent_fitness must be finite")
+        owner_dimensions = tuple(
+            tuple(int(value) for value in dimensions)
+            for dimensions in self.owner_group_dimensions
+        )
+        if len(owner_dimensions) != 2:
+            raise ValueError("action execution requires two owner group dimensions")
+        shared_indices = set(self.action_set.relation.shared_variable_indices)
+        for dimensions in owner_dimensions:
+            if not dimensions or len(set(dimensions)) != len(dimensions):
+                raise ValueError("owner group dimensions must be non-empty and unique")
+            if any(value < 0 or value >= len(incumbent) for value in dimensions):
+                raise ValueError("owner group dimension is outside incumbent")
+            if not shared_indices.issubset(dimensions):
+                raise ValueError("owner group does not contain every shared variable")
+        object.__setattr__(self, "owner_group_dimensions", owner_dimensions)
+
+        owner_means = tuple(
+            tuple(float(value) for value in mean)
+            for mean in self.owner_optimizer_means
+        )
+        if len(owner_means) != 2:
+            raise ValueError("action execution requires two owner optimizer means")
+        for mean, dimensions in zip(owner_means, owner_dimensions, strict=True):
+            if len(mean) != len(dimensions) or not all(math.isfinite(value) for value in mean):
+                raise ValueError("owner optimizer mean must be finite and match its group")
+        object.__setattr__(self, "owner_optimizer_means", owner_means)
+        if self.left_background is not None:
+            lb = tuple(float(v) for v in self.left_background)
+            if len(lb) != len(incumbent) or not all(math.isfinite(v) for v in lb):
+                raise ValueError("left_background must be finite and match incumbent size")
+            object.__setattr__(self, "left_background", lb)
+        if self.right_background is not None:
+            rb = tuple(float(v) for v in self.right_background)
+            if len(rb) != len(incumbent) or not all(math.isfinite(v) for v in rb):
+                raise ValueError("right_background must be finite and match incumbent size")
+            object.__setattr__(self, "right_background", rb)
 
 
 @dataclass(frozen=True)
@@ -182,23 +156,36 @@ class ActionExecutionResult:
     extra_fes: int
     counterfactual_applied: bool
     mutation_norm: float
+    optimizer_mean_mutation_norm: float
     applied_values_hash: str
     selected_candidate: str
+    owner_optimizer_means: tuple[tuple[float, ...], tuple[float, ...]]
 
 
-def _action_seed(context_hash: str, arm: str) -> int:
-    digest = hashlib.sha256(f"{context_hash}|{arm}".encode("utf-8")).digest()
-    return int.from_bytes(digest[:8], "big") & 0x7FFFFFFF
+def _synchronize_owner_optimizer_means(
+    *,
+    owner_group_dimensions: tuple[tuple[int, ...], tuple[int, ...]],
+    owner_optimizer_means: tuple[tuple[float, ...], tuple[float, ...]],
+    shared_indices: Sequence[int],
+    shared_values: Sequence[float],
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+    """Copy one shared block into both owner groups' local mean vectors."""
 
-
-def _best_probe_candidate(action_set: RelationActionSet):
-    candidates = (
-        action_set.anchor,
-        action_set.left_owner,
-        action_set.right_owner,
-        action_set.bridge,
-    )
-    return min(candidates, key=lambda item: (item.fitness, candidates.index(item)))
+    shared = tuple(float(value) for value in shared_values)
+    if len(shared) != len(shared_indices) or not all(math.isfinite(value) for value in shared):
+        raise ValueError("shared writeback values must be finite and aligned")
+    synchronized: list[tuple[float, ...]] = []
+    for dimensions, mean in zip(
+        owner_group_dimensions,
+        owner_optimizer_means,
+        strict=True,
+    ):
+        local_positions = {dimension: index for index, dimension in enumerate(dimensions)}
+        updated = list(mean)
+        for shared_index, shared_value in zip(shared_indices, shared, strict=True):
+            updated[local_positions[int(shared_index)]] = shared_value
+        synchronized.append(tuple(updated))
+    return synchronized[0], synchronized[1]
 
 
 def selector_arm_for_context(
@@ -231,8 +218,6 @@ def execute_action_ceiling_arm(
     request: ActionExecutionRequest,
     *,
     evaluate: Callable[[np.ndarray], np.ndarray],
-    shared_optimizer: SharedOptimizer | None = None,
-    full_optimizer: FullOptimizer | None = None,
 ) -> ActionExecutionResult:
     incumbent = np.asarray(request.incumbent, dtype=float).copy()
     original = incumbent.copy()
@@ -242,103 +227,155 @@ def execute_action_ceiling_arm(
     extra_fes = 0
     selected_candidate = request.arm
     incumbent_fitness = float(request.incumbent_fitness)
+    owner_optimizer_means = request.owner_optimizer_means
+    original_owner_optimizer_means = request.owner_optimizer_means
+
+    def write_shared_values(
+        values: Sequence[float],
+        *,
+        synchronize_owner_means: bool = True,
+    ) -> None:
+        nonlocal owner_optimizer_means
+        shared_values = np.asarray(values, dtype=float).reshape(-1)
+        if shared_values.shape != indices.shape or not np.all(np.isfinite(shared_values)):
+            raise ValueError("shared writeback values must be finite and aligned")
+        incumbent[indices] = shared_values
+        if synchronize_owner_means:
+            owner_optimizer_means = _synchronize_owner_optimizer_means(
+                owner_group_dimensions=request.owner_group_dimensions,
+                owner_optimizer_means=owner_optimizer_means,
+                shared_indices=indices,
+                shared_values=shared_values,
+            )
 
     if request.arm == "native_eq8":
-        incumbent[indices] = native_eq8_values(
-            request.previous_values,
-            request.current_values,
-            request.previous_delta,
-            request.current_delta,
+        write_shared_values(
+            native_eq8_values(
+                request.previous_values,
+                request.current_values,
+                request.previous_delta,
+                request.current_delta,
+            ),
+            synchronize_owner_means=False,
         )
     elif request.arm == "true_no_writeback":
         selected_candidate = "current"
     elif request.arm in {"exact_left", "exact_right", "exact_bridge"}:
-        incumbent[indices] = request.action_set.candidate_for_arm(
-            request.arm
-        ).shared_values
-    elif request.arm == "reprobe_then_exact":
-        candidates = (
-            ("current", tuple(float(value) for value in incumbent[indices])),
+        write_shared_values(
+            request.action_set.candidate_for_arm(request.arm).shared_values
+        )
+    elif request.arm == "multi_context_winner":
+        if request.left_background is None or request.right_background is None:
+            raise ValueError("multi_context_winner requires left_background and right_background")
+        left_bg = np.asarray(request.left_background, dtype=float).copy()
+        right_bg = np.asarray(request.right_background, dtype=float).copy()
+        eq8 = native_eq8_values(
+            request.previous_values, request.current_values,
+            request.previous_delta, request.current_delta,
+        )
+        candidates = [
+            ("current", tuple(float(v) for v in incumbent[indices])),
             ("exact_left", request.action_set.left_owner.shared_values),
             ("exact_right", request.action_set.right_owner.shared_values),
-            ("exact_bridge", request.action_set.bridge.shared_values),
-        )
-        batch = np.repeat(incumbent[None, :], len(candidates), axis=0)
-        for row, (_, values) in zip(batch, candidates, strict=True):
-            row[indices] = values
-        fitness = np.asarray(evaluate(batch), dtype=float).reshape(-1)
-        if fitness.shape != (4,) or not np.all(np.isfinite(fitness)):
-            raise ValueError("reprobe evaluator must return four finite values")
-        extra_fes = 4
-        selected_index = int(np.argmin(fitness))
-        selected_candidate, selected_values = candidates[selected_index]
-        incumbent[indices] = selected_values
-        incumbent_fitness = float(fitness[selected_index])
-    elif request.arm == "shared_trust_region":
-        if shared_optimizer is None:
-            raise ValueError("shared_trust_region requires a shared optimizer")
-        lower, upper = trust_region_bounds(
-            request.action_set,
-            lower=request.lower,
-            upper=request.upper,
-        )
-        mean = np.asarray(_best_probe_candidate(request.action_set).shared_values)
-        population = shared_population_size(len(indices))
-        requested_fes = SEARCH_GENERATIONS * population
-        result = shared_optimizer(
-            background=incumbent.copy(),
-            shared_indices=tuple(int(value) for value in indices),
-            mean=mean,
-            lower=lower,
-            upper=upper,
-            requested_fes=requested_fes,
-            population_size=population,
-            seed=_action_seed(request.context_hash, request.arm),
-        )
-        if result.actual_fes != requested_fes:
-            raise ValueError("shared optimizer did not consume four complete generations")
-        extra_fes = result.actual_fes
-        if result.best_y < incumbent_fitness:
-            incumbent[indices] = result.best_x
-            incumbent_fitness = result.best_y
+            ("exact_eq8", tuple(float(v) for v in eq8)),
+        ]
+        n = len(candidates)
+        left_batch = np.repeat(left_bg[None, :], n, axis=0)
+        right_batch = np.repeat(right_bg[None, :], n, axis=0)
+        for i, (_, vals) in enumerate(candidates):
+            left_batch[i, indices] = vals
+            right_batch[i, indices] = vals
+        f_left = np.asarray(evaluate(left_batch), dtype=float).reshape(-1)
+        f_right = np.asarray(evaluate(right_batch), dtype=float).reshape(-1)
+        if f_left.shape != (n,) or not np.all(np.isfinite(f_left)):
+            raise ValueError("multi_context left evaluator must return 4 finite values")
+        if f_right.shape != (n,) or not np.all(np.isfinite(f_right)):
+            raise ValueError("multi_context right evaluator must return 4 finite values")
+        extra_fes = 2 * n
+        eps = UTILITY_EPSILON
+        f_L0, f_R0 = float(f_left[0]), float(f_right[0])
+        scores = [
+            min(
+                math.log((f_L0 + eps) / (float(f_left[i]) + eps)),
+                math.log((f_R0 + eps) / (float(f_right[i]) + eps)),
+            )
+            for i in range(n)
+        ]
+        best_i = int(np.argmax(scores))
+        best_score = scores[best_i]
+        _catastrophic = math.log(1.20)
+        loss_L = math.log((f_L0 + eps) / (float(f_left[best_i]) + eps))
+        loss_R = math.log((f_R0 + eps) / (float(f_right[best_i]) + eps))
+        if best_score > 0 and loss_L > -_catastrophic and loss_R > -_catastrophic:
+            write_shared_values(candidates[best_i][1])
+            selected_candidate = candidates[best_i][0]
         else:
             selected_candidate = "current"
-    elif request.arm == "non_decomposition_rescue":
-        if incumbent.size != FULL_SPACE_DIMENSION:
-            raise ValueError("non-decomposition rescue requires a 1000D incumbent")
-        if full_optimizer is None:
-            raise ValueError("non_decomposition_rescue requires a full optimizer")
-        result = full_optimizer(
-            mean=incumbent.copy(),
-            lower=request.lower,
-            upper=request.upper,
-            requested_fes=FULL_SPACE_RESCUE_FE,
-            population_size=FULL_SPACE_POPULATION,
-            seed=_action_seed(request.context_hash, request.arm),
-        )
-        if result.actual_fes != FULL_SPACE_RESCUE_FE:
-            raise ValueError("full optimizer did not consume the frozen rescue budget")
-        extra_fes = result.actual_fes
-        if result.best_y < incumbent_fitness:
-            if len(result.best_x) != FULL_SPACE_DIMENSION:
-                raise ValueError("full optimizer returned a non-1000D candidate")
-            incumbent[:] = result.best_x
-            incumbent_fitness = result.best_y
+    elif request.arm == "initialization_bias":
+        winner = request.action_set.selector_winner
+        winner_values = {
+            "left_owner": request.action_set.left_owner.shared_values,
+            "right_owner": request.action_set.right_owner.shared_values,
+            "bridge": request.action_set.bridge.shared_values,
+        }.get(winner)
+        if winner_values is None:
+            selected_candidate = "bias_none"
         else:
-            selected_candidate = "current"
+            owner_optimizer_means = _synchronize_owner_optimizer_means(
+                owner_group_dimensions=request.owner_group_dimensions,
+                owner_optimizer_means=owner_optimizer_means,
+                shared_indices=indices,
+                shared_values=winner_values,
+            )
+            selected_candidate = f"bias_{winner}"
+    elif request.arm == "delayed_sweep_reconciliation":
+        credit = request.relation_credit
+        if credit is None or not credit.is_warm:
+            selected_candidate = "cold_start_no_writeback"
+        elif credit.ewma_credit <= 0.0:
+            selected_candidate = "credit_negative_no_writeback"
+        else:
+            _winner_values = {
+                "left_owner": request.action_set.left_owner.shared_values,
+                "right_owner": request.action_set.right_owner.shared_values,
+                "bridge": request.action_set.bridge.shared_values,
+            }.get(credit.last_winner)
+            if _winner_values is None:
+                selected_candidate = "credit_winner_invalid_no_writeback"
+            else:
+                write_shared_values(_winner_values)
+                selected_candidate = f"delayed_{credit.last_winner}"
     else:
         raise ValueError("unsupported action-ceiling arm")
 
     mutation_norm = float(np.linalg.norm(incumbent - original))
+    optimizer_mean_mutation_norm = float(
+        np.linalg.norm(
+            np.concatenate(
+                [
+                    np.asarray(current, dtype=float) - np.asarray(previous, dtype=float)
+                    for current, previous in zip(
+                        owner_optimizer_means,
+                        original_owner_optimizer_means,
+                        strict=True,
+                    )
+                ]
+            )
+        )
+    )
     return ActionExecutionResult(
         arm=request.arm,
         incumbent=tuple(float(value) for value in incumbent),
         incumbent_fitness=incumbent_fitness,
         extra_fes=extra_fes,
-        counterfactual_applied=True,
+        counterfactual_applied=(
+            mutation_norm > 0.0 or optimizer_mean_mutation_norm > 0.0
+        ),
         mutation_norm=mutation_norm,
+        optimizer_mean_mutation_norm=optimizer_mean_mutation_norm,
         applied_values_hash=_vector_hash(incumbent),
         selected_candidate=selected_candidate,
+        owner_optimizer_means=owner_optimizer_means,
     )
 
 
@@ -377,6 +414,7 @@ class GroupOptimizer(Protocol):
     def __call__(
         self,
         *,
+        group_index: int,
         background: np.ndarray,
         dims: tuple[int, ...],
         requested_fes: int,
@@ -420,6 +458,7 @@ def _run_native_group_steps(
             raise ValueError("native precheck must return one finite value")
         original_fitness = float(values[0])
         result = optimize_group(
+            group_index=group_index,
             background=incumbent.copy(),
             dims=dims,
             requested_fes=state.optimizer_budgets[group_index],

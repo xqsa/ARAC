@@ -1,6 +1,6 @@
 {
-  "protocol_version": "exp019-action-ceiling-v2",
-  "schema_version": "exp019-action-ceiling-config-v2",
+  "protocol_version": "exp019-action-ceiling-v3",
+  "schema_version": "exp019-action-ceiling-config-v3",
   "observer_only": true,
   "runtime_authorized": false,
   "arms": [
@@ -9,19 +9,19 @@
     "exact_left",
     "exact_right",
     "exact_bridge",
-    "shared_trust_region",
-    "reprobe_then_exact",
-    "non_decomposition_rescue"
+    "multi_context_winner",
+    "initialization_bias",
+    "delayed_sweep_reconciliation"
   ],
   "horizons": ["immediate", "sweep_1", "sweep_3"],
   "primary_horizon": "sweep_1",
   "phase1_top_relations": 4,
   "smoke": {
     "cohort": "real_aob",
-    "cases": ["A4"],
-    "seeds": [1],
-    "max_fes": 100000,
-    "jobs": 1
+    "cases": ["E3", "S5"],
+    "seeds": [117, 118, 119],
+    "max_fes": 300000,
+    "jobs": 6
   },
   "pilot": {
     "real_aob": {

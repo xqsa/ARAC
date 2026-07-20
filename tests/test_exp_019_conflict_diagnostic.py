@@ -77,6 +77,14 @@ def _arm_rows(
                 arm_error = native_error * 1.01
             if arm == winning_arm:
                 arm_error = native_error * 0.90
+            incumbent_mutated = arm in {
+                "native_eq8",
+                "exact_left",
+                "exact_right",
+                "exact_bridge",
+                "multi_context_winner",
+            }
+            optimizer_mean_mutated = arm == "initialization_bias"
             row = {field: "" for field in ARM_RESULT_FIELDS}
             row.update(
                 {
@@ -93,8 +101,13 @@ def _arm_rows(
                     "arm_error": str(arm_error),
                     "delta": str(actionability_delta(native_error, arm_error)),
                     "extra_fes": "0",
-                    "counterfactual_applied": "1",
-                    "mutation_norm": "0.0",
+                    "counterfactual_applied": str(
+                        int(incumbent_mutated or optimizer_mean_mutated)
+                    ),
+                    "mutation_norm": str(float(incumbent_mutated)),
+                    "optimizer_mean_mutation_norm": str(
+                        float(optimizer_mean_mutated)
+                    ),
                     "selected_candidate": arm,
                     "runtime_authorized": "0",
                     "status": "complete",
@@ -108,10 +121,14 @@ def test_frozen_config_and_run_matrices() -> None:
     config = load_config()
 
     assert config["observer_only"] is True
-    assert build_specs("smoke") == (
-        TrajectorySpec("smoke", "real_aob", "A4", 1, 100_000),
-    )
-    assert ":" not in build_specs("smoke")[0].trajectory_id
+    smoke = build_specs("smoke")
+    assert len(smoke) == 6
+    assert {(spec.problem_id, spec.seed, spec.max_fes) for spec in smoke} == {
+        (case, seed, 300_000)
+        for case in ("E3", "S5")
+        for seed in (117, 118, 119)
+    }
+    assert all(":" not in spec.trajectory_id for spec in smoke)
     pilot = build_specs("pilot")
     assert len(pilot) == 40
     assert {(spec.problem_id, spec.seed) for spec in pilot if spec.cohort == "real_aob"} == {
@@ -146,25 +163,25 @@ def test_raw_rows_require_all_eight_arms_and_three_horizons() -> None:
         validate_raw_rows([context], rows[:-1])
 
 
-def test_incomplete_context_and_unexecuted_branch_fail_closed() -> None:
+def test_incomplete_context_and_inconsistent_mutation_flag_fail_closed() -> None:
     context = _context("real:E3:117:r0", "real_aob", "E3")
     rows = _arm_rows(context, winning_arm="exact_left")
     invalid_context = {**context, "native_parity": "0", "status": "invalid"}
     with pytest.raises(ValueError, match="native parity"):
         validate_raw_rows([invalid_context], rows)
     rows[0]["counterfactual_applied"] = "0"
-    with pytest.raises(ValueError, match="not marked as executed"):
+    with pytest.raises(ValueError, match="disagrees with branch mutation"):
         validate_raw_rows([context], rows)
 
 
 def test_integrity_gate_and_fe_summary_cover_complete_stage() -> None:
-    spec = TrajectorySpec("smoke", "real_aob", "A4", 1, 100_000)
+    spec = TrajectorySpec("smoke", "real_aob", "E3", 117, 300_000)
     contexts = [
-        _context(f"real:A4:1:r{index}", "real_aob", "A4")
+        _context(f"real:E3:117:r{index}", "real_aob", "E3")
         for index in range(4)
     ]
     for context in contexts:
-        context["seed"] = "1"
+        context["seed"] = "117"
     rows = [
         row
         for context in contexts
@@ -177,7 +194,7 @@ def test_integrity_gate_and_fe_summary_cover_complete_stage() -> None:
     assert gate["passed"] == 1
     assert gate["expected_context_count"] == 1
     assert gate["expected_arm_result_count"] == 1
-    assert fe_summary["nominal_trajectory_fe_total"] == 100_000
+    assert fe_summary["nominal_trajectory_fe_total"] == 300_000
     assert fe_summary["branch_extra_fe_by_arm"]["native_eq8"] == 0
 
 

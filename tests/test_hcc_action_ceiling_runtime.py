@@ -115,11 +115,64 @@ class EarlyStoppingGroupOptimizer(FakeOptimizer):
         }
 
 
+def test_group_optimizer_consumes_owner_context_mean_once(tmp_path: Path) -> None:
+    observed_means: list[tuple[float, ...]] = []
+
+    class RecordingOptimizer(FakeOptimizer):
+        def __init__(self, problem, options) -> None:
+            observed_means.append(
+                tuple(float(value) for value in options["mean"][0])
+            )
+            super().__init__(problem, options)
+
+    runtime = HccActionCeilingRuntime(
+        benchmark_factory=FakeBenchmark,
+        cmaes_factory=RecordingOptimizer,
+        combine=lambda x, background, dims: runner.combine(x, background, dims),
+        derive_seed=runner.derive_optimizer_seed,
+        fun_name="elliptic",
+        fun_id=3,
+        output_path=tmp_path,
+        data_root=tmp_path,
+        sigma=0.5,
+        cmaes_restart=True,
+        early_stopping_evaluations=1000,
+        lower=-100.0,
+        upper=100.0,
+        dimension=8,
+    )
+    objective = Sphere()
+    optimize = runtime._group_optimizer(
+        objective,
+        lambda values: np.asarray(objective(values), dtype=float),
+        initial_means={
+            0: (10.0, 11.0, 3.0, 4.0),
+            1: (20.0, 21.0, 3.0, 4.0),
+        },
+    )
+    background = np.ones(8)
+    common = {
+        "background": background,
+        "requested_fes": 2,
+        "population_size": 2,
+        "seed": 117,
+    }
+
+    optimize(group_index=0, dims=(0, 1, 4, 5), **common)
+    optimize(group_index=1, dims=(2, 3, 4, 5), **common)
+    optimize(group_index=0, dims=(0, 1, 4, 5), **common)
+
+    assert observed_means == [
+        (10.0, 11.0, 3.0, 4.0),
+        (20.0, 21.0, 3.0, 4.0),
+        (1.0, 1.0, 1.0, 1.0),
+    ]
+
+
 def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> None:
     runtime = HccActionCeilingRuntime(
         benchmark_factory=FakeBenchmark,
         cmaes_factory=FakeOptimizer,
-        mmes_factory=FakeOptimizer,
         combine=lambda x, background, dims: runner.combine(x, background, dims),
         derive_seed=runner.derive_optimizer_seed,
         fun_name="elliptic",
@@ -163,19 +216,32 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     assert captured.context_row["selector_arm"] == "exact_bridge"
     assert len(captured.expected_native_record) == 6
     assert len(captured.arm_rows) == len(ACTION_CEILING_ARMS) * len(ACTION_CEILING_HORIZONS)
-    rescue = [
-        row for row in captured.arm_rows if row["arm"] == "non_decomposition_rescue"
+    multi_context = [
+        row for row in captured.arm_rows if row["arm"] == "multi_context_winner"
     ]
-    assert {row["extra_fes"] for row in rescue} == {"97"}
+    assert {row["extra_fes"] for row in multi_context} == {"8"}
     assert all(row["runtime_authorized"] == "0" for row in captured.arm_rows)
-    assert all(row["counterfactual_applied"] == "1" for row in captured.arm_rows)
+    applied = {
+        row["arm"]: row["counterfactual_applied"]
+        for row in captured.arm_rows
+        if row["horizon"] == "sweep_1"
+    }
+    assert applied == {
+        "native_eq8": "1",
+        "true_no_writeback": "0",
+        "exact_left": "1",
+        "exact_right": "1",
+        "exact_bridge": "1",
+        "multi_context_winner": "0",
+        "initialization_bias": "1",
+        "delayed_sweep_reconciliation": "0",
+    }
 
 
 def test_runtime_horizon_uses_actual_native_cycle_fe(tmp_path: Path) -> None:
     runtime = HccActionCeilingRuntime(
         benchmark_factory=FakeBenchmark,
         cmaes_factory=EarlyStoppingGroupOptimizer,
-        mmes_factory=FakeOptimizer,
         combine=lambda x, background, dims: runner.combine(x, background, dims),
         derive_seed=runner.derive_optimizer_seed,
         fun_name="elliptic",

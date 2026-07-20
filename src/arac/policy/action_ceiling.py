@@ -19,16 +19,16 @@ from arac.policy.evidence_overlay import (
 )
 
 
-ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v2"
+ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v3"
 ACTION_CEILING_ARMS = (
     "native_eq8",
     "true_no_writeback",
     "exact_left",
     "exact_right",
     "exact_bridge",
-    "shared_trust_region",
-    "reprobe_then_exact",
-    "non_decomposition_rescue",
+    "multi_context_winner",
+    "initialization_bias",
+    "delayed_sweep_reconciliation",
 )
 ACTION_CEILING_HORIZONS = ("immediate", "sweep_1", "sweep_3")
 ACTION_CEILING_CONTEXT_FIELDS = (
@@ -75,6 +75,7 @@ ACTION_CEILING_ARM_RESULT_FIELDS = (
     "extra_fes",
     "counterfactual_applied",
     "mutation_norm",
+    "optimizer_mean_mutation_norm",
     "selected_candidate",
     "runtime_authorized",
     "status",
@@ -86,6 +87,11 @@ CATASTROPHIC_DELTA = -math.log(1.20)
 SPARSE_POSITIVE_THRESHOLD = 0.20
 BOOTSTRAP_REPLICATES = 2_000
 BOOTSTRAP_SEED = 2026071901
+# delayed_sweep_reconciliation cold-start guard
+CREDIT_COLD_START_SWEEPS = 3
+CREDIT_EWMA_ALPHA = 0.3
+# multi_context_winner evaluates 4 candidates × 2 owner contexts
+MULTI_CONTEXT_WINNER_FE_COST = 8
 _HASH_LENGTH = 64
 _TIE_TOLERANCE = 1e-15
 
@@ -265,6 +271,43 @@ def actionability_delta(
     if native < 0.0 or arm < 0.0 or eps <= 0.0:
         raise ValueError("actionability errors must be non-negative and epsilon positive")
     return math.log((native + eps) / (arm + eps))
+
+
+@dataclass(frozen=True)
+class RelationCredit:
+    """Per-relation EWMA credit state for delayed_sweep_reconciliation."""
+
+    ewma_credit: float
+    last_winner: str
+    n_sweeps: int
+    last_updated_sweep: int
+
+    def __post_init__(self) -> None:
+        _finite(self.ewma_credit, "ewma_credit")
+        if self.last_winner not in {"left_owner", "right_owner", "bridge", "none"}:
+            raise ValueError("unsupported credit winner")
+        if isinstance(self.n_sweeps, bool) or int(self.n_sweeps) < 0:
+            raise ValueError("n_sweeps must be a non-negative integer")
+        if isinstance(self.last_updated_sweep, bool) or int(self.last_updated_sweep) < 0:
+            raise ValueError("last_updated_sweep must be a non-negative integer")
+
+    @property
+    def is_warm(self) -> bool:
+        return self.n_sweeps >= CREDIT_COLD_START_SWEEPS
+
+    def updated(self, winner: str, sweep_delta: float, current_sweep: int) -> "RelationCredit":
+        if winner not in {"left_owner", "right_owner", "bridge", "none"}:
+            raise ValueError("unsupported credit winner")
+        new_credit = (
+            (1.0 - CREDIT_EWMA_ALPHA) * self.ewma_credit
+            + CREDIT_EWMA_ALPHA * _finite(sweep_delta, "sweep_delta")
+        )
+        return RelationCredit(
+            ewma_credit=new_credit,
+            last_winner=winner,
+            n_sweeps=self.n_sweeps + 1,
+            last_updated_sweep=int(current_sweep),
+        )
 
 
 @dataclass(frozen=True)

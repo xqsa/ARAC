@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -31,16 +32,19 @@ from arac.policy.action_ceiling import (
 )
 from arac.policy.evidence_overlay import UTILITY_EPSILON
 
-from .benchmark import REPO_ROOT, VENDOR_DATA_DIR, validate_synthetic_bundle
+from .benchmark import REPO_ROOT, validate_synthetic_bundle
 
 
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = EXPERIMENT_DIR / "diagnostic_config.json"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "exp_019_conflict_resolution_pilot"
-CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v2"
+CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v3"
+SMOKE_CASES = ("E3", "S5")
+SMOKE_SEEDS = (117, 118, 119)
+SMOKE_JOBS = 6
 PILOT_SEEDS = (117, 118, 119, 120, 121)
 PILOT_MAX_FES = 3_000_000
-SMOKE_MAX_FES = 100_000
+SMOKE_MAX_FES = 300_000
 REAL_CASES = ("E1", "E3", "A4", "R4", "S5")
 SYNTHETIC_CASES = ("E3", "A4", "S5")
 CASE_FUNCTIONS = {
@@ -165,10 +169,10 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         raise ValueError("action-ceiling statistics contract drifted")
     expected_smoke = {
         "cohort": "real_aob",
-        "cases": ["A4"],
-        "seeds": [1],
+        "cases": list(SMOKE_CASES),
+        "seeds": list(SMOKE_SEEDS),
         "max_fes": SMOKE_MAX_FES,
-        "jobs": 1,
+        "jobs": SMOKE_JOBS,
     }
     if config.get("smoke") != expected_smoke:
         raise ValueError("action-ceiling smoke matrix drifted")
@@ -193,7 +197,11 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
 def build_specs(stage: str) -> tuple[TrajectorySpec, ...]:
     load_config()
     if stage == "smoke":
-        return (TrajectorySpec("smoke", "real_aob", "A4", 1, SMOKE_MAX_FES),)
+        return tuple(
+            TrajectorySpec("smoke", "real_aob", case, seed, SMOKE_MAX_FES)
+            for case in SMOKE_CASES
+            for seed in SMOKE_SEEDS
+        )
     if stage != "pilot":
         raise ValueError("stage must be smoke or pilot")
     specs = [
@@ -241,8 +249,22 @@ def validate_raw_rows(
             raise ValueError("action-ceiling arm cannot authorize runtime")
         if row.get("status") != "complete" or row.get("invalidation_reason"):
             raise ValueError("action-ceiling arm result is incomplete")
-        if row.get("counterfactual_applied") != "1":
-            raise ValueError("complete offline branch was not marked as executed")
+        if row.get("counterfactual_applied") not in {"0", "1"}:
+            raise ValueError("counterfactual_applied must be a binary truth value")
+        mutation_norm = float(row.get("mutation_norm", "nan"))
+        mean_mutation_norm = float(row.get("optimizer_mean_mutation_norm", "nan"))
+        if (
+            not math.isfinite(mutation_norm)
+            or not math.isfinite(mean_mutation_norm)
+            or mutation_norm < 0.0
+            or mean_mutation_norm < 0.0
+        ):
+            raise ValueError("action-ceiling mutation norms must be finite and non-negative")
+        expected_applied = str(int(mutation_norm > 0.0 or mean_mutation_norm > 0.0))
+        if row["counterfactual_applied"] != expected_applied:
+            raise ValueError("counterfactual_applied disagrees with branch mutation")
+        if not row.get("selected_candidate"):
+            raise ValueError("action-ceiling selected candidate is missing")
         context_id = str(row.get("context_id", ""))
         if context_id not in contexts:
             raise ValueError("arm result references an unknown context")
@@ -342,8 +364,21 @@ def build_integrity_gate(
             all(row.get("runtime_authorized") == "0" for row in context_rows)
             and all(row.get("runtime_authorized") == "0" for row in arm_rows)
         ),
-        "all_branches_executed": int(
-            all(row.get("counterfactual_applied") == "1" for row in arm_rows)
+        "branch_matrix_complete": int(
+            len(
+                {
+                    (
+                        row.get("context_id"),
+                        row.get("arm"),
+                        row.get("horizon"),
+                    )
+                    for row in arm_rows
+                }
+            )
+            == expected_arm_rows
+        ),
+        "counterfactual_flags_valid": int(
+            all(row.get("counterfactual_applied") in {"0", "1"} for row in arm_rows)
         ),
     }
     checks["passed"] = int(all(checks.values()))

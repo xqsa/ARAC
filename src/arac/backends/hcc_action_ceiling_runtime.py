@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Callable, Sequence
+from typing import Callable, Mapping, Sequence
 
 import numpy as np
 
@@ -52,7 +51,6 @@ class CapturedActionCeilingContext:
 class HccActionCeilingRuntime:
     benchmark_factory: Callable[..., object]
     cmaes_factory: Callable[..., object]
-    mmes_factory: Callable[..., object]
     combine: Callable[..., np.ndarray]
     derive_seed: Callable[[int, str, int, int, int], int]
     fun_name: str
@@ -77,89 +75,28 @@ class HccActionCeilingRuntime:
             raise RuntimeError("action-ceiling branch evaluator must be fresh")
         return objective
 
-    def _shared_optimizer(
-        self,
-        objective: object,
-        evaluate: Callable[[np.ndarray], np.ndarray],
-    ) -> Callable[..., OptimizationResult]:
-        def optimize(**kwargs: object) -> OptimizationResult:
-            background = np.asarray(kwargs["background"], dtype=float)
-            shared_indices = tuple(int(value) for value in kwargs["shared_indices"])
-
-            def fitness(x_batch: np.ndarray) -> np.ndarray:
-                return evaluate(self.combine(x_batch, background, shared_indices))
-
-            lower = np.asarray(kwargs["lower"], dtype=float)
-            upper = np.asarray(kwargs["upper"], dtype=float)
-            sigma = max(1e-12, 0.25 * float(np.median(upper - lower)))
-            record = getattr(objective, "fitness_record")
-            before = len(record)
-            result = self.cmaes_factory(
-                {
-                    "fitness_function": fitness,
-                    "ndim_problem": len(shared_indices),
-                    "lower_boundary": lower,
-                    "upper_boundary": upper,
-                },
-                {
-                    "max_function_evaluations": int(kwargs["requested_fes"]),
-                    "mean": (np.asarray(kwargs["mean"], dtype=float),),
-                    "sigma": sigma,
-                    "n_individuals": int(kwargs["population_size"]),
-                    "is_restart": False,
-                    "verbose": 0,
-                    "early_stopping_evaluations": self.early_stopping_evaluations,
-                    "seed_rng": int(kwargs["seed"]),
-                },
-            ).optimize()
-            return OptimizationResult(
-                tuple(float(value) for value in result["best_so_far_x"]),
-                float(result["best_so_far_y"]),
-                len(record) - before,
-            )
-
-        return optimize
-
-    def _full_optimizer(self, objective: object) -> Callable[..., OptimizationResult]:
-        def optimize(**kwargs: object) -> OptimizationResult:
-            record = getattr(objective, "fitness_record")
-            before = len(record)
-            result = self.mmes_factory(
-                {
-                    "fitness_function": objective,
-                    "ndim_problem": self.dimension,
-                    "lower_boundary": float(kwargs["lower"])
-                    * np.ones((self.dimension,)),
-                    "upper_boundary": float(kwargs["upper"])
-                    * np.ones((self.dimension,)),
-                },
-                {
-                    "max_function_evaluations": int(kwargs["requested_fes"]),
-                    "mean": (np.asarray(kwargs["mean"], dtype=float),),
-                    "sigma": self.sigma,
-                    "n_individuals": int(kwargs["population_size"]),
-                    "is_restart": False,
-                    "verbose": 0,
-                    "early_stopping_evaluations": self.early_stopping_evaluations,
-                    "seed_rng": int(kwargs["seed"]),
-                },
-            ).optimize()
-            return OptimizationResult(
-                tuple(float(value) for value in result["best_so_far_x"]),
-                float(result["best_so_far_y"]),
-                len(record) - before,
-            )
-
-        return optimize
-
     def _group_optimizer(
         self,
         objective: object,
         evaluate: Callable[[np.ndarray], np.ndarray],
+        *,
+        initial_means: Mapping[int, Sequence[float]] | None = None,
     ) -> Callable[..., OptimizationResult]:
+        pending_means = {
+            int(group_index): np.asarray(mean, dtype=float).reshape(-1).copy()
+            for group_index, mean in (initial_means or {}).items()
+        }
+
         def optimize(**kwargs: object) -> OptimizationResult:
             background = np.asarray(kwargs["background"], dtype=float)
             dims = tuple(int(value) for value in kwargs["dims"])
+            group_index = int(kwargs["group_index"])
+            mean = pending_means.pop(
+                group_index,
+                background[np.asarray(dims, dtype=int)],
+            )
+            if mean.shape != (len(dims),) or not np.all(np.isfinite(mean)):
+                raise ValueError("group optimizer mean must be finite and match group dims")
 
             def fitness(x_batch: np.ndarray) -> np.ndarray:
                 return evaluate(self.combine(x_batch, background, dims))
@@ -175,7 +112,7 @@ class HccActionCeilingRuntime:
                 },
                 {
                     "max_function_evaluations": int(kwargs["requested_fes"]),
-                    "mean": (background[np.asarray(dims, dtype=int)],),
+                    "mean": (mean,),
                     "sigma": self.sigma,
                     "n_individuals": int(kwargs["population_size"]),
                     "is_restart": self.cmaes_restart,
@@ -273,6 +210,20 @@ class HccActionCeilingRuntime:
             population_sizes=tuple(int(value) for value in population_sizes),
             optimizer_budgets=tuple(int(value) for value in optimizer_budgets),
         )
+        owner_group_dimensions = tuple(
+            tuple(int(value) for value in group_dims[owner_group])
+            for owner_group in relation.owner_group_indices
+        )
+        owner_optimizer_means = tuple(
+            tuple(float(incumbent_array[dimension]) for dimension in dimensions)
+            for dimensions in owner_group_dimensions
+        )
+        shared_indices = np.asarray(relation.shared_variable_indices, dtype=int)
+        left_background = incumbent_array.copy()
+        left_background[shared_indices] = np.asarray(previous_values, dtype=float)
+        right_background = incumbent_array.copy()
+        right_background[shared_indices] = np.asarray(current_values, dtype=float)
+
         def group_seed(sweep: int, group: int) -> int:
             return self.derive_seed(
                 int(seed),
@@ -300,20 +251,38 @@ class HccActionCeilingRuntime:
                     current_values=tuple(float(value) for value in current_values),
                     previous_delta=float(previous_delta),
                     current_delta=float(current_delta),
-                    lower=self.lower,
-                    upper=self.upper,
+                    owner_group_dimensions=owner_group_dimensions,
+                    owner_optimizer_means=owner_optimizer_means,
+                    left_background=tuple(float(value) for value in left_background),
+                    right_background=tuple(float(value) for value in right_background),
                 ),
                 evaluate=evaluate,
-                shared_optimizer=self._shared_optimizer(objective, evaluate),
-                full_optimizer=self._full_optimizer(objective),
             )
-            return objective, record, action_result, evaluate
+            branch_optimizer = self._group_optimizer(
+                objective,
+                evaluate,
+                initial_means=(
+                    dict(
+                        zip(
+                            relation.owner_group_indices,
+                            action_result.owner_optimizer_means,
+                            strict=True,
+                        )
+                    )
+                    if action_result.optimizer_mean_mutation_norm > 0.0
+                    else None
+                ),
+            )
+            return objective, record, action_result, evaluate, branch_optimizer
 
         branch_results: dict[str, dict[str, object]] = {}
-        native_objective, native_record, native_action, native_evaluate = start_branch(
-            "native_eq8"
-        )
-        native_optimizer = self._group_optimizer(native_objective, native_evaluate)
+        (
+            native_objective,
+            native_record,
+            native_action,
+            native_evaluate,
+            native_optimizer,
+        ) = start_branch("native_eq8")
         native_cycle = run_native_group_cycle(
             replace(continuation_state, incumbent=native_action.incumbent),
             evaluate=native_evaluate,
@@ -351,12 +320,14 @@ class HccActionCeilingRuntime:
         for arm in ACTION_CEILING_ARMS:
             if arm == "native_eq8":
                 continue
-            objective, record, action_result, evaluate = start_branch(arm)
+            objective, record, action_result, evaluate, branch_optimizer = start_branch(
+                arm
+            )
             continuation = run_native_continuation(
                 replace(continuation_state, incumbent=action_result.incumbent),
                 evaluate=evaluate,
                 fitness_record=record,
-                optimize_group=self._group_optimizer(objective, evaluate),
+                optimize_group=branch_optimizer,
                 group_seed=group_seed,
                 target_relative_fe=3 * horizon_fe,
             )
@@ -435,6 +406,9 @@ class HccActionCeilingRuntime:
                             int(action_result.counterfactual_applied)
                         ),
                         "mutation_norm": f"{action_result.mutation_norm:.17e}",
+                        "optimizer_mean_mutation_norm": (
+                            f"{action_result.optimizer_mean_mutation_norm:.17e}"
+                        ),
                         "selected_candidate": action_result.selected_candidate,
                         "runtime_authorized": "0",
                         "status": "pending_native_parity",
