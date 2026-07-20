@@ -3875,7 +3875,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 )
             if index > 0:
                 overlap_indices = overlapping_elements[index - 1]
-                if config.enable_relation_dispatch:
+                if config.enable_relation_dispatch and overlap_indices:
                     relation = build_overlap_relation_for_pair(
                         problem_id=_problem_id(fun_name, fun_id),
                         outer_iter=outer_iter,
@@ -4492,7 +4492,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             unstable=trust_unstable,
                             trace_row=action_trace_row,
                         )
-                else:
+                elif not config.enable_relation_dispatch:
                     overlap_action_name = overlap_action_name_for_lane(config.arac_action)
                     current_overlap_values = best_individual[overlap_indices].copy()
                     adjusted_values = apply_arac_overlap_action(

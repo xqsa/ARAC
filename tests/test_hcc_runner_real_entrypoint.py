@@ -9,6 +9,10 @@ from arac.actions.group_optimizer_type import (
     DIAGONAL_COVARIANCE_MODE,
     FULL_CMAES_MODE,
 )
+from arac.policy.action_ceiling import (
+    ACTION_CEILING_ARM_RESULT_FIELDS,
+    ACTION_CEILING_CONTEXT_FIELDS,
+)
 from scripts import hcc_smoke_runner
 
 
@@ -60,3 +64,43 @@ def test_terminal_comparison_ignores_branch_specific_tail() -> None:
 
     assert comparison_fe == 3
     assert comparison_error == 7.0
+
+
+def test_real_e1_action_ceiling_skips_empty_overlap_relations(
+    tmp_path: Path,
+) -> None:
+    config = hcc_smoke_runner.SmokeConfig(
+        max_fes=10_000,
+        seed=117,
+        run_id="entrypoint-e1-action-ceiling",
+        verbose=0,
+        arac_action=hcc_smoke_runner.EVIDENCE_ACTION_CONTROLLER_V37,
+        enable_relation_dispatch=True,
+        relation_policy_mode=hcc_smoke_runner.ACTION_CEILING_POLICY,
+        budget_accounting="strict",
+        skip_plots=True,
+        aob_data_root=hcc_smoke_runner.DATA_DIR.resolve(),
+        evidence_overlay_mode="paired_owner",
+        runtime_probe_repair_mode="hard_repair",
+        action_ceiling_capture=True,
+        action_ceiling_cohort="real_aob",
+        group_optimizer_mode=FULL_CMAES_MODE,
+    )
+
+    fitness_record, _, trace_rows = hcc_smoke_runner.run_problem(
+        "elliptic",
+        1,
+        tmp_path,
+        config,
+    )
+
+    assert fitness_record
+    assert trace_rows == []
+    context_lines = (tmp_path / "E1_action_ceiling_contexts.csv").read_text(
+        encoding="utf-8"
+    ).splitlines()
+    arm_lines = (tmp_path / "E1_action_ceiling_arm_results.csv").read_text(
+        encoding="utf-8"
+    ).splitlines()
+    assert context_lines == [",".join(ACTION_CEILING_CONTEXT_FIELDS)]
+    assert arm_lines == [",".join(ACTION_CEILING_ARM_RESULT_FIELDS)]
