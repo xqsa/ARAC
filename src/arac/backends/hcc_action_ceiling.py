@@ -15,9 +15,14 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
     BUDGET_MAX_UNIFORM_MULTIPLIER,
+    CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION,
+    CONTRIBUTION_OWNER_WRITEBACK_ACTION,
     EFFICIENCY_EWMA_ALPHA,
+    GUARDED_EQ8_PROBE_FES,
+    GUARDED_EQ8_WRITEBACK_ACTION,
     RelationActionSet,
     STAGNATION_EPSILON,
+    STAGNATION_GUARD_WRITEBACK_ACTION,
     STAGNATION_TRIGGER_STREAK,
     WARM_START_COOLDOWN_SWEEPS,
     actionability_delta,
@@ -252,6 +257,16 @@ def execute_action_ceiling_arm(
                 shared_values=shared_values,
             )
 
+    action_budget_fes = 0
+    action_actual_fes = 0
+    action_instance_hash = ""
+    action_lifecycle_payload = ""
+    action_lifecycle_hash = ""
+    action_accepted = False
+    action_candidate_hash = ""
+    action_candidate_fitness: float | None = None
+    action_post_incumbent_hash = ""
+
     if request.arm == "native_eq8":
         write_shared_values(
             native_eq8_values(
@@ -268,6 +283,119 @@ def execute_action_ceiling_arm(
         write_shared_values(
             request.action_set.candidate_for_arm(request.arm).shared_values
         )
+    elif request.arm == GUARDED_EQ8_WRITEBACK_ACTION:
+        # Evaluated-choice writeback: probe the frozen candidates inside the
+        # same horizon, then write the argmin. Probe FEs are charged to the
+        # branch record via `evaluate`, so the continuation stops earlier by
+        # exactly the probe count and the absolute FE target is preserved.
+        blend_values = native_eq8_values(
+            request.previous_values,
+            request.current_values,
+            request.previous_delta,
+            request.current_delta,
+        )
+        planned_candidates = (
+            ("current", tuple(request.current_values), incumbent_fitness),
+            ("previous", tuple(request.previous_values), None),
+            ("eq8_blend", tuple(float(value) for value in blend_values), None),
+        )
+        evaluated_candidates: list[tuple[str, tuple[float, ...], float]] = []
+        for candidate_name, values, known_fitness in planned_candidates:
+            fitness = known_fitness
+            if fitness is None:
+                probe = incumbent.copy()
+                probe[indices] = np.asarray(values, dtype=float)
+                probe_result = np.asarray(evaluate(probe), dtype=float).reshape(-1)
+                if probe_result.shape != (1,) or not np.isfinite(probe_result[0]):
+                    raise ValueError("guarded eq8 probe must return one finite value")
+                fitness = float(probe_result[0])
+                action_actual_fes += 1
+            evaluated_candidates.append((candidate_name, values, fitness))
+        if action_actual_fes != GUARDED_EQ8_PROBE_FES:
+            raise RuntimeError("guarded eq8 writeback did not consume its probe budget")
+        winner_index = 0
+        for position, (_, _, fitness) in enumerate(evaluated_candidates):
+            if fitness < evaluated_candidates[winner_index][2]:
+                winner_index = position
+        winner_name, winner_values, winner_fitness = evaluated_candidates[winner_index]
+        selected_candidate = winner_name
+        action_accepted = winner_name != "current"
+        if action_accepted:
+            write_shared_values(winner_values)
+        action_budget_fes = GUARDED_EQ8_PROBE_FES
+        action_candidate_hash = _vector_hash(winner_values)
+        action_candidate_fitness = winner_fitness
+        action_instance_hash = _sha256(
+            {
+                "arm": request.arm,
+                "context_hash": request.context_hash,
+                "selection": "argmin_fitness",
+                "tie_break": "evaluation_order",
+                "probe_fes": GUARDED_EQ8_PROBE_FES,
+                "candidate_values_hashes": [
+                    _vector_hash(values) for _, values, _ in planned_candidates
+                ],
+            }
+        )
+        lifecycle_payload = {
+            "arm": request.arm,
+            "context_hash": request.context_hash,
+            "selection": "argmin_fitness",
+            "tie_break": "evaluation_order",
+            "probe_fes_budget": GUARDED_EQ8_PROBE_FES,
+            "probe_fes_actual": action_actual_fes,
+            "candidates": [
+                {
+                    "name": candidate_name,
+                    "values_hash": _vector_hash(values),
+                    "fitness": fitness,
+                }
+                for candidate_name, values, fitness in evaluated_candidates
+            ],
+            "selected_candidate": winner_name,
+            "accepted": action_accepted,
+        }
+        action_lifecycle_payload = json.dumps(
+            lifecycle_payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+        action_lifecycle_hash = _sha256(lifecycle_payload)
+    elif request.arm == STAGNATION_GUARD_WRITEBACK_ACTION:
+        if request.previous_delta + request.current_delta == 0.0:
+            # Native Eq.8 would fall back to an unaudited arithmetic mean here;
+            # the guard abstains instead of writing an unevaluated midpoint.
+            selected_candidate = "current"
+        else:
+            write_shared_values(
+                native_eq8_values(
+                    request.previous_values,
+                    request.current_values,
+                    request.previous_delta,
+                    request.current_delta,
+                ),
+                synchronize_owner_means=False,
+            )
+            selected_candidate = "native_eq8"
+    elif request.arm in {
+        CONTRIBUTION_OWNER_WRITEBACK_ACTION,
+        CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION,
+    }:
+        if request.current_delta == request.previous_delta:
+            # Tie (including double stagnation): abstain, keep current values.
+            selected_candidate = "current"
+        else:
+            take_current = (request.current_delta > request.previous_delta) == (
+                request.arm == CONTRIBUTION_OWNER_WRITEBACK_ACTION
+            )
+            if take_current:
+                winner_values: tuple[float, ...] = tuple(request.current_values)
+                selected_candidate = "right_owner"
+            else:
+                winner_values = tuple(request.previous_values)
+                selected_candidate = "left_owner"
+            write_shared_values(winner_values)
     elif request.arm in {
         "efficiency_budget_reallocation",
         "delta_priority_scan",
@@ -288,6 +416,9 @@ def execute_action_ceiling_arm(
     else:
         raise ValueError("unsupported action-ceiling arm")
 
+    if request.arm == GUARDED_EQ8_WRITEBACK_ACTION:
+        action_post_incumbent_hash = _vector_hash(incumbent)
+
     mutation_norm = float(np.linalg.norm(incumbent - original))
     optimizer_mean_mutation_norm = float(
         np.linalg.norm(
@@ -307,15 +438,15 @@ def execute_action_ceiling_arm(
         arm=request.arm,
         incumbent=tuple(float(value) for value in incumbent),
         incumbent_fitness=incumbent_fitness,
-        action_budget_fes=0,
-        action_actual_fes=0,
-        action_instance_hash="",
-        action_lifecycle_payload="",
-        action_lifecycle_hash="",
-        action_accepted=False,
-        action_candidate_hash="",
-        action_candidate_fitness=None,
-        action_post_incumbent_hash="",
+        action_budget_fes=action_budget_fes,
+        action_actual_fes=action_actual_fes,
+        action_instance_hash=action_instance_hash,
+        action_lifecycle_payload=action_lifecycle_payload,
+        action_lifecycle_hash=action_lifecycle_hash,
+        action_accepted=action_accepted,
+        action_candidate_hash=action_candidate_hash,
+        action_candidate_fitness=action_candidate_fitness,
+        action_post_incumbent_hash=action_post_incumbent_hash,
         optimizer_scope=(
             "decomposed_groups"
             if request.arm in {
@@ -332,7 +463,9 @@ def execute_action_ceiling_arm(
         optimizer_population_size=0,
         optimizer_generation_count=0,
         counterfactual_applied=(
-            mutation_norm > 0.0 or optimizer_mean_mutation_norm > 0.0
+            mutation_norm > 0.0
+            or optimizer_mean_mutation_norm > 0.0
+            or action_actual_fes > 0
         ),
         mutation_norm=mutation_norm,
         optimizer_mean_mutation_norm=optimizer_mean_mutation_norm,

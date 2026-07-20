@@ -37,6 +37,8 @@ from arac.policy.action_ceiling import (
     BUDGET_MAX_UNIFORM_MULTIPLIER,
     CATASTROPHIC_DELTA,
     EFFICIENCY_EWMA_ALPHA,
+    GUARDED_EQ8_PROBE_FES,
+    GUARDED_EQ8_WRITEBACK_ACTION,
     MATERIAL_POSITIVE_DELTA,
     PRIMARY_HORIZON,
     SPARSE_POSITIVE_THRESHOLD,
@@ -55,7 +57,7 @@ from .benchmark import REPO_ROOT, validate_synthetic_bundle
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = EXPERIMENT_DIR / "diagnostic_config.json"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "exp_019_conflict_resolution_pilot"
-CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v5"
+CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v6"
 SMOKE_CASES = ("E3", "S5")
 SMOKE_SEEDS = (117, 118, 119)
 SMOKE_JOBS = 6
@@ -228,6 +230,30 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     }
     if config.get("continuation_actions") != expected_continuation_actions:
         raise ValueError("action-ceiling continuation action contract drifted")
+    expected_writeback_actions = {
+        GUARDED_EQ8_WRITEBACK_ACTION: {
+            "candidate_set": ["current", "previous", "eq8_blend"],
+            "selection": "argmin_fitness",
+            "tie_break": "evaluation_order",
+            "probe_fes": GUARDED_EQ8_PROBE_FES,
+            "probe_fes_source": "same_horizon",
+        },
+        "stagnation_guard_writeback": {
+            "guard": "zero_delta_sum_skips_mean_fallback",
+            "fallback": "keep_current_values",
+        },
+        "contribution_owner_writeback": {
+            "winner": "larger_delta_owner",
+            "tie": "abstain_keep_current",
+        },
+        "contribution_owner_reverse_writeback": {
+            "winner": "smaller_delta_owner",
+            "tie": "abstain_keep_current",
+            "role": "directional_control",
+        },
+    }
+    if config.get("writeback_actions") != expected_writeback_actions:
+        raise ValueError("action-ceiling writeback action contract drifted")
     statistics = config.get("statistics", {})
     expected_statistics = {
         "epsilon": UTILITY_EPSILON,
@@ -460,14 +486,17 @@ def validate_raw_rows(
         start_fe_trace = json.loads(
             str(row.get("execution_start_fe_trace", ""))
         )
-        empty_full_space_prefix = (
-            arm == FULL_SPACE_SEP_CMA_ACTION
-            and horizon in {"immediate", PRIMARY_HORIZON}
+        empty_action_prefix = (
+            (
+                arm == FULL_SPACE_SEP_CMA_ACTION
+                and horizon in {"immediate", PRIMARY_HORIZON}
+            )
+            or (arm == GUARDED_EQ8_WRITEBACK_ACTION and horizon == "immediate")
         )
         if (
             not isinstance(sweep_trace, list)
             or not isinstance(order_trace, list)
-            or (not order_trace and not empty_full_space_prefix)
+            or (not order_trace and not empty_action_prefix)
             or not isinstance(budget_trace, list)
             or not isinstance(start_fe_trace, list)
             or len(sweep_trace) != len(order_trace)
@@ -614,6 +643,47 @@ def validate_raw_rows(
                 )
             ):
                 raise ValueError("full-space Sep-CMA arm contract is invalid")
+        elif arm == GUARDED_EQ8_WRITEBACK_ACTION:
+            try:
+                guarded_payload = json.loads(
+                    str(row.get("action_lifecycle_payload", ""))
+                )
+                if not isinstance(guarded_payload, dict):
+                    raise ValueError("guarded payload must be an object")
+            except (TypeError, ValueError, json.JSONDecodeError) as error:
+                raise ValueError(
+                    "guarded eq8 writeback lifecycle payload is invalid"
+                ) from error
+            guarded_candidate_fitness = float(
+                row.get("action_candidate_fitness", "nan")
+            )
+            expected_guarded_accepted = str(
+                int(row.get("selected_candidate") not in {"", "current"})
+            )
+            if (
+                action_budget_fes != GUARDED_EQ8_PROBE_FES
+                or action_actual_fes != GUARDED_EQ8_PROBE_FES
+                or not _is_sha256(row.get("action_instance_hash"))
+                or _canonical_payload_hash(guarded_payload)
+                != row.get("action_lifecycle_hash")
+                or row.get("action_accepted") != expected_guarded_accepted
+                or row.get("selected_candidate")
+                not in {"current", "previous", "eq8_blend"}
+                or not _is_sha256(row.get("action_candidate_hash"))
+                or not math.isfinite(guarded_candidate_fitness)
+                or not _is_sha256(row.get("action_post_incumbent_hash"))
+                or row.get("optimizer_parameter_hash")
+                or row.get("optimizer_initial_state_hash")
+                or row.get("optimizer_final_state_hash")
+                or optimizer_population_size != 0
+                or optimizer_generation_count != 0
+                or row.get("optimizer_scope") != "relation_writeback"
+                or (
+                    start_fe_trace
+                    and int(start_fe_trace[0]) != 1 + GUARDED_EQ8_PROBE_FES
+                )
+            ):
+                raise ValueError("guarded eq8 writeback arm contract is invalid")
         elif (
             action_budget_fes != 0
             or action_actual_fes != 0

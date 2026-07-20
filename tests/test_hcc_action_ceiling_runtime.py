@@ -258,8 +258,13 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     assert {
         row["action_actual_fes"]
         for row in captured.arm_rows
-        if row["arm"] != FULL_SPACE_SEP_CMA_ACTION
+        if row["arm"] not in {FULL_SPACE_SEP_CMA_ACTION, "guarded_eq8_writeback"}
     } == {"0"}
+    assert {
+        row["action_actual_fes"]
+        for row in captured.arm_rows
+        if row["arm"] == "guarded_eq8_writeback"
+    } == {"2"}
     assert {
         row["action_actual_fes"]
         for row in captured.arm_rows
@@ -270,16 +275,22 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         json.loads(row["execution_order_trace"])
         for row in captured.arm_rows
         if not (
-            row["arm"] == FULL_SPACE_SEP_CMA_ACTION
-            and row["horizon"] in {"immediate", "sweep_1"}
+            (
+                row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+                and row["horizon"] in {"immediate", "sweep_1"}
+            )
+            or (row["arm"] == "guarded_eq8_writeback" and row["horizon"] == "immediate")
         )
     )
     assert all(
         json.loads(row["group_budget_trace"])
         for row in captured.arm_rows
         if not (
-            row["arm"] == FULL_SPACE_SEP_CMA_ACTION
-            and row["horizon"] in {"immediate", "sweep_1"}
+            (
+                row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+                and row["horizon"] in {"immediate", "sweep_1"}
+            )
+            or (row["arm"] == "guarded_eq8_writeback" and row["horizon"] == "immediate")
         )
     )
     applied = {
@@ -293,6 +304,10 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         "exact_left": "1",
         "exact_right": "1",
         "exact_bridge": "1",
+        "guarded_eq8_writeback": "1",
+        "stagnation_guard_writeback": "1",
+        "contribution_owner_writeback": "0",
+        "contribution_owner_reverse_writeback": "1",
         "efficiency_budget_reallocation": "1",
         "delta_priority_scan": "1",
         "stagnation_cross_group_warm_start": "1",

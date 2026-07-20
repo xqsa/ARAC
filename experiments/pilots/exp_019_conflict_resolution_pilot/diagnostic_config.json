@@ -1,6 +1,6 @@
 {
-  "protocol_version": "exp019-action-ceiling-v5",
-  "schema_version": "exp019-action-ceiling-config-v5",
+  "protocol_version": "exp019-action-ceiling-v6",
+  "schema_version": "exp019-action-ceiling-config-v6",
   "observer_only": true,
   "runtime_authorized": false,
   "arms": [
@@ -9,6 +9,10 @@
     "exact_left",
     "exact_right",
     "exact_bridge",
+    "guarded_eq8_writeback",
+    "stagnation_guard_writeback",
+    "contribution_owner_writeback",
+    "contribution_owner_reverse_writeback",
     "efficiency_budget_reallocation",
     "delta_priority_scan",
     "stagnation_cross_group_warm_start",
@@ -17,6 +21,28 @@
   "horizons": ["immediate", "sweep_1", "sweep_3"],
   "primary_horizon": "sweep_1",
   "phase1_top_relations": 4,
+  "writeback_actions": {
+    "guarded_eq8_writeback": {
+      "candidate_set": ["current", "previous", "eq8_blend"],
+      "selection": "argmin_fitness",
+      "tie_break": "evaluation_order",
+      "probe_fes": 2,
+      "probe_fes_source": "same_horizon"
+    },
+    "stagnation_guard_writeback": {
+      "guard": "zero_delta_sum_skips_mean_fallback",
+      "fallback": "keep_current_values"
+    },
+    "contribution_owner_writeback": {
+      "winner": "larger_delta_owner",
+      "tie": "abstain_keep_current"
+    },
+    "contribution_owner_reverse_writeback": {
+      "winner": "smaller_delta_owner",
+      "tie": "abstain_keep_current",
+      "role": "directional_control"
+    }
+  },
   "continuation_actions": {
     "efficiency_budget_reallocation": {
       "ewma_alpha": 0.3,

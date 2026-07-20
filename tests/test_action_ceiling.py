@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import hashlib
+import json
 import math
 
 import pytest
@@ -27,6 +28,7 @@ from arac.backends.hcc_action_ceiling import (
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     CATASTROPHIC_DELTA,
+    GUARDED_EQ8_PROBE_FES,
     MATERIAL_POSITIVE_DELTA,
     ActionCeilingObservation,
     FrozenProbeCandidate,
@@ -673,3 +675,145 @@ def test_horizon_errors_charge_action_fes_before_native_continuation() -> None:
     )
 
     assert errors == {"immediate": 90.0, "sweep_1": 80.0, "sweep_3": 40.0}
+
+
+def test_guarded_eq8_writeback_probes_candidates_and_charges_same_horizon() -> None:
+    result = execute_action_ceiling_arm(
+        _request("guarded_eq8_writeback"),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+
+    # sum-of-squares probes: previous = 184.0, eq8_blend = 227.5; current = 100.0
+    assert result.selected_candidate == "current"
+    assert result.action_accepted is False
+    assert result.action_budget_fes == GUARDED_EQ8_PROBE_FES
+    assert result.action_actual_fes == GUARDED_EQ8_PROBE_FES
+    assert result.incumbent[4:6] == (8.0, 9.0)
+    assert result.mutation_norm == 0.0
+    assert result.optimizer_mean_mutation_norm == 0.0
+    assert result.counterfactual_applied is True
+    assert len(result.action_instance_hash) == 64
+    assert len(result.action_lifecycle_hash) == 64
+    payload = json.loads(result.action_lifecycle_payload)
+    assert payload["probe_fes_actual"] == GUARDED_EQ8_PROBE_FES
+    assert payload["selected_candidate"] == "current"
+    assert [candidate["name"] for candidate in payload["candidates"]] == [
+        "current",
+        "previous",
+        "eq8_blend",
+    ]
+    assert result.action_candidate_fitness == pytest.approx(100.0)
+    assert len(result.action_candidate_hash) == 64
+    assert len(result.action_post_incumbent_hash) == 64
+    assert result.optimizer_scope == "relation_writeback"
+
+
+def test_guarded_eq8_writeback_accepts_better_previous_and_syncs_owner_means() -> None:
+    request = replace(_request("guarded_eq8_writeback"), incumbent_fitness=1000.0)
+    result = execute_action_ceiling_arm(
+        request,
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+
+    # current = 1000.0 (known), previous probe = 184.0, blend probe = 227.5
+    assert result.selected_candidate == "previous"
+    assert result.action_accepted is True
+    assert result.incumbent[4:6] == (6.0, 7.0)
+    assert result.owner_optimizer_means == ((0.0, 1.0, 6.0, 7.0), (2.0, 3.0, 6.0, 7.0))
+    assert result.action_candidate_fitness == pytest.approx(184.0)
+    assert result.mutation_norm > 0.0
+
+
+def test_stagnation_guard_writeback_abstains_on_zero_delta_sum() -> None:
+    request = replace(
+        _request("stagnation_guard_writeback"),
+        previous_delta=0.0,
+        current_delta=0.0,
+    )
+    result = execute_action_ceiling_arm(
+        request,
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+
+    # native Eq.8 would have written the unaudited mean (7.0, 8.0) here
+    assert result.selected_candidate == "current"
+    assert result.incumbent[4:6] == (8.0, 9.0)
+    assert result.action_actual_fes == 0
+    assert result.counterfactual_applied is False
+    assert result.mutation_norm == 0.0
+
+
+def test_stagnation_guard_writeback_matches_native_outside_stagnation() -> None:
+    result = execute_action_ceiling_arm(
+        _request("stagnation_guard_writeback"),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+    native = execute_action_ceiling_arm(
+        _request("native_eq8"),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+
+    assert result.selected_candidate == "native_eq8"
+    assert result.incumbent == native.incumbent
+    assert result.owner_optimizer_means == native.owner_optimizer_means
+    assert result.action_actual_fes == 0
+
+
+def test_contribution_owner_writeback_follows_larger_delta_and_syncs_means() -> None:
+    result = execute_action_ceiling_arm(
+        _request(
+            "contribution_owner_writeback",
+            owner_optimizer_means=(
+                (10.0, 11.0, -1.0, -2.0),
+                (20.0, 21.0, -3.0, -4.0),
+            ),
+        ),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+
+    # current_delta 3.0 > previous_delta 1.0: the larger-delta (right) owner wins
+    assert result.selected_candidate == "right_owner"
+    assert result.incumbent[4:6] == (8.0, 9.0)
+    assert result.mutation_norm == 0.0
+    assert result.owner_optimizer_means == (
+        (10.0, 11.0, 8.0, 9.0),
+        (20.0, 21.0, 8.0, 9.0),
+    )
+    assert result.optimizer_mean_mutation_norm > 0.0
+    assert result.counterfactual_applied is True
+    assert result.action_actual_fes == 0
+
+
+def test_contribution_owner_writeback_left_win_and_tie_abstain() -> None:
+    left_win = execute_action_ceiling_arm(
+        replace(_request("contribution_owner_writeback"), previous_delta=5.0),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+    assert left_win.selected_candidate == "left_owner"
+    assert left_win.incumbent[4:6] == (6.0, 7.0)
+
+    tie = execute_action_ceiling_arm(
+        replace(_request("contribution_owner_writeback"), previous_delta=3.0),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+    assert tie.selected_candidate == "current"
+    assert tie.incumbent[4:6] == (8.0, 9.0)
+    assert tie.counterfactual_applied is False
+
+
+def test_contribution_owner_reverse_writeback_is_directional_control() -> None:
+    result = execute_action_ceiling_arm(
+        _request("contribution_owner_reverse_writeback"),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+
+    # the reverse arm takes the smaller-delta owner (previous, 1.0 < 3.0)
+    assert result.selected_candidate == "left_owner"
+    assert result.incumbent[4:6] == (6.0, 7.0)
+
+    tie = execute_action_ceiling_arm(
+        replace(_request("contribution_owner_reverse_writeback"), previous_delta=3.0),
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+    assert tie.selected_candidate == "current"
+    assert tie.counterfactual_applied is False

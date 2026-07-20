@@ -23,6 +23,8 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
     ACTION_CEILING_PROTOCOL_VERSION,
+    GUARDED_EQ8_PROBE_FES,
+    GUARDED_EQ8_WRITEBACK_ACTION,
     actionability_delta,
 )
 from experiments.pilots.exp_019_conflict_resolution_pilot import _diagnostic_worker
@@ -37,6 +39,7 @@ from experiments.pilots.exp_019_conflict_resolution_pilot.diagnostic import (
     REAL_CASES,
     SYNTHETIC_CASES,
     TrajectorySpec,
+    _canonical_payload_hash,
     aggregate_action_ceiling,
     build_integrity_gate,
     build_specs,
@@ -180,7 +183,10 @@ def _arm_rows(
             }
             warm_start_applied = arm == "stagnation_cross_group_warm_start"
             full_space_sep_cma = arm == "full_space_sep_cma"
-            if full_space_sep_cma and horizon in {"immediate", "sweep_1"}:
+            guarded = arm == GUARDED_EQ8_WRITEBACK_ACTION
+            if (
+                full_space_sep_cma and horizon in {"immediate", "sweep_1"}
+            ) or (guarded and horizon == "immediate"):
                 sweep_trace = "[]"
                 order_trace = "[]"
                 budget_trace = "[]"
@@ -194,7 +200,27 @@ def _arm_rows(
                 sweep_trace = "[3, 3]"
                 order_trace = "[0, 1]"
                 budget_trace = "[4, 4]"
-                start_fe_trace = "[51, 56]" if full_space_sep_cma else "[1, 6]"
+                if full_space_sep_cma:
+                    start_fe_trace = "[51, 56]"
+                elif guarded:
+                    start_fe_trace = "[3, 8]"
+                else:
+                    start_fe_trace = "[1, 6]"
+            guarded_payload = {
+                "arm": GUARDED_EQ8_WRITEBACK_ACTION,
+                "selection": "argmin_fitness",
+                "tie_break": "evaluation_order",
+                "probe_fes_budget": GUARDED_EQ8_PROBE_FES,
+                "probe_fes_actual": GUARDED_EQ8_PROBE_FES,
+                "selected_candidate": "previous",
+                "accepted": True,
+            }
+            guarded_payload_json = json.dumps(
+                guarded_payload,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            guarded_hash = _canonical_payload_hash(guarded_payload)
             row = {field: "" for field in ARM_RESULT_FIELDS}
             row.update(
                 {
@@ -215,22 +241,44 @@ def _arm_rows(
                     "native_error": str(native_error),
                     "arm_error": str(arm_error),
                     "delta": str(actionability_delta(native_error, arm_error)),
-                    "action_budget_fes": "50" if full_space_sep_cma else "0",
-                    "action_actual_fes": "50" if full_space_sep_cma else "0",
+                    "action_budget_fes": (
+                        "50"
+                        if full_space_sep_cma
+                        else (str(GUARDED_EQ8_PROBE_FES) if guarded else "0")
+                    ),
+                    "action_actual_fes": (
+                        "50"
+                        if full_space_sep_cma
+                        else (str(GUARDED_EQ8_PROBE_FES) if guarded else "0")
+                    ),
                     "action_instance_hash": (
-                        context["full_space_action_hash"] if full_space_sep_cma else ""
+                        context["full_space_action_hash"]
+                        if full_space_sep_cma
+                        else ("2" * 64 if guarded else "")
                     ),
                     "action_lifecycle_payload": (
-                        lifecycle_payload if full_space_sep_cma else ""
+                        lifecycle_payload
+                        if full_space_sep_cma
+                        else (guarded_payload_json if guarded else "")
                     ),
                     "action_lifecycle_hash": (
-                        lifecycle_hash if full_space_sep_cma else ""
+                        lifecycle_hash
+                        if full_space_sep_cma
+                        else (guarded_hash if guarded else "")
                     ),
-                    "action_accepted": str(int(full_space_sep_cma)),
-                    "action_candidate_hash": "1" * 64 if full_space_sep_cma else "",
-                    "action_candidate_fitness": "40.0" if full_space_sep_cma else "",
+                    "action_accepted": str(int(full_space_sep_cma or guarded)),
+                    "action_candidate_hash": (
+                        "1" * 64
+                        if full_space_sep_cma
+                        else ("2" * 64 if guarded else "")
+                    ),
+                    "action_candidate_fitness": (
+                        "40.0" if full_space_sep_cma or guarded else ""
+                    ),
                     "action_post_incumbent_hash": (
-                        "1" * 64 if full_space_sep_cma else ""
+                        "1" * 64
+                        if full_space_sep_cma
+                        else ("2" * 64 if guarded else "")
                     ),
                     "optimizer_scope": (
                         "full_space"
@@ -255,7 +303,7 @@ def _arm_rows(
                     "optimizer_population_size": "24" if full_space_sep_cma else "0",
                     "optimizer_generation_count": "2" if full_space_sep_cma else "0",
                     "counterfactual_applied": str(
-                        int(incumbent_mutated or continuation_applied)
+                        int(incumbent_mutated or continuation_applied or guarded)
                     ),
                     "mutation_norm": str(float(incumbent_mutated)),
                     "optimizer_mean_mutation_norm": "0.0",
@@ -268,7 +316,7 @@ def _arm_rows(
                     "execution_start_fe_trace": start_fe_trace,
                     "warm_start_trigger_count": str(int(warm_start_applied)),
                     "warm_start_mean_shift_norm": str(float(warm_start_applied)),
-                    "selected_candidate": arm,
+                    "selected_candidate": "previous" if guarded else arm,
                     "runtime_authorized": "0",
                     "status": "complete",
                 }

@@ -20,13 +20,22 @@ from arac.policy.evidence_overlay import (
 )
 
 
-ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v5"
+ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v6"
+GUARDED_EQ8_WRITEBACK_ACTION = "guarded_eq8_writeback"
+GUARDED_EQ8_PROBE_FES = 2
+STAGNATION_GUARD_WRITEBACK_ACTION = "stagnation_guard_writeback"
+CONTRIBUTION_OWNER_WRITEBACK_ACTION = "contribution_owner_writeback"
+CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION = "contribution_owner_reverse_writeback"
 ACTION_CEILING_ARMS = (
     "native_eq8",
     "true_no_writeback",
     "exact_left",
     "exact_right",
     "exact_bridge",
+    GUARDED_EQ8_WRITEBACK_ACTION,
+    STAGNATION_GUARD_WRITEBACK_ACTION,
+    CONTRIBUTION_OWNER_WRITEBACK_ACTION,
+    CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION,
     "efficiency_budget_reallocation",
     "delta_priority_scan",
     "stagnation_cross_group_warm_start",
