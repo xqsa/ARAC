@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import math
 from pathlib import Path
 
@@ -104,3 +105,11 @@ def test_real_e1_action_ceiling_skips_empty_overlap_relations(
     ).splitlines()
     assert context_lines == [",".join(ACTION_CEILING_CONTEXT_FIELDS)]
     assert arm_lines == [",".join(ACTION_CEILING_ARM_RESULT_FIELDS)]
+    with (tmp_path / "E1_budget_summary.csv").open(
+        newline="", encoding="utf-8"
+    ) as handle:
+        budget = next(csv.DictReader(handle))
+    assert int(budget["global_phase_fe"]) == 0
+    assert int(budget["cc_phase_fe"]) > 0
+    assert int(budget["same_budget_violation"]) == 0
+    assert int(budget["fitness_record_fe"]) <= config.max_fes

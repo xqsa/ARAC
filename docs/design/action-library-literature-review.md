@@ -46,8 +46,8 @@ ARAC 现有实现与实验证据、meta-BBO 前沿相关性判断）
 
 注意：GitHub 公布代码的 eq.8 权重方向与论文相反，真源（HCC-main）与 ARAC 实现的是论文
 方向；任何"复现官方仓库"的比较都会得到不同 native。vendor 的 F*-design.txt 磁盘截断，
-目前靠 metadata 重建（已数值验证正确但脆弱）。ARAC 对 E1 的 GloFEs 保底 20% 是有意协议
-偏离，对比论文值时必须声明。
+目前靠 metadata 重建（已数值验证正确但脆弱）。论文 eq.7 在 DO=0 时可外推为 20%，但
+HCC-main 可执行真源显式规定 E1 的 GloFEs=0；ARAC 按该 exact-zero 特例保持 native parity。
 
 ## 3. 文献证据要点（按动作族）
 

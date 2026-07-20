@@ -47,12 +47,12 @@ def _runner_args(*extra: str) -> list[str]:
 @pytest.mark.parametrize(
     ("total_fes", "degree_of_overlap", "expected"),
     (
-        (3_000_000, 0.0, 600_000),
+        (3_000_000, 0.0, 0),
         (1_000, 0.4, 520),
         (1_000, 1e-12, 200),
     ),
 )
-def test_global_phase_reserves_at_least_twenty_percent(
+def test_global_phase_matches_hcc_source_allocation(
     total_fes: int,
     degree_of_overlap: float,
     expected: int,

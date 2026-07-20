@@ -1273,14 +1273,9 @@ def calculate_degree_of_overlap(overlap_groups: list[list[int]], problem_dimensi
 
 
 def calculate_global_fes(total_fes: int, degree_of_overlap: float) -> int:
-    min_fraction = 0.20
-    min_global = int(min_fraction * total_fes)
     if degree_of_overlap == 0:
-        return min_global
-    return max(
-        min_global,
-        int((0.2 + (4 / 5) * degree_of_overlap) * total_fes),
-    )
+        return 0
+    return int((0.2 + (4 / 5) * degree_of_overlap) * total_fes)
 
 
 def calculate_cmaes_population_size(subspace_dimension: int) -> int:
