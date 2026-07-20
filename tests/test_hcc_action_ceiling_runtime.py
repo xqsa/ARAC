@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 from pathlib import Path
 
@@ -158,9 +159,27 @@ def test_group_optimizer_consumes_owner_context_mean_once(tmp_path: Path) -> Non
         "seed": 117,
     }
 
-    optimize(group_index=0, dims=(0, 1, 4, 5), **common)
-    optimize(group_index=1, dims=(2, 3, 4, 5), **common)
-    optimize(group_index=0, dims=(0, 1, 4, 5), **common)
+    optimize(
+        group_index=0,
+        dims=(0, 1, 4, 5),
+        mean=np.ones(4),
+        sigma=0.5,
+        **common,
+    )
+    optimize(
+        group_index=1,
+        dims=(2, 3, 4, 5),
+        mean=np.ones(4),
+        sigma=0.5,
+        **common,
+    )
+    optimize(
+        group_index=0,
+        dims=(0, 1, 4, 5),
+        mean=np.ones(4),
+        sigma=0.5,
+        **common,
+    )
 
     assert observed_means == [
         (10.0, 11.0, 3.0, 4.0),
@@ -203,10 +222,14 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         previous_delta=1.0,
         current_delta=2.0,
         completed_group_deltas=(1.0, 2.0),
+        completed_group_actual_fes=(3, 3),
         group_dims=((0, 1, 4, 5), (2, 3, 4, 5)),
         overlapping_elements=((4, 5),),
         population_sizes=(2, 2),
         optimizer_budgets=(2, 2),
+        efficiency_ewma=(0.1, 0.2),
+        completed_efficiency_sweeps=3,
+        stagnation_streaks=(0, 0),
         fitness_prefix=(1200.0, 1000.0, 998.0),
         topology_hash=_hash("topology"),
         order_hash=_hash("order"),
@@ -216,11 +239,10 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     assert captured.context_row["selector_arm"] == "exact_bridge"
     assert len(captured.expected_native_record) == 6
     assert len(captured.arm_rows) == len(ACTION_CEILING_ARMS) * len(ACTION_CEILING_HORIZONS)
-    multi_context = [
-        row for row in captured.arm_rows if row["arm"] == "multi_context_winner"
-    ]
-    assert {row["extra_fes"] for row in multi_context} == {"8"}
+    assert {row["extra_fes"] for row in captured.arm_rows} == {"0"}
     assert all(row["runtime_authorized"] == "0" for row in captured.arm_rows)
+    assert all(json.loads(row["execution_order_trace"]) for row in captured.arm_rows)
+    assert all(json.loads(row["group_budget_trace"]) for row in captured.arm_rows)
     applied = {
         row["arm"]: row["counterfactual_applied"]
         for row in captured.arm_rows
@@ -232,10 +254,17 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         "exact_left": "1",
         "exact_right": "1",
         "exact_bridge": "1",
-        "multi_context_winner": "0",
-        "initialization_bias": "1",
-        "delayed_sweep_reconciliation": "0",
+        "efficiency_budget_reallocation": "1",
+        "delta_priority_scan": "1",
+        "stagnation_cross_group_warm_start": "1",
     }
+    no_trigger_warm_start = [
+        row
+        for row in captured.arm_rows
+        if row["arm"] == "stagnation_cross_group_warm_start"
+    ]
+    assert all(row["continuation_policy_applied"] == "0" for row in no_trigger_warm_start)
+    assert all(float(row["delta"]) == 0.0 for row in no_trigger_warm_start)
 
 
 def test_runtime_horizon_uses_actual_native_cycle_fe(tmp_path: Path) -> None:
@@ -272,10 +301,14 @@ def test_runtime_horizon_uses_actual_native_cycle_fe(tmp_path: Path) -> None:
         previous_delta=1.0,
         current_delta=2.0,
         completed_group_deltas=(1.0, 2.0),
+        completed_group_actual_fes=(5, 5),
         group_dims=((0, 1, 4, 5), (2, 3, 4, 5)),
         overlapping_elements=((4, 5),),
         population_sizes=(2, 2),
         optimizer_budgets=(4, 4),
+        efficiency_ewma=(0.1, 0.2),
+        completed_efficiency_sweeps=3,
+        stagnation_streaks=(0, 0),
         fitness_prefix=(1200.0, 1000.0, 998.0),
         topology_hash=_hash("topology"),
         order_hash=_hash("order"),

@@ -67,11 +67,13 @@ from arac.backends.hcc_evidence_overlay import (
     HccEvidenceOverlayObserver,
     RuntimeProbeActionLedger,
 )
+from arac.backends.hcc_action_ceiling import update_efficiency_ewma
 from arac.backends.hcc_action_ceiling_runtime import HccActionCeilingRuntime
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARM_RESULT_FIELDS,
     ACTION_CEILING_CONTEXT_FIELDS,
     RelationActionSet,
+    STAGNATION_EPSILON,
 )
 from arac.policy.evidence_overlay import (
     LOCAL_OPTIMUM_TOP_K,
@@ -3286,6 +3288,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     action_ceiling_context_rows: list[dict[str, str]] = []
     action_ceiling_arm_rows: list[dict[str, str]] = []
     action_ceiling_pending_parity: dict[RelationKey, PendingActionCeilingParity] = {}
+    action_ceiling_efficiency_ewma = [0.0 for _ in grouping_result]
+    action_ceiling_completed_efficiency_sweeps = 0
+    action_ceiling_stagnation_streaks = [0 for _ in grouping_result]
     evidence_overlay_frozen_sub_fes: int | None = None
     evidence_overlay_probe_slice: tuple[int, int] | None = None
     evidence_overlay_runtime_failure: BaseException | None = None
@@ -3419,6 +3424,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         else:
             sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)
         fitness_delta_list: list[float] = []
+        group_actual_fes_list: list[int] = []
         current_outer_relations: list[OverlapRelation] = []
         top_candidates_by_group: dict[int, tuple[tuple[float, ...], ...]] = {}
         optimized_any_group = False
@@ -3786,6 +3792,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         candidate for _, candidate in local_top_candidates
                     ),
                 )
+            group_actual_fes_list.append(
+                current_fitness_evaluations(fun) - group_interval_start_fe
+            )
+            if config.action_ceiling_capture:
+                if current_delta < STAGNATION_EPSILON * abs(original_fitness):
+                    action_ceiling_stagnation_streaks[index] += 1
+                else:
+                    action_ceiling_stagnation_streaks[index] = 0
             fitness_delta_list.append(current_delta)
             if config.enable_relation_dispatch:
                 top_candidates_by_group[index] = tuple(
@@ -3944,10 +3958,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                     previous_delta=context.previous_delta,
                                     current_delta=context.current_delta,
                                     completed_group_deltas=fitness_delta_list,
+                                    completed_group_actual_fes=group_actual_fes_list,
                                     group_dims=grouping_result,
                                     overlapping_elements=overlapping_elements,
                                     population_sizes=population_sizes,
                                     optimizer_budgets=optimizer_budgets,
+                                    efficiency_ewma=action_ceiling_efficiency_ewma,
+                                    completed_efficiency_sweeps=(
+                                        action_ceiling_completed_efficiency_sweeps
+                                    ),
+                                    stagnation_streaks=(
+                                        action_ceiling_stagnation_streaks
+                                    ),
                                     fitness_prefix=tuple(fun.fitness_record),
                                     topology_hash=(
                                         evidence_overlay_observer.ordering.topology_sha256
@@ -4381,6 +4403,20 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 budget_remaining_ratio=iteration_budget_remaining_ratio,
             )
             relations.extend(iteration_relations)
+
+        if (
+            config.action_ceiling_capture
+            and len(fitness_delta_list) == sub_num
+            and len(group_actual_fes_list) == sub_num
+        ):
+            action_ceiling_efficiency_ewma = list(
+                update_efficiency_ewma(
+                    action_ceiling_efficiency_ewma,
+                    fitness_delta_list,
+                    group_actual_fes_list,
+                )
+            )
+            action_ceiling_completed_efficiency_sweeps += 1
 
         if evidence_overlay_observer is not None:
             all_groups_completed = len(fitness_delta_list) == sub_num

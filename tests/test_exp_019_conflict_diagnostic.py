@@ -52,6 +52,11 @@ def _context(context_id: str, cohort: str, problem_id: str) -> dict[str, str]:
             "issued_sweep": "2",
             "target_sweep": "3",
             "group_index": "1",
+            "efficiency_ewma": "[0.1, 0.2]",
+            "completed_efficiency_sweeps": "3",
+            "stagnation_streaks": "[0, 0]",
+            "population_sizes": "[2, 2]",
+            "uniform_group_budgets": "[4, 4]",
             "horizon_fe": "50",
             "selector_arm": "true_no_writeback",
             "selector_reason": "anchor_mismatch",
@@ -82,9 +87,16 @@ def _arm_rows(
                 "exact_left",
                 "exact_right",
                 "exact_bridge",
-                "multi_context_winner",
+                "efficiency_budget_reallocation",
+                "delta_priority_scan",
+                "stagnation_cross_group_warm_start",
             }
-            optimizer_mean_mutated = arm == "initialization_bias"
+            continuation_applied = arm in {
+                "efficiency_budget_reallocation",
+                "delta_priority_scan",
+                "stagnation_cross_group_warm_start",
+            }
+            warm_start_applied = arm == "stagnation_cross_group_warm_start"
             row = {field: "" for field in ARM_RESULT_FIELDS}
             row.update(
                 {
@@ -102,12 +114,18 @@ def _arm_rows(
                     "delta": str(actionability_delta(native_error, arm_error)),
                     "extra_fes": "0",
                     "counterfactual_applied": str(
-                        int(incumbent_mutated or optimizer_mean_mutated)
+                        int(incumbent_mutated or continuation_applied)
                     ),
                     "mutation_norm": str(float(incumbent_mutated)),
-                    "optimizer_mean_mutation_norm": str(
-                        float(optimizer_mean_mutated)
+                    "optimizer_mean_mutation_norm": "0.0",
+                    "continuation_policy_applied": str(
+                        int(continuation_applied)
                     ),
+                    "execution_sweep_trace": "[3, 3]",
+                    "execution_order_trace": "[0, 1]",
+                    "group_budget_trace": "[4, 4]",
+                    "warm_start_trigger_count": str(int(warm_start_applied)),
+                    "warm_start_mean_shift_norm": str(float(warm_start_applied)),
                     "selected_candidate": arm,
                     "runtime_authorized": "0",
                     "status": "complete",
@@ -121,6 +139,19 @@ def test_frozen_config_and_run_matrices() -> None:
     config = load_config()
 
     assert config["observer_only"] is True
+    assert config["continuation_actions"]["efficiency_budget_reallocation"] == {
+        "ewma_alpha": 0.3,
+        "cold_start_uniform_sweeps": 1,
+        "minimum_population_multiples": 1,
+        "maximum_uniform_budget_multiples": 3,
+        "preserve_total_requested_fes": True,
+    }
+    assert config["continuation_actions"]["delta_priority_scan"]["tie_break"] == (
+        "original_group_index_ascending"
+    )
+    assert config["continuation_actions"]["stagnation_cross_group_warm_start"][
+        "trigger_streak"
+    ] == 3
     smoke = build_specs("smoke")
     assert len(smoke) == 6
     assert {(spec.problem_id, spec.seed, spec.max_fes) for spec in smoke} == {
@@ -171,6 +202,20 @@ def test_incomplete_context_and_inconsistent_mutation_flag_fail_closed() -> None
         validate_raw_rows([invalid_context], rows)
     rows[0]["counterfactual_applied"] = "0"
     with pytest.raises(ValueError, match="disagrees with branch mutation"):
+        validate_raw_rows([context], rows)
+
+
+def test_adaptive_budget_trace_must_preserve_complete_sweep_total() -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    budget_row = next(
+        row
+        for row in rows
+        if row["arm"] == "efficiency_budget_reallocation"
+    )
+    budget_row["group_budget_trace"] = "[5, 4]"
+
+    with pytest.raises(ValueError, match="preserve total requested FEs"):
         validate_raw_rows([context], rows)
 
 

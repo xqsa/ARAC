@@ -1,6 +1,6 @@
 {
-  "protocol_version": "exp019-action-ceiling-v3",
-  "schema_version": "exp019-action-ceiling-config-v3",
+  "protocol_version": "exp019-action-ceiling-v4",
+  "schema_version": "exp019-action-ceiling-config-v4",
   "observer_only": true,
   "runtime_authorized": false,
   "arms": [
@@ -9,13 +9,35 @@
     "exact_left",
     "exact_right",
     "exact_bridge",
-    "multi_context_winner",
-    "initialization_bias",
-    "delayed_sweep_reconciliation"
+    "efficiency_budget_reallocation",
+    "delta_priority_scan",
+    "stagnation_cross_group_warm_start"
   ],
   "horizons": ["immediate", "sweep_1", "sweep_3"],
   "primary_horizon": "sweep_1",
   "phase1_top_relations": 4,
+  "continuation_actions": {
+    "efficiency_budget_reallocation": {
+      "ewma_alpha": 0.3,
+      "cold_start_uniform_sweeps": 1,
+      "minimum_population_multiples": 1,
+      "maximum_uniform_budget_multiples": 3,
+      "preserve_total_requested_fes": true
+    },
+    "delta_priority_scan": {
+      "priority": "descending_previous_sweep_delta",
+      "tie_break": "original_group_index_ascending",
+      "cold_start_order": "native"
+    },
+    "stagnation_cross_group_warm_start": {
+      "relative_stagnation_epsilon": 1e-6,
+      "trigger_streak": 3,
+      "cooldown_group_visits": 3,
+      "perturbation_standard_deviation_sigma_multiple": 1.0,
+      "perturb_unique_mean_positions_only": true,
+      "preserve_shared_mean_positions": true
+    }
+  },
   "smoke": {
     "cohort": "real_aob",
     "cases": ["E3", "S5"],

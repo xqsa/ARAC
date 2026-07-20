@@ -13,13 +13,16 @@ import numpy as np
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
+    BUDGET_MAX_UNIFORM_MULTIPLIER,
+    EFFICIENCY_EWMA_ALPHA,
     RelationActionSet,
-    RelationCredit,
+    STAGNATION_EPSILON,
+    STAGNATION_TRIGGER_STREAK,
+    WARM_START_COOLDOWN_SWEEPS,
     actionability_delta,
 )
 from arac.policy.evidence_overlay import (
     RelationKey,
-    UTILITY_EPSILON,
     runtime_probe_anchor_hash,
 )
 
@@ -90,9 +93,6 @@ class ActionExecutionRequest:
     current_delta: float
     owner_group_dimensions: tuple[tuple[int, ...], tuple[int, ...]]
     owner_optimizer_means: tuple[tuple[float, ...], tuple[float, ...]]
-    left_background: tuple[float, ...] | None = None
-    right_background: tuple[float, ...] | None = None
-    relation_credit: RelationCredit | None = None
 
     def __post_init__(self) -> None:
         if self.arm not in ACTION_CEILING_ARMS:
@@ -136,16 +136,6 @@ class ActionExecutionRequest:
             if len(mean) != len(dimensions) or not all(math.isfinite(value) for value in mean):
                 raise ValueError("owner optimizer mean must be finite and match its group")
         object.__setattr__(self, "owner_optimizer_means", owner_means)
-        if self.left_background is not None:
-            lb = tuple(float(v) for v in self.left_background)
-            if len(lb) != len(incumbent) or not all(math.isfinite(v) for v in lb):
-                raise ValueError("left_background must be finite and match incumbent size")
-            object.__setattr__(self, "left_background", lb)
-        if self.right_background is not None:
-            rb = tuple(float(v) for v in self.right_background)
-            if len(rb) != len(incumbent) or not all(math.isfinite(v) for v in rb):
-                raise ValueError("right_background must be finite and match incumbent size")
-            object.__setattr__(self, "right_background", rb)
 
 
 @dataclass(frozen=True)
@@ -264,87 +254,22 @@ def execute_action_ceiling_arm(
         write_shared_values(
             request.action_set.candidate_for_arm(request.arm).shared_values
         )
-    elif request.arm == "multi_context_winner":
-        if request.left_background is None or request.right_background is None:
-            raise ValueError("multi_context_winner requires left_background and right_background")
-        left_bg = np.asarray(request.left_background, dtype=float).copy()
-        right_bg = np.asarray(request.right_background, dtype=float).copy()
-        eq8 = native_eq8_values(
-            request.previous_values, request.current_values,
-            request.previous_delta, request.current_delta,
+    elif request.arm in {
+        "efficiency_budget_reallocation",
+        "delta_priority_scan",
+        "stagnation_cross_group_warm_start",
+    }:
+        # Keep the target dispatch identical to native; only continuation changes.
+        write_shared_values(
+            native_eq8_values(
+                request.previous_values,
+                request.current_values,
+                request.previous_delta,
+                request.current_delta,
+            ),
+            synchronize_owner_means=False,
         )
-        candidates = [
-            ("current", tuple(float(v) for v in incumbent[indices])),
-            ("exact_left", request.action_set.left_owner.shared_values),
-            ("exact_right", request.action_set.right_owner.shared_values),
-            ("exact_eq8", tuple(float(v) for v in eq8)),
-        ]
-        n = len(candidates)
-        left_batch = np.repeat(left_bg[None, :], n, axis=0)
-        right_batch = np.repeat(right_bg[None, :], n, axis=0)
-        for i, (_, vals) in enumerate(candidates):
-            left_batch[i, indices] = vals
-            right_batch[i, indices] = vals
-        f_left = np.asarray(evaluate(left_batch), dtype=float).reshape(-1)
-        f_right = np.asarray(evaluate(right_batch), dtype=float).reshape(-1)
-        if f_left.shape != (n,) or not np.all(np.isfinite(f_left)):
-            raise ValueError("multi_context left evaluator must return 4 finite values")
-        if f_right.shape != (n,) or not np.all(np.isfinite(f_right)):
-            raise ValueError("multi_context right evaluator must return 4 finite values")
-        extra_fes = 2 * n
-        eps = UTILITY_EPSILON
-        f_L0, f_R0 = float(f_left[0]), float(f_right[0])
-        scores = [
-            min(
-                math.log((f_L0 + eps) / (float(f_left[i]) + eps)),
-                math.log((f_R0 + eps) / (float(f_right[i]) + eps)),
-            )
-            for i in range(n)
-        ]
-        best_i = int(np.argmax(scores))
-        best_score = scores[best_i]
-        _catastrophic = math.log(1.20)
-        loss_L = math.log((f_L0 + eps) / (float(f_left[best_i]) + eps))
-        loss_R = math.log((f_R0 + eps) / (float(f_right[best_i]) + eps))
-        if best_score > 0 and loss_L > -_catastrophic and loss_R > -_catastrophic:
-            write_shared_values(candidates[best_i][1])
-            selected_candidate = candidates[best_i][0]
-        else:
-            selected_candidate = "current"
-    elif request.arm == "initialization_bias":
-        winner = request.action_set.selector_winner
-        winner_values = {
-            "left_owner": request.action_set.left_owner.shared_values,
-            "right_owner": request.action_set.right_owner.shared_values,
-            "bridge": request.action_set.bridge.shared_values,
-        }.get(winner)
-        if winner_values is None:
-            selected_candidate = "bias_none"
-        else:
-            owner_optimizer_means = _synchronize_owner_optimizer_means(
-                owner_group_dimensions=request.owner_group_dimensions,
-                owner_optimizer_means=owner_optimizer_means,
-                shared_indices=indices,
-                shared_values=winner_values,
-            )
-            selected_candidate = f"bias_{winner}"
-    elif request.arm == "delayed_sweep_reconciliation":
-        credit = request.relation_credit
-        if credit is None or not credit.is_warm:
-            selected_candidate = "cold_start_no_writeback"
-        elif credit.ewma_credit <= 0.0:
-            selected_candidate = "credit_negative_no_writeback"
-        else:
-            _winner_values = {
-                "left_owner": request.action_set.left_owner.shared_values,
-                "right_owner": request.action_set.right_owner.shared_values,
-                "bridge": request.action_set.bridge.shared_values,
-            }.get(credit.last_winner)
-            if _winner_values is None:
-                selected_candidate = "credit_winner_invalid_no_writeback"
-            else:
-                write_shared_values(_winner_values)
-                selected_candidate = f"delayed_{credit.last_winner}"
+        selected_candidate = request.arm
     else:
         raise ValueError("unsupported action-ceiling arm")
 
@@ -379,16 +304,167 @@ def execute_action_ceiling_arm(
     )
 
 
+def update_efficiency_ewma(
+    previous: Sequence[float],
+    deltas: Sequence[float],
+    actual_fes: Sequence[int],
+) -> tuple[float, ...]:
+    if not (len(previous) == len(deltas) == len(actual_fes)) or not previous:
+        raise ValueError("efficiency inputs must be non-empty and aligned")
+    updated: list[float] = []
+    for old, delta, consumed in zip(previous, deltas, actual_fes, strict=True):
+        old_value = float(old)
+        delta_value = float(delta)
+        fe_value = int(consumed)
+        if (
+            not math.isfinite(old_value)
+            or not math.isfinite(delta_value)
+            or old_value < 0.0
+            or delta_value < 0.0
+            or isinstance(consumed, bool)
+            or fe_value <= 0
+        ):
+            raise ValueError("efficiency history must be finite and non-negative")
+        efficiency = delta_value / fe_value
+        updated.append(
+            (1.0 - EFFICIENCY_EWMA_ALPHA) * old_value
+            + EFFICIENCY_EWMA_ALPHA * efficiency
+        )
+    return tuple(updated)
+
+
+def allocate_efficiency_budgets(
+    ewma_efficiency: Sequence[float],
+    uniform_budgets: Sequence[int],
+    population_sizes: Sequence[int],
+) -> tuple[int, ...]:
+    """Allocate one frozen sweep budget while preserving its exact FE total."""
+
+    if not (
+        len(ewma_efficiency) == len(uniform_budgets) == len(population_sizes)
+    ) or not ewma_efficiency:
+        raise ValueError("budget allocation inputs must be non-empty and aligned")
+    weights = tuple(float(value) for value in ewma_efficiency)
+    uniform = tuple(int(value) for value in uniform_budgets)
+    populations = tuple(int(value) for value in population_sizes)
+    if any(not math.isfinite(value) or value < 0.0 for value in weights):
+        raise ValueError("efficiency weights must be finite and non-negative")
+    if any(
+        isinstance(raw_budget, bool)
+        or isinstance(raw_population, bool)
+        or population <= 0
+        or budget < population
+        for raw_budget, raw_population, budget, population in zip(
+            uniform_budgets,
+            population_sizes,
+            uniform,
+            populations,
+            strict=True,
+        )
+    ):
+        raise ValueError("uniform budgets must cover one positive population")
+    if math.fsum(weights) <= 0.0:
+        return uniform
+
+    maximums = tuple(
+        BUDGET_MAX_UNIFORM_MULTIPLIER * budget for budget in uniform
+    )
+    allocation = list(populations)
+    capacities = [
+        maximum - minimum
+        for maximum, minimum in zip(maximums, populations, strict=True)
+    ]
+    remaining = sum(uniform) - sum(allocation)
+    if remaining < 0:
+        raise ValueError("population floors exceed the frozen sweep budget")
+
+    while remaining > 0:
+        active = [index for index, capacity in enumerate(capacities) if capacity > 0]
+        if not active:
+            raise ValueError("budget caps cannot absorb the frozen sweep budget")
+        active_weight = math.fsum(weights[index] for index in active)
+        if active_weight <= 0.0:
+            active_weights = {index: float(capacities[index]) for index in active}
+            active_weight = math.fsum(active_weights.values())
+        else:
+            active_weights = {index: weights[index] for index in active}
+        quotas = {
+            index: remaining * active_weights[index] / active_weight
+            for index in active
+        }
+        increments = {
+            index: min(capacities[index], int(math.floor(quotas[index])))
+            for index in active
+        }
+        assigned = sum(increments.values())
+        if assigned == 0:
+            index = max(
+                active,
+                key=lambda item: (
+                    quotas[item] - math.floor(quotas[item]),
+                    active_weights[item],
+                    -item,
+                ),
+            )
+            increments[index] = 1
+            assigned = 1
+        for index, increment in increments.items():
+            allocation[index] += increment
+            capacities[index] -= increment
+        remaining -= assigned
+
+    if sum(allocation) != sum(uniform):
+        raise RuntimeError("adaptive budgets do not preserve the frozen sweep total")
+    return tuple(allocation)
+
+
+def delta_priority_order(previous_deltas: Sequence[float]) -> tuple[int, ...]:
+    deltas = tuple(float(value) for value in previous_deltas)
+    if not deltas or any(not math.isfinite(value) or value < 0.0 for value in deltas):
+        raise ValueError("priority deltas must be finite, non-negative, and non-empty")
+    return tuple(sorted(range(len(deltas)), key=lambda index: (-deltas[index], index)))
+
+
+def unique_group_positions(
+    group_dims: Sequence[Sequence[int]],
+    overlapping_elements: Sequence[Sequence[int]],
+) -> tuple[tuple[int, ...], ...]:
+    groups = tuple(tuple(int(value) for value in dims) for dims in group_dims)
+    overlaps = tuple(tuple(int(value) for value in values) for values in overlapping_elements)
+    if not groups or len(overlaps) != len(groups) - 1:
+        raise ValueError("group topology is not an adjacent overlap chain")
+    shared_by_group = [set() for _ in groups]
+    for relation_index, overlap in enumerate(overlaps):
+        shared_by_group[relation_index].update(overlap)
+        shared_by_group[relation_index + 1].update(overlap)
+    return tuple(
+        tuple(
+            position
+            for position, dimension in enumerate(dims)
+            if dimension not in shared_by_group[group_index]
+        )
+        for group_index, dims in enumerate(groups)
+    )
+
+
 @dataclass(frozen=True)
 class NativeContinuationState:
     incumbent: tuple[float, ...]
     sweep_index: int
     next_group_index: int
     completed_group_deltas: tuple[float, ...]
+    completed_group_actual_fes: tuple[int, ...]
     group_dims: tuple[tuple[int, ...], ...]
     overlapping_elements: tuple[tuple[int, ...], ...]
     population_sizes: tuple[int, ...]
     optimizer_budgets: tuple[int, ...]
+    efficiency_ewma: tuple[float, ...]
+    completed_efficiency_sweeps: int
+    stagnation_streaks: tuple[int, ...]
+    stagnation_cooldowns: tuple[int, ...]
+    lower_bound: float
+    upper_bound: float
+    sigma: float
 
     def __post_init__(self) -> None:
         group_count = len(self.group_dims)
@@ -404,6 +480,49 @@ class NativeContinuationState:
             raise ValueError("next_group_index is outside continuation groups")
         if len(self.completed_group_deltas) != self.next_group_index:
             raise ValueError("completed deltas do not align with next group")
+        if len(self.completed_group_actual_fes) != self.next_group_index:
+            raise ValueError("completed FE counts do not align with next group")
+        if any(value <= 0 for value in self.completed_group_actual_fes):
+            raise ValueError("completed group FE counts must be positive")
+        if len(self.efficiency_ewma) != group_count or any(
+            not math.isfinite(value) or value < 0.0 for value in self.efficiency_ewma
+        ):
+            raise ValueError("efficiency EWMA state is invalid")
+        if (
+            isinstance(self.completed_efficiency_sweeps, bool)
+            or self.completed_efficiency_sweeps < 0
+        ):
+            raise ValueError("completed efficiency sweeps must be non-negative")
+        for name, values in (
+            ("stagnation streak", self.stagnation_streaks),
+            ("stagnation cooldown", self.stagnation_cooldowns),
+        ):
+            if len(values) != group_count or any(
+                isinstance(value, bool) or int(value) < 0 for value in values
+            ):
+                raise ValueError(f"{name} state is invalid")
+        if any(
+            isinstance(value, bool) or int(value) <= 0
+            for value in self.population_sizes + self.optimizer_budgets
+        ):
+            raise ValueError("population sizes and optimizer budgets must be positive")
+        if any(
+            budget < population
+            for budget, population in zip(
+                self.optimizer_budgets,
+                self.population_sizes,
+                strict=True,
+            )
+        ):
+            raise ValueError("optimizer budgets must cover one population")
+        if (
+            not math.isfinite(self.lower_bound)
+            or not math.isfinite(self.upper_bound)
+            or self.lower_bound >= self.upper_bound
+            or not math.isfinite(self.sigma)
+            or self.sigma <= 0.0
+        ):
+            raise ValueError("continuation bounds and sigma are invalid")
 
     @property
     def sweep_horizon_fe(self) -> int:
@@ -420,6 +539,8 @@ class GroupOptimizer(Protocol):
         requested_fes: int,
         population_size: int,
         seed: int,
+        mean: np.ndarray,
+        sigma: float,
     ) -> OptimizationResult: ...
 
 
@@ -429,7 +550,22 @@ class ContinuationResult:
     sweep_index: int
     next_group_index: int
     completed_group_deltas: tuple[float, ...]
+    completed_group_actual_fes: tuple[int, ...]
+    efficiency_ewma: tuple[float, ...]
+    completed_efficiency_sweeps: int
+    stagnation_streaks: tuple[int, ...]
+    stagnation_cooldowns: tuple[int, ...]
     fitness_record: tuple[float, ...]
+    execution_sweep_trace: tuple[int, ...]
+    execution_order_trace: tuple[int, ...]
+    group_budget_trace: tuple[int, ...]
+    group_start_fe_trace: tuple[int, ...]
+    policy_application_fes: tuple[int, ...]
+    warm_start_event_fes: tuple[int, ...]
+    warm_start_shift_norms: tuple[float, ...]
+    continuation_policy_applied: bool
+    warm_start_trigger_count: int
+    warm_start_mean_shift_norm: float
 
 
 def _run_native_group_steps(
@@ -440,32 +576,141 @@ def _run_native_group_steps(
     optimize_group: GroupOptimizer,
     group_seed: Callable[[int, int], int],
     should_continue: Callable[[int], bool],
+    continuation_arm: str,
 ) -> ContinuationResult:
+    if continuation_arm not in ACTION_CEILING_ARMS:
+        raise ValueError("unsupported continuation arm")
     incumbent = np.asarray(state.incumbent, dtype=float).copy()
+    group_count = len(state.group_dims)
     sweep_index = int(state.sweep_index)
-    group_index = int(state.next_group_index)
-    deltas = list(float(value) for value in state.completed_group_deltas)
+    current_order = tuple(range(group_count))
+    order_position = int(state.next_group_index)
+    deltas: list[float | None] = [None] * group_count
+    actual_fes: list[int | None] = [None] * group_count
+    for group_index, (delta, consumed) in enumerate(
+        zip(
+            state.completed_group_deltas,
+            state.completed_group_actual_fes,
+            strict=True,
+        )
+    ):
+        deltas[group_index] = float(delta)
+        actual_fes[group_index] = int(consumed)
+    processed_groups = set(range(state.next_group_index))
+    closed_relations = set(range(max(0, state.next_group_index - 1)))
+    sweep_budgets = tuple(int(value) for value in state.optimizer_budgets)
+    efficiency_ewma = tuple(float(value) for value in state.efficiency_ewma)
+    completed_efficiency_sweeps = int(state.completed_efficiency_sweeps)
+    stagnation_streaks = [int(value) for value in state.stagnation_streaks]
+    stagnation_cooldowns = [int(value) for value in state.stagnation_cooldowns]
+    unique_positions = unique_group_positions(
+        state.group_dims,
+        state.overlapping_elements,
+    )
+    policy_active = False
+    continuation_policy_applied = False
+    execution_order_trace: list[int] = []
+    execution_sweep_trace: list[int] = []
+    group_budget_trace: list[int] = []
+    group_start_fe_trace: list[int] = []
+    policy_application_fes: list[int] = []
+    warm_start_event_fes: list[int] = []
+    warm_start_shift_norms: list[float] = []
+    warm_start_trigger_count = 0
+    warm_start_squared_shift = 0.0
     completed_steps = 0
     while should_continue(completed_steps):
-        if group_index == len(state.group_dims):
+        if order_position == group_count:
+            if any(value is None for value in deltas) or any(
+                value is None for value in actual_fes
+            ):
+                raise RuntimeError("continuation reached an incomplete sweep boundary")
+            completed_deltas = tuple(float(value) for value in deltas)
+            completed_actual_fes = tuple(int(value) for value in actual_fes)
+            efficiency_ewma = update_efficiency_ewma(
+                efficiency_ewma,
+                completed_deltas,
+                completed_actual_fes,
+            )
+            completed_efficiency_sweeps += 1
             sweep_index += 1
-            group_index = 0
-            deltas = []
+            policy_active = True
+            current_order = (
+                delta_priority_order(completed_deltas)
+                if continuation_arm == "delta_priority_scan"
+                else tuple(range(group_count))
+            )
+            if (
+                continuation_arm == "delta_priority_scan"
+                and current_order != tuple(range(group_count))
+            ):
+                continuation_policy_applied = True
+                policy_application_fes.append(len(fitness_record) + 1)
+            sweep_budgets = (
+                allocate_efficiency_budgets(
+                    efficiency_ewma,
+                    state.optimizer_budgets,
+                    state.population_sizes,
+                )
+                if continuation_arm == "efficiency_budget_reallocation"
+                else tuple(int(value) for value in state.optimizer_budgets)
+            )
+            order_position = 0
+            deltas = [None] * group_count
+            actual_fes = [None] * group_count
+            processed_groups = set()
+            closed_relations = set()
+        group_index = current_order[order_position]
         dims = state.group_dims[group_index]
         original = incumbent.copy()
+        group_start_fe = len(fitness_record) + 1
         values = np.asarray(evaluate(incumbent), dtype=float).reshape(-1)
         if values.shape != (1,) or not np.isfinite(values[0]):
             raise ValueError("native precheck must return one finite value")
         original_fitness = float(values[0])
+        mean = incumbent[np.asarray(dims, dtype=int)].copy()
+        if (
+            policy_active
+            and continuation_arm == "stagnation_cross_group_warm_start"
+        ):
+            if stagnation_cooldowns[group_index] > 0:
+                stagnation_cooldowns[group_index] -= 1
+            elif (
+                stagnation_streaks[group_index] >= STAGNATION_TRIGGER_STREAK
+                and unique_positions[group_index]
+            ):
+                seed = (int(group_seed(sweep_index, group_index)) + 0x9E3779B9) % (
+                    2**32
+                )
+                rng = np.random.default_rng(seed)
+                positions = np.asarray(unique_positions[group_index], dtype=int)
+                before = mean[positions].copy()
+                mean[positions] = np.clip(
+                    before + rng.normal(0.0, state.sigma, len(positions)),
+                    state.lower_bound,
+                    state.upper_bound,
+                )
+                shift = float(np.linalg.norm(mean[positions] - before))
+                if shift > 0.0:
+                    warm_start_trigger_count += 1
+                    warm_start_squared_shift += shift * shift
+                    continuation_policy_applied = True
+                    policy_application_fes.append(len(fitness_record) + 1)
+                    warm_start_event_fes.append(len(fitness_record) + 1)
+                    warm_start_shift_norms.append(shift)
+                    stagnation_streaks[group_index] = 0
+                    stagnation_cooldowns[group_index] = WARM_START_COOLDOWN_SWEEPS
+        budget = sweep_budgets[group_index]
         result = optimize_group(
             group_index=group_index,
             background=incumbent.copy(),
             dims=dims,
-            requested_fes=state.optimizer_budgets[group_index],
+            requested_fes=budget,
             population_size=state.population_sizes[group_index],
             seed=int(group_seed(sweep_index, group_index)),
+            mean=mean,
+            sigma=state.sigma,
         )
-        budget = state.optimizer_budgets[group_index]
         if result.actual_fes <= 0 or result.actual_fes > budget:
             raise ValueError("native group optimizer exceeded or skipped its frozen budget")
         if len(result.best_x) != len(dims):
@@ -475,25 +720,73 @@ def _run_native_group_steps(
             current_delta = original_fitness - result.best_y
         else:
             current_delta = 0.0
-        deltas.append(current_delta)
-        if group_index > 0:
-            overlap = np.asarray(state.overlapping_elements[group_index - 1], dtype=int)
+        deltas[group_index] = current_delta
+        actual_fes[group_index] = 1 + result.actual_fes
+        if current_delta < STAGNATION_EPSILON * abs(original_fitness):
+            stagnation_streaks[group_index] += 1
+        else:
+            stagnation_streaks[group_index] = 0
+        processed_groups.add(group_index)
+        for relation_index, relation_overlap in enumerate(state.overlapping_elements):
+            if relation_index in closed_relations:
+                continue
+            left_group = relation_index
+            right_group = relation_index + 1
+            if not {left_group, right_group}.issubset(processed_groups):
+                continue
+            overlap = np.asarray(relation_overlap, dtype=int)
             if overlap.size:
+                prior_group = right_group if group_index == left_group else left_group
+                prior_delta = deltas[prior_group]
+                if prior_delta is None:
+                    raise RuntimeError("overlap owner delta is missing")
                 incumbent[overlap] = native_eq8_values(
                     original[overlap],
                     incumbent[overlap],
-                    deltas[group_index - 1],
+                    prior_delta,
                     current_delta,
                 )
-        group_index += 1
+            closed_relations.add(relation_index)
+        execution_order_trace.append(group_index)
+        execution_sweep_trace.append(sweep_index)
+        group_budget_trace.append(budget)
+        group_start_fe_trace.append(group_start_fe)
+        if (
+            policy_active
+            and continuation_arm == "efficiency_budget_reallocation"
+            and budget != state.optimizer_budgets[group_index]
+        ):
+            continuation_policy_applied = True
+            policy_application_fes.append(group_start_fe)
+        order_position += 1
         completed_steps += 1
 
+    completed_indices = current_order[:order_position]
     return ContinuationResult(
         incumbent=tuple(float(value) for value in incumbent),
         sweep_index=sweep_index,
-        next_group_index=group_index,
-        completed_group_deltas=tuple(float(value) for value in deltas),
+        next_group_index=order_position,
+        completed_group_deltas=tuple(
+            float(deltas[index]) for index in completed_indices
+        ),
+        completed_group_actual_fes=tuple(
+            int(actual_fes[index]) for index in completed_indices
+        ),
+        efficiency_ewma=efficiency_ewma,
+        completed_efficiency_sweeps=completed_efficiency_sweeps,
+        stagnation_streaks=tuple(stagnation_streaks),
+        stagnation_cooldowns=tuple(stagnation_cooldowns),
         fitness_record=tuple(float(value) for value in fitness_record),
+        execution_sweep_trace=tuple(execution_sweep_trace),
+        execution_order_trace=tuple(execution_order_trace),
+        group_budget_trace=tuple(group_budget_trace),
+        group_start_fe_trace=tuple(group_start_fe_trace),
+        policy_application_fes=tuple(policy_application_fes),
+        warm_start_event_fes=tuple(warm_start_event_fes),
+        warm_start_shift_norms=tuple(warm_start_shift_norms),
+        continuation_policy_applied=continuation_policy_applied,
+        warm_start_trigger_count=warm_start_trigger_count,
+        warm_start_mean_shift_norm=math.sqrt(warm_start_squared_shift),
     )
 
 
@@ -514,6 +807,7 @@ def run_native_group_cycle(
         optimize_group=optimize_group,
         group_seed=group_seed,
         should_continue=lambda completed: completed < len(state.group_dims),
+        continuation_arm="native_eq8",
     )
 
 
@@ -525,6 +819,7 @@ def run_native_continuation(
     optimize_group: GroupOptimizer,
     group_seed: Callable[[int, int], int],
     target_relative_fe: int,
+    continuation_arm: str = "native_eq8",
 ) -> ContinuationResult:
     if target_relative_fe <= 0:
         raise ValueError("target_relative_fe must be positive")
@@ -535,6 +830,7 @@ def run_native_continuation(
         optimize_group=optimize_group,
         group_seed=group_seed,
         should_continue=lambda _completed: len(fitness_record) < target_relative_fe,
+        continuation_arm=continuation_arm,
     )
 
 

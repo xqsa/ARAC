@@ -22,10 +22,15 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_PROTOCOL_VERSION,
     BOOTSTRAP_REPLICATES,
     BOOTSTRAP_SEED,
+    BUDGET_MAX_UNIFORM_MULTIPLIER,
     CATASTROPHIC_DELTA,
+    EFFICIENCY_EWMA_ALPHA,
     MATERIAL_POSITIVE_DELTA,
     PRIMARY_HORIZON,
     SPARSE_POSITIVE_THRESHOLD,
+    STAGNATION_EPSILON,
+    STAGNATION_TRIGGER_STREAK,
+    WARM_START_COOLDOWN_SWEEPS,
     ActionCeilingObservation,
     actionability_delta,
     summarize_action_ceiling,
@@ -38,7 +43,7 @@ from .benchmark import REPO_ROOT, validate_synthetic_bundle
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = EXPERIMENT_DIR / "diagnostic_config.json"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "exp_019_conflict_resolution_pilot"
-CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v3"
+CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v4"
 SMOKE_CASES = ("E3", "S5")
 SMOKE_SEEDS = (117, 118, 119)
 SMOKE_JOBS = 6
@@ -156,6 +161,30 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         raise ValueError("action-ceiling primary horizon drifted")
     if config.get("phase1_top_relations") != 4:
         raise ValueError("action-ceiling must select four Phase1 relations")
+    expected_continuation_actions = {
+        "efficiency_budget_reallocation": {
+            "ewma_alpha": EFFICIENCY_EWMA_ALPHA,
+            "cold_start_uniform_sweeps": 1,
+            "minimum_population_multiples": 1,
+            "maximum_uniform_budget_multiples": BUDGET_MAX_UNIFORM_MULTIPLIER,
+            "preserve_total_requested_fes": True,
+        },
+        "delta_priority_scan": {
+            "priority": "descending_previous_sweep_delta",
+            "tie_break": "original_group_index_ascending",
+            "cold_start_order": "native",
+        },
+        "stagnation_cross_group_warm_start": {
+            "relative_stagnation_epsilon": STAGNATION_EPSILON,
+            "trigger_streak": STAGNATION_TRIGGER_STREAK,
+            "cooldown_group_visits": WARM_START_COOLDOWN_SWEEPS,
+            "perturbation_standard_deviation_sigma_multiple": 1.0,
+            "perturb_unique_mean_positions_only": True,
+            "preserve_shared_mean_positions": True,
+        },
+    }
+    if config.get("continuation_actions") != expected_continuation_actions:
+        raise ValueError("action-ceiling continuation action contract drifted")
     statistics = config.get("statistics", {})
     expected_statistics = {
         "epsilon": UTILITY_EPSILON,
@@ -239,6 +268,40 @@ def validate_raw_rows(
         selector_arm = row.get("selector_arm")
         if selector_arm not in ACTION_CEILING_ARMS:
             raise ValueError("context selector arm is invalid")
+        efficiency = json.loads(str(row.get("efficiency_ewma", "")))
+        streaks = json.loads(str(row.get("stagnation_streaks", "")))
+        populations = json.loads(str(row.get("population_sizes", "")))
+        uniform_budgets = json.loads(str(row.get("uniform_group_budgets", "")))
+        if (
+            not isinstance(efficiency, list)
+            or not efficiency
+            or len(efficiency) != len(streaks)
+            or len(efficiency) != len(populations)
+            or len(efficiency) != len(uniform_budgets)
+            or any(not math.isfinite(float(value)) or float(value) < 0.0 for value in efficiency)
+            or any(
+                isinstance(value, bool) or int(value) < 0 or int(value) != value
+                for value in streaks
+            )
+            or any(
+                isinstance(value, bool) or int(value) <= 0 or int(value) != value
+                for value in populations
+            )
+            or any(
+                isinstance(value, bool) or int(value) <= 0 or int(value) != value
+                for value in uniform_budgets
+            )
+            or any(
+                int(budget) < int(population)
+                for budget, population in zip(
+                    uniform_budgets,
+                    populations,
+                    strict=True,
+                )
+            )
+            or int(row.get("completed_efficiency_sweeps", "-1")) < 0
+        ):
+            raise ValueError("action-ceiling continuation context is invalid")
         contexts[context_id] = row
 
     by_context: dict[str, dict[tuple[str, str], Mapping[str, str]]] = {}
@@ -251,16 +314,46 @@ def validate_raw_rows(
             raise ValueError("action-ceiling arm result is incomplete")
         if row.get("counterfactual_applied") not in {"0", "1"}:
             raise ValueError("counterfactual_applied must be a binary truth value")
+        if row.get("continuation_policy_applied") not in {"0", "1"}:
+            raise ValueError("continuation policy flag must be binary")
         mutation_norm = float(row.get("mutation_norm", "nan"))
         mean_mutation_norm = float(row.get("optimizer_mean_mutation_norm", "nan"))
+        warm_start_norm = float(row.get("warm_start_mean_shift_norm", "nan"))
+        warm_start_count = int(row.get("warm_start_trigger_count", "-1"))
         if (
             not math.isfinite(mutation_norm)
             or not math.isfinite(mean_mutation_norm)
+            or not math.isfinite(warm_start_norm)
             or mutation_norm < 0.0
             or mean_mutation_norm < 0.0
+            or warm_start_norm < 0.0
+            or warm_start_count < 0
         ):
             raise ValueError("action-ceiling mutation norms must be finite and non-negative")
-        expected_applied = str(int(mutation_norm > 0.0 or mean_mutation_norm > 0.0))
+        if (warm_start_count == 0) != (warm_start_norm == 0.0):
+            raise ValueError("warm-start count and mutation norm disagree")
+        sweep_trace = json.loads(str(row.get("execution_sweep_trace", "")))
+        order_trace = json.loads(str(row.get("execution_order_trace", "")))
+        budget_trace = json.loads(str(row.get("group_budget_trace", "")))
+        if (
+            not isinstance(sweep_trace, list)
+            or not isinstance(order_trace, list)
+            or not order_trace
+            or not isinstance(budget_trace, list)
+            or len(sweep_trace) != len(order_trace)
+            or len(order_trace) != len(budget_trace)
+            or any(isinstance(value, bool) or int(value) < 0 for value in sweep_trace)
+            or any(isinstance(value, bool) or int(value) < 0 for value in order_trace)
+            or any(isinstance(value, bool) or int(value) <= 0 for value in budget_trace)
+        ):
+            raise ValueError("action-ceiling continuation trace is invalid")
+        expected_applied = str(
+            int(
+                mutation_norm > 0.0
+                or mean_mutation_norm > 0.0
+                or row["continuation_policy_applied"] == "1"
+            )
+        )
         if row["counterfactual_applied"] != expected_applied:
             raise ValueError("counterfactual_applied disagrees with branch mutation")
         if not row.get("selected_candidate"):
@@ -268,6 +361,45 @@ def validate_raw_rows(
         context_id = str(row.get("context_id", ""))
         if context_id not in contexts:
             raise ValueError("arm result references an unknown context")
+        context = contexts[context_id]
+        populations = tuple(
+            int(value) for value in json.loads(context["population_sizes"])
+        )
+        uniform_budgets = tuple(
+            int(value) for value in json.loads(context["uniform_group_budgets"])
+        )
+        group_count = len(populations)
+        arm = str(row.get("arm", ""))
+        for group, budget in zip(order_trace, budget_trace, strict=True):
+            group_index = int(group)
+            group_budget = int(budget)
+            if not 0 <= group_index < group_count:
+                raise ValueError("continuation trace group index is invalid")
+            if arm == "efficiency_budget_reallocation":
+                if not (
+                    populations[group_index]
+                    <= group_budget
+                    <= 3 * uniform_budgets[group_index]
+                ):
+                    raise ValueError("adaptive group budget violates its frozen bounds")
+            elif group_budget != uniform_budgets[group_index]:
+                raise ValueError("non-budget arm changed a group budget")
+        for sweep in set(int(value) for value in sweep_trace):
+            positions = [
+                index
+                for index, value in enumerate(sweep_trace)
+                if int(value) == sweep
+            ]
+            groups = [int(order_trace[index]) for index in positions]
+            if len(set(groups)) != len(groups):
+                raise ValueError("continuation sweep dispatched a group more than once")
+            if len(groups) == group_count:
+                if set(groups) != set(range(group_count)):
+                    raise ValueError("complete continuation sweep lost a group")
+                if arm == "efficiency_budget_reallocation" and sum(
+                    int(budget_trace[index]) for index in positions
+                ) != sum(uniform_budgets):
+                    raise ValueError("adaptive sweep did not preserve total requested FEs")
         key = (str(row.get("arm", "")), str(row.get("horizon", "")))
         if key in by_context.setdefault(context_id, {}):
             raise ValueError("duplicate context arm horizon row")
