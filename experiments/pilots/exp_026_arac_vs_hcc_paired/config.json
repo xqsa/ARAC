@@ -1,7 +1,7 @@
 {
-  "protocol_version": "paired-action-validation-v2",
+  "protocol_version": "paired-action-validation-v3",
   "experiment_id": "exp_026_arac_vs_hcc_paired",
-  "config_schema_version": 2,
+  "config_schema_version": 3,
   "stage": "action_validation",
   "preregistration_date": "2026-07-20",
   "executor": "Codex",
@@ -40,8 +40,8 @@
   },
   "analysis": {
     "pairing": "same case and seed across both arms",
-    "primary_metric": "final_best_so_far_error",
-    "delta_definition": "log((native_final_error + 1e-300) / (action_final_error + 1e-300))",
+    "primary_metric": "fixed_comparison_fe_best_so_far_error",
+    "delta_definition": "log((native_comparison_error + 1e-300) / (action_comparison_error + 1e-300))",
     "case_aggregation": "macro_mean",
     "bootstrap_method": "within_case_case_seed_cluster_bootstrap",
     "bootstrap_replicates": 2000,

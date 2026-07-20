@@ -21,6 +21,7 @@ def _result(arm: str, case: str, seed: int, error: float) -> dict[str, object]:
         "case": case,
         "seed": seed,
         "ok": True,
+        "comparison_fe": 299_981,
         "final_error": error,
     }
 
@@ -118,6 +119,36 @@ def test_config_rejects_case_outside_runner_contract(tmp_path: Path) -> None:
         exp026.load_config(path)
 
 
+def test_r4_diagnostic_subset_uses_only_r4_clusters() -> None:
+    config = _config()
+    execution = config["execution"]
+    assert isinstance(execution, dict)
+    arm_a = execution["arm_a"]
+    arm_b = execution["arm_b"]
+    assert isinstance(arm_a, dict) and isinstance(arm_b, dict)
+    results = []
+    for seed in exp026.VALIDATION_SEEDS:
+        results.append(_result(str(arm_a["label"]), "R4", seed, 100.0))
+        results.append(_result(str(arm_b["label"]), "R4", seed, 90.0))
+
+    analysis = exp026.build_paired_analysis(
+        results,
+        native_label=str(arm_a["label"]),
+        action_label=str(arm_b["label"]),
+        expected_cases=("R4",),
+        expected_seeds=exp026.VALIDATION_SEEDS,
+        bootstrap_replicates=100,
+        bootstrap_seed=2026071901,
+        material_positive_multiplier=1.01,
+        catastrophic_multiplier=1.20,
+    )
+
+    assert analysis["case_count"] == 1
+    assert analysis["pair_count"] == 5
+    assert tuple(analysis["case_summaries"]) == ("R4",)
+    assert analysis["case_macro_mean_delta_lcb"] > 0.0
+
+
 def test_summary_is_read_only_from_exact_runner_path(tmp_path: Path) -> None:
     config = _config()
     execution = config["execution"]
@@ -154,12 +185,14 @@ def test_summary_is_read_only_from_exact_runner_path(tmp_path: Path) -> None:
     exact_path.write_text(
         json.dumps(
             {
-                "protocol_version": "hcc-run-summary-v1",
+                "protocol_version": "hcc-run-summary-v2",
                 "problem_id": "S5",
                 "seed": 117,
                 "configured_max_fes": 300_000,
                 "fitness_evaluations": 300_000,
                 "final_error": 12.5,
+                "comparison_fe": 299_981,
+                "comparison_error": 13.0,
                 "group_optimizer_mode": "diagonal_covariance",
             }
         ),
@@ -172,7 +205,7 @@ def test_summary_is_read_only_from_exact_runner_path(tmp_path: Path) -> None:
         expected_seed=117,
         expected_max_fes=300_000,
         expected_optimizer_mode="diagonal_covariance",
-    )["final_error"] == 12.5
+    )["comparison_error"] == 13.0
 
 
 def test_paired_delta_is_positive_when_action_improves() -> None:

@@ -49,3 +49,14 @@ def test_real_e1_run_problem_entrypoint_completes(
     assert all(math.isfinite(float(value)) for value in fitness_record)
     assert elapsed >= 0.0
     assert isinstance(trace_rows, list)
+
+
+def test_terminal_comparison_ignores_branch_specific_tail() -> None:
+    comparison_fe, comparison_error = hcc_smoke_runner.terminal_comparison_metrics(
+        (10.0, 8.0, 7.0, 1.0),
+        configured_max_fes=5,
+        population_sizes=(2, 1),
+    )
+
+    assert comparison_fe == 3
+    assert comparison_error == 7.0

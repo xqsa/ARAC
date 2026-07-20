@@ -11,6 +11,7 @@ import math
 import random
 import sys
 import time
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
@@ -1278,6 +1279,28 @@ def calculate_global_fes(total_fes: int, degree_of_overlap: float) -> int:
 
 def calculate_cmaes_population_size(subspace_dimension: int) -> int:
     return 4 + 3 * math.ceil(math.log(subspace_dimension))
+
+
+def terminal_comparison_metrics(
+    fitness_record: Sequence[float],
+    *,
+    configured_max_fes: int,
+    population_sizes: Sequence[int],
+) -> tuple[int, float]:
+    """Return best-so-far error at one fixed FE shared by paired runs."""
+
+    if configured_max_fes <= 0:
+        raise ValueError("configured_max_fes must be positive")
+    converted_populations = tuple(int(value) for value in population_sizes)
+    if not converted_populations or any(value <= 0 for value in converted_populations):
+        raise ValueError("population_sizes must be positive and non-empty")
+    comparison_fe = max(1, configured_max_fes - max(converted_populations))
+    if len(fitness_record) < comparison_fe:
+        raise ValueError("fitness record does not reach the fixed comparison FE")
+    comparison_error = float(min(fitness_record[:comparison_fe]))
+    if not math.isfinite(comparison_error) or comparison_error < 0.0:
+        raise ValueError("comparison error must be finite and non-negative")
+    return comparison_fe, comparison_error
 
 
 def _update_local_top_candidates(
@@ -4918,13 +4941,28 @@ def main(argv: list[str] | None = None) -> list[Path]:
                 function_action_mismatch_rows,
             )
         evaluation_record(output_data, str(output_path) + "/", record_FEs_list=(args.max_fes,))
+        comparison_grouping = load_runtime_grouping(
+            args.ids[0],
+            args.aob_data_root,
+            evidence_overlay_mode=args.evidence_overlay_mode,
+        )
+        comparison_fe, comparison_error = terminal_comparison_metrics(
+            record,
+            configured_max_fes=int(args.max_fes),
+            population_sizes=tuple(
+                calculate_cmaes_population_size(len(group))
+                for group in comparison_grouping
+            ),
+        )
         run_summary = {
-            "protocol_version": "hcc-run-summary-v1",
+            "protocol_version": "hcc-run-summary-v2",
             "problem_id": _problem_id(args.functions[0], args.ids[0]),
             "seed": int(args.seed),
             "configured_max_fes": int(args.max_fes),
             "fitness_evaluations": len(record),
             "final_error": float(min(record)),
+            "comparison_fe": comparison_fe,
+            "comparison_error": comparison_error,
             "group_optimizer_mode": args.group_optimizer_mode,
         }
         (output_path / "run_summary.json").write_text(

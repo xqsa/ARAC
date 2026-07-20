@@ -29,8 +29,8 @@ DEFAULT_AOB_DATA_ROOT = VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("config.json")
 DEFAULT_OUTPUT_ROOT = REPOSITORY_ROOT / "results" / "exp_026_arac_vs_hcc_paired"
 
-PROTOCOL_VERSION = "paired-action-validation-v2"
-RUN_SUMMARY_PROTOCOL_VERSION = "hcc-run-summary-v1"
+PROTOCOL_VERSION = "paired-action-validation-v3"
+RUN_SUMMARY_PROTOCOL_VERSION = "hcc-run-summary-v2"
 SUPPORTED_CASES = ("E1", "E3", "A4", "R4", "S5")
 VALIDATION_SEEDS = (117, 118, 119, 120, 121)
 ERROR_EPSILON = 1e-300
@@ -228,6 +228,17 @@ def read_run_summary(
         f"runner summary fitness_evaluations invalid: {path}",
     )
     payload["final_error"] = _validated_error(payload.get("final_error"), source=str(path))
+    comparison_fe = payload.get("comparison_fe")
+    _require(
+        isinstance(comparison_fe, int)
+        and 0 < comparison_fe <= fitness_evaluations
+        and comparison_fe <= expected_max_fes,
+        f"runner summary comparison_fe invalid: {path}",
+    )
+    payload["comparison_error"] = _validated_error(
+        payload.get("comparison_error"),
+        source=f"{path} comparison",
+    )
     return payload
 
 
@@ -287,7 +298,9 @@ def run_one(
         "returncode": completed.returncode,
         "summary_path": str(summary_path),
         "fitness_evaluations": summary["fitness_evaluations"],
-        "final_error": summary["final_error"],
+        "endpoint_error": summary["final_error"],
+        "comparison_fe": summary["comparison_fe"],
+        "final_error": summary["comparison_error"],
     }
 
 
@@ -310,9 +323,24 @@ def _quantile(values: Sequence[float], probability: float) -> float:
     return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
 
 
+def resolve_selected_cases(requested_cases: Sequence[str] | None) -> tuple[str, ...]:
+    """Resolve an optional diagnostic subset without expanding the cohort."""
+
+    selected = SUPPORTED_CASES if requested_cases is None else tuple(requested_cases)
+    if not selected:
+        raise ValueError("at least one validation case is required")
+    if len(set(selected)) != len(selected):
+        raise ValueError("validation cases must be unique")
+    unsupported = set(selected) - set(SUPPORTED_CASES)
+    if unsupported:
+        raise ValueError(f"unsupported validation cases: {sorted(unsupported)}")
+    return selected
+
+
 def _bootstrap_case_macro(
     pairs_by_case: Mapping[str, Sequence[Mapping[str, object]]],
     *,
+    case_order: Sequence[str],
     replicates: int,
     seed: int,
 ) -> tuple[list[float], list[float]]:
@@ -324,7 +352,7 @@ def _bootstrap_case_macro(
     for _ in range(replicates):
         case_means: list[float] = []
         sampled_material: list[float] = []
-        for case in SUPPORTED_CASES:
+        for case in case_order:
             clusters = pairs_by_case[case]
             sampled = [clusters[rng.randrange(len(clusters))] for _ in clusters]
             case_means.append(statistics.fmean(float(row["delta"]) for row in sampled))
@@ -346,9 +374,11 @@ def build_paired_analysis(
     material_positive_multiplier: float,
     catastrophic_multiplier: float,
 ) -> dict[str, object]:
-    if tuple(expected_cases) != SUPPORTED_CASES:
-        raise ValueError("analysis case set differs from the fixed validation cohort")
-    expected_keys = {(case, int(seed)) for case in expected_cases for seed in expected_seeds}
+    selected_cases = resolve_selected_cases(expected_cases)
+    selected_seeds = tuple(int(seed) for seed in expected_seeds)
+    if not selected_seeds or len(set(selected_seeds)) != len(selected_seeds):
+        raise ValueError("analysis seeds must be non-empty and unique")
+    expected_keys = {(case, seed) for case in selected_cases for seed in selected_seeds}
     indexes: dict[str, dict[tuple[str, int], Mapping[str, object]]] = {
         native_label: {},
         action_label: {},
@@ -373,11 +403,11 @@ def build_paired_analysis(
     catastrophic_delta = -math.log(catastrophic_multiplier)
     pairs: list[dict[str, object]] = []
     pairs_by_case: dict[str, list[dict[str, object]]] = {
-        case: [] for case in expected_cases
+        case: [] for case in selected_cases
     }
-    for case in expected_cases:
+    for case in selected_cases:
         function_name, function_id = CASE_TO_FUNCTION[case]
-        for seed in expected_seeds:
+        for seed in selected_seeds:
             key = (case, int(seed))
             native_error = _validated_error(
                 indexes[native_label][key].get("final_error"), source=f"{native_label}/{key}"
@@ -385,12 +415,20 @@ def build_paired_analysis(
             action_error = _validated_error(
                 indexes[action_label][key].get("final_error"), source=f"{action_label}/{key}"
             )
+            native_comparison_fe = indexes[native_label][key].get("comparison_fe")
+            action_comparison_fe = indexes[action_label][key].get("comparison_fe")
+            if (
+                not isinstance(native_comparison_fe, int)
+                or native_comparison_fe != action_comparison_fe
+            ):
+                raise ValueError(f"paired comparison FE mismatch: {key}")
             delta = paired_delta(native_error, action_error)
             pair = {
                 "case": case,
                 "seed": int(seed),
                 "function_name": function_name,
                 "function_id": function_id,
+                "comparison_fe": native_comparison_fe,
                 "native_final_error": native_error,
                 "action_final_error": action_error,
                 "delta": delta,
@@ -417,6 +455,7 @@ def build_paired_analysis(
     )
     bootstrap_macro, bootstrap_material = _bootstrap_case_macro(
         pairs_by_case,
+        case_order=selected_cases,
         replicates=bootstrap_replicates,
         seed=bootstrap_seed,
     )
@@ -436,7 +475,10 @@ def build_paired_analysis(
 
     return {
         "protocol_version": PROTOCOL_VERSION,
-        "delta_definition": "log((native + 1e-300) / (action + 1e-300))",
+        "delta_definition": (
+            "log((native comparison error + 1e-300) / "
+            "(action comparison error + 1e-300))"
+        ),
         "pair_count": len(pairs),
         "case_count": len(case_summaries),
         "case_seed_cluster_count": len(pairs),
@@ -477,6 +519,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--python-executable", default=sys.executable)
     parser.add_argument("--jobs", type=int, default=None)
+    parser.add_argument(
+        "--cases",
+        nargs="+",
+        choices=SUPPORTED_CASES,
+        default=None,
+        help="Run a diagnostic subset of the preregistered AOB cohort.",
+    )
     args = parser.parse_args(argv)
 
     config = load_config(args.config)
@@ -486,6 +535,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     jobs = args.jobs or int(execution["jobs"])
     if jobs <= 0:
         parser.error("--jobs must be positive")
+    selected_cases = resolve_selected_cases(args.cases)
     arm_a = execution["arm_a"]
     arm_b = execution["arm_b"]
     assert isinstance(arm_a, dict) and isinstance(arm_b, dict)
@@ -493,7 +543,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     tasks = [
         (label, arm, case, int(seed))
         for label, arm in arm_configs
-        for case in execution["cases"]
+        for case in selected_cases
         for seed in execution["seeds"]
     ]
     args.output_root.mkdir(parents=True, exist_ok=True)
@@ -530,7 +580,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             results,
             native_label=str(arm_a["label"]),
             action_label=str(arm_b["label"]),
-            expected_cases=tuple(str(case) for case in execution["cases"]),
+            expected_cases=selected_cases,
             expected_seeds=tuple(int(seed) for seed in execution["seeds"]),
             bootstrap_replicates=int(analysis_config["bootstrap_replicates"]),
             bootstrap_seed=int(analysis_config["bootstrap_seed"]),
@@ -545,6 +595,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "total_runs": len(results),
         "ok_runs": len(results) - failed_runs,
         "failed_runs": failed_runs,
+        "selected_cases": list(selected_cases),
         "integrity_gate_passed": failed_runs == 0 and paired_analysis is not None,
         "paired_analysis": paired_analysis,
         "results": results,
