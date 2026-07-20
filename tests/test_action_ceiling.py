@@ -49,6 +49,16 @@ def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def _hash_payload(payload: object) -> str:
+    encoded = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def _action_set() -> RelationActionSet:
     relation = RelationKey((0, 1), (4, 5))
 
@@ -695,9 +705,13 @@ def test_guarded_eq8_writeback_probes_candidates_and_charges_same_horizon() -> N
     assert len(result.action_instance_hash) == 64
     assert len(result.action_lifecycle_hash) == 64
     payload = json.loads(result.action_lifecycle_payload)
-    assert payload["probe_fes_actual"] == GUARDED_EQ8_PROBE_FES
+    assert payload["action_actual_fes"] == GUARDED_EQ8_PROBE_FES
     assert payload["selected_candidate"] == "current"
-    assert [candidate["name"] for candidate in payload["candidates"]] == [
+    assert payload["instance_hash"] == result.action_instance_hash
+    assert payload["instance"]["parameter_hash"] == _hash_payload(
+        payload["instance"]["parameters"]
+    )
+    assert [candidate["name"] for candidate in payload["probe_outcomes"]] == [
         "current",
         "previous",
         "eq8_blend",
@@ -739,6 +753,10 @@ def test_stagnation_guard_writeback_abstains_on_zero_delta_sum() -> None:
     assert result.selected_candidate == "current"
     assert result.incumbent[4:6] == (8.0, 9.0)
     assert result.action_actual_fes == 0
+    assert len(result.action_instance_hash) == 64
+    assert len(result.action_lifecycle_hash) == 64
+    assert len(result.action_candidate_hash) == 64
+    assert len(result.action_post_incumbent_hash) == 64
     assert result.counterfactual_applied is False
     assert result.mutation_norm == 0.0
 
@@ -757,6 +775,27 @@ def test_stagnation_guard_writeback_matches_native_outside_stagnation() -> None:
     assert result.incumbent == native.incumbent
     assert result.owner_optimizer_means == native.owner_optimizer_means
     assert result.action_actual_fes == 0
+    assert result.action_accepted is True
+    assert json.loads(result.action_lifecycle_payload)["selected_candidate"] == (
+        "native_eq8"
+    )
+
+
+def test_stagnation_guard_requires_both_owner_deltas_to_be_zero() -> None:
+    request = replace(
+        _request("stagnation_guard_writeback"),
+        previous_delta=1.0,
+        current_delta=-1.0,
+    )
+
+    result = execute_action_ceiling_arm(
+        request,
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+
+    assert result.selected_candidate == "native_eq8"
+    assert result.action_accepted is True
+    assert result.incumbent[4:6] == (7.0, 8.0)
 
 
 def test_contribution_owner_writeback_follows_larger_delta_and_syncs_means() -> None:
@@ -782,6 +821,9 @@ def test_contribution_owner_writeback_follows_larger_delta_and_syncs_means() -> 
     assert result.optimizer_mean_mutation_norm > 0.0
     assert result.counterfactual_applied is True
     assert result.action_actual_fes == 0
+    assert result.action_accepted is True
+    assert len(result.action_instance_hash) == 64
+    assert len(result.action_lifecycle_hash) == 64
 
 
 def test_contribution_owner_writeback_left_win_and_tie_abstain() -> None:

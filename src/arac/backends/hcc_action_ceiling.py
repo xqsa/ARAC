@@ -14,6 +14,7 @@ from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
+    AUDITED_RELATION_WRITEBACK_ACTIONS,
     BUDGET_MAX_UNIFORM_MULTIPLIER,
     CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION,
     CONTRIBUTION_OWNER_WRITEBACK_ACTION,
@@ -26,6 +27,7 @@ from arac.policy.action_ceiling import (
     STAGNATION_TRIGGER_STREAK,
     WARM_START_COOLDOWN_SWEEPS,
     actionability_delta,
+    relation_writeback_action_parameters,
 )
 from arac.policy.evidence_overlay import (
     RelationKey,
@@ -198,6 +200,40 @@ def _synchronize_owner_optimizer_means(
     return synchronized[0], synchronized[1]
 
 
+def _relation_writeback_instance_payload(
+    request: ActionExecutionRequest,
+    candidates: Sequence[tuple[str, Sequence[float]]],
+) -> dict[str, object]:
+    """Freeze the complete relation-writeback plan before branch execution."""
+
+    parameters = relation_writeback_action_parameters(request.arm)
+    relation = request.action_set.relation
+    return {
+        "arm": request.arm,
+        "context_hash": request.context_hash,
+        "action_set_hash": request.action_set.action_set_hash,
+        "relation": {
+            "owners": list(relation.owner_group_indices),
+            "shared": list(relation.shared_variable_indices),
+        },
+        "dispatch_anchor_hash": runtime_probe_anchor_hash(
+            relation,
+            request.current_values,
+        ),
+        "previous_values_hash": _vector_hash(request.previous_values),
+        "current_values_hash": _vector_hash(request.current_values),
+        "previous_delta": float(request.previous_delta),
+        "current_delta": float(request.current_delta),
+        "parameters": parameters,
+        "parameter_hash": _sha256(parameters),
+        "action_budget_fes": int(parameters["probe_fes"]),
+        "candidates": [
+            {"name": name, "values_hash": _vector_hash(values)}
+            for name, values in candidates
+        ],
+    }
+
+
 def selector_arm_for_context(
     action_set: RelationActionSet,
     *,
@@ -266,6 +302,9 @@ def execute_action_ceiling_arm(
     action_candidate_hash = ""
     action_candidate_fitness: float | None = None
     action_post_incumbent_hash = ""
+    writeback_instance_payload: dict[str, object] | None = None
+    writeback_probe_outcomes: list[dict[str, object]] = []
+    selected_values = tuple(float(value) for value in request.current_values)
 
     if request.arm == "native_eq8":
         write_shared_values(
@@ -299,6 +338,11 @@ def execute_action_ceiling_arm(
             ("previous", tuple(request.previous_values), None),
             ("eq8_blend", tuple(float(value) for value in blend_values), None),
         )
+        writeback_instance_payload = _relation_writeback_instance_payload(
+            request,
+            tuple((name, values) for name, values, _ in planned_candidates),
+        )
+        action_instance_hash = _sha256(writeback_instance_payload)
         evaluated_candidates: list[tuple[str, tuple[float, ...], float]] = []
         for candidate_name, values, known_fitness in planned_candidates:
             fitness = known_fitness
@@ -319,69 +363,55 @@ def execute_action_ceiling_arm(
                 winner_index = position
         winner_name, winner_values, winner_fitness = evaluated_candidates[winner_index]
         selected_candidate = winner_name
-        action_accepted = winner_name != "current"
-        if action_accepted:
+        selected_values = winner_values
+        if winner_name != "current":
             write_shared_values(winner_values)
         action_budget_fes = GUARDED_EQ8_PROBE_FES
-        action_candidate_hash = _vector_hash(winner_values)
         action_candidate_fitness = winner_fitness
-        action_instance_hash = _sha256(
+        writeback_probe_outcomes = [
             {
-                "arm": request.arm,
-                "context_hash": request.context_hash,
-                "selection": "argmin_fitness",
-                "tie_break": "evaluation_order",
-                "probe_fes": GUARDED_EQ8_PROBE_FES,
-                "candidate_values_hashes": [
-                    _vector_hash(values) for _, values, _ in planned_candidates
-                ],
+                "name": candidate_name,
+                "values_hash": _vector_hash(values),
+                "fitness": fitness,
             }
-        )
-        lifecycle_payload = {
-            "arm": request.arm,
-            "context_hash": request.context_hash,
-            "selection": "argmin_fitness",
-            "tie_break": "evaluation_order",
-            "probe_fes_budget": GUARDED_EQ8_PROBE_FES,
-            "probe_fes_actual": action_actual_fes,
-            "candidates": [
-                {
-                    "name": candidate_name,
-                    "values_hash": _vector_hash(values),
-                    "fitness": fitness,
-                }
-                for candidate_name, values, fitness in evaluated_candidates
-            ],
-            "selected_candidate": winner_name,
-            "accepted": action_accepted,
-        }
-        action_lifecycle_payload = json.dumps(
-            lifecycle_payload,
-            sort_keys=True,
-            separators=(",", ":"),
-            allow_nan=False,
-        )
-        action_lifecycle_hash = _sha256(lifecycle_payload)
+            for candidate_name, values, fitness in evaluated_candidates
+        ]
     elif request.arm == STAGNATION_GUARD_WRITEBACK_ACTION:
-        if request.previous_delta + request.current_delta == 0.0:
+        blend_values = tuple(
+            float(value)
+            for value in native_eq8_values(
+                request.previous_values,
+                request.current_values,
+                request.previous_delta,
+                request.current_delta,
+            )
+        )
+        writeback_instance_payload = _relation_writeback_instance_payload(
+            request,
+            (("current", request.current_values), ("native_eq8", blend_values)),
+        )
+        action_instance_hash = _sha256(writeback_instance_payload)
+        if request.previous_delta == 0.0 and request.current_delta == 0.0:
             # Native Eq.8 would fall back to an unaudited arithmetic mean here;
             # the guard abstains instead of writing an unevaluated midpoint.
             selected_candidate = "current"
         else:
-            write_shared_values(
-                native_eq8_values(
-                    request.previous_values,
-                    request.current_values,
-                    request.previous_delta,
-                    request.current_delta,
-                ),
-                synchronize_owner_means=False,
-            )
+            selected_values = blend_values
+            write_shared_values(blend_values, synchronize_owner_means=False)
             selected_candidate = "native_eq8"
     elif request.arm in {
         CONTRIBUTION_OWNER_WRITEBACK_ACTION,
         CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION,
     }:
+        writeback_instance_payload = _relation_writeback_instance_payload(
+            request,
+            (
+                ("current", request.current_values),
+                ("left_owner", request.previous_values),
+                ("right_owner", request.current_values),
+            ),
+        )
+        action_instance_hash = _sha256(writeback_instance_payload)
         if request.current_delta == request.previous_delta:
             # Tie (including double stagnation): abstain, keep current values.
             selected_candidate = "current"
@@ -395,6 +425,7 @@ def execute_action_ceiling_arm(
             else:
                 winner_values = tuple(request.previous_values)
                 selected_candidate = "left_owner"
+            selected_values = winner_values
             write_shared_values(winner_values)
     elif request.arm in {
         "efficiency_budget_reallocation",
@@ -416,8 +447,32 @@ def execute_action_ceiling_arm(
     else:
         raise ValueError("unsupported action-ceiling arm")
 
-    if request.arm == GUARDED_EQ8_WRITEBACK_ACTION:
+    if request.arm in AUDITED_RELATION_WRITEBACK_ACTIONS:
+        if writeback_instance_payload is None:
+            raise RuntimeError("audited relation writeback action has no frozen instance")
+        action_accepted = selected_candidate != "current"
+        action_candidate_hash = _vector_hash(selected_values)
         action_post_incumbent_hash = _vector_hash(incumbent)
+        lifecycle_payload: dict[str, object] = {
+            "instance": writeback_instance_payload,
+            "instance_hash": action_instance_hash,
+            "action_actual_fes": action_actual_fes,
+            "selected_candidate": selected_candidate,
+            "selected_values_hash": action_candidate_hash,
+            "post_incumbent_hash": action_post_incumbent_hash,
+            "accepted": action_accepted,
+        }
+        if action_candidate_fitness is not None:
+            lifecycle_payload["selected_fitness"] = action_candidate_fitness
+        if writeback_probe_outcomes:
+            lifecycle_payload["probe_outcomes"] = writeback_probe_outcomes
+        action_lifecycle_payload = json.dumps(
+            lifecycle_payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+        action_lifecycle_hash = _sha256(lifecycle_payload)
 
     mutation_norm = float(np.linalg.norm(incumbent - original))
     optimizer_mean_mutation_norm = float(

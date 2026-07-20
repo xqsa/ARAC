@@ -32,6 +32,7 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_CONTEXT_FIELDS,
     ACTION_CEILING_HORIZONS,
     ACTION_CEILING_PROTOCOL_VERSION,
+    AUDITED_RELATION_WRITEBACK_ACTIONS,
     BOOTSTRAP_REPLICATES,
     BOOTSTRAP_SEED,
     BUDGET_MAX_UNIFORM_MULTIPLIER,
@@ -47,6 +48,7 @@ from arac.policy.action_ceiling import (
     WARM_START_COOLDOWN_SWEEPS,
     ActionCeilingObservation,
     actionability_delta,
+    relation_writeback_action_parameters,
     summarize_action_ceiling,
 )
 from arac.policy.evidence_overlay import UTILITY_EPSILON
@@ -292,9 +294,17 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     return config
 
 
-def build_specs(stage: str) -> tuple[TrajectorySpec, ...]:
+def build_specs(
+    stage: str,
+    *,
+    cohort: str = "all",
+) -> tuple[TrajectorySpec, ...]:
     load_config()
+    if cohort not in {"all", "real_aob", "synthetic_conflict"}:
+        raise ValueError("cohort must be all, real_aob, or synthetic_conflict")
     if stage == "smoke":
+        if cohort == "synthetic_conflict":
+            raise ValueError("the smoke stage only contains real AOB trajectories")
         return tuple(
             TrajectorySpec("smoke", "real_aob", case, seed, SMOKE_MAX_FES)
             for case in SMOKE_CASES
@@ -302,16 +312,19 @@ def build_specs(stage: str) -> tuple[TrajectorySpec, ...]:
         )
     if stage != "pilot":
         raise ValueError("stage must be smoke or pilot")
-    specs = [
-        TrajectorySpec("pilot", "real_aob", case, seed, PILOT_MAX_FES)
-        for case in REAL_CASES
-        for seed in PILOT_SEEDS
-    ]
-    specs.extend(
-        TrajectorySpec("pilot", "synthetic_conflict", case, seed, PILOT_MAX_FES)
-        for case in SYNTHETIC_CASES
-        for seed in PILOT_SEEDS
-    )
+    specs: list[TrajectorySpec] = []
+    if cohort in {"all", "real_aob"}:
+        specs.extend(
+            TrajectorySpec("pilot", "real_aob", case, seed, PILOT_MAX_FES)
+            for case in REAL_CASES
+            for seed in PILOT_SEEDS
+        )
+    if cohort in {"all", "synthetic_conflict"}:
+        specs.extend(
+            TrajectorySpec("pilot", "synthetic_conflict", case, seed, PILOT_MAX_FES)
+            for case in SYNTHETIC_CASES
+            for seed in PILOT_SEEDS
+        )
     return tuple(specs)
 
 
@@ -335,6 +348,8 @@ def validate_raw_rows(
         context_id = str(row.get("context_id", ""))
         if not context_id or context_id in contexts:
             raise ValueError("action-ceiling context identity is missing or duplicated")
+        if not _is_sha256(row.get("dispatch_anchor_hash")):
+            raise ValueError("action-ceiling dispatch anchor hash is invalid")
         selector_arm = row.get("selector_arm")
         if selector_arm not in ACTION_CEILING_ARMS:
             raise ValueError("context selector arm is invalid")
@@ -643,34 +658,103 @@ def validate_raw_rows(
                 )
             ):
                 raise ValueError("full-space Sep-CMA arm contract is invalid")
-        elif arm == GUARDED_EQ8_WRITEBACK_ACTION:
+        elif arm in AUDITED_RELATION_WRITEBACK_ACTIONS:
             try:
-                guarded_payload = json.loads(
+                writeback_payload = json.loads(
                     str(row.get("action_lifecycle_payload", ""))
                 )
-                if not isinstance(guarded_payload, dict):
-                    raise ValueError("guarded payload must be an object")
+                if not isinstance(writeback_payload, dict):
+                    raise ValueError("writeback payload must be an object")
+                instance_payload = writeback_payload.get("instance")
+                if not isinstance(instance_payload, dict):
+                    raise ValueError("writeback instance must be an object")
+                candidates = instance_payload.get("candidates")
+                if not isinstance(candidates, list) or not all(
+                    isinstance(candidate, dict) for candidate in candidates
+                ):
+                    raise ValueError("writeback candidates must be objects")
             except (TypeError, ValueError, json.JSONDecodeError) as error:
                 raise ValueError(
-                    "guarded eq8 writeback lifecycle payload is invalid"
+                    "relation writeback lifecycle payload is invalid"
                 ) from error
-            guarded_candidate_fitness = float(
-                row.get("action_candidate_fitness", "nan")
-            )
-            expected_guarded_accepted = str(
-                int(row.get("selected_candidate") not in {"", "current"})
+
+            parameters = relation_writeback_action_parameters(arm)
+            expected_budget = int(parameters["probe_fes"])
+            selected_candidate = str(row.get("selected_candidate", ""))
+            expected_accepted = str(int(selected_candidate != "current"))
+            expected_candidate_names = {
+                GUARDED_EQ8_WRITEBACK_ACTION: ["current", "previous", "eq8_blend"],
+                "stagnation_guard_writeback": ["current", "native_eq8"],
+                "contribution_owner_writeback": [
+                    "current",
+                    "left_owner",
+                    "right_owner",
+                ],
+                "contribution_owner_reverse_writeback": [
+                    "current",
+                    "left_owner",
+                    "right_owner",
+                ],
+            }[arm]
+            candidate_names = [candidate.get("name") for candidate in candidates]
+            candidate_hashes = {
+                str(candidate.get("name")): candidate.get("values_hash")
+                for candidate in candidates
+            }
+            relation_payload = instance_payload.get("relation")
+            if not isinstance(relation_payload, dict):
+                raise ValueError("relation writeback instance has no relation")
+            owners = relation_payload.get("owners")
+            shared = relation_payload.get("shared")
+            if not isinstance(owners, list) or not isinstance(shared, list):
+                raise ValueError("relation writeback relation is invalid")
+            instance_relation_id = "g{}:v{}".format(
+                "-".join(str(value) for value in owners),
+                "-".join(str(value) for value in shared),
             )
             if (
-                action_budget_fes != GUARDED_EQ8_PROBE_FES
-                or action_actual_fes != GUARDED_EQ8_PROBE_FES
-                or not _is_sha256(row.get("action_instance_hash"))
-                or _canonical_payload_hash(guarded_payload)
+                action_budget_fes != expected_budget
+                or action_actual_fes != expected_budget
+                or _canonical_payload_hash(writeback_payload)
                 != row.get("action_lifecycle_hash")
-                or row.get("action_accepted") != expected_guarded_accepted
-                or row.get("selected_candidate")
-                not in {"current", "previous", "eq8_blend"}
+                or _canonical_payload_hash(instance_payload)
+                != row.get("action_instance_hash")
+                or writeback_payload.get("instance_hash")
+                != row.get("action_instance_hash")
+                or instance_payload.get("arm") != arm
+                or instance_payload.get("context_hash")
+                != context.get("dispatch_checkpoint_hash")
+                or instance_payload.get("action_set_hash")
+                != context.get("action_set_hash")
+                or instance_relation_id != context.get("relation_id")
+                or instance_payload.get("dispatch_anchor_hash")
+                != context.get("dispatch_anchor_hash")
+                or not _is_sha256(instance_payload.get("previous_values_hash"))
+                or not _is_sha256(instance_payload.get("current_values_hash"))
+                or not math.isfinite(float(instance_payload.get("previous_delta", "nan")))
+                or not math.isfinite(float(instance_payload.get("current_delta", "nan")))
+                or instance_payload.get("parameters") != parameters
+                or _canonical_payload_hash(parameters)
+                != instance_payload.get("parameter_hash")
+                or int(instance_payload.get("action_budget_fes", -1))
+                != expected_budget
+                or candidate_names != expected_candidate_names
+                or any(not _is_sha256(value) for value in candidate_hashes.values())
+                or selected_candidate not in expected_candidate_names
+                or candidate_hashes.get(selected_candidate)
+                != row.get("action_candidate_hash")
+                or writeback_payload.get("selected_candidate") != selected_candidate
+                or writeback_payload.get("selected_values_hash")
+                != row.get("action_candidate_hash")
+                or writeback_payload.get("post_incumbent_hash")
+                != row.get("action_post_incumbent_hash")
+                or int(writeback_payload.get("action_actual_fes", -1))
+                != expected_budget
+                or not isinstance(writeback_payload.get("accepted"), bool)
+                or str(int(bool(writeback_payload.get("accepted"))))
+                != expected_accepted
+                or row.get("action_accepted") != expected_accepted
                 or not _is_sha256(row.get("action_candidate_hash"))
-                or not math.isfinite(guarded_candidate_fitness)
                 or not _is_sha256(row.get("action_post_incumbent_hash"))
                 or row.get("optimizer_parameter_hash")
                 or row.get("optimizer_initial_state_hash")
@@ -678,12 +762,42 @@ def validate_raw_rows(
                 or optimizer_population_size != 0
                 or optimizer_generation_count != 0
                 or row.get("optimizer_scope") != "relation_writeback"
-                or (
-                    start_fe_trace
-                    and int(start_fe_trace[0]) != 1 + GUARDED_EQ8_PROBE_FES
-                )
+                or (start_fe_trace and int(start_fe_trace[0]) != 1 + expected_budget)
             ):
-                raise ValueError("guarded eq8 writeback arm contract is invalid")
+                raise ValueError("relation writeback arm contract is invalid")
+
+            if arm == GUARDED_EQ8_WRITEBACK_ACTION:
+                try:
+                    candidate_fitness = float(row.get("action_candidate_fitness", "nan"))
+                    selected_fitness = float(
+                        writeback_payload.get("selected_fitness", "nan")
+                    )
+                    probe_outcomes = writeback_payload.get("probe_outcomes")
+                    if not isinstance(probe_outcomes, list) or len(probe_outcomes) != 3:
+                        raise ValueError("guarded probe outcomes are incomplete")
+                    outcome_names = [outcome["name"] for outcome in probe_outcomes]
+                    outcome_fitness = [float(outcome["fitness"]) for outcome in probe_outcomes]
+                    outcome_hashes = [outcome["values_hash"] for outcome in probe_outcomes]
+                except (KeyError, TypeError, ValueError) as error:
+                    raise ValueError("guarded probe outcomes are invalid") from error
+                winner = min(range(len(outcome_fitness)), key=outcome_fitness.__getitem__)
+                if (
+                    outcome_names != expected_candidate_names
+                    or outcome_hashes
+                    != [candidate_hashes[name] for name in expected_candidate_names]
+                    or not all(math.isfinite(value) for value in outcome_fitness)
+                    or not math.isfinite(candidate_fitness)
+                    or candidate_fitness != selected_fitness
+                    or candidate_fitness != outcome_fitness[winner]
+                    or selected_candidate != outcome_names[winner]
+                ):
+                    raise ValueError("guarded probe winner is invalid")
+            elif (
+                row.get("action_candidate_fitness")
+                or "selected_fitness" in writeback_payload
+                or "probe_outcomes" in writeback_payload
+            ):
+                raise ValueError("zero-FE relation writeback contains probe outcomes")
         elif (
             action_budget_fes != 0
             or action_actual_fes != 0
@@ -767,6 +881,19 @@ def validate_raw_rows(
             raise ValueError(
                 "full-space Sep-CMA action outcome differs across horizons"
             )
+        for arm in AUDITED_RELATION_WRITEBACK_ACTIONS:
+            writeback_rows = [
+                result_rows[(arm, horizon)] for horizon in ACTION_CEILING_HORIZONS
+            ]
+            first_writeback_row = writeback_rows[0]
+            if any(
+                row.get(field) != first_writeback_row.get(field)
+                for row in writeback_rows[1:]
+                for field in invariant_fields
+            ):
+                raise ValueError(
+                    "relation writeback action outcome differs across horizons"
+                )
         for horizon in ACTION_CEILING_HORIZONS:
             native = result_rows[("native_eq8", horizon)]
             native_error = float(native["native_error"])
@@ -995,8 +1122,9 @@ def aggregate_stage_artifacts(
     stage: str,
     *,
     output_root: Path = DEFAULT_OUTPUT_ROOT,
+    cohort: str = "all",
 ) -> Path:
-    specs = build_specs(stage)
+    specs = build_specs(stage, cohort=cohort)
     context_rows: list[dict[str, str]] = []
     arm_rows: list[dict[str, str]] = []
     for spec in specs:
@@ -1007,7 +1135,9 @@ def aggregate_stage_artifacts(
     summaries = aggregate_action_ceiling(context_rows, arm_rows)
     fe_summary = summarize_fe_accounting(specs, context_rows, arm_rows)
 
-    stage_root = output_root / stage
+    stage_root = output_root / (
+        stage if cohort == "all" else f"{stage}-{cohort}"
+    )
     context_output = stage_root / "action_ceiling_contexts.csv"
     arm_output = stage_root / "action_ceiling_arm_results.csv"
     summary_output = stage_root / "action_ceiling_summary.csv"
@@ -1022,6 +1152,7 @@ def aggregate_stage_artifacts(
         "protocol_version": ACTION_CEILING_PROTOCOL_VERSION,
         "schema_version": CONFIG_SCHEMA_VERSION,
         "stage": stage,
+        "cohort_filter": cohort,
         "runtime_authorized": 0,
         "runtime_consumed": 0,
         "counterfactual_applied_result_rows": sum(
@@ -1059,9 +1190,10 @@ def run_diagnostic(
     *,
     output_root: Path = DEFAULT_OUTPUT_ROOT,
     jobs: int | None = None,
+    cohort: str = "all",
 ) -> Path:
     config = load_config()
-    specs = build_specs(stage)
+    specs = build_specs(stage, cohort=cohort)
     if any(spec.cohort == "synthetic_conflict" for spec in specs):
         validate_synthetic_bundle()
     worker_count = int(
@@ -1074,13 +1206,24 @@ def run_diagnostic(
             executor.submit(_run_worker, spec, output_root): spec for spec in specs
         }
         for future in as_completed(futures):
+            spec = futures[future]
             future.result()
-    return aggregate_stage_artifacts(stage, output_root=output_root)
+            print(f"completed {spec.trajectory_id}", flush=True)
+    return aggregate_stage_artifacts(
+        stage,
+        output_root=output_root,
+        cohort=cohort,
+    )
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run exp019 G1 action ceiling.")
     parser.add_argument("--stage", choices=("smoke", "pilot"), default="smoke")
+    parser.add_argument(
+        "--cohort",
+        choices=("all", "real_aob", "synthetic_conflict"),
+        default="all",
+    )
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--jobs", type=int)
     return parser.parse_args(argv)
@@ -1088,7 +1231,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
-    manifest = run_diagnostic(args.stage, output_root=args.output_root, jobs=args.jobs)
+    manifest = run_diagnostic(
+        args.stage,
+        output_root=args.output_root,
+        jobs=args.jobs,
+        cohort=args.cohort,
+    )
     print(manifest)
     return 0
 

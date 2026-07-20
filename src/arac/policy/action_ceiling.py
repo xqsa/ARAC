@@ -26,6 +26,12 @@ GUARDED_EQ8_PROBE_FES = 2
 STAGNATION_GUARD_WRITEBACK_ACTION = "stagnation_guard_writeback"
 CONTRIBUTION_OWNER_WRITEBACK_ACTION = "contribution_owner_writeback"
 CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION = "contribution_owner_reverse_writeback"
+AUDITED_RELATION_WRITEBACK_ACTIONS = (
+    GUARDED_EQ8_WRITEBACK_ACTION,
+    STAGNATION_GUARD_WRITEBACK_ACTION,
+    CONTRIBUTION_OWNER_WRITEBACK_ACTION,
+    CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION,
+)
 ACTION_CEILING_ARMS = (
     "native_eq8",
     "true_no_writeback",
@@ -52,6 +58,7 @@ ACTION_CEILING_CONTEXT_FIELDS = (
     "action_set_hash",
     "checkpoint_hash",
     "dispatch_checkpoint_hash",
+    "dispatch_anchor_hash",
     "phase_boundary_fe",
     "dispatch_fe",
     "issued_sweep",
@@ -139,6 +146,44 @@ STAGNATION_TRIGGER_STREAK = 3
 WARM_START_COOLDOWN_SWEEPS = 3
 _HASH_LENGTH = 64
 _TIE_TOLERANCE = 1e-15
+
+
+def relation_writeback_action_parameters(arm: str) -> dict[str, object]:
+    """Return the frozen semantic parameters for one audited writeback arm."""
+
+    if arm == GUARDED_EQ8_WRITEBACK_ACTION:
+        return {
+            "candidate_order": ["current", "previous", "eq8_blend"],
+            "selection": "argmin_fitness",
+            "comparison": "strict_less",
+            "tie_break": "evaluation_order",
+            "probe_fes": GUARDED_EQ8_PROBE_FES,
+            "synchronize_owner_means_on_writeback": True,
+        }
+    if arm == STAGNATION_GUARD_WRITEBACK_ACTION:
+        return {
+            "guard": "both_owner_deltas_zero",
+            "guard_action": "true_no_writeback",
+            "otherwise": "native_eq8",
+            "probe_fes": 0,
+            "synchronize_owner_means_on_writeback": False,
+        }
+    if arm == CONTRIBUTION_OWNER_WRITEBACK_ACTION:
+        return {
+            "winner": "larger_delta_owner",
+            "tie": "true_no_writeback",
+            "probe_fes": 0,
+            "synchronize_owner_means_on_writeback": True,
+        }
+    if arm == CONTRIBUTION_OWNER_REVERSE_WRITEBACK_ACTION:
+        return {
+            "winner": "smaller_delta_owner",
+            "tie": "true_no_writeback",
+            "role": "directional_control",
+            "probe_fes": 0,
+            "synchronize_owner_means_on_writeback": True,
+        }
+    raise ValueError(f"unsupported audited relation writeback arm: {arm}")
 
 
 def _finite(value: float, name: str) -> float:

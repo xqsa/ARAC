@@ -23,9 +23,11 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
     ACTION_CEILING_PROTOCOL_VERSION,
+    AUDITED_RELATION_WRITEBACK_ACTIONS,
     GUARDED_EQ8_PROBE_FES,
     GUARDED_EQ8_WRITEBACK_ACTION,
     actionability_delta,
+    relation_writeback_action_parameters,
 )
 from experiments.pilots.exp_019_conflict_resolution_pilot import _diagnostic_worker
 from experiments.pilots.exp_019_conflict_resolution_pilot.benchmark import (
@@ -90,6 +92,7 @@ def _context(context_id: str, cohort: str, problem_id: str) -> dict[str, str]:
             "action_set_hash": "a" * 64,
             "checkpoint_hash": "b" * 64,
             "dispatch_checkpoint_hash": "c" * 64,
+            "dispatch_anchor_hash": "4" * 64,
             "phase_boundary_fe": "100",
             "dispatch_fe": "120",
             "issued_sweep": "2",
@@ -165,6 +168,7 @@ def _arm_rows(
                 arm_error = native_error * 1.01
             if arm == winning_arm:
                 arm_error = native_error * 0.90
+            audited_writeback = arm in AUDITED_RELATION_WRITEBACK_ACTIONS
             incumbent_mutated = arm in {
                 "native_eq8",
                 "exact_left",
@@ -174,7 +178,7 @@ def _arm_rows(
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
                 "full_space_sep_cma",
-            }
+            } or audited_writeback
             continuation_applied = arm in {
                 "efficiency_budget_reallocation",
                 "delta_priority_scan",
@@ -206,21 +210,99 @@ def _arm_rows(
                     start_fe_trace = "[3, 8]"
                 else:
                     start_fe_trace = "[1, 6]"
-            guarded_payload = {
-                "arm": GUARDED_EQ8_WRITEBACK_ACTION,
-                "selection": "argmin_fitness",
-                "tie_break": "evaluation_order",
-                "probe_fes_budget": GUARDED_EQ8_PROBE_FES,
-                "probe_fes_actual": GUARDED_EQ8_PROBE_FES,
-                "selected_candidate": "previous",
-                "accepted": True,
-            }
-            guarded_payload_json = json.dumps(
-                guarded_payload,
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            guarded_hash = _canonical_payload_hash(guarded_payload)
+            writeback_fields: dict[str, str] = {}
+            if audited_writeback:
+                parameters = relation_writeback_action_parameters(arm)
+                candidate_names = {
+                    GUARDED_EQ8_WRITEBACK_ACTION: [
+                        "current",
+                        "previous",
+                        "eq8_blend",
+                    ],
+                    "stagnation_guard_writeback": ["current", "native_eq8"],
+                    "contribution_owner_writeback": [
+                        "current",
+                        "left_owner",
+                        "right_owner",
+                    ],
+                    "contribution_owner_reverse_writeback": [
+                        "current",
+                        "left_owner",
+                        "right_owner",
+                    ],
+                }[arm]
+                selected = {
+                    GUARDED_EQ8_WRITEBACK_ACTION: "previous",
+                    "stagnation_guard_writeback": "native_eq8",
+                    "contribution_owner_writeback": "right_owner",
+                    "contribution_owner_reverse_writeback": "left_owner",
+                }[arm]
+                candidate_hashes = {
+                    name: _canonical_payload_hash({"candidate": name})
+                    for name in candidate_names
+                }
+                instance = {
+                    "arm": arm,
+                    "context_hash": context["dispatch_checkpoint_hash"],
+                    "action_set_hash": context["action_set_hash"],
+                    "relation": {"owners": [0, 1], "shared": [4, 5]},
+                    "dispatch_anchor_hash": "4" * 64,
+                    "previous_values_hash": "5" * 64,
+                    "current_values_hash": "6" * 64,
+                    "previous_delta": 1.0,
+                    "current_delta": 3.0,
+                    "parameters": parameters,
+                    "parameter_hash": _canonical_payload_hash(parameters),
+                    "action_budget_fes": int(parameters["probe_fes"]),
+                    "candidates": [
+                        {"name": name, "values_hash": candidate_hashes[name]}
+                        for name in candidate_names
+                    ],
+                }
+                instance_hash = _canonical_payload_hash(instance)
+                writeback_payload: dict[str, object] = {
+                    "instance": instance,
+                    "instance_hash": instance_hash,
+                    "action_actual_fes": int(parameters["probe_fes"]),
+                    "selected_candidate": selected,
+                    "selected_values_hash": candidate_hashes[selected],
+                    "post_incumbent_hash": "7" * 64,
+                    "accepted": True,
+                }
+                candidate_fitness = ""
+                if guarded:
+                    outcomes = [
+                        ("current", 50.0),
+                        ("previous", 40.0),
+                        ("eq8_blend", 45.0),
+                    ]
+                    writeback_payload["selected_fitness"] = 40.0
+                    writeback_payload["probe_outcomes"] = [
+                        {
+                            "name": name,
+                            "values_hash": candidate_hashes[name],
+                            "fitness": fitness,
+                        }
+                        for name, fitness in outcomes
+                    ]
+                    candidate_fitness = "40.0"
+                writeback_payload_json = json.dumps(
+                    writeback_payload,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                writeback_fields = {
+                    "action_instance_hash": instance_hash,
+                    "action_lifecycle_payload": writeback_payload_json,
+                    "action_lifecycle_hash": _canonical_payload_hash(
+                        writeback_payload
+                    ),
+                    "action_accepted": "1",
+                    "action_candidate_hash": candidate_hashes[selected],
+                    "action_candidate_fitness": candidate_fitness,
+                    "action_post_incumbent_hash": "7" * 64,
+                    "selected_candidate": selected,
+                }
             row = {field: "" for field in ARM_RESULT_FIELDS}
             row.update(
                 {
@@ -254,31 +336,37 @@ def _arm_rows(
                     "action_instance_hash": (
                         context["full_space_action_hash"]
                         if full_space_sep_cma
-                        else ("2" * 64 if guarded else "")
+                        else writeback_fields.get("action_instance_hash", "")
                     ),
                     "action_lifecycle_payload": (
                         lifecycle_payload
                         if full_space_sep_cma
-                        else (guarded_payload_json if guarded else "")
+                        else writeback_fields.get("action_lifecycle_payload", "")
                     ),
                     "action_lifecycle_hash": (
                         lifecycle_hash
                         if full_space_sep_cma
-                        else (guarded_hash if guarded else "")
+                        else writeback_fields.get("action_lifecycle_hash", "")
                     ),
-                    "action_accepted": str(int(full_space_sep_cma or guarded)),
+                    "action_accepted": (
+                        "1"
+                        if full_space_sep_cma
+                        else writeback_fields.get("action_accepted", "0")
+                    ),
                     "action_candidate_hash": (
                         "1" * 64
                         if full_space_sep_cma
-                        else ("2" * 64 if guarded else "")
+                        else writeback_fields.get("action_candidate_hash", "")
                     ),
                     "action_candidate_fitness": (
-                        "40.0" if full_space_sep_cma or guarded else ""
+                        "40.0"
+                        if full_space_sep_cma
+                        else writeback_fields.get("action_candidate_fitness", "")
                     ),
                     "action_post_incumbent_hash": (
                         "1" * 64
                         if full_space_sep_cma
-                        else ("2" * 64 if guarded else "")
+                        else writeback_fields.get("action_post_incumbent_hash", "")
                     ),
                     "optimizer_scope": (
                         "full_space"
@@ -316,7 +404,10 @@ def _arm_rows(
                     "execution_start_fe_trace": start_fe_trace,
                     "warm_start_trigger_count": str(int(warm_start_applied)),
                     "warm_start_mean_shift_norm": str(float(warm_start_applied)),
-                    "selected_candidate": "previous" if guarded else arm,
+                    "selected_candidate": writeback_fields.get(
+                        "selected_candidate",
+                        arm,
+                    ),
                     "runtime_authorized": "0",
                     "status": "complete",
                 }
@@ -373,6 +464,18 @@ def test_frozen_config_and_run_matrices() -> None:
         for spec in pilot
         if spec.cohort == "synthetic_conflict"
     } == {(case, seed) for case in SYNTHETIC_CASES for seed in PILOT_SEEDS}
+    real_only = build_specs("pilot", cohort="real_aob")
+    assert len(real_only) == 25
+    assert all(spec.cohort == "real_aob" for spec in real_only)
+    assert {
+        (spec.problem_id, spec.seed, spec.max_fes) for spec in real_only
+    } == {
+        (case, seed, 3_000_000)
+        for case in REAL_CASES
+        for seed in PILOT_SEEDS
+    }
+    with pytest.raises(ValueError, match="smoke stage only contains real AOB"):
+        build_specs("smoke", cohort="synthetic_conflict")
 
 
 def test_legacy_config_fails_closed(tmp_path: Path) -> None:
@@ -509,6 +612,39 @@ def test_full_space_lifecycle_is_bound_and_identical_across_horizons() -> None:
     )
 
     with pytest.raises(ValueError, match="lifecycle payload is invalid"):
+        validate_raw_rows([context], rows)
+
+
+@pytest.mark.parametrize("tampered_field", ["parameters", "dispatch_anchor_hash"])
+def test_relation_writeback_instance_binds_parameters_and_anchor(
+    tampered_field: str,
+) -> None:
+    context = _context("real:E3:117:r0", "real_aob", "E3")
+    rows = _arm_rows(context, winning_arm="exact_left")
+    target = next(
+        row
+        for row in rows
+        if row["arm"] == "contribution_owner_writeback"
+        and row["horizon"] == "sweep_1"
+    )
+    payload = json.loads(target["action_lifecycle_payload"])
+    instance = payload["instance"]
+    if tampered_field == "parameters":
+        instance["parameters"]["winner"] = "smaller_delta_owner"
+        instance["parameter_hash"] = _canonical_payload_hash(instance["parameters"])
+    else:
+        instance["dispatch_anchor_hash"] = "9" * 64
+    instance_hash = _canonical_payload_hash(instance)
+    payload["instance_hash"] = instance_hash
+    target["action_instance_hash"] = instance_hash
+    target["action_lifecycle_payload"] = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    target["action_lifecycle_hash"] = _canonical_payload_hash(payload)
+
+    with pytest.raises(ValueError, match="relation writeback arm contract"):
         validate_raw_rows([context], rows)
 
 

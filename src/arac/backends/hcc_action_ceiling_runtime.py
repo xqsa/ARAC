@@ -38,6 +38,7 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_PROTOCOL_VERSION,
     RelationActionSet,
 )
+from arac.policy.evidence_overlay import runtime_probe_anchor_hash
 
 
 def _sha256(payload: object) -> str:
@@ -619,6 +620,10 @@ class HccActionCeilingRuntime:
             "action_set_hash": action_set.action_set_hash,
             "checkpoint_hash": action_set.checkpoint_hash,
             "dispatch_checkpoint_hash": dispatch_checkpoint_hash,
+            "dispatch_anchor_hash": runtime_probe_anchor_hash(
+                relation,
+                current_values,
+            ),
             "phase_boundary_fe": str(action_set.checkpoint_fe),
             "dispatch_fe": str(dispatch_fe),
             "issued_sweep": str(action_set.issued_sweep),
