@@ -12,6 +12,10 @@ hcc = [
     "PyYAML==6.0.3",
     "scipy==1.18.0",
 ]
+analysis = [
+    "pandas==3.0.3",
+    "scikit-learn==1.9.0",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

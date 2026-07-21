@@ -104,6 +104,20 @@
     "bootstrap_replicates": 2000,
     "bootstrap_seed": 2026071901
   },
+  "evidence_predictability": {
+    "schema_version": "exp019-evidence-predictability-v1",
+    "analysis_status": "post_hoc_exploratory",
+    "generalization_scope": "held_out_seeds_within_fixed_cases",
+    "primary_horizon": "sweep_1",
+    "outer_split": "leave_one_seed_out",
+    "inner_split": "leave_one_training_seed_out",
+    "primary_predictor": "ridge_value:combined",
+    "ridge_alphas": [0.1, 1.0, 10.0, 100.0],
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 2026071901,
+    "pairwise_permutations": 2000,
+    "pairwise_permutation_seed": 2026071901
+  },
   "synthetic_benchmark": {
     "generator_version": "exp019-conflict-generator-v1",
     "rho": 0.1,

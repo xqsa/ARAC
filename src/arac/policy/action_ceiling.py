@@ -145,7 +145,7 @@ STAGNATION_EPSILON = 1e-6
 STAGNATION_TRIGGER_STREAK = 3
 WARM_START_COOLDOWN_SWEEPS = 3
 _HASH_LENGTH = 64
-_TIE_TOLERANCE = 1e-15
+ACTION_CEILING_TIE_TOLERANCE = 1e-15
 
 
 def relation_writeback_action_parameters(arm: str) -> dict[str, object]:
@@ -407,7 +407,9 @@ def _quantile(values: Sequence[float], probability: float) -> float:
     return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
 
 
-def _best_arm(deltas: Mapping[str, float]) -> tuple[str, float]:
+def best_action_ceiling_arm(deltas: Mapping[str, float]) -> tuple[str, float]:
+    """Return the best arm using the frozen native-first protocol tie-break."""
+
     missing = set(ACTION_CEILING_ARMS) - set(deltas)
     if missing:
         raise ValueError(f"context is missing action-ceiling arms: {sorted(missing)}")
@@ -417,7 +419,7 @@ def _best_arm(deltas: Mapping[str, float]) -> tuple[str, float]:
             float(deltas[arm]),
             best_value,
             rel_tol=0.0,
-            abs_tol=_TIE_TOLERANCE,
+            abs_tol=ACTION_CEILING_TIE_TOLERANCE,
         ):
             return arm, float(deltas[arm])
     raise RuntimeError("action-ceiling tie-break failed")
@@ -451,12 +453,12 @@ def summarize_action_ceiling(
     context_metrics: dict[str, dict[str, object]] = {}
     for context_id, arm_rows in contexts.items():
         deltas = {arm: row.delta for arm, row in arm_rows.items()}
-        vbs_arm, vbs_delta = _best_arm(deltas)
+        vbs_arm, vbs_delta = best_action_ceiling_arm(deltas)
         if not math.isclose(
             deltas["native_eq8"],
             0.0,
             rel_tol=0.0,
-            abs_tol=_TIE_TOLERANCE,
+            abs_tol=ACTION_CEILING_TIE_TOLERANCE,
         ):
             raise ValueError("native Eq.8 must be the zero-delta reference")
         selector_arms = {row.selector_arm for row in arm_rows.values()}
@@ -480,7 +482,7 @@ def summarize_action_ceiling(
         )
         for arm in ACTION_CEILING_ARMS
     }
-    sbs_arm, sbs_delta = _best_arm(arm_means)
+    sbs_arm, sbs_delta = best_action_ceiling_arm(arm_means)
     vbs_values = [float(item["vbs_delta"]) for item in context_metrics.values()]
     selector_values = [
         float(item["selector_delta"]) for item in context_metrics.values()
