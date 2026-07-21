@@ -238,15 +238,6 @@ class PersistentBudgetApplication:
             )
         ):
             raise ValueError("actual optimizer FEs cannot exceed applied budgets")
-        if any(
-            actual_fes != applied_budget
-            for actual_fes, applied_budget in zip(
-                actual_optimizer,
-                applied,
-                strict=True,
-            )
-        ):
-            raise ValueError("actual optimizer FEs must equal applied budgets")
         for applied_budget, actual_fes, interval_fes in zip(
             applied,
             actual_optimizer,
@@ -338,36 +329,41 @@ class PersistentBudgetAllocationExecutionState:
         if len(record.applied_group_budgets) != len(action.group_budgets):
             raise ValueError("application group count differs from the frozen action")
 
-        remaining_fes = action.end_absolute_fe - record.application_fe + 1
-        if remaining_fes <= 0:
+        if record.application_fe > action.end_absolute_fe:
             raise ValueError("application starts after end_absolute_fe")
-        full_sweep_fe_cap = action.frozen_total_fes + len(action.group_budgets)
-        expected_truncation = remaining_fes < full_sweep_fe_cap
-        if record.terminal_truncated != expected_truncation:
-            raise ValueError("terminal_truncated does not match the absolute FE boundary")
-        if record.terminal_truncated:
-            if any(
-                applied > requested
-                for requested, applied in zip(
-                    record.requested_group_budgets,
-                    record.applied_group_budgets,
-                    strict=True,
+
+        consumed_interval_fes = 0
+        expected_applied_budgets: list[int] = []
+        for requested, applied, interval_fes in zip(
+            record.requested_group_budgets,
+            record.applied_group_budgets,
+            record.group_interval_fes,
+            strict=True,
+        ):
+            next_group_fe = record.application_fe + consumed_interval_fes
+            available_fes = action.end_absolute_fe - next_group_fe + 1
+            if available_fes <= 0:
+                expected_applied = 0
+                if interval_fes != 0:
+                    raise ValueError("groups after the absolute FE boundary must not run")
+            else:
+                # The runner consumes one incumbent precheck before exposing the
+                # remaining FE cap to the group optimizer.
+                expected_applied = min(requested, available_fes - 1)
+                if interval_fes == 0:
+                    raise ValueError("an available group must consume its precheck FE")
+            if applied != expected_applied:
+                raise ValueError(
+                    "applied group budgets do not match sequential absolute FE caps"
                 )
-            ):
-                raise ValueError("terminal applied budgets cannot exceed requested budgets")
-            if record.applied_group_budgets == record.requested_group_budgets:
-                raise ValueError("terminal truncation must reduce an optimizer budget")
-            executed_groups = sum(
-                interval_fes > 0 for interval_fes in record.group_interval_fes
-            )
-            if sum(record.applied_group_budgets) + executed_groups > remaining_fes:
-                raise ValueError("terminal optimizer budgets and prechecks exceed remaining FEs")
-            if record.actual_end_fe != action.end_absolute_fe:
-                raise ValueError("terminal truncation must close at end_absolute_fe")
-        elif record.applied_group_budgets != record.requested_group_budgets:
-            raise ValueError("non-terminal application must use the exact frozen budgets")
-        elif any(interval_fes == 0 for interval_fes in record.group_interval_fes):
-            raise ValueError("non-terminal application must execute every group precheck")
+            expected_applied_budgets.append(expected_applied)
+            consumed_interval_fes += interval_fes
+
+        expected_truncation = tuple(expected_applied_budgets) != (
+            record.requested_group_budgets
+        )
+        if record.terminal_truncated != expected_truncation:
+            raise ValueError("terminal_truncated does not match applied FE caps")
         if record.actual_end_fe > action.end_absolute_fe:
             raise ValueError("actual group FEs exceed end_absolute_fe")
 

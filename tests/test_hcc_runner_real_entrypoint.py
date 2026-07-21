@@ -116,11 +116,11 @@ def test_real_e1_action_ceiling_skips_empty_overlap_relations(
     assert int(budget["fitness_record_fe"]) <= config.max_fes
 
 
-def test_real_r4_persistent_phase2_starts_immediately_after_probe_barrier(
+def test_real_r4_sep_cma_burst_resumes_native_hcc_to_exact_fe(
     tmp_path: Path,
 ) -> None:
     config = hcc_smoke_runner.SmokeConfig(
-        max_fes=12_000,
+        max_fes=25_000,
         seed=117,
         run_id="entrypoint-r4-persistent-phase2",
         verbose=0,
@@ -153,12 +153,106 @@ def test_real_r4_persistent_phase2_starts_immediately_after_probe_barrier(
     )
 
     assert len(fitness_record) == config.max_fes
-    assert manifest["complete_sweep_count"] == 3
+    assert manifest["complete_sweep_count"] >= (
+        hcc_smoke_runner.EVIDENCE_OVERLAY_REQUIRED_SWEEPS + 3
+    )
     assert manifest["delayed_outcomes_required"] == 0
     assert manifest["delayed_label_expected"] == 0
     assert manifest["observer_integrity"] == 1
-    assert action["selection_fe"] == action["checkpoint_fe"]
-    assert action["checkpoint_fe"] == manifest["probe_end_fe"]
+    assert action["schema_version"] == "phase2-action-v2"
+    assert action["execution_mode"] == "one_native_sweep_burst_then_native"
+    assert action["selection_fe"] == manifest["probe_end_fe"]
+    assert action["checkpoint_fe"] > action["selection_fe"]
     assert action["action_start_fe"] == action["checkpoint_fe"] + 1
+    assert action["action_actual_fes"] == action["action_budget_fes"]
+    assert action["action_budget_fes"] == action["budget_source_actual_fes"]
+    assert action["action_completed_fe"] == (
+        action["checkpoint_fe"] + action["action_budget_fes"]
+    )
+    assert action["action_completed_fe"] < config.max_fes
+    assert action["native_resumed"] is True
+    assert action["native_resume_start_fe"] == action["action_completed_fe"] + 1
+    assert action["post_action_native_fes"] == (
+        config.max_fes - action["action_completed_fe"]
+    )
+    assert action["native_resume_sweeps_planned"] == 3
+    assert action["native_resume_sweeps_completed"] == 3
+    assert action["lifecycle"]["completed_fe"] == action["action_completed_fe"]
     assert action["action"]["target_sweep"] == action["action"]["issued_sweep"] + 1
+    assert action["budget_source_sweep"] == action["action"]["issued_sweep"]
     assert action["start_sweep"] == action["action"]["target_sweep"]
+
+
+def test_real_s5_persistent_budget_early_stopping_closes_exact_fe(
+    tmp_path: Path,
+) -> None:
+    config = hcc_smoke_runner.SmokeConfig(
+        max_fes=10_000,
+        seed=117,
+        run_id="entrypoint-s5-persistent-budget",
+        verbose=0,
+        arac_action=hcc_smoke_runner.EVIDENCE_ACTION_CONTROLLER_V37,
+        enable_relation_dispatch=True,
+        relation_policy_mode=hcc_smoke_runner.PERSISTENT_PHASE2_POLICY,
+        budget_accounting="strict",
+        skip_plots=True,
+        aob_data_root=hcc_smoke_runner.DATA_DIR.resolve(),
+        evidence_overlay_mode="paired_owner",
+        runtime_probe_repair_mode="hard_repair",
+        group_optimizer_mode=FULL_CMAES_MODE,
+        persistent_phase2_action=(
+            hcc_smoke_runner.PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+        ),
+        early_stopping_evaluations=1,
+    )
+
+    fitness_record, _, _ = hcc_smoke_runner.run_problem(
+        "schwefel",
+        5,
+        tmp_path,
+        config,
+    )
+
+    artifact = json.loads(
+        (tmp_path / "persistent_phase2_action.json").read_text(encoding="utf-8")
+    )
+    lifecycle = artifact["lifecycle"]
+    applications = lifecycle["details"]["applications"]
+
+    assert len(fitness_record) == config.max_fes
+    assert artifact["terminal_fe"] == config.max_fes
+    assert artifact["action"]["end_absolute_fe"] == config.max_fes
+    assert artifact["status"] == "completed"
+    assert lifecycle["status"] == "completed"
+    assert lifecycle["completed_fe"] == config.max_fes
+    assert lifecycle["details"]["completed_fe"] == config.max_fes
+    assert artifact["application_count"] == len(applications)
+    assert len(applications) > 1
+
+    application_interval_fes = [
+        sum(application["group_interval_fes"]) for application in applications
+    ]
+    assert applications[0]["application_fe"] == artifact["checkpoint_fe"] + 1
+    assert all(
+        current["application_fe"]
+        == previous["application_fe"] + previous_interval_fes
+        for previous, previous_interval_fes, current in zip(
+            applications,
+            application_interval_fes,
+            applications[1:],
+            strict=False,
+        )
+    )
+    assert any(
+        actual_fes < applied_budget
+        for application in applications
+        for actual_fes, applied_budget in zip(
+            application["actual_optimizer_fes"],
+            application["applied_group_budgets"],
+            strict=True,
+        )
+    )
+    assert artifact["action_actual_fes"] == sum(application_interval_fes)
+    assert artifact["action_actual_fes"] == (
+        artifact["action"]["end_absolute_fe"] - artifact["checkpoint_fe"]
+    )

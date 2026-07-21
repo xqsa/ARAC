@@ -93,9 +93,9 @@ def test_persistent_lifecycle_reuses_one_allocation_until_absolute_fe() -> None:
         application_fe=300_043,
         checkpoint_hash=action.checkpoint_hash,
         action_set_hash=action.action_set_hash,
-        applied_group_budgets=(1, 0, 0),
-        actual_optimizer_fes=(1, 0, 0),
-        group_interval_fes=(2, 1, 1),
+        applied_group_budgets=(3, 0, 0),
+        actual_optimizer_fes=(3, 0, 0),
+        group_interval_fes=(4, 0, 0),
         terminal_truncated=True,
     ) == action.group_budgets
 
@@ -107,15 +107,25 @@ def test_persistent_lifecycle_reuses_one_allocation_until_absolute_fe() -> None:
         action.group_budgets,
     ]
     assert lifecycle.applications[-1].terminal_truncated is True
-    assert lifecycle.applications[-1].applied_group_budgets == (1, 0, 0)
-    assert lifecycle.applications[-1].actual_optimizer_fes == (1, 0, 0)
-    assert lifecycle.applications[-1].group_interval_fes == (2, 1, 1)
+    assert lifecycle.applications[-1].applied_group_budgets == (3, 0, 0)
+    assert lifecycle.applications[-1].actual_optimizer_fes == (3, 0, 0)
+    assert lifecycle.applications[-1].group_interval_fes == (4, 0, 0)
 
 
 def test_persistent_lifecycle_payload_is_reconstructible() -> None:
     action = _action()
     lifecycle = PersistentBudgetAllocationExecutionState.for_action(action)
-    _record_normal_application(lifecycle, action)
+    lifecycle.record_application(
+        action,
+        current_sweep=action.start_sweep,
+        application_fe=action.checkpoint_fe + 1,
+        checkpoint_hash=action.checkpoint_hash,
+        action_set_hash=action.action_set_hash,
+        applied_group_budgets=action.group_budgets,
+        actual_optimizer_fes=(2, 1, 1),
+        group_interval_fes=(3, 2, 2),
+        terminal_truncated=False,
+    )
     payload = lifecycle.audit_payload(action)
     payload.pop("action")
 
@@ -164,7 +174,7 @@ def test_persistent_lifecycle_requires_truthful_terminal_truncation() -> None:
     action = _action()
     lifecycle = PersistentBudgetAllocationExecutionState.for_action(action)
 
-    with pytest.raises(ValueError, match="non-terminal application"):
+    with pytest.raises(ValueError, match="sequential absolute FE caps"):
         lifecycle.record_application(
             action,
             current_sweep=action.start_sweep,
@@ -173,7 +183,7 @@ def test_persistent_lifecycle_requires_truthful_terminal_truncation() -> None:
             action_set_hash=action.action_set_hash,
             applied_group_budgets=(1, 0, 0),
             actual_optimizer_fes=(1, 0, 0),
-            group_interval_fes=(2, 1, 1),
+            group_interval_fes=(2, 0, 0),
             terminal_truncated=False,
         )
 
@@ -196,12 +206,12 @@ def test_persistent_lifecycle_requires_truthful_terminal_truncation() -> None:
             application_fe=action.end_absolute_fe - 3,
             checkpoint_hash=action.checkpoint_hash,
             action_set_hash=action.action_set_hash,
-            applied_group_budgets=(1, 0, 0),
-            actual_optimizer_fes=(1, 0, 0),
-            group_interval_fes=(2, 1, 1),
+            applied_group_budgets=(3, 0, 0),
+            actual_optimizer_fes=(3, 0, 0),
+            group_interval_fes=(4, 0, 0),
             terminal_truncated=False,
         )
-    with pytest.raises(ValueError, match="must reduce"):
+    with pytest.raises(ValueError, match="sequential absolute FE caps"):
         lifecycle.record_application(
             action,
             current_sweep=6,
@@ -217,47 +227,149 @@ def test_persistent_lifecycle_requires_truthful_terminal_truncation() -> None:
     assert lifecycle.status == "active"
 
 
-def test_persistent_lifecycle_requires_truthful_actual_fes_and_terminal_closure() -> None:
+def test_persistent_lifecycle_accepts_early_stop_below_applied_cap() -> None:
     action = _action()
     lifecycle = PersistentBudgetAllocationExecutionState.for_action(action)
-    _record_normal_application(lifecycle, action)
+
     lifecycle.record_application(
         action,
-        current_sweep=5,
-        application_fe=300_022,
+        current_sweep=action.start_sweep,
+        application_fe=action.checkpoint_fe + 1,
         checkpoint_hash=action.checkpoint_hash,
         action_set_hash=action.action_set_hash,
         applied_group_budgets=action.group_budgets,
-        actual_optimizer_fes=action.group_budgets,
-        group_interval_fes=(11, 5, 5),
+        actual_optimizer_fes=(2, 1, 1),
+        group_interval_fes=(3, 2, 2),
         terminal_truncated=False,
     )
 
+    assert lifecycle.status == "active"
+    assert lifecycle.applications[-1].actual_optimizer_fes == (2, 1, 1)
+
+    with pytest.raises(ValueError, match="cannot exceed"):
+        lifecycle.record_application(
+            action,
+            current_sweep=action.start_sweep + 1,
+            application_fe=300_008,
+            checkpoint_hash=action.checkpoint_hash,
+            action_set_hash=action.action_set_hash,
+            applied_group_budgets=action.group_budgets,
+            actual_optimizer_fes=(11, 1, 1),
+            group_interval_fes=(12, 2, 2),
+            terminal_truncated=False,
+        )
+    with pytest.raises(ValueError, match="exactly one incumbent precheck"):
+        lifecycle.record_application(
+            action,
+            current_sweep=action.start_sweep + 1,
+            application_fe=300_008,
+            checkpoint_hash=action.checkpoint_hash,
+            action_set_hash=action.action_set_hash,
+            applied_group_budgets=action.group_budgets,
+            actual_optimizer_fes=(2, 1, 1),
+            group_interval_fes=(4, 2, 2),
+            terminal_truncated=False,
+        )
+
+
+def test_nominal_terminal_sweep_can_remain_untruncated_after_early_stop() -> None:
+    action = PersistentBudgetAllocationAction(
+        **{
+            **_action().__dict__,
+            "checkpoint_fe": 300_029,
+        }
+    )
+    lifecycle = PersistentBudgetAllocationExecutionState.for_action(action)
+
+    lifecycle.record_application(
+        action,
+        current_sweep=action.start_sweep,
+        application_fe=300_030,
+        checkpoint_hash=action.checkpoint_hash,
+        action_set_hash=action.action_set_hash,
+        applied_group_budgets=action.group_budgets,
+        actual_optimizer_fes=(1, 1, 1),
+        group_interval_fes=(2, 2, 2),
+        terminal_truncated=False,
+    )
+
+    assert lifecycle.status == "active"
+    assert lifecycle.applications[-1].actual_end_fe == 300_035
+
+
+def test_terminal_clipping_can_require_an_additional_sweep_after_early_stop() -> None:
+    action = PersistentBudgetAllocationAction(
+        **{
+            **_action().__dict__,
+            "checkpoint_fe": 300_039,
+        }
+    )
+    lifecycle = PersistentBudgetAllocationExecutionState.for_action(action)
+
+    lifecycle.record_application(
+        action,
+        current_sweep=action.start_sweep,
+        application_fe=300_040,
+        checkpoint_hash=action.checkpoint_hash,
+        action_set_hash=action.action_set_hash,
+        applied_group_budgets=(6, 4, 2),
+        actual_optimizer_fes=(1, 1, 1),
+        group_interval_fes=(2, 2, 2),
+        terminal_truncated=True,
+    )
+
+    assert lifecycle.status == "active"
+    assert lifecycle.applications[-1].actual_end_fe == 300_045
+    lifecycle.record_application(
+        action,
+        current_sweep=action.start_sweep + 1,
+        application_fe=300_046,
+        checkpoint_hash=action.checkpoint_hash,
+        action_set_hash=action.action_set_hash,
+        applied_group_budgets=(0, 0, 0),
+        actual_optimizer_fes=(0, 0, 0),
+        group_interval_fes=(1, 0, 0),
+        terminal_truncated=True,
+    )
+
+    assert lifecycle.status == "completed"
+    assert lifecycle.completed_fe == action.end_absolute_fe
+
+
+def test_terminal_application_fails_closed_on_impossible_cap_or_boundary() -> None:
+    action = PersistentBudgetAllocationAction(
+        **{
+            **_action().__dict__,
+            "checkpoint_fe": 300_039,
+        }
+    )
+    lifecycle = PersistentBudgetAllocationExecutionState.for_action(action)
+
     terminal_arguments = {
-        "current_sweep": 6,
-        "application_fe": action.end_absolute_fe - 3,
+        "current_sweep": action.start_sweep,
+        "application_fe": action.checkpoint_fe + 1,
         "checkpoint_hash": action.checkpoint_hash,
         "action_set_hash": action.action_set_hash,
         "terminal_truncated": True,
     }
-    with pytest.raises(ValueError, match="must equal applied"):
+    with pytest.raises(ValueError, match="sequential absolute FE caps"):
         lifecycle.record_application(
             action,
             **terminal_arguments,
-            applied_group_budgets=(1, 0, 0),
-            actual_optimizer_fes=(0, 0, 0),
-            group_interval_fes=(1, 1, 1),
+            applied_group_budgets=(5, 4, 2),
+            actual_optimizer_fes=(1, 1, 1),
+            group_interval_fes=(2, 2, 2),
         )
-    with pytest.raises(ValueError, match="must close"):
+    with pytest.raises(ValueError, match="absolute FE boundary"):
         lifecycle.record_application(
             action,
             **terminal_arguments,
-            applied_group_budgets=(0, 0, 0),
-            actual_optimizer_fes=(0, 0, 0),
-            group_interval_fes=(1, 1, 1),
+            applied_group_budgets=(6, 4, 2),
+            actual_optimizer_fes=(6, 4, 2),
+            group_interval_fes=(7, 5, 3),
         )
 
-    assert lifecycle.status == "active"
+    assert lifecycle.status == "issued"
 
 
 def test_persistent_lifecycle_can_abstain_after_activation() -> None:

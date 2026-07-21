@@ -18,8 +18,13 @@ def _spec(case: str = "R4", seed: int = 117, output_root: Path = Path("unused"))
     return exp026.RunSpec("exp_026_arac_vs_hcc_paired", case, seed, exp026._expected_action(case), output_root)
 
 
-def _write_valid_artifacts(spec: exp026.RunSpec, *, schema: str = exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA, terminal_fe: int = exp026.EXACT_MAX_FES, action_hash: str = "a" * 64) -> None:
-    spec.result_directory.mkdir(parents=True)
+def _write_valid_artifacts(
+    spec: exp026.RunSpec,
+    *,
+    schema: str = exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA,
+    action_hash: str = "a" * 64,
+) -> None:
+    spec.result_directory.mkdir(parents=True, exist_ok=True)
     (spec.result_directory / "run_summary.json").write_text(json.dumps({
         "protocol_version": exp026.RUN_SUMMARY_PROTOCOL_VERSION,
         "problem_id": spec.case,
@@ -28,19 +33,117 @@ def _write_valid_artifacts(spec: exp026.RunSpec, *, schema: str = exp026.PERSIST
         "fitness_evaluations": exp026.EXACT_MAX_FES,
         "final_error": 12.5,
     }), encoding="utf-8")
-    (spec.result_directory / "persistent_phase2_action.json").write_text(json.dumps({
+
+    checkpoint_fe = 100_000
+    action_start_fe = checkpoint_fe + 1
+    common = {
         "schema_version": schema,
         "problem_id": spec.case,
         "run_seed": spec.seed,
         "configured_max_fes": exp026.EXACT_MAX_FES,
-        "terminal_fe": terminal_fe,
+        "terminal_fe": exp026.EXACT_MAX_FES,
         "selected_action": spec.action,
         "selection_count": 1,
         "runtime_authorized": True,
         "runtime_consumed": True,
+        "status": "completed",
+        "action_set_hash": "1" * 64,
+        "checkpoint_fe": checkpoint_fe,
+        "checkpoint_hash": "2" * 64,
+        "action_start_fe": action_start_fe,
         "action_hash": action_hash,
-        "lifecycle": {"action_hash": action_hash, "status": "completed", "consumed_fes": 1000},
-    }), encoding="utf-8")
+        "parameter_hash": "3" * 64,
+        "lifecycle_state_hash": "4" * 64,
+    }
+    if spec.action == exp026.R_ACTION:
+        action_budget_fes = 20_000
+        action_completed_fe = checkpoint_fe + action_budget_fes
+        artifact = {
+            **common,
+            "execution_mode": "one_native_sweep_burst_then_native",
+            "action_completed_fe": action_completed_fe,
+            "action_actual_fes": action_budget_fes,
+            "action_budget_fes": action_budget_fes,
+            "budget_source": "previous_complete_native_sweep_actual_fes",
+            "budget_source_sweep": 3,
+            "budget_source_actual_fes": action_budget_fes,
+            "action_accepted": True,
+            "candidate_fitness": 99.0,
+            "native_resumed": True,
+            "native_resume_start_fe": action_completed_fe + 1,
+            "post_action_native_fes": exp026.EXACT_MAX_FES - action_completed_fe,
+            "native_resume_sweeps_planned": 3,
+            "native_resume_sweeps_completed": 3,
+            "start_sweep": 4,
+            "candidate_hash": "5" * 64,
+            "post_incumbent_hash": "6" * 64,
+            "action": {
+                "action": spec.action,
+                "problem_id": spec.case,
+                "run_seed": spec.seed,
+                "checkpoint_fe": checkpoint_fe,
+                "budget_fes": action_budget_fes,
+                "seed_namespace": exp026.R_ACTION,
+                "issued_sweep": 3,
+                "target_sweep": 4,
+            },
+            "lifecycle": {
+                "action_hash": action_hash,
+                "status": "completed",
+                "consumed_fes": action_budget_fes,
+                "started_fe": action_start_fe,
+                "completed_fe": action_completed_fe,
+                "state_hash": "4" * 64,
+                "details": {
+                    "action": exp026.R_ACTION,
+                "action_hash": action_hash,
+                "status": "completed",
+                "consumed_fes": action_budget_fes,
+                "started_fe": checkpoint_fe,
+                "completed_fe": action_completed_fe,
+            },
+            },
+        }
+    else:
+        action_actual_fes = exp026.EXACT_MAX_FES - checkpoint_fe
+        artifact = {
+            **common,
+            "execution_mode": "persistent_budget_caps_until_terminal",
+            "action_completed_fe": exp026.EXACT_MAX_FES,
+            "action_actual_fes": action_actual_fes,
+            "action_budget_fes": action_actual_fes,
+            "budget_source": "phase1_frozen_efficiency_ewma",
+            "native_resumed": False,
+            "native_resume_start_fe": None,
+            "post_action_native_fes": 0,
+            "application_count": 1,
+            "action": {
+                "action": spec.action,
+                "problem_id": spec.case,
+                "run_seed": spec.seed,
+                "checkpoint_fe": checkpoint_fe,
+                "end_absolute_fe": exp026.EXACT_MAX_FES,
+            },
+            "lifecycle": {
+                "action_hash": action_hash,
+                "status": "completed",
+                "consumed_fes": action_actual_fes,
+                "started_fe": action_start_fe,
+                "completed_fe": exp026.EXACT_MAX_FES,
+                "state_hash": "4" * 64,
+                "details": {
+                    "action": exp026.S_ACTION,
+                    "action_hash": action_hash,
+                    "status": "completed",
+                    "applications": [{"sweep_index": 4}],
+                    "completed_fe": exp026.EXACT_MAX_FES,
+                },
+            },
+        }
+    (spec.result_directory / "persistent_phase2_action.json").write_text(
+        json.dumps(artifact),
+        encoding="utf-8",
+    )
 
 
 def _completed_results() -> list[dict[str, object]]:
@@ -55,9 +158,21 @@ def test_config_freezes_exact_persistent_phase2_cohort() -> None:
     config = _config()
     execution = config["execution"]
     assert isinstance(execution, dict)
+    assert (
+        exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA
+        == hcc_smoke_runner.PERSISTENT_PHASE2_ARTIFACT_SCHEMA
+    )
+    assert (
+        exp026.NATIVE_RESUME_SWEEPS
+        == hcc_smoke_runner.PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+    )
+    assert config["protocol_version"] == "rs-phase2-action-validation-v2"
+    assert config["config_schema_version"] == 6
+    assert config["stage"] == "phase2_action_validation"
     assert tuple(execution["cases"]) == exp026.SUPPORTED_CASES
     assert tuple(execution["seeds"]) == exp026.VALIDATION_SEEDS
     assert execution["max_fes"] == 3_000_000
+    assert execution["native_resume_sweeps"] == exp026.NATIVE_RESUME_SWEEPS
     assert execution["jobs"] == 20
     assert execution["runner_contract"]["evidence_overlay_mode"] == "paired_owner"
     assert "arm_a" not in execution and "arm_b" not in execution
@@ -87,24 +202,84 @@ def test_config_rejects_old_or_relaxed_protocol(tmp_path: Path) -> None:
         exp026.load_config(path)
 
 
-def test_artifact_gate_accepts_exact_fe_and_unique_consumed_action(tmp_path: Path) -> None:
-    spec = _spec(output_root=tmp_path)
+@pytest.mark.parametrize("case", ("R4", "S5"))
+def test_artifact_gate_accepts_case_specific_v2_lifecycle(
+    tmp_path: Path,
+    case: str,
+) -> None:
+    spec = _spec(case, output_root=tmp_path)
     _write_valid_artifacts(spec)
 
     audited = exp026.read_trajectory_artifacts(spec)
 
     assert audited["fitness_evaluations"] == exp026.EXACT_MAX_FES
-    assert audited["action"] == exp026.R_ACTION
+    assert audited["action"] == exp026._expected_action(case)
     assert audited["action_hash"] == "a" * 64
 
 
 @pytest.mark.parametrize(
-    ("schema", "terminal_fe", "match"),
-    [("persistent-phase2-action-v0", exp026.EXACT_MAX_FES, "schema_version"), (exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA, exp026.EXACT_MAX_FES - 1, "terminal_fe")],
+    "schema",
+    ("persistent-phase2-action-v1", "phase2-action-v1"),
 )
-def test_artifact_gate_rejects_old_schema_and_nonterminal_fe(tmp_path: Path, schema: str, terminal_fe: int, match: str) -> None:
+def test_artifact_gate_rejects_old_schema(tmp_path: Path, schema: str) -> None:
     spec = _spec(output_root=tmp_path)
-    _write_valid_artifacts(spec, schema=schema, terminal_fe=terminal_fe)
+    _write_valid_artifacts(spec, schema=schema)
+
+    with pytest.raises(ValueError, match="schema_version"):
+        exp026.read_trajectory_artifacts(spec)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "match"),
+    [
+        ("execution_mode", "persistent_budget_caps_until_terminal", "execution_mode"),
+        ("native_resumed", False, "resume native"),
+        ("candidate_hash", "invalid", "candidate_hash"),
+        ("native_resume_sweeps_completed", 2, "must be 3"),
+    ],
+)
+def test_r_artifact_gate_rejects_burst_semantic_mismatch(
+    tmp_path: Path,
+    field: str,
+    value: object,
+    match: str,
+) -> None:
+    spec = _spec("R4", output_root=tmp_path)
+    _write_valid_artifacts(spec)
+    path = spec.result_directory / "persistent_phase2_action.json"
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    artifact[field] = value
+    path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    with pytest.raises(ValueError, match=match):
+        exp026.read_trajectory_artifacts(spec)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "match"),
+    [
+        ("execution_mode", "one_native_sweep_burst_then_native", "execution_mode"),
+        ("action_completed_fe", exp026.EXACT_MAX_FES - 1, "terminal FE"),
+        ("action_actual_fes", 1000, "actual FE accounting"),
+        ("native_resumed", True, "must not use a native resume"),
+    ],
+)
+def test_s_artifact_gate_rejects_persistent_semantic_mismatch(
+    tmp_path: Path,
+    field: str,
+    value: object,
+    match: str,
+) -> None:
+    spec = _spec("S5", output_root=tmp_path)
+    _write_valid_artifacts(spec)
+    path = spec.result_directory / "persistent_phase2_action.json"
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    artifact[field] = value
+    if field == "action_completed_fe":
+        artifact["lifecycle"]["completed_fe"] = value
+    elif field == "action_actual_fes":
+        artifact["lifecycle"]["consumed_fes"] = value
+    path.write_text(json.dumps(artifact), encoding="utf-8")
 
     with pytest.raises(ValueError, match=match):
         exp026.read_trajectory_artifacts(spec)
@@ -150,15 +325,12 @@ def test_resume_reruns_artifact_that_fails_strict_gate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     spec = _spec(output_root=tmp_path)
-    _write_valid_artifacts(spec, terminal_fe=exp026.EXACT_MAX_FES - 1)
+    _write_valid_artifacts(spec, schema="persistent-phase2-action-v1")
     calls = []
 
     def fake_subprocess(command: object, **_kwargs: object) -> object:
         calls.append(command)
-        action_path = spec.result_directory / "persistent_phase2_action.json"
-        artifact = json.loads(action_path.read_text(encoding="utf-8"))
-        artifact["terminal_fe"] = exp026.EXACT_MAX_FES
-        action_path.write_text(json.dumps(artifact), encoding="utf-8")
+        _write_valid_artifacts(spec)
         return exp026.subprocess.CompletedProcess(command, 0, "", "")
 
     monkeypatch.setattr(exp026.subprocess, "run", fake_subprocess)
@@ -168,7 +340,7 @@ def test_resume_reruns_artifact_that_fails_strict_gate(
     assert len(calls) == 1
     assert result["ok"] is True
     assert result["execution_source"] == "rerun_after_artifact_gate_failure"
-    assert "terminal_fe" in result["resume_gate_error"]
+    assert "schema_version" in result["resume_gate_error"]
 
 
 def test_resume_reruns_missing_artifact(

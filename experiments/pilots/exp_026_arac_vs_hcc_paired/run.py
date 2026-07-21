@@ -1,7 +1,8 @@
-"""Run the exp026 persistent Phase2 action validation cohort.
+"""Run the exp026 R/S Phase2 action validation cohort.
 
-This experiment runs exactly one authorized persistent action per R2-R6/S2-S6
-trajectory.  It deliberately does not rerun native HCC or paper baselines.
+This experiment runs exactly one authorized action per R2-R6/S2-S6 trajectory.
+R uses one Sep-CMA burst followed by native HCC; S keeps frozen budget caps to
+the terminal FE.  Native baselines and paper baselines are not rerun.
 """
 
 from __future__ import annotations
@@ -30,10 +31,12 @@ DEFAULT_AOB_DATA_ROOT = VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("config.json")
 DEFAULT_OUTPUT_ROOT = REPOSITORY_ROOT / "results" / "exp_026_arac_vs_hcc_paired"
 
-PROTOCOL_VERSION = "persistent-phase2-action-validation-v1"
+PROTOCOL_VERSION = "rs-phase2-action-validation-v2"
+CONFIG_SCHEMA_VERSION = 6
 RUN_SUMMARY_PROTOCOL_VERSION = "hcc-run-summary-v3"
-PERSISTENT_ACTION_ARTIFACT_SCHEMA = "persistent-phase2-action-v1"
+PERSISTENT_ACTION_ARTIFACT_SCHEMA = "phase2-action-v2"
 EXACT_MAX_FES = 3_000_000
+NATIVE_RESUME_SWEEPS = 3
 VALIDATION_SEEDS = (117, 118, 119, 120, 121)
 SUPPORTED_CASES = ("R2", "R3", "R4", "R5", "R6", "S2", "S3", "S4", "S5", "S6")
 CASE_TO_FUNCTION = {
@@ -108,6 +111,12 @@ def _as_positive_int(value: object, field: str) -> int:
     return value
 
 
+def _as_non_negative_int(value: object, field: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{field} must be a non-negative integer")
+    return value
+
+
 def _final_error(value: object, source: str) -> float:
     try:
         error = float(value)
@@ -123,14 +132,19 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, object]:
     _require(isinstance(payload, dict), "config must be a JSON object")
     _require(payload.get("protocol_version") == PROTOCOL_VERSION, "unsupported protocol")
     _require(
-        payload.get("stage") == "persistent_phase2_action_validation",
-        "exp026 is persistent Phase2 action validation",
+        payload.get("config_schema_version") == CONFIG_SCHEMA_VERSION,
+        "unsupported config schema",
+    )
+    _require(
+        payload.get("stage") == "phase2_action_validation",
+        "exp026 is Phase2 action validation",
     )
     execution = payload.get("execution")
     _require(isinstance(execution, dict), "execution config missing")
     _require(tuple(execution.get("cases", ())) == SUPPORTED_CASES, "unsupported AOB cases")
     _require(tuple(execution.get("seeds", ())) == VALIDATION_SEEDS, "seed schedule changed")
     _require(execution.get("max_fes") == EXACT_MAX_FES, "exp026 requires exact 3M FE")
+    _require(execution.get("native_resume_sweeps") == NATIVE_RESUME_SWEEPS, "native resume sweep count changed")
     _require(execution.get("jobs") == 20, "exp026 freezes jobs=20")
     for field, expected in {
         "budget_accounting": "strict",
@@ -248,14 +262,155 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
         "runtime_authorized": True,
         "runtime_consumed": True,
     }.items():
-        _require(artifact.get(field) == expected, f"persistent artifact {field} mismatch: {action_path}")
+        _require(artifact.get(field) == expected, f"Phase2 artifact {field} mismatch: {action_path}")
+
+    for field in (
+        "action_set_hash",
+        "checkpoint_hash",
+        "action_hash",
+        "parameter_hash",
+        "lifecycle_state_hash",
+    ):
+        _require(
+            _is_sha256(artifact.get(field)),
+            f"Phase2 artifact {field} invalid: {action_path}",
+        )
     action_hash = artifact.get("action_hash")
-    _require(_is_sha256(action_hash), f"persistent artifact action_hash invalid: {action_path}")
     lifecycle = artifact.get("lifecycle")
-    _require(isinstance(lifecycle, dict), f"persistent artifact lifecycle missing: {action_path}")
-    _require(lifecycle.get("action_hash") == action_hash, f"persistent artifact lifecycle hash mismatch: {action_path}")
-    _require(lifecycle.get("status") == "completed", f"persistent artifact action not completed: {action_path}")
-    _require(_as_positive_int(lifecycle.get("consumed_fes"), "lifecycle consumed_fes") <= EXACT_MAX_FES, f"persistent artifact consumed_fes exceeds FE: {action_path}")
+    _require(isinstance(lifecycle, dict), f"Phase2 artifact lifecycle missing: {action_path}")
+    _require(lifecycle.get("action_hash") == action_hash, f"Phase2 artifact lifecycle hash mismatch: {action_path}")
+    _require(lifecycle.get("state_hash") == artifact.get("lifecycle_state_hash"), f"Phase2 artifact lifecycle state hash mismatch: {action_path}")
+    _require(lifecycle.get("status") == "completed", f"Phase2 artifact action not completed: {action_path}")
+    _require(artifact.get("status") == "completed", f"Phase2 artifact status mismatch: {action_path}")
+
+    action = artifact.get("action")
+    _require(isinstance(action, dict), f"Phase2 artifact action payload missing: {action_path}")
+    for field, expected in {
+        "action": spec.action,
+        "problem_id": spec.case,
+        "run_seed": spec.seed,
+    }.items():
+        _require(action.get(field) == expected, f"Phase2 action payload {field} mismatch: {action_path}")
+
+    checkpoint_fe = _as_positive_int(artifact.get("checkpoint_fe"), "checkpoint_fe")
+    action_start_fe = _as_positive_int(artifact.get("action_start_fe"), "action_start_fe")
+    action_completed_fe = _as_positive_int(artifact.get("action_completed_fe"), "action_completed_fe")
+    action_actual_fes = _as_positive_int(artifact.get("action_actual_fes"), "action_actual_fes")
+    action_budget_fes = _as_positive_int(artifact.get("action_budget_fes"), "action_budget_fes")
+    lifecycle_consumed_fes = _as_positive_int(lifecycle.get("consumed_fes"), "lifecycle consumed_fes")
+    lifecycle_started_fe = _as_positive_int(lifecycle.get("started_fe"), "lifecycle started_fe")
+    lifecycle_completed_fe = _as_positive_int(lifecycle.get("completed_fe"), "lifecycle completed_fe")
+    _require(action_start_fe == checkpoint_fe + 1, f"Phase2 action_start_fe must follow checkpoint_fe: {action_path}")
+    _require(lifecycle_started_fe == action_start_fe, f"Phase2 lifecycle started_fe mismatch: {action_path}")
+    _require(lifecycle_consumed_fes == action_actual_fes, f"Phase2 lifecycle consumed_fes mismatch: {action_path}")
+    _require(lifecycle_completed_fe == action_completed_fe, f"Phase2 lifecycle completed_fe mismatch: {action_path}")
+
+    if spec.action == R_ACTION:
+        _require(
+            artifact.get("execution_mode") == "one_native_sweep_burst_then_native",
+            f"R action execution_mode mismatch: {action_path}",
+        )
+        budget_source_actual_fes = _as_positive_int(
+            artifact.get("budget_source_actual_fes"),
+            "budget_source_actual_fes",
+        )
+        _require(
+            action_actual_fes == action_budget_fes == budget_source_actual_fes,
+            f"R burst FE accounting mismatch: {action_path}",
+        )
+        _require(
+            artifact.get("budget_source")
+            == "previous_complete_native_sweep_actual_fes",
+            f"R burst budget_source mismatch: {action_path}",
+        )
+        budget_source_sweep = _as_non_negative_int(
+            artifact.get("budget_source_sweep"),
+            "budget_source_sweep",
+        )
+        _require(
+            action_completed_fe == checkpoint_fe + action_budget_fes,
+            f"R burst completion FE mismatch: {action_path}",
+        )
+        _require(action_completed_fe < EXACT_MAX_FES, f"R burst must finish before terminal FE: {action_path}")
+        _require(artifact.get("native_resumed") is True, f"R burst must resume native HCC: {action_path}")
+        _require(
+            artifact.get("native_resume_start_fe") == action_completed_fe + 1,
+            f"R native resume start FE mismatch: {action_path}",
+        )
+        post_action_native_fes = _as_positive_int(
+            artifact.get("post_action_native_fes"),
+            "post_action_native_fes",
+        )
+        _require(
+            post_action_native_fes == EXACT_MAX_FES - action_completed_fe,
+            f"R post-action native FE mismatch: {action_path}",
+        )
+        for field in ("native_resume_sweeps_planned", "native_resume_sweeps_completed"):
+            _require(
+                artifact.get(field) == NATIVE_RESUME_SWEEPS,
+                f"R {field} must be {NATIVE_RESUME_SWEEPS}: {action_path}",
+            )
+        for field in ("candidate_hash", "post_incumbent_hash"):
+            _require(_is_sha256(artifact.get(field)), f"R {field} invalid: {action_path}")
+        _require(isinstance(artifact.get("action_accepted"), bool), f"R action_accepted must be boolean: {action_path}")
+        _final_error(artifact.get("candidate_fitness"), f"R candidate_fitness in {action_path}")
+
+        issued_sweep = _as_non_negative_int(action.get("issued_sweep"), "R action issued_sweep")
+        target_sweep = _as_positive_int(action.get("target_sweep"), "R action target_sweep")
+        _require(action.get("checkpoint_fe") == checkpoint_fe, f"R action payload checkpoint_fe mismatch: {action_path}")
+        _require(action.get("budget_fes") == action_budget_fes, f"R action payload budget_fes mismatch: {action_path}")
+        _require(action.get("seed_namespace") == R_ACTION, f"R action payload seed_namespace mismatch: {action_path}")
+        _require(target_sweep == issued_sweep + 1, f"R action target sweep mismatch: {action_path}")
+        _require(artifact.get("start_sweep") == target_sweep, f"R top-level start_sweep mismatch: {action_path}")
+        _require(budget_source_sweep == issued_sweep, f"R budget source sweep mismatch: {action_path}")
+
+        lifecycle_details = lifecycle.get("details")
+        _require(isinstance(lifecycle_details, dict), f"R lifecycle details missing: {action_path}")
+        for field, expected in {
+            "action": R_ACTION,
+            "action_hash": action_hash,
+            "status": "completed",
+            "consumed_fes": action_actual_fes,
+            # The executor lifecycle starts at the frozen checkpoint.  The
+            # artifact-level action_start_fe is the first evaluation made by
+            # the action (checkpoint_fe + 1), so these fields intentionally
+            # differ by one.
+            "started_fe": checkpoint_fe,
+            "completed_fe": action_completed_fe,
+        }.items():
+            _require(lifecycle_details.get(field) == expected, f"R lifecycle details {field} mismatch: {action_path}")
+    elif spec.action == S_ACTION:
+        _require(
+            artifact.get("execution_mode") == "persistent_budget_caps_until_terminal",
+            f"S action execution_mode mismatch: {action_path}",
+        )
+        end_absolute_fe = _as_positive_int(action.get("end_absolute_fe"), "action end_absolute_fe")
+        _require(end_absolute_fe == EXACT_MAX_FES, f"S action end_absolute_fe mismatch: {action_path}")
+        _require(action_completed_fe == EXACT_MAX_FES, f"S action must complete at terminal FE: {action_path}")
+        _require(
+            action_actual_fes == end_absolute_fe - checkpoint_fe,
+            f"S action actual FE accounting mismatch: {action_path}",
+        )
+        _require(action_budget_fes == action_actual_fes, f"S action budget FE mismatch: {action_path}")
+        _require(
+            artifact.get("budget_source") == "phase1_frozen_efficiency_ewma",
+            f"S action budget_source mismatch: {action_path}",
+        )
+        _require(artifact.get("native_resumed") is False, f"S action must not use a native resume phase: {action_path}")
+        _require(artifact.get("native_resume_start_fe") is None, f"S native resume start must be null: {action_path}")
+        _require(artifact.get("post_action_native_fes") == 0, f"S post-action native FE must be zero: {action_path}")
+        _require(lifecycle_completed_fe == EXACT_MAX_FES, f"S lifecycle must close at terminal FE: {action_path}")
+        _require(action.get("checkpoint_fe") == checkpoint_fe, f"S action payload checkpoint_fe mismatch: {action_path}")
+        lifecycle_details = lifecycle.get("details")
+        _require(isinstance(lifecycle_details, dict), f"S lifecycle details missing: {action_path}")
+        _require(lifecycle_details.get("status") == "completed", f"S lifecycle details status mismatch: {action_path}")
+        _require(lifecycle_details.get("completed_fe") == EXACT_MAX_FES, f"S lifecycle details terminal FE mismatch: {action_path}")
+        applications = lifecycle_details.get("applications")
+        _require(isinstance(applications, list) and bool(applications), f"S lifecycle applications must be non-empty: {action_path}")
+        _require(artifact.get("application_count") == len(applications), f"S application_count mismatch: {action_path}")
+    else:
+        raise ValueError(f"unsupported Phase2 action in artifact gate: {spec.action!r}")
+
     return {
         "trajectory_id": spec.trajectory_id,
         "case": spec.case,
@@ -266,7 +421,7 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
         "summary_path": str(summary_path),
         "action_artifact_path": str(action_path),
         "action_hash": action_hash,
-        "action_consumed_fes": lifecycle["consumed_fes"],
+        "action_consumed_fes": lifecycle_consumed_fes,
     }
 
 

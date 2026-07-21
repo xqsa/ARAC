@@ -16,6 +16,7 @@ from arac.actions.full_space_sep_cma import (
     CANONICAL_SEP_CMA_POPULATION_SIZE,
     CANONICAL_SEP_CMA_REFERENCE_VERSION,
     FULL_SPACE_DIMENSION,
+    FULL_SPACE_SEP_CMA_ACTION,
     NO_RESTART_POLICY,
     FullSpaceSepCmaAction,
     FullSpaceSepCmaExecutionState,
@@ -24,11 +25,13 @@ from arac.actions.full_space_sep_cma import (
 )
 
 
-PERSISTENT_PHASE2_ARTIFACT_SCHEMA = "persistent-phase2-action-v1"
+PERSISTENT_PHASE2_ARTIFACT_SCHEMA = "phase2-action-v2"
 PERSISTENT_SEP_CMA_SEED_NAMESPACE = "persistent_phase2_full_space_sep_cma"
+FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE = FULL_SPACE_SEP_CMA_ACTION
 PERSISTENT_SELECTION_RULE = "max_voi_then_structural_key"
 
 _HASH_LENGTH = 64
+_BURST_DISPATCH_CHECKPOINT_SCHEMA = "full-space-sep-cma-dispatch-checkpoint-v1"
 
 
 def _canonical_sha256(payload: object) -> str:
@@ -116,6 +119,110 @@ def persistent_phase2_checkpoint_hash(
     )
 
 
+def full_space_sep_cma_dispatch_checkpoint_hash(
+    *,
+    problem_id: str,
+    run_seed: int,
+    dispatch_fe: int,
+    outer_iter: int,
+    group_index: int,
+    owner_group_indices: Sequence[int],
+    shared_variable_indices: Sequence[int],
+    incumbent: Sequence[float],
+    fitness_prefix: Sequence[float],
+    topology_hash: str,
+    order_hash: str,
+    action_set_hash: str,
+    previous_shared_values: Sequence[float],
+    current_shared_values: Sequence[float],
+    previous_delta: float,
+    current_delta: float,
+    completed_group_deltas: Sequence[float],
+    completed_group_actual_fes: Sequence[int],
+    frozen_burst_budget_fes: int,
+    budget_source_sweep: int,
+) -> str:
+    """Hash the complete relation-dispatch context that freezes one burst."""
+
+    if not isinstance(problem_id, str) or not problem_id:
+        raise ValueError("problem_id must be non-empty")
+    frozen_dispatch_fe = _integer(dispatch_fe, "dispatch_fe")
+    owners = tuple(int(value) for value in owner_group_indices)
+    shared = tuple(int(value) for value in shared_variable_indices)
+    relation_hash = persistent_relation_hash(owners, shared)
+    mean = _finite_vector(incumbent, "incumbent")
+    if len(mean) != FULL_SPACE_DIMENSION:
+        raise ValueError("dispatch incumbent must be 1000-dimensional")
+    prefix = _finite_vector(fitness_prefix, "fitness_prefix")
+    if len(prefix) != frozen_dispatch_fe:
+        raise ValueError("fitness_prefix length must equal dispatch_fe")
+    previous_values = _finite_vector(
+        previous_shared_values,
+        "previous_shared_values",
+    )
+    current_values = _finite_vector(
+        current_shared_values,
+        "current_shared_values",
+    )
+    if len(previous_values) != len(shared) or len(current_values) != len(shared):
+        raise ValueError("shared value lengths must match shared_variable_indices")
+    previous = float(previous_delta)
+    current = float(current_delta)
+    completed_deltas = tuple(float(value) for value in completed_group_deltas)
+    if any(
+        not math.isfinite(value)
+        for value in (previous, current, *completed_deltas)
+    ):
+        raise ValueError("relation and completed-group deltas must be finite")
+    completed_fes = tuple(
+        _integer(value, "completed_group_actual_fes")
+        for value in completed_group_actual_fes
+    )
+    if len(completed_deltas) != len(completed_fes):
+        raise ValueError(
+            "completed_group_deltas and completed_group_actual_fes must align"
+        )
+    budget = _integer(
+        frozen_burst_budget_fes,
+        "frozen_burst_budget_fes",
+        minimum=CANONICAL_SEP_CMA_POPULATION_SIZE,
+    )
+    return _canonical_sha256(
+        {
+            "protocol": _BURST_DISPATCH_CHECKPOINT_SCHEMA,
+            "problem_id": problem_id,
+            "run_seed": _integer(run_seed, "run_seed"),
+            "dispatch_fe": frozen_dispatch_fe,
+            "outer_iter": _integer(outer_iter, "outer_iter"),
+            "group_index": _integer(group_index, "group_index"),
+            "relation": {
+                "owners": owners,
+                "shared": shared,
+                "hash": relation_hash,
+            },
+            "incumbent_hash": full_space_vector_hash(mean),
+            "fitness_prefix_hash": _canonical_sha256(prefix),
+            "topology_hash": _validate_hash(topology_hash, "topology_hash"),
+            "order_hash": _validate_hash(order_hash, "order_hash"),
+            "action_set_hash": _validate_hash(
+                action_set_hash,
+                "action_set_hash",
+            ),
+            "previous_shared_values": previous_values,
+            "current_shared_values": current_values,
+            "previous_delta": previous,
+            "current_delta": current,
+            "completed_group_deltas": completed_deltas,
+            "completed_group_actual_fes": completed_fes,
+            "frozen_burst_budget_fes": budget,
+            "budget_source_sweep": _integer(
+                budget_source_sweep,
+                "budget_source_sweep",
+            ),
+        }
+    )
+
+
 def persistent_optimizer_seed(checkpoint_hash: str) -> int:
     frozen = _validate_hash(checkpoint_hash, "checkpoint_hash")
     digest = hashlib.blake2b(
@@ -123,6 +230,26 @@ def persistent_optimizer_seed(checkpoint_hash: str) -> int:
         digest_size=8,
     ).digest()
     return int.from_bytes(digest, byteorder="big") & ((1 << 63) - 1)
+
+
+def full_space_sep_cma_burst_optimizer_seed(
+    dispatch_checkpoint_hash: str,
+) -> int:
+    """Reproduce the exp019 optimizer seed for one frozen dispatch."""
+
+    frozen = _validate_hash(
+        dispatch_checkpoint_hash,
+        "dispatch_checkpoint_hash",
+    )
+    return int(
+        _canonical_sha256(
+            {
+                "namespace": FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
+                "dispatch_checkpoint_hash": frozen,
+            }
+        )[:16],
+        16,
+    ) % (2**32)
 
 
 def _sep_optimizer(
@@ -156,7 +283,7 @@ def _sep_optimizer(
     )
 
 
-def compile_persistent_full_space_sep_cma_action(
+def _compile_full_space_sep_cma_action(
     *,
     problem_id: str,
     run_seed: int,
@@ -171,21 +298,20 @@ def compile_persistent_full_space_sep_cma_action(
     upper: float,
     budget_fes: int,
     issued_sweep: int,
-    start_sweep: int,
+    target_sweep: int,
+    optimizer_seed: int,
+    seed_namespace: str,
     objective: Callable[[Any], Any],
     sepcmaes_factory: Callable[..., Any],
 ) -> FullSpaceSepCmaAction:
-    """Compile one canonical Sep-CMA instance without evaluating the objective."""
-
     checkpoint = _integer(checkpoint_fe, "checkpoint_fe")
     budget = _integer(budget_fes, "budget_fes", minimum=1)
     if budget < CANONICAL_SEP_CMA_POPULATION_SIZE:
-        raise ValueError("persistent Sep-CMA budget must cover one population")
+        raise ValueError("full-space Sep-CMA budget must cover one population")
     mean = _finite_vector(incumbent, "incumbent")
     if len(mean) != FULL_SPACE_DIMENSION:
-        raise ValueError("persistent Sep-CMA mean must be 1000-dimensional")
+        raise ValueError("full-space Sep-CMA mean must be 1000-dimensional")
     frozen_checkpoint = _validate_hash(checkpoint_hash, "checkpoint_hash")
-    optimizer_seed = persistent_optimizer_seed(frozen_checkpoint)
     optimizer = _sep_optimizer(
         sepcmaes_factory,
         objective=objective,
@@ -206,9 +332,9 @@ def compile_persistent_full_space_sep_cma_action(
     ):
         raise RuntimeError("canonical Sep-CMA parameter snapshot drifted")
     issued = _integer(issued_sweep, "issued_sweep")
-    target = _integer(start_sweep, "start_sweep")
+    target = _integer(target_sweep, "target_sweep")
     if target != issued + 1:
-        raise ValueError("persistent Sep-CMA must start in the next sweep")
+        raise ValueError("full-space Sep-CMA must start in the next sweep")
     return FullSpaceSepCmaAction(
         problem_id=problem_id,
         run_seed=_integer(run_seed, "run_seed"),
@@ -231,13 +357,104 @@ def compile_persistent_full_space_sep_cma_action(
         parameterization=CANONICAL_SEP_CMA_PARAMETERIZATION,
         canonical_reference_version=CANONICAL_SEP_CMA_REFERENCE_VERSION,
         canonical_parameters_hash=parameters.parameter_hash,
-        optimizer_seed=optimizer_seed,
-        seed_namespace=PERSISTENT_SEP_CMA_SEED_NAMESPACE,
+        optimizer_seed=_integer(optimizer_seed, "optimizer_seed"),
+        seed_namespace=seed_namespace,
         restart_policy=NO_RESTART_POLICY,
         issued_sweep=issued,
         target_sweep=target,
         ttl_sweeps=1,
         expires_sweep=target,
+    )
+
+
+def compile_full_space_sep_cma_burst_action(
+    *,
+    problem_id: str,
+    run_seed: int,
+    dispatch_fe: int,
+    dispatch_checkpoint_hash: str,
+    owner_group_indices: Sequence[int],
+    shared_variable_indices: Sequence[int],
+    incumbent: Sequence[float],
+    acceptance_fitness: float,
+    sigma: float,
+    lower: float,
+    upper: float,
+    budget_fes: int,
+    issued_sweep: int,
+    target_sweep: int,
+    objective: Callable[[Any], Any],
+    sepcmaes_factory: Callable[..., Any],
+) -> FullSpaceSepCmaAction:
+    """Compile one exp019-equivalent burst without evaluating the objective."""
+
+    checkpoint_hash = _validate_hash(
+        dispatch_checkpoint_hash,
+        "dispatch_checkpoint_hash",
+    )
+    return _compile_full_space_sep_cma_action(
+        problem_id=problem_id,
+        run_seed=run_seed,
+        checkpoint_fe=dispatch_fe,
+        checkpoint_hash=checkpoint_hash,
+        owner_group_indices=owner_group_indices,
+        shared_variable_indices=shared_variable_indices,
+        incumbent=incumbent,
+        acceptance_fitness=acceptance_fitness,
+        sigma=sigma,
+        lower=lower,
+        upper=upper,
+        budget_fes=budget_fes,
+        issued_sweep=issued_sweep,
+        target_sweep=target_sweep,
+        optimizer_seed=full_space_sep_cma_burst_optimizer_seed(checkpoint_hash),
+        seed_namespace=FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
+        objective=objective,
+        sepcmaes_factory=sepcmaes_factory,
+    )
+
+
+def compile_persistent_full_space_sep_cma_action(
+    *,
+    problem_id: str,
+    run_seed: int,
+    checkpoint_fe: int,
+    checkpoint_hash: str,
+    owner_group_indices: Sequence[int],
+    shared_variable_indices: Sequence[int],
+    incumbent: Sequence[float],
+    acceptance_fitness: float,
+    sigma: float,
+    lower: float,
+    upper: float,
+    budget_fes: int,
+    issued_sweep: int,
+    start_sweep: int,
+    objective: Callable[[Any], Any],
+    sepcmaes_factory: Callable[..., Any],
+) -> FullSpaceSepCmaAction:
+    """Compile one canonical Sep-CMA instance without evaluating the objective."""
+
+    frozen_checkpoint = _validate_hash(checkpoint_hash, "checkpoint_hash")
+    return _compile_full_space_sep_cma_action(
+        problem_id=problem_id,
+        run_seed=run_seed,
+        checkpoint_fe=checkpoint_fe,
+        checkpoint_hash=frozen_checkpoint,
+        owner_group_indices=owner_group_indices,
+        shared_variable_indices=shared_variable_indices,
+        incumbent=incumbent,
+        acceptance_fitness=acceptance_fitness,
+        sigma=sigma,
+        lower=lower,
+        upper=upper,
+        budget_fes=budget_fes,
+        issued_sweep=issued_sweep,
+        target_sweep=start_sweep,
+        optimizer_seed=persistent_optimizer_seed(frozen_checkpoint),
+        seed_namespace=PERSISTENT_SEP_CMA_SEED_NAMESPACE,
+        objective=objective,
+        sepcmaes_factory=sepcmaes_factory,
     )
 
 
@@ -252,31 +469,67 @@ class PersistentSepCmaResult:
     lifecycle: FullSpaceSepCmaExecutionState
 
 
-def execute_persistent_full_space_sep_cma_action(
+@dataclass(frozen=True)
+class FullSpaceSepCmaBurstResult:
+    incumbent: tuple[float, ...]
+    incumbent_fitness: float
+    candidate: tuple[float, ...]
+    candidate_fitness: float
+    accepted: bool
+    consumed_fes: int
+    final_state_hash: str
+    action_hash: str
+    lifecycle: FullSpaceSepCmaExecutionState
+    lifecycle_hash: str
+    candidate_hash: str
+    post_incumbent_hash: str
+    resume_native: bool = True
+
+
+@dataclass(frozen=True)
+class _SepCmaExecutionOutcome:
+    incumbent: tuple[float, ...]
+    incumbent_fitness: float
+    candidate: tuple[float, ...]
+    candidate_fitness: float
+    accepted: bool
+    consumed_fes: int
+    final_state_hash: str
+    lifecycle: FullSpaceSepCmaExecutionState
+    lifecycle_hash: str
+    candidate_hash: str
+    post_incumbent_hash: str
+
+
+def _execute_full_space_sep_cma_action(
     action: FullSpaceSepCmaAction,
     *,
+    required_seed_namespace: str,
     objective: Callable[[Any], Any],
     sepcmaes_factory: Callable[..., Any],
     current_fe: int,
     current_sweep: int,
-    checkpoint_hash: str,
+    dispatch_checkpoint_hash: str,
     incumbent: Sequence[float],
-) -> PersistentSepCmaResult:
-    """Consume the entire remaining Phase2 budget; native HCC must not resume."""
-
-    if action.seed_namespace != PERSISTENT_SEP_CMA_SEED_NAMESPACE:
-        raise ValueError("action is not a persistent Phase2 Sep-CMA instance")
+) -> _SepCmaExecutionOutcome:
+    if action.seed_namespace != required_seed_namespace:
+        raise ValueError("action seed namespace does not match the execution mode")
     mean = _finite_vector(incumbent, "incumbent")
+    if len(mean) != FULL_SPACE_DIMENSION:
+        raise ValueError("full-space Sep-CMA incumbent must be 1000-dimensional")
     if full_space_vector_hash(mean) != action.initial_mean_hash:
-        raise ValueError("persistent Sep-CMA incumbent anchor changed")
-    relation_hash = action.trigger_relation_hash
+        raise ValueError("full-space Sep-CMA incumbent anchor changed")
     lifecycle = FullSpaceSepCmaExecutionState.for_action(action)
+    observed_fe = _integer(current_fe, "current_fe")
     lifecycle.start(
         action,
-        current_fe=_integer(current_fe, "current_fe"),
+        current_fe=observed_fe,
         current_sweep=_integer(current_sweep, "current_sweep"),
-        dispatch_checkpoint_hash=_validate_hash(checkpoint_hash, "checkpoint_hash"),
-        trigger_relation_hash=relation_hash,
+        dispatch_checkpoint_hash=_validate_hash(
+            dispatch_checkpoint_hash,
+            "dispatch_checkpoint_hash",
+        ),
+        trigger_relation_hash=action.trigger_relation_hash,
         anchor_hash=full_space_sep_cma_anchor_hash(action.problem_id, mean),
     )
     optimizer = _sep_optimizer(
@@ -291,48 +544,130 @@ def execute_persistent_full_space_sep_cma_action(
     )
     initial_state = optimizer.initialize_state()
     if initial_state.state_hash != action.initial_state_hash:
-        raise RuntimeError("persistent Sep-CMA initial state hash drifted")
+        raise RuntimeError("full-space Sep-CMA initial state hash drifted")
     result = optimizer.advance(action.budget_fes)
     consumed = int(result["advanced_function_evaluations"])
     if consumed != action.budget_fes or int(result["n_function_evaluations"]) != consumed:
-        raise RuntimeError("persistent Sep-CMA did not consume its exact Phase2 budget")
+        raise RuntimeError("full-space Sep-CMA did not consume its exact frozen budget")
     if result["parameter_hash"] != action.canonical_parameters_hash:
-        raise RuntimeError("persistent Sep-CMA parameter hash drifted")
+        raise RuntimeError("full-space Sep-CMA parameter hash drifted")
     final_state_hash = result["optimizer_state"].state_hash
     lifecycle.complete(
         action,
         consumed_fes=consumed,
-        completed_fe=action.checkpoint_fe + consumed,
+        completed_fe=observed_fe + consumed,
         final_state_hash=final_state_hash,
     )
     lifecycle.validate_for(action)
     candidate = _finite_vector(result["best_so_far_x"], "Sep-CMA candidate")
     if len(candidate) != FULL_SPACE_DIMENSION:
-        raise RuntimeError("persistent Sep-CMA returned a non-1000D candidate")
+        raise RuntimeError("full-space Sep-CMA returned a non-1000D candidate")
     candidate_fitness = float(result["best_so_far_y"])
     if not math.isfinite(candidate_fitness) or candidate_fitness < 0.0:
-        raise RuntimeError("persistent Sep-CMA returned invalid fitness")
+        raise RuntimeError("full-space Sep-CMA returned invalid fitness")
     accepted = candidate_fitness < action.acceptance_fitness
-    return PersistentSepCmaResult(
-        incumbent=candidate if accepted else mean,
+    post_incumbent = candidate if accepted else mean
+    return _SepCmaExecutionOutcome(
+        incumbent=post_incumbent,
         incumbent_fitness=(
             candidate_fitness if accepted else action.acceptance_fitness
         ),
+        candidate=candidate,
         candidate_fitness=candidate_fitness,
         accepted=accepted,
         consumed_fes=consumed,
         final_state_hash=final_state_hash,
         lifecycle=lifecycle,
+        lifecycle_hash=lifecycle.state_hash(action),
+        candidate_hash=full_space_vector_hash(candidate),
+        post_incumbent_hash=full_space_vector_hash(post_incumbent),
+    )
+
+
+def execute_full_space_sep_cma_burst_action(
+    action: FullSpaceSepCmaAction,
+    *,
+    objective: Callable[[Any], Any],
+    sepcmaes_factory: Callable[..., Any],
+    current_fe: int,
+    current_sweep: int,
+    dispatch_checkpoint_hash: str,
+    incumbent: Sequence[float],
+) -> FullSpaceSepCmaBurstResult:
+    """Execute one frozen burst; the caller must resume native HCC afterwards."""
+
+    outcome = _execute_full_space_sep_cma_action(
+        action,
+        required_seed_namespace=FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
+        objective=objective,
+        sepcmaes_factory=sepcmaes_factory,
+        current_fe=current_fe,
+        current_sweep=current_sweep,
+        dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+        incumbent=incumbent,
+    )
+    return FullSpaceSepCmaBurstResult(
+        incumbent=outcome.incumbent,
+        incumbent_fitness=outcome.incumbent_fitness,
+        candidate=outcome.candidate,
+        candidate_fitness=outcome.candidate_fitness,
+        accepted=outcome.accepted,
+        consumed_fes=outcome.consumed_fes,
+        final_state_hash=outcome.final_state_hash,
+        action_hash=action.action_hash,
+        lifecycle=outcome.lifecycle,
+        lifecycle_hash=outcome.lifecycle_hash,
+        candidate_hash=outcome.candidate_hash,
+        post_incumbent_hash=outcome.post_incumbent_hash,
+    )
+
+
+def execute_persistent_full_space_sep_cma_action(
+    action: FullSpaceSepCmaAction,
+    *,
+    objective: Callable[[Any], Any],
+    sepcmaes_factory: Callable[..., Any],
+    current_fe: int,
+    current_sweep: int,
+    checkpoint_hash: str,
+    incumbent: Sequence[float],
+) -> PersistentSepCmaResult:
+    """Consume the entire remaining Phase2 budget; native HCC must not resume."""
+
+    outcome = _execute_full_space_sep_cma_action(
+        action,
+        required_seed_namespace=PERSISTENT_SEP_CMA_SEED_NAMESPACE,
+        objective=objective,
+        sepcmaes_factory=sepcmaes_factory,
+        current_fe=current_fe,
+        current_sweep=current_sweep,
+        dispatch_checkpoint_hash=checkpoint_hash,
+        incumbent=incumbent,
+    )
+    return PersistentSepCmaResult(
+        incumbent=outcome.incumbent,
+        incumbent_fitness=outcome.incumbent_fitness,
+        candidate_fitness=outcome.candidate_fitness,
+        accepted=outcome.accepted,
+        consumed_fes=outcome.consumed_fes,
+        final_state_hash=outcome.final_state_hash,
+        lifecycle=outcome.lifecycle,
     )
 
 
 __all__ = [
+    "FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE",
     "PERSISTENT_PHASE2_ARTIFACT_SCHEMA",
     "PERSISTENT_SELECTION_RULE",
     "PERSISTENT_SEP_CMA_SEED_NAMESPACE",
+    "FullSpaceSepCmaBurstResult",
     "PersistentSepCmaResult",
+    "compile_full_space_sep_cma_burst_action",
     "compile_persistent_full_space_sep_cma_action",
+    "execute_full_space_sep_cma_burst_action",
     "execute_persistent_full_space_sep_cma_action",
+    "full_space_sep_cma_burst_optimizer_seed",
+    "full_space_sep_cma_dispatch_checkpoint_hash",
     "persistent_optimizer_seed",
     "persistent_phase2_checkpoint_hash",
     "persistent_relation_hash",
