@@ -14,10 +14,12 @@ from experiments.pilots.exp_019_conflict_resolution_pilot.evidence_predictabilit
     _ordered_prediction_indices,
     _validate_oof_coverage,
     build_feature_frames,
+    crossfit_r4_s5_pairwise,
     crossfit_value_model,
     leave_one_seed_out_splits,
     r4_s5_cluster_permutation_test,
     run_evidence_predictability,
+    summarize_pairwise,
 )
 
 
@@ -244,3 +246,45 @@ def test_r4_s5_shared_count_permutation_uses_case_seed_blocks() -> None:
         float(result["p_value"]),
         (int(result["exceedances"]) + 1) / 100,
     )
+
+
+def test_r4_s5_primary_routes_frozen_beneficial_actions_not_context_oracle() -> None:
+    contexts = []
+    rows = []
+    for case, shared_count in (("R4", 5), ("S5", 7)):
+        for seed in (117, 118, 119):
+            contexts.append(
+                _context(
+                    case=case,
+                    seed=seed,
+                    context_id=f"{case}-{seed}",
+                    shared_count=shared_count,
+                )
+            )
+            delta = np.zeros(len(ACTION_CEILING_ARMS))
+            delta[ACTION_CEILING_ARMS.index("full_space_sep_cma")] = (
+                0.6 if case == "R4" or seed == 119 else 0.4
+            )
+            delta[ACTION_CEILING_ARMS.index("efficiency_budget_reallocation")] = (
+                -0.2 if case == "R4" else 0.5
+            )
+            rows.append(delta)
+    dataset = _dataset(contexts, np.asarray(rows))
+    features = build_feature_frames(dataset)
+
+    oof = crossfit_r4_s5_pairwise(dataset, features, logistic_cs=(0.1, 1.0))
+    stump = oof[oof["predictor"] == "shared_count_stump"]
+    summary = summarize_pairwise(stump, bootstrap_replicates=50, bootstrap_seed=7)
+
+    assert stump["correct"].eq(1).all()
+    assert set(stump[stump["problem_id"] == "R4"]["predicted_arm"]) == {
+        "full_space_sep_cma"
+    }
+    assert set(stump[stump["problem_id"] == "S5"]["predicted_arm"]) == {
+        "efficiency_budget_reallocation"
+    }
+    assert stump["preference_correct"].sum() == len(stump) - 1
+    overall = summary[summary["scope"] == "all"].iloc[0]
+    assert overall["routing_accuracy"] == 1.0
+    assert overall["positive_rate"] == 1.0
+    assert overall["catastrophic_count"] == 0

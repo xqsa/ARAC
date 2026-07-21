@@ -105,13 +105,25 @@
     "bootstrap_seed": 2026071901
   },
   "evidence_predictability": {
-    "schema_version": "exp019-evidence-predictability-v1",
+    "schema_version": "exp019-evidence-predictability-v2",
     "analysis_status": "post_hoc_exploratory",
-    "generalization_scope": "held_out_seeds_within_fixed_cases",
+    "generalization_scope": "held_out_seeds_within_fixed_R4_S5",
+    "primary_scope": "R4_S5_beneficial_action_routing",
     "primary_horizon": "sweep_1",
     "outer_split": "leave_one_seed_out",
     "inner_split": "leave_one_training_seed_out",
-    "primary_predictor": "ridge_value:combined",
+    "primary_predictor": "shared_count_stump",
+    "secondary_13_arm_predictor": "ridge_value:combined",
+    "target_actions": {
+      "R4": "full_space_sep_cma",
+      "S5": "efficiency_budget_reallocation"
+    },
+    "validation_scope": {
+      "cases": ["R4", "S5"],
+      "out_of_scope": "not_authorized"
+    },
+    "safe_reference_arm": "efficiency_budget_reallocation",
+    "minimum_case_material_positive_rate": 0.9,
     "ridge_alphas": [0.1, 1.0, 10.0, 100.0],
     "bootstrap_replicates": 2000,
     "bootstrap_seed": 2026071901,

@@ -1,8 +1,8 @@
 """Offline grouped-CV diagnostic for Phase1 evidence and action-ceiling labels.
 
-This module never runs HCC and never authorizes a runtime action.  It treats the
-validated exp019 v6 contexts as samples, predicts the complete 13-arm Delta
-vector, and evaluates the selected arm only on held-out case-seed trajectories.
+This module never runs HCC and never authorizes a runtime action.  Its primary
+gate routes the frozen beneficial actions for R4 and S5 on held-out seeds.  The
+complete 13-arm value regression remains a secondary diagnostic for E3/A4/R4/S5.
 """
 
 from __future__ import annotations
@@ -44,11 +44,21 @@ from arac.policy.action_ceiling import (
 from .diagnostic import CONFIG_PATH, load_config, validate_raw_rows
 
 
-EVIDENCE_PREDICTABILITY_SCHEMA_VERSION = "exp019-evidence-predictability-v1"
+EVIDENCE_PREDICTABILITY_SCHEMA_VERSION = "exp019-evidence-predictability-v2"
 ANALYSIS_STATUS = "post_hoc_exploratory"
-GENERALIZATION_SCOPE = "held_out_seeds_within_fixed_cases"
+GENERALIZATION_SCOPE = "held_out_seeds_within_fixed_R4_S5"
 RUNTIME_AUTHORIZED = 0
-PRIMARY_PREDICTOR = "ridge_value:combined"
+PRIMARY_SCOPE = "R4_S5_beneficial_action_routing"
+PRIMARY_PREDICTOR = "shared_count_stump"
+SECONDARY_13_ARM_PREDICTOR = "ridge_value:combined"
+R4_S5_TARGET_ACTIONS = {
+    "R4": "full_space_sep_cma",
+    "S5": "efficiency_budget_reallocation",
+}
+PRIMARY_CASES = tuple(R4_S5_TARGET_ACTIONS)
+OUT_OF_SCOPE_POLICY = "not_authorized"
+SAFE_REFERENCE_ARM = "efficiency_budget_reallocation"
+MINIMUM_CASE_MATERIAL_POSITIVE_RATE = 0.90
 FEATURE_SET_GROUPS = {
     "topology": ("topology",),
     "geometry": ("geometry",),
@@ -869,15 +879,17 @@ def crossfit_r4_s5_pairwise(
     *,
     logistic_cs: Sequence[float],
 ) -> pd.DataFrame:
-    subset = dataset.contexts["problem_id"].isin(["R4", "S5"]).to_numpy()
+    subset = dataset.contexts["problem_id"].isin(PRIMARY_CASES).to_numpy()
     row_indices = np.flatnonzero(subset)
     contexts = dataset.contexts.iloc[row_indices].reset_index(drop=True)
     deltas = dataset.deltas.iloc[row_indices].reset_index(drop=True)
     sep = deltas["full_space_sep_cma"].to_numpy(dtype=float)
     budget = deltas["efficiency_budget_reallocation"].to_numpy(dtype=float)
-    labels = (sep > budget + ACTION_CEILING_TIE_TOLERANCE).astype(int)
-    if set(labels) != {0, 1}:
-        raise ValueError("R4/S5 pairwise labels do not contain both preferences")
+    target_actions = contexts["problem_id"].map(R4_S5_TARGET_ACTIONS).to_numpy()
+    labels = (target_actions == "full_space_sep_cma").astype(int)
+    preferred_labels = (sep > budget + ACTION_CEILING_TIE_TOLERANCE).astype(int)
+    if set(labels) != {0, 1} or set(preferred_labels) != {0, 1}:
+        raise ValueError("R4/S5 routing labels do not contain both classes")
 
     predictors: list[tuple[str, str, np.ndarray, Callable[[np.ndarray, np.ndarray, np.ndarray], Any]]] = []
     shared_count = features["topology"].iloc[row_indices][
@@ -937,6 +949,7 @@ def crossfit_r4_s5_pairwise(
                 )
                 selected_delta = sep[row_index] if prediction[local] == 1 else budget[row_index]
                 pairwise_best = max(sep[row_index], budget[row_index])
+                safe_reference_delta = float(budget[row_index])
                 rows.append(
                     {
                         "schema_version": EVIDENCE_PREDICTABILITY_SCHEMA_VERSION,
@@ -946,15 +959,24 @@ def crossfit_r4_s5_pairwise(
                         "problem_id": contexts.iloc[row_index]["problem_id"],
                         "seed": int(contexts.iloc[row_index]["seed"]),
                         "context_id": contexts.iloc[row_index]["context_id"],
+                        "target_action": target_actions[row_index],
                         "preferred_arm": (
                             "full_space_sep_cma"
-                            if labels[row_index] == 1
+                            if preferred_labels[row_index] == 1
                             else "efficiency_budget_reallocation"
                         ),
                         "predicted_arm": selected_arm,
-                        "sep_preference_probability": float(probability[local]),
+                        "sep_action_probability": float(probability[local]),
                         "correct": int(prediction[local] == labels[row_index]),
+                        "preference_correct": int(
+                            prediction[local] == preferred_labels[row_index]
+                        ),
                         "selected_delta": float(selected_delta),
+                        "safe_reference_arm": SAFE_REFERENCE_ARM,
+                        "safe_reference_delta": safe_reference_delta,
+                        "gain_over_safe_reference": float(
+                            selected_delta - safe_reference_delta
+                        ),
                         "pairwise_regret": float(pairwise_best - selected_delta),
                         "catastrophic": int(selected_delta <= CATASTROPHIC_DELTA),
                         "runtime_authorized": RUNTIME_AUTHORIZED,
@@ -988,14 +1010,12 @@ def r4_s5_cluster_permutation_test(
     permutations: int,
     seed: int,
 ) -> dict[str, float | int]:
-    subset = dataset.contexts["problem_id"].isin(["R4", "S5"]).to_numpy()
+    subset = dataset.contexts["problem_id"].isin(PRIMARY_CASES).to_numpy()
     contexts = dataset.contexts.loc[subset].reset_index(drop=True)
-    deltas = dataset.deltas.loc[subset].reset_index(drop=True)
     x = features.loc[subset, ["topology.shared_count"]].to_numpy(dtype=float)
     labels = (
-        deltas["full_space_sep_cma"].to_numpy(dtype=float)
-        > deltas["efficiency_budget_reallocation"].to_numpy(dtype=float)
-        + ACTION_CEILING_TIE_TOLERANCE
+        contexts["problem_id"].map(R4_S5_TARGET_ACTIONS).to_numpy()
+        == "full_space_sep_cma"
     ).astype(int)
     seeds = contexts["seed"].astype(int).to_numpy()
     cluster_keys = list(
@@ -1006,7 +1026,7 @@ def r4_s5_cluster_permutation_test(
         mask = (contexts["problem_id"] == key[0]).to_numpy() & (seeds == key[1])
         values = np.unique(labels[mask])
         if values.size != 1:
-            raise ValueError("pairwise preference varies inside a case-seed cluster")
+            raise ValueError("target action varies inside a case-seed cluster")
         cluster_labels.append(int(values[0]))
     observed = _crossfit_stump_accuracy(x, labels, seeds)
     rng = np.random.default_rng(seed)
@@ -1027,30 +1047,98 @@ def r4_s5_cluster_permutation_test(
     }
 
 
-def summarize_pairwise(rows: pd.DataFrame) -> pd.DataFrame:
+def summarize_pairwise(
+    rows: pd.DataFrame,
+    *,
+    bootstrap_replicates: int,
+    bootstrap_seed: int,
+) -> pd.DataFrame:
     summaries = []
-    for predictor, group in rows.groupby("predictor", sort=False):
-        labels = (group["preferred_arm"] == "full_space_sep_cma").astype(int)
-        predictions = (group["predicted_arm"] == "full_space_sep_cma").astype(int)
-        summaries.append(
-            {
-                "schema_version": EVIDENCE_PREDICTABILITY_SCHEMA_VERSION,
-                "analysis_status": ANALYSIS_STATUS,
-                "predictor": predictor,
-                "feature_set": group["feature_set"].iloc[0],
-                "context_count": len(group),
-                "cluster_count": group[["problem_id", "seed"]].drop_duplicates().shape[0],
-                "balanced_accuracy": balanced_accuracy_score(labels, predictions),
-                "roc_auc": roc_auc_score(
-                    labels, group["sep_preference_probability"].to_numpy(dtype=float)
-                ),
-                "mean_selected_delta": float(group["selected_delta"].mean()),
-                "mean_pairwise_regret": float(group["pairwise_regret"].mean()),
-                "catastrophic_count": int(group["catastrophic"].sum()),
-                "catastrophic_rate": float(group["catastrophic"].mean()),
-                "runtime_authorized": RUNTIME_AUTHORIZED,
-            }
-        )
+    for predictor, predictor_rows in rows.groupby("predictor", sort=False):
+        for scope, group in [("all", predictor_rows), *predictor_rows.groupby("problem_id")]:
+            labels = (group["target_action"] == "full_space_sep_cma").astype(int)
+            predictions = (group["predicted_arm"] == "full_space_sep_cma").astype(int)
+            delta_lcb, delta_ucb = _case_stratified_bootstrap(
+                group,
+                "selected_delta",
+                replicates=bootstrap_replicates,
+                seed=bootstrap_seed,
+            )
+            regret_lcb, regret_ucb = _case_stratified_bootstrap(
+                group,
+                "pairwise_regret",
+                replicates=bootstrap_replicates,
+                seed=bootstrap_seed + 1,
+            )
+            gain_lcb, gain_ucb = _case_stratified_bootstrap(
+                group,
+                "gain_over_safe_reference",
+                replicates=bootstrap_replicates,
+                seed=bootstrap_seed + 2,
+            )
+            both_classes = labels.nunique() == 2
+            summaries.append(
+                {
+                    "schema_version": EVIDENCE_PREDICTABILITY_SCHEMA_VERSION,
+                    "analysis_status": ANALYSIS_STATUS,
+                    "predictor": predictor,
+                    "feature_set": group["feature_set"].iloc[0],
+                    "scope": scope,
+                    "target_action": (
+                        group["target_action"].iloc[0]
+                        if group["target_action"].nunique() == 1
+                        else "R4_S5_mixed"
+                    ),
+                    "context_count": len(group),
+                    "cluster_count": group[["problem_id", "seed"]]
+                    .drop_duplicates()
+                    .shape[0],
+                    "routing_accuracy": float(group["correct"].mean()),
+                    "pairwise_preference_accuracy": float(
+                        group["preference_correct"].mean()
+                    ),
+                    "target_preference_consistency": float(
+                        (group["target_action"] == group["preferred_arm"]).mean()
+                    ),
+                    "balanced_accuracy": (
+                        balanced_accuracy_score(labels, predictions)
+                        if both_classes
+                        else math.nan
+                    ),
+                    "roc_auc": (
+                        roc_auc_score(
+                            labels,
+                            group["sep_action_probability"].to_numpy(dtype=float),
+                        )
+                        if both_classes
+                        else math.nan
+                    ),
+                    "mean_selected_delta": float(group["selected_delta"].mean()),
+                    "min_selected_delta": float(group["selected_delta"].min()),
+                    "selected_delta_lcb": delta_lcb,
+                    "selected_delta_ucb": delta_ucb,
+                    "positive_count": int((group["selected_delta"] > 0.0).sum()),
+                    "positive_rate": float((group["selected_delta"] > 0.0).mean()),
+                    "material_positive_count": int(
+                        (group["selected_delta"] > MATERIAL_POSITIVE_DELTA).sum()
+                    ),
+                    "material_positive_rate": float(
+                        (group["selected_delta"] > MATERIAL_POSITIVE_DELTA).mean()
+                    ),
+                    "mean_pairwise_regret": float(group["pairwise_regret"].mean()),
+                    "pairwise_regret_lcb": regret_lcb,
+                    "pairwise_regret_ucb": regret_ucb,
+                    "safe_reference_arm": SAFE_REFERENCE_ARM,
+                    "mean_gain_over_safe_reference": float(
+                        group["gain_over_safe_reference"].mean()
+                    ),
+                    "gain_over_safe_reference_lcb": gain_lcb,
+                    "gain_over_safe_reference_ucb": gain_ucb,
+                    "catastrophic_count": int(group["catastrophic"].sum()),
+                    "catastrophic_rate": float(group["catastrophic"].mean()),
+                    "runtime_authorized": RUNTIME_AUTHORIZED,
+                }
+            )
     return pd.DataFrame(summaries)
 
 
@@ -1100,8 +1188,18 @@ def run_evidence_predictability(artifact_dir: Path, output_dir: Path) -> dict[st
         raise ValueError("evidence predictability interpretation scope drifted")
     if protocol.get("primary_horizon") != PRIMARY_HORIZON:
         raise ValueError("evidence predictability must use sweep_1")
-    if protocol.get("primary_predictor") != PRIMARY_PREDICTOR:
-        raise ValueError("evidence predictability primary predictor drifted")
+    if (
+        protocol.get("primary_scope") != PRIMARY_SCOPE
+        or protocol.get("primary_predictor") != PRIMARY_PREDICTOR
+        or protocol.get("secondary_13_arm_predictor") != SECONDARY_13_ARM_PREDICTOR
+        or protocol.get("target_actions") != R4_S5_TARGET_ACTIONS
+        or protocol.get("validation_scope")
+        != {"cases": list(PRIMARY_CASES), "out_of_scope": OUT_OF_SCOPE_POLICY}
+        or protocol.get("safe_reference_arm") != SAFE_REFERENCE_ARM
+        or protocol.get("minimum_case_material_positive_rate")
+        != MINIMUM_CASE_MATERIAL_POSITIVE_RATE
+    ):
+        raise ValueError("evidence predictability target/predictor contract drifted")
     if (
         protocol.get("outer_split") != "leave_one_seed_out"
         or protocol.get("inner_split") != "leave_one_training_seed_out"
@@ -1149,14 +1247,18 @@ def run_evidence_predictability(artifact_dir: Path, output_dir: Path) -> dict[st
         logistic_cs=ridge_alphas,
     )
     pairwise_context_ids = dataset.contexts[
-        dataset.contexts["problem_id"].isin(["R4", "S5"])
+        dataset.contexts["problem_id"].isin(PRIMARY_CASES)
     ]["context_id"].tolist()
     pairwise_integrity = _validate_oof_coverage(
         pairwise,
         context_ids=pairwise_context_ids,
         expected_predictors=R4_S5_PAIRWISE_PREDICTORS,
     )
-    pairwise_summary = summarize_pairwise(pairwise)
+    pairwise_summary = summarize_pairwise(
+        pairwise,
+        bootstrap_replicates=int(protocol["bootstrap_replicates"]),
+        bootstrap_seed=int(protocol["bootstrap_seed"]),
+    )
     permutation = r4_s5_cluster_permutation_test(
         dataset,
         feature_frames["topology"],
@@ -1179,20 +1281,62 @@ def run_evidence_predictability(artifact_dir: Path, output_dir: Path) -> dict[st
     feature_manifest = {
         feature_set: list(frame.columns) for feature_set, frame in feature_frames.items()
     }
-    primary = summary[
-        (summary["predictor"] == PRIMARY_PREDICTOR) & (summary["scope"] == "all")
+    primary = pairwise_summary[
+        (pairwise_summary["predictor"] == PRIMARY_PREDICTOR)
+        & (pairwise_summary["scope"] == "all")
     ]
     if len(primary) != 1:
         raise RuntimeError("primary predictor summary is missing")
     primary_row = primary.iloc[0]
-    if int(primary_row["catastrophic_count"]) > 0:
-        runtime_blocker = "catastrophic_oof_losses"
-    elif float(primary_row["selected_delta_lcb"]) <= 0.0:
-        runtime_blocker = "nonpositive_selected_delta_lcb"
-    elif float(primary_row["gain_over_train_safe_sbs_lcb"]) <= 0.0:
-        runtime_blocker = "nonpositive_gain_over_safe_sbs_lcb"
+    primary_case_rows = pairwise_summary[
+        (pairwise_summary["predictor"] == PRIMARY_PREDICTOR)
+        & (pairwise_summary["scope"].isin(PRIMARY_CASES))
+    ].set_index("scope")
+    if set(primary_case_rows.index) != set(PRIMARY_CASES):
+        raise RuntimeError("per-case primary summaries are incomplete")
+    secondary = summary[
+        (summary["predictor"] == SECONDARY_13_ARM_PREDICTOR)
+        & (summary["scope"] == "all")
+    ]
+    if len(secondary) != 1:
+        raise RuntimeError("secondary 13-arm predictor summary is missing")
+    secondary_row = secondary.iloc[0]
+    case_gate = {
+        case: {
+            "routing_accuracy": float(primary_case_rows.loc[case, "routing_accuracy"]),
+            "selected_delta_lcb": float(
+                primary_case_rows.loc[case, "selected_delta_lcb"]
+            ),
+            "material_positive_rate": float(
+                primary_case_rows.loc[case, "material_positive_rate"]
+            ),
+            "catastrophic_count": int(
+                primary_case_rows.loc[case, "catastrophic_count"]
+            ),
+            "gain_over_safe_reference_lcb": float(
+                primary_case_rows.loc[case, "gain_over_safe_reference_lcb"]
+            ),
+        }
+        for case in PRIMARY_CASES
+    }
+    if any(item["routing_accuracy"] < 1.0 for item in case_gate.values()):
+        evidence_gate = "routing_errors"
+    elif any(item["catastrophic_count"] > 0 for item in case_gate.values()):
+        evidence_gate = "catastrophic_oof_losses"
+    elif any(item["selected_delta_lcb"] <= 0.0 for item in case_gate.values()):
+        evidence_gate = "nonpositive_case_selected_delta_lcb"
+    elif any(
+        item["material_positive_rate"] < MINIMUM_CASE_MATERIAL_POSITIVE_RATE
+        for item in case_gate.values()
+    ):
+        evidence_gate = "insufficient_case_material_positive_rate"
+    elif any(
+        item["gain_over_safe_reference_lcb"] < -ACTION_CEILING_TIE_TOLERANCE
+        for item in case_gate.values()
+    ):
+        evidence_gate = "worse_than_safe_reference"
     else:
-        runtime_blocker = "independent_case_holdout_required"
+        evidence_gate = "small_runtime_validation_R4_S5_only"
     manifest = {
         "schema_version": EVIDENCE_PREDICTABILITY_SCHEMA_VERSION,
         "analysis_status": ANALYSIS_STATUS,
@@ -1222,21 +1366,45 @@ def run_evidence_predictability(artifact_dir: Path, output_dir: Path) -> dict[st
         "forbidden_model_fields": list(FORBIDDEN_MODEL_FIELDS),
         "identity_features_used": 0,
         "future_features_used": 0,
+        "primary_scope": PRIMARY_SCOPE,
         "primary_predictor": PRIMARY_PREDICTOR,
+        "primary_target_actions": R4_S5_TARGET_ACTIONS,
+        "primary_case_gate": case_gate,
+        "minimum_case_material_positive_rate": MINIMUM_CASE_MATERIAL_POSITIVE_RATE,
+        "safe_reference_arm": SAFE_REFERENCE_ARM,
+        "secondary_13_arm_predictor": SECONDARY_13_ARM_PREDICTOR,
         "oof_integrity_gate": oof_integrity,
         "r4_s5_pairwise_integrity_gate": pairwise_integrity,
         "primary_oof_mean_selected_delta": float(primary_row["mean_selected_delta"]),
         "primary_oof_selected_delta_lcb": float(primary_row["selected_delta_lcb"]),
-        "primary_oof_mean_gain_over_train_safe_sbs": float(
-            primary_row["mean_gain_over_train_safe_sbs"]
+        "primary_oof_routing_accuracy": float(primary_row["routing_accuracy"]),
+        "primary_oof_pairwise_preference_accuracy": float(
+            primary_row["pairwise_preference_accuracy"]
         ),
-        "primary_oof_gain_over_train_safe_sbs_lcb": float(
-            primary_row["gain_over_train_safe_sbs_lcb"]
+        "primary_oof_positive_rate": float(primary_row["positive_rate"]),
+        "primary_oof_material_positive_rate": float(
+            primary_row["material_positive_rate"]
         ),
-        "primary_oof_exact_accuracy": float(primary_row["exact_accuracy"]),
         "primary_oof_catastrophic_count": int(primary_row["catastrophic_count"]),
+        "secondary_13_arm_mean_selected_delta": float(
+            secondary_row["mean_selected_delta"]
+        ),
+        "secondary_13_arm_exact_accuracy": float(secondary_row["exact_accuracy"]),
+        "secondary_13_arm_catastrophic_count": int(
+            secondary_row["catastrophic_count"]
+        ),
         "runtime_selector_authorized": 0,
-        "runtime_blocker": runtime_blocker,
+        "evidence_gate": evidence_gate,
+        "small_runtime_validation_authorization": {
+            "authorized": int(
+                evidence_gate == "small_runtime_validation_R4_S5_only"
+            ),
+            "cases": list(PRIMARY_CASES),
+            "target_actions": R4_S5_TARGET_ACTIONS,
+            "out_of_scope": OUT_OF_SCOPE_POLICY,
+        },
+        "global_selector_authorized": 0,
+        "runtime_blocker": "offline_counterfactual_not_runtime_validated",
         "r4_s5_pairwise_permutation": permutation,
         "r4_s5_interpretation_limit": (
             "current_R4_and_S5_cases_only; shared_count_is_confounded_with_case"
