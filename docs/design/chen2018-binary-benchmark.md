@@ -55,3 +55,45 @@ manifest = problem.to_manifest()
 只能作为独立 synthetic benchmark 使用，不属于真实 AOB 主集，不得进入 AOB 的 SBS、VBS、
 cluster bootstrap 或 action-gate 结论。固定 case catalog、二进制优化器适配和实验协议应在
 单独的 benchmark-validation 任务中定义。
+
+## Wang 2025 重叠扩展
+
+`Wang2025OverlappingProblem` 依据汪雨琪 2025 年硕士论文《面向大规模优化问题的协同
+进化算法研究与测试函数构建》第 4 章及其 MATLAB 代码实现复杂拓扑重叠版本。该版本使用
+如下明确契约：
+
+- `dimension` 始终是唯一决策变量数，不随重叠度变化；
+- `overlap_count=C` 是恰好同时属于两个组的共享变量数；
+- `overlap_ratio=OD=C/dimension`；
+- `beta` 控制共享变量集中进入多少个目标组，值越大越集中；
+- `gamma` 控制每个目标组的共享变量来自多少个 base owner，值越大关联组越多；
+- 最终组成员总数为 `dimension + overlap_count`，每组规模仍位于配置的上下限内。
+
+这修正了继承 MATLAB 代码中 `zn=n-C` 导致实际决策维数缩小，以及 `C` 实际变成重复槽位
+而非共享变量数的问题。原代码还会在部分 30% 重叠随机种子上报
+`No suitable groups available`；Python 版本在实例生成时完成容量校验并显式失败。
+
+论文的 `delta` 用于控制单个共享变量在三个及以上子组中的最大重复次数。当前 ARAC 的
+relation/action 契约是双 owner，因此 v1 明确固定 `max_shared_memberships=2`，并把该值写入
+manifest 和 hash；不会把多 owner 拓扑伪装成可运行的双 owner relation。
+
+Wang 版本沿用其 MATLAB 实现的汉明距离 Trap 语义：模板的逐位反码是全局最优，局部最优
+高度为组规模的 `0.8` 倍。`legacy_objective()` 保留 MATLAB 的负 reward 数值，常规调用仍
+返回最优值为 0 的非负 error。
+
+```python
+from arac.benchmarks import Wang2025OverlappingProblem, Wang2025OverlappingSpec
+
+spec = Wang2025OverlappingSpec(
+    dimension=1000,
+    min_group_size=2,
+    max_group_size=5,
+    alpha=0.8,
+    overlap_count=300,
+    beta=0.4,
+    gamma=0.4,
+    permuted=True,
+    seed=20260721,
+)
+problem = Wang2025OverlappingProblem.generate(spec)
+```
