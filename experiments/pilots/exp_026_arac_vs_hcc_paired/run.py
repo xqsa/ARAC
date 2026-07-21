@@ -20,7 +20,7 @@ import statistics
 import subprocess
 import sys
 import time
-from typing import Mapping, Sequence
+from typing import Callable, Mapping, Sequence
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
@@ -270,23 +270,107 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
     }
 
 
-def run_one(spec: RunSpec, config: Mapping[str, object], python_executable: str, *, run_subprocess: bool = True) -> dict[str, object]:
-    spec.run_directory.mkdir(parents=True, exist_ok=True)
-    command = build_command(spec, config, python_executable)
+def _validate_existing_trajectory(
+    spec: RunSpec,
+    *,
+    execution_source: str,
+) -> dict[str, object]:
     started = time.perf_counter()
-    completed = (
-        subprocess.run(command, cwd=VENDOR_ROOT, capture_output=True, text=True, env={**os.environ, **SUBPROCESS_ENVIRONMENT})
-        if run_subprocess else subprocess.CompletedProcess(command, 0, "", "")
-    )
-    elapsed = time.perf_counter() - started
-    if completed.returncode != 0:
-        return {"trajectory_id": spec.trajectory_id, "case": spec.case, "seed": spec.seed, "action": spec.action, "ok": False, "status": f"runner_failed_{completed.returncode}", "elapsed_seconds": elapsed, "stderr_tail": (completed.stderr or completed.stdout)[-2000:]}
     try:
         result = read_trajectory_artifacts(spec)
     except (OSError, TypeError, ValueError) as error:
-        return {"trajectory_id": spec.trajectory_id, "case": spec.case, "seed": spec.seed, "action": spec.action, "ok": False, "status": "artifact_gate_failed", "elapsed_seconds": elapsed, "error": str(error)}
-    result.update({"ok": True, "status": "completed", "elapsed_seconds": elapsed})
+        return {
+            "trajectory_id": spec.trajectory_id,
+            "case": spec.case,
+            "seed": spec.seed,
+            "action": spec.action,
+            "ok": False,
+            "status": "artifact_gate_failed",
+            "execution_source": execution_source,
+            "elapsed_seconds": time.perf_counter() - started,
+            "error": str(error),
+        }
+    result.update(
+        {
+            "ok": True,
+            "status": "completed",
+            "execution_source": execution_source,
+            "elapsed_seconds": time.perf_counter() - started,
+        }
+    )
     return result
+
+
+def _read_log_tail(path: Path, max_characters: int = 2000) -> str:
+    if not path.is_file():
+        return ""
+    with path.open("rb") as handle:
+        handle.seek(0, os.SEEK_END)
+        size = handle.tell()
+        handle.seek(max(0, size - max_characters * 4))
+        return handle.read().decode("utf-8", errors="replace")[-max_characters:]
+
+
+def run_one(spec: RunSpec, config: Mapping[str, object], python_executable: str, *, run_subprocess: bool = True) -> dict[str, object]:
+    if not run_subprocess:
+        return _validate_existing_trajectory(spec, execution_source="offline_validation")
+
+    spec.run_directory.mkdir(parents=True, exist_ok=True)
+    command = build_command(spec, config, python_executable)
+    runner_log_path = spec.run_directory / "runner.log"
+    started = time.perf_counter()
+    with runner_log_path.open("wb") as runner_log:
+        completed = subprocess.run(
+            command,
+            cwd=VENDOR_ROOT,
+            stdout=runner_log,
+            stderr=subprocess.STDOUT,
+            env={**os.environ, **SUBPROCESS_ENVIRONMENT},
+        )
+    elapsed = time.perf_counter() - started
+    if completed.returncode != 0:
+        return {
+            "trajectory_id": spec.trajectory_id,
+            "case": spec.case,
+            "seed": spec.seed,
+            "action": spec.action,
+            "ok": False,
+            "status": f"runner_failed_{completed.returncode}",
+            "execution_source": "fresh_execution",
+            "elapsed_seconds": elapsed,
+            "runner_log_path": str(runner_log_path),
+            "stderr_tail": _read_log_tail(runner_log_path),
+        }
+    result = _validate_existing_trajectory(spec, execution_source="fresh_execution")
+    result["elapsed_seconds"] = elapsed
+    result["runner_log_path"] = str(runner_log_path)
+    return result
+
+
+def _run_one_resumable(
+    spec: RunSpec,
+    config: Mapping[str, object],
+    python_executable: str,
+) -> dict[str, object]:
+    existing = _validate_existing_trajectory(
+        spec,
+        execution_source="reused_valid_artifact",
+    )
+    if existing["ok"] is True:
+        return existing
+
+    result = run_one(spec, config, python_executable, run_subprocess=True)
+    result["execution_source"] = "rerun_after_artifact_gate_failure"
+    result["resume_gate_error"] = existing["error"]
+    return result
+
+
+def _print_trajectory_progress(result: Mapping[str, object]) -> None:
+    print(
+        f"[{result['case']}/seed{result['seed']}] {result['status']} "
+        f"source={result['execution_source']}",
+        flush=True,
+    )
 
 
 def _quantile(values: Sequence[float], probability: float) -> float:
@@ -345,14 +429,40 @@ def _write_json(path: Path, payload: Mapping[str, object]) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8")
 
 
-def run_experiment(*, config_path: Path = DEFAULT_CONFIG_PATH, output_root: Path = DEFAULT_OUTPUT_ROOT, python_executable: str = sys.executable, jobs: int | None = None, reuse_existing: bool = False) -> tuple[list[dict[str, object]], list[dict[str, object]], dict[str, object]]:
+def run_experiment(
+    *,
+    config_path: Path = DEFAULT_CONFIG_PATH,
+    output_root: Path = DEFAULT_OUTPUT_ROOT,
+    python_executable: str = sys.executable,
+    jobs: int | None = None,
+    reuse_existing: bool = False,
+    resume: bool = False,
+    progress_callback: Callable[[Mapping[str, object]], None] = _print_trajectory_progress,
+) -> tuple[list[dict[str, object]], list[dict[str, object]], dict[str, object]]:
+    _require(not (reuse_existing and resume), "reuse_existing and resume are mutually exclusive")
     config = load_config(config_path)
     specs = build_run_matrix(config, output_root)
     workers = int(config["execution"]["jobs"]) if jobs is None else jobs  # type: ignore[index]
     _require(workers > 0, "jobs must be positive")
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = [pool.submit(run_one, spec, config, python_executable, run_subprocess=not reuse_existing) for spec in specs]
-        results = [future.result() for future in as_completed(futures)]
+        if resume:
+            futures = [pool.submit(_run_one_resumable, spec, config, python_executable) for spec in specs]
+        else:
+            futures = [
+                pool.submit(
+                    run_one,
+                    spec,
+                    config,
+                    python_executable,
+                    run_subprocess=not reuse_existing,
+                )
+                for spec in specs
+            ]
+        results = []
+        for future in as_completed(futures):
+            result = future.result()
+            results.append(result)
+            progress_callback(result)
     results.sort(key=lambda row: (str(row["case"]), int(row["seed"])))
     summaries: list[dict[str, object]] = []
     if all(row.get("ok") is True for row in results):
@@ -364,6 +474,9 @@ def run_experiment(*, config_path: Path = DEFAULT_CONFIG_PATH, output_root: Path
         "integrity_gate_passed": len(results) == 50 and len(summaries) == len(SUPPORTED_CASES),
         "exact_max_fes": EXACT_MAX_FES, "native_rerun": False, "paper_baseline_rerun": False,
         "five_seed_descriptive_only": True, "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
+        "execution_mode": "offline_validation" if reuse_existing else "resume" if resume else "fresh",
+        "reused_trajectory_count": sum(row.get("execution_source") == "reused_valid_artifact" for row in results),
+        "executed_trajectory_count": sum(row.get("execution_source") in {"fresh_execution", "rerun_after_artifact_gate_failure"} for row in results),
     }
     _write_json(output_root / "run_summary.json", {**manifest, "results": results, "case_summaries": summaries})
     return results, summaries, manifest
@@ -375,13 +488,28 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--python-executable", default=sys.executable)
     parser.add_argument("--jobs", type=int, default=None)
-    parser.add_argument("--reuse-existing", action="store_true")
+    execution_mode = parser.add_mutually_exclusive_group()
+    execution_mode.add_argument(
+        "--reuse-existing",
+        action="store_true",
+        help="validate all existing artifacts without launching runner subprocesses",
+    )
+    execution_mode.add_argument(
+        "--resume",
+        action="store_true",
+        help="reuse strictly valid trajectories and rerun only missing or invalid ones",
+    )
     args = parser.parse_args(argv)
     if args.jobs is not None and args.jobs <= 0:
         parser.error("--jobs must be positive")
-    results, summaries, manifest = run_experiment(config_path=args.config, output_root=args.output_root, python_executable=args.python_executable, jobs=args.jobs, reuse_existing=args.reuse_existing)
-    for result in results:
-        print(f"[{result['case']}/seed{result['seed']}] {result['status']}", flush=True)
+    _results, summaries, manifest = run_experiment(
+        config_path=args.config,
+        output_root=args.output_root,
+        python_executable=args.python_executable,
+        jobs=args.jobs,
+        reuse_existing=args.reuse_existing,
+        resume=args.resume,
+    )
     for summary in summaries:
         print(f"[{summary['case']}] n=5 mean={summary['mean_error']:.6e} median={summary['median_error']:.6e}", flush=True)
     print(f"Summary: {args.output_root / 'run_summary.json'}", flush=True)

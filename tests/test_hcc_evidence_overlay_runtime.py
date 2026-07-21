@@ -991,6 +991,48 @@ def test_public_relation_action_sets_preserve_all_four_probe_candidates() -> Non
     assert len(first.action_set_hash) == 64
 
 
+def test_persistent_phase2_probe_does_not_require_future_delayed_labels(
+    tmp_path: Path,
+) -> None:
+    observer = HccEvidenceOverlayObserver(
+        mode="paired_owner",
+        grouping_result=GROUPS,
+        problem_id="A4",
+        seed=117,
+        run_id="persistent-phase2",
+        configured_max_fes=CONFIGURED_MAX_FES,
+        terminal_tolerance_fe=0,
+        lower_bound=-10.0,
+        upper_bound=10.0,
+        top_relation_count=1,
+        require_delayed_outcomes=False,
+    )
+    anchor = _prepare(observer)
+    observer.execute_barrier(
+        _objective,
+        anchor,
+        remaining_fe=100,
+        normal_sweep_fe=60,
+        tolerance_fe=0,
+    )
+    observer.record_runtime_audit(
+        fingerprints_before={"runtime": "a" * 64},
+        fingerprints_after={"runtime": "a" * 64},
+        probe_start_fe=180,
+        probe_end_fe=184,
+    )
+
+    assert not observer.delayed_outcomes_pending
+    paths, manifest = _write_complete_artifacts(observer, tmp_path)
+    _, delayed_rows = _read_csv(paths.delayed_outcomes)
+    assert delayed_rows == []
+    assert manifest["delayed_outcomes_required"] == 0
+    assert manifest["delayed_label_expected"] == 0
+    assert manifest["delayed_label_closed"] == 0
+    assert manifest["observer_integrity"] == 1
+    assert manifest["applicable"] == 1
+
+
 def test_terminal_tolerance_is_frozen_even_without_sweeps_or_barrier(
     tmp_path: Path,
 ) -> None:

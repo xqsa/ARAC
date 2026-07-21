@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import math
 from pathlib import Path
 
@@ -113,3 +114,51 @@ def test_real_e1_action_ceiling_skips_empty_overlap_relations(
     assert int(budget["cc_phase_fe"]) > 0
     assert int(budget["same_budget_violation"]) == 0
     assert int(budget["fitness_record_fe"]) <= config.max_fes
+
+
+def test_real_r4_persistent_phase2_starts_immediately_after_probe_barrier(
+    tmp_path: Path,
+) -> None:
+    config = hcc_smoke_runner.SmokeConfig(
+        max_fes=12_000,
+        seed=117,
+        run_id="entrypoint-r4-persistent-phase2",
+        verbose=0,
+        arac_action=hcc_smoke_runner.EVIDENCE_ACTION_CONTROLLER_V37,
+        enable_relation_dispatch=True,
+        relation_policy_mode=hcc_smoke_runner.PERSISTENT_PHASE2_POLICY,
+        budget_accounting="strict",
+        skip_plots=True,
+        aob_data_root=hcc_smoke_runner.DATA_DIR.resolve(),
+        evidence_overlay_mode="paired_owner",
+        runtime_probe_repair_mode="hard_repair",
+        group_optimizer_mode=FULL_CMAES_MODE,
+        persistent_phase2_action=hcc_smoke_runner.FULL_SPACE_SEP_CMA_ACTION,
+    )
+
+    fitness_record, _, _ = hcc_smoke_runner.run_problem(
+        "rastrigin",
+        4,
+        tmp_path,
+        config,
+    )
+
+    action = json.loads(
+        (tmp_path / "persistent_phase2_action.json").read_text(encoding="utf-8")
+    )
+    manifest = json.loads(
+        (tmp_path / "R4_evidence_overlay_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert len(fitness_record) == config.max_fes
+    assert manifest["complete_sweep_count"] == 3
+    assert manifest["delayed_outcomes_required"] == 0
+    assert manifest["delayed_label_expected"] == 0
+    assert manifest["observer_integrity"] == 1
+    assert action["selection_fe"] == action["checkpoint_fe"]
+    assert action["checkpoint_fe"] == manifest["probe_end_fe"]
+    assert action["action_start_fe"] == action["checkpoint_fe"] + 1
+    assert action["action"]["target_sweep"] == action["action"]["issued_sweep"] + 1
+    assert action["start_sweep"] == action["action"]["target_sweep"]

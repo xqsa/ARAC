@@ -25,3 +25,14 @@ Run with:
 ```powershell
 python experiments/pilots/exp_026_arac_vs_hcc_paired/run.py
 ```
+
+Each trajectory streams merged runner output to its own `runner.log`. If a run
+is interrupted, resume with:
+
+```powershell
+python experiments/pilots/exp_026_arac_vs_hcc_paired/run.py --resume
+```
+
+Resume reuses a trajectory only after the full artifact gate passes; missing or
+invalid trajectories are executed again. Use `--reuse-existing` for read-only
+validation that never launches a runner subprocess.

@@ -30,6 +30,14 @@ from .budget_reallocation import (
     budget_allocation_parameter_hash,
     execute_budget_allocation_action,
 )
+from .persistent_budget_reallocation import (
+    PERSISTENT_BUDGET_REALLOCATION_ACTION_SPEC,
+    PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    PersistentBudgetAllocationAction,
+    PersistentBudgetAllocationExecutionState,
+    PersistentBudgetApplication,
+    execute_persistent_budget_allocation_action,
+)
 from .sweep_ordering import (
     SWEEP_ORDERING_ACTION_SPECS,
     apply_sweep_ordering_action,
@@ -82,6 +90,11 @@ __all__ = [
     "FullSpaceSepCmaExecutionState",
     "GroupOptimizerAction",
     "NATIVE_EQ8_ACTION",
+    "PERSISTENT_BUDGET_REALLOCATION_ACTION_SPEC",
+    "PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION",
+    "PersistentBudgetAllocationAction",
+    "PersistentBudgetAllocationExecutionState",
+    "PersistentBudgetApplication",
     "SHARED_VARIABLE_ACTION_SPECS",
     "SWEEP_ORDERING_ACTION_SPECS",
     "TRUE_NO_WRITEBACK_ACTION",
@@ -103,5 +116,6 @@ __all__ = [
     "full_space_sep_cma_anchor_hash",
     "full_space_vector_hash",
     "execute_budget_allocation_action",
+    "execute_persistent_budget_allocation_action",
     "resolve_group_optimizer_action",
 ]

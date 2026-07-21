@@ -462,6 +462,7 @@ class HccEvidenceOverlayObserver:
         fresh_optimizer_execution: bool = True,
         top_relation_count: int | None = TOP_RELATION_COUNT,
         allow_structural_cutoff_tie_break: bool = False,
+        require_delayed_outcomes: bool = True,
     ) -> None:
         if mode not in EVIDENCE_OVERLAY_MODES:
             raise ValueError("unsupported evidence overlay mode")
@@ -473,6 +474,8 @@ class HccEvidenceOverlayObserver:
             raise ValueError("evidence overlay requires a fresh optimizer execution")
         if not isinstance(allow_structural_cutoff_tie_break, bool):
             raise ValueError("allow_structural_cutoff_tie_break must be boolean")
+        if not isinstance(require_delayed_outcomes, bool):
+            raise ValueError("require_delayed_outcomes must be boolean")
         lower = _finite(lower_bound, name="lower_bound")
         upper = _finite(upper_bound, name="upper_bound")
         if upper <= lower:
@@ -500,6 +503,7 @@ class HccEvidenceOverlayObserver:
         self.allow_structural_cutoff_tie_break = (
             allow_structural_cutoff_tie_break
         )
+        self.require_delayed_outcomes = require_delayed_outcomes
         self.ordering = build_reference_blind_ordering(grouping_result)
         self.groups = self.ordering.groups
         self.topology = build_overlap_hypergraph(self.groups)
@@ -1201,16 +1205,17 @@ class HccEvidenceOverlayObserver:
         if snapshot is None:
             raise EvidenceOverlayRuntimeError("probe executed without a phase boundary")
         shared = scored.relation.key.shared_variable_indices
-        self._pending_outcomes.append(
-            _PendingOwnerOutcome(
-                relation=scored.relation.key,
-                action_sweep_index=snapshot.sweep_index,
-                anchor_error=fitness[0],
-                anchor_shared_values=tuple(anchor[index] for index in shared),
-                left_shared_values=tuple(probe.x_left[index] for index in shared),
-                right_shared_values=tuple(probe.x_right[index] for index in shared),
+        if self.require_delayed_outcomes:
+            self._pending_outcomes.append(
+                _PendingOwnerOutcome(
+                    relation=scored.relation.key,
+                    action_sweep_index=snapshot.sweep_index,
+                    anchor_error=fitness[0],
+                    anchor_shared_values=tuple(anchor[index] for index in shared),
+                    left_shared_values=tuple(probe.x_left[index] for index in shared),
+                    right_shared_values=tuple(probe.x_right[index] for index in shared),
+                )
             )
-        )
 
     def _resolve_delayed_outcomes(self, snapshot: CompletedSweepSnapshot) -> None:
         pending = tuple(self._pending_outcomes)
@@ -1579,7 +1584,11 @@ class HccEvidenceOverlayObserver:
             path.name: _file_hash(path) for path, _, _ in artifact_rows
         }
         result = self._barrier_result
-        delayed_expected = 2 * len(self._relation_probe_results)
+        delayed_expected = (
+            2 * len(self._relation_probe_results)
+            if self.require_delayed_outcomes
+            else 0
+        )
         delayed_closed = sum(row["label_closed"] == "1" for row in self._delayed_rows)
         integrity = bool(
             self._failure is None
@@ -1635,6 +1644,7 @@ class HccEvidenceOverlayObserver:
                 row["runtime_consumed"] != "1" for row in runtime_action_rows
             ),
             "aob_truth_runtime_used": 0,
+            "delayed_outcomes_required": int(self.require_delayed_outcomes),
             "runtime_input_fields": list(RUNTIME_INPUT_FIELDS),
             "proposal_disagreement_metric": PROPOSAL_DISAGREEMENT_METRIC,
             "local_optimum_top_k": LOCAL_OPTIMUM_TOP_K,
