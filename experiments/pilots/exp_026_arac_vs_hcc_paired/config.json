@@ -1,62 +1,70 @@
 {
-  "protocol_version": "paired-action-validation-v3",
+  "protocol_version": "persistent-phase2-action-validation-v1",
   "experiment_id": "exp_026_arac_vs_hcc_paired",
-  "config_schema_version": 3,
-  "stage": "action_validation",
-  "preregistration_date": "2026-07-20",
+  "config_schema_version": 5,
+  "stage": "persistent_phase2_action_validation",
+  "preregistration_date": "2026-07-21",
   "executor": "Codex",
-  "purpose": "validate_diagonal_covariance_action_against_native_hcc",
-  "description": "Paired same-case, same-seed, same-FE validation of one frozen group-optimizer action. No evidence selector, bandit, relation dispatch, or runtime probe is enabled.",
+  "purpose": "validate_persistent_phase2_rs_actions_at_exact_terminal_fe",
+  "description": "Five-seed persistent Phase2 action pilot on R2-R6 and S2-S6. Each trajectory selects and consumes exactly one frozen action through 3,000,000 FE. Native HCC and paper baselines are not rerun.",
   "execution": {
-    "cases": ["E1", "E3", "A4", "R4", "S5"],
+    "cases": ["R2", "R3", "R4", "R5", "R6", "S2", "S3", "S4", "S5", "S6"],
     "seeds": [117, 118, 119, 120, 121],
-    "max_fes": 300000,
-    "jobs": 5,
+    "max_fes": 3000000,
+    "jobs": 12,
     "budget_accounting": "strict",
     "search_state_backend": "phase_i_mmes",
     "cmaes_restart": true,
     "mmes_restart": true,
     "skip_plots": true,
-    "arm_a": {
-      "label": "native_full_cmaes",
-      "action_surface": "group_optimizer_type",
-      "arac_action": "native_eq8",
-      "group_optimizer_mode": "full_cmaes",
-      "enable_relation_dispatch": false,
-      "relation_policy": "controller_v31",
+    "runner_contract": {
+      "arac_action": "arac_evidence_action_controller_v37",
+      "enable_relation_dispatch": true,
+      "relation_policy": "persistent_phase2",
       "runtime_probe_repair_mode": "hard_repair",
-      "evidence_overlay_mode": "off"
+      "evidence_overlay_mode": "paired_owner",
+      "group_optimizer_mode": "full_cmaes"
     },
-    "arm_b": {
-      "label": "diagonal_covariance",
-      "action_surface": "group_optimizer_type",
-      "arac_action": "native_eq8",
-      "group_optimizer_mode": "diagonal_covariance",
-      "enable_relation_dispatch": false,
-      "relation_policy": "controller_v31",
-      "runtime_probe_repair_mode": "hard_repair",
-      "evidence_overlay_mode": "off"
+    "case_actions": {
+      "R2": "full_space_sep_cma",
+      "R3": "full_space_sep_cma",
+      "R4": "full_space_sep_cma",
+      "R5": "full_space_sep_cma",
+      "R6": "full_space_sep_cma",
+      "S2": "persistent_frozen_efficiency_budget_reallocation",
+      "S3": "persistent_frozen_efficiency_budget_reallocation",
+      "S4": "persistent_frozen_efficiency_budget_reallocation",
+      "S5": "persistent_frozen_efficiency_budget_reallocation",
+      "S6": "persistent_frozen_efficiency_budget_reallocation"
     }
   },
   "analysis": {
-    "pairing": "same case and seed across both arms",
-    "primary_metric": "fixed_comparison_fe_best_so_far_error",
-    "delta_definition": "log((native_comparison_error + 1e-300) / (action_comparison_error + 1e-300))",
-    "case_aggregation": "macro_mean",
-    "bootstrap_method": "within_case_case_seed_cluster_bootstrap",
+    "primary_metric": "exact_3000000_fe_best_so_far_error",
+    "case_summary": ["mean", "median", "sample_std", "bootstrap_mean_95_ci"],
+    "bootstrap_method": "within_case_seed_bootstrap",
     "bootstrap_replicates": 2000,
     "bootstrap_seed": 2026071901,
-    "material_positive_multiplier": 1.01,
-    "catastrophic_multiplier": 1.20
+    "paper_comparison": "descriptive_ratio_only",
+    "paper_raw_seed_data_available": false
   },
-  "forbidden_runtime_inputs": [
-    "evidence_selector",
-    "action_bandit",
-    "runtime_probe",
-    "relation_dispatch",
-    "oracle",
-    "final_error",
-    "relative_gain",
-    "paper_reported_baseline"
-  ]
+  "paper_reference": {
+    "source": "Two-Phase-CC.pdf, Table 2",
+    "source_sha256": "133d19b1285c567684007ed7f924b0e5a82b84a0d3e8f8d0298470a7f92ed3d2",
+    "dimension": 1000,
+    "max_fes": 3000000,
+    "reported_run_count": 25,
+    "cases": {
+      "R2": {"reported_bold_solver": "Sep-CMAES", "reported_bold_mean": 248000.0, "reported_bold_std": 38.2, "numeric_best_solver": "Sep-CMAES", "numeric_best_mean": 248000.0, "numeric_best_std": 38.2},
+      "R3": {"reported_bold_solver": "Sep-CMAES", "reported_bold_mean": 328000.0, "reported_bold_std": 41.3, "numeric_best_solver": "Sep-CMAES", "numeric_best_mean": 328000.0, "numeric_best_std": 41.3},
+      "R4": {"reported_bold_solver": "Sep-CMAES", "reported_bold_mean": 320000.0, "reported_bold_std": 33.7, "numeric_best_solver": "Sep-CMAES", "numeric_best_mean": 320000.0, "numeric_best_std": 33.7},
+      "R5": {"reported_bold_solver": "Sep-CMAES", "reported_bold_mean": 248000.0, "reported_bold_std": 19.2, "numeric_best_solver": "Sep-CMAES", "numeric_best_mean": 248000.0, "numeric_best_std": 19.2},
+      "R6": {"reported_bold_solver": "Sep-CMAES", "reported_bold_mean": 266000.0, "reported_bold_std": 43.5, "numeric_best_solver": "Sep-CMAES", "numeric_best_mean": 266000.0, "numeric_best_std": 43.5},
+      "S2": {"reported_bold_solver": "HCC-ES", "reported_bold_mean": 5580.0, "reported_bold_std": 32.1, "numeric_best_solver": "HCC-ES", "numeric_best_mean": 5580.0, "numeric_best_std": 32.1},
+      "S3": {"reported_bold_solver": "HCC-ES", "reported_bold_mean": 9720.0, "reported_bold_std": 47.5, "numeric_best_solver": "HCC-ES", "numeric_best_mean": 9720.0, "numeric_best_std": 47.5},
+      "S4": {"reported_bold_solver": "HCC-ES", "reported_bold_mean": 1240.0, "reported_bold_std": 53.1, "numeric_best_solver": "HCC-ES", "numeric_best_mean": 1240.0, "numeric_best_std": 53.1},
+      "S5": {"reported_bold_solver": "HCC-ES", "reported_bold_mean": 9230.0, "reported_bold_std": 395.0, "numeric_best_solver": "HCC-ES", "numeric_best_mean": 9230.0, "numeric_best_std": 395.0},
+      "S6": {"reported_bold_solver": "MM-ES", "reported_bold_mean": 13300.0, "reported_bold_std": 71.9, "numeric_best_solver": "MM-ES", "numeric_best_mean": 13300.0, "numeric_best_std": 71.9}
+    }
+  },
+  "forbidden_runtime_inputs": ["evidence_selector", "action_bandit", "oracle_winner", "future_fitness", "final_error", "paper_reported_baseline", "problem_family_prior_as_selector"]
 }

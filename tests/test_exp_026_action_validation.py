@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
-import math
 from pathlib import Path
 
 import pytest
@@ -15,225 +14,133 @@ def _config() -> dict[str, object]:
     return exp026.load_config(exp026.DEFAULT_CONFIG_PATH)
 
 
-def _result(arm: str, case: str, seed: int, error: float) -> dict[str, object]:
-    return {
-        "arm": arm,
-        "case": case,
-        "seed": seed,
-        "ok": True,
-        "comparison_fe": 299_981,
-        "final_error": error,
-    }
+def _spec(case: str = "R4", seed: int = 117, output_root: Path = Path("unused")) -> exp026.RunSpec:
+    return exp026.RunSpec("exp_026_arac_vs_hcc_paired", case, seed, exp026._expected_action(case), output_root)
 
 
-def _paired_results(*, action_multiplier: float = 0.9) -> list[dict[str, object]]:
+def _write_valid_artifacts(spec: exp026.RunSpec, *, schema: str = exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA, terminal_fe: int = exp026.EXACT_MAX_FES, action_hash: str = "a" * 64) -> None:
+    spec.result_directory.mkdir(parents=True)
+    (spec.result_directory / "run_summary.json").write_text(json.dumps({
+        "protocol_version": exp026.RUN_SUMMARY_PROTOCOL_VERSION,
+        "problem_id": spec.case,
+        "seed": spec.seed,
+        "configured_max_fes": exp026.EXACT_MAX_FES,
+        "fitness_evaluations": exp026.EXACT_MAX_FES,
+        "final_error": 12.5,
+    }), encoding="utf-8")
+    (spec.result_directory / "persistent_phase2_action.json").write_text(json.dumps({
+        "schema_version": schema,
+        "problem_id": spec.case,
+        "run_seed": spec.seed,
+        "configured_max_fes": exp026.EXACT_MAX_FES,
+        "terminal_fe": terminal_fe,
+        "selected_action": spec.action,
+        "selection_count": 1,
+        "runtime_authorized": True,
+        "runtime_consumed": True,
+        "action_hash": action_hash,
+        "lifecycle": {"action_hash": action_hash, "status": "completed", "consumed_fes": 1000},
+    }), encoding="utf-8")
+
+
+def _completed_results() -> list[dict[str, object]]:
+    config = _config()
+    results = []
+    for index, spec in enumerate(exp026.build_run_matrix(config, Path("unused"))):
+        results.append({"trajectory_id": spec.trajectory_id, "case": spec.case, "seed": spec.seed, "action": spec.action, "final_error": 100.0 + index, "ok": True, "status": "completed"})
+    return results
+
+
+def test_config_freezes_exact_persistent_phase2_cohort() -> None:
     config = _config()
     execution = config["execution"]
     assert isinstance(execution, dict)
-    arm_a = execution["arm_a"]
-    arm_b = execution["arm_b"]
-    assert isinstance(arm_a, dict) and isinstance(arm_b, dict)
-    rows: list[dict[str, object]] = []
-    for case in exp026.SUPPORTED_CASES:
-        for seed in exp026.VALIDATION_SEEDS:
-            rows.append(_result(str(arm_a["label"]), case, seed, 100.0))
-            rows.append(
-                _result(str(arm_b["label"]), case, seed, 100.0 * action_multiplier)
-            )
-    return rows
-
-
-def _analyze(results: list[dict[str, object]], *, replicates: int = 100) -> dict[str, object]:
-    config = _config()
-    execution = config["execution"]
-    assert isinstance(execution, dict)
-    arm_a = execution["arm_a"]
-    arm_b = execution["arm_b"]
-    assert isinstance(arm_a, dict) and isinstance(arm_b, dict)
-    return exp026.build_paired_analysis(
-        results,
-        native_label=str(arm_a["label"]),
-        action_label=str(arm_b["label"]),
-        expected_cases=exp026.SUPPORTED_CASES,
-        expected_seeds=exp026.VALIDATION_SEEDS,
-        bootstrap_replicates=replicates,
-        bootstrap_seed=2026071901,
-        material_positive_multiplier=1.01,
-        catastrophic_multiplier=1.20,
-    )
-
-
-def test_config_is_fixed_action_validation_without_selector() -> None:
-    config = _config()
-    execution = config["execution"]
-    assert isinstance(execution, dict)
-
     assert tuple(execution["cases"]) == exp026.SUPPORTED_CASES
     assert tuple(execution["seeds"]) == exp026.VALIDATION_SEEDS
-    assert execution["max_fes"] >= 300_000
-    assert execution["arm_a"]["group_optimizer_mode"] == "full_cmaes"
-    assert execution["arm_b"]["group_optimizer_mode"] == "diagonal_covariance"
-    assert execution["arm_a"]["enable_relation_dispatch"] is False
-    assert execution["arm_b"]["enable_relation_dispatch"] is False
-    assert "full action library" not in config["description"].lower()
-    assert "action_bandit" in config["forbidden_runtime_inputs"]
+    assert execution["max_fes"] == 3_000_000
+    assert execution["jobs"] == 12
+    assert execution["runner_contract"]["evidence_overlay_mode"] == "paired_owner"
+    assert "arm_a" not in execution and "arm_b" not in execution
 
 
-@pytest.mark.parametrize("arm_key", ["arm_a", "arm_b"])
 @pytest.mark.parametrize("case", exp026.SUPPORTED_CASES)
-def test_all_arm_commands_pass_the_real_runner_parser(
-    arm_key: str,
-    case: str,
-    tmp_path: Path,
-) -> None:
+def test_case_command_passes_the_real_runner_parser(case: str, tmp_path: Path) -> None:
     config = _config()
-    execution = config["execution"]
-    assert isinstance(execution, dict)
-    arm = execution[arm_key]
-    assert isinstance(arm, dict)
-    command = exp026.build_command(
-        str(arm["label"]),
-        arm,
-        case,
-        117,
-        config,
-        tmp_path,
-        "python",
-    )
-
+    spec = _spec(case, output_root=tmp_path)
+    command = exp026.build_command(spec, config, "python")
     parsed = hcc_smoke_runner.parse_args(list(command[2:]))
 
-    assert parsed.group_optimizer_mode == arm["group_optimizer_mode"]
-    assert parsed.enable_relation_dispatch is False
-    assert parsed.evidence_overlay_mode == "off"
-    assert parsed.runtime_probe_repair_mode == "hard_repair"
+    assert parsed.max_fes == exp026.EXACT_MAX_FES
+    assert parsed.relation_policy == "persistent_phase2"
+    assert parsed.persistent_phase2_action == spec.action
+    assert parsed.evidence_overlay_mode == "paired_owner"
+    assert parsed.enable_relation_dispatch is True
 
 
-def test_config_rejects_case_outside_runner_contract(tmp_path: Path) -> None:
+def test_config_rejects_old_or_relaxed_protocol(tmp_path: Path) -> None:
     payload = deepcopy(_config())
-    payload["execution"]["cases"] = ["E2", *exp026.SUPPORTED_CASES[1:]]
-    path = tmp_path / "bad-config.json"
+    payload["execution"]["max_fes"] = 300_000
+    path = tmp_path / "bad.json"
     path.write_text(json.dumps(payload), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="unsupported AOB cases"):
+    with pytest.raises(ValueError, match="exact 3M"):
         exp026.load_config(path)
 
 
-def test_r4_diagnostic_subset_uses_only_r4_clusters() -> None:
-    config = _config()
-    execution = config["execution"]
-    assert isinstance(execution, dict)
-    arm_a = execution["arm_a"]
-    arm_b = execution["arm_b"]
-    assert isinstance(arm_a, dict) and isinstance(arm_b, dict)
-    results = []
-    for seed in exp026.VALIDATION_SEEDS:
-        results.append(_result(str(arm_a["label"]), "R4", seed, 100.0))
-        results.append(_result(str(arm_b["label"]), "R4", seed, 90.0))
+def test_artifact_gate_accepts_exact_fe_and_unique_consumed_action(tmp_path: Path) -> None:
+    spec = _spec(output_root=tmp_path)
+    _write_valid_artifacts(spec)
 
-    analysis = exp026.build_paired_analysis(
-        results,
-        native_label=str(arm_a["label"]),
-        action_label=str(arm_b["label"]),
-        expected_cases=("R4",),
-        expected_seeds=exp026.VALIDATION_SEEDS,
-        bootstrap_replicates=100,
-        bootstrap_seed=2026071901,
-        material_positive_multiplier=1.01,
-        catastrophic_multiplier=1.20,
-    )
+    audited = exp026.read_trajectory_artifacts(spec)
 
-    assert analysis["case_count"] == 1
-    assert analysis["pair_count"] == 5
-    assert tuple(analysis["case_summaries"]) == ("R4",)
-    assert analysis["case_macro_mean_delta_lcb"] > 0.0
+    assert audited["fitness_evaluations"] == exp026.EXACT_MAX_FES
+    assert audited["action"] == exp026.R_ACTION
+    assert audited["action_hash"] == "a" * 64
 
 
-def test_summary_is_read_only_from_exact_runner_path(tmp_path: Path) -> None:
-    config = _config()
-    execution = config["execution"]
-    assert isinstance(execution, dict)
-    arm = execution["arm_b"]
-    assert isinstance(arm, dict)
-    exact_path = exp026.expected_summary_path(
-        tmp_path, config, str(arm["label"]), "S5", 117
-    )
-    wrong_path = exp026.run_directory(tmp_path, str(arm["label"]), "S5", 117)
-    wrong_path.mkdir(parents=True)
-    (wrong_path / "run_summary.json").write_text("{}", encoding="utf-8")
+@pytest.mark.parametrize(
+    ("schema", "terminal_fe", "match"),
+    [("persistent-phase2-action-v0", exp026.EXACT_MAX_FES, "schema_version"), (exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA, exp026.EXACT_MAX_FES - 1, "terminal_fe")],
+)
+def test_artifact_gate_rejects_old_schema_and_nonterminal_fe(tmp_path: Path, schema: str, terminal_fe: int, match: str) -> None:
+    spec = _spec(output_root=tmp_path)
+    _write_valid_artifacts(spec, schema=schema, terminal_fe=terminal_fe)
 
-    with pytest.raises(FileNotFoundError, match="exact path"):
-        exp026.read_run_summary(
-            exact_path,
-            expected_case="S5",
-            expected_seed=117,
-            expected_max_fes=300_000,
-            expected_optimizer_mode="diagonal_covariance",
-        )
-
-    exact_path.parent.mkdir(parents=True)
-    exact_path.write_text("not-json", encoding="utf-8")
-    with pytest.raises(ValueError, match="invalid JSON"):
-        exp026.read_run_summary(
-            exact_path,
-            expected_case="S5",
-            expected_seed=117,
-            expected_max_fes=300_000,
-            expected_optimizer_mode="diagonal_covariance",
-        )
-
-    exact_path.write_text(
-        json.dumps(
-            {
-                "protocol_version": "hcc-run-summary-v2",
-                "problem_id": "S5",
-                "seed": 117,
-                "configured_max_fes": 300_000,
-                "fitness_evaluations": 300_000,
-                "final_error": 12.5,
-                "comparison_fe": 299_981,
-                "comparison_error": 13.0,
-                "group_optimizer_mode": "diagonal_covariance",
-            }
-        ),
-        encoding="utf-8",
-    )
-
-    assert exp026.read_run_summary(
-        exact_path,
-        expected_case="S5",
-        expected_seed=117,
-        expected_max_fes=300_000,
-        expected_optimizer_mode="diagonal_covariance",
-    )["comparison_error"] == 13.0
+    with pytest.raises(ValueError, match=match):
+        exp026.read_trajectory_artifacts(spec)
 
 
-def test_paired_delta_is_positive_when_action_improves() -> None:
-    assert exp026.paired_delta(100.0, 50.0) == pytest.approx(math.log(2.0))
-    assert exp026.paired_delta(50.0, 100.0) == pytest.approx(-math.log(2.0))
+def test_artifact_gate_rejects_duplicate_or_hash_mismatched_action(tmp_path: Path) -> None:
+    spec = _spec(output_root=tmp_path)
+    _write_valid_artifacts(spec)
+    path = spec.result_directory / "persistent_phase2_action.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["selection_count"] = 2
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="selection_count"):
+        exp026.read_trajectory_artifacts(spec)
+
+    payload["selection_count"] = 1
+    payload["lifecycle"]["action_hash"] = "b" * 64
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="lifecycle hash"):
+        exp026.read_trajectory_artifacts(spec)
 
 
-def test_case_seed_bootstrap_is_reproducible() -> None:
-    first = _analyze(_paired_results(), replicates=200)
-    second = _analyze(_paired_results(), replicates=200)
+def test_case_summary_is_five_seed_descriptive_with_paper_ratios() -> None:
+    summaries = exp026.build_case_summaries(_completed_results(), _config())
+    r2 = summaries[0]
 
-    assert first["case_macro_mean_delta"] == pytest.approx(math.log(1.0 / 0.9))
-    assert first["case_macro_mean_delta_lcb"] == second["case_macro_mean_delta_lcb"]
-    assert first["case_macro_mean_delta_ucb"] == second["case_macro_mean_delta_ucb"]
-    assert first["decision"] == "candidate_for_broader_action_validation"
-
-
-def test_catastrophic_boundary_is_a_hard_rejection() -> None:
-    analysis = _analyze(_paired_results(action_multiplier=1.20))
-
-    assert analysis["catastrophic_count"] == 25
-    assert analysis["catastrophic_rate"] == 1.0
-    assert analysis["decision"] == "reject_action_catastrophic_loss"
+    assert len(summaries) == 10
+    assert r2["seed_count"] == 5
+    assert r2["sample_std_error"] > 0.0
+    assert len(r2["bootstrap_mean_95_ci"]) == 2
+    assert r2["observed_to_paper_bold_mean_ratio"] == pytest.approx(102.0 / 248000.0)
+    assert "descriptive" in r2["comparison_note"].lower()
 
 
-def test_incomplete_pair_set_fails_closed() -> None:
-    results = _paired_results()
+def test_summary_fails_closed_on_missing_seed() -> None:
+    results = _completed_results()
     results.pop()
-
-    with pytest.raises(ValueError, match="incomplete"):
-        _analyze(results)
+    with pytest.raises(ValueError, match="exactly 50"):
+        exp026.build_case_summaries(results, _config())
