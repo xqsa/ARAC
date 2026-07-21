@@ -3,9 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from arac.actions.full_space_sep_cma import (
     FULL_SPACE_SEP_CMA_ACTION,
@@ -14,10 +16,19 @@ from arac.actions.full_space_sep_cma import (
 from arac.backends.hcc_action_ceiling import native_eq8_values
 from arac.backends.hcc_action_ceiling_runtime import HccActionCeilingRuntime
 from arac.policy.action_ceiling import (
+    ACTION_CEILING_FULL_MATRIX_PROFILE,
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
+    ACTION_CEILING_KNOWN_ARMS,
+    ACTION_CEILING_PROTOCOL_VERSION,
+    ActionCeilingObservation,
     FrozenProbeCandidate,
+    RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION,
+    RS_FAMILY_RASTRIGIN_ARMS,
+    RS_FAMILY_SCHWEFEL_ARMS,
+    RS_FAMILY_TARGET_PROFILE,
     RelationActionSet,
+    action_ceiling_capture_contract,
 )
 from arac.policy.evidence_overlay import (
     BridgeWeights,
@@ -121,6 +132,271 @@ class EarlyStoppingGroupOptimizer(FakeOptimizer):
         }
 
 
+def _capture_target_context(
+    runtime: HccActionCeilingRuntime,
+    *,
+    problem_id: str,
+):
+    incumbent = np.ones(1000)
+    incumbent[4:6] = 0.0
+    return runtime.capture(
+        action_set=_action_set(),
+        cohort="real_aob",
+        problem_id=problem_id,
+        seed=117,
+        dispatch_fe=120,
+        outer_iter=3,
+        group_index=1,
+        incumbent=incumbent,
+        incumbent_fitness=998.0,
+        previous_values=(1.0, 1.0),
+        current_values=(0.0, 0.0),
+        previous_delta=1.0,
+        current_delta=2.0,
+        completed_group_deltas=(1.0, 2.0),
+        completed_group_actual_fes=(13, 13),
+        group_dims=((0, 1, 4, 5), (2, 3, 4, 5)),
+        overlapping_elements=((4, 5),),
+        population_sizes=(2, 2),
+        optimizer_budgets=(12, 12),
+        efficiency_ewma=(0.1, 0.2),
+        completed_efficiency_sweeps=3,
+        stagnation_streaks=(0, 0),
+        fitness_prefix=(1200.0, 1000.0, 998.0),
+        topology_hash=_hash("topology"),
+        order_hash=_hash("order"),
+    )
+
+
+def _target_runtime(
+    tmp_path: Path,
+    *,
+    problem_id: str,
+    sepcmaes_factory,
+) -> HccActionCeilingRuntime:
+    contract = action_ceiling_capture_contract(
+        RS_FAMILY_TARGET_PROFILE,
+        problem_id,
+    )
+    return HccActionCeilingRuntime(
+        benchmark_factory=FakeBenchmark,
+        cmaes_factory=FakeOptimizer,
+        sepcmaes_factory=sepcmaes_factory,
+        combine=lambda x, background, dims: runner.combine(x, background, dims),
+        derive_seed=runner.derive_optimizer_seed,
+        fun_name="rastrigin" if problem_id.startswith("R") else "schwefel",
+        fun_id=int(problem_id[1:]),
+        output_path=tmp_path,
+        data_root=tmp_path,
+        sigma=0.5,
+        cmaes_restart=True,
+        early_stopping_evaluations=1000,
+        lower=-100.0,
+        upper=100.0,
+        dimension=1000,
+        capture_arms=contract.arms,
+        artifact_protocol_version=contract.protocol_version,
+    )
+
+
+@pytest.mark.parametrize(
+    ("capture_arms", "protocol_version", "fun_name"),
+    [
+        (("full_space_sep_cma", "native_eq8"), ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
+        (("native_eq8", "native_eq8"), ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
+        (("native_eq8", "unknown_arm"), ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
+        (("native_eq8",), RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
+        (RS_FAMILY_RASTRIGIN_ARMS, RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION, "schwefel"),
+        (RS_FAMILY_SCHWEFEL_ARMS, RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
+    ],
+)
+def test_runtime_rejects_invalid_contract_combinations(
+    tmp_path: Path,
+    capture_arms: tuple[str, ...],
+    protocol_version: str,
+    fun_name: str,
+) -> None:
+    with pytest.raises(ValueError):
+        HccActionCeilingRuntime(
+            benchmark_factory=FakeBenchmark,
+            cmaes_factory=FakeOptimizer,
+            sepcmaes_factory=runner.SEPCMAES,
+            combine=lambda x, background, dims: runner.combine(x, background, dims),
+            derive_seed=runner.derive_optimizer_seed,
+            fun_name=fun_name,
+            fun_id=2,
+            output_path=tmp_path,
+            data_root=tmp_path,
+            sigma=0.5,
+            cmaes_restart=True,
+            early_stopping_evaluations=1000,
+            lower=-100.0,
+            upper=100.0,
+            dimension=1000,
+            capture_arms=capture_arms,
+            artifact_protocol_version=protocol_version,
+        )
+
+
+def test_action_ceiling_profiles_freeze_default_and_family_target_arms() -> None:
+    full = action_ceiling_capture_contract(
+        ACTION_CEILING_FULL_MATRIX_PROFILE,
+        "E3",
+    )
+    rastrigin = action_ceiling_capture_contract(RS_FAMILY_TARGET_PROFILE, "R2")
+    schwefel = action_ceiling_capture_contract(RS_FAMILY_TARGET_PROFILE, "S6")
+
+    assert full.arms == ACTION_CEILING_ARMS
+    assert ACTION_CEILING_KNOWN_ARMS[: len(ACTION_CEILING_ARMS)] == (
+        ACTION_CEILING_ARMS
+    )
+    assert len(full.arms) == 13
+    assert full.protocol_version == "exp019-action-ceiling-v6"
+    assert rastrigin.arms == RS_FAMILY_RASTRIGIN_ARMS
+    assert schwefel.arms == RS_FAMILY_SCHWEFEL_ARMS
+    assert rastrigin.protocol_version == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+    assert schwefel.protocol_version == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+    assert action_ceiling_capture_contract(RS_FAMILY_TARGET_PROFILE, "r2") == (
+        rastrigin
+    )
+    for invalid_problem_id in ("R0", "R7", "R01", "S", "E3"):
+        with pytest.raises(ValueError):
+            action_ceiling_capture_contract(
+                RS_FAMILY_TARGET_PROFILE,
+                invalid_problem_id,
+            )
+
+    frozen_observation = ActionCeilingObservation(
+        context_id="context",
+        cohort="real_aob",
+        problem_id="S6",
+        seed=117,
+        arm=RS_FAMILY_SCHWEFEL_ARMS[1],
+        horizon="sweep_1",
+        delta=0.1,
+        selector_arm="native_eq8",
+    )
+    assert frozen_observation.arm == RS_FAMILY_SCHWEFEL_ARMS[1]
+
+
+def test_schwefel_target_capture_never_constructs_sep_cma(tmp_path: Path) -> None:
+    def forbidden_sep_cma(*args, **kwargs):
+        raise AssertionError("Schwefel target capture constructed Sep-CMA")
+
+    captured = _capture_target_context(
+        _target_runtime(
+            tmp_path,
+            problem_id="S6",
+            sepcmaes_factory=forbidden_sep_cma,
+        ),
+        problem_id="S6",
+    )
+
+    assert {row["arm"] for row in captured.arm_rows} == set(
+        RS_FAMILY_SCHWEFEL_ARMS
+    )
+    assert len(captured.arm_rows) == 2 * len(ACTION_CEILING_HORIZONS)
+    assert captured.context_row["protocol_version"] == (
+        RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+    )
+    assert all(
+        captured.context_row[field] == ""
+        for field in (
+            "full_space_action_hash",
+            "full_space_action_payload",
+            "full_space_initial_mean_hash",
+            "full_space_parameter_hash",
+            "full_space_optimizer_seed",
+            "full_space_population_size",
+            "full_space_budget_fes",
+            "full_space_acceptance_fitness",
+        )
+    )
+    assert all(
+        row["protocol_version"] == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+        for row in captured.arm_rows
+    )
+    budget_rows = [
+        row
+        for row in captured.arm_rows
+        if row["arm"] == RS_FAMILY_SCHWEFEL_ARMS[1]
+    ]
+    lifecycle = json.loads(budget_rows[0]["action_lifecycle_payload"])
+    assert lifecycle["instance"]["checkpoint_fe"] == 120
+    assert lifecycle["instance"]["checkpoint_fe"] != int(
+        captured.context_row["phase_boundary_fe"]
+    )
+    native_post_hashes = {
+        row["horizon"]: row["action_post_incumbent_hash"]
+        for row in captured.arm_rows
+        if row["arm"] == "native_eq8"
+    }
+    assert all(
+        row["action_post_incumbent_hash"] == native_post_hashes[row["horizon"]]
+        for row in budget_rows
+    )
+
+
+def test_rastrigin_target_capture_constructs_sep_cma_once(tmp_path: Path) -> None:
+    sep_cma_calls = 0
+
+    def recording_sep_cma(*args, **kwargs):
+        nonlocal sep_cma_calls
+        sep_cma_calls += 1
+        return runner.SEPCMAES(*args, **kwargs)
+
+    captured = _capture_target_context(
+        _target_runtime(
+            tmp_path,
+            problem_id="R2",
+            sepcmaes_factory=recording_sep_cma,
+        ),
+        problem_id="R2",
+    )
+
+    assert sep_cma_calls == 1
+    assert {row["arm"] for row in captured.arm_rows} == set(
+        RS_FAMILY_RASTRIGIN_ARMS
+    )
+    assert captured.context_row["full_space_action_hash"]
+
+
+def test_full_and_target_rastrigin_share_checkpoint_and_sep_seed(
+    tmp_path: Path,
+) -> None:
+    target_runtime = _target_runtime(
+        tmp_path,
+        problem_id="R2",
+        sepcmaes_factory=runner.SEPCMAES,
+    )
+    full_runtime = replace(
+        target_runtime,
+        capture_arms=ACTION_CEILING_ARMS,
+        artifact_protocol_version=ACTION_CEILING_PROTOCOL_VERSION,
+    )
+
+    target = _capture_target_context(target_runtime, problem_id="R2")
+    full = _capture_target_context(full_runtime, problem_id="R2")
+
+    assert target.context_row["dispatch_checkpoint_hash"] == (
+        full.context_row["dispatch_checkpoint_hash"]
+    )
+    assert target.context_row["full_space_optimizer_seed"] == (
+        full.context_row["full_space_optimizer_seed"]
+    )
+
+
+def test_capture_rejects_problem_id_mismatch(tmp_path: Path) -> None:
+    runtime = _target_runtime(
+        tmp_path,
+        problem_id="R2",
+        sepcmaes_factory=runner.SEPCMAES,
+    )
+
+    with pytest.raises(ValueError, match="problem id does not match"):
+        _capture_target_context(runtime, problem_id="R3")
+
+
 def test_group_optimizer_consumes_owner_context_mean_once(tmp_path: Path) -> None:
     observed_means: list[tuple[float, ...]] = []
 
@@ -214,8 +490,9 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     )
     incumbent = np.ones(1000)
     incumbent[4:6] = 0.0
+    action_set = _action_set()
     captured = runtime.capture(
-        action_set=_action_set(),
+        action_set=action_set,
         cohort="real_aob",
         problem_id="E3",
         seed=117,
@@ -242,6 +519,33 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         order_hash=_hash("order"),
     )
 
+    legacy_checkpoint_payload = {
+        "problem_id": "E3",
+        "seed": 117,
+        "dispatch_fe": 120,
+        "outer_iter": 3,
+        "group_index": 1,
+        "relation": {"owners": (0, 1), "shared": (4, 5)},
+        "incumbent_hash": runner._canonical_payload_sha256(incumbent.tolist()),
+        "fitness_prefix_hash": runner._canonical_payload_sha256(
+            (1200.0, 1000.0, 998.0)
+        ),
+        "topology_hash": _hash("topology"),
+        "order_hash": _hash("order"),
+        "action_set_hash": action_set.action_set_hash,
+        "previous_values": [1.0, 1.0],
+        "current_values": [0.0, 0.0],
+        "previous_delta": 1.0,
+        "current_delta": 2.0,
+        "completed_group_deltas": [1.0, 2.0],
+        "completed_group_actual_fes": [13, 13],
+        "efficiency_ewma": [0.1, 0.2],
+        "completed_efficiency_sweeps": 3,
+        "stagnation_streaks": [0, 0],
+    }
+    assert captured.context_row["dispatch_checkpoint_hash"] == (
+        runner._canonical_payload_sha256(legacy_checkpoint_payload)
+    )
     assert captured.context_row["status"] == "pending_native_parity"
     assert captured.context_row["selector_arm"] == "exact_bridge"
     assert len(captured.expected_native_record) == 26
@@ -551,7 +855,7 @@ def test_relation_context_uses_structural_shared_variable_order() -> None:
     assert context.current_values.tolist() == [104.0, 105.0]
 
 
-def test_action_ceiling_cli_requires_explicit_capture_flag() -> None:
+def test_action_ceiling_cli_requires_explicit_capture_flag(tmp_path: Path) -> None:
     common = [
         "--functions",
         "ackley",
@@ -589,3 +893,52 @@ def test_action_ceiling_cli_requires_explicit_capture_flag() -> None:
     )
     assert args.action_ceiling_capture is True
     assert args.relation_policy == runner.ACTION_CEILING_POLICY
+
+    target_common = common.copy()
+    target_common[1] = "rastrigin"
+    target_common[3] = "2"
+    target_args = runner.parse_args(
+        target_common
+        + [
+            "--action-ceiling-capture",
+            "--action-ceiling-profile",
+            RS_FAMILY_TARGET_PROFILE,
+        ]
+    )
+    assert target_args.action_ceiling_profile == RS_FAMILY_TARGET_PROFILE
+
+    with pytest.raises(SystemExit) as error:
+        runner.parse_args(
+            target_common
+            + [
+                "--action-ceiling-capture",
+                "--action-ceiling-profile",
+                RS_FAMILY_TARGET_PROFILE,
+                "--action-ceiling-cohort",
+                "synthetic_conflict",
+            ]
+        )
+    assert error.value.code == 2
+
+    non_capture = target_common.copy()
+    non_capture[non_capture.index(runner.ACTION_CEILING_POLICY)] = "controller_v31"
+    non_capture.extend(
+        ["--action-ceiling-profile", RS_FAMILY_TARGET_PROFILE]
+    )
+    with pytest.raises(SystemExit) as error:
+        runner.parse_args(non_capture)
+    assert error.value.code == 2
+
+    synthetic_config = runner.SmokeConfig(
+        max_fes=100_000,
+        seed=117,
+        arac_action=runner.EVIDENCE_ACTION_CONTROLLER_V37,
+        enable_relation_dispatch=True,
+        relation_policy_mode=runner.ACTION_CEILING_POLICY,
+        evidence_overlay_mode="paired_owner",
+        action_ceiling_capture=True,
+        action_ceiling_cohort="synthetic_conflict",
+        action_ceiling_profile=RS_FAMILY_TARGET_PROFILE,
+    )
+    with pytest.raises(ValueError, match="requires the real_aob cohort"):
+        runner.run_problem("rastrigin", 2, tmp_path, synthetic_config)

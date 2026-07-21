@@ -546,12 +546,16 @@ def select_top_relations(
     scored_relations: Sequence[ScoredRelation],
     *,
     count: int | None = TOP_RELATION_COUNT,
+    allow_structural_cutoff_tie_break: bool = False,
 ) -> RelationSelection:
-    """Select a unique top-k set, abstaining on an ambiguous cutoff.
+    """Select top-k relations, conservatively abstaining on a cutoff tie by default.
 
-    Pass count=None to select all eligible relations (no VoI cutoff).
+    Pass count=None to select all eligible relations (no VoI cutoff). Offline
+    action-ceiling capture may explicitly use the structural-key tie break.
     """
 
+    if not isinstance(allow_structural_cutoff_tie_break, bool):
+        raise ValueError("allow_structural_cutoff_tie_break must be boolean")
     requested = (
         len(scored_relations)
         if count is None
@@ -565,14 +569,23 @@ def select_top_relations(
     )
     if len(ranked) < requested:
         return RelationSelection((), True, "insufficient_eligible_relations")
-    if len(ranked) > requested and math.isclose(
+    cutoff_is_tied = len(ranked) > requested and math.isclose(
         ranked[requested - 1].voi_score,
         ranked[requested].voi_score,
         rel_tol=0.0,
         abs_tol=1e-15,
-    ):
+    )
+    if cutoff_is_tied and not allow_structural_cutoff_tie_break:
         return RelationSelection((), True, "non_unique_top_relation_cutoff")
-    return RelationSelection(ranked[:requested], False, "top_relation_set_selected")
+    return RelationSelection(
+        ranked[:requested],
+        False,
+        (
+            "top_relation_set_selected_structural_tie_break"
+            if cutoff_is_tied
+            else "top_relation_set_selected"
+        ),
+    )
 
 
 def _shifted_scores(

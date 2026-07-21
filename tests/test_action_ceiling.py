@@ -8,6 +8,10 @@ import math
 import pytest
 import numpy as np
 
+from arac.actions.budget_reallocation import (
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    BudgetAllocationExecutionState,
+)
 from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
 from arac.backends.hcc_action_ceiling import (
     ActionExecutionRequest,
@@ -18,6 +22,7 @@ from arac.backends.hcc_action_ceiling import (
     branch_horizon_errors,
     delta_priority_order,
     execute_action_ceiling_arm,
+    freeze_efficiency_budget_action,
     native_eq8_values,
     run_native_group_cycle,
     run_native_continuation,
@@ -243,6 +248,7 @@ def _request(
     return ActionExecutionRequest(
         arm=arm,
         context_hash=_hash("context"),
+        dispatch_fe=100,
         action_set=actions,
         incumbent=tuple(incumbent),
         incumbent_fitness=100.0,
@@ -472,6 +478,66 @@ def _run_continuation_arm(
     return result, observed_means
 
 
+def _frozen_budget_action(
+    state: NativeContinuationState,
+    *,
+    context_hash: str = "a" * 64,
+    checkpoint_fe: int = 100,
+):
+    return freeze_efficiency_budget_action(
+        problem_id="S5",
+        run_seed=117,
+        checkpoint_fe=checkpoint_fe,
+        dispatch_checkpoint_hash=context_hash,
+        source_efficiency_ewma=state.efficiency_ewma,
+        population_sizes=state.population_sizes,
+        uniform_group_budgets=state.optimizer_budgets,
+        issued_sweep=state.sweep_index,
+        target_sweep=state.sweep_index + 1,
+    )
+
+
+def _run_frozen_budget_continuation(
+    state: NativeContinuationState,
+    *,
+    target_relative_fe: int,
+):
+    record: list[float] = []
+    requested_budgets: list[int] = []
+
+    def evaluate(values: np.ndarray) -> np.ndarray:
+        rows = np.asarray(values, dtype=float)
+        if rows.ndim == 1:
+            rows = rows[None, :]
+        result = np.sum(np.square(rows), axis=1)
+        record.extend(float(value) for value in result)
+        return result
+
+    def optimize(**kwargs) -> OptimizationResult:
+        budget = int(kwargs["requested_fes"])
+        requested_budgets.append(budget)
+        background = np.asarray(kwargs["background"], dtype=float)
+        dims = tuple(int(value) for value in kwargs["dims"])
+        mean = np.asarray(kwargs["mean"], dtype=float)
+        batch = np.repeat(background[None, :], budget, axis=0)
+        batch[:, np.asarray(dims)] = mean
+        values = evaluate(batch)
+        return OptimizationResult(tuple(mean), float(np.min(values)), len(values))
+
+    action = _frozen_budget_action(state)
+    result = run_native_continuation(
+        state,
+        evaluate=evaluate,
+        fitness_record=record,
+        optimize_group=optimize,
+        group_seed=lambda sweep, group: sweep * 100 + group,
+        target_relative_fe=target_relative_fe,
+        continuation_arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+        frozen_budget_action=action,
+    )
+    return action, result, tuple(requested_budgets)
+
+
 @pytest.mark.parametrize(
     "arm",
     [
@@ -508,6 +574,141 @@ def test_efficiency_budget_arm_changes_budgets_only_after_sweep_boundary() -> No
     assert sum(result.group_budget_trace) == sum(state.optimizer_budgets)
     assert result.group_budget_trace[0] > result.group_budget_trace[1]
     assert result.group_budget_trace[2] == state.population_sizes[2]
+
+
+def test_frozen_budget_ignores_opposite_phase2_deltas() -> None:
+    state = _completed_continuation_state(
+        deltas=(1_000.0, 0.0, 0.0),
+        efficiency_ewma=(0.0, 0.0, 1.0),
+    )
+    action, result, requested = _run_frozen_budget_continuation(
+        state,
+        target_relative_fe=state.sweep_horizon_fe,
+    )
+
+    assert action.group_budgets[2] > action.group_budgets[0]
+    assert requested == action.group_budgets
+    assert result.group_budget_trace == action.group_budgets
+    assert sum(result.group_budget_trace) == sum(state.optimizer_budgets)
+    assert result.policy_application_fes == (1,)
+    lifecycle_payload = json.loads(result.budget_action_lifecycle_payload)
+    lifecycle_payload.pop("action")
+    lifecycle = BudgetAllocationExecutionState(**lifecycle_payload)
+    lifecycle.validate_for(action)
+    assert lifecycle.status == "consumed"
+
+
+def test_frozen_budget_dispatch_registers_auditable_instance() -> None:
+    state = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
+    action = _frozen_budget_action(state, context_hash=_hash("context"))
+    request = replace(
+        _request("native_eq8"),
+        arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+        budget_action=action,
+    )
+
+    result = execute_action_ceiling_arm(
+        request,
+        evaluate=lambda values: np.sum(np.square(values), axis=-1),
+    )
+    lifecycle_payload = json.loads(result.action_lifecycle_payload)
+    lifecycle_payload.pop("action")
+    lifecycle = BudgetAllocationExecutionState(**lifecycle_payload)
+
+    assert result.action_instance_hash == action.action_hash
+    assert result.action_accepted is True
+    assert result.action_actual_fes == 0
+    assert result.optimizer_scope == "decomposed_groups"
+    assert result.optimizer_parameter_hash == action.parameter_hash
+    assert len(result.action_candidate_hash) == 64
+    lifecycle.validate_for(action)
+    assert lifecycle.status == "issued"
+
+
+def test_frozen_budget_dispatch_requires_matching_action_and_checkpoint() -> None:
+    with pytest.raises(ValueError, match="requires a BudgetAllocationAction"):
+        replace(
+            _request("native_eq8"),
+            arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+        )
+
+    state = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
+    mismatched = _frozen_budget_action(state, context_hash="b" * 64)
+    with pytest.raises(ValueError, match="checkpoint hash mismatch"):
+        replace(
+            _request("native_eq8"),
+            arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+            budget_action=mismatched,
+        )
+
+    mismatched_fe = _frozen_budget_action(
+        state,
+        context_hash=_hash("context"),
+        checkpoint_fe=99,
+    )
+    with pytest.raises(ValueError, match="checkpoint FE mismatch"):
+        replace(
+            _request("native_eq8"),
+            arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+            budget_action=mismatched_fe,
+        )
+
+
+def test_frozen_budget_applies_only_target_sweep_then_restores_uniform() -> None:
+    state = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
+    action, result, requested = _run_frozen_budget_continuation(
+        state,
+        target_relative_fe=2 * state.sweep_horizon_fe,
+    )
+
+    assert requested[:3] == action.group_budgets
+    assert requested[3:] == state.optimizer_budgets
+    assert result.execution_sweep_trace == (4, 4, 4, 5, 5, 5)
+    assert len(result.fitness_record) == 2 * state.sweep_horizon_fe
+    assert sum(requested[:3]) == sum(requested[3:])
+    assert result.policy_application_fes == (1,)
+
+
+def test_frozen_budget_anchor_mismatch_abstains_to_uniform() -> None:
+    source = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
+    action = _frozen_budget_action(source)
+    mismatched = replace(source, efficiency_ewma=(1.0, 9.0, 0.0))
+    record: list[float] = []
+
+    def evaluate(values: np.ndarray) -> np.ndarray:
+        rows = np.asarray(values, dtype=float)
+        if rows.ndim == 1:
+            rows = rows[None, :]
+        result = np.sum(np.square(rows), axis=1)
+        record.extend(float(value) for value in result)
+        return result
+
+    observed: list[int] = []
+
+    def optimize(**kwargs) -> OptimizationResult:
+        budget = int(kwargs["requested_fes"])
+        observed.append(budget)
+        mean = tuple(float(value) for value in kwargs["mean"])
+        batch = np.repeat(np.asarray(kwargs["background"])[None, :], budget, axis=0)
+        values = evaluate(batch)
+        return OptimizationResult(mean, float(np.min(values)), len(values))
+
+    result = run_native_continuation(
+        mismatched,
+        evaluate=evaluate,
+        fitness_record=record,
+        optimize_group=optimize,
+        group_seed=lambda sweep, group: sweep * 100 + group,
+        target_relative_fe=mismatched.sweep_horizon_fe,
+        continuation_arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+        frozen_budget_action=action,
+    )
+    payload = json.loads(result.budget_action_lifecycle_payload)
+
+    assert tuple(observed) == mismatched.optimizer_budgets
+    assert payload["status"] == "abstained"
+    assert payload["invalidation_reason"] == "anchor_hash_mismatch"
+    assert result.continuation_policy_applied is False
 
 
 def test_delta_priority_scan_changes_call_order_but_keeps_original_indices() -> None:

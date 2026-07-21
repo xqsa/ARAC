@@ -9,6 +9,9 @@ from dataclasses import dataclass
 from random import Random
 from typing import Mapping, Sequence
 
+from arac.actions.budget_reallocation import (
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+)
 from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
 from arac.policy.evidence_overlay import (
     BridgeWeights,
@@ -21,6 +24,11 @@ from arac.policy.evidence_overlay import (
 
 
 ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v6"
+ACTION_CEILING_FULL_MATRIX_PROFILE = "full_matrix"
+RS_FAMILY_TARGET_PROFILE = "rs_family_target"
+RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION = (
+    "exp019-rs-family-action-validation-v1"
+)
 GUARDED_EQ8_WRITEBACK_ACTION = "guarded_eq8_writeback"
 GUARDED_EQ8_PROBE_FES = 2
 STAGNATION_GUARD_WRITEBACK_ACTION = "stagnation_guard_writeback"
@@ -46,6 +54,20 @@ ACTION_CEILING_ARMS = (
     "delta_priority_scan",
     "stagnation_cross_group_warm_start",
     FULL_SPACE_SEP_CMA_ACTION,
+)
+ACTION_CEILING_KNOWN_ARMS = ACTION_CEILING_ARMS + (
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+)
+RS_FAMILY_RASTRIGIN_ARMS = (
+    "native_eq8",
+    FULL_SPACE_SEP_CMA_ACTION,
+)
+RS_FAMILY_SCHWEFEL_ARMS = (
+    "native_eq8",
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+)
+ACTION_CEILING_PROFILES = frozenset(
+    {ACTION_CEILING_FULL_MATRIX_PROFILE, RS_FAMILY_TARGET_PROFILE}
 )
 ACTION_CEILING_HORIZONS = ("immediate", "sweep_1", "sweep_3")
 ACTION_CEILING_CONTEXT_FIELDS = (
@@ -146,6 +168,47 @@ STAGNATION_TRIGGER_STREAK = 3
 WARM_START_COOLDOWN_SWEEPS = 3
 _HASH_LENGTH = 64
 ACTION_CEILING_TIE_TOLERANCE = 1e-15
+
+
+@dataclass(frozen=True)
+class ActionCeilingCaptureContract:
+    profile: str
+    protocol_version: str
+    arms: tuple[str, ...]
+
+
+def action_ceiling_capture_contract(
+    profile: str,
+    problem_id: str,
+) -> ActionCeilingCaptureContract:
+    """Resolve the frozen artifact protocol and arms for one capture profile."""
+
+    if profile == ACTION_CEILING_FULL_MATRIX_PROFILE:
+        return ActionCeilingCaptureContract(
+            profile=profile,
+            protocol_version=ACTION_CEILING_PROTOCOL_VERSION,
+            arms=ACTION_CEILING_ARMS,
+        )
+    if profile != RS_FAMILY_TARGET_PROFILE:
+        raise ValueError(f"unsupported action-ceiling profile: {profile}")
+    if not isinstance(problem_id, str):
+        raise ValueError("rs_family_target requires a string problem id")
+    normalized_problem_id = problem_id.upper()
+    if (
+        len(normalized_problem_id) != 2
+        or normalized_problem_id[0] not in {"R", "S"}
+        or normalized_problem_id[1] not in "123456"
+    ):
+        raise ValueError("rs_family_target requires R/S case id 1 through 6")
+    if normalized_problem_id[0] == "R":
+        arms = RS_FAMILY_RASTRIGIN_ARMS
+    else:
+        arms = RS_FAMILY_SCHWEFEL_ARMS
+    return ActionCeilingCaptureContract(
+        profile=profile,
+        protocol_version=RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION,
+        arms=arms,
+    )
 
 
 def relation_writeback_action_parameters(arm: str) -> dict[str, object]:
@@ -379,7 +442,7 @@ class ActionCeilingObservation:
             raise ValueError("observation identity fields are required")
         if isinstance(self.seed, bool) or int(self.seed) < 0:
             raise ValueError("seed must be a non-negative integer")
-        if self.arm not in ACTION_CEILING_ARMS:
+        if self.arm not in ACTION_CEILING_KNOWN_ARMS:
             raise ValueError("unsupported action-ceiling arm")
         if self.horizon not in ACTION_CEILING_HORIZONS:
             raise ValueError("unsupported action-ceiling horizon")

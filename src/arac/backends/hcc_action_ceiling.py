@@ -10,6 +10,13 @@ from typing import Callable, Protocol, Sequence
 
 import numpy as np
 
+from arac.actions.budget_reallocation import (
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    BudgetAllocationAction,
+    BudgetAllocationExecutionState,
+    budget_allocation_anchor_hash,
+    budget_allocation_parameter_hash,
+)
 from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
@@ -92,6 +99,7 @@ class OptimizationResult:
 class ActionExecutionRequest:
     arm: str
     context_hash: str
+    dispatch_fe: int
     action_set: RelationActionSet
     incumbent: tuple[float, ...]
     incumbent_fitness: float
@@ -101,12 +109,18 @@ class ActionExecutionRequest:
     current_delta: float
     owner_group_dimensions: tuple[tuple[int, ...], tuple[int, ...]]
     owner_optimizer_means: tuple[tuple[float, ...], tuple[float, ...]]
+    budget_action: BudgetAllocationAction | None = None
 
     def __post_init__(self) -> None:
-        if self.arm not in ACTION_CEILING_ARMS:
+        if (
+            self.arm not in ACTION_CEILING_ARMS
+            and self.arm != FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+        ):
             raise ValueError("unsupported action-ceiling arm")
         if len(self.context_hash) != 64:
             raise ValueError("context_hash must be SHA-256")
+        if isinstance(self.dispatch_fe, bool) or int(self.dispatch_fe) < 0:
+            raise ValueError("dispatch_fe must be a non-negative integer")
         incumbent = tuple(float(value) for value in self.incumbent)
         if not incumbent or not all(math.isfinite(value) for value in incumbent):
             raise ValueError("incumbent must be finite and non-empty")
@@ -144,6 +158,18 @@ class ActionExecutionRequest:
             if len(mean) != len(dimensions) or not all(math.isfinite(value) for value in mean):
                 raise ValueError("owner optimizer mean must be finite and match its group")
         object.__setattr__(self, "owner_optimizer_means", owner_means)
+
+        if self.arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+            if self.budget_action is None:
+                raise ValueError("frozen budget arm requires a BudgetAllocationAction")
+            if self.budget_action.dispatch_checkpoint_hash != self.context_hash:
+                raise ValueError("frozen budget dispatch checkpoint hash mismatch")
+            if self.budget_action.checkpoint_fe != self.dispatch_fe:
+                raise ValueError("frozen budget checkpoint FE mismatch")
+            if self.budget_action.issued_sweep != self.action_set.target_sweep:
+                raise ValueError("frozen budget issued sweep mismatch")
+        elif self.budget_action is not None:
+            raise ValueError("budget_action is only valid for the frozen budget arm")
 
 
 @dataclass(frozen=True)
@@ -427,6 +453,37 @@ def execute_action_ceiling_arm(
                 selected_candidate = "left_owner"
             selected_values = winner_values
             write_shared_values(winner_values)
+    elif request.arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+        if request.budget_action is None:
+            raise RuntimeError("validated frozen budget request lost its action")
+        # The target relation dispatch remains native. The immutable budget
+        # instance is consumed only when continuation reaches target_sweep.
+        write_shared_values(
+            native_eq8_values(
+                request.previous_values,
+                request.current_values,
+                request.previous_delta,
+                request.current_delta,
+            ),
+            synchronize_owner_means=False,
+        )
+        budget_lifecycle = BudgetAllocationExecutionState.for_action(
+            request.budget_action
+        )
+        action_instance_hash = request.budget_action.action_hash
+        action_lifecycle_payload = json.dumps(
+            budget_lifecycle.audit_payload(request.budget_action),
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+        action_lifecycle_hash = budget_lifecycle.state_hash(request.budget_action)
+        action_accepted = True
+        action_candidate_hash = _sha256(
+            {"group_budgets": request.budget_action.group_budgets}
+        )
+        action_post_incumbent_hash = _vector_hash(incumbent)
+        selected_candidate = request.arm
     elif request.arm in {
         "efficiency_budget_reallocation",
         "delta_priority_scan",
@@ -506,13 +563,18 @@ def execute_action_ceiling_arm(
             "decomposed_groups"
             if request.arm in {
                 "efficiency_budget_reallocation",
+                FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
                 FULL_SPACE_SEP_CMA_ACTION,
             }
             else "relation_writeback"
         ),
-        optimizer_parameter_hash="",
+        optimizer_parameter_hash=(
+            request.budget_action.parameter_hash
+            if request.budget_action is not None
+            else ""
+        ),
         optimizer_initial_state_hash="",
         optimizer_final_state_hash="",
         optimizer_population_size=0,
@@ -642,6 +704,69 @@ def allocate_efficiency_budgets(
     if sum(allocation) != sum(uniform):
         raise RuntimeError("adaptive budgets do not preserve the frozen sweep total")
     return tuple(allocation)
+
+
+def freeze_efficiency_budget_action(
+    *,
+    problem_id: str,
+    run_seed: int,
+    checkpoint_fe: int,
+    dispatch_checkpoint_hash: str,
+    source_efficiency_ewma: Sequence[float],
+    population_sizes: Sequence[int],
+    uniform_group_budgets: Sequence[int],
+    issued_sweep: int,
+    target_sweep: int,
+) -> BudgetAllocationAction:
+    """Compile decision-time EWMA into one exact next-sweep allocation."""
+
+    efficiencies = tuple(float(value) for value in source_efficiency_ewma)
+    populations = tuple(population_sizes)
+    uniform = tuple(uniform_group_budgets)
+    if any(
+        isinstance(value, bool) or not isinstance(value, int)
+        for value in (*populations, *uniform)
+    ):
+        raise ValueError("population sizes and uniform budgets must be integers")
+    budgets = allocate_efficiency_budgets(
+        efficiencies,
+        uniform,
+        populations,
+    )
+    frozen_total = sum(int(value) for value in uniform)
+    anchor_hash = budget_allocation_anchor_hash(
+        problem_id=problem_id,
+        run_seed=run_seed,
+        checkpoint_fe=checkpoint_fe,
+        dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+        source_efficiency_ewma=efficiencies,
+        population_sizes=populations,
+        uniform_group_budgets=uniform,
+        issued_sweep=issued_sweep,
+    )
+    parameter_hash = budget_allocation_parameter_hash(
+        population_sizes=populations,
+        uniform_group_budgets=uniform,
+        group_budgets=budgets,
+        frozen_total_fes=frozen_total,
+    )
+    return BudgetAllocationAction(
+        problem_id=problem_id,
+        run_seed=run_seed,
+        checkpoint_fe=checkpoint_fe,
+        dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+        anchor_hash=anchor_hash,
+        source_efficiency_ewma=efficiencies,
+        population_sizes=tuple(int(value) for value in populations),
+        uniform_group_budgets=tuple(int(value) for value in uniform),
+        group_budgets=budgets,
+        frozen_total_fes=frozen_total,
+        issued_sweep=issued_sweep,
+        target_sweep=target_sweep,
+        ttl_sweeps=1,
+        expires_sweep=target_sweep,
+        parameter_hash=parameter_hash,
+    )
 
 
 def delta_priority_order(previous_deltas: Sequence[float]) -> tuple[int, ...]:
@@ -792,6 +917,9 @@ class ContinuationResult:
     continuation_policy_applied: bool
     warm_start_trigger_count: int
     warm_start_mean_shift_norm: float
+    budget_action_instance_hash: str
+    budget_action_lifecycle_payload: str
+    budget_action_lifecycle_hash: str
 
 
 def _run_native_group_steps(
@@ -803,9 +931,18 @@ def _run_native_group_steps(
     group_seed: Callable[[int, int], int],
     should_continue: Callable[[int], bool],
     continuation_arm: str,
+    frozen_budget_action: BudgetAllocationAction | None = None,
 ) -> ContinuationResult:
-    if continuation_arm not in ACTION_CEILING_ARMS:
+    if (
+        continuation_arm not in ACTION_CEILING_ARMS
+        and continuation_arm != FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+    ):
         raise ValueError("unsupported continuation arm")
+    if continuation_arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+        if frozen_budget_action is None:
+            raise ValueError("frozen budget arm requires a BudgetAllocationAction")
+    elif frozen_budget_action is not None:
+        raise ValueError("frozen_budget_action requires the frozen budget arm")
     incumbent = np.asarray(state.incumbent, dtype=float).copy()
     group_count = len(state.group_dims)
     sweep_index = int(state.sweep_index)
@@ -844,6 +981,35 @@ def _run_native_group_steps(
     warm_start_shift_norms: list[float] = []
     warm_start_trigger_count = 0
     warm_start_squared_shift = 0.0
+    budget_lifecycle = (
+        BudgetAllocationExecutionState.for_action(frozen_budget_action)
+        if frozen_budget_action is not None
+        else None
+    )
+    observed_budget_anchor_hash = ""
+    if frozen_budget_action is not None and budget_lifecycle is not None:
+        observed_budget_anchor_hash = budget_allocation_anchor_hash(
+            problem_id=frozen_budget_action.problem_id,
+            run_seed=frozen_budget_action.run_seed,
+            checkpoint_fe=frozen_budget_action.checkpoint_fe,
+            dispatch_checkpoint_hash=frozen_budget_action.dispatch_checkpoint_hash,
+            source_efficiency_ewma=state.efficiency_ewma,
+            population_sizes=state.population_sizes,
+            uniform_group_budgets=state.optimizer_budgets,
+            issued_sweep=state.sweep_index,
+        )
+        if state.sweep_index > frozen_budget_action.expires_sweep:
+            budget_lifecycle.abstain(frozen_budget_action, reason="ttl_expired")
+        elif state.sweep_index != frozen_budget_action.issued_sweep:
+            budget_lifecycle.abstain(
+                frozen_budget_action,
+                reason="issued_sweep_mismatch",
+            )
+        elif observed_budget_anchor_hash != frozen_budget_action.anchor_hash:
+            budget_lifecycle.abstain(
+                frozen_budget_action,
+                reason="anchor_hash_mismatch",
+            )
     completed_steps = 0
     while should_continue(completed_steps):
         if order_position == group_count:
@@ -872,15 +1038,37 @@ def _run_native_group_steps(
             ):
                 continuation_policy_applied = True
                 policy_application_fes.append(len(fitness_record) + 1)
-            sweep_budgets = (
-                allocate_efficiency_budgets(
+            if continuation_arm == "efficiency_budget_reallocation":
+                sweep_budgets = allocate_efficiency_budgets(
                     efficiency_ewma,
                     state.optimizer_budgets,
                     state.population_sizes,
                 )
-                if continuation_arm == "efficiency_budget_reallocation"
-                else tuple(int(value) for value in state.optimizer_budgets)
-            )
+            else:
+                sweep_budgets = tuple(int(value) for value in state.optimizer_budgets)
+            if (
+                frozen_budget_action is not None
+                and budget_lifecycle is not None
+                and budget_lifecycle.status == "issued"
+            ):
+                if sweep_index > frozen_budget_action.expires_sweep:
+                    budget_lifecycle.abstain(
+                        frozen_budget_action,
+                        reason="ttl_expired",
+                    )
+                elif sweep_index == frozen_budget_action.target_sweep:
+                    application_fe = len(fitness_record) + 1
+                    sweep_budgets = budget_lifecycle.consume(
+                        frozen_budget_action,
+                        current_sweep=sweep_index,
+                        application_fe=application_fe,
+                        dispatch_checkpoint_hash=(
+                            frozen_budget_action.dispatch_checkpoint_hash
+                        ),
+                        anchor_hash=observed_budget_anchor_hash,
+                    )
+                    continuation_policy_applied = True
+                    policy_application_fes.append(application_fe)
             order_position = 0
             deltas = [None] * group_count
             actual_fes = [None] * group_count
@@ -988,6 +1176,21 @@ def _run_native_group_steps(
         completed_steps += 1
 
     completed_indices = current_order[:order_position]
+    budget_action_instance_hash = (
+        "" if frozen_budget_action is None else frozen_budget_action.action_hash
+    )
+    budget_action_lifecycle_payload = ""
+    budget_action_lifecycle_hash = ""
+    if frozen_budget_action is not None and budget_lifecycle is not None:
+        budget_action_lifecycle_payload = json.dumps(
+            budget_lifecycle.audit_payload(frozen_budget_action),
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+        budget_action_lifecycle_hash = budget_lifecycle.state_hash(
+            frozen_budget_action
+        )
     return ContinuationResult(
         incumbent=tuple(float(value) for value in incumbent),
         sweep_index=sweep_index,
@@ -1013,6 +1216,9 @@ def _run_native_group_steps(
         continuation_policy_applied=continuation_policy_applied,
         warm_start_trigger_count=warm_start_trigger_count,
         warm_start_mean_shift_norm=math.sqrt(warm_start_squared_shift),
+        budget_action_instance_hash=budget_action_instance_hash,
+        budget_action_lifecycle_payload=budget_action_lifecycle_payload,
+        budget_action_lifecycle_hash=budget_action_lifecycle_hash,
     )
 
 
@@ -1046,6 +1252,7 @@ def run_native_continuation(
     group_seed: Callable[[int, int], int],
     target_relative_fe: int,
     continuation_arm: str = "native_eq8",
+    frozen_budget_action: BudgetAllocationAction | None = None,
 ) -> ContinuationResult:
     if target_relative_fe <= 0:
         raise ValueError("target_relative_fe must be positive")
@@ -1057,6 +1264,7 @@ def run_native_continuation(
         group_seed=group_seed,
         should_continue=lambda _completed: len(fitness_record) < target_relative_fe,
         continuation_arm=continuation_arm,
+        frozen_budget_action=frozen_budget_action,
     )
 
 

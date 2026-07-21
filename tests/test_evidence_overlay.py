@@ -288,6 +288,19 @@ def test_top_four_abstains_only_when_cutoff_is_ambiguous() -> None:
     assert selected.abstained is False
     assert len(selected.selected) == 4
     assert abstained == RelationSelection((), True, "non_unique_top_relation_cutoff")
+    tie_broken = select_top_relations(
+        tuple(reversed(cutoff_tie)),
+        allow_structural_cutoff_tie_break=True,
+    )
+    assert tie_broken.abstained is False
+    assert tie_broken.reason == "top_relation_set_selected_structural_tie_break"
+    assert tuple(item.relation.key for item in tie_broken.selected) == tuple(
+        item.relation.key
+        for item in sorted(
+            cutoff_tie,
+            key=lambda item: (-item.voi_score, item.relation.key),
+        )[:4]
+    )
     assert select_top_relations(internal_tie[:3]).reason == (
         "insufficient_eligible_relations"
     )

@@ -21,7 +21,14 @@ from .shared_variable_blend import (
 )
 from .budget_reallocation import (
     BUDGET_REALLOCATION_ACTION_SPECS,
+    FROZEN_BUDGET_MAX_UNIFORM_MULTIPLIER,
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    BudgetAllocationAction,
+    BudgetAllocationExecutionState,
     apply_budget_reallocation_action,
+    budget_allocation_anchor_hash,
+    budget_allocation_parameter_hash,
+    execute_budget_allocation_action,
 )
 from .sweep_ordering import (
     SWEEP_ORDERING_ACTION_SPECS,
@@ -55,6 +62,8 @@ from .full_space_sep_cma import (
 __all__ = [
     "ActionSpec",
     "BUDGET_REALLOCATION_ACTION_SPECS",
+    "BudgetAllocationAction",
+    "BudgetAllocationExecutionState",
     "CONTROLLER_PROFILES",
     "ControllerProfile",
     "CANONICAL_SEP_CMA_PARAMETERIZATION",
@@ -66,6 +75,8 @@ __all__ = [
     "FULL_SPACE_DIMENSION",
     "FULL_SPACE_SEP_CMA_ACTION",
     "FULL_SPACE_SEP_CMA_ACTION_SPEC",
+    "FROZEN_BUDGET_MAX_UNIFORM_MULTIPLIER",
+    "FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION",
     "GROUP_OPTIMIZER_MODES",
     "FullSpaceSepCmaAction",
     "FullSpaceSepCmaExecutionState",
@@ -81,6 +92,8 @@ __all__ = [
     "apply_sweep_ordering_action",
     "apply_warm_start_action",
     "blend_overlap_values",
+    "budget_allocation_anchor_hash",
+    "budget_allocation_parameter_hash",
     "clipped_consensus_blend",
     "controller_action_effects",
     "controller_has_capability",
@@ -89,5 +102,6 @@ __all__ = [
     "controller_profile_by_version",
     "full_space_sep_cma_anchor_hash",
     "full_space_vector_hash",
+    "execute_budget_allocation_action",
     "resolve_group_optimizer_action",
 ]

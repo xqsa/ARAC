@@ -85,10 +85,14 @@ from arac.actions.group_optimizer_type import (
 )
 from arac.backends.hcc_action_ceiling_runtime import HccActionCeilingRuntime
 from arac.policy.action_ceiling import (
+    ACTION_CEILING_FULL_MATRIX_PROFILE,
     ACTION_CEILING_ARM_RESULT_FIELDS,
     ACTION_CEILING_CONTEXT_FIELDS,
+    ACTION_CEILING_PROFILES,
+    RS_FAMILY_TARGET_PROFILE,
     RelationActionSet,
     STAGNATION_EPSILON,
+    action_ceiling_capture_contract,
 )
 from arac.policy.evidence_overlay import (
     LOCAL_OPTIMUM_TOP_K,
@@ -158,14 +162,14 @@ def plot_evaluation_curve_best_so_far(*args, **kwargs):
 
 DATA_DIR = HCC_VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
 FUNCTION_NAMES = ("elliptic", "schwefel", "ackley", "rastrigin")
-PROBLEM_IDS = (1, 3, 4, 5)
+PROBLEM_IDS = (1, 2, 3, 4, 5, 6)
 ACTIVE_FUNCTION_ID_PAIRS = frozenset(
     {
         ("elliptic", 1),
         ("elliptic", 3),
         ("ackley", 4),
-        ("rastrigin", 4),
-        ("schwefel", 5),
+        *(("rastrigin", fun_id) for fun_id in PROBLEM_IDS),
+        *(("schwefel", fun_id) for fun_id in PROBLEM_IDS),
     }
 )
 ACTION_TRACE_FIELDS = [
@@ -633,6 +637,7 @@ class SmokeConfig:
     runtime_probe_repair_mode: str = "hard_repair"
     action_ceiling_capture: bool = False
     action_ceiling_cohort: str = "real_aob"
+    action_ceiling_profile: str = ACTION_CEILING_FULL_MATRIX_PROFILE
     group_optimizer_mode: str = FULL_CMAES_MODE
 
 
@@ -3216,6 +3221,26 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         )
     if config.action_ceiling_cohort not in {"real_aob", "synthetic_conflict"}:
         raise ValueError("unsupported action-ceiling cohort")
+    if config.action_ceiling_profile not in ACTION_CEILING_PROFILES:
+        raise ValueError("unsupported action-ceiling profile")
+    if (
+        config.action_ceiling_profile == RS_FAMILY_TARGET_PROFILE
+        and config.action_ceiling_cohort != "real_aob"
+    ):
+        raise ValueError("rs_family_target requires the real_aob cohort")
+    if (
+        not config.action_ceiling_capture
+        and config.action_ceiling_profile != ACTION_CEILING_FULL_MATRIX_PROFILE
+    ):
+        raise ValueError("non-default action-ceiling profile requires capture")
+    action_ceiling_contract = (
+        action_ceiling_capture_contract(
+            config.action_ceiling_profile,
+            _problem_id(fun_name, fun_id),
+        )
+        if config.action_ceiling_capture
+        else None
+    )
     if config.group_optimizer_mode not in GROUP_OPTIMIZER_MODES:
         raise ValueError("unsupported group optimizer mode")
     if config.group_optimizer_mode == DIAGONAL_COVARIANCE_MODE:
@@ -3296,6 +3321,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 if config.relation_policy_mode == RUNTIME_PROBE_POLICY
                 else TOP_RELATION_COUNT
             ),
+            allow_structural_cutoff_tie_break=(
+                config.relation_policy_mode == ACTION_CEILING_POLICY
+                and config.action_ceiling_profile == RS_FAMILY_TARGET_PROFILE
+            ),
         )
         if evidence_overlay_enabled
         else None
@@ -3374,6 +3403,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             lower=float(info["lower"]),
             upper=float(info["upper"]),
             dimension=int(info["dimension"]),
+            capture_arms=action_ceiling_contract.arms,
+            artifact_protocol_version=action_ceiling_contract.protocol_version,
         )
         if config.action_ceiling_capture
         else None
@@ -4912,6 +4943,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="real_aob",
     )
     parser.add_argument(
+        "--action-ceiling-profile",
+        choices=sorted(ACTION_CEILING_PROFILES),
+        default=ACTION_CEILING_FULL_MATRIX_PROFILE,
+    )
+    parser.add_argument(
         "--group-optimizer-mode",
         choices=sorted(GROUP_OPTIMIZER_MODES),
         default=FULL_CMAES_MODE,
@@ -4960,6 +4996,24 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error(
             "--action-ceiling-capture requires --relation-policy action_ceiling"
         )
+    if (
+        not args.action_ceiling_capture
+        and args.action_ceiling_profile != ACTION_CEILING_FULL_MATRIX_PROFILE
+    ):
+        parser.error("--action-ceiling-profile requires --action-ceiling-capture")
+    if (
+        args.action_ceiling_profile == RS_FAMILY_TARGET_PROFILE
+        and args.action_ceiling_cohort != "real_aob"
+    ):
+        parser.error("rs_family_target requires --action-ceiling-cohort real_aob")
+    if args.action_ceiling_capture:
+        try:
+            action_ceiling_capture_contract(
+                args.action_ceiling_profile,
+                _problem_id(args.functions[0], args.ids[0]),
+            )
+        except ValueError as error:
+            parser.error(str(error))
     return args
 
 
@@ -4987,6 +5041,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         runtime_probe_repair_mode=args.runtime_probe_repair_mode,
         action_ceiling_capture=args.action_ceiling_capture,
         action_ceiling_cohort=args.action_ceiling_cohort,
+        action_ceiling_profile=args.action_ceiling_profile,
         group_optimizer_mode=args.group_optimizer_mode,
     )
     output_paths = []

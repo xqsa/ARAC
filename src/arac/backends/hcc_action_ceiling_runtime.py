@@ -10,6 +10,10 @@ from typing import Callable, Mapping, Sequence
 
 import numpy as np
 
+from arac.actions.budget_reallocation import (
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    BudgetAllocationAction,
+)
 from arac.actions.full_space_sep_cma import (
     CANONICAL_SEP_CMA_PARAMETERIZATION,
     CANONICAL_SEP_CMA_POPULATION_SIZE,
@@ -28,6 +32,7 @@ from arac.backends.hcc_action_ceiling import (
     OptimizationResult,
     branch_horizon_errors,
     execute_action_ceiling_arm,
+    freeze_efficiency_budget_action,
     paired_arm_rows,
     run_native_group_cycle,
     run_native_continuation,
@@ -36,6 +41,9 @@ from arac.backends.hcc_action_ceiling import (
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_PROTOCOL_VERSION,
+    RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION,
+    RS_FAMILY_RASTRIGIN_ARMS,
+    RS_FAMILY_SCHWEFEL_ARMS,
     RelationActionSet,
 )
 from arac.policy.evidence_overlay import runtime_probe_anchor_hash
@@ -49,6 +57,21 @@ def _sha256(payload: object) -> str:
         allow_nan=False,
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+_AOB_PROBLEM_FAMILIES = {
+    "elliptic": "E",
+    "ackley": "A",
+    "rastrigin": "R",
+    "schwefel": "S",
+}
+
+
+def _runtime_problem_id(fun_name: str, fun_id: int) -> str:
+    family = _AOB_PROBLEM_FAMILIES.get(fun_name)
+    if family is None or type(fun_id) is not int or fun_id not in range(1, 7):
+        raise ValueError("action-ceiling runtime requires an AOB family/id 1 through 6")
+    return f"{family}{fun_id}"
 
 
 @dataclass(frozen=True)
@@ -83,6 +106,31 @@ class HccActionCeilingRuntime:
     lower: float
     upper: float
     dimension: int
+    capture_arms: tuple[str, ...] = ACTION_CEILING_ARMS
+    artifact_protocol_version: str = ACTION_CEILING_PROTOCOL_VERSION
+
+    def __post_init__(self) -> None:
+        arms = tuple(self.capture_arms)
+        problem_id = _runtime_problem_id(self.fun_name, self.fun_id)
+        full_matrix = (
+            self.artifact_protocol_version == ACTION_CEILING_PROTOCOL_VERSION
+            and arms == ACTION_CEILING_ARMS
+        )
+        rastrigin_target = (
+            self.artifact_protocol_version
+            == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+            and arms == RS_FAMILY_RASTRIGIN_ARMS
+            and problem_id.startswith("R")
+        )
+        schwefel_target = (
+            self.artifact_protocol_version
+            == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+            and arms == RS_FAMILY_SCHWEFEL_ARMS
+            and problem_id.startswith("S")
+        )
+        if not (full_matrix or rastrigin_target or schwefel_target):
+            raise ValueError("unsupported action-ceiling runtime protocol/arms/family")
+        object.__setattr__(self, "capture_arms", arms)
 
     def _fresh_objective(self) -> object:
         benchmark = self.benchmark_factory(
@@ -182,38 +230,39 @@ class HccActionCeilingRuntime:
         topology_hash: str,
         order_hash: str,
     ) -> CapturedActionCeilingContext:
+        if problem_id != _runtime_problem_id(self.fun_name, self.fun_id):
+            raise ValueError("capture problem id does not match runtime function")
         incumbent_array = np.asarray(incumbent, dtype=float).reshape(-1)
         prefix = tuple(float(value) for value in fitness_prefix)
         if incumbent_array.size != self.dimension or not prefix:
             raise ValueError("action-ceiling capture state is incomplete")
         relation = action_set.relation
-        dispatch_checkpoint_hash = _sha256(
-            {
-                "problem_id": problem_id,
-                "seed": int(seed),
-                "dispatch_fe": int(dispatch_fe),
-                "outer_iter": int(outer_iter),
-                "group_index": int(group_index),
-                "relation": {
-                    "owners": relation.owner_group_indices,
-                    "shared": relation.shared_variable_indices,
-                },
-                "incumbent_hash": _sha256(incumbent_array.tolist()),
-                "fitness_prefix_hash": _sha256(prefix),
-                "topology_hash": topology_hash,
-                "order_hash": order_hash,
-                "action_set_hash": action_set.action_set_hash,
-                "previous_values": list(previous_values),
-                "current_values": list(current_values),
-                "previous_delta": float(previous_delta),
-                "current_delta": float(current_delta),
-                "completed_group_deltas": list(completed_group_deltas),
-                "completed_group_actual_fes": list(completed_group_actual_fes),
-                "efficiency_ewma": list(efficiency_ewma),
-                "completed_efficiency_sweeps": int(completed_efficiency_sweeps),
-                "stagnation_streaks": list(stagnation_streaks),
-            }
-        )
+        dispatch_checkpoint_payload = {
+            "problem_id": problem_id,
+            "seed": int(seed),
+            "dispatch_fe": int(dispatch_fe),
+            "outer_iter": int(outer_iter),
+            "group_index": int(group_index),
+            "relation": {
+                "owners": relation.owner_group_indices,
+                "shared": relation.shared_variable_indices,
+            },
+            "incumbent_hash": _sha256(incumbent_array.tolist()),
+            "fitness_prefix_hash": _sha256(prefix),
+            "topology_hash": topology_hash,
+            "order_hash": order_hash,
+            "action_set_hash": action_set.action_set_hash,
+            "previous_values": list(previous_values),
+            "current_values": list(current_values),
+            "previous_delta": float(previous_delta),
+            "current_delta": float(current_delta),
+            "completed_group_deltas": list(completed_group_deltas),
+            "completed_group_actual_fes": list(completed_group_actual_fes),
+            "efficiency_ewma": list(efficiency_ewma),
+            "completed_efficiency_sweeps": int(completed_efficiency_sweeps),
+            "stagnation_streaks": list(stagnation_streaks),
+        }
+        dispatch_checkpoint_hash = _sha256(dispatch_checkpoint_payload)
         context_id = (
             f"{cohort}:{problem_id}:seed{seed}:s{outer_iter}:"
             f"g{relation.owner_group_indices[0]}-{relation.owner_group_indices[1]}:"
@@ -261,6 +310,24 @@ class HccActionCeilingRuntime:
             tuple(float(incumbent_array[dimension]) for dimension in dimensions)
             for dimensions in owner_group_dimensions
         )
+        frozen_budget_action: BudgetAllocationAction | None = None
+        if FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION in self.capture_arms:
+            if int(outer_iter) != action_set.target_sweep:
+                raise ValueError(
+                    "frozen budget action must be compiled at its target sweep"
+                )
+            frozen_budget_action = freeze_efficiency_budget_action(
+                problem_id=problem_id,
+                run_seed=int(seed),
+                checkpoint_fe=int(dispatch_fe),
+                dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+                source_efficiency_ewma=efficiency_ewma,
+                population_sizes=population_sizes,
+                uniform_group_budgets=optimizer_budgets,
+                issued_sweep=int(outer_iter),
+                target_sweep=int(outer_iter) + 1,
+            )
+
         def group_seed(sweep: int, group: int) -> int:
             return self.derive_seed(
                 int(seed),
@@ -281,6 +348,7 @@ class HccActionCeilingRuntime:
                 ActionExecutionRequest(
                     arm=arm,
                     context_hash=dispatch_checkpoint_hash,
+                    dispatch_fe=int(dispatch_fe),
                     action_set=action_set,
                     incumbent=tuple(float(value) for value in incumbent_array),
                     incumbent_fitness=float(incumbent_fitness),
@@ -290,6 +358,12 @@ class HccActionCeilingRuntime:
                     current_delta=float(current_delta),
                     owner_group_dimensions=owner_group_dimensions,
                     owner_optimizer_means=owner_optimizer_means,
+                    budget_action=(
+                        frozen_budget_action
+                        if arm
+                        == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+                        else None
+                    ),
                 ),
                 evaluate=evaluate,
             )
@@ -380,7 +454,7 @@ class HccActionCeilingRuntime:
         }
 
         full_space_action: FullSpaceSepCmaAction | None = None
-        for arm in ACTION_CEILING_ARMS:
+        for arm in self.capture_arms:
             if arm == "native_eq8":
                 continue
             objective, record, action_result, evaluate, branch_optimizer = start_branch(
@@ -593,7 +667,48 @@ class HccActionCeilingRuntime:
                 group_seed=group_seed,
                 target_relative_fe=3 * horizon_fe,
                 continuation_arm=arm,
+                frozen_budget_action=(
+                    frozen_budget_action
+                    if arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+                    else None
+                ),
             )
+            if arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+                if frozen_budget_action is None:
+                    raise RuntimeError("frozen budget branch lost its action instance")
+                if (
+                    continuation.budget_action_instance_hash
+                    != frozen_budget_action.action_hash
+                    or not continuation.budget_action_lifecycle_payload
+                    or not continuation.budget_action_lifecycle_hash
+                ):
+                    raise RuntimeError("frozen budget lifecycle is incomplete")
+                execution_payload = json.loads(
+                    continuation.budget_action_lifecycle_payload
+                )
+                if execution_payload.get("status") != "consumed":
+                    raise RuntimeError(
+                        "frozen budget action was not consumed at the target sweep"
+                    )
+                lifecycle_payload = {
+                    "action": FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+                    "instance": frozen_budget_action.audit_payload(),
+                    "instance_hash": frozen_budget_action.action_hash,
+                    "execution": execution_payload,
+                    "execution_hash": continuation.budget_action_lifecycle_hash,
+                }
+                action_result = replace(
+                    action_result,
+                    action_instance_hash=frozen_budget_action.action_hash,
+                    action_lifecycle_payload=json.dumps(
+                        lifecycle_payload,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                        allow_nan=False,
+                    ),
+                    action_lifecycle_hash=_sha256(lifecycle_payload),
+                    action_accepted=True,
+                )
             branch_results[arm] = {
                 "action": action_result,
                 "record": continuation.fitness_record,
@@ -605,10 +720,13 @@ class HccActionCeilingRuntime:
                 ),
             }
 
-        if full_space_action is None:
+        if (
+            FULL_SPACE_SEP_CMA_ACTION in self.capture_arms
+            and full_space_action is None
+        ):
             raise RuntimeError("full-space Sep-CMA action arm was not executed")
         context_row = {
-            "protocol_version": ACTION_CEILING_PROTOCOL_VERSION,
+            "protocol_version": self.artifact_protocol_version,
             "cohort": cohort,
             "problem_id": problem_id,
             "seed": str(seed),
@@ -635,22 +753,42 @@ class HccActionCeilingRuntime:
             "population_sizes": json.dumps(list(population_sizes)),
             "uniform_group_budgets": json.dumps(list(optimizer_budgets)),
             "horizon_fe": str(horizon_fe),
-            "full_space_action_hash": full_space_action.action_hash,
-            "full_space_action_payload": json.dumps(
-                full_space_action.audit_payload(),
-                sort_keys=True,
-                separators=(",", ":"),
-                allow_nan=False,
+            "full_space_action_hash": (
+                "" if full_space_action is None else full_space_action.action_hash
             ),
-            "full_space_initial_mean_hash": full_space_action.initial_mean_hash,
+            "full_space_action_payload": (
+                ""
+                if full_space_action is None
+                else json.dumps(
+                    full_space_action.audit_payload(),
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    allow_nan=False,
+                )
+            ),
+            "full_space_initial_mean_hash": (
+                "" if full_space_action is None else full_space_action.initial_mean_hash
+            ),
             "full_space_parameter_hash": (
-                full_space_action.canonical_parameters_hash
+                ""
+                if full_space_action is None
+                else full_space_action.canonical_parameters_hash
             ),
-            "full_space_optimizer_seed": str(full_space_action.optimizer_seed),
-            "full_space_population_size": str(full_space_action.population_size),
-            "full_space_budget_fes": str(full_space_action.budget_fes),
+            "full_space_optimizer_seed": (
+                "" if full_space_action is None else str(full_space_action.optimizer_seed)
+            ),
+            "full_space_population_size": (
+                ""
+                if full_space_action is None
+                else str(full_space_action.population_size)
+            ),
+            "full_space_budget_fes": (
+                "" if full_space_action is None else str(full_space_action.budget_fes)
+            ),
             "full_space_acceptance_fitness": (
-                f"{full_space_action.acceptance_fitness:.17e}"
+                ""
+                if full_space_action is None
+                else f"{full_space_action.acceptance_fitness:.17e}"
             ),
             "selector_arm": selector_arm,
             "selector_reason": selector_reason,
@@ -674,7 +812,7 @@ class HccActionCeilingRuntime:
         native = branch_results["native_eq8"]
         targets = {"immediate": 1, "sweep_1": horizon_fe, "sweep_3": 3 * horizon_fe}
         arm_rows: list[dict[str, str]] = []
-        for arm in ACTION_CEILING_ARMS:
+        for arm in self.capture_arms:
             branch = branch_results[arm]
             action_result = branch["action"]
             continuation = branch["continuation"]
@@ -700,7 +838,7 @@ class HccActionCeilingRuntime:
                 )
                 arm_rows.append(
                     {
-                        "protocol_version": ACTION_CEILING_PROTOCOL_VERSION,
+                        "protocol_version": self.artifact_protocol_version,
                         "cohort": cohort,
                         "problem_id": problem_id,
                         "seed": str(seed),
@@ -739,7 +877,11 @@ class HccActionCeilingRuntime:
                             else f"{action_result.action_candidate_fitness:.17e}"
                         ),
                         "action_post_incumbent_hash": (
-                            action_result.action_post_incumbent_hash
+                            _sha256(list(action_result.incumbent))
+                            if self.artifact_protocol_version
+                            == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+                            and arm == "native_eq8"
+                            else action_result.action_post_incumbent_hash
                         ),
                         "optimizer_scope": action_result.optimizer_scope,
                         "optimizer_parameter_hash": (

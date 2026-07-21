@@ -461,6 +461,7 @@ class HccEvidenceOverlayObserver:
         upper_bound: float,
         fresh_optimizer_execution: bool = True,
         top_relation_count: int | None = TOP_RELATION_COUNT,
+        allow_structural_cutoff_tie_break: bool = False,
     ) -> None:
         if mode not in EVIDENCE_OVERLAY_MODES:
             raise ValueError("unsupported evidence overlay mode")
@@ -470,6 +471,8 @@ class HccEvidenceOverlayObserver:
             raise ValueError("fresh_optimizer_execution must be boolean")
         if not fresh_optimizer_execution:
             raise ValueError("evidence overlay requires a fresh optimizer execution")
+        if not isinstance(allow_structural_cutoff_tie_break, bool):
+            raise ValueError("allow_structural_cutoff_tie_break must be boolean")
         lower = _finite(lower_bound, name="lower_bound")
         upper = _finite(upper_bound, name="upper_bound")
         if upper <= lower:
@@ -493,6 +496,9 @@ class HccEvidenceOverlayObserver:
         self.fresh_optimizer_execution = fresh_optimizer_execution
         self.top_relation_count: int | None = (
             int(top_relation_count) if top_relation_count is not None else None
+        )
+        self.allow_structural_cutoff_tie_break = (
+            allow_structural_cutoff_tie_break
         )
         self.ordering = build_reference_blind_ordering(grouping_result)
         self.groups = self.ordering.groups
@@ -887,7 +893,13 @@ class HccEvidenceOverlayObserver:
             upper_bound=self.upper_bound,
         )
         native = score_relations(candidates)
-        native_selection = select_top_relations(native, count=self.top_relation_count)
+        native_selection = select_top_relations(
+            native,
+            count=self.top_relation_count,
+            allow_structural_cutoff_tie_break=(
+                self.allow_structural_cutoff_tie_break
+            ),
+        )
 
         selected_scores = native
         selection = native_selection
@@ -897,7 +909,13 @@ class HccEvidenceOverlayObserver:
             except ValueError:
                 selection = RelationSelection((), True, "shuffle_derangement_unavailable")
             else:
-                shuffled_selection = select_top_relations(shuffled, count=self.top_relation_count)
+                shuffled_selection = select_top_relations(
+                    shuffled,
+                    count=self.top_relation_count,
+                    allow_structural_cutoff_tie_break=(
+                        self.allow_structural_cutoff_tie_break
+                    ),
+                )
                 native_keys = {item.relation.key for item in native_selection.selected}
                 shuffled_keys = {
                     item.relation.key for item in shuffled_selection.selected

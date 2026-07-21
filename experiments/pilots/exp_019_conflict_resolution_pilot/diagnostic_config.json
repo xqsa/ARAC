@@ -1,6 +1,6 @@
 {
   "protocol_version": "exp019-action-ceiling-v6",
-  "schema_version": "exp019-action-ceiling-config-v6",
+  "schema_version": "exp019-action-ceiling-config-v7",
   "observer_only": true,
   "runtime_authorized": false,
   "arms": [
@@ -95,6 +95,39 @@
       "max_fes": 3000000
     },
     "jobs": 12
+  },
+  "rs_family_target_validation": {
+    "profile": "rs_family_target",
+    "protocol_version": "exp019-rs-family-action-validation-v1",
+    "cutoff_tie_policy": "structural_key",
+    "horizons": ["immediate", "sweep_1", "sweep_3"],
+    "case_target_actions": {
+      "R2": "full_space_sep_cma",
+      "R3": "full_space_sep_cma",
+      "R4": "full_space_sep_cma",
+      "R5": "full_space_sep_cma",
+      "R6": "full_space_sep_cma",
+      "S2": "frozen_efficiency_budget_reallocation",
+      "S3": "frozen_efficiency_budget_reallocation",
+      "S4": "frozen_efficiency_budget_reallocation",
+      "S5": "frozen_efficiency_budget_reallocation",
+      "S6": "frozen_efficiency_budget_reallocation"
+    },
+    "no_relation_context_cases": ["R1", "S1"],
+    "rs_smoke": {
+      "cohort": "real_aob",
+      "cases": ["R2", "S2", "R6", "S6"],
+      "seeds": [117],
+      "max_fes": 300000,
+      "jobs": 4
+    },
+    "rs_family_validation": {
+      "cohort": "real_aob",
+      "cases": ["R2", "R3", "R4", "R5", "R6", "S2", "S3", "S4", "S5", "S6"],
+      "seeds": [117, 118, 119, 120, 121],
+      "max_fes": 3000000,
+      "jobs": 20
+    }
   },
   "statistics": {
     "epsilon": 1e-300,
