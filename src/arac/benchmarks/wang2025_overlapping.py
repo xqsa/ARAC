@@ -12,7 +12,7 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 
-WANG2025_SCHEMA_VERSION = "wang2025-overlapping-instance-v1"
+WANG2025_SCHEMA_VERSION = "wang2025-overlapping-instance-v2"
 WANG2025_MAX_SHARED_MEMBERSHIPS = 2
 _SPEC_FIELDS = {
     "dimension",
@@ -22,6 +22,7 @@ _SPEC_FIELDS = {
     "overlap_count",
     "beta",
     "gamma",
+    "conflict_ratio",
     "permuted",
     "seed",
 }
@@ -32,6 +33,7 @@ _MANIFEST_FIELDS = {
     "template",
     "groups",
     "base_owner_by_variable",
+    "conflict_target_by_variable",
     "instance_hash",
 }
 
@@ -48,6 +50,15 @@ def _normalize_unit_interval(value: object, name: str) -> float:
     normalized = float(value)
     if not math.isfinite(normalized) or not 0.0 < normalized <= 1.0:
         raise ValueError(f"{name} must satisfy 0 < {name} <= 1")
+    return normalized
+
+
+def _normalize_closed_unit_interval(value: object, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"{name} must be a real number")
+    normalized = float(value)
+    if not math.isfinite(normalized) or not 0.0 <= normalized <= 1.0:
+        raise ValueError(f"{name} must satisfy 0 <= {name} <= 1")
     return normalized
 
 
@@ -68,6 +79,7 @@ class Wang2025OverlappingSpec:
     gamma: float = 0.5
     permuted: bool = False
     seed: int = 0
+    conflict_ratio: float = 0.0
 
     def __post_init__(self) -> None:
         dimension = _normalize_integer(self.dimension, "dimension")
@@ -80,6 +92,7 @@ class Wang2025OverlappingSpec:
         alpha = float(self.alpha)
         beta = _normalize_unit_interval(self.beta, "beta")
         gamma = _normalize_unit_interval(self.gamma, "gamma")
+        conflict_ratio = _normalize_closed_unit_interval(self.conflict_ratio, "conflict_ratio")
 
         if dimension <= 0:
             raise ValueError("dimension must be positive")
@@ -89,6 +102,8 @@ class Wang2025OverlappingSpec:
             raise ValueError("alpha must satisfy 0 <= alpha < 0.9")
         if overlap_count < 0 or overlap_count > dimension:
             raise ValueError("overlap_count must satisfy 0 <= overlap_count <= dimension")
+        if overlap_count == 0 and conflict_ratio > 0.0:
+            raise ValueError("conflict_ratio must be 0 when overlap_count is 0")
         if not isinstance(self.permuted, bool):
             raise TypeError("permuted must be a bool")
         if seed < 0:
@@ -120,6 +135,7 @@ class Wang2025OverlappingSpec:
         object.__setattr__(self, "overlap_count", overlap_count)
         object.__setattr__(self, "beta", beta)
         object.__setattr__(self, "gamma", gamma)
+        object.__setattr__(self, "conflict_ratio", conflict_ratio)
         object.__setattr__(self, "seed", seed)
 
     @property
@@ -135,6 +151,12 @@ class Wang2025OverlappingSpec:
     @property
     def overlap_ratio(self) -> float:
         return self.overlap_count / self.dimension
+
+    @property
+    def conflict_count(self) -> int:
+        if self.overlap_count == 0 or self.conflict_ratio == 0.0:
+            return 0
+        return max(1, _matlab_round_positive(self.overlap_count * self.conflict_ratio))
 
 
 def _group_sizes(
@@ -245,6 +267,7 @@ class Wang2025OverlappingProblem:
     template: tuple[int, ...]
     groups: tuple[tuple[int, ...], ...]
     base_owner_by_variable: tuple[int, ...]
+    conflict_target_by_variable: tuple[int, ...] = ()
     instance_hash: str = field(init=False)
 
     def __post_init__(self) -> None:
@@ -256,6 +279,13 @@ class Wang2025OverlappingProblem:
         base_owners = tuple(
             _normalize_integer(owner, "base owner") for owner in self.base_owner_by_variable
         )
+        if not self.conflict_target_by_variable and self.spec.conflict_count == 0:
+            conflict_targets = (-1,) * self.spec.dimension
+        else:
+            conflict_targets = tuple(
+                _normalize_integer(target, "conflict target")
+                for target in self.conflict_target_by_variable
+            )
         if len(groups) != self.spec.group_count:
             raise ValueError("groups do not match the derived group count")
         if any(
@@ -269,6 +299,10 @@ class Wang2025OverlappingProblem:
             raise ValueError("base_owner_by_variable must bind every variable")
         if any(owner < 0 or owner >= len(groups) for owner in base_owners):
             raise ValueError("base owner is outside the group topology")
+        if len(conflict_targets) != self.spec.dimension:
+            raise ValueError("conflict_target_by_variable must bind every variable")
+        if any(target < -1 or target >= len(groups) for target in conflict_targets):
+            raise ValueError("conflict target is outside the group topology")
 
         memberships: list[list[int]] = [[] for _ in range(self.spec.dimension)]
         for group_index, group in enumerate(groups):
@@ -287,6 +321,19 @@ class Wang2025OverlappingProblem:
             raise ValueError("group memberships do not match dimension + overlap_count")
         if any(base_owners[variable] not in owners for variable, owners in enumerate(memberships)):
             raise ValueError("base owner must contain its variable")
+
+        conflicting_variables = tuple(
+            variable for variable, target in enumerate(conflict_targets) if target != -1
+        )
+        if len(conflicting_variables) != self.spec.conflict_count:
+            raise ValueError("conflict targets do not match the configured conflict_ratio")
+        for variable in conflicting_variables:
+            target = conflict_targets[variable]
+            owners = memberships[variable]
+            if len(owners) != 2:
+                raise ValueError("only shared variables may have a conflict target")
+            if target == base_owners[variable] or target not in owners:
+                raise ValueError("conflict target must be the non-base owner")
 
         duplicate_sources: dict[int, set[int]] = {}
         for variable, owners in enumerate(memberships):
@@ -322,6 +369,7 @@ class Wang2025OverlappingProblem:
         object.__setattr__(self, "template", template)
         object.__setattr__(self, "groups", groups)
         object.__setattr__(self, "base_owner_by_variable", base_owners)
+        object.__setattr__(self, "conflict_target_by_variable", conflict_targets)
         object.__setattr__(self, "instance_hash", self._calculate_hash())
 
     @classmethod
@@ -367,6 +415,7 @@ class Wang2025OverlappingProblem:
             key=lambda index: duplicate_loads[index],
             reverse=True,
         )
+        target_by_shared_variable: dict[int, int] = {}
         for target in targets:
             load = duplicate_loads[target]
             source_count = _desired_source_count(load, spec.gamma, spec.group_count)
@@ -395,30 +444,42 @@ class Wang2025OverlappingProblem:
                 source = max(remaining_sources, key=lambda value: len(available[value]))
                 chosen.append(available[source].pop())
             groups[target].extend(chosen)
+            for variable in chosen:
+                target_by_shared_variable[variable] = target
+
+        conflict_targets = [-1] * spec.dimension
+        if spec.conflict_count:
+            candidates = np.asarray(sorted(target_by_shared_variable), dtype=int)
+            selected = rng.permutation(candidates)[: spec.conflict_count]
+            for variable in selected:
+                index = int(variable)
+                conflict_targets[index] = target_by_shared_variable[index]
 
         return cls(
             spec=spec,
             template=frozen_template,
             groups=tuple(tuple(group) for group in groups),
             base_owner_by_variable=tuple(base_owners),
+            conflict_target_by_variable=tuple(conflict_targets),
         )
 
     @classmethod
     def from_manifest(cls, manifest: Mapping[str, Any]) -> Wang2025OverlappingProblem:
-        if set(manifest) != _MANIFEST_FIELDS:
-            raise ValueError("manifest fields do not match the Wang 2025 v1 schema")
-        if manifest["schema_version"] != WANG2025_SCHEMA_VERSION:
+        if manifest.get("schema_version") != WANG2025_SCHEMA_VERSION:
             raise ValueError("unsupported Wang 2025 manifest schema")
+        if set(manifest) != _MANIFEST_FIELDS:
+            raise ValueError("manifest fields do not match the Wang 2025 v2 schema")
         if manifest["max_shared_memberships"] != WANG2025_MAX_SHARED_MEMBERSHIPS:
             raise ValueError("unsupported Wang 2025 owner multiplicity")
         spec_payload = manifest["spec"]
         if not isinstance(spec_payload, Mapping) or set(spec_payload) != _SPEC_FIELDS:
-            raise ValueError("manifest spec fields do not match the Wang 2025 v1 schema")
+            raise ValueError("manifest spec fields do not match the Wang 2025 v2 schema")
         problem = cls(
             spec=Wang2025OverlappingSpec(**spec_payload),
             template=tuple(manifest["template"]),
             groups=tuple(tuple(group) for group in manifest["groups"]),
             base_owner_by_variable=tuple(manifest["base_owner_by_variable"]),
+            conflict_target_by_variable=tuple(manifest["conflict_target_by_variable"]),
         )
         if manifest["instance_hash"] != problem.instance_hash:
             raise ValueError("Wang 2025 manifest hash mismatch")
@@ -459,21 +520,77 @@ class Wang2025OverlappingProblem:
         )
 
     @property
-    def global_optimum(self) -> tuple[int, ...]:
+    def conflict_count(self) -> int:
+        return self.spec.conflict_count
+
+    @property
+    def conflict_ratio_realized(self) -> float:
+        if self.spec.overlap_count == 0:
+            return 0.0
+        return self.conflict_count / self.spec.overlap_count
+
+    @property
+    def conflicting_variables(self) -> tuple[int, ...]:
+        return tuple(
+            variable
+            for variable, target in enumerate(self.conflict_target_by_variable)
+            if target != -1
+        )
+
+    @property
+    def conflicting_relations(self) -> tuple[tuple[int, int, int], ...]:
+        conflicts = set(self.conflicting_variables)
+        return tuple(relation for relation in self.overlap_relations if relation[0] in conflicts)
+
+    @property
+    def group_templates(self) -> tuple[tuple[int, ...], ...]:
+        return tuple(
+            tuple(
+                1 - self.template[variable]
+                if self.conflict_target_by_variable[variable] == group_index
+                else self.template[variable]
+                for variable in group
+            )
+            for group_index, group in enumerate(self.groups)
+        )
+
+    @property
+    def reference_solution(self) -> tuple[int, ...]:
+        """Return the base-owner optimum used as a reproducible conflict anchor."""
+
         return tuple(1 - value for value in self.template)
 
+    @property
+    def reference_value(self) -> float:
+        return float(self.evaluate(self.reference_solution)[0])
+
+    @property
+    def global_optimum(self) -> tuple[int, ...] | None:
+        if self.conflict_count:
+            return None
+        return self.reference_solution
+
     def info(self) -> dict[str, object]:
+        has_conflict = self.conflict_count > 0
         return {
-            "best": 0.0,
+            "best": None if has_conflict else 0.0,
+            "conflict_count": self.conflict_count,
+            "conflict_ratio": self.spec.conflict_ratio,
+            "conflict_ratio_realized": self.conflict_ratio_realized,
             "dimension": self.dimension,
             "encoding": "binary",
             "group_count": len(self.groups),
             "instance_hash": self.instance_hash,
             "lower": 0,
             "max_shared_memberships": WANG2025_MAX_SHARED_MEMBERSHIPS,
+            "objective_semantics": (
+                "unshifted_group_error" if has_conflict else "known_optimum_error"
+            ),
             "overlap_count": self.spec.overlap_count,
+            "overlap_mode": "conflicting" if has_conflict else "conforming",
             "overlap_ratio": self.spec.overlap_ratio,
-            "threshold": 0.0,
+            "reference_value": self.reference_value,
+            "threshold": None if has_conflict else 0.0,
             "upper": 1,
         }
 
@@ -485,16 +602,19 @@ class Wang2025OverlappingProblem:
             "template": list(self.template),
             "groups": [list(group) for group in self.groups],
             "base_owner_by_variable": list(self.base_owner_by_variable),
+            "conflict_target_by_variable": list(self.conflict_target_by_variable),
             "instance_hash": self.instance_hash,
         }
 
     def group_errors(self, candidates: object) -> np.ndarray:
         values = self._prepare_candidates(candidates)
         contributions = np.empty((values.shape[0], len(self.groups)), dtype=float)
-        template = np.asarray(self.template, dtype=np.int8)
-        for column, group in enumerate(self.groups):
+        for column, (group, group_template) in enumerate(
+            zip(self.groups, self.group_templates, strict=True)
+        ):
             indices = np.asarray(group, dtype=int)
-            hamming_distance = np.sum(values[:, indices] != template[indices], axis=1)
+            local_template = np.asarray(group_template, dtype=np.int8)
+            hamming_distance = np.sum(values[:, indices] != local_template, axis=1)
             reward = self._trap_reward(hamming_distance, len(group))
             contributions[:, column] = len(group) - reward
         return contributions
@@ -551,6 +671,7 @@ class Wang2025OverlappingProblem:
             "template": list(self.template),
             "groups": [list(group) for group in self.groups],
             "base_owner_by_variable": list(self.base_owner_by_variable),
+            "conflict_target_by_variable": list(self.conflict_target_by_variable),
         }
         encoded = json.dumps(
             payload,

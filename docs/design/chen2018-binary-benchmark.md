@@ -67,6 +67,9 @@ cluster bootstrap 或 action-gate 结论。固定 case catalog、二进制优化
 - `overlap_ratio=OD=C/dimension`；
 - `beta` 控制共享变量集中进入多少个目标组，值越大越集中；
 - `gamma` 控制每个目标组的共享变量来自多少个 base owner，值越大关联组越多；
+- `conflict_ratio` 控制共享变量中有多少比例在 target owner 中使用相反局部模板，`0` 表示
+  一致性重叠，`>0` 表示冲突性重叠；实际冲突数量按 `round(C * conflict_ratio)` 冻结，
+  对非零重叠度至少选中 1 个变量；
 - 最终组成员总数为 `dimension + overlap_count`，每组规模仍位于配置的上下限内。
 
 这修正了继承 MATLAB 代码中 `zn=n-C` 导致实际决策维数缩小，以及 `C` 实际变成重复槽位
@@ -74,12 +77,16 @@ cluster bootstrap 或 action-gate 结论。固定 case catalog、二进制优化
 `No suitable groups available`；Python 版本在实例生成时完成容量校验并显式失败。
 
 论文的 `delta` 用于控制单个共享变量在三个及以上子组中的最大重复次数。当前 ARAC 的
-relation/action 契约是双 owner，因此 v1 明确固定 `max_shared_memberships=2`，并把该值写入
-manifest 和 hash；不会把多 owner 拓扑伪装成可运行的双 owner relation。
+relation/action 契约是双 owner，因此当前 schema 明确固定 `max_shared_memberships=2`，
+并把该值写入 manifest 和 hash；不会把多 owner 拓扑伪装成可运行的双 owner relation。
 
 Wang 版本沿用其 MATLAB 实现的汉明距离 Trap 语义：模板的逐位反码是全局最优，局部最优
-高度为组规模的 `0.8` 倍。`legacy_objective()` 保留 MATLAB 的负 reward 数值，常规调用仍
-返回最优值为 0 的非负 error。
+高度为组规模的 `0.8` 倍。`conflict_ratio` 不新增独立 penalty，而是把选中的共享变量在
+target owner 的局部模板中翻转，因而冲突代价仍由现有 `alpha`、组规模和拓扑共同决定。
+`conflict_target_by_variable` 写入 v2 manifest/hash，完整组模板由全局模板和该映射确定性重建。
+`legacy_objective()` 保留 MATLAB 的负 reward 数值；一致性实例的 `global_optimum` 已知且为
+0 error，冲突性实例只提供可复现的 `reference_solution/reference_value`，不伪造不可同时
+满足的 `best=0`。
 
 ```python
 from arac.benchmarks import Wang2025OverlappingProblem, Wang2025OverlappingSpec
@@ -92,6 +99,7 @@ spec = Wang2025OverlappingSpec(
     overlap_count=300,
     beta=0.4,
     gamma=0.4,
+    conflict_ratio=0.3,
     permuted=True,
     seed=20260721,
 )
