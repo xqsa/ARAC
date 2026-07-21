@@ -23,6 +23,11 @@ CANONICAL_SEP_CMA_PARAMETERS_HASH = (
 )
 NO_RESTART_POLICY = "none"
 STRICT_IMPROVEMENT_ACCEPTANCE = "strict_improvement"
+TRIGGER_SCOPE_RELATION_DISPATCH = "relation_dispatch"
+TRIGGER_SCOPE_PHASE_BOUNDARY = "phase_boundary"
+TRIGGER_SCOPES = frozenset(
+    {TRIGGER_SCOPE_RELATION_DISPATCH, TRIGGER_SCOPE_PHASE_BOUNDARY}
+)
 
 FULL_SPACE_SEP_CMA_ACTION_SPEC = ActionSpec(
     name=FULL_SPACE_SEP_CMA_ACTION,
@@ -145,6 +150,7 @@ class FullSpaceSepCmaAction:
     target_sweep: int
     ttl_sweeps: int
     expires_sweep: int
+    trigger_scope: str = TRIGGER_SCOPE_RELATION_DISPATCH
     acceptance_rule: str = STRICT_IMPROVEMENT_ACCEPTANCE
 
     def __post_init__(self) -> None:
@@ -208,6 +214,8 @@ class FullSpaceSepCmaAction:
             raise ValueError("full-space Sep-CMA currently supports restart_policy='none'")
         if self.acceptance_rule != STRICT_IMPROVEMENT_ACCEPTANCE:
             raise ValueError("unsupported full-space Sep-CMA acceptance_rule")
+        if self.trigger_scope not in TRIGGER_SCOPES:
+            raise ValueError("unsupported full-space Sep-CMA trigger_scope")
 
         issued = _integer(self.issued_sweep, "issued_sweep")
         target = _integer(self.target_sweep, "target_sweep")
@@ -221,13 +229,11 @@ class FullSpaceSepCmaAction:
             raise ValueError("expires_sweep must equal issued_sweep plus ttl_sweeps")
 
     def audit_payload(self) -> dict[str, object]:
-        return {
+        payload = {
             "action": FULL_SPACE_SEP_CMA_ACTION,
             "problem_id": self.problem_id,
             "run_seed": self.run_seed,
             "checkpoint_fe": self.checkpoint_fe,
-            "dispatch_checkpoint_hash": self.dispatch_checkpoint_hash,
-            "trigger_relation_hash": self.trigger_relation_hash,
             "anchor_hash": self.anchor_hash,
             "initial_mean": list(self.initial_mean),
             "initial_mean_hash": self.initial_mean_hash,
@@ -250,6 +256,16 @@ class FullSpaceSepCmaAction:
             "expires_sweep": self.expires_sweep,
             "acceptance_rule": self.acceptance_rule,
         }
+        # Keep the relation-dispatch payload byte-for-byte compatible with v2
+        # artifacts.  A phase-boundary action has a different, explicit scope
+        # and binds its trigger to a global checkpoint instead of a relation.
+        payload["dispatch_checkpoint_hash"] = self.dispatch_checkpoint_hash
+        if self.trigger_scope == TRIGGER_SCOPE_RELATION_DISPATCH:
+            payload["trigger_relation_hash"] = self.trigger_relation_hash
+        else:
+            payload["trigger_scope"] = self.trigger_scope
+            payload["trigger_context_hash"] = self.trigger_relation_hash
+        return payload
 
     @property
     def action_hash(self) -> str:
@@ -345,6 +361,7 @@ class FullSpaceSepCmaExecutionState:
         dispatch_checkpoint_hash: str,
         trigger_relation_hash: str,
         anchor_hash: str,
+        trigger_scope: str | None = None,
     ) -> None:
         self.validate_for(action)
         if self.status != "issued":
@@ -359,6 +376,11 @@ class FullSpaceSepCmaExecutionState:
             trigger_relation_hash,
             "trigger_relation_hash",
         )
+        observed_scope = (
+            action.trigger_scope if trigger_scope is None else trigger_scope
+        )
+        if observed_scope not in TRIGGER_SCOPES:
+            raise ValueError("unsupported full-space Sep-CMA trigger_scope")
         observed_anchor = _validate_hash(anchor_hash, "anchor_hash")
         if observed_fe != action.checkpoint_fe:
             raise ValueError("current_fe does not match checkpoint_fe")
@@ -369,7 +391,13 @@ class FullSpaceSepCmaExecutionState:
         if observed_checkpoint != action.dispatch_checkpoint_hash:
             raise ValueError("dispatch_checkpoint_hash mismatch")
         if observed_relation != action.trigger_relation_hash:
-            raise ValueError("trigger_relation_hash mismatch")
+            raise ValueError(
+                "trigger_relation_hash mismatch"
+                if action.trigger_scope == TRIGGER_SCOPE_RELATION_DISPATCH
+                else "trigger_context_hash mismatch"
+            )
+        if observed_scope != action.trigger_scope:
+            raise ValueError("trigger_scope mismatch")
         if observed_anchor != action.anchor_hash:
             raise ValueError("anchor_hash mismatch")
         self.started_fe = observed_fe
@@ -433,6 +461,9 @@ __all__ = [
     "FULL_SPACE_DIMENSION",
     "FULL_SPACE_SEP_CMA_ACTION",
     "FULL_SPACE_SEP_CMA_ACTION_SPEC",
+    "TRIGGER_SCOPE_PHASE_BOUNDARY",
+    "TRIGGER_SCOPE_RELATION_DISPATCH",
+    "TRIGGER_SCOPES",
     "FullSpaceSepCmaAction",
     "FullSpaceSepCmaExecutionState",
     "full_space_sep_cma_anchor_hash",

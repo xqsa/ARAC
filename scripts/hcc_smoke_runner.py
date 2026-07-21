@@ -74,6 +74,7 @@ from src.arac.actions.shared_variable_blend import (
 from src.arac.actions.full_space_sep_cma import (
     CANONICAL_SEP_CMA_POPULATION_SIZE,
     FULL_SPACE_SEP_CMA_ACTION,
+    TRIGGER_SCOPE_PHASE_BOUNDARY,
     FullSpaceSepCmaAction,
 )
 from src.arac.actions.persistent_budget_reallocation import (
@@ -91,11 +92,15 @@ from arac.backends.hcc_action_ceiling import (
     update_efficiency_ewma,
 )
 from arac.backends.hcc_persistent_phase2 import (
+    GLOBAL_PHASE2_ARTIFACT_SCHEMA,
     PERSISTENT_PHASE2_ARTIFACT_SCHEMA,
     PERSISTENT_SELECTION_RULE,
     compile_full_space_sep_cma_burst_action,
+    compile_full_space_sep_cma_phase_boundary_action,
     execute_full_space_sep_cma_burst_action,
     full_space_sep_cma_dispatch_checkpoint_hash,
+    full_space_sep_cma_phase_boundary_action_source_hash,
+    full_space_sep_cma_phase_boundary_checkpoint_hash,
     persistent_phase2_checkpoint_hash,
     persistent_relation_hash,
 )
@@ -123,7 +128,9 @@ from arac.policy.evidence_overlay import (
     TOP_RELATION_COUNT,
     build_reference_blind_ordering,
     cohen_d_from_moments,
+    ordering_sha256,
     runtime_probe_anchor_hash,
+    topology_sha256,
 )
 from src.arac.backends.hcc import (
     EVIDENCE_OVERLAY_MODES,
@@ -397,6 +404,7 @@ COHEN_D_CONSERVATIVE_TRIGGER = "cohen_d_at_or_below_0_8"
 RUNTIME_PROBE_POLICY = "runtime_probe"
 ACTION_CEILING_POLICY = "action_ceiling"
 PERSISTENT_PHASE2_POLICY = "persistent_phase2"
+GLOBAL_PHASE2_POLICY = "global_phase2"
 PERSISTENT_PHASE2_OFF = "off"
 PERSISTENT_PHASE2_ACTIONS = frozenset(
     {
@@ -503,6 +511,7 @@ def evidence_overlay_scheduled_sub_fes(
     barrier_attempted: bool = False,
     delayed_outcomes_pending: bool = False,
     post_barrier_sweeps: int = 1,
+    reserve_post_barrier: bool | None = None,
 ) -> int | None:
     """Plan equal evidence slots with a worst-case v37 rescue reserve."""
 
@@ -516,6 +525,11 @@ def evidence_overlay_scheduled_sub_fes(
         raise ValueError("barrier_attempted must be boolean")
     if not isinstance(delayed_outcomes_pending, bool):
         raise ValueError("delayed_outcomes_pending must be boolean")
+    if reserve_post_barrier is not None and not isinstance(
+        reserve_post_barrier,
+        bool,
+    ):
+        raise ValueError("reserve_post_barrier must be boolean or None")
     if (
         isinstance(post_barrier_sweeps, bool)
         or not isinstance(post_barrier_sweeps, int)
@@ -542,8 +556,11 @@ def evidence_overlay_scheduled_sub_fes(
         return None
     if barrier_attempted and not delayed_outcomes_pending:
         return None
+    reserve_window = (
+        has_overlap if reserve_post_barrier is None else reserve_post_barrier
+    )
     target_sweeps = EVIDENCE_OVERLAY_REQUIRED_SWEEPS + (
-        post_barrier_sweeps if has_overlap else 0
+        post_barrier_sweeps if reserve_window else 0
     )
     if complete_sweep_count >= target_sweeps and plan_ready:
         return None
@@ -3258,10 +3275,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         config.persistent_phase2_action != PERSISTENT_PHASE2_OFF
     )
     if persistent_phase2_enabled != (
-        config.relation_policy_mode == PERSISTENT_PHASE2_POLICY
+        config.relation_policy_mode
+        in {PERSISTENT_PHASE2_POLICY, GLOBAL_PHASE2_POLICY}
     ):
         raise ValueError(
-            "persistent_phase2 policy and persistent_phase2_action must be enabled together"
+            "a Phase2 policy and persistent_phase2_action must be enabled together"
         )
     if config.persistent_phase2_action not in {
         PERSISTENT_PHASE2_OFF,
@@ -3284,10 +3302,20 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             raise ValueError("persistent Phase2 execution is incompatible with capture")
         if config.group_optimizer_mode != FULL_CMAES_MODE:
             raise ValueError("persistent Phase2 execution requires native full CMA-ES groups")
-        if config.evidence_overlay_mode != "paired_owner":
-            raise ValueError("persistent Phase2 execution requires paired_owner evidence")
-        if not config.enable_relation_dispatch:
-            raise ValueError("persistent Phase2 execution requires relation dispatch")
+        if config.relation_policy_mode == GLOBAL_PHASE2_POLICY:
+            if fun_name != "rastrigin" or fun_id != 1:
+                raise ValueError("global Phase2 is restricted to no-relation R1")
+            if config.arac_action != NATIVE_EQ8_ACTION:
+                raise ValueError("global Phase2 requires native_eq8 group handling")
+            if config.evidence_overlay_mode != "off":
+                raise ValueError("global Phase2 must not enable relation evidence")
+            if config.enable_relation_dispatch:
+                raise ValueError("global Phase2 must not enable relation dispatch")
+        else:
+            if config.evidence_overlay_mode != "paired_owner":
+                raise ValueError("persistent Phase2 execution requires paired_owner evidence")
+            if not config.enable_relation_dispatch:
+                raise ValueError("persistent Phase2 execution requires relation dispatch")
     if config.action_ceiling_cohort not in {"real_aob", "synthetic_conflict"}:
         raise ValueError("unsupported action-ceiling cohort")
     if config.action_ceiling_profile not in ACTION_CEILING_PROFILES:
@@ -3366,6 +3394,23 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         fun_id,
         config.aob_data_root,
         evidence_overlay_mode=config.evidence_overlay_mode,
+    )
+    global_phase2_ordering = (
+        build_reference_blind_ordering(grouping_result)
+        if config.relation_policy_mode == GLOBAL_PHASE2_POLICY
+        else None
+    )
+    if global_phase2_ordering is not None and global_phase2_ordering.has_overlap:
+        raise ValueError("global Phase2 requires a no-overlap grouping")
+    global_phase2_topology_hash = (
+        topology_sha256(grouping_result)
+        if global_phase2_ordering is not None
+        else None
+    )
+    global_phase2_order_hash = (
+        ordering_sha256(grouping_result, tuple(range(len(grouping_result))))
+        if global_phase2_ordering is not None
+        else None
     )
     terminal_completion_tolerance_fe = max(
         1,
@@ -3456,6 +3501,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     persistent_full_space_result = None
     persistent_sep_burst_budget_fes: int | None = None
     persistent_sep_burst_budget_source_sweep: int | None = None
+    persistent_global_action_source_hash: str | None = None
+    persistent_global_source_group_deltas: tuple[float, ...] = ()
+    persistent_global_source_group_fes: tuple[int, ...] = ()
     persistent_sep_native_sweeps_remaining = 0
     persistent_sep_native_sweeps_completed = 0
     persistent_budget_action: PersistentBudgetAllocationAction | None = None
@@ -3545,6 +3593,77 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         current_fes = (
             sum_fes if config.budget_accounting == "source" else current_fitness_evaluations(fun)
         )
+        # A no-overlap R1 action is consumed at the phase boundary before any
+        # group in the target sweep receives an evaluation.  Recompute the
+        # frozen boundary hash against the live state and fail closed on drift.
+        if (
+            config.relation_policy_mode == GLOBAL_PHASE2_POLICY
+            and persistent_phase2_compile_ready
+            and persistent_full_space_action is not None
+            and persistent_full_space_result is None
+        ):
+            action = persistent_full_space_action
+            if outer_iter != action.target_sweep:
+                raise RuntimeError(
+                    "global Phase2 action was not consumed in its target sweep"
+                )
+            if (
+                persistent_checkpoint_hash is None
+                or persistent_global_action_source_hash is None
+                or global_phase2_ordering is None
+            ):
+                raise RuntimeError("global Phase2 checkpoint state is incomplete")
+            observed_checkpoint_hash = (
+                full_space_sep_cma_phase_boundary_checkpoint_hash(
+                    problem_id=problem_id,
+                    run_seed=int(config.seed),
+                    checkpoint_fe=current_fes,
+                    issued_sweep=action.issued_sweep,
+                    target_sweep=action.target_sweep,
+                    incumbent=tuple(float(value) for value in best_individual),
+                    fitness_prefix=tuple(fun.fitness_record),
+                    topology_hash=global_phase2_topology_hash,
+                    order_hash=global_phase2_order_hash,
+                    action_source_hash=persistent_global_action_source_hash,
+                    completed_group_deltas=persistent_global_source_group_deltas,
+                    completed_group_actual_fes=persistent_global_source_group_fes,
+                    frozen_burst_budget_fes=action.budget_fes,
+                )
+            )
+            if observed_checkpoint_hash != persistent_checkpoint_hash:
+                raise RuntimeError("global Phase2 checkpoint changed before consumption")
+            remaining_fes = config.max_fes - current_fes
+            if remaining_fes < action.budget_fes:
+                raise RuntimeError("global Phase2 burst exceeds remaining FE budget")
+            persistent_action_start_fe = current_fes + 1
+            persistent_full_space_result = execute_full_space_sep_cma_burst_action(
+                action,
+                objective=fun,
+                sepcmaes_factory=SEPCMAES,
+                current_fe=current_fes,
+                current_sweep=outer_iter,
+                dispatch_checkpoint_hash=persistent_checkpoint_hash,
+                incumbent=tuple(float(value) for value in best_individual),
+            )
+            action_end_fe = current_fitness_evaluations(fun)
+            observed_action_fes = action_end_fe - current_fes
+            if observed_action_fes != action.budget_fes:
+                raise RuntimeError("global Phase2 burst FE accounting drifted")
+            if not persistent_full_space_result.resume_native:
+                raise RuntimeError("global Phase2 burst did not authorize native resume")
+            persistent_action_actual_fes = observed_action_fes
+            persistent_action_completed_fe = action_end_fe
+            sum_fes += observed_action_fes
+            best_individual = np.asarray(
+                persistent_full_space_result.incumbent,
+                dtype=float,
+            ).copy()
+            if persistent_full_space_result.accepted:
+                guarded_incumbent = best_individual.copy()
+                guarded_incumbent_fitness = (
+                    persistent_full_space_result.incumbent_fitness
+                )
+            current_fes = action_end_fe
         iteration_budget_remaining_ratio = iteration_start_budget_remaining_ratio(
             max_fes=config.max_fes,
             sum_fes=current_fes,
@@ -3573,10 +3692,16 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 overlay_sub_fes = evidence_overlay_frozen_sub_fes
             else:
                 overlay_sub_fes = evidence_overlay_scheduled_sub_fes(
-                    mode=config.evidence_overlay_mode,
+                    mode=(
+                        "paired_owner"
+                        if config.relation_policy_mode == GLOBAL_PHASE2_POLICY
+                        else config.evidence_overlay_mode
+                    ),
                     has_overlap=evidence_overlay_has_overlap,
                     complete_sweep_count=(
-                        0
+                        action_ceiling_completed_efficiency_sweeps
+                        if config.relation_policy_mode == GLOBAL_PHASE2_POLICY
+                        else 0
                         if evidence_overlay_observer is None
                         else evidence_overlay_observer.consecutive_complete_sweep_count
                     ),
@@ -3604,6 +3729,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         if config.persistent_phase2_action
                         == FULL_SPACE_SEP_CMA_ACTION
                         else 1
+                    ),
+                    reserve_post_barrier=(
+                        True
+                        if config.relation_policy_mode == GLOBAL_PHASE2_POLICY
+                        else None
                     ),
                 )
         except BaseException as error:
@@ -4935,7 +5065,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 persistent_action_completed_fe = current_fitness_evaluations(fun)
         if not optimized_any_group:
             break
-        if not config.enable_relation_dispatch:
+        if (
+            not config.enable_relation_dispatch
+            and config.relation_policy_mode != GLOBAL_PHASE2_POLICY
+        ):
             iteration_relations = build_overlap_relation_trace(
                 problem_id=_problem_id(fun_name, fun_id),
                 outer_iter=outer_iter,
@@ -4960,8 +5093,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             )
             action_ceiling_completed_efficiency_sweeps += 1
 
+        all_groups_completed = len(fitness_delta_list) == sub_num
         if evidence_overlay_observer is not None:
-            all_groups_completed = len(fitness_delta_list) == sub_num
             delayed_outcomes_pending = (
                 evidence_overlay_observer.delayed_outcomes_pending
             )
@@ -5127,6 +5260,109 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         if evidence_overlay_runtime_failure is not None:
             break
         if (
+            config.relation_policy_mode == GLOBAL_PHASE2_POLICY
+            and persistent_phase2_enabled
+            and not persistent_phase2_compile_ready
+            and all_groups_completed
+            and action_ceiling_completed_efficiency_sweeps
+            >= EVIDENCE_OVERLAY_REQUIRED_SWEEPS
+        ):
+            if global_phase2_ordering is None:
+                evidence_overlay_runtime_failure = RuntimeError(
+                    "global Phase2 ordering state is missing"
+                )
+                break
+            if evidence_overlay_frozen_sub_fes is None:
+                evidence_overlay_runtime_failure = RuntimeError(
+                    "global Phase2 action lacks a frozen native sweep budget"
+                )
+                break
+            checkpoint_fe = current_fitness_evaluations(fun)
+            action_start_sweep = outer_iter + 1
+            remaining_phase2_fes = config.max_fes - checkpoint_fe
+            persistent_sep_burst_budget_fes = sum(group_actual_fes_list)
+            if persistent_sep_burst_budget_fes < CANONICAL_SEP_CMA_POPULATION_SIZE:
+                evidence_overlay_runtime_failure = RuntimeError(
+                    "global Phase2 burst budget is sub-population"
+                )
+                break
+            frozen_native_sweep_reserve = evidence_overlay_normal_sweep_reserve(
+                population_sizes,
+                sub_fes=evidence_overlay_frozen_sub_fes,
+            )
+            required_post_barrier_fes = (
+                persistent_sep_burst_budget_fes
+                + PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+                * frozen_native_sweep_reserve
+            )
+            if remaining_phase2_fes < required_post_barrier_fes:
+                evidence_overlay_runtime_failure = RuntimeError(
+                    "global Phase2 burst and native resume window exceed the remaining FE budget"
+                )
+                break
+            persistent_sep_burst_budget_source_sweep = outer_iter
+            persistent_global_source_group_deltas = tuple(
+                float(value) for value in fitness_delta_list
+            )
+            persistent_global_source_group_fes = tuple(
+                int(value) for value in group_actual_fes_list
+            )
+            persistent_global_action_source_hash = (
+                full_space_sep_cma_phase_boundary_action_source_hash(
+                    problem_id=problem_id,
+                    run_seed=int(config.seed),
+                    issued_sweep=outer_iter,
+                    target_sweep=action_start_sweep,
+                    frozen_burst_budget_fes=persistent_sep_burst_budget_fes,
+                    topology_hash=global_phase2_topology_hash,
+                    order_hash=global_phase2_order_hash,
+                )
+            )
+            persistent_checkpoint_hash = (
+                full_space_sep_cma_phase_boundary_checkpoint_hash(
+                    problem_id=problem_id,
+                    run_seed=int(config.seed),
+                    checkpoint_fe=checkpoint_fe,
+                    issued_sweep=outer_iter,
+                    target_sweep=action_start_sweep,
+                    incumbent=tuple(float(value) for value in best_individual),
+                    fitness_prefix=tuple(fun.fitness_record),
+                    topology_hash=global_phase2_topology_hash,
+                    order_hash=global_phase2_order_hash,
+                    action_source_hash=persistent_global_action_source_hash,
+                    completed_group_deltas=persistent_global_source_group_deltas,
+                    completed_group_actual_fes=persistent_global_source_group_fes,
+                    frozen_burst_budget_fes=persistent_sep_burst_budget_fes,
+                )
+            )
+            persistent_selection_fe = checkpoint_fe
+            persistent_full_space_action = (
+                compile_full_space_sep_cma_phase_boundary_action(
+                    problem_id=problem_id,
+                    run_seed=int(config.seed),
+                    checkpoint_fe=checkpoint_fe,
+                    checkpoint_hash=persistent_checkpoint_hash,
+                    incumbent=tuple(float(value) for value in best_individual),
+                    acceptance_fitness=float(min(fun.fitness_record)),
+                    sigma=float(config.sigma),
+                    lower=float(info["lower"]),
+                    upper=float(info["upper"]),
+                    budget_fes=persistent_sep_burst_budget_fes,
+                    issued_sweep=outer_iter,
+                    target_sweep=action_start_sweep,
+                    objective=fun,
+                    sepcmaes_factory=SEPCMAES,
+                )
+            )
+            persistent_sep_native_sweeps_remaining = (
+                PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+            )
+            # This is a phase-boundary issue, not an evidence probe.  Marking
+            # the barrier consumed makes the scheduler release its frozen
+            # reserve after the three native resume sweeps.
+            evidence_overlay_barrier_attempted = True
+            persistent_phase2_compile_ready = True
+        if (
             persistent_phase2_enabled
             and persistent_selected_action_set is not None
             and not persistent_phase2_compile_ready
@@ -5284,15 +5520,24 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             ACTION_CEILING_ARM_RESULT_FIELDS,
         )
     if persistent_phase2_enabled:
+        global_phase2_artifact = config.relation_policy_mode == GLOBAL_PHASE2_POLICY
         if evidence_overlay_runtime_failure is None:
-            if (
-                persistent_selected_action_set is None
-                or persistent_selection_fe is None
+            lifecycle_incomplete = (
+                persistent_selection_fe is None
                 or persistent_checkpoint_hash is None
                 or persistent_action_start_fe is None
                 or persistent_action_completed_fe is None
                 or current_fitness_evaluations(fun) != config.max_fes
-            ):
+                or (
+                    not global_phase2_artifact
+                    and persistent_selected_action_set is None
+                )
+                or (
+                    global_phase2_artifact
+                    and persistent_global_action_source_hash is None
+                )
+            )
+            if lifecycle_incomplete:
                 evidence_overlay_runtime_failure = RuntimeError(
                     "Phase2 action lifecycle is incomplete at the exact terminal FE"
                 )
@@ -5344,6 +5589,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     persistent_full_space_result.candidate_fitness
                 )
                 candidate_hash = persistent_full_space_result.candidate_hash
+                candidate_values = list(
+                    persistent_full_space_result.candidate
+                )
                 post_incumbent_hash = (
                     persistent_full_space_result.post_incumbent_hash
                 )
@@ -5384,6 +5632,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 action_accepted = True
                 candidate_fitness = None
                 candidate_hash = None
+                candidate_values = None
                 post_incumbent_hash = None
                 budget_source = "phase1_frozen_efficiency_ewma"
                 budget_source_sweep = persistent_budget_action.start_sweep - 1
@@ -5393,20 +5642,20 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 post_action_native_fes = 0
                 native_resume_sweeps_planned = 0
                 native_resume_sweeps_completed = 0
-            relation = persistent_selected_action_set.relation
-            persistent_artifact = {
-                "schema_version": PERSISTENT_PHASE2_ARTIFACT_SCHEMA,
-                "problem_id": problem_id,
-                "run_seed": int(config.seed),
-                "configured_max_fes": config.max_fes,
-                "terminal_fe": current_fitness_evaluations(fun),
-                "selected_action": config.persistent_phase2_action,
-                "execution_mode": execution_mode,
-                "selection_count": 1,
-                "action_selection_rule": "forced_action_validation",
-                "relation_selection_rule": PERSISTENT_SELECTION_RULE,
-                "relation_selection_rank": 1,
-                "relation": {
+            if global_phase2_artifact:
+                relation_payload = None
+                relation_selection_rule = "not_applicable_no_relation"
+                relation_selection_rank = None
+                action_set_hash = None
+                action_source_hash = persistent_global_action_source_hash
+                artifact_schema = GLOBAL_PHASE2_ARTIFACT_SCHEMA
+                artifact_filename = "global_phase2_action.json"
+                execution_mode = "one_native_sweep_burst_then_native"
+            else:
+                if persistent_selected_action_set is None:
+                    raise RuntimeError("persistent relation action set is missing")
+                relation = persistent_selected_action_set.relation
+                relation_payload = {
                     "owner_group_indices": list(relation.owner_group_indices),
                     "shared_variable_indices": list(
                         relation.shared_variable_indices
@@ -5415,9 +5664,53 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         relation.owner_group_indices,
                         relation.shared_variable_indices,
                     ),
-                },
+                }
+                relation_selection_rule = PERSISTENT_SELECTION_RULE
+                relation_selection_rank = 1
+                action_set_hash = persistent_selected_action_set.action_set_hash
+                action_source_hash = None
+                artifact_schema = PERSISTENT_PHASE2_ARTIFACT_SCHEMA
+                artifact_filename = "persistent_phase2_action.json"
+            global_artifact_provenance = (
+                {
+                    "topology_hash": global_phase2_topology_hash,
+                    "order_hash": global_phase2_order_hash,
+                    "fitness_prefix_hash": _canonical_payload_sha256(
+                        [
+                            float(value)
+                            for value in fun.fitness_record[
+                                : persistent_full_space_action.checkpoint_fe
+                            ]
+                        ]
+                    )
+                    if persistent_full_space_action is not None
+                    else None,
+                    "source_group_deltas": list(
+                        persistent_global_source_group_deltas
+                    ),
+                    "source_group_actual_fes": list(
+                        persistent_global_source_group_fes
+                    ),
+                    "candidate": candidate_values,
+                }
+                if global_phase2_artifact
+                else {}
+            )
+            persistent_artifact = {
+                "schema_version": artifact_schema,
+                "problem_id": problem_id,
+                "run_seed": int(config.seed),
+                "configured_max_fes": config.max_fes,
+                "terminal_fe": current_fitness_evaluations(fun),
+                "selected_action": config.persistent_phase2_action,
+                "execution_mode": execution_mode,
+                "selection_count": 1,
+                "action_selection_rule": "forced_action_validation",
+                "relation_selection_rule": relation_selection_rule,
+                "relation_selection_rank": relation_selection_rank,
+                "relation": relation_payload,
                 "selection_fe": persistent_selection_fe,
-                "action_set_hash": persistent_selected_action_set.action_set_hash,
+                "action_set_hash": action_set_hash,
                 "checkpoint_fe": (
                     persistent_full_space_action.checkpoint_fe
                     if persistent_full_space_action is not None
@@ -5444,7 +5737,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 "application_count": application_count,
                 "action_hash": action_hash,
                 "parameter_hash": parameter_hash,
+                "action_source_hash": action_source_hash,
                 "lifecycle_state_hash": lifecycle_state_hash,
+                "trigger_scope": (
+                    TRIGGER_SCOPE_PHASE_BOUNDARY if global_phase2_artifact else None
+                ),
                 "runtime_authorized": True,
                 "runtime_consumed": True,
                 "status": "completed",
@@ -5459,8 +5756,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     "state_hash": lifecycle_state_hash,
                     "details": lifecycle_details,
                 },
+                **global_artifact_provenance,
             }
-            (output_path / "persistent_phase2_action.json").write_text(
+            (output_path / artifact_filename).write_text(
                 json.dumps(
                     persistent_artifact,
                     indent=2,
@@ -5643,6 +5941,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             RUNTIME_PROBE_POLICY,
             ACTION_CEILING_POLICY,
             PERSISTENT_PHASE2_POLICY,
+            GLOBAL_PHASE2_POLICY,
         ],
         required=True,
     )
@@ -5726,10 +6025,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         args.persistent_phase2_action != PERSISTENT_PHASE2_OFF
     )
     if persistent_phase2_enabled != (
-        args.relation_policy == PERSISTENT_PHASE2_POLICY
+        args.relation_policy in {PERSISTENT_PHASE2_POLICY, GLOBAL_PHASE2_POLICY}
     ):
         parser.error(
-            "--persistent-phase2-action requires --relation-policy persistent_phase2"
+            "--persistent-phase2-action requires a persistent Phase2 relation/global policy"
         )
     if persistent_phase2_enabled:
         expected_action = (
@@ -5743,10 +6042,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             parser.error("persistent Phase2 action does not match the R/S function family")
         if args.group_optimizer_mode != FULL_CMAES_MODE:
             parser.error("persistent Phase2 execution requires --group-optimizer-mode full_cmaes")
-        if args.evidence_overlay_mode != "paired_owner":
-            parser.error("persistent Phase2 execution requires --evidence-overlay-mode paired_owner")
-        if not args.enable_relation_dispatch:
-            parser.error("persistent Phase2 execution requires --enable-relation-dispatch")
+        if args.relation_policy == GLOBAL_PHASE2_POLICY:
+            if args.functions[0] != "rastrigin" or args.ids[0] != 1:
+                parser.error("global Phase2 is restricted to rastrigin/1 (R1)")
+            if args.arac_action != NATIVE_EQ8_ACTION:
+                parser.error("global Phase2 requires --arac-action native_eq8")
+            if args.evidence_overlay_mode != "off":
+                parser.error("global Phase2 requires --evidence-overlay-mode off")
+            if args.enable_relation_dispatch:
+                parser.error("global Phase2 forbids --enable-relation-dispatch")
+        else:
+            if args.evidence_overlay_mode != "paired_owner":
+                parser.error("persistent Phase2 execution requires --evidence-overlay-mode paired_owner")
+            if not args.enable_relation_dispatch:
+                parser.error("persistent Phase2 execution requires --enable-relation-dispatch")
     if (
         not args.action_ceiling_capture
         and args.action_ceiling_profile != ACTION_CEILING_FULL_MATRIX_PROFILE
@@ -5808,6 +6117,7 @@ def main(argv: list[str] | None = None) -> list[Path]:
         _remove_if_exists(output_path / "action_decision.csv")
         _remove_if_exists(output_path / "action_mismatch_audit.csv")
         _remove_if_exists(output_path / "persistent_phase2_action.json")
+        _remove_if_exists(output_path / "global_phase2_action.json")
         for fun_id in args.ids:
             algorithm = f"{fun_name}_{fun_id}"
             output_data[algorithm] = []
@@ -5906,20 +6216,34 @@ def main(argv: list[str] | None = None) -> list[Path]:
             "group_optimizer_mode": args.group_optimizer_mode,
         }
         if args.persistent_phase2_action != PERSISTENT_PHASE2_OFF:
-            persistent_artifact_path = output_path / "persistent_phase2_action.json"
+            global_phase2 = args.relation_policy == GLOBAL_PHASE2_POLICY
+            persistent_artifact_name = (
+                "global_phase2_action.json"
+                if global_phase2
+                else "persistent_phase2_action.json"
+            )
+            persistent_artifact_path = output_path / persistent_artifact_name
             if not persistent_artifact_path.is_file():
                 raise RuntimeError("persistent Phase2 action artifact is missing")
-            run_summary.update(
-                {
-                    "persistent_phase2_action": args.persistent_phase2_action,
-                    "persistent_phase2_action_artifact": (
-                        persistent_artifact_path.name
-                    ),
-                    "persistent_phase2_action_artifact_sha256": hashlib.sha256(
-                        persistent_artifact_path.read_bytes()
-                    ).hexdigest(),
-                }
-            )
+            artifact_sha256 = hashlib.sha256(
+                persistent_artifact_path.read_bytes()
+            ).hexdigest()
+            run_summary["persistent_phase2_action"] = args.persistent_phase2_action
+            if global_phase2:
+                run_summary.update(
+                    {
+                        "global_phase2_action": args.persistent_phase2_action,
+                        "global_phase2_action_artifact": persistent_artifact_path.name,
+                        "global_phase2_action_artifact_sha256": artifact_sha256,
+                    }
+                )
+            else:
+                run_summary.update(
+                    {
+                        "persistent_phase2_action_artifact": persistent_artifact_path.name,
+                        "persistent_phase2_action_artifact_sha256": artifact_sha256,
+                    }
+                )
         (output_path / "run_summary.json").write_text(
             json.dumps(run_summary, indent=2, sort_keys=True, allow_nan=False) + "\n",
             encoding="utf-8",

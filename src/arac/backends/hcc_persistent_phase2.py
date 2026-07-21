@@ -18,6 +18,8 @@ from arac.actions.full_space_sep_cma import (
     FULL_SPACE_DIMENSION,
     FULL_SPACE_SEP_CMA_ACTION,
     NO_RESTART_POLICY,
+    TRIGGER_SCOPE_PHASE_BOUNDARY,
+    TRIGGER_SCOPE_RELATION_DISPATCH,
     FullSpaceSepCmaAction,
     FullSpaceSepCmaExecutionState,
     full_space_sep_cma_anchor_hash,
@@ -26,12 +28,19 @@ from arac.actions.full_space_sep_cma import (
 
 
 PERSISTENT_PHASE2_ARTIFACT_SCHEMA = "phase2-action-v2"
+GLOBAL_PHASE2_ARTIFACT_SCHEMA = "phase2-global-action-v1"
 PERSISTENT_SEP_CMA_SEED_NAMESPACE = "persistent_phase2_full_space_sep_cma"
 FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE = FULL_SPACE_SEP_CMA_ACTION
 PERSISTENT_SELECTION_RULE = "max_voi_then_structural_key"
 
 _HASH_LENGTH = 64
 _BURST_DISPATCH_CHECKPOINT_SCHEMA = "full-space-sep-cma-dispatch-checkpoint-v1"
+_PHASE_BOUNDARY_ACTION_SOURCE_SCHEMA = (
+    "full-space-sep-cma-phase-boundary-action-source-v1"
+)
+_PHASE_BOUNDARY_CHECKPOINT_SCHEMA = (
+    "full-space-sep-cma-phase-boundary-checkpoint-v1"
+)
 
 
 def _canonical_sha256(payload: object) -> str:
@@ -223,6 +232,116 @@ def full_space_sep_cma_dispatch_checkpoint_hash(
     )
 
 
+def full_space_sep_cma_phase_boundary_action_source_hash(
+    *,
+    problem_id: str,
+    run_seed: int,
+    issued_sweep: int,
+    target_sweep: int,
+    frozen_burst_budget_fes: int,
+    topology_hash: str,
+    order_hash: str,
+) -> str:
+    """Identify one forced global action without inventing a relation."""
+
+    if not isinstance(problem_id, str) or not problem_id:
+        raise ValueError("problem_id must be non-empty")
+    issued = _integer(issued_sweep, "issued_sweep")
+    target = _integer(target_sweep, "target_sweep")
+    if target != issued + 1:
+        raise ValueError("phase-boundary action must target the next sweep")
+    budget = _integer(
+        frozen_burst_budget_fes,
+        "frozen_burst_budget_fes",
+        minimum=CANONICAL_SEP_CMA_POPULATION_SIZE,
+    )
+    return _canonical_sha256(
+        {
+            "protocol": _PHASE_BOUNDARY_ACTION_SOURCE_SCHEMA,
+            "action": FULL_SPACE_SEP_CMA_ACTION,
+            "trigger_scope": TRIGGER_SCOPE_PHASE_BOUNDARY,
+            "problem_id": problem_id,
+            "run_seed": _integer(run_seed, "run_seed"),
+            "issued_sweep": issued,
+            "target_sweep": target,
+            "frozen_burst_budget_fes": budget,
+            "topology_hash": _validate_hash(topology_hash, "topology_hash"),
+            "order_hash": _validate_hash(order_hash, "order_hash"),
+        }
+    )
+
+
+def full_space_sep_cma_phase_boundary_checkpoint_hash(
+    *,
+    problem_id: str,
+    run_seed: int,
+    checkpoint_fe: int,
+    issued_sweep: int,
+    target_sweep: int,
+    incumbent: Sequence[float],
+    fitness_prefix: Sequence[float],
+    topology_hash: str,
+    order_hash: str,
+    action_source_hash: str,
+    completed_group_deltas: Sequence[float],
+    completed_group_actual_fes: Sequence[int],
+    frozen_burst_budget_fes: int,
+) -> str:
+    """Bind a no-relation action to one complete native sweep boundary."""
+
+    if not isinstance(problem_id, str) or not problem_id:
+        raise ValueError("problem_id must be non-empty")
+    checkpoint = _integer(checkpoint_fe, "checkpoint_fe")
+    issued = _integer(issued_sweep, "issued_sweep")
+    target = _integer(target_sweep, "target_sweep")
+    if target != issued + 1:
+        raise ValueError("phase-boundary action must target the next sweep")
+    mean = _finite_vector(incumbent, "incumbent")
+    if len(mean) != FULL_SPACE_DIMENSION:
+        raise ValueError("phase-boundary incumbent must be 1000-dimensional")
+    prefix = _finite_vector(fitness_prefix, "fitness_prefix")
+    if len(prefix) != checkpoint:
+        raise ValueError("fitness_prefix length must equal checkpoint_fe")
+    completed_deltas = tuple(float(value) for value in completed_group_deltas)
+    if any(not math.isfinite(value) for value in completed_deltas):
+        raise ValueError("completed_group_deltas must be finite")
+    completed_fes = tuple(
+        _integer(value, "completed_group_actual_fes")
+        for value in completed_group_actual_fes
+    )
+    if len(completed_deltas) != len(completed_fes) or not completed_fes:
+        raise ValueError("completed group deltas and FEs must be non-empty and aligned")
+    budget = _integer(
+        frozen_burst_budget_fes,
+        "frozen_burst_budget_fes",
+        minimum=CANONICAL_SEP_CMA_POPULATION_SIZE,
+    )
+    if sum(completed_fes) != budget:
+        raise ValueError("frozen burst budget must equal the completed sweep FEs")
+    return _canonical_sha256(
+        {
+            "protocol": _PHASE_BOUNDARY_CHECKPOINT_SCHEMA,
+            "trigger_scope": TRIGGER_SCOPE_PHASE_BOUNDARY,
+            "problem_id": problem_id,
+            "run_seed": _integer(run_seed, "run_seed"),
+            "checkpoint_fe": checkpoint,
+            "issued_sweep": issued,
+            "target_sweep": target,
+            "incumbent_hash": full_space_vector_hash(mean),
+            "fitness_prefix_hash": _canonical_sha256(prefix),
+            "topology_hash": _validate_hash(topology_hash, "topology_hash"),
+            "order_hash": _validate_hash(order_hash, "order_hash"),
+            "action_source_hash": _validate_hash(
+                action_source_hash,
+                "action_source_hash",
+            ),
+            "completed_group_deltas": completed_deltas,
+            "completed_group_actual_fes": completed_fes,
+            "frozen_burst_budget_fes": budget,
+        }
+    )
+
+
 def persistent_optimizer_seed(checkpoint_hash: str) -> int:
     frozen = _validate_hash(checkpoint_hash, "checkpoint_hash")
     digest = hashlib.blake2b(
@@ -289,8 +408,8 @@ def _compile_full_space_sep_cma_action(
     run_seed: int,
     checkpoint_fe: int,
     checkpoint_hash: str,
-    owner_group_indices: Sequence[int],
-    shared_variable_indices: Sequence[int],
+    trigger_context_hash: str,
+    trigger_scope: str,
     incumbent: Sequence[float],
     acceptance_fitness: float,
     sigma: float,
@@ -340,9 +459,9 @@ def _compile_full_space_sep_cma_action(
         run_seed=_integer(run_seed, "run_seed"),
         checkpoint_fe=checkpoint,
         dispatch_checkpoint_hash=frozen_checkpoint,
-        trigger_relation_hash=persistent_relation_hash(
-            owner_group_indices,
-            shared_variable_indices,
+        trigger_relation_hash=_validate_hash(
+            trigger_context_hash,
+            "trigger_context_hash",
         ),
         anchor_hash=full_space_sep_cma_anchor_hash(problem_id, mean),
         initial_mean=mean,
@@ -364,6 +483,7 @@ def _compile_full_space_sep_cma_action(
         target_sweep=target,
         ttl_sweeps=1,
         expires_sweep=target,
+        trigger_scope=trigger_scope,
     )
 
 
@@ -397,8 +517,11 @@ def compile_full_space_sep_cma_burst_action(
         run_seed=run_seed,
         checkpoint_fe=dispatch_fe,
         checkpoint_hash=checkpoint_hash,
-        owner_group_indices=owner_group_indices,
-        shared_variable_indices=shared_variable_indices,
+        trigger_context_hash=persistent_relation_hash(
+            owner_group_indices,
+            shared_variable_indices,
+        ),
+        trigger_scope=TRIGGER_SCOPE_RELATION_DISPATCH,
         incumbent=incumbent,
         acceptance_fitness=acceptance_fitness,
         sigma=sigma,
@@ -408,6 +531,50 @@ def compile_full_space_sep_cma_burst_action(
         issued_sweep=issued_sweep,
         target_sweep=target_sweep,
         optimizer_seed=full_space_sep_cma_burst_optimizer_seed(checkpoint_hash),
+        seed_namespace=FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
+        objective=objective,
+        sepcmaes_factory=sepcmaes_factory,
+    )
+
+
+def compile_full_space_sep_cma_phase_boundary_action(
+    *,
+    problem_id: str,
+    run_seed: int,
+    checkpoint_fe: int,
+    checkpoint_hash: str,
+    incumbent: Sequence[float],
+    acceptance_fitness: float,
+    sigma: float,
+    lower: float,
+    upper: float,
+    budget_fes: int,
+    issued_sweep: int,
+    target_sweep: int,
+    objective: Callable[[Any], Any],
+    sepcmaes_factory: Callable[..., Any],
+) -> FullSpaceSepCmaAction:
+    """Compile one global burst at a complete native sweep boundary."""
+
+    frozen_checkpoint = _validate_hash(checkpoint_hash, "checkpoint_hash")
+    return _compile_full_space_sep_cma_action(
+        problem_id=problem_id,
+        run_seed=run_seed,
+        checkpoint_fe=checkpoint_fe,
+        checkpoint_hash=frozen_checkpoint,
+        trigger_context_hash=frozen_checkpoint,
+        trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY,
+        incumbent=incumbent,
+        acceptance_fitness=acceptance_fitness,
+        sigma=sigma,
+        lower=lower,
+        upper=upper,
+        budget_fes=budget_fes,
+        issued_sweep=issued_sweep,
+        target_sweep=target_sweep,
+        optimizer_seed=full_space_sep_cma_burst_optimizer_seed(
+            frozen_checkpoint
+        ),
         seed_namespace=FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
         objective=objective,
         sepcmaes_factory=sepcmaes_factory,
@@ -441,8 +608,11 @@ def compile_persistent_full_space_sep_cma_action(
         run_seed=run_seed,
         checkpoint_fe=checkpoint_fe,
         checkpoint_hash=frozen_checkpoint,
-        owner_group_indices=owner_group_indices,
-        shared_variable_indices=shared_variable_indices,
+        trigger_context_hash=persistent_relation_hash(
+            owner_group_indices,
+            shared_variable_indices,
+        ),
+        trigger_scope=TRIGGER_SCOPE_RELATION_DISPATCH,
         incumbent=incumbent,
         acceptance_fitness=acceptance_fitness,
         sigma=sigma,
@@ -531,6 +701,7 @@ def _execute_full_space_sep_cma_action(
         ),
         trigger_relation_hash=action.trigger_relation_hash,
         anchor_hash=full_space_sep_cma_anchor_hash(action.problem_id, mean),
+        trigger_scope=action.trigger_scope,
     )
     optimizer = _sep_optimizer(
         sepcmaes_factory,
@@ -657,17 +828,21 @@ def execute_persistent_full_space_sep_cma_action(
 
 __all__ = [
     "FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE",
+    "GLOBAL_PHASE2_ARTIFACT_SCHEMA",
     "PERSISTENT_PHASE2_ARTIFACT_SCHEMA",
     "PERSISTENT_SELECTION_RULE",
     "PERSISTENT_SEP_CMA_SEED_NAMESPACE",
     "FullSpaceSepCmaBurstResult",
     "PersistentSepCmaResult",
     "compile_full_space_sep_cma_burst_action",
+    "compile_full_space_sep_cma_phase_boundary_action",
     "compile_persistent_full_space_sep_cma_action",
     "execute_full_space_sep_cma_burst_action",
     "execute_persistent_full_space_sep_cma_action",
     "full_space_sep_cma_burst_optimizer_seed",
     "full_space_sep_cma_dispatch_checkpoint_hash",
+    "full_space_sep_cma_phase_boundary_action_source_hash",
+    "full_space_sep_cma_phase_boundary_checkpoint_hash",
     "persistent_optimizer_seed",
     "persistent_phase2_checkpoint_hash",
     "persistent_relation_hash",

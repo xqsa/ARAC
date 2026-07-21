@@ -14,6 +14,8 @@ from arac.actions.full_space_sep_cma import (
     CANONICAL_SEP_CMA_PARAMETERS_HASH,
     CANONICAL_SEP_CMA_POPULATION_SIZE,
     CANONICAL_SEP_CMA_REFERENCE_VERSION,
+    TRIGGER_SCOPE_PHASE_BOUNDARY,
+    TRIGGER_SCOPE_RELATION_DISPATCH,
     FullSpaceSepCmaAction,
     FullSpaceSepCmaExecutionState,
     full_space_sep_cma_anchor_hash,
@@ -45,6 +47,7 @@ def _action(
     target_sweep: int = 4,
     ttl_sweeps: int = 1,
     expires_sweep: int = 4,
+    trigger_scope: str = TRIGGER_SCOPE_RELATION_DISPATCH,
 ) -> FullSpaceSepCmaAction:
     values = tuple(0.0 for _ in range(FULL_SPACE_DIMENSION)) if mean is None else mean
     return FullSpaceSepCmaAction(
@@ -79,6 +82,7 @@ def _action(
         target_sweep=target_sweep,
         ttl_sweeps=ttl_sweeps,
         expires_sweep=expires_sweep,
+        trigger_scope=trigger_scope,
     )
 
 
@@ -140,6 +144,17 @@ def test_action_hash_changes_with_the_frozen_initial_mean() -> None:
 
     assert first.action_hash != second.action_hash
     assert first.initial_mean_hash != second.initial_mean_hash
+
+
+def test_phase_boundary_action_audit_binds_context_without_a_relation() -> None:
+    action = _action(trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY)
+
+    payload = action.audit_payload()
+
+    assert action.trigger_scope == TRIGGER_SCOPE_PHASE_BOUNDARY
+    assert payload["trigger_scope"] == TRIGGER_SCOPE_PHASE_BOUNDARY
+    assert payload["trigger_context_hash"] == action.trigger_relation_hash
+    assert "trigger_relation_hash" not in payload
 
 
 @pytest.mark.parametrize(
@@ -332,4 +347,48 @@ def test_execution_state_rejects_action_mismatch_and_fe_drift() -> None:
             consumed_fes=96,
             completed_fe=300_095,
             final_state_hash=_hash("d"),
+        )
+
+
+def test_phase_boundary_lifecycle_validates_scope_and_consumes_once() -> None:
+    action = _action(
+        budget_fes=24,
+        trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY,
+    )
+    execution = FullSpaceSepCmaExecutionState.for_action(action)
+    start_context = {
+        "current_fe": action.checkpoint_fe,
+        "current_sweep": action.target_sweep,
+        "dispatch_checkpoint_hash": action.dispatch_checkpoint_hash,
+        "trigger_relation_hash": action.trigger_relation_hash,
+        "anchor_hash": action.anchor_hash,
+    }
+
+    with pytest.raises(ValueError, match="trigger_scope mismatch"):
+        execution.start(
+            action,
+            **start_context,
+            trigger_scope=TRIGGER_SCOPE_RELATION_DISPATCH,
+        )
+
+    assert execution.status == "issued"
+    execution.start(
+        action,
+        **start_context,
+        trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY,
+    )
+    execution.complete(
+        action,
+        consumed_fes=action.budget_fes,
+        completed_fe=action.checkpoint_fe + action.budget_fes,
+        final_state_hash=_hash("d"),
+    )
+
+    assert execution.status == "completed"
+    assert execution.consumed_fes == 24
+    with pytest.raises(ValueError, match="only an issued action can start"):
+        execution.start(
+            action,
+            **start_context,
+            trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY,
         )
