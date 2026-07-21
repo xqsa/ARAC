@@ -58,7 +58,7 @@ def test_config_freezes_exact_persistent_phase2_cohort() -> None:
     assert tuple(execution["cases"]) == exp026.SUPPORTED_CASES
     assert tuple(execution["seeds"]) == exp026.VALIDATION_SEEDS
     assert execution["max_fes"] == 3_000_000
-    assert execution["jobs"] == 12
+    assert execution["jobs"] == 20
     assert execution["runner_contract"]["evidence_overlay_mode"] == "paired_owner"
     assert "arm_a" not in execution and "arm_b" not in execution
 

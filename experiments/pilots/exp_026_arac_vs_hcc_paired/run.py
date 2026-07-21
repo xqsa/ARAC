@@ -131,7 +131,7 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, object]:
     _require(tuple(execution.get("cases", ())) == SUPPORTED_CASES, "unsupported AOB cases")
     _require(tuple(execution.get("seeds", ())) == VALIDATION_SEEDS, "seed schedule changed")
     _require(execution.get("max_fes") == EXACT_MAX_FES, "exp026 requires exact 3M FE")
-    _require(execution.get("jobs") == 12, "exp026 freezes jobs=12")
+    _require(execution.get("jobs") == 20, "exp026 freezes jobs=20")
     for field, expected in {
         "budget_accounting": "strict",
         "search_state_backend": "phase_i_mmes",
@@ -475,6 +475,7 @@ def run_experiment(
         "exact_max_fes": EXACT_MAX_FES, "native_rerun": False, "paper_baseline_rerun": False,
         "five_seed_descriptive_only": True, "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
         "execution_mode": "offline_validation" if reuse_existing else "resume" if resume else "fresh",
+        "worker_count": workers,
         "reused_trajectory_count": sum(row.get("execution_source") == "reused_valid_artifact" for row in results),
         "executed_trajectory_count": sum(row.get("execution_source") in {"fresh_execution", "rerun_after_artifact_gate_failure"} for row in results),
     }

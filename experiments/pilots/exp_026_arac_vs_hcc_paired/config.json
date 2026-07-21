@@ -11,7 +11,7 @@
     "cases": ["R2", "R3", "R4", "R5", "R6", "S2", "S3", "S4", "S5", "S6"],
     "seeds": [117, 118, 119, 120, 121],
     "max_fes": 3000000,
-    "jobs": 12,
+    "jobs": 20,
     "budget_accounting": "strict",
     "search_state_backend": "phase_i_mmes",
     "cmaes_restart": true,
