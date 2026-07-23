@@ -1,0 +1,39 @@
+{
+  "protocol_version": "exp031-s-family-budget-pulse-diagnostic-v1",
+  "experiment_id": "exp_031_s_family_budget_pulse_diagnostic",
+  "stage": "action_validation_diagnostic",
+  "source_action_protocol": "exp030-s-family-budget-pulse-action-validation-v1",
+  "execution": {
+    "profile": "s_family_budget_pulse",
+    "cohort": "real_aob",
+    "case": "S5",
+    "seeds": [117, 118, 119, 120, 121],
+    "max_fes": 300000,
+    "terminal_fe_policy": "native_population_aligned",
+    "jobs": 1,
+    "expected_contexts_per_seed": 4,
+    "minimum_valid_contexts": 10,
+    "expected_total_contexts": 20,
+    "expected_total_arm_rows": 240,
+    "resume_policy": "validate_first_then_rerun_invalid"
+  },
+  "statistics": {
+    "primary_horizon": "sweep_1",
+    "cluster_unit": "case_seed",
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 2026071901,
+    "material_positive_delta": 0.009950330853168092,
+    "catastrophic_delta": -0.1823215567939546,
+    "sparse_positive_threshold": 0.2,
+    "tie_policy": "native_first"
+  },
+  "authorization": {
+    "action_ceiling_inference_authorized": 1,
+    "real_aob_pilot_may_be_authorized": 1,
+    "action_gate_authorized": 0,
+    "evidence_separability_authorized": 0,
+    "selector_authorized": 0,
+    "runtime_authorized": 0,
+    "primary_scope": "s5_budget_pulse_diagnostic_only"
+  }
+}

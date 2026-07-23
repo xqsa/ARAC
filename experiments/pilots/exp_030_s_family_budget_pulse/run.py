@@ -42,6 +42,18 @@ from arac.backends.hcc_action_ceiling import (
     freeze_efficiency_budget_action,
     freeze_shrunk_efficiency_budget_pulse_action,
 )
+from arac.backends.hcc_evidence_overlay import (
+    CHECKPOINT_FIELDS,
+    DELAYED_OUTCOME_FIELDS,
+    EVIDENCE_OVERLAY_PROTOCOL_VERSION,
+    EVIDENCE_OVERLAY_SOURCE_MODE,
+    PLAN_FIELDS,
+    PROBE_EVIDENCE_FIELDS,
+    RUNTIME_ACTION_FIELDS,
+    RUNTIME_INPUT_FIELDS,
+    SHADOW_DECISION_FIELDS,
+    TERMINAL_TOLERANCE_RULE,
+)
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_ARM_RESULT_FIELDS,
@@ -52,7 +64,12 @@ from arac.policy.action_ceiling import (
     S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION,
     actionability_delta,
 )
-from arac.policy.evidence_overlay import RelationKey
+from arac.policy.evidence_overlay import (
+    ProbeUtilities,
+    RelationKey,
+    decide_shadow_action,
+    summarize_probe_utilities,
+)
 
 
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("config.json")
@@ -82,6 +99,23 @@ AOB_INPUT_MANIFEST_FIELDS = (
     "sha256_after",
     "unchanged",
 )
+BUDGET_SUMMARY_FIELDS = (
+    "problem_id",
+    "budget_accounting",
+    "max_fes",
+    "optimizer_reported_fe",
+    "fitness_record_fe",
+    "budget_aligned_fe",
+    "same_budget_violation",
+    "global_phase_fe",
+    "cc_phase_fe",
+    "rescue_fe",
+    "refresh_fe",
+    "search_state_fe",
+    "separable_continuation_fe",
+    "overhead_fe",
+    "evidence_overlay_fe",
+)
 GCB_CONTEXT_FIELDS = (
     "gcb_action_hash",
     "gcb_action_payload",
@@ -96,20 +130,57 @@ BUDGET_ARMS = (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
 )
-SOURCE_FILES = (
-    Path(__file__).resolve(),
-    REPOSITORY_ROOT / "src" / "arac" / "policy" / "action_ceiling.py",
-    REPOSITORY_ROOT / "src" / "arac" / "actions" / "budget_reallocation.py",
-    REPOSITORY_ROOT / "src" / "arac" / "actions" / "shrunk_budget_pulse.py",
-    REPOSITORY_ROOT / "src" / "arac" / "backends" / "hcc_action_ceiling.py",
-    REPOSITORY_ROOT / "src" / "arac" / "backends" / "hcc_action_ceiling_runtime.py",
-    REPOSITORY_ROOT / "scripts" / "hcc_smoke_runner.py",
-    REPOSITORY_ROOT
-    / "experiments"
-    / "pilots"
-    / "exp_019_conflict_resolution_pilot"
-    / "_diagnostic_worker.py",
+OVERLAY_ARTIFACT_FIELDS = {
+    "checkpoint": CHECKPOINT_FIELDS,
+    "delayed_outcomes": DELAYED_OUTCOME_FIELDS,
+    "plan": PLAN_FIELDS,
+    "probe_evidence": PROBE_EVIDENCE_FIELDS,
+    "runtime_actions": RUNTIME_ACTION_FIELDS,
+    "shadow_decisions": SHADOW_DECISION_FIELDS,
+}
+OVERLAY_PROBE_CANDIDATES = ("x0", "left_owner", "right_owner", "bridge")
+OVERLAY_STATE_FINGERPRINT_COMPONENTS = frozenset(
+    {
+        "best_individual",
+        "controller",
+        "grouping",
+        "guarded_incumbent",
+        "guarded_incumbent_fitness",
+        "phase_i",
+        "rng",
+    }
 )
+
+
+def _semantic_source_files() -> tuple[Path, ...]:
+    files = {
+        Path(__file__).resolve(),
+        (REPOSITORY_ROOT / "scripts" / "hcc_smoke_runner.py").resolve(),
+        (
+            REPOSITORY_ROOT
+            / "experiments"
+            / "pilots"
+            / "exp_019_conflict_resolution_pilot"
+            / "_diagnostic_worker.py"
+        ).resolve(),
+        (
+            REPOSITORY_ROOT
+            / "experiments"
+            / "pilots"
+            / "exp_019_conflict_resolution_pilot"
+            / "benchmark.py"
+        ).resolve(),
+    }
+    for root in (
+        REPOSITORY_ROOT / "src" / "arac",
+        REPOSITORY_ROOT / "vendor" / "hcc" / "HCC",
+        REPOSITORY_ROOT / "vendor" / "hcc" / "AOB",
+    ):
+        files.update(path.resolve() for path in root.rglob("*.py"))
+    return tuple(sorted(files, key=lambda path: path.as_posix()))
+
+
+SOURCE_FILES = _semantic_source_files()
 
 
 @dataclass(frozen=True)
@@ -187,6 +258,22 @@ def _read_csv(path: Path, fields: Sequence[str]) -> list[dict[str, str]]:
             _require(
                 tuple(reader.fieldnames or ()) == tuple(fields),
                 f"CSV schema mismatch: {path}",
+            )
+            return list(reader)
+    except OSError as error:
+        raise ValueError(f"missing or unreadable CSV artifact: {path}") from error
+
+
+def _read_csv_with_required_fields(
+    path: Path,
+    required_fields: Sequence[str],
+) -> list[dict[str, str]]:
+    try:
+        with path.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            _require(
+                set(required_fields) <= set(reader.fieldnames or ()),
+                f"CSV required fields are missing: {path}",
             )
             return list(reader)
     except OSError as error:
@@ -319,7 +406,11 @@ def run_worker(output_root: Path, python_executable: str) -> None:
     )
 
 
-def _context_state(row: Mapping[str, str]) -> ContextState:
+def _context_state(
+    row: Mapping[str, str],
+    *,
+    expected_seed: int,
+) -> ContextState:
     populations = _integer_vector(row, "population_sizes", minimum=1)
     uniform = _integer_vector(row, "uniform_group_budgets", minimum=1)
     streaks = _integer_vector(row, "stagnation_streaks", minimum=0)
@@ -393,7 +484,7 @@ def _context_state(row: Mapping[str, str]) -> ContextState:
 
     raw_action = freeze_efficiency_budget_action(
         problem_id=CASE,
-        run_seed=SEED,
+        run_seed=expected_seed,
         checkpoint_fe=dispatch_fe,
         dispatch_checkpoint_hash=str(row["dispatch_checkpoint_hash"]),
         source_efficiency_ewma=efficiencies,
@@ -404,7 +495,7 @@ def _context_state(row: Mapping[str, str]) -> ContextState:
     )
     shrunk_action = freeze_shrunk_efficiency_budget_pulse_action(
         problem_id=CASE,
-        run_seed=SEED,
+        run_seed=expected_seed,
         checkpoint_fe=dispatch_fe,
         dispatch_checkpoint_hash=str(row["dispatch_checkpoint_hash"]),
         raw_group_budgets=raw_action.group_budgets,
@@ -442,7 +533,11 @@ def _relation_key(relation_id: str) -> RelationKey:
     return RelationKey(owners, shared)
 
 
-def _validate_context_rows(rows: Sequence[Mapping[str, str]]) -> dict[str, ContextState]:
+def _validate_context_rows(
+    rows: Sequence[Mapping[str, str]],
+    *,
+    expected_seed: int,
+) -> dict[str, ContextState]:
     _require(len(rows) == EXPECTED_CONTEXTS, "expected exactly four S5 contexts")
     contexts: dict[str, ContextState] = {}
     relation_ids: set[str] = set()
@@ -456,7 +551,7 @@ def _validate_context_rows(rows: Sequence[Mapping[str, str]]) -> dict[str, Conte
             row.get("protocol_version") == PROTOCOL_VERSION
             and row.get("cohort") == COHORT
             and row.get("problem_id") == CASE
-            and row.get("seed") == str(SEED)
+            and row.get("seed") == str(expected_seed)
             and row.get("native_parity") == "1"
             and row.get("runtime_authorized") == "0"
             and row.get("status") == "complete"
@@ -485,7 +580,7 @@ def _validate_context_rows(rows: Sequence[Mapping[str, str]]) -> dict[str, Conte
         )
         relation = _relation_key(relation_id)
         expected_context_id = (
-            f"{COHORT}:{CASE}:seed{SEED}:s{row['target_sweep']}:"
+            f"{COHORT}:{CASE}:seed{expected_seed}:s{row['target_sweep']}:"
             f"g{relation.owner_group_indices[0]}-{relation.owner_group_indices[1]}:"
             f"{row['dispatch_checkpoint_hash'][:12]}"
         )
@@ -505,7 +600,7 @@ def _validate_context_rows(rows: Sequence[Mapping[str, str]]) -> dict[str, Conte
             row["dispatch_anchor_hash"] not in dispatch_anchor_hashes,
             "duplicate dispatch anchor hash",
         )
-        contexts[context_id] = _context_state(row)
+        contexts[context_id] = _context_state(row, expected_seed=expected_seed)
         relation_ids.add(relation_id)
         action_set_hashes.add(row["action_set_hash"])
         dispatch_hashes.add(row["dispatch_checkpoint_hash"])
@@ -763,6 +858,8 @@ def _validate_budget_arm(
 def _validate_arm_rows(
     rows: Sequence[Mapping[str, str]],
     contexts: Mapping[str, ContextState],
+    *,
+    expected_seed: int,
 ) -> None:
     _require(len(rows) == EXPECTED_ARM_ROWS, "expected exactly 48 S5 arm rows")
     grouped: dict[str, dict[str, dict[str, Mapping[str, str]]]] = {}
@@ -777,7 +874,7 @@ def _validate_arm_rows(
             row.get("protocol_version") == PROTOCOL_VERSION
             and row.get("cohort") == COHORT
             and row.get("problem_id") == CASE
-            and row.get("seed") == str(SEED)
+            and row.get("seed") == str(expected_seed)
             and arm in S_FAMILY_BUDGET_PULSE_ARMS
             and horizon in ACTION_CEILING_HORIZONS
             and row.get("runtime_authorized") == "0"
@@ -792,11 +889,13 @@ def _validate_arm_rows(
             1 if horizon == "immediate" else relative_targets[horizon] * state.horizon_fe
         )
         traces = _traces(row)
+        natural_endpoint_fe = _int(row.get("natural_endpoint_fe"), "natural_endpoint_fe")
         _require(
             _int(row.get("target_fe"), "target_fe")
             == _int(state.row["dispatch_fe"], "dispatch_fe") + target_relative_fe
-            and _int(row.get("natural_endpoint_fe"), "natural_endpoint_fe")
-            >= _int(state.row["dispatch_fe"], "dispatch_fe") + 3 * state.horizon_fe
+            and _int(state.row["dispatch_fe"], "dispatch_fe") + 3 * state.horizon_fe
+            <= natural_endpoint_fe
+            <= CONFIGURED_MAX_FES
             and all(start <= target_relative_fe for start in traces[3]),
             "S5 arm horizon FE contract is invalid",
         )
@@ -978,13 +1077,16 @@ def _validate_aob_manifest(path: Path, aob_data_root: Path) -> tuple[dict[str, s
 def _validate_run_summary(
     path: Path,
     contexts: Mapping[str, ContextState],
+    *,
+    expected_seed: int,
 ) -> dict[str, object]:
     summary = _read_json(path)
     _require(
         summary.get("protocol_version") == "hcc-run-summary-v2"
         and summary.get("problem_id") == CASE
-        and summary.get("seed") == SEED
-        and summary.get("configured_max_fes") == CONFIGURED_MAX_FES,
+        and summary.get("seed") == expected_seed
+        and summary.get("configured_max_fes") == CONFIGURED_MAX_FES
+        and summary.get("group_optimizer_mode") == "full_cmaes",
         "worker run summary identity or configured FE budget is invalid",
     )
     population_vectors = {context.populations for context in contexts.values()}
@@ -1020,29 +1122,575 @@ def _validate_run_summary(
     return summary
 
 
+def _validate_budget_summary(
+    path: Path,
+    run_summary: Mapping[str, object],
+) -> dict[str, str]:
+    rows = _read_csv(path, BUDGET_SUMMARY_FIELDS)
+    _require(len(rows) == 1, "S5 budget summary must contain exactly one row")
+    row = rows[0]
+    terminal_fe = int(run_summary["fitness_evaluations"])
+    optimizer_reported_fe = _int(
+        row.get("optimizer_reported_fe"),
+        "optimizer_reported_fe",
+    )
+    stage_fields = (
+        "global_phase_fe",
+        "cc_phase_fe",
+        "rescue_fe",
+        "refresh_fe",
+        "search_state_fe",
+        "separable_continuation_fe",
+        "evidence_overlay_fe",
+    )
+    stage_fe = sum(_int(row.get(field), field) for field in stage_fields)
+    overhead_fe = _int(row.get("overhead_fe"), "overhead_fe")
+    _require(
+        row.get("problem_id") == CASE
+        and row.get("budget_accounting") == "strict"
+        and _int(row.get("max_fes"), "max_fes") == CONFIGURED_MAX_FES
+        and _int(row.get("fitness_record_fe"), "fitness_record_fe") == terminal_fe
+        and _int(row.get("budget_aligned_fe"), "budget_aligned_fe") == terminal_fe
+        and row.get("same_budget_violation") == "0"
+        and _int(row.get("evidence_overlay_fe"), "evidence_overlay_fe") == 16
+        and _int(
+            row.get("separable_continuation_fe"),
+            "separable_continuation_fe",
+        )
+        == 0
+        and optimizer_reported_fe == stage_fe
+        and stage_fe + overhead_fe == terminal_fe,
+        "S5 strict budget accounting is inconsistent",
+    )
+    return row
+
+
+def _validate_overlay_artifacts(
+    artifact_dir: Path,
+    contexts: Mapping[str, ContextState],
+    run_summary: Mapping[str, object],
+    budget_summary: Mapping[str, str],
+    *,
+    expected_seed: int,
+    expected_run_id: str,
+) -> tuple[Path, ...]:
+    manifest_path = artifact_dir / f"{CASE}_evidence_overlay_manifest.json"
+    manifest = _read_json(manifest_path)
+    artifact_names = manifest.get("artifacts")
+    artifact_hashes = manifest.get("artifact_sha256")
+    expected_names = {
+        key: f"{CASE}_evidence_overlay_{key}.csv"
+        for key in OVERLAY_ARTIFACT_FIELDS
+    }
+    _require(
+        artifact_names == expected_names
+        and isinstance(artifact_hashes, dict)
+        and set(artifact_hashes) == set(expected_names.values()),
+        "overlay artifact manifest is incomplete",
+    )
+    paths = {
+        key: artifact_dir / name for key, name in expected_names.items()
+    }
+    _require(
+        all(
+            path.is_file()
+            and _is_sha256(artifact_hashes.get(path.name))
+            and _sha256_file(path) == artifact_hashes[path.name]
+            for path in paths.values()
+        ),
+        "overlay artifact hash mismatch",
+    )
+    rows = {
+        key: _read_csv(paths[key], fields)
+        for key, fields in OVERLAY_ARTIFACT_FIELDS.items()
+    }
+
+    context_rows = [state.row for state in contexts.values()]
+    context_relations = {row["relation_id"] for row in context_rows}
+    phase_boundary_fes = {row["phase_boundary_fe"] for row in context_rows}
+    checkpoint_hashes = {row["checkpoint_hash"] for row in context_rows}
+    _require(
+        len(context_relations) == EXPECTED_CONTEXTS
+        and len(phase_boundary_fes) == 1
+        and len(checkpoint_hashes) == 1,
+        "overlay context anchors are inconsistent",
+    )
+    phase_boundary_fe = _int(next(iter(phase_boundary_fes)), "phase_boundary_fe")
+    population_ceiling = max(
+        population for state in contexts.values() for population in state.populations
+    )
+
+    def valid_identity(row: Mapping[str, str]) -> bool:
+        return (
+            row.get("problem_id") == CASE
+            and row.get("seed") == str(expected_seed)
+            and row.get("mode") == "paired_owner"
+            and row.get("runtime_authorized") == "0"
+        )
+
+    checkpoint_rows = rows["checkpoint"]
+    _require(
+        len(checkpoint_rows) == 1 and valid_identity(checkpoint_rows[0]),
+        "overlay checkpoint identity is invalid",
+    )
+    checkpoint = checkpoint_rows[0]
+    topology_hash = checkpoint.get("rddsm_topology_hash")
+    order_hash = checkpoint.get("rddsm_order_hash")
+    fitness_prefix_hash = checkpoint.get("fitness_prefix_hash")
+    incumbent_hash = checkpoint.get("incumbent_hash")
+    try:
+        history_sweeps = tuple(
+            int(value) for value in str(checkpoint.get("history_sweeps", "")).split(";")
+        )
+    except ValueError as error:
+        raise ValueError("overlay checkpoint sweep history is invalid") from error
+    _require(
+        _int(checkpoint.get("checkpoint_fe"), "checkpoint_fe")
+        == phase_boundary_fe
+        and _int(checkpoint.get("phase_boundary_fe"), "phase_boundary_fe")
+        == phase_boundary_fe
+        and all(
+            _is_sha256(value)
+            for value in (
+                topology_hash,
+                order_hash,
+                fitness_prefix_hash,
+                incumbent_hash,
+            )
+        )
+        and len(history_sweeps) == 3
+        and all(
+            history_sweeps[index + 1] == history_sweeps[index] + 1
+            for index in range(len(history_sweeps) - 1)
+        )
+        and checkpoint.get("previous_survival_closed") == "1"
+        and checkpoint.get("plan_status") == "selected"
+        and checkpoint.get("plan_reason")
+        in {
+            "top_relation_set_selected",
+            "top_relation_set_selected_structural_tie_break",
+        },
+        "overlay checkpoint truth contract is invalid",
+    )
+    checkpoint_hash = _canonical_hash(
+        {
+            "problem_id": CASE,
+            "seed": expected_seed,
+            "checkpoint_fe": phase_boundary_fe,
+            "fitness_prefix_hash": fitness_prefix_hash,
+            "incumbent_hash": incumbent_hash,
+            "rddsm_topology_hash": topology_hash,
+            "rddsm_order_hash": order_hash,
+        }
+    )
+    _require(
+        checkpoint_hashes == {checkpoint_hash},
+        "overlay checkpoint hash does not bind action contexts",
+    )
+
+    plan_rows = rows["plan"]
+    for row in plan_rows:
+        relation = _relation_key(str(row.get("relation_id", "")))
+        _require(
+            row.get("owner_groups")
+            == ";".join(str(value) for value in relation.owner_group_indices)
+            and row.get("shared_variables")
+            == ";".join(str(value) for value in relation.shared_variable_indices),
+            "overlay plan relation payload is inconsistent",
+        )
+    _require(
+        bool(plan_rows)
+        and all(valid_identity(row) for row in plan_rows)
+        and len({row["relation_id"] for row in plan_rows}) == len(plan_rows)
+        and all(
+            row.get("selected") in {"0", "1"}
+            and row.get("phase_boundary_fe") == str(phase_boundary_fe)
+            and row.get("score_source_relation_id") == row.get("relation_id")
+            for row in plan_rows
+        ),
+        "overlay relation plan is invalid",
+    )
+    selected_plan_rows = [row for row in plan_rows if row["selected"] == "1"]
+    _require(
+        len(selected_plan_rows) == EXPECTED_CONTEXTS
+        and {row["relation_id"] for row in selected_plan_rows}
+        == context_relations,
+        "overlay selected relations do not match action contexts",
+    )
+
+    probe_rows = rows["probe_evidence"]
+    probes_by_relation: dict[str, dict[str, Mapping[str, str]]] = {}
+    for row in probe_rows:
+        relation_id = row.get("relation_id", "")
+        candidate = row.get("candidate", "")
+        _require(
+            valid_identity(row)
+            and relation_id in context_relations
+            and candidate in OVERLAY_PROBE_CANDIDATES
+            and row.get("phase_boundary_fe") == str(phase_boundary_fe)
+            and _int(row.get("actual_fe"), "actual_fe") == 1
+            and _is_sha256(row.get("candidate_hash")),
+            "overlay probe row is invalid",
+        )
+        _float(row.get("fitness"), "fitness")
+        _float(row.get("utility"), "utility", minimum=-math.inf)
+        if candidate == "x0":
+            _require(
+                row.get("candidate_hash") == incumbent_hash
+                and row.get("owner_reliability") == "",
+                "overlay x0 probe is not bound to the checkpoint incumbent",
+            )
+        else:
+            reliability = _float(row.get("owner_reliability"), "owner_reliability")
+            _require(reliability <= 1.0, "owner_reliability must be <= 1")
+        relation_probes = probes_by_relation.setdefault(relation_id, {})
+        _require(candidate not in relation_probes, "duplicate overlay probe candidate")
+        relation_probes[candidate] = row
+    _require(
+        len(probe_rows) == 16
+        and set(probes_by_relation) == context_relations
+        and all(
+            set(relation_rows) == set(OVERLAY_PROBE_CANDIDATES)
+            for relation_rows in probes_by_relation.values()
+        ),
+        "overlay four-point probe matrix is incomplete",
+    )
+    _require(
+        len(
+            {
+                _float(relation_rows["x0"].get("fitness"), "fitness")
+                for relation_rows in probes_by_relation.values()
+            }
+        )
+        == 1,
+        "overlay repeated x0 fitness is inconsistent",
+    )
+    for relation_rows in probes_by_relation.values():
+        expected_utilities = summarize_probe_utilities(
+            anchor_fitness=_float(relation_rows["x0"].get("fitness"), "fitness"),
+            left_fitness=_float(
+                relation_rows["left_owner"].get("fitness"),
+                "fitness",
+            ),
+            right_fitness=_float(
+                relation_rows["right_owner"].get("fitness"),
+                "fitness",
+            ),
+            bridge_fitness=_float(
+                relation_rows["bridge"].get("fitness"),
+                "fitness",
+            ),
+        )
+        expected_by_candidate = {
+            "x0": 0.0,
+            "left_owner": expected_utilities.left_owner,
+            "right_owner": expected_utilities.right_owner,
+            "bridge": expected_utilities.bridge,
+        }
+        _require(
+            all(
+                math.isclose(
+                    _float(row.get("utility"), "utility", minimum=-math.inf),
+                    expected_by_candidate[candidate],
+                    rel_tol=0.0,
+                    abs_tol=1e-15,
+                )
+                for candidate, row in relation_rows.items()
+            ),
+            "overlay probe utility does not match recorded fitness",
+        )
+
+    delayed_rows = rows["delayed_outcomes"]
+    delayed_pairs: set[tuple[str, str]] = set()
+    maximum_dispatch_fe = max(
+        _int(row.get("dispatch_fe"), "dispatch_fe") for row in context_rows
+    )
+    minimum_dispatch_fe = min(
+        _int(row.get("dispatch_fe"), "dispatch_fe") for row in context_rows
+    )
+    maximum_resolution_fe = minimum_dispatch_fe + min(
+        state.horizon_fe for state in contexts.values()
+    )
+    resolution_fes: set[int] = set()
+    for row in delayed_rows:
+        pair = (row.get("relation_id", ""), row.get("owner", ""))
+        survival = _float(row.get("survival_label"), "survival_label")
+        overwrite = _float(row.get("overwrite_label"), "overwrite_label")
+        _require(
+            valid_identity(row)
+            and pair[0] in context_relations
+            and pair[1] in {"left", "right"}
+            and pair not in delayed_pairs
+            and survival <= 1.0
+            and overwrite <= 1.0
+            and math.isclose(survival + overwrite, 1.0, rel_tol=0.0, abs_tol=1e-12)
+            and row.get("label_closed") == "1"
+            and row.get("label_status") == "closed_next_complete_sweep"
+            and maximum_dispatch_fe
+            <= _int(row.get("resolution_fe"), "resolution_fe")
+            <= maximum_resolution_fe,
+            "overlay delayed outcome row is invalid",
+        )
+        _float(
+            row.get("next_sweep_log_improvement"),
+            "next_sweep_log_improvement",
+            minimum=-math.inf,
+        )
+        _float(
+            row.get("overwrite_penalized_credit"),
+            "overwrite_penalized_credit",
+            minimum=-math.inf,
+        )
+        resolution_fes.add(_int(row.get("resolution_fe"), "resolution_fe"))
+        delayed_pairs.add(pair)
+    _require(
+        delayed_pairs
+        == {
+            (relation_id, owner)
+            for relation_id in context_relations
+            for owner in ("left", "right")
+        }
+        and len(resolution_fes) == 1,
+        "overlay delayed outcome matrix is incomplete",
+    )
+
+    shadow_rows = rows["shadow_decisions"]
+    expected_shadow_decisions = {
+        relation_id: decide_shadow_action(
+            ProbeUtilities(
+                left_owner=_float(
+                    relation_rows["left_owner"].get("utility"),
+                    "utility",
+                    minimum=-math.inf,
+                ),
+                right_owner=_float(
+                    relation_rows["right_owner"].get("utility"),
+                    "utility",
+                    minimum=-math.inf,
+                ),
+                bridge=_float(
+                    relation_rows["bridge"].get("utility"),
+                    "utility",
+                    minimum=-math.inf,
+                ),
+            )
+        )
+        for relation_id, relation_rows in probes_by_relation.items()
+    }
+    _require(
+        len(shadow_rows) == EXPECTED_CONTEXTS
+        and all(valid_identity(row) for row in shadow_rows)
+        and {row["relation_id"] for row in shadow_rows} == context_relations
+        and len({row["relation_id"] for row in shadow_rows}) == len(shadow_rows)
+        and all(
+            row.get("action")
+            == expected_shadow_decisions[row["relation_id"]].shadow_action
+            and row.get("winner")
+            == expected_shadow_decisions[row["relation_id"]].winner
+            and row.get("reason")
+            == expected_shadow_decisions[row["relation_id"]].reason
+            and math.isclose(
+                _float(row.get("utility"), "utility", minimum=-math.inf),
+                expected_shadow_decisions[row["relation_id"]].utility,
+                rel_tol=0.0,
+                abs_tol=1e-15,
+            )
+            for row in shadow_rows
+        ),
+        "overlay shadow decisions are invalid",
+    )
+    _require(
+        rows["runtime_actions"] == [],
+        "offline overlay must not contain runtime action rows",
+    )
+
+    state_fingerprints = manifest.get("state_fingerprints")
+    _require(
+        isinstance(state_fingerprints, dict)
+        and set(state_fingerprints) == OVERLAY_STATE_FINGERPRINT_COMPONENTS
+        and all(
+            isinstance(item, dict)
+            and set(item) == {"before", "after"}
+            and _is_sha256(item.get("before"))
+            and item.get("before") == item.get("after")
+            for item in state_fingerprints.values()
+        ),
+        "overlay observer state fingerprints are invalid",
+    )
+    fingerprint_payload = {
+        component: state_fingerprints[component]["before"]
+        for component in sorted(state_fingerprints)
+    }
+    runtime_fingerprint = _canonical_hash(fingerprint_payload)
+    overlay_fe = _int(budget_summary.get("evidence_overlay_fe"), "evidence_overlay_fe")
+    probe_start_fe = _int(manifest.get("probe_start_fe"), "probe_start_fe")
+    probe_end_fe = _int(manifest.get("probe_end_fe"), "probe_end_fe")
+    native_terminal_error = _float(
+        manifest.get("native_terminal_error"),
+        "native_terminal_error",
+    )
+    all_evaluation_best_error = _float(
+        manifest.get("all_evaluation_best_error"),
+        "all_evaluation_best_error",
+    )
+    _require(
+        manifest.get("protocol_version") == EVIDENCE_OVERLAY_PROTOCOL_VERSION
+        and manifest.get("schema_version") == 2
+        and manifest.get("source_mode") == EVIDENCE_OVERLAY_SOURCE_MODE
+        and manifest.get("problem_id") == CASE
+        and manifest.get("seed") == expected_seed
+        and manifest.get("run_id") == expected_run_id
+        and manifest.get("configured_max_fes") == CONFIGURED_MAX_FES
+        and manifest.get("evidence_overlay_mode") == "paired_owner"
+        and manifest.get("terminal_tolerance_rule") == TERMINAL_TOLERANCE_RULE
+        and manifest.get("terminal_tolerance_fe") == population_ceiling
+        and manifest.get("runtime_input_fields") == list(RUNTIME_INPUT_FIELDS)
+        and manifest.get("phase_boundary_fe") == phase_boundary_fe
+        and manifest.get("rddsm_topology_hash") == topology_hash
+        and manifest.get("rddsm_order_hash") == order_hash
+        and probe_start_fe == phase_boundary_fe
+        and probe_end_fe - probe_start_fe == overlay_fe
+        and manifest.get("objective_calls") == overlay_fe == len(probe_rows)
+        and manifest.get("evidence_overlay_fe") == overlay_fe
+        and manifest.get("optimizer_calls") == 0
+        and manifest.get("rng_calls") == 0
+        and manifest.get("failure") is None
+        and manifest.get("applicable") == 1
+        and manifest.get("abstain_reason") == ""
+        and manifest.get("barrier_status") == "probed"
+        and manifest.get("barrier_reason") == "four_point_probe_complete"
+        and manifest.get("selected_relation_count") == EXPECTED_CONTEXTS
+        and manifest.get("delayed_outcomes_required") == 1
+        and manifest.get("delayed_label_expected") == len(delayed_rows)
+        and manifest.get("delayed_label_closed") == len(delayed_rows)
+        and manifest.get("fresh_optimizer_execution") == 1
+        and manifest.get("observer_integrity") == 1
+        and manifest.get("native_state_unchanged") == 1
+        and manifest.get("aob_truth_runtime_used") == 0
+        and manifest.get("runtime_authorized") == 0
+        and manifest.get("runtime_consumed") == 0
+        and manifest.get("runtime_actions_authorized") == 0
+        and manifest.get("runtime_actions_issued") == 0
+        and manifest.get("runtime_actions_consumed") == 0
+        and manifest.get("runtime_actions_abstained") == 0
+        and manifest.get("runtime_fingerprint_before") == runtime_fingerprint
+        and manifest.get("runtime_fingerprint_after") == runtime_fingerprint
+        and all_evaluation_best_error <= native_terminal_error
+        and int(run_summary["fitness_evaluations"]) <= CONFIGURED_MAX_FES,
+        "overlay manifest truth contract is invalid",
+    )
+    return (manifest_path, *(paths[key] for key in sorted(paths)))
+
+
 def validate_artifacts(
     artifact_dir: Path,
     *,
     aob_data_root: Path = AOB_DATA_ROOT,
+    expected_seed: int = SEED,
+    expected_run_id: str = TRAJECTORY_ID,
 ) -> ValidatedArtifacts:
+    _require(
+        type(expected_seed) is int and expected_seed >= 0,
+        "expected_seed must be a non-negative integer",
+    )
+    _require(bool(expected_run_id), "expected_run_id must be non-empty")
     artifact_dir = artifact_dir.resolve()
     context_path = artifact_dir / f"{CASE}_action_ceiling_contexts.csv"
     arm_path = artifact_dir / f"{CASE}_action_ceiling_arm_results.csv"
     aob_path = artifact_dir / f"{CASE}_aob_input_manifest.csv"
     summary_path = artifact_dir / "run_summary.json"
+    budget_path = artifact_dir / f"{CASE}_budget_summary.csv"
     context_rows = _read_csv(context_path, ACTION_CEILING_CONTEXT_FIELDS)
     arm_rows = _read_csv(arm_path, ACTION_CEILING_ARM_RESULT_FIELDS)
-    contexts = _validate_context_rows(context_rows)
-    _validate_arm_rows(arm_rows, contexts)
+    contexts = _validate_context_rows(context_rows, expected_seed=expected_seed)
+    _validate_arm_rows(arm_rows, contexts, expected_seed=expected_seed)
     aob_rows = _validate_aob_manifest(aob_path, aob_data_root)
-    summary = _validate_run_summary(summary_path, contexts)
+    summary = _validate_run_summary(
+        summary_path,
+        contexts,
+        expected_seed=expected_seed,
+    )
+    budget_summary = _validate_budget_summary(budget_path, summary)
+    overlay_paths = _validate_overlay_artifacts(
+        artifact_dir,
+        contexts,
+        summary,
+        budget_summary,
+        expected_seed=expected_seed,
+        expected_run_id=expected_run_id,
+    )
+    evaluation_path = artifact_dir / "evaluation_record.txt"
+    trace_path = artifact_dir / f"{CASE}_action_trace.csv"
+    decision_path = artifact_dir / f"{CASE}_action_decision.csv"
+    mismatch_path = artifact_dir / f"{CASE}_action_mismatch_audit.csv"
+    overlap_path = artifact_dir / f"{CASE}_overlap_relations.csv"
+    _require(
+        evaluation_path.is_file() and evaluation_path.stat().st_size > 0,
+        "evaluation record is missing or empty",
+    )
+    trace_rows = _read_csv_with_required_fields(
+        trace_path,
+        ("problem_id", "seed"),
+    )
+    decision_rows = _read_csv_with_required_fields(
+        decision_path,
+        ("run_id", "problem_id"),
+    )
+    mismatch_rows = _read_csv_with_required_fields(
+        mismatch_path,
+        ("run_id", "problem_id"),
+    )
+    overlap_rows = _read_csv_with_required_fields(overlap_path, ("problem_id",))
+    _require(
+        bool(trace_rows)
+        and bool(decision_rows)
+        and bool(mismatch_rows)
+        and bool(overlap_rows)
+        and all(
+            row.get("problem_id") == CASE and row.get("seed") == str(expected_seed)
+            for row in trace_rows
+        )
+        and all(
+            row.get("run_id") == expected_run_id and row.get("problem_id") == CASE
+            for rows in (decision_rows, mismatch_rows)
+            for row in rows
+        )
+        and all(row.get("problem_id") == CASE for row in overlap_rows),
+        "canonical runtime audit artifacts have invalid identity",
+    )
+    audit_alias_pairs = (
+        (artifact_dir / "aob_input_manifest.csv", aob_path),
+        (artifact_dir / "action_trace.csv", trace_path),
+        (artifact_dir / "action_decision.csv", decision_path),
+        (artifact_dir / "action_mismatch_audit.csv", mismatch_path),
+    )
+    _require(
+        all(
+            alias.is_file() and _sha256_file(alias) == _sha256_file(canonical)
+            for alias, canonical in audit_alias_pairs
+        ),
+        "runtime audit artifact copies are inconsistent",
+    )
     return ValidatedArtifacts(
         artifact_dir=artifact_dir,
         context_rows=tuple(context_rows),
         arm_rows=tuple(arm_rows),
         aob_input_rows=aob_rows,
         run_summary=summary,
-        artifact_paths=(context_path, arm_path, aob_path, summary_path),
+        artifact_paths=(
+            context_path,
+            arm_path,
+            aob_path,
+            summary_path,
+            budget_path,
+            *overlay_paths,
+            evaluation_path,
+            trace_path,
+            decision_path,
+            mismatch_path,
+            overlap_path,
+            *(alias for alias, _canonical in audit_alias_pairs),
+        ),
     )
 
 
@@ -1104,6 +1752,14 @@ def build_manifest(
         "horizon_trace_prefix": 1,
         "aob_inputs_unchanged": 1,
         "native_population_aligned_terminal_fe": 1,
+        "strict_budget_accounting": 1,
+        "overlay_artifact_hashes": 1,
+        "overlay_four_point_probe_matrix": 1,
+        "overlay_delayed_outcome_matrix": 1,
+        "overlay_observer_integrity": 1,
+        "overlay_selected_relations_bound": 1,
+        "canonical_runtime_audit_artifacts": 1,
+        "runtime_audit_artifact_copy_consistency": 1,
     }
     return {
         "protocol_version": PROTOCOL_VERSION,

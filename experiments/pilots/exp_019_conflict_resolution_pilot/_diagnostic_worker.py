@@ -13,6 +13,7 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_FULL_MATRIX_PROFILE,
     ACTION_CEILING_PROFILES,
     RS_FAMILY_TARGET_PROFILE,
+    S_FAMILY_BUDGET_PULSE_PROFILE,
     action_ceiling_capture_contract,
 )
 
@@ -106,7 +107,7 @@ def _read_rows(path: Path, fields: tuple[str, ...]) -> list[dict[str, str]]:
         return list(reader)
 
 
-def require_rs_target_artifacts(args: argparse.Namespace) -> None:
+def _require_profile_artifacts(args: argparse.Namespace, profile: str) -> None:
     problem_id = str(args.case)
     function_name, _ = CASE_FUNCTIONS[problem_id]
     base = Path(args.output_root).resolve() / str(args.timestamp) / function_name
@@ -118,7 +119,7 @@ def require_rs_target_artifacts(args: argparse.Namespace) -> None:
         base / f"{problem_id}_action_ceiling_arm_results.csv",
         ACTION_CEILING_ARM_RESULT_FIELDS,
     )
-    contract = action_ceiling_capture_contract(RS_FAMILY_TARGET_PROFILE, problem_id)
+    contract = action_ceiling_capture_contract(profile, problem_id)
     expected_contexts = 4
     expected_arm_rows = expected_contexts * len(contract.arms) * len(
         ACTION_CEILING_HORIZONS
@@ -129,6 +130,14 @@ def require_rs_target_artifacts(args: argparse.Namespace) -> None:
             f"contexts={len(contexts)}/{expected_contexts}, "
             f"arm_rows={len(arm_rows)}/{expected_arm_rows}"
         )
+
+
+def require_rs_target_artifacts(args: argparse.Namespace) -> None:
+    _require_profile_artifacts(args, RS_FAMILY_TARGET_PROFILE)
+
+
+def require_s_budget_pulse_artifacts(args: argparse.Namespace) -> None:
+    _require_profile_artifacts(args, S_FAMILY_BUDGET_PULSE_PROFILE)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -147,6 +156,8 @@ def main(argv: list[str] | None = None) -> int:
     hcc_smoke_runner.main(build_runner_args(args))
     if args.profile == RS_FAMILY_TARGET_PROFILE:
         require_rs_target_artifacts(args)
+    elif args.profile == S_FAMILY_BUDGET_PULSE_PROFILE:
+        require_s_budget_pulse_artifacts(args)
     return 0
 
 

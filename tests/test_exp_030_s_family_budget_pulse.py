@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -113,33 +114,56 @@ def _lifecycle(action: object, dispatch_fe: int, relative_application_fe: int) -
     return payload
 
 
-def _fixture_rows() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+def _overlay_identity(seed: int) -> dict[str, str]:
+    identity = {
+        "fitness_prefix_hash": _hash(f"overlay-fitness-prefix-{seed}"),
+        "incumbent_hash": _hash(f"overlay-incumbent-{seed}"),
+        "rddsm_topology_hash": _hash("overlay-topology"),
+        "rddsm_order_hash": _hash("overlay-order"),
+    }
+    identity["checkpoint_hash"] = _canonical_hash(
+        {
+            "problem_id": exp030.CASE,
+            "seed": seed,
+            "checkpoint_fe": 1000,
+            **{key: value for key, value in identity.items()},
+        }
+    )
+    return identity
+
+
+def _fixture_rows(
+    *,
+    seed: int = exp030.SEED,
+) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     contexts: list[dict[str, str]] = []
     arm_rows: list[dict[str, str]] = []
+    overlay_identity = _overlay_identity(seed)
     populations = (2,) * exp030.EXPECTED_GROUPS
     uniform = (10,) * exp030.EXPECTED_GROUPS
     efficiency = tuple(float(exp030.EXPECTED_GROUPS - index) for index in range(20))
     horizon_fe = sum(budget + 1 for budget in uniform)
     for context_index in range(exp030.EXPECTED_CONTEXTS):
-        dispatch_fe = 10_000 + context_index * 1_000
+        dispatch_fe = 10_000 + context_index * 50
         dispatch_hash = _hash(f"dispatch-{context_index}")
         context = {field: "" for field in ACTION_CEILING_CONTEXT_FIELDS}
         relation_id = f"g{context_index}-{context_index + 1}:v{context_index}"
         right_values = (float(context_index),)
         dispatch_anchor_hash = _hash(f"dispatch-current-values-{context_index}")
         context_id = (
-            f"real_aob:S5:seed117:s1:g{context_index}-{context_index + 1}:{dispatch_hash[:12]}"
+            f"real_aob:S5:seed{seed}:s1:g{context_index}-{context_index + 1}:"
+            f"{dispatch_hash[:12]}"
         )
         context.update(
             {
                 "protocol_version": exp030.PROTOCOL_VERSION,
                 "cohort": exp030.COHORT,
                 "problem_id": exp030.CASE,
-                "seed": str(exp030.SEED),
+                "seed": str(seed),
                 "context_id": context_id,
                 "relation_id": relation_id,
                 "action_set_hash": _hash(f"action-set-{context_index}"),
-                "checkpoint_hash": _hash(f"checkpoint-{context_index}"),
+                "checkpoint_hash": overlay_identity["checkpoint_hash"],
                 "dispatch_checkpoint_hash": dispatch_hash,
                 "dispatch_anchor_hash": dispatch_anchor_hash,
                 "phase_boundary_fe": "1000",
@@ -168,7 +192,7 @@ def _fixture_rows() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
         contexts.append(context)
         raw = freeze_efficiency_budget_action(
             problem_id=exp030.CASE,
-            run_seed=exp030.SEED,
+            run_seed=seed,
             checkpoint_fe=dispatch_fe,
             dispatch_checkpoint_hash=dispatch_hash,
             source_efficiency_ewma=efficiency,
@@ -179,7 +203,7 @@ def _fixture_rows() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
         )
         shrunk = freeze_shrunk_efficiency_budget_pulse_action(
             problem_id=exp030.CASE,
-            run_seed=exp030.SEED,
+            run_seed=seed,
             checkpoint_fe=dispatch_fe,
             dispatch_checkpoint_hash=dispatch_hash,
             raw_group_budgets=raw.group_budgets,
@@ -235,7 +259,7 @@ def _fixture_rows() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
                         "protocol_version": exp030.PROTOCOL_VERSION,
                         "cohort": exp030.COHORT,
                         "problem_id": exp030.CASE,
-                        "seed": str(exp030.SEED),
+                        "seed": str(seed),
                         "context_id": context["context_id"],
                         "arm": arm,
                         "horizon": horizon,
@@ -291,11 +315,208 @@ def _fixture_rows() -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     return contexts, arm_rows
 
 
+def _write_overlay_fixture(
+    artifact_dir: Path,
+    contexts: list[dict[str, str]],
+    *,
+    seed: int,
+    run_id: str,
+) -> None:
+    identity = _overlay_identity(seed)
+    relations = [row["relation_id"] for row in contexts]
+    resolution_fe = max(int(row["dispatch_fe"]) for row in contexts)
+    common = {
+        "problem_id": exp030.CASE,
+        "seed": str(seed),
+        "mode": "paired_owner",
+        "runtime_authorized": "0",
+    }
+    checkpoint = {field: "" for field in exp030.CHECKPOINT_FIELDS}
+    checkpoint.update(
+        {
+            **common,
+            "checkpoint_fe": "1000",
+            "fitness_prefix_hash": identity["fitness_prefix_hash"],
+            "incumbent_hash": identity["incumbent_hash"],
+            "rddsm_topology_hash": identity["rddsm_topology_hash"],
+            "rddsm_order_hash": identity["rddsm_order_hash"],
+            "phase_boundary_fe": "1000",
+            "history_sweeps": "0;1;2",
+            "previous_survival_closed": "1",
+            "plan_status": "selected",
+            "plan_reason": "top_relation_set_selected",
+        }
+    )
+    plan_rows = []
+    probe_rows = []
+    delayed_rows = []
+    shadow_rows = []
+    candidate_utilities = {
+        "x0": 0.0,
+        "left_owner": 0.01,
+        "right_owner": 0.03,
+        "bridge": 0.02,
+    }
+    for relation_index, relation_id in enumerate(relations):
+        plan = {field: "" for field in exp030.PLAN_FIELDS}
+        plan.update(
+            {
+                **common,
+                "relation_id": relation_id,
+                "owner_groups": f"{relation_index};{relation_index + 1}",
+                "shared_variables": str(relation_index),
+                "selected": "1",
+                "score_source_relation_id": relation_id,
+                "phase_boundary_fe": "1000",
+            }
+        )
+        plan_rows.append(plan)
+        for candidate, utility in candidate_utilities.items():
+            probe = {field: "" for field in exp030.PROBE_EVIDENCE_FIELDS}
+            probe.update(
+                {
+                    **common,
+                    "relation_id": relation_id,
+                    "candidate": candidate,
+                    "fitness": f"{100.0 / math.exp(utility):.17e}",
+                    "utility": f"{utility:.17e}",
+                    "owner_reliability": (
+                        "" if candidate == "x0" else f"{0.5:.17e}"
+                    ),
+                    "candidate_hash": (
+                        identity["incumbent_hash"]
+                        if candidate == "x0"
+                        else _hash(f"{seed}-{relation_id}-{candidate}")
+                    ),
+                    "phase_boundary_fe": "1000",
+                    "actual_fe": "1",
+                }
+            )
+            probe_rows.append(probe)
+        for owner, survival in (("left", 0.4), ("right", 0.6)):
+            delayed = {field: "" for field in exp030.DELAYED_OUTCOME_FIELDS}
+            delayed.update(
+                {
+                    **common,
+                    "relation_id": relation_id,
+                    "owner": owner,
+                    "action_sweep_index": "0",
+                    "resolution_sweep_index": "1",
+                    "survival_label": f"{survival:.17e}",
+                    "overwrite_label": f"{1.0 - survival:.17e}",
+                    "next_sweep_log_improvement": f"{0.01:.17e}",
+                    "overwrite_penalized_credit": f"{0.005:.17e}",
+                    "label_closed": "1",
+                    "label_status": "closed_next_complete_sweep",
+                    "resolution_fe": str(resolution_fe),
+                }
+            )
+            delayed_rows.append(delayed)
+        shadow = {field: "" for field in exp030.SHADOW_DECISION_FIELDS}
+        shadow.update(
+            {
+                **common,
+                "relation_id": relation_id,
+                "action": "repair",
+                "winner": "right_owner",
+                "utility": f"{candidate_utilities['right_owner']:.17e}",
+                "reason": "unique_probe_winner_above_one_percent",
+            }
+        )
+        shadow_rows.append(shadow)
+
+    artifact_rows = {
+        "checkpoint": (exp030.CHECKPOINT_FIELDS, [checkpoint]),
+        "delayed_outcomes": (exp030.DELAYED_OUTCOME_FIELDS, delayed_rows),
+        "plan": (exp030.PLAN_FIELDS, plan_rows),
+        "probe_evidence": (exp030.PROBE_EVIDENCE_FIELDS, probe_rows),
+        "runtime_actions": (exp030.RUNTIME_ACTION_FIELDS, []),
+        "shadow_decisions": (exp030.SHADOW_DECISION_FIELDS, shadow_rows),
+    }
+    artifact_names = {
+        key: f"S5_evidence_overlay_{key}.csv" for key in artifact_rows
+    }
+    for key, (fields, rows) in artifact_rows.items():
+        _write_csv(artifact_dir / artifact_names[key], fields, rows)
+    artifact_hashes = {
+        name: hashlib.sha256((artifact_dir / name).read_bytes()).hexdigest()
+        for name in artifact_names.values()
+    }
+    state_fingerprints = {
+        component: {
+            "before": _hash(f"state-{component}"),
+            "after": _hash(f"state-{component}"),
+        }
+        for component in exp030.OVERLAY_STATE_FINGERPRINT_COMPONENTS
+    }
+    runtime_fingerprint = _canonical_hash(
+        {
+            component: state_fingerprints[component]["before"]
+            for component in sorted(state_fingerprints)
+        }
+    )
+    manifest = {
+        "protocol_version": exp030.EVIDENCE_OVERLAY_PROTOCOL_VERSION,
+        "schema_version": 2,
+        "source_mode": exp030.EVIDENCE_OVERLAY_SOURCE_MODE,
+        "problem_id": exp030.CASE,
+        "seed": seed,
+        "run_id": run_id,
+        "configured_max_fes": exp030.CONFIGURED_MAX_FES,
+        "evidence_overlay_mode": "paired_owner",
+        "terminal_tolerance_rule": exp030.TERMINAL_TOLERANCE_RULE,
+        "terminal_tolerance_fe": 2,
+        "runtime_input_fields": list(exp030.RUNTIME_INPUT_FIELDS),
+        "phase_boundary_fe": 1000,
+        "rddsm_topology_hash": identity["rddsm_topology_hash"],
+        "rddsm_order_hash": identity["rddsm_order_hash"],
+        "probe_start_fe": 1000,
+        "probe_end_fe": 1016,
+        "objective_calls": 16,
+        "evidence_overlay_fe": 16,
+        "optimizer_calls": 0,
+        "rng_calls": 0,
+        "failure": None,
+        "applicable": 1,
+        "abstain_reason": "",
+        "barrier_status": "probed",
+        "barrier_reason": "four_point_probe_complete",
+        "selected_relation_count": 4,
+        "delayed_outcomes_required": 1,
+        "delayed_label_expected": 8,
+        "delayed_label_closed": 8,
+        "fresh_optimizer_execution": 1,
+        "observer_integrity": 1,
+        "native_state_unchanged": 1,
+        "aob_truth_runtime_used": 0,
+        "runtime_authorized": 0,
+        "runtime_consumed": 0,
+        "runtime_actions_authorized": 0,
+        "runtime_actions_issued": 0,
+        "runtime_actions_consumed": 0,
+        "runtime_actions_abstained": 0,
+        "runtime_fingerprint_before": runtime_fingerprint,
+        "runtime_fingerprint_after": runtime_fingerprint,
+        "native_terminal_error": 1.0,
+        "all_evaluation_best_error": 1.0,
+        "state_fingerprints": state_fingerprints,
+        "artifacts": artifact_names,
+        "artifact_sha256": artifact_hashes,
+    }
+    (artifact_dir / "S5_evidence_overlay_manifest.json").write_text(
+        json.dumps(manifest, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
 def _write_fixture(
     artifact_dir: Path,
     aob_root: Path,
+    *,
+    seed: int = exp030.SEED,
+    run_id: str | None = None,
 ) -> tuple[Path, Path, list[dict[str, str]], list[dict[str, str]]]:
-    contexts, arm_rows = _fixture_rows()
+    contexts, arm_rows = _fixture_rows(seed=seed)
     context_path = artifact_dir / "S5_action_ceiling_contexts.csv"
     arm_path = artifact_dir / "S5_action_ceiling_arm_results.csv"
     _write_csv(context_path, ACTION_CEILING_CONTEXT_FIELDS, contexts)
@@ -323,18 +544,75 @@ def _write_fixture(
             {
                 "protocol_version": "hcc-run-summary-v2",
                 "problem_id": "S5",
-                "seed": 117,
+                "seed": seed,
                 "configured_max_fes": 300_000,
                 "fitness_evaluations": 299_999,
                 "final_error": 1.0,
                 "comparison_fe": 299_998,
                 "comparison_error": 1.5,
-                "group_optimizer_mode": "cmaes",
+                "group_optimizer_mode": "full_cmaes",
             }
         )
         + "\n",
         encoding="utf-8",
     )
+    _write_csv(
+        artifact_dir / "S5_budget_summary.csv",
+        exp030.BUDGET_SUMMARY_FIELDS,
+        [
+            {
+                "problem_id": "S5",
+                "budget_accounting": "strict",
+                "max_fes": "300000",
+                "optimizer_reported_fe": "299998",
+                "fitness_record_fe": "299999",
+                "budget_aligned_fe": "299999",
+                "same_budget_violation": "0",
+                "global_phase_fe": "1000",
+                "cc_phase_fe": "298982",
+                "rescue_fe": "0",
+                "refresh_fe": "0",
+                "search_state_fe": "0",
+                "separable_continuation_fe": "0",
+                "overhead_fe": "1",
+                "evidence_overlay_fe": "16",
+            }
+        ],
+    )
+    resolved_run_id = run_id or f"{exp030.EXPERIMENT_ID}-s5-seed{seed}"
+    _write_overlay_fixture(
+        artifact_dir,
+        contexts,
+        seed=seed,
+        run_id=resolved_run_id,
+    )
+    (artifact_dir / "evaluation_record.txt").write_text(
+        "fixture evaluation record\n",
+        encoding="utf-8",
+    )
+    _write_csv(
+        artifact_dir / "S5_action_trace.csv",
+        ("problem_id", "seed"),
+        [{"problem_id": "S5", "seed": str(seed)}],
+    )
+    for name in ("S5_action_decision.csv", "S5_action_mismatch_audit.csv"):
+        _write_csv(
+            artifact_dir / name,
+            ("run_id", "problem_id"),
+            [{"run_id": resolved_run_id, "problem_id": "S5"}],
+        )
+    _write_csv(
+        artifact_dir / "S5_overlap_relations.csv",
+        ("problem_id",),
+        [{"problem_id": "S5"}],
+    )
+    for alias, canonical in (
+        ("aob_input_manifest.csv", "S5_aob_input_manifest.csv"),
+        ("action_trace.csv", "S5_action_trace.csv"),
+        ("action_decision.csv", "S5_action_decision.csv"),
+        ("action_mismatch_audit.csv", "S5_action_mismatch_audit.csv"),
+    ):
+        (artifact_dir / alias).write_bytes((artifact_dir / canonical).read_bytes())
     return context_path, arm_path, contexts, arm_rows
 
 
@@ -381,6 +659,23 @@ def test_validator_accepts_complete_s5_artifact(tmp_path: Path) -> None:
     assert len(validated.context_rows) == 4
     assert len(validated.arm_rows) == 48
     assert validated.run_summary["fitness_evaluations"] == 299_999
+
+
+def test_validator_accepts_an_explicit_non_smoke_seed(tmp_path: Path) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root, seed=118)
+
+    validated = exp030.validate_artifacts(
+        artifact_dir,
+        aob_data_root=aob_root,
+        expected_seed=118,
+        expected_run_id=f"{exp030.EXPERIMENT_ID}-s5-seed118",
+    )
+
+    assert {row["seed"] for row in validated.context_rows} == {"118"}
+    with pytest.raises(ValueError, match="truth contract"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
 
 
 def test_validator_rejects_old_exp029_s_protocol(tmp_path: Path) -> None:
@@ -548,6 +843,13 @@ def test_validator_accepts_population_aligned_terminal_boundaries(
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     summary["fitness_evaluations"] = terminal_fe
     summary_path.write_text(json.dumps(summary) + "\n", encoding="utf-8")
+    budget_path = artifact_dir / "S5_budget_summary.csv"
+    with budget_path.open("r", encoding="utf-8", newline="") as handle:
+        budget_rows = list(csv.DictReader(handle))
+    budget_rows[0]["fitness_record_fe"] = str(terminal_fe)
+    budget_rows[0]["budget_aligned_fe"] = str(terminal_fe)
+    budget_rows[0]["overhead_fe"] = str(terminal_fe - 299_998)
+    _write_csv(budget_path, exp030.BUDGET_SUMMARY_FIELDS, budget_rows)
 
     validated = exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
 
@@ -566,6 +868,152 @@ def test_validator_rejects_comparison_fe_not_bound_to_population_ceiling(
     summary_path.write_text(json.dumps(summary) + "\n", encoding="utf-8")
 
     with pytest.raises(ValueError, match="frozen population ceiling"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_noncanonical_group_optimizer_mode(tmp_path: Path) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    summary_path = artifact_dir / "run_summary.json"
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    summary["group_optimizer_mode"] = "cmaes"
+    summary_path.write_text(json.dumps(summary) + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="configured FE budget"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_arm_natural_endpoint_above_budget(tmp_path: Path) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _context_path, arm_path, _contexts, arm_rows = _write_fixture(
+        artifact_dir,
+        aob_root,
+    )
+    arm_rows[0]["natural_endpoint_fe"] = "300001"
+    _write_csv(arm_path, ACTION_CEILING_ARM_RESULT_FIELDS, arm_rows)
+
+    with pytest.raises(ValueError, match="horizon FE contract"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_strict_budget_accounting_drift(tmp_path: Path) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    budget_path = artifact_dir / "S5_budget_summary.csv"
+    with budget_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    rows[0]["same_budget_violation"] = "1"
+    _write_csv(budget_path, exp030.BUDGET_SUMMARY_FIELDS, rows)
+
+    with pytest.raises(ValueError, match="strict budget accounting"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_nonzero_separable_continuation_budget(tmp_path: Path) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    budget_path = artifact_dir / "S5_budget_summary.csv"
+    with budget_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    rows[0]["cc_phase_fe"] = str(int(rows[0]["cc_phase_fe"]) - 1)
+    rows[0]["separable_continuation_fe"] = "1"
+    _write_csv(budget_path, exp030.BUDGET_SUMMARY_FIELDS, rows)
+
+    with pytest.raises(ValueError, match="strict budget accounting"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_overlay_child_hash_drift(tmp_path: Path) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    probe_path = artifact_dir / "S5_evidence_overlay_probe_evidence.csv"
+    probe_path.write_text(
+        probe_path.read_text(encoding="utf-8") + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="overlay artifact hash mismatch"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_self_consistent_cross_relation_x0_fitness_drift(
+    tmp_path: Path,
+) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    probe_path = artifact_dir / "S5_evidence_overlay_probe_evidence.csv"
+    with probe_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    target_relation = rows[0]["relation_id"]
+    for row in rows:
+        if row["relation_id"] == target_relation:
+            row["fitness"] = f"{2.0 * float(row['fitness']):.17e}"
+    _write_csv(probe_path, exp030.PROBE_EVIDENCE_FIELDS, rows)
+    manifest_path = artifact_dir / "S5_evidence_overlay_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["artifact_sha256"][probe_path.name] = hashlib.sha256(
+        probe_path.read_bytes()
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="repeated x0 fitness"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_runtime_audit_copy_drift(tmp_path: Path) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    alias_path = artifact_dir / "action_trace.csv"
+    alias_path.write_text(
+        alias_path.read_text(encoding="utf-8") + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="runtime audit artifact copies"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_self_consistent_overlay_identity_forgery(
+    tmp_path: Path,
+) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    plan_path = artifact_dir / "S5_evidence_overlay_plan.csv"
+    with plan_path.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    rows[0]["seed"] = "999"
+    _write_csv(plan_path, exp030.PLAN_FIELDS, rows)
+    manifest_path = artifact_dir / "S5_evidence_overlay_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["artifact_sha256"][plan_path.name] = hashlib.sha256(
+        plan_path.read_bytes()
+    ).hexdigest()
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="overlay relation plan is invalid"):
+        exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
+
+
+def test_validator_rejects_incomplete_overlay_state_fingerprint_set(
+    tmp_path: Path,
+) -> None:
+    aob_root = _make_aob_root(tmp_path / "aob")
+    artifact_dir = tmp_path / "artifacts"
+    _write_fixture(artifact_dir, aob_root)
+    manifest_path = artifact_dir / "S5_evidence_overlay_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["state_fingerprints"].pop("rng")
+    manifest_path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="state fingerprints"):
         exp030.validate_artifacts(artifact_dir, aob_data_root=aob_root)
 
 
