@@ -139,6 +139,19 @@ class EarlyStoppingGroupOptimizer(FakeOptimizer):
         }
 
 
+class ProgressiveGroupOptimizer(FakeOptimizer):
+    def optimize(self):
+        requested = int(self.options["max_function_evaluations"])
+        candidate = 0.5 * np.asarray(self.options["mean"][0], dtype=float)
+        batch = np.repeat(candidate[None, :], requested, axis=0)
+        values = np.asarray(self.problem["fitness_function"](batch), dtype=float)
+        return {
+            "best_so_far_x": candidate,
+            "best_so_far_y": float(np.min(values)),
+            "n_function_evaluations": requested,
+        }
+
+
 def _capture_target_context(
     runtime: HccActionCeilingRuntime,
     *,
@@ -455,6 +468,9 @@ def test_s_budget_pulse_capture_pairs_raw_and_shrunk_typed_actions(
         assert lifecycle["execution"]["applied_group_budgets"] == lifecycle[
             "instance"
         ]["group_budgets"]
+        assert lifecycle["execution"]["application_fe"] == (
+            int(captured.context_row["dispatch_fe"]) + 1
+        )
 
     shrunk_sweep_3 = next(
         row
@@ -478,6 +494,30 @@ def test_s_budget_pulse_capture_pairs_raw_and_shrunk_typed_actions(
             strict=True,
         )
         if sweep > 4
+    )
+
+
+def test_capture_exposes_incumbent_after_full_native_continuation(
+    tmp_path: Path,
+) -> None:
+    captured = _capture_target_context(
+        replace(
+            _target_runtime(
+                tmp_path,
+                problem_id="S6",
+                sepcmaes_factory=runner.SEPCMAES,
+            ),
+            cmaes_factory=ProgressiveGroupOptimizer,
+        ),
+        problem_id="S6",
+    )
+
+    assert captured.expected_native_incumbent[:4] == (1.0, 1.0, 1.0, 1.0)
+    assert captured.expected_native_continuation_incumbent[:4] == (
+        0.125,
+        0.125,
+        0.125,
+        0.125,
     )
 
 
@@ -692,14 +732,28 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     )
     assert captured.context_row["status"] == "pending_native_parity"
     assert captured.context_row["selector_arm"] == "exact_bridge"
-    assert len(captured.expected_native_record) == 26
-    assert captured.expected_native_cycle_sweep_trace == (4, 4)
-    assert captured.expected_native_cycle_order_trace == (0, 1)
-    assert captured.expected_native_cycle_budget_trace == (12, 12)
-    assert captured.expected_native_cycle_start_fe_trace == (1, 14)
-    assert captured.expected_native_cycle_incumbent_hash == (
+    assert len(captured.expected_native_record) == 78
+    assert captured.expected_native_continuation_sweep_trace == (
+        4,
+        4,
+        5,
+        5,
+        6,
+        6,
+    )
+    assert captured.expected_native_continuation_order_trace == (0, 1) * 3
+    assert captured.expected_native_continuation_budget_trace == (12, 12) * 3
+    assert captured.expected_native_continuation_start_fe_trace == (
+        1,
+        14,
+        27,
+        40,
+        53,
+        66,
+    )
+    assert captured.expected_native_continuation_incumbent_hash == (
         runner._canonical_payload_sha256(
-            list(captured.expected_native_cycle_incumbent)
+            list(captured.expected_native_continuation_incumbent)
         )
     )
     assert len(captured.arm_rows) == len(ACTION_CEILING_ARMS) * len(ACTION_CEILING_HORIZONS)
@@ -770,58 +824,80 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     assert all(float(row["delta"]) == 0.0 for row in no_trigger_warm_start)
 
 
-def test_native_cycle_parity_requires_exact_relation_trace_and_horizon_fe() -> None:
+def test_native_continuation_parity_covers_full_three_sweep_horizon() -> None:
     relation = RelationKey((0, 1), (4, 5))
-    expected_record = tuple(float(value) for value in range(26))
+    expected_record = tuple(float(value) for value in range(78))
     incumbent = tuple(float(value) for value in range(8))
     pending = runner.PendingActionCeilingParity(
         relation=relation,
-        expected_sweep=4,
+        expected_sweep=6,
         start_fe=120,
-        horizon_fe=26,
+        continuation_fe=78,
         expected_record=expected_record,
         expected_incumbent=incumbent,
         expected_incumbent_hash=_hash("incumbent"),
-        expected_sweep_trace=(4, 4),
-        expected_order_trace=(0, 1),
-        expected_budget_trace=(12, 12),
-        expected_start_fe_trace=(1, 14),
+        expected_sweep_trace=(4, 4, 5, 5, 6, 6),
+        expected_order_trace=(0, 1) * 3,
+        expected_budget_trace=(12, 12) * 3,
+        expected_start_fe_trace=(1, 14, 27, 40, 53, 66),
         context_row={},
         arm_rows=[],
-        actual_sweep_trace=[4, 4],
-        actual_order_trace=[0, 1],
-        actual_budget_trace=[12, 12],
-        actual_start_fe_trace=[1, 14],
+        actual_sweep_trace=[4, 4, 5, 5, 6, 6],
+        actual_order_trace=[0, 1] * 3,
+        actual_budget_trace=[12, 12] * 3,
+        actual_start_fe_trace=[1, 14, 27, 40, 53, 66],
     )
     fitness_record = [999.0] * 120 + list(expected_record)
 
     actual_record, reason = (
-        runner._action_ceiling_native_cycle_prewriteback_parity(
+        runner._action_ceiling_native_continuation_prewriteback_parity(
             pending,
             relation=relation,
-            current_sweep=4,
-            current_fe=146,
+            current_sweep=6,
+            current_fe=198,
             fitness_record=fitness_record,
         )
     )
     assert actual_record == expected_record
     assert reason == ""
 
-    fitness_record.append(1.0)
-    _, reason = runner._action_ceiling_native_cycle_prewriteback_parity(
+    fitness_record[120 + 40] = -1.0
+    _, reason = runner._action_ceiling_native_continuation_prewriteback_parity(
         pending,
         relation=relation,
-        current_sweep=4,
-        current_fe=147,
+        current_sweep=6,
+        current_fe=198,
+        fitness_record=fitness_record,
+    )
+    assert reason == "native_prefix_parity_mismatch"
+    fitness_record[120 + 40] = expected_record[40]
+
+    pending.actual_order_trace[4] = 1
+    _, reason = runner._action_ceiling_native_continuation_prewriteback_parity(
+        pending,
+        relation=relation,
+        current_sweep=6,
+        current_fe=198,
+        fitness_record=fitness_record,
+    )
+    assert reason == "native_dispatch_trace_parity_mismatch"
+    pending.actual_order_trace[4] = 0
+
+    fitness_record.append(1.0)
+    _, reason = runner._action_ceiling_native_continuation_prewriteback_parity(
+        pending,
+        relation=relation,
+        current_sweep=6,
+        current_fe=199,
         fitness_record=fitness_record,
     )
     assert reason == "native_horizon_fe_parity_mismatch"
 
-    _, reason = runner._action_ceiling_native_cycle_prewriteback_parity(
+    _, reason = runner._action_ceiling_native_continuation_prewriteback_parity(
         pending,
         relation=RelationKey((1, 2), (5, 6)),
-        current_sweep=4,
-        current_fe=146,
+        current_sweep=6,
+        current_fe=198,
         fitness_record=fitness_record,
     )
     assert reason == "native_relation_parity_mismatch"
@@ -969,7 +1045,7 @@ def test_runtime_horizon_uses_actual_native_cycle_fe(tmp_path: Path) -> None:
     )
 
     assert captured.context_row["horizon_fe"] == "26"
-    assert len(captured.expected_native_record) == 26
+    assert len(captured.expected_native_record) == 78
 
 
 def test_relation_context_uses_structural_shared_variable_order() -> None:

@@ -34,7 +34,7 @@ RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION = (
 )
 S_FAMILY_BUDGET_PULSE_PROFILE = "s_family_budget_pulse"
 S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION = (
-    "exp029-s-family-budget-pulse-validation-v1"
+    "exp030-s-family-budget-pulse-action-validation-v1"
 )
 GUARDED_EQ8_WRITEBACK_ACTION = "guarded_eq8_writeback"
 GUARDED_EQ8_PROBE_FES = 2

@@ -401,6 +401,7 @@ AOB_INPUT_MANIFEST_FIELDS = [
 ]
 EVIDENCE_OVERLAY_REQUIRED_SWEEPS = 3
 EVIDENCE_OVERLAY_PROBE_FE = 16
+ACTION_CEILING_NATIVE_PARITY_SWEEPS = 3
 ACTION_VALUE_DELTA_GUARD_THRESHOLD = 0.5
 COORDINATE_ACTION_VALUE_DELTA_GUARD_THRESHOLD = 2.5
 ACTION_TRUST_MIN_WRITEBACK_NORM = 1e-12
@@ -3179,7 +3180,7 @@ class PendingActionCeilingParity:
     relation: RelationKey
     expected_sweep: int
     start_fe: int
-    horizon_fe: int
+    continuation_fe: int
     expected_record: tuple[float, ...]
     expected_incumbent: tuple[float, ...]
     expected_incumbent_hash: str
@@ -3195,7 +3196,7 @@ class PendingActionCeilingParity:
     actual_start_fe_trace: list[int] = field(default_factory=list)
 
 
-def _action_ceiling_native_cycle_prewriteback_parity(
+def _action_ceiling_native_continuation_prewriteback_parity(
     pending: PendingActionCeilingParity,
     *,
     relation: RelationKey,
@@ -3206,7 +3207,7 @@ def _action_ceiling_native_cycle_prewriteback_parity(
     actual_record = tuple(
         float(value)
         for value in fitness_record[
-            pending.start_fe : pending.start_fe + pending.horizon_fe
+            pending.start_fe : pending.start_fe + pending.continuation_fe
         ]
     )
     if relation != pending.relation:
@@ -3214,7 +3215,7 @@ def _action_ceiling_native_cycle_prewriteback_parity(
     if current_sweep != pending.expected_sweep:
         return actual_record, "native_sweep_parity_mismatch"
     if (
-        len(actual_record) != pending.horizon_fe
+        len(actual_record) != pending.continuation_fe
         or actual_record != pending.expected_record
     ):
         return actual_record, "native_prefix_parity_mismatch"
@@ -3226,7 +3227,7 @@ def _action_ceiling_native_cycle_prewriteback_parity(
         != pending.expected_start_fe_trace
     ):
         return actual_record, "native_dispatch_trace_parity_mismatch"
-    if current_fe != pending.start_fe + pending.horizon_fe:
+    if current_fe != pending.start_fe + pending.continuation_fe:
         return actual_record, "native_horizon_fe_parity_mismatch"
     return actual_record, ""
 
@@ -3746,7 +3747,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         else evidence_overlay_observer.delayed_outcomes_pending
                     ),
                     post_barrier_sweeps=(
-                        2
+                        1 + ACTION_CEILING_NATIVE_PARITY_SWEEPS
                         if config.action_ceiling_capture
                         else GCB_POST_BARRIER_SLOTS
                         if config.persistent_phase2_action
@@ -3825,7 +3826,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         for index, dims in enumerate(grouping_result):
             action_ceiling_expected_post_action: tuple[float, ...] | None = None
             action_ceiling_expected_post_action_hash: str | None = None
-            action_ceiling_pending_cycle_parity: PendingActionCeilingParity | None = None
+            action_ceiling_pending_continuation_parity: (
+                PendingActionCeilingParity | None
+            ) = None
             population_size = population_sizes[index]
             if config.budget_accounting == "strict":
                 remaining_before_precheck = (
@@ -3903,7 +3906,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     )
                 break
             for pending in action_ceiling_pending_parity.values():
-                if len(pending.actual_order_trace) >= sub_num:
+                if len(pending.actual_order_trace) >= len(
+                    pending.expected_order_trace
+                ):
                     continue
                 pending.actual_sweep_trace.append(outer_iter)
                 pending.actual_order_trace.append(index)
@@ -4306,18 +4311,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             pending_parity is not None
                             and outer_iter == pending_parity.expected_sweep
                         ):
-                            (
-                                actual_record,
-                                invalidation_reason,
-                            ) = _action_ceiling_native_cycle_prewriteback_parity(
-                                pending_parity,
-                                relation=relation_key,
-                                current_sweep=outer_iter,
-                                current_fe=current_fitness_evaluations(fun),
-                                fitness_record=fun.fitness_record,
+                            actual_record, invalidation_reason = (
+                                _action_ceiling_native_continuation_prewriteback_parity(
+                                    pending_parity,
+                                    relation=relation_key,
+                                    current_sweep=outer_iter,
+                                    current_fe=current_fitness_evaluations(fun),
+                                    fitness_record=fun.fitness_record,
+                                )
                             )
                             if not invalidation_reason:
-                                action_ceiling_pending_cycle_parity = pending_parity
+                                action_ceiling_pending_continuation_parity = (
+                                    pending_parity
+                                )
                             else:
                                 pending_parity.context_row["native_parity"] = "0"
                                 pending_parity.context_row["status"] = "invalid"
@@ -4431,27 +4437,33 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             action_ceiling_pending_parity[relation_key] = (
                                 PendingActionCeilingParity(
                                     relation=relation_key,
-                                    expected_sweep=outer_iter + 1,
+                                    expected_sweep=(
+                                        outer_iter
+                                        + ACTION_CEILING_NATIVE_PARITY_SWEEPS
+                                    ),
                                     start_fe=current_fitness_evaluations(fun),
-                                    horizon_fe=int(context_row["horizon_fe"]),
+                                    continuation_fe=(
+                                        ACTION_CEILING_NATIVE_PARITY_SWEEPS
+                                        * int(context_row["horizon_fe"])
+                                    ),
                                     expected_record=captured.expected_native_record,
                                     expected_incumbent=(
-                                        captured.expected_native_cycle_incumbent
+                                        captured.expected_native_continuation_incumbent
                                     ),
                                     expected_incumbent_hash=(
-                                        captured.expected_native_cycle_incumbent_hash
+                                        captured.expected_native_continuation_incumbent_hash
                                     ),
                                     expected_sweep_trace=(
-                                        captured.expected_native_cycle_sweep_trace
+                                        captured.expected_native_continuation_sweep_trace
                                     ),
                                     expected_order_trace=(
-                                        captured.expected_native_cycle_order_trace
+                                        captured.expected_native_continuation_order_trace
                                     ),
                                     expected_budget_trace=(
-                                        captured.expected_native_cycle_budget_trace
+                                        captured.expected_native_continuation_budget_trace
                                     ),
                                     expected_start_fe_trace=(
-                                        captured.expected_native_cycle_start_fe_trace
+                                        captured.expected_native_continuation_start_fe_trace
                                     ),
                                     context_row=context_row,
                                     arm_rows=arm_rows,
@@ -4838,8 +4850,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 f"expected_hash={action_ceiling_expected_post_action_hash}, "
                                 f"actual_hash={actual_post_action_hash}"
                             )
-                    if action_ceiling_pending_cycle_parity is not None:
-                        pending_parity = action_ceiling_pending_cycle_parity
+                    if action_ceiling_pending_continuation_parity is not None:
+                        pending_parity = action_ceiling_pending_continuation_parity
                         actual_cycle_incumbent_hash = _canonical_payload_sha256(
                             [float(value) for value in best_individual]
                         )

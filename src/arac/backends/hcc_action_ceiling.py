@@ -1191,7 +1191,11 @@ def _run_native_group_steps(
                         reason="ttl_expired",
                     )
                 elif sweep_index == frozen_budget_action.target_sweep:
-                    application_fe = len(fitness_record) + 1
+                    relative_application_fe = len(fitness_record) + 1
+                    application_fe = (
+                        frozen_budget_action.checkpoint_fe
+                        + relative_application_fe
+                    )
                     sweep_budgets = budget_lifecycle.consume(
                         frozen_budget_action,
                         current_sweep=sweep_index,
@@ -1202,7 +1206,7 @@ def _run_native_group_steps(
                         anchor_hash=observed_budget_anchor_hash,
                     )
                     continuation_policy_applied = True
-                    policy_application_fes.append(application_fe)
+                    policy_application_fes.append(relative_application_fe)
             order_position = 0
             deltas = [None] * group_count
             actual_fes = [None] * group_count

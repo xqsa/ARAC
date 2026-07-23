@@ -91,12 +91,12 @@ class CapturedActionCeilingContext:
     expected_native_record: tuple[float, ...]
     expected_native_incumbent: tuple[float, ...]
     expected_native_incumbent_hash: str
-    expected_native_cycle_incumbent: tuple[float, ...]
-    expected_native_cycle_incumbent_hash: str
-    expected_native_cycle_sweep_trace: tuple[int, ...]
-    expected_native_cycle_order_trace: tuple[int, ...]
-    expected_native_cycle_budget_trace: tuple[int, ...]
-    expected_native_cycle_start_fe_trace: tuple[int, ...]
+    expected_native_continuation_incumbent: tuple[float, ...]
+    expected_native_continuation_incumbent_hash: str
+    expected_native_continuation_sweep_trace: tuple[int, ...]
+    expected_native_continuation_order_trace: tuple[int, ...]
+    expected_native_continuation_budget_trace: tuple[int, ...]
+    expected_native_continuation_start_fe_trace: tuple[int, ...]
 
 
 @dataclass(frozen=True)
@@ -662,6 +662,14 @@ class HccActionCeilingRuntime:
                     raise RuntimeError(
                         "frozen budget action was not consumed at the target sweep"
                     )
+                if (
+                    len(continuation.policy_application_fes) != 1
+                    or execution_payload.get("application_fe")
+                    != int(dispatch_fe) + continuation.policy_application_fes[0]
+                ):
+                    raise RuntimeError(
+                        "frozen budget lifecycle FE does not match its relative trace"
+                    )
                 lifecycle_payload = {
                     "action": arm,
                     "instance": budget_action.audit_payload(),
@@ -916,26 +924,28 @@ class HccActionCeilingRuntime:
             context_row=context_row,
             arm_rows=tuple(arm_rows),
             expected_native_record=tuple(
-                float(value) for value in native["record"][:horizon_fe]
+                float(value) for value in native["record"]
             ),
             expected_native_incumbent=tuple(native["action"].incumbent),
             expected_native_incumbent_hash=_sha256(
                 list(native["action"].incumbent)
             ),
-            expected_native_cycle_incumbent=native_cycle.incumbent,
-            expected_native_cycle_incumbent_hash=_sha256(
-                list(native_cycle.incumbent)
+            expected_native_continuation_incumbent=(
+                native_continuation.incumbent
             ),
-            expected_native_cycle_sweep_trace=(
-                native_cycle.execution_sweep_trace
+            expected_native_continuation_incumbent_hash=_sha256(
+                list(native_continuation.incumbent)
             ),
-            expected_native_cycle_order_trace=(
-                native_cycle.execution_order_trace
+            expected_native_continuation_sweep_trace=(
+                native_continuation.execution_sweep_trace
             ),
-            expected_native_cycle_budget_trace=(
-                native_cycle.group_budget_trace
+            expected_native_continuation_order_trace=(
+                native_continuation.execution_order_trace
             ),
-            expected_native_cycle_start_fe_trace=(
-                native_cycle.group_start_fe_trace
+            expected_native_continuation_budget_trace=(
+                native_continuation.group_budget_trace
+            ),
+            expected_native_continuation_start_fe_trace=(
+                native_continuation.group_start_fe_trace
             ),
         )

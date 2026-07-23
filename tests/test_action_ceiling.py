@@ -636,6 +636,9 @@ def test_frozen_budget_ignores_opposite_phase2_deltas() -> None:
     lifecycle = BudgetAllocationExecutionState(**lifecycle_payload)
     lifecycle.validate_for(action)
     assert lifecycle.status == "consumed"
+    assert lifecycle.application_fe == (
+        action.checkpoint_fe + result.policy_application_fes[0]
+    )
 
 
 def test_frozen_budget_dispatch_registers_auditable_instance() -> None:
@@ -709,6 +712,28 @@ def test_frozen_budget_applies_only_target_sweep_then_restores_uniform() -> None
     assert result.policy_application_fes == (1,)
 
 
+def test_frozen_budget_absolute_application_fe_includes_pre_target_remainder() -> None:
+    state = replace(
+        _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0)),
+        next_group_index=1,
+        completed_group_deltas=(90.0,),
+        completed_group_actual_fes=(7,),
+    )
+    action, result, _ = _run_frozen_budget_continuation(
+        state,
+        target_relative_fe=2 * state.sweep_horizon_fe,
+    )
+    lifecycle_payload = json.loads(result.budget_action_lifecycle_payload)
+    lifecycle_payload.pop("action")
+    lifecycle = BudgetAllocationExecutionState(**lifecycle_payload)
+
+    assert result.policy_application_fes == (15,)
+    assert lifecycle.application_fe == 115
+    assert lifecycle.application_fe == (
+        action.checkpoint_fe + result.policy_application_fes[0]
+    )
+
+
 def test_shrunk_budget_uses_typed_lifecycle_for_one_target_sweep() -> None:
     state = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
     action, result, requested = _run_frozen_budget_continuation(
@@ -727,6 +752,9 @@ def test_shrunk_budget_uses_typed_lifecycle_for_one_target_sweep() -> None:
     lifecycle = ShrunkBudgetPulseExecutionState(**lifecycle_payload)
     lifecycle.validate_for(action)
     assert lifecycle.status == "consumed"
+    assert lifecycle.application_fe == (
+        action.checkpoint_fe + result.policy_application_fes[0]
+    )
 
 
 def test_shrunk_budget_dispatch_rejects_wrong_typed_action() -> None:
