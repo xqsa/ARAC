@@ -11,8 +11,10 @@ import numpy as np
 from .wang2025_overlapping import Wang2025OverlappingProblem, Wang2025OverlappingSpec
 
 
-WANG2025_CONTINUOUS_SCHEMA_VERSION = "wang2025-continuous-interaction-v1"
-WANG2025_CONTINUOUS_EXTENSION = "l1-trap-with-vertex-vanishing-pair-coupling"
+WANG2025_CONTINUOUS_SCHEMA_VERSION = "wang2025-continuous-interaction-v2"
+WANG2025_CONTINUOUS_EXTENSION = (
+    "l1-trap-with-vertex-vanishing-endpoint-sensitive-pair-coupling"
+)
 WANG2025_CONTINUOUS_INTERACTION_STRENGTH = 1.0
 
 
@@ -156,7 +158,11 @@ class Wang2025ContinuousProblem:
         interior = distances * (1.0 - distances)
         pair_sum = np.zeros(distances.shape[0], dtype=float)
         for first in range(group_size - 1):
-            pair_sum += interior[:, first] * np.sum(interior[:, first + 1 :], axis=1)
+            remaining_distances = distances[:, first + 1 :]
+            remaining_interior = interior[:, first + 1 :]
+            pair_sum += distances[:, first] * np.sum(remaining_interior, axis=1)
+            pair_sum += interior[:, first] * np.sum(remaining_distances, axis=1)
+            pair_sum += interior[:, first] * np.sum(remaining_interior, axis=1)
         pair_mean = 2.0 * pair_sum / (group_size * (group_size - 1))
         return WANG2025_CONTINUOUS_INTERACTION_STRENGTH * pair_mean
 

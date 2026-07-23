@@ -14,13 +14,17 @@ from arac.benchmarks import (
 )
 
 
-def _manual_problem(*, conflict_ratio: float = 0.0) -> Wang2025OverlappingProblem:
+def _manual_problem(
+    *,
+    alpha: float = 0.5,
+    conflict_ratio: float = 0.0,
+) -> Wang2025OverlappingProblem:
     return Wang2025OverlappingProblem(
         spec=Wang2025OverlappingSpec(
             dimension=4,
             min_group_size=1,
             max_group_size=3,
-            alpha=0.5,
+            alpha=alpha,
             overlap_count=1,
             beta=1.0,
             gamma=1.0,
@@ -45,6 +49,19 @@ def _pair_signal(problem: Wang2025ContinuousProblem, first: int, second: int) ->
     return float(abs((values[1] - values[0]) - (values[3] - values[2])))
 
 
+def _rdg3_pair_signal(problem: Wang2025ContinuousProblem, first: int, second: int) -> float:
+    anchor = np.zeros(problem.dimension)
+    first_upper = anchor.copy()
+    second_middle = anchor.copy()
+    upper_and_middle = anchor.copy()
+    first_upper[first] = 1.0
+    second_middle[second] = 0.5
+    upper_and_middle[first] = 1.0
+    upper_and_middle[second] = 0.5
+    values = problem(np.vstack((anchor, first_upper, second_middle, upper_and_middle)))
+    return float(abs((values[0] - values[1]) - (values[2] - values[3])))
+
+
 @pytest.mark.parametrize("conflict_ratio", [0.0, 1.0])
 def test_continuous_extension_matches_every_binary_vertex(conflict_ratio: float) -> None:
     source = _manual_problem(conflict_ratio=conflict_ratio)
@@ -54,6 +71,7 @@ def test_continuous_extension_matches_every_binary_vertex(conflict_ratio: float)
     np.testing.assert_allclose(problem(vertices), source(vertices), rtol=0.0, atol=1e-12)
     assert problem.source_instance_hash == source.instance_hash
     assert problem.objective_hash != source.instance_hash
+    assert WANG2025_CONTINUOUS_SCHEMA_VERSION == "wang2025-continuous-interaction-v2"
     assert problem.info()["schema_version"] == WANG2025_CONTINUOUS_SCHEMA_VERSION
     assert problem.info()["encoding"] == "continuous"
 
@@ -75,7 +93,7 @@ def test_continuous_extension_preserves_deceptive_local_and_global_optima(
 
 
 def test_pair_coupling_exposes_exact_direct_interactions() -> None:
-    problem = Wang2025ContinuousProblem(_manual_problem())
+    problem = Wang2025ContinuousProblem(_manual_problem(alpha=0.0))
     expected = problem.expected_interaction_matrix()
 
     assert expected.dtype == np.bool_
@@ -86,6 +104,9 @@ def test_pair_coupling_exposes_exact_direct_interactions() -> None:
     assert _pair_signal(problem, 0, 1) > 1e-6
     assert _pair_signal(problem, 1, 2) > 1e-6
     assert _pair_signal(problem, 0, 2) == pytest.approx(0.0, abs=1e-12)
+    assert _rdg3_pair_signal(problem, 0, 1) > 1e-6
+    assert _rdg3_pair_signal(problem, 1, 2) > 1e-6
+    assert _rdg3_pair_signal(problem, 0, 2) == pytest.approx(0.0, abs=1e-12)
 
 
 def test_continuous_candidates_are_batched_and_fail_closed_at_domain_boundary() -> None:
