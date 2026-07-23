@@ -105,3 +105,31 @@ spec = Wang2025OverlappingSpec(
 )
 problem = Wang2025OverlappingProblem.generate(spec)
 ```
+
+### 1000 维局部最优筛选集
+
+`WANG2025_LOCAL_ESCAPE_CASES` 冻结了论文表格对应的 18 个 synthetic 测试用例，并将维数
+从论文实验的 100 扩展到 1000。该测试集只用于诊断动作收益是否随 Trap 欺骗难度变化，
+不是 AOB case，也不进入真实 AOB action-gate 汇总。
+
+| case | 论文编号 | `alpha` | 组规模 | `overlap_count` | 重叠度 |
+| --- | --- | ---: | --- | ---: | ---: |
+| `WLOC01`-`WLOC03` | f1-f3 | 0.1 | 5 | 100/200/300 | 10%/20%/30% |
+| `WLOC04`-`WLOC06` | f4-f6 | 0.1 | 2-5 | 100/200/300 | 10%/20%/30% |
+| `WLOC07`-`WLOC09` | f7-f9 | 0.5 | 5 | 100/200/300 | 10%/20%/30% |
+| `WLOC10`-`WLOC12` | f10-f12 | 0.5 | 2-5 | 100/200/300 | 10%/20%/30% |
+| `WLOC13`-`WLOC15` | f13-f15 | 0.8 | 5 | 100/200/300 | 10%/20%/30% |
+| `WLOC16`-`WLOC18` | f16-f18 | 0.8 | 2-5 | 100/200/300 | 10%/20%/30% |
+
+所有 case 固定 `beta=gamma=0.5`、`permuted=False` 和 `conflict_ratio=0`。相同分组方式与
+重叠度的三档 `alpha` 共用一个生成 seed，因此模板、groups 和 owner 关系完全相同，只有
+欺骗参数不同。每个 case 记录预期 instance hash；构造器行为漂移时显式失败。
+该筛选集不含 `alpha=0`，因此后续结果只能检验随欺骗难度变化的剂量响应，不能单独作为
+“无局部陷阱”反事实对照。
+
+```python
+from arac.benchmarks import get_wang2025_local_escape_case
+
+case = get_wang2025_local_escape_case("WLOC13")
+problem = case.generate()
+```
