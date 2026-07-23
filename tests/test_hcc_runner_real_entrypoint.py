@@ -183,6 +183,47 @@ def test_real_r4_sep_cma_burst_resumes_native_hcc_to_exact_fe(
     assert action["start_sweep"] == action["action"]["target_sweep"]
 
 
+def test_real_r1_sep_cma_dispatches_at_phase_boundary(
+    tmp_path: Path,
+) -> None:
+    config = hcc_smoke_runner.SmokeConfig(
+        max_fes=25_000,
+        seed=117,
+        run_id="entrypoint-r1-global-phase2",
+        verbose=0,
+        arac_action=hcc_smoke_runner.NATIVE_EQ8_ACTION,
+        enable_relation_dispatch=False,
+        relation_policy_mode=hcc_smoke_runner.GLOBAL_PHASE2_POLICY,
+        budget_accounting="strict",
+        skip_plots=True,
+        aob_data_root=hcc_smoke_runner.DATA_DIR.resolve(),
+        evidence_overlay_mode="off",
+        runtime_probe_repair_mode="hard_repair",
+        group_optimizer_mode=FULL_CMAES_MODE,
+        persistent_phase2_action=hcc_smoke_runner.FULL_SPACE_SEP_CMA_ACTION,
+    )
+
+    fitness_record, _, _ = hcc_smoke_runner.run_problem(
+        "rastrigin",
+        1,
+        tmp_path,
+        config,
+    )
+
+    action = json.loads(
+        (tmp_path / "global_phase2_action.json").read_text(encoding="utf-8")
+    )
+
+    assert len(fitness_record) == config.max_fes
+    assert action["schema_version"] == "phase2-global-action-v1"
+    assert action["trigger_scope"] == "phase_boundary"
+    assert action["relation"] is None
+    assert action["runtime_consumed"] is True
+    assert action["action"]["trigger_scope"] == "phase_boundary"
+    assert action["action_actual_fes"] == action["action_budget_fes"]
+    assert action["native_resume_sweeps_completed"] == 3
+
+
 def test_real_s5_persistent_budget_early_stopping_closes_exact_fe(
     tmp_path: Path,
 ) -> None:

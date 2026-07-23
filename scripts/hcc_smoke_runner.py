@@ -71,12 +71,16 @@ from src.arac.actions.shared_variable_blend import (
     TRUE_NO_WRITEBACK_ACTION,
     apply_legacy_shared_variable_policy,
 )
-from src.arac.actions.full_space_sep_cma import (
+from arac.actions.full_space_sep_cma import (
     CANONICAL_SEP_CMA_POPULATION_SIZE,
     FULL_SPACE_SEP_CMA_ACTION,
+    FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
     TRIGGER_SCOPE_PHASE_BOUNDARY,
+    TRIGGER_SCOPE_RELATION_DISPATCH,
     FullSpaceSepCmaAction,
+    FullSpaceSepCmaExecutionContext,
 )
+from arac.actions.runtime_dispatcher import DEFAULT_RUNTIME_ACTION_DISPATCHER
 from src.arac.actions.persistent_budget_reallocation import (
     PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     PersistentBudgetAllocationAction,
@@ -97,7 +101,6 @@ from arac.backends.hcc_persistent_phase2 import (
     PERSISTENT_SELECTION_RULE,
     compile_full_space_sep_cma_burst_action,
     compile_full_space_sep_cma_phase_boundary_action,
-    execute_full_space_sep_cma_burst_action,
     full_space_sep_cma_dispatch_checkpoint_hash,
     full_space_sep_cma_phase_boundary_action_source_hash,
     full_space_sep_cma_phase_boundary_checkpoint_hash,
@@ -3636,14 +3639,21 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if remaining_fes < action.budget_fes:
                 raise RuntimeError("global Phase2 burst exceeds remaining FE budget")
             persistent_action_start_fe = current_fes + 1
-            persistent_full_space_result = execute_full_space_sep_cma_burst_action(
+            persistent_full_space_result = DEFAULT_RUNTIME_ACTION_DISPATCHER.execute(
                 action,
-                objective=fun,
-                sepcmaes_factory=SEPCMAES,
-                current_fe=current_fes,
-                current_sweep=outer_iter,
-                dispatch_checkpoint_hash=persistent_checkpoint_hash,
-                incumbent=tuple(float(value) for value in best_individual),
+                FullSpaceSepCmaExecutionContext(
+                    objective=fun,
+                    sepcmaes_factory=SEPCMAES,
+                    current_fe=current_fes,
+                    current_sweep=outer_iter,
+                    dispatch_checkpoint_hash=persistent_checkpoint_hash,
+                    trigger_context_hash=persistent_checkpoint_hash,
+                    trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY,
+                    incumbent=tuple(float(value) for value in best_individual),
+                    required_seed_namespace=(
+                        FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE
+                    ),
+                ),
             )
             action_end_fe = current_fitness_evaluations(fun)
             observed_action_fes = action_end_fe - current_fes
@@ -4727,17 +4737,29 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         )
                         persistent_action_start_fe = dispatch_fe + 1
                         persistent_full_space_result = (
-                            execute_full_space_sep_cma_burst_action(
+                            DEFAULT_RUNTIME_ACTION_DISPATCHER.execute(
                                 persistent_full_space_action,
-                                objective=fun,
-                                sepcmaes_factory=SEPCMAES,
-                                current_fe=dispatch_fe,
-                                current_sweep=outer_iter,
-                                dispatch_checkpoint_hash=(
-                                    persistent_checkpoint_hash
-                                ),
-                                incumbent=tuple(
-                                    float(value) for value in best_individual
+                                FullSpaceSepCmaExecutionContext(
+                                    objective=fun,
+                                    sepcmaes_factory=SEPCMAES,
+                                    current_fe=dispatch_fe,
+                                    current_sweep=outer_iter,
+                                    dispatch_checkpoint_hash=(
+                                        persistent_checkpoint_hash
+                                    ),
+                                    trigger_context_hash=persistent_relation_hash(
+                                        relation_key.owner_group_indices,
+                                        relation_key.shared_variable_indices,
+                                    ),
+                                    trigger_scope=(
+                                        TRIGGER_SCOPE_RELATION_DISPATCH
+                                    ),
+                                    incumbent=tuple(
+                                        float(value) for value in best_individual
+                                    ),
+                                    required_seed_namespace=(
+                                        FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE
+                                    ),
                                 ),
                             )
                         )
