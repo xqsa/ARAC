@@ -7,18 +7,18 @@ from typing import Any
 
 import pytest
 
-from arac.actions.full_space_sep_cma import (
-    FullSpaceSepCmaAction,
-    FullSpaceSepCmaExecutionState,
-    full_space_sep_cma_anchor_hash,
+from arac.actions.gcb import (
+    GcbAction,
+    GcbExecutionState,
+    gcb_anchor_hash,
     full_space_vector_hash,
 )
-from arac.backends.hcc_persistent_phase2 import (
-    full_space_sep_cma_burst_optimizer_seed,
-    full_space_sep_cma_phase_boundary_action_source_hash,
-    full_space_sep_cma_phase_boundary_checkpoint_hash,
+from arac.backends.hcc_gcb import (
+    gcb_optimizer_seed,
+    gcb_phase_boundary_action_source_hash,
+    gcb_phase_boundary_checkpoint_hash,
 )
-from experiments.pilots.exp_027_r1_global_sep_cma import run as exp027
+from experiments.pilots.exp_027_r1_gcb import run as exp027
 from scripts import hcc_smoke_runner
 
 
@@ -59,7 +59,7 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
     fitness_prefix_hash = exp027._canonical_sha256(fitness_prefix)
     source_group_deltas = tuple(0.0 for _ in range(20))
     source_group_actual_fes = (96,) * 19 + (111,)
-    action_source_hash = full_space_sep_cma_phase_boundary_action_source_hash(
+    action_source_hash = gcb_phase_boundary_action_source_hash(
         problem_id=exp027.CASE,
         run_seed=spec.seed,
         issued_sweep=issued_sweep,
@@ -68,7 +68,7 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
         topology_hash=topology_hash,
         order_hash=order_hash,
     )
-    checkpoint_hash = full_space_sep_cma_phase_boundary_checkpoint_hash(
+    checkpoint_hash = gcb_phase_boundary_checkpoint_hash(
         problem_id=exp027.CASE,
         run_seed=spec.seed,
         checkpoint_fe=checkpoint_fe,
@@ -83,13 +83,13 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
         completed_group_actual_fes=source_group_actual_fes,
         frozen_burst_budget_fes=action_budget_fes,
     )
-    action_instance = FullSpaceSepCmaAction(
+    action_instance = GcbAction(
         problem_id=exp027.CASE,
         run_seed=spec.seed,
         checkpoint_fe=checkpoint_fe,
         dispatch_checkpoint_hash=checkpoint_hash,
-        trigger_relation_hash=checkpoint_hash,
-        anchor_hash=full_space_sep_cma_anchor_hash(exp027.CASE, initial_mean),
+        trigger_context_hash=checkpoint_hash,
+        anchor_hash=gcb_anchor_hash(exp027.CASE, initial_mean),
         initial_mean=initial_mean,
         initial_mean_hash=full_space_vector_hash(initial_mean),
         initial_state_hash=initial_state_hash,
@@ -102,7 +102,7 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
         parameterization="ros_hansen_2008_pypop7",
         canonical_reference_version="pypop7-sepcmaes@67b29061d121cba9a5715897a2eb5d409df04c2d",
         canonical_parameters_hash=parameter_hash,
-        optimizer_seed=full_space_sep_cma_burst_optimizer_seed(checkpoint_hash),
+        optimizer_seed=gcb_optimizer_seed(checkpoint_hash),
         seed_namespace=exp027.ACTION,
         restart_policy="none",
         issued_sweep=issued_sweep,
@@ -114,7 +114,7 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
     )
     action = action_instance.audit_payload()
     action_hash = action_instance.action_hash
-    lifecycle_state = FullSpaceSepCmaExecutionState(
+    lifecycle_state = GcbExecutionState(
         action_hash=action_hash,
         initial_state_hash=initial_state_hash,
         status="completed",
@@ -137,7 +137,7 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
         "details": lifecycle_details,
     }
     artifact: dict[str, Any] = {
-        "schema_version": exp027.GLOBAL_ACTION_ARTIFACT_SCHEMA,
+        "schema_version": exp027.GCB_ACTION_ARTIFACT_SCHEMA,
         "problem_id": exp027.CASE,
         "run_seed": spec.seed,
         "configured_max_fes": exp027.EXACT_MAX_FES,
@@ -186,7 +186,7 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
         "action": action,
         "lifecycle": lifecycle,
     }
-    action_path = spec.result_directory / exp027.GLOBAL_ACTION_ARTIFACT_FILENAME
+    action_path = spec.result_directory / exp027.GCB_ACTION_ARTIFACT_FILENAME
     action_path.write_text(json.dumps(artifact, sort_keys=True), encoding="utf-8")
     artifact_sha = hashlib.sha256(action_path.read_bytes()).hexdigest()
     summary = {
@@ -199,9 +199,9 @@ def _write_valid_artifacts(spec: exp027.RunSpec) -> None:
         "comparison_error": final_error,
         "final_error": final_error,
         "group_optimizer_mode": "full_cmaes",
-        "global_phase2_action": exp027.ACTION,
-        "global_phase2_action_artifact": exp027.GLOBAL_ACTION_ARTIFACT_FILENAME,
-        "global_phase2_action_artifact_sha256": artifact_sha,
+        "runtime_action": exp027.ACTION,
+        "runtime_action_artifact": exp027.GCB_ACTION_ARTIFACT_FILENAME,
+        "runtime_action_artifact_sha256": artifact_sha,
     }
     (spec.result_directory / "run_summary.json").write_text(
         json.dumps(summary, sort_keys=True),
@@ -286,12 +286,12 @@ def test_global_artifact_gate_rejects_hash_final_fe_and_lifecycle_drift(
 ) -> None:
     spec = _spec(tmp_path)
     _write_valid_artifacts(spec)
-    action_path = spec.result_directory / exp027.GLOBAL_ACTION_ARTIFACT_FILENAME
+    action_path = spec.result_directory / exp027.GCB_ACTION_ARTIFACT_FILENAME
     summary_path = spec.result_directory / "run_summary.json"
     action = json.loads(action_path.read_text(encoding="utf-8"))
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     if drift == "artifact_sha":
-        summary["global_phase2_action_artifact_sha256"] = _sha("9")
+        summary["runtime_action_artifact_sha256"] = _sha("9")
     elif drift == "final_error":
         action["final_error"] = 43.0
     elif drift == "fe":
@@ -300,7 +300,7 @@ def test_global_artifact_gate_rejects_hash_final_fe_and_lifecycle_drift(
         action["lifecycle"]["details"]["status"] = "issued"
     action_path.write_text(json.dumps(action, sort_keys=True), encoding="utf-8")
     if drift != "artifact_sha":
-        summary["global_phase2_action_artifact_sha256"] = hashlib.sha256(
+        summary["runtime_action_artifact_sha256"] = hashlib.sha256(
             action_path.read_bytes()
         ).hexdigest()
     summary_path.write_text(json.dumps(summary, sort_keys=True), encoding="utf-8")
@@ -326,7 +326,7 @@ def test_global_artifact_gate_rejects_fabricated_internal_hashes(
 ) -> None:
     spec = _spec(tmp_path)
     _write_valid_artifacts(spec)
-    action_path = spec.result_directory / exp027.GLOBAL_ACTION_ARTIFACT_FILENAME
+    action_path = spec.result_directory / exp027.GCB_ACTION_ARTIFACT_FILENAME
     summary_path = spec.result_directory / "run_summary.json"
     artifact = json.loads(action_path.read_text(encoding="utf-8"))
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -346,7 +346,7 @@ def test_global_artifact_gate_rejects_fabricated_internal_hashes(
         artifact["action"]["dispatch_checkpoint_hash"] = fabricated
         artifact["action"]["trigger_context_hash"] = fabricated
         artifact["action"]["optimizer_seed"] = (
-            full_space_sep_cma_burst_optimizer_seed(fabricated)
+            gcb_optimizer_seed(fabricated)
         )
         action_hash = exp027._canonical_sha256(artifact["action"])
         artifact["action_hash"] = action_hash
@@ -363,7 +363,7 @@ def test_global_artifact_gate_rejects_fabricated_internal_hashes(
         artifact["post_incumbent_hash"] = fabricated
 
     action_path.write_text(json.dumps(artifact, sort_keys=True), encoding="utf-8")
-    summary["global_phase2_action_artifact_sha256"] = hashlib.sha256(
+    summary["runtime_action_artifact_sha256"] = hashlib.sha256(
         action_path.read_bytes()
     ).hexdigest()
     summary_path.write_text(json.dumps(summary, sort_keys=True), encoding="utf-8")

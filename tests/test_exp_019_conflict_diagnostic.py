@@ -12,16 +12,16 @@ from arac.actions.budget_reallocation import (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     BudgetAllocationExecutionState,
 )
-from arac.actions.full_space_sep_cma import (
+from arac.actions.gcb import (
     CANONICAL_SEP_CMA_PARAMETERIZATION,
     CANONICAL_SEP_CMA_PARAMETERS_HASH,
     CANONICAL_SEP_CMA_POPULATION_SIZE,
     CANONICAL_SEP_CMA_REFERENCE_VERSION,
-    FULL_SPACE_SEP_CMA_ACTION,
+    GCB_ACTION,
     NO_RESTART_POLICY,
-    FullSpaceSepCmaAction,
-    FullSpaceSepCmaExecutionState,
-    full_space_sep_cma_anchor_hash,
+    GcbAction,
+    GcbExecutionState,
+    gcb_anchor_hash,
     full_space_vector_hash,
 )
 from arac.policy.action_ceiling import (
@@ -90,13 +90,13 @@ def _context(
     dispatch_checkpoint_hash = _canonical_payload_hash(
         {"kind": "dispatch_checkpoint", "context_id": context_id}
     )
-    full_space_action = FullSpaceSepCmaAction(
+    gcb_action = GcbAction(
         problem_id=problem_id,
         run_seed=seed,
         checkpoint_fe=120,
         dispatch_checkpoint_hash=dispatch_checkpoint_hash,
-        trigger_relation_hash="d" * 64,
-        anchor_hash=full_space_sep_cma_anchor_hash(problem_id, initial_mean),
+        trigger_context_hash="d" * 64,
+        anchor_hash=gcb_anchor_hash(problem_id, initial_mean),
         initial_mean=initial_mean,
         initial_mean_hash=full_space_vector_hash(initial_mean),
         initial_state_hash="e" * 64,
@@ -110,7 +110,7 @@ def _context(
         canonical_reference_version=CANONICAL_SEP_CMA_REFERENCE_VERSION,
         canonical_parameters_hash=CANONICAL_SEP_CMA_PARAMETERS_HASH,
         optimizer_seed=2026071901,
-        seed_namespace=FULL_SPACE_SEP_CMA_ACTION,
+        seed_namespace=GCB_ACTION,
         restart_policy=NO_RESTART_POLICY,
         issued_sweep=2,
         target_sweep=3,
@@ -141,19 +141,19 @@ def _context(
             "population_sizes": "[2, 2]",
             "uniform_group_budgets": "[4, 4]",
             "horizon_fe": "50",
-            "full_space_action_hash": full_space_action.action_hash,
-            "full_space_action_payload": json.dumps(
-                full_space_action.audit_payload(),
+            "gcb_action_hash": gcb_action.action_hash,
+            "gcb_action_payload": json.dumps(
+                gcb_action.audit_payload(),
                 sort_keys=True,
                 separators=(",", ":"),
                 allow_nan=False,
             ),
-            "full_space_initial_mean_hash": full_space_action.initial_mean_hash,
-            "full_space_parameter_hash": CANONICAL_SEP_CMA_PARAMETERS_HASH,
-            "full_space_optimizer_seed": "2026071901",
-            "full_space_population_size": "24",
-            "full_space_budget_fes": "50",
-            "full_space_acceptance_fitness": "50.0",
+            "gcb_initial_mean_hash": gcb_action.initial_mean_hash,
+            "gcb_parameter_hash": CANONICAL_SEP_CMA_PARAMETERS_HASH,
+            "gcb_optimizer_seed": "2026071901",
+            "gcb_population_size": "24",
+            "gcb_budget_fes": "50",
+            "gcb_acceptance_fitness": "50.0",
             "selector_arm": "true_no_writeback",
             "selector_reason": "anchor_mismatch",
             "native_parity": "1",
@@ -169,33 +169,33 @@ def _arm_rows(
     *,
     winning_arm: str,
 ) -> list[dict[str, str]]:
-    action_payload = json.loads(context["full_space_action_payload"])
+    action_payload = json.loads(context["gcb_action_payload"])
     action_payload.pop("action")
-    full_space_action = FullSpaceSepCmaAction(**action_payload)
-    execution_state = FullSpaceSepCmaExecutionState.for_action(full_space_action)
+    gcb_action = GcbAction(**action_payload)
+    execution_state = GcbExecutionState.for_action(gcb_action)
     execution_state.start(
-        full_space_action,
-        current_fe=full_space_action.checkpoint_fe,
-        current_sweep=full_space_action.target_sweep,
-        dispatch_checkpoint_hash=full_space_action.dispatch_checkpoint_hash,
-        trigger_relation_hash=full_space_action.trigger_relation_hash,
-        anchor_hash=full_space_action.anchor_hash,
+        gcb_action,
+        current_fe=gcb_action.checkpoint_fe,
+        current_sweep=gcb_action.target_sweep,
+        dispatch_checkpoint_hash=gcb_action.dispatch_checkpoint_hash,
+        trigger_context_hash=gcb_action.trigger_context_hash,
+        anchor_hash=gcb_action.anchor_hash,
     )
     execution_state.complete(
-        full_space_action,
-        consumed_fes=full_space_action.budget_fes,
+        gcb_action,
+        consumed_fes=gcb_action.budget_fes,
         completed_fe=(
-            full_space_action.checkpoint_fe + full_space_action.budget_fes
+            gcb_action.checkpoint_fe + gcb_action.budget_fes
         ),
         final_state_hash="3" * 64,
     )
     lifecycle_payload = json.dumps(
-        execution_state.audit_payload(full_space_action),
+        execution_state.audit_payload(gcb_action),
         sort_keys=True,
         separators=(",", ":"),
         allow_nan=False,
     )
-    lifecycle_hash = execution_state.state_hash(full_space_action)
+    lifecycle_hash = execution_state.state_hash(gcb_action)
     rows: list[dict[str, str]] = []
     for arm in ACTION_CEILING_ARMS:
         for horizon_index, horizon in enumerate(ACTION_CEILING_HORIZONS, start=1):
@@ -214,19 +214,19 @@ def _arm_rows(
                 "efficiency_budget_reallocation",
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
-                "full_space_sep_cma",
+                "gcb",
             } or audited_writeback
             continuation_applied = arm in {
                 "efficiency_budget_reallocation",
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
-                "full_space_sep_cma",
+                "gcb",
             }
             warm_start_applied = arm == "stagnation_cross_group_warm_start"
-            full_space_sep_cma = arm == "full_space_sep_cma"
+            gcb = arm == "gcb"
             guarded = arm == GUARDED_EQ8_WRITEBACK_ACTION
             if (
-                full_space_sep_cma and horizon in {"immediate", "sweep_1"}
+                gcb and horizon in {"immediate", "sweep_1"}
             ) or (guarded and horizon == "immediate"):
                 sweep_trace = "[]"
                 order_trace = "[]"
@@ -241,7 +241,7 @@ def _arm_rows(
                 sweep_trace = "[3, 3]"
                 order_trace = "[0, 1]"
                 budget_trace = "[4, 4]"
-                if full_space_sep_cma:
+                if gcb:
                     start_fe_trace = "[51, 56]"
                 elif guarded:
                     start_fe_trace = "[3, 8]"
@@ -362,52 +362,52 @@ def _arm_rows(
                     "delta": str(actionability_delta(native_error, arm_error)),
                     "action_budget_fes": (
                         "50"
-                        if full_space_sep_cma
+                        if gcb
                         else (str(GUARDED_EQ8_PROBE_FES) if guarded else "0")
                     ),
                     "action_actual_fes": (
                         "50"
-                        if full_space_sep_cma
+                        if gcb
                         else (str(GUARDED_EQ8_PROBE_FES) if guarded else "0")
                     ),
                     "action_instance_hash": (
-                        context["full_space_action_hash"]
-                        if full_space_sep_cma
+                        context["gcb_action_hash"]
+                        if gcb
                         else writeback_fields.get("action_instance_hash", "")
                     ),
                     "action_lifecycle_payload": (
                         lifecycle_payload
-                        if full_space_sep_cma
+                        if gcb
                         else writeback_fields.get("action_lifecycle_payload", "")
                     ),
                     "action_lifecycle_hash": (
                         lifecycle_hash
-                        if full_space_sep_cma
+                        if gcb
                         else writeback_fields.get("action_lifecycle_hash", "")
                     ),
                     "action_accepted": (
                         "1"
-                        if full_space_sep_cma
+                        if gcb
                         else writeback_fields.get("action_accepted", "0")
                     ),
                     "action_candidate_hash": (
                         "1" * 64
-                        if full_space_sep_cma
+                        if gcb
                         else writeback_fields.get("action_candidate_hash", "")
                     ),
                     "action_candidate_fitness": (
                         "40.0"
-                        if full_space_sep_cma
+                        if gcb
                         else writeback_fields.get("action_candidate_fitness", "")
                     ),
                     "action_post_incumbent_hash": (
                         "1" * 64
-                        if full_space_sep_cma
+                        if gcb
                         else writeback_fields.get("action_post_incumbent_hash", "")
                     ),
                     "optimizer_scope": (
                         "full_space"
-                        if full_space_sep_cma
+                        if gcb
                         else (
                             "decomposed_groups"
                             if continuation_applied
@@ -415,18 +415,18 @@ def _arm_rows(
                         )
                     ),
                     "optimizer_parameter_hash": (
-                        context["full_space_parameter_hash"]
-                        if full_space_sep_cma
+                        context["gcb_parameter_hash"]
+                        if gcb
                         else ""
                     ),
                     "optimizer_initial_state_hash": (
-                        "e" * 64 if full_space_sep_cma else ""
+                        "e" * 64 if gcb else ""
                     ),
                     "optimizer_final_state_hash": (
-                        "3" * 64 if full_space_sep_cma else ""
+                        "3" * 64 if gcb else ""
                     ),
-                    "optimizer_population_size": "24" if full_space_sep_cma else "0",
-                    "optimizer_generation_count": "2" if full_space_sep_cma else "0",
+                    "optimizer_population_size": "24" if gcb else "0",
+                    "optimizer_generation_count": "2" if gcb else "0",
                     "counterfactual_applied": str(
                         int(incumbent_mutated or continuation_applied or guarded)
                     ),
@@ -460,7 +460,7 @@ def _rs_rows(
     seed: int = 117,
 ) -> tuple[dict[str, str], list[dict[str, str]]]:
     target_arm = (
-        "full_space_sep_cma"
+        "gcb"
         if problem_id.startswith("R")
         else FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
     )
@@ -494,7 +494,7 @@ def _rs_rows(
         )
     if problem_id.startswith("S"):
         for field in CONTEXT_FIELDS:
-            if field.startswith("full_space_"):
+            if field.startswith("gcb_"):
                 context[field] = ""
     rows = [
         row
@@ -607,7 +607,7 @@ def test_frozen_config_and_run_matrices() -> None:
     assert config["continuation_actions"]["stagnation_cross_group_warm_start"][
         "trigger_streak"
     ] == 3
-    assert config["continuation_actions"]["full_space_sep_cma"] == {
+    assert config["continuation_actions"]["gcb"] == {
         "scope": "full_space",
         "dimension": 1000,
         "population_size": 24,
@@ -730,14 +730,14 @@ def test_incomplete_context_and_inconsistent_mutation_flag_fail_closed() -> None
 def test_full_space_strict_acceptance_is_recomputed_from_fitness() -> None:
     context = _context("real:E3:117:r0", "real_aob", "E3")
     rows = _arm_rows(context, winning_arm="exact_left")
-    sep_rows = [row for row in rows if row["arm"] == "full_space_sep_cma"]
+    sep_rows = [row for row in rows if row["arm"] == "gcb"]
 
     for row in sep_rows:
         row["action_accepted"] = "0"
         row["action_post_incumbent_hash"] = context[
-            "full_space_initial_mean_hash"
+            "gcb_initial_mean_hash"
         ]
-    with pytest.raises(ValueError, match="full-space Sep-CMA arm contract"):
+    with pytest.raises(ValueError, match="GCB arm contract"):
         validate_raw_rows([context], rows)
 
     for row in sep_rows:
@@ -745,12 +745,12 @@ def test_full_space_strict_acceptance_is_recomputed_from_fitness() -> None:
     validate_raw_rows([context], rows)
 
 
-def test_full_space_parameters_must_match_pinned_snapshot() -> None:
+def test_gcb_parameters_must_match_pinned_snapshot() -> None:
     context = _context("real:E3:117:r0", "real_aob", "E3")
     rows = _arm_rows(context, winning_arm="exact_left")
-    context["full_space_parameter_hash"] = "f" * 64
+    context["gcb_parameter_hash"] = "f" * 64
 
-    with pytest.raises(ValueError, match="full-space Sep-CMA context contract"):
+    with pytest.raises(ValueError, match="GCB context contract"):
         validate_raw_rows([context], rows)
 
 
@@ -760,7 +760,7 @@ def test_full_space_candidate_outcome_must_match_across_horizons() -> None:
     sweep_3 = next(
         row
         for row in rows
-        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        if row["arm"] == GCB_ACTION
         and row["horizon"] == "sweep_3"
     )
     sweep_3["action_candidate_fitness"] = "41.0"
@@ -772,7 +772,7 @@ def test_full_space_candidate_outcome_must_match_across_horizons() -> None:
     sweep_3 = next(
         row
         for row in rows
-        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        if row["arm"] == GCB_ACTION
         and row["horizon"] == "sweep_3"
     )
     sweep_3["action_candidate_hash"] = "2" * 64
@@ -788,16 +788,16 @@ def test_full_space_lifecycle_is_bound_and_identical_across_horizons() -> None:
     sweep_3 = next(
         row
         for row in rows
-        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        if row["arm"] == GCB_ACTION
         and row["horizon"] == "sweep_3"
     )
-    action_payload = json.loads(context["full_space_action_payload"])
+    action_payload = json.loads(context["gcb_action_payload"])
     action_payload.pop("action")
-    action = FullSpaceSepCmaAction(**action_payload)
+    action = GcbAction(**action_payload)
     lifecycle_payload = json.loads(sweep_3["action_lifecycle_payload"])
     lifecycle_payload.pop("action")
     lifecycle_payload["final_state_hash"] = "4" * 64
-    lifecycle = FullSpaceSepCmaExecutionState(**lifecycle_payload)
+    lifecycle = GcbExecutionState(**lifecycle_payload)
     lifecycle.validate_for(action)
     sweep_3["optimizer_final_state_hash"] = "4" * 64
     sweep_3["action_lifecycle_payload"] = json.dumps(
@@ -815,7 +815,7 @@ def test_full_space_lifecycle_is_bound_and_identical_across_horizons() -> None:
     sweep_3 = next(
         row
         for row in rows
-        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        if row["arm"] == GCB_ACTION
         and row["horizon"] == "sweep_3"
     )
     payload = json.loads(sweep_3["action_lifecycle_payload"])
@@ -876,7 +876,7 @@ def test_legacy_raw_row_fails_closed() -> None:
 @pytest.mark.parametrize(
     ("problem_id", "target_arm"),
     [
-        ("R2", "full_space_sep_cma"),
+        ("R2", "gcb"),
         ("S2", FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION),
     ],
 )
@@ -898,18 +898,18 @@ def test_rs_target_validator_accepts_only_the_family_pair(
 
 def test_rs_target_validator_requires_r_lifecycle_and_forbids_it_for_s() -> None:
     r_context, r_rows = _rs_rows("R2", "rs:R2:117:r0")
-    sep_row = next(
+    gcb_row = next(
         row
         for row in r_rows
-        if row["arm"] == "full_space_sep_cma" and row["horizon"] == "sweep_1"
+        if row["arm"] == "gcb" and row["horizon"] == "sweep_1"
     )
-    sep_row["action_lifecycle_hash"] = "f" * 64
-    with pytest.raises(ValueError, match="Sep-CMA"):
+    gcb_row["action_lifecycle_hash"] = "f" * 64
+    with pytest.raises(ValueError, match="GCB"):
         validate_rs_family_target_rows([r_context], r_rows)
 
     s_context, s_rows = _rs_rows("S2", "rs:S2:117:r0")
-    s_context["full_space_action_hash"] = "a" * 64
-    with pytest.raises(ValueError, match="contains Sep-CMA fields"):
+    s_context["gcb_action_hash"] = "a" * 64
+    with pytest.raises(ValueError, match="contains GCB fields"):
         validate_rs_family_target_rows([s_context], s_rows)
 
 
@@ -1086,7 +1086,7 @@ def test_integrity_gate_and_fe_summary_cover_complete_stage() -> None:
     assert gate["expected_arm_result_count"] == 1
     assert fe_summary["nominal_trajectory_fe_total"] == 300_000
     assert fe_summary["branch_action_fe_by_arm"]["native_eq8"] == 0
-    assert fe_summary["branch_action_fe_by_arm"]["full_space_sep_cma"] == 200
+    assert fe_summary["branch_action_fe_by_arm"]["gcb"] == 200
 
 
 def test_delta_is_recomputed_from_raw_errors() -> None:

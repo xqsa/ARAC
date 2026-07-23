@@ -76,16 +76,16 @@ def _dataset(contexts: list[dict[str, object]], deltas: np.ndarray) -> Diagnosti
 def test_oracle_tie_break_prefers_native() -> None:
     deltas = {arm: -1.0 for arm in ACTION_CEILING_ARMS}
     deltas["native_eq8"] = 0.0
-    deltas["full_space_sep_cma"] = 5e-16
+    deltas["gcb"] = 5e-16
 
     assert best_action_ceiling_arm(deltas) == ("native_eq8", 0.0)
 
     scores = np.full(len(ACTION_CEILING_ARMS), -1.0)
     scores[ACTION_CEILING_ARMS.index("native_eq8")] = 0.0
-    scores[ACTION_CEILING_ARMS.index("full_space_sep_cma")] = 5e-16
+    scores[ACTION_CEILING_ARMS.index("gcb")] = 5e-16
     assert _ordered_prediction_indices(scores)[0] == 0
     assert _best_available_arm(
-        {"native_eq8": 0.0, "full_space_sep_cma": 5e-16}
+        {"native_eq8": 0.0, "gcb": 5e-16}
     ) == "native_eq8"
 
 
@@ -223,7 +223,7 @@ def test_r4_s5_shared_count_permutation_uses_case_seed_blocks() -> None:
                     )
                 )
                 delta = np.zeros(len(ACTION_CEILING_ARMS))
-                delta[ACTION_CEILING_ARMS.index("full_space_sep_cma")] = (
+                delta[ACTION_CEILING_ARMS.index("gcb")] = (
                     0.5 if case == "R4" else -0.5
                 )
                 delta[ACTION_CEILING_ARMS.index("efficiency_budget_reallocation")] = (
@@ -262,7 +262,7 @@ def test_r4_s5_primary_routes_frozen_beneficial_actions_not_context_oracle() -> 
                 )
             )
             delta = np.zeros(len(ACTION_CEILING_ARMS))
-            delta[ACTION_CEILING_ARMS.index("full_space_sep_cma")] = (
+            delta[ACTION_CEILING_ARMS.index("gcb")] = (
                 0.6 if case == "R4" or seed == 119 else 0.4
             )
             delta[ACTION_CEILING_ARMS.index("efficiency_budget_reallocation")] = (
@@ -278,7 +278,7 @@ def test_r4_s5_primary_routes_frozen_beneficial_actions_not_context_oracle() -> 
 
     assert stump["correct"].eq(1).all()
     assert set(stump[stump["problem_id"] == "R4"]["predicted_arm"]) == {
-        "full_space_sep_cma"
+        "gcb"
     }
     assert set(stump[stump["problem_id"] == "S5"]["predicted_arm"]) == {
         "efficiency_budget_reallocation"

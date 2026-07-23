@@ -116,7 +116,7 @@ def test_real_e1_action_ceiling_skips_empty_overlap_relations(
     assert int(budget["fitness_record_fe"]) <= config.max_fes
 
 
-def test_real_r4_sep_cma_burst_resumes_native_hcc_to_exact_fe(
+def test_real_r4_gcb_resumes_native_hcc_to_exact_fe(
     tmp_path: Path,
 ) -> None:
     config = hcc_smoke_runner.SmokeConfig(
@@ -133,7 +133,7 @@ def test_real_r4_sep_cma_burst_resumes_native_hcc_to_exact_fe(
         evidence_overlay_mode="paired_owner",
         runtime_probe_repair_mode="hard_repair",
         group_optimizer_mode=FULL_CMAES_MODE,
-        persistent_phase2_action=hcc_smoke_runner.FULL_SPACE_SEP_CMA_ACTION,
+        persistent_phase2_action=hcc_smoke_runner.GCB_ACTION,
     )
 
     fitness_record, _, _ = hcc_smoke_runner.run_problem(
@@ -144,7 +144,7 @@ def test_real_r4_sep_cma_burst_resumes_native_hcc_to_exact_fe(
     )
 
     action = json.loads(
-        (tmp_path / "persistent_phase2_action.json").read_text(encoding="utf-8")
+        (tmp_path / "gcb_action.json").read_text(encoding="utf-8")
     )
     manifest = json.loads(
         (tmp_path / "R4_evidence_overlay_manifest.json").read_text(
@@ -159,7 +159,9 @@ def test_real_r4_sep_cma_burst_resumes_native_hcc_to_exact_fe(
     assert manifest["delayed_outcomes_required"] == 0
     assert manifest["delayed_label_expected"] == 0
     assert manifest["observer_integrity"] == 1
-    assert action["schema_version"] == "phase2-action-v2"
+    assert action["schema_version"] == "gcb-relation-action-v1"
+    assert action["trigger_scope"] == "relation_dispatch"
+    assert action["action"]["trigger_scope"] == "relation_dispatch"
     assert action["execution_mode"] == "one_native_sweep_burst_then_native"
     assert action["selection_fe"] == manifest["probe_end_fe"]
     assert action["checkpoint_fe"] > action["selection_fe"]
@@ -183,7 +185,7 @@ def test_real_r4_sep_cma_burst_resumes_native_hcc_to_exact_fe(
     assert action["start_sweep"] == action["action"]["target_sweep"]
 
 
-def test_real_r1_sep_cma_dispatches_at_phase_boundary(
+def test_real_r1_gcb_dispatches_at_phase_boundary(
     tmp_path: Path,
 ) -> None:
     config = hcc_smoke_runner.SmokeConfig(
@@ -200,7 +202,7 @@ def test_real_r1_sep_cma_dispatches_at_phase_boundary(
         evidence_overlay_mode="off",
         runtime_probe_repair_mode="hard_repair",
         group_optimizer_mode=FULL_CMAES_MODE,
-        persistent_phase2_action=hcc_smoke_runner.FULL_SPACE_SEP_CMA_ACTION,
+        persistent_phase2_action=hcc_smoke_runner.GCB_ACTION,
     )
 
     fitness_record, _, _ = hcc_smoke_runner.run_problem(
@@ -211,11 +213,11 @@ def test_real_r1_sep_cma_dispatches_at_phase_boundary(
     )
 
     action = json.loads(
-        (tmp_path / "global_phase2_action.json").read_text(encoding="utf-8")
+        (tmp_path / "gcb_action.json").read_text(encoding="utf-8")
     )
 
     assert len(fitness_record) == config.max_fes
-    assert action["schema_version"] == "phase2-global-action-v1"
+    assert action["schema_version"] == "gcb-phase-boundary-action-v1"
     assert action["trigger_scope"] == "phase_boundary"
     assert action["relation"] is None
     assert action["runtime_consumed"] is True
@@ -255,7 +257,7 @@ def test_real_s5_persistent_budget_early_stopping_closes_exact_fe(
     )
 
     artifact = json.loads(
-        (tmp_path / "persistent_phase2_action.json").read_text(encoding="utf-8")
+        (tmp_path / "persistent_budget_action.json").read_text(encoding="utf-8")
     )
     lifecycle = artifact["lifecycle"]
     applications = lifecycle["details"]["applications"]

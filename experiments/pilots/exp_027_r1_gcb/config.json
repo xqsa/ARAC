@@ -1,12 +1,12 @@
 {
-  "protocol_version": "r1-global-sep-cma-action-validation-v1",
-  "experiment_id": "exp_027_r1_global_sep_cma",
-  "config_schema_version": 1,
+  "protocol_version": "r1-gcb-action-validation-v2",
+  "experiment_id": "exp_027_r1_gcb",
+  "config_schema_version": 2,
   "stage": "phase2_action_validation",
   "preregistration_date": "2026-07-21",
   "executor": "Codex",
-  "purpose": "validate_forced_global_phase_boundary_sep_cma_on_r1",
-  "description": "Five-seed R1 validation of one frozen 1000D full_space_sep_cma burst issued after three complete native HCC sweeps, consumed at the next phase boundary, followed by three frozen native resume sweeps and native HCC continuation to exactly 3,000,000 FE.",
+  "purpose": "validate_forced_phase_boundary_gcb_on_r1",
+  "description": "Five-seed R1 validation of one frozen 1000D GCB action issued after three complete native HCC sweeps, consumed at the next phase boundary, followed by three frozen native resume sweeps and native HCC continuation to exactly 3,000,000 FE.",
   "execution": {
     "cases": ["R1"],
     "seeds": [117, 118, 119, 120, 121],
@@ -19,7 +19,7 @@
     "cmaes_restart": true,
     "mmes_restart": true,
     "skip_plots": true,
-    "action": "full_space_sep_cma",
+    "action": "gcb",
     "action_trigger_scope": "phase_boundary",
     "runner_contract": {
       "arac_action": "native_eq8",
@@ -31,8 +31,8 @@
     }
   },
   "artifact_contract": {
-    "filename": "global_phase2_action.json",
-    "schema_version": "phase2-global-action-v1",
+    "filename": "gcb_action.json",
+    "schema_version": "gcb-phase-boundary-action-v1",
     "run_summary_protocol_version": "hcc-run-summary-v3"
   },
   "analysis": {

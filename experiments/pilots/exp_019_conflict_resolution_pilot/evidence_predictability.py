@@ -52,7 +52,7 @@ PRIMARY_SCOPE = "R4_S5_beneficial_action_routing"
 PRIMARY_PREDICTOR = "shared_count_stump"
 SECONDARY_13_ARM_PREDICTOR = "ridge_value:combined"
 R4_S5_TARGET_ACTIONS = {
-    "R4": "full_space_sep_cma",
+    "R4": "gcb",
     "S5": "efficiency_budget_reallocation",
 }
 PRIMARY_CASES = tuple(R4_S5_TARGET_ACTIONS)
@@ -98,10 +98,10 @@ FORBIDDEN_MODEL_FIELDS = (
     "dispatch_fe",
     "stagnation_streaks",
     "horizon_fe",
-    "full_space_action_payload",
-    "full_space_optimizer_seed",
-    "full_space_budget_fes",
-    "full_space_acceptance_fitness",
+    "gcb_action_payload",
+    "gcb_optimizer_seed",
+    "gcb_budget_fes",
+    "gcb_acceptance_fitness",
     "selector_arm",
     "selector_reason",
     "arm_error",
@@ -883,10 +883,10 @@ def crossfit_r4_s5_pairwise(
     row_indices = np.flatnonzero(subset)
     contexts = dataset.contexts.iloc[row_indices].reset_index(drop=True)
     deltas = dataset.deltas.iloc[row_indices].reset_index(drop=True)
-    sep = deltas["full_space_sep_cma"].to_numpy(dtype=float)
+    sep = deltas["gcb"].to_numpy(dtype=float)
     budget = deltas["efficiency_budget_reallocation"].to_numpy(dtype=float)
     target_actions = contexts["problem_id"].map(R4_S5_TARGET_ACTIONS).to_numpy()
-    labels = (target_actions == "full_space_sep_cma").astype(int)
+    labels = (target_actions == "gcb").astype(int)
     preferred_labels = (sep > budget + ACTION_CEILING_TIE_TOLERANCE).astype(int)
     if set(labels) != {0, 1} or set(preferred_labels) != {0, 1}:
         raise ValueError("R4/S5 routing labels do not contain both classes")
@@ -943,7 +943,7 @@ def crossfit_r4_s5_pairwise(
             )
             for local, row_index in enumerate(np.flatnonzero(test)):
                 selected_arm = (
-                    "full_space_sep_cma"
+                    "gcb"
                     if prediction[local] == 1
                     else "efficiency_budget_reallocation"
                 )
@@ -961,7 +961,7 @@ def crossfit_r4_s5_pairwise(
                         "context_id": contexts.iloc[row_index]["context_id"],
                         "target_action": target_actions[row_index],
                         "preferred_arm": (
-                            "full_space_sep_cma"
+                            "gcb"
                             if preferred_labels[row_index] == 1
                             else "efficiency_budget_reallocation"
                         ),
@@ -1015,7 +1015,7 @@ def r4_s5_cluster_permutation_test(
     x = features.loc[subset, ["topology.shared_count"]].to_numpy(dtype=float)
     labels = (
         contexts["problem_id"].map(R4_S5_TARGET_ACTIONS).to_numpy()
-        == "full_space_sep_cma"
+        == "gcb"
     ).astype(int)
     seeds = contexts["seed"].astype(int).to_numpy()
     cluster_keys = list(
@@ -1056,8 +1056,8 @@ def summarize_pairwise(
     summaries = []
     for predictor, predictor_rows in rows.groupby("predictor", sort=False):
         for scope, group in [("all", predictor_rows), *predictor_rows.groupby("problem_id")]:
-            labels = (group["target_action"] == "full_space_sep_cma").astype(int)
-            predictions = (group["predicted_arm"] == "full_space_sep_cma").astype(int)
+            labels = (group["target_action"] == "gcb").astype(int)
+            predictions = (group["predicted_arm"] == "gcb").astype(int)
             delta_lcb, delta_ucb = _case_stratified_bootstrap(
                 group,
                 "selected_delta",

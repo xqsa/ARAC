@@ -1,6 +1,6 @@
 {
-  "protocol_version": "exp019-action-ceiling-v6",
-  "schema_version": "exp019-action-ceiling-config-v7",
+  "protocol_version": "exp019-action-ceiling-v7",
+  "schema_version": "exp019-action-ceiling-config-v8",
   "observer_only": true,
   "runtime_authorized": false,
   "arms": [
@@ -16,7 +16,7 @@
     "efficiency_budget_reallocation",
     "delta_priority_scan",
     "stagnation_cross_group_warm_start",
-    "full_space_sep_cma"
+    "gcb"
   ],
   "horizons": ["immediate", "sweep_1", "sweep_3"],
   "primary_horizon": "sweep_1",
@@ -64,7 +64,7 @@
       "perturb_unique_mean_positions_only": true,
       "preserve_shared_mean_positions": true
     },
-    "full_space_sep_cma": {
+    "gcb": {
       "scope": "full_space",
       "dimension": 1000,
       "population_size": 24,
@@ -98,15 +98,15 @@
   },
   "rs_family_target_validation": {
     "profile": "rs_family_target",
-    "protocol_version": "exp019-rs-family-action-validation-v1",
+    "protocol_version": "exp019-rs-family-gcb-action-validation-v2",
     "cutoff_tie_policy": "structural_key",
     "horizons": ["immediate", "sweep_1", "sweep_3"],
     "case_target_actions": {
-      "R2": "full_space_sep_cma",
-      "R3": "full_space_sep_cma",
-      "R4": "full_space_sep_cma",
-      "R5": "full_space_sep_cma",
-      "R6": "full_space_sep_cma",
+      "R2": "gcb",
+      "R3": "gcb",
+      "R4": "gcb",
+      "R5": "gcb",
+      "R6": "gcb",
       "S2": "frozen_efficiency_budget_reallocation",
       "S3": "frozen_efficiency_budget_reallocation",
       "S4": "frozen_efficiency_budget_reallocation",
@@ -148,7 +148,7 @@
     "primary_predictor": "shared_count_stump",
     "secondary_13_arm_predictor": "ridge_value:combined",
     "target_actions": {
-      "R4": "full_space_sep_cma",
+      "R4": "gcb",
       "S5": "efficiency_budget_reallocation"
     },
     "validation_scope": {

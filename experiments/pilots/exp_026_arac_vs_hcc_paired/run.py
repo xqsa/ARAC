@@ -1,7 +1,7 @@
 """Run the exp026 R/S Phase2 action validation cohort.
 
 This experiment runs exactly one authorized action per R2-R6/S2-S6 trajectory.
-R uses one Sep-CMA burst followed by native HCC; S keeps frozen budget caps to
+R uses one GCB burst followed by native HCC; S keeps frozen budget caps to
 the terminal FE.  Native baselines and paper baselines are not rerun.
 """
 
@@ -31,10 +31,11 @@ DEFAULT_AOB_DATA_ROOT = VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("config.json")
 DEFAULT_OUTPUT_ROOT = REPOSITORY_ROOT / "results" / "exp_026_arac_vs_hcc_paired"
 
-PROTOCOL_VERSION = "rs-phase2-action-validation-v2"
-CONFIG_SCHEMA_VERSION = 6
+PROTOCOL_VERSION = "rs-phase2-action-validation-v3"
+CONFIG_SCHEMA_VERSION = 7
 RUN_SUMMARY_PROTOCOL_VERSION = "hcc-run-summary-v3"
-PERSISTENT_ACTION_ARTIFACT_SCHEMA = "phase2-action-v2"
+GCB_ACTION_ARTIFACT_SCHEMA = "gcb-relation-action-v1"
+PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA = "persistent-budget-action-v1"
 EXACT_MAX_FES = 3_000_000
 NATIVE_RESUME_SWEEPS = 3
 VALIDATION_SEEDS = (117, 118, 119, 120, 121)
@@ -51,7 +52,7 @@ CASE_TO_FUNCTION = {
     "S5": ("schwefel", 5),
     "S6": ("schwefel", 6),
 }
-R_ACTION = "full_space_sep_cma"
+R_ACTION = "gcb"
 S_ACTION = "persistent_frozen_efficiency_budget_reallocation"
 V37_ACTION = "arac_evidence_action_controller_v37"
 SUBPROCESS_ENVIRONMENT = {
@@ -238,7 +239,9 @@ def _read_json(path: Path, label: str) -> dict[str, object]:
 
 def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
     summary_path = spec.result_directory / "run_summary.json"
-    action_path = spec.result_directory / "persistent_phase2_action.json"
+    action_path = spec.result_directory / (
+        "gcb_action.json" if spec.action == R_ACTION else "persistent_budget_action.json"
+    )
     summary = _read_json(summary_path, "runner summary")
     for field, expected in {
         "protocol_version": RUN_SUMMARY_PROTOCOL_VERSION,
@@ -252,7 +255,11 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
 
     artifact = _read_json(action_path, "persistent Phase2 action artifact")
     for field, expected in {
-        "schema_version": PERSISTENT_ACTION_ARTIFACT_SCHEMA,
+        "schema_version": (
+            GCB_ACTION_ARTIFACT_SCHEMA
+            if spec.action == R_ACTION
+            else PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA
+        ),
         "problem_id": spec.case,
         "run_seed": spec.seed,
         "configured_max_fes": EXACT_MAX_FES,

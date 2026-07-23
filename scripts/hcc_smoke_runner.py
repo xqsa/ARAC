@@ -71,17 +71,18 @@ from src.arac.actions.shared_variable_blend import (
     TRUE_NO_WRITEBACK_ACTION,
     apply_legacy_shared_variable_policy,
 )
-from arac.actions.full_space_sep_cma import (
+from arac.actions.gcb import (
     CANONICAL_SEP_CMA_POPULATION_SIZE,
-    FULL_SPACE_SEP_CMA_ACTION,
-    FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
+    GCB_ACTION,
+    GCB_SEED_NAMESPACE,
     TRIGGER_SCOPE_PHASE_BOUNDARY,
     TRIGGER_SCOPE_RELATION_DISPATCH,
-    FullSpaceSepCmaAction,
-    FullSpaceSepCmaExecutionContext,
+    GcbAction,
+    GcbExecutionContext,
 )
 from arac.actions.runtime_dispatcher import DEFAULT_RUNTIME_ACTION_DISPATCHER
 from src.arac.actions.persistent_budget_reallocation import (
+    PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA,
     PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     PersistentBudgetAllocationAction,
     PersistentBudgetAllocationExecutionState,
@@ -95,17 +96,19 @@ from arac.backends.hcc_action_ceiling import (
     allocate_efficiency_budgets,
     update_efficiency_ewma,
 )
-from arac.backends.hcc_persistent_phase2 import (
-    GLOBAL_PHASE2_ARTIFACT_SCHEMA,
-    PERSISTENT_PHASE2_ARTIFACT_SCHEMA,
-    PERSISTENT_SELECTION_RULE,
-    compile_full_space_sep_cma_burst_action,
-    compile_full_space_sep_cma_phase_boundary_action,
-    full_space_sep_cma_dispatch_checkpoint_hash,
-    full_space_sep_cma_phase_boundary_action_source_hash,
-    full_space_sep_cma_phase_boundary_checkpoint_hash,
-    persistent_phase2_checkpoint_hash,
-    persistent_relation_hash,
+from arac.backends.hcc_gcb import (
+    GCB_PHASE_BOUNDARY_ACTION_ARTIFACT_SCHEMA,
+    GCB_RELATION_ACTION_ARTIFACT_SCHEMA,
+    compile_gcb_relation_action,
+    compile_gcb_phase_boundary_action,
+    gcb_dispatch_checkpoint_hash,
+    gcb_phase_boundary_action_source_hash,
+    gcb_phase_boundary_checkpoint_hash,
+)
+from arac.backends.hcc_phase2_action_context import (
+    PHASE2_ACTION_SELECTION_RULE,
+    phase2_relation_hash,
+    phase2_selection_checkpoint_hash,
 )
 from arac.actions.group_optimizer_type import (
     DIAGONAL_COVARIANCE_MODE,
@@ -411,12 +414,12 @@ GLOBAL_PHASE2_POLICY = "global_phase2"
 PERSISTENT_PHASE2_OFF = "off"
 PERSISTENT_PHASE2_ACTIONS = frozenset(
     {
-        FULL_SPACE_SEP_CMA_ACTION,
+        GCB_ACTION,
         PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     }
 )
-PERSISTENT_SEP_CMA_POST_BARRIER_SLOTS = 4
-PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS = 3
+GCB_POST_BARRIER_SLOTS = 4
+GCB_NATIVE_RESUME_SWEEPS = 3
 RUNTIME_PROBE_REPAIR_TRIGGER = "probe_winner_repair"
 RUNTIME_PROBE_COORDINATE_TRIGGER = "probe_winner_coordinate"
 RUNTIME_PROBE_FALLBACK_TRIGGER = "probe_fallback_or_no_data"
@@ -3291,7 +3294,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         raise ValueError("unsupported persistent Phase2 action")
     if persistent_phase2_enabled:
         expected_action = (
-            FULL_SPACE_SEP_CMA_ACTION
+            GCB_ACTION
             if fun_name == "rastrigin"
             else PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION
             if fun_name == "schwefel"
@@ -3500,15 +3503,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     persistent_source_efficiency_ewma: tuple[float, ...] = ()
     persistent_phase2_compile_ready = False
     persistent_checkpoint_hash: str | None = None
-    persistent_full_space_action: FullSpaceSepCmaAction | None = None
-    persistent_full_space_result = None
-    persistent_sep_burst_budget_fes: int | None = None
-    persistent_sep_burst_budget_source_sweep: int | None = None
+    gcb_action: GcbAction | None = None
+    gcb_result = None
+    gcb_burst_budget_fes: int | None = None
+    gcb_burst_budget_source_sweep: int | None = None
     persistent_global_action_source_hash: str | None = None
     persistent_global_source_group_deltas: tuple[float, ...] = ()
     persistent_global_source_group_fes: tuple[int, ...] = ()
-    persistent_sep_native_sweeps_remaining = 0
-    persistent_sep_native_sweeps_completed = 0
+    gcb_native_sweeps_remaining = 0
+    gcb_native_sweeps_completed = 0
     persistent_budget_action: PersistentBudgetAllocationAction | None = None
     persistent_budget_lifecycle: PersistentBudgetAllocationExecutionState | None = None
     persistent_action_actual_fes = 0
@@ -3602,10 +3605,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         if (
             config.relation_policy_mode == GLOBAL_PHASE2_POLICY
             and persistent_phase2_compile_ready
-            and persistent_full_space_action is not None
-            and persistent_full_space_result is None
+            and gcb_action is not None
+            and gcb_result is None
         ):
-            action = persistent_full_space_action
+            action = gcb_action
             if outer_iter != action.target_sweep:
                 raise RuntimeError(
                     "global Phase2 action was not consumed in its target sweep"
@@ -3617,7 +3620,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             ):
                 raise RuntimeError("global Phase2 checkpoint state is incomplete")
             observed_checkpoint_hash = (
-                full_space_sep_cma_phase_boundary_checkpoint_hash(
+                gcb_phase_boundary_checkpoint_hash(
                     problem_id=problem_id,
                     run_seed=int(config.seed),
                     checkpoint_fe=current_fes,
@@ -3639,9 +3642,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             if remaining_fes < action.budget_fes:
                 raise RuntimeError("global Phase2 burst exceeds remaining FE budget")
             persistent_action_start_fe = current_fes + 1
-            persistent_full_space_result = DEFAULT_RUNTIME_ACTION_DISPATCHER.execute(
+            gcb_result = DEFAULT_RUNTIME_ACTION_DISPATCHER.execute(
                 action,
-                FullSpaceSepCmaExecutionContext(
+                GcbExecutionContext(
                     objective=fun,
                     sepcmaes_factory=SEPCMAES,
                     current_fe=current_fes,
@@ -3651,7 +3654,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY,
                     incumbent=tuple(float(value) for value in best_individual),
                     required_seed_namespace=(
-                        FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE
+                        GCB_SEED_NAMESPACE
                     ),
                 ),
             )
@@ -3659,19 +3662,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             observed_action_fes = action_end_fe - current_fes
             if observed_action_fes != action.budget_fes:
                 raise RuntimeError("global Phase2 burst FE accounting drifted")
-            if not persistent_full_space_result.resume_native:
+            if not gcb_result.resume_native:
                 raise RuntimeError("global Phase2 burst did not authorize native resume")
             persistent_action_actual_fes = observed_action_fes
             persistent_action_completed_fe = action_end_fe
             sum_fes += observed_action_fes
             best_individual = np.asarray(
-                persistent_full_space_result.incumbent,
+                gcb_result.incumbent,
                 dtype=float,
             ).copy()
-            if persistent_full_space_result.accepted:
+            if gcb_result.accepted:
                 guarded_incumbent = best_individual.copy()
                 guarded_incumbent_fitness = (
-                    persistent_full_space_result.incumbent_fitness
+                    gcb_result.incumbent_fitness
                 )
             current_fes = action_end_fe
         iteration_budget_remaining_ratio = iteration_start_budget_remaining_ratio(
@@ -3683,10 +3686,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         population_sizes = [
             calculate_cmaes_population_size(len(dims)) for dims in grouping_result
         ]
-        persistent_sep_native_window_active = bool(
-            config.persistent_phase2_action == FULL_SPACE_SEP_CMA_ACTION
+        gcb_native_window_active = bool(
+            config.persistent_phase2_action == GCB_ACTION
             and persistent_phase2_compile_ready
-            and persistent_sep_native_sweeps_remaining > 0
+            and gcb_native_sweeps_remaining > 0
         )
         try:
             if (
@@ -3696,7 +3699,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             ):
                 overlay_sub_fes = evidence_overlay_frozen_sub_fes
             elif (
-                persistent_sep_native_window_active
+                gcb_native_window_active
                 and evidence_overlay_frozen_sub_fes is not None
             ):
                 overlay_sub_fes = evidence_overlay_frozen_sub_fes
@@ -3735,9 +3738,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     post_barrier_sweeps=(
                         2
                         if config.action_ceiling_capture
-                        else PERSISTENT_SEP_CMA_POST_BARRIER_SLOTS
+                        else GCB_POST_BARRIER_SLOTS
                         if config.persistent_phase2_action
-                        == FULL_SPACE_SEP_CMA_ACTION
+                        == GCB_ACTION
                         else 1
                     ),
                     reserve_post_barrier=(
@@ -3763,8 +3766,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             and persistent_budget_lifecycle.status in {"issued", "active"}
         )
         persistent_native_resume_active = bool(
-            config.persistent_phase2_action == FULL_SPACE_SEP_CMA_ACTION
-            and persistent_full_space_result is not None
+            config.persistent_phase2_action == GCB_ACTION
+            and gcb_result is not None
         )
         persistent_budget_application_fe: int | None = None
         persistent_applied_group_budgets = [0 for _ in grouping_result]
@@ -3786,7 +3789,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     or evidence_overlay_observer is None
                 ):
                     raise RuntimeError("persistent budget checkpoint state is incomplete")
-                observed_checkpoint_hash = persistent_phase2_checkpoint_hash(
+                observed_checkpoint_hash = phase2_selection_checkpoint_hash(
                     problem_id=problem_id,
                     run_seed=int(config.seed),
                     checkpoint_fe=current_fes,
@@ -4631,34 +4634,34 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     if (
                         config.relation_policy_mode == PERSISTENT_PHASE2_POLICY
                         and config.persistent_phase2_action
-                        == FULL_SPACE_SEP_CMA_ACTION
+                        == GCB_ACTION
                         and persistent_phase2_compile_ready
-                        and persistent_full_space_result is None
+                        and gcb_result is None
                         and persistent_selected_action_set is not None
                         and relation_key
                         == persistent_selected_action_set.relation
                     ):
                         if outer_iter != persistent_selected_action_set.target_sweep:
                             raise RuntimeError(
-                                "full-space Sep-CMA relation dispatched outside "
+                                "GCB relation dispatched outside "
                                 "the frozen target sweep"
                             )
                         if (
                             evidence_overlay_observer is None
-                            or persistent_sep_burst_budget_fes is None
-                            or persistent_sep_burst_budget_source_sweep is None
+                            or gcb_burst_budget_fes is None
+                            or gcb_burst_budget_source_sweep is None
                         ):
                             raise RuntimeError(
-                                "full-space Sep-CMA burst plan is incomplete"
+                                "GCB burst plan is incomplete"
                             )
                         dispatch_fe = current_fitness_evaluations(fun)
                         remaining_fes = config.max_fes - dispatch_fe
-                        if remaining_fes < persistent_sep_burst_budget_fes:
+                        if remaining_fes < gcb_burst_budget_fes:
                             raise RuntimeError(
-                                "full-space Sep-CMA burst exceeds the remaining FE budget"
+                                "GCB burst exceeds the remaining FE budget"
                             )
                         persistent_checkpoint_hash = (
-                            full_space_sep_cma_dispatch_checkpoint_hash(
+                            gcb_dispatch_checkpoint_hash(
                                 problem_id=problem_id,
                                 run_seed=int(config.seed),
                                 dispatch_fe=dispatch_fe,
@@ -4696,15 +4699,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                     group_actual_fes_list
                                 ),
                                 frozen_burst_budget_fes=(
-                                    persistent_sep_burst_budget_fes
+                                    gcb_burst_budget_fes
                                 ),
                                 budget_source_sweep=(
-                                    persistent_sep_burst_budget_source_sweep
+                                    gcb_burst_budget_source_sweep
                                 ),
                             )
                         )
-                        persistent_full_space_action = (
-                            compile_full_space_sep_cma_burst_action(
+                        gcb_action = (
+                            compile_gcb_relation_action(
                                 problem_id=problem_id,
                                 run_seed=int(config.seed),
                                 dispatch_fe=dispatch_fe,
@@ -4724,7 +4727,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                 sigma=float(config.sigma),
                                 lower=float(info["lower"]),
                                 upper=float(info["upper"]),
-                                budget_fes=persistent_sep_burst_budget_fes,
+                                budget_fes=gcb_burst_budget_fes,
                                 issued_sweep=(
                                     persistent_selected_action_set.issued_sweep
                                 ),
@@ -4736,10 +4739,10 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                             )
                         )
                         persistent_action_start_fe = dispatch_fe + 1
-                        persistent_full_space_result = (
+                        gcb_result = (
                             DEFAULT_RUNTIME_ACTION_DISPATCHER.execute(
-                                persistent_full_space_action,
-                                FullSpaceSepCmaExecutionContext(
+                                gcb_action,
+                                GcbExecutionContext(
                                     objective=fun,
                                     sepcmaes_factory=SEPCMAES,
                                     current_fe=dispatch_fe,
@@ -4747,7 +4750,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                     dispatch_checkpoint_hash=(
                                         persistent_checkpoint_hash
                                     ),
-                                    trigger_context_hash=persistent_relation_hash(
+                                    trigger_context_hash=phase2_relation_hash(
                                         relation_key.owner_group_indices,
                                         relation_key.shared_variable_indices,
                                     ),
@@ -4758,7 +4761,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                                         float(value) for value in best_individual
                                     ),
                                     required_seed_namespace=(
-                                        FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE
+                                        GCB_SEED_NAMESPACE
                                     ),
                                 ),
                             )
@@ -4767,28 +4770,28 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         observed_action_fes = action_end_fe - dispatch_fe
                         if (
                             observed_action_fes
-                            != persistent_full_space_result.consumed_fes
+                            != gcb_result.consumed_fes
                             or observed_action_fes
-                            != persistent_sep_burst_budget_fes
+                            != gcb_burst_budget_fes
                         ):
                             raise RuntimeError(
-                                "full-space Sep-CMA burst FE accounting drifted"
+                                "GCB burst FE accounting drifted"
                             )
-                        if not persistent_full_space_result.resume_native:
+                        if not gcb_result.resume_native:
                             raise RuntimeError(
-                                "full-space Sep-CMA burst did not authorize native resume"
+                                "GCB burst did not authorize native resume"
                             )
                         persistent_action_actual_fes = observed_action_fes
                         persistent_action_completed_fe = action_end_fe
                         sum_fes += observed_action_fes
                         best_individual = np.asarray(
-                            persistent_full_space_result.incumbent,
+                            gcb_result.incumbent,
                             dtype=float,
                         ).copy()
-                        if persistent_full_space_result.accepted:
+                        if gcb_result.accepted:
                             guarded_incumbent = best_individual.copy()
                             guarded_incumbent_fitness = (
-                                persistent_full_space_result.incumbent_fitness
+                                gcb_result.incumbent_fitness
                             )
                     if action_ceiling_expected_post_action_hash is not None:
                         actual_post_action_hash = _canonical_payload_sha256(
@@ -5302,8 +5305,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             checkpoint_fe = current_fitness_evaluations(fun)
             action_start_sweep = outer_iter + 1
             remaining_phase2_fes = config.max_fes - checkpoint_fe
-            persistent_sep_burst_budget_fes = sum(group_actual_fes_list)
-            if persistent_sep_burst_budget_fes < CANONICAL_SEP_CMA_POPULATION_SIZE:
+            gcb_burst_budget_fes = sum(group_actual_fes_list)
+            if gcb_burst_budget_fes < CANONICAL_SEP_CMA_POPULATION_SIZE:
                 evidence_overlay_runtime_failure = RuntimeError(
                     "global Phase2 burst budget is sub-population"
                 )
@@ -5313,8 +5316,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 sub_fes=evidence_overlay_frozen_sub_fes,
             )
             required_post_barrier_fes = (
-                persistent_sep_burst_budget_fes
-                + PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+                gcb_burst_budget_fes
+                + GCB_NATIVE_RESUME_SWEEPS
                 * frozen_native_sweep_reserve
             )
             if remaining_phase2_fes < required_post_barrier_fes:
@@ -5322,7 +5325,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     "global Phase2 burst and native resume window exceed the remaining FE budget"
                 )
                 break
-            persistent_sep_burst_budget_source_sweep = outer_iter
+            gcb_burst_budget_source_sweep = outer_iter
             persistent_global_source_group_deltas = tuple(
                 float(value) for value in fitness_delta_list
             )
@@ -5330,18 +5333,18 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 int(value) for value in group_actual_fes_list
             )
             persistent_global_action_source_hash = (
-                full_space_sep_cma_phase_boundary_action_source_hash(
+                gcb_phase_boundary_action_source_hash(
                     problem_id=problem_id,
                     run_seed=int(config.seed),
                     issued_sweep=outer_iter,
                     target_sweep=action_start_sweep,
-                    frozen_burst_budget_fes=persistent_sep_burst_budget_fes,
+                    frozen_burst_budget_fes=gcb_burst_budget_fes,
                     topology_hash=global_phase2_topology_hash,
                     order_hash=global_phase2_order_hash,
                 )
             )
             persistent_checkpoint_hash = (
-                full_space_sep_cma_phase_boundary_checkpoint_hash(
+                gcb_phase_boundary_checkpoint_hash(
                     problem_id=problem_id,
                     run_seed=int(config.seed),
                     checkpoint_fe=checkpoint_fe,
@@ -5354,12 +5357,12 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     action_source_hash=persistent_global_action_source_hash,
                     completed_group_deltas=persistent_global_source_group_deltas,
                     completed_group_actual_fes=persistent_global_source_group_fes,
-                    frozen_burst_budget_fes=persistent_sep_burst_budget_fes,
+                    frozen_burst_budget_fes=gcb_burst_budget_fes,
                 )
             )
             persistent_selection_fe = checkpoint_fe
-            persistent_full_space_action = (
-                compile_full_space_sep_cma_phase_boundary_action(
+            gcb_action = (
+                compile_gcb_phase_boundary_action(
                     problem_id=problem_id,
                     run_seed=int(config.seed),
                     checkpoint_fe=checkpoint_fe,
@@ -5369,15 +5372,15 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     sigma=float(config.sigma),
                     lower=float(info["lower"]),
                     upper=float(info["upper"]),
-                    budget_fes=persistent_sep_burst_budget_fes,
+                    budget_fes=gcb_burst_budget_fes,
                     issued_sweep=outer_iter,
                     target_sweep=action_start_sweep,
                     objective=fun,
                     sepcmaes_factory=SEPCMAES,
                 )
             )
-            persistent_sep_native_sweeps_remaining = (
-                PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+            gcb_native_sweeps_remaining = (
+                GCB_NATIVE_RESUME_SWEEPS
             )
             # This is a phase-boundary issue, not an evidence probe.  Marking
             # the barrier consumed makes the scheduler release its frozen
@@ -5409,19 +5412,19 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     "persistent Phase2 checkpoint has no remaining FE budget"
                 )
                 break
-            if config.persistent_phase2_action == FULL_SPACE_SEP_CMA_ACTION:
+            if config.persistent_phase2_action == GCB_ACTION:
                 if evidence_overlay_frozen_sub_fes is None:
                     evidence_overlay_runtime_failure = RuntimeError(
-                        "full-space Sep-CMA burst lacks a frozen native sweep budget"
+                        "GCB burst lacks a frozen native sweep budget"
                     )
                     break
-                persistent_sep_burst_budget_fes = sum(group_actual_fes_list)
+                gcb_burst_budget_fes = sum(group_actual_fes_list)
                 if (
-                    persistent_sep_burst_budget_fes
+                    gcb_burst_budget_fes
                     < CANONICAL_SEP_CMA_POPULATION_SIZE
                 ):
                     evidence_overlay_runtime_failure = RuntimeError(
-                        "full-space Sep-CMA burst budget is sub-population"
+                        "GCB burst budget is sub-population"
                     )
                     break
                 frozen_native_sweep_reserve = evidence_overlay_normal_sweep_reserve(
@@ -5429,22 +5432,22 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     sub_fes=evidence_overlay_frozen_sub_fes,
                 )
                 required_post_barrier_fes = (
-                    persistent_sep_burst_budget_fes
-                    + PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+                    gcb_burst_budget_fes
+                    + GCB_NATIVE_RESUME_SWEEPS
                     * frozen_native_sweep_reserve
                 )
                 if remaining_phase2_fes < required_post_barrier_fes:
                     evidence_overlay_runtime_failure = RuntimeError(
-                        "full-space Sep-CMA burst and native resume window exceed "
+                        "GCB burst and native resume window exceed "
                         "the remaining FE budget"
                     )
                     break
-                persistent_sep_burst_budget_source_sweep = outer_iter
-                persistent_sep_native_sweeps_remaining = (
-                    PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+                gcb_burst_budget_source_sweep = outer_iter
+                gcb_native_sweeps_remaining = (
+                    GCB_NATIVE_RESUME_SWEEPS
                 )
             else:
-                persistent_checkpoint_hash = persistent_phase2_checkpoint_hash(
+                persistent_checkpoint_hash = phase2_selection_checkpoint_hash(
                     problem_id=problem_id,
                     run_seed=int(config.seed),
                     checkpoint_fe=checkpoint_fe,
@@ -5496,14 +5499,14 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     )
                 )
             persistent_phase2_compile_ready = True
-        if persistent_sep_native_window_active:
+        if gcb_native_window_active:
             if not all_groups_completed:
                 evidence_overlay_runtime_failure = RuntimeError(
-                    "full-space Sep-CMA native resume sweep was incomplete"
+                    "GCB native resume sweep was incomplete"
                 )
                 break
-            persistent_sep_native_sweeps_remaining -= 1
-            persistent_sep_native_sweeps_completed += 1
+            gcb_native_sweeps_remaining -= 1
+            gcb_native_sweeps_completed += 1
         previous_group_contribution_credit = fitness_delta_list
         outer_iter += 1
     problem_id = _problem_id(fun_name, fun_id)
@@ -5563,73 +5566,72 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 evidence_overlay_runtime_failure = RuntimeError(
                     "Phase2 action lifecycle is incomplete at the exact terminal FE"
                 )
-            elif config.persistent_phase2_action == FULL_SPACE_SEP_CMA_ACTION:
+            elif config.persistent_phase2_action == GCB_ACTION:
                 if (
-                    persistent_full_space_action is None
-                    or persistent_full_space_result is None
+                    gcb_action is None
+                    or gcb_result is None
                     or persistent_action_completed_fe >= config.max_fes
-                    or persistent_sep_native_sweeps_remaining != 0
-                    or persistent_sep_native_sweeps_completed
-                    != PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+                    or gcb_native_sweeps_remaining != 0
+                    or gcb_native_sweeps_completed
+                    != GCB_NATIVE_RESUME_SWEEPS
                 ):
                     evidence_overlay_runtime_failure = RuntimeError(
-                        "full-space Sep-CMA burst did not resume the frozen "
-                        "native HCC window"
+                        "GCB did not resume the frozen native HCC window"
                     )
             elif persistent_action_completed_fe != config.max_fes:
                 evidence_overlay_runtime_failure = RuntimeError(
                     "persistent budget action did not reach the exact terminal FE"
                 )
         if evidence_overlay_runtime_failure is None:
-            if config.persistent_phase2_action == FULL_SPACE_SEP_CMA_ACTION:
+            if config.persistent_phase2_action == GCB_ACTION:
                 if (
-                    persistent_full_space_action is None
-                    or persistent_full_space_result is None
+                    gcb_action is None
+                    or gcb_result is None
                 ):
-                    raise RuntimeError("persistent Sep-CMA result is missing")
-                action_hash = persistent_full_space_action.action_hash
-                action_payload = persistent_full_space_action.audit_payload()
+                    raise RuntimeError("GCB result is missing")
+                action_hash = gcb_action.action_hash
+                action_payload = gcb_action.audit_payload()
                 lifecycle_details = (
-                    persistent_full_space_result.lifecycle.audit_payload(
-                        persistent_full_space_action
+                    gcb_result.lifecycle.audit_payload(
+                        gcb_action
                     )
                 )
                 lifecycle_state_hash = (
-                    persistent_full_space_result.lifecycle.state_hash(
-                        persistent_full_space_action
+                    gcb_result.lifecycle.state_hash(
+                        gcb_action
                     )
                 )
                 parameter_hash = (
-                    persistent_full_space_action.canonical_parameters_hash
+                    gcb_action.canonical_parameters_hash
                 )
-                start_sweep = persistent_full_space_action.target_sweep
+                start_sweep = gcb_action.target_sweep
                 application_count = 1
                 execution_mode = "one_native_sweep_burst_then_native"
-                action_budget_fes = persistent_full_space_action.budget_fes
-                action_accepted = persistent_full_space_result.accepted
+                action_budget_fes = gcb_action.budget_fes
+                action_accepted = gcb_result.accepted
                 candidate_fitness = (
-                    persistent_full_space_result.candidate_fitness
+                    gcb_result.candidate_fitness
                 )
-                candidate_hash = persistent_full_space_result.candidate_hash
+                candidate_hash = gcb_result.candidate_hash
                 candidate_values = list(
-                    persistent_full_space_result.candidate
+                    gcb_result.candidate
                 )
                 post_incumbent_hash = (
-                    persistent_full_space_result.post_incumbent_hash
+                    gcb_result.post_incumbent_hash
                 )
                 budget_source = "previous_complete_native_sweep_actual_fes"
-                budget_source_sweep = persistent_sep_burst_budget_source_sweep
-                budget_source_actual_fes = persistent_sep_burst_budget_fes
+                budget_source_sweep = gcb_burst_budget_source_sweep
+                budget_source_actual_fes = gcb_burst_budget_fes
                 native_resumed = True
                 native_resume_start_fe = persistent_action_completed_fe + 1
                 post_action_native_fes = (
                     config.max_fes - persistent_action_completed_fe
                 )
                 native_resume_sweeps_planned = (
-                    PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+                    GCB_NATIVE_RESUME_SWEEPS
                 )
                 native_resume_sweeps_completed = (
-                    persistent_sep_native_sweeps_completed
+                    gcb_native_sweeps_completed
                 )
             else:
                 if (
@@ -5670,8 +5672,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 relation_selection_rank = None
                 action_set_hash = None
                 action_source_hash = persistent_global_action_source_hash
-                artifact_schema = GLOBAL_PHASE2_ARTIFACT_SCHEMA
-                artifact_filename = "global_phase2_action.json"
+                artifact_schema = GCB_PHASE_BOUNDARY_ACTION_ARTIFACT_SCHEMA
+                artifact_filename = "gcb_action.json"
                 execution_mode = "one_native_sweep_burst_then_native"
             else:
                 if persistent_selected_action_set is None:
@@ -5682,17 +5684,21 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                     "shared_variable_indices": list(
                         relation.shared_variable_indices
                     ),
-                    "relation_hash": persistent_relation_hash(
+                    "relation_hash": phase2_relation_hash(
                         relation.owner_group_indices,
                         relation.shared_variable_indices,
                     ),
                 }
-                relation_selection_rule = PERSISTENT_SELECTION_RULE
+                relation_selection_rule = PHASE2_ACTION_SELECTION_RULE
                 relation_selection_rank = 1
                 action_set_hash = persistent_selected_action_set.action_set_hash
                 action_source_hash = None
-                artifact_schema = PERSISTENT_PHASE2_ARTIFACT_SCHEMA
-                artifact_filename = "persistent_phase2_action.json"
+                if config.persistent_phase2_action == GCB_ACTION:
+                    artifact_schema = GCB_RELATION_ACTION_ARTIFACT_SCHEMA
+                    artifact_filename = "gcb_action.json"
+                else:
+                    artifact_schema = PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA
+                    artifact_filename = "persistent_budget_action.json"
             global_artifact_provenance = (
                 {
                     "topology_hash": global_phase2_topology_hash,
@@ -5701,11 +5707,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                         [
                             float(value)
                             for value in fun.fitness_record[
-                                : persistent_full_space_action.checkpoint_fe
+                                : gcb_action.checkpoint_fe
                             ]
                         ]
                     )
-                    if persistent_full_space_action is not None
+                    if gcb_action is not None
                     else None,
                     "source_group_deltas": list(
                         persistent_global_source_group_deltas
@@ -5734,8 +5740,8 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 "selection_fe": persistent_selection_fe,
                 "action_set_hash": action_set_hash,
                 "checkpoint_fe": (
-                    persistent_full_space_action.checkpoint_fe
-                    if persistent_full_space_action is not None
+                    gcb_action.checkpoint_fe
+                    if gcb_action is not None
                     else persistent_budget_action.checkpoint_fe
                 ),
                 "checkpoint_hash": persistent_checkpoint_hash,
@@ -5762,7 +5768,9 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
                 "action_source_hash": action_source_hash,
                 "lifecycle_state_hash": lifecycle_state_hash,
                 "trigger_scope": (
-                    TRIGGER_SCOPE_PHASE_BOUNDARY if global_phase2_artifact else None
+                    gcb_action.trigger_scope
+                    if gcb_action is not None
+                    else None
                 ),
                 "runtime_authorized": True,
                 "runtime_consumed": True,
@@ -5901,7 +5909,7 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
         ),
         separable_continuation_fe=(
             persistent_action_actual_fes
-            if config.persistent_phase2_action == FULL_SPACE_SEP_CMA_ACTION
+            if config.persistent_phase2_action == GCB_ACTION
             else 0
         ),
     )
@@ -6054,7 +6062,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         )
     if persistent_phase2_enabled:
         expected_action = (
-            FULL_SPACE_SEP_CMA_ACTION
+            GCB_ACTION
             if args.functions[0] == "rastrigin"
             else PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION
             if args.functions[0] == "schwefel"
@@ -6138,8 +6146,8 @@ def main(argv: list[str] | None = None) -> list[Path]:
         function_aob_input_rows: list[dict[str, str]] = []
         _remove_if_exists(output_path / "action_decision.csv")
         _remove_if_exists(output_path / "action_mismatch_audit.csv")
-        _remove_if_exists(output_path / "persistent_phase2_action.json")
-        _remove_if_exists(output_path / "global_phase2_action.json")
+        _remove_if_exists(output_path / "gcb_action.json")
+        _remove_if_exists(output_path / "persistent_budget_action.json")
         for fun_id in args.ids:
             algorithm = f"{fun_name}_{fun_id}"
             output_data[algorithm] = []
@@ -6238,34 +6246,24 @@ def main(argv: list[str] | None = None) -> list[Path]:
             "group_optimizer_mode": args.group_optimizer_mode,
         }
         if args.persistent_phase2_action != PERSISTENT_PHASE2_OFF:
-            global_phase2 = args.relation_policy == GLOBAL_PHASE2_POLICY
-            persistent_artifact_name = (
-                "global_phase2_action.json"
-                if global_phase2
-                else "persistent_phase2_action.json"
+            runtime_artifact_name = (
+                "gcb_action.json"
+                if args.persistent_phase2_action == GCB_ACTION
+                else "persistent_budget_action.json"
             )
-            persistent_artifact_path = output_path / persistent_artifact_name
-            if not persistent_artifact_path.is_file():
-                raise RuntimeError("persistent Phase2 action artifact is missing")
+            runtime_artifact_path = output_path / runtime_artifact_name
+            if not runtime_artifact_path.is_file():
+                raise RuntimeError("explicit Phase2 action artifact is missing")
             artifact_sha256 = hashlib.sha256(
-                persistent_artifact_path.read_bytes()
+                runtime_artifact_path.read_bytes()
             ).hexdigest()
-            run_summary["persistent_phase2_action"] = args.persistent_phase2_action
-            if global_phase2:
-                run_summary.update(
-                    {
-                        "global_phase2_action": args.persistent_phase2_action,
-                        "global_phase2_action_artifact": persistent_artifact_path.name,
-                        "global_phase2_action_artifact_sha256": artifact_sha256,
-                    }
-                )
-            else:
-                run_summary.update(
-                    {
-                        "persistent_phase2_action_artifact": persistent_artifact_path.name,
-                        "persistent_phase2_action_artifact_sha256": artifact_sha256,
-                    }
-                )
+            run_summary.update(
+                {
+                    "runtime_action": args.persistent_phase2_action,
+                    "runtime_action_artifact": runtime_artifact_path.name,
+                    "runtime_action_artifact_sha256": artifact_sha256,
+                }
+            )
         (output_path / "run_summary.json").write_text(
             json.dumps(run_summary, indent=2, sort_keys=True, allow_nan=False) + "\n",
             encoding="utf-8",

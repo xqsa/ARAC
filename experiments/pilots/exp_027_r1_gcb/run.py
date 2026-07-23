@@ -1,4 +1,4 @@
-"""Run the R1 forced global phase-boundary Sep-CMA validation pilot."""
+"""Run the R1 forced phase-boundary GCB validation pilot."""
 
 from __future__ import annotations
 
@@ -24,18 +24,18 @@ RUNNER_PATH = REPOSITORY_ROOT / "scripts" / "hcc_smoke_runner.py"
 VENDOR_ROOT = REPOSITORY_ROOT / "vendor" / "hcc"
 DEFAULT_AOB_DATA_ROOT = VENDOR_ROOT / "AOB" / "AOBG" / "datafile"
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("config.json")
-DEFAULT_OUTPUT_ROOT = REPOSITORY_ROOT / "results" / "exp_027_r1_global_sep_cma"
+DEFAULT_OUTPUT_ROOT = REPOSITORY_ROOT / "results" / "exp_027_r1_gcb"
 
-PROTOCOL_VERSION = "r1-global-sep-cma-action-validation-v1"
-CONFIG_SCHEMA_VERSION = 1
+PROTOCOL_VERSION = "r1-gcb-action-validation-v2"
+CONFIG_SCHEMA_VERSION = 2
 RUN_SUMMARY_PROTOCOL_VERSION = "hcc-run-summary-v3"
-GLOBAL_ACTION_ARTIFACT_SCHEMA = "phase2-global-action-v1"
-GLOBAL_ACTION_ARTIFACT_FILENAME = "global_phase2_action.json"
-EXPERIMENT_ID = "exp_027_r1_global_sep_cma"
+GCB_ACTION_ARTIFACT_SCHEMA = "gcb-phase-boundary-action-v1"
+GCB_ACTION_ARTIFACT_FILENAME = "gcb_action.json"
+EXPERIMENT_ID = "exp_027_r1_gcb"
 CASE = "R1"
 FUNCTION_NAME = "rastrigin"
 FUNCTION_ID = 1
-ACTION = "full_space_sep_cma"
+ACTION = "gcb"
 TRIGGER_SCOPE = "phase_boundary"
 EXACT_MAX_FES = 3_000_000
 PHASE1_COMPLETE_SWEEPS = 3
@@ -55,20 +55,18 @@ SOURCE_ROOT = REPOSITORY_ROOT / "src"
 if str(SOURCE_ROOT) not in sys.path:
     sys.path.insert(0, str(SOURCE_ROOT))
 
-from arac.actions.full_space_sep_cma import (  # noqa: E402
-    FullSpaceSepCmaAction,
-    FullSpaceSepCmaExecutionState,
+from arac.actions.gcb import (  # noqa: E402
+    GcbAction,
+    GcbExecutionState,
     full_space_vector_hash,
 )
-from arac.backends.hcc_persistent_phase2 import (  # noqa: E402
-    full_space_sep_cma_burst_optimizer_seed,
-    full_space_sep_cma_phase_boundary_action_source_hash,
+from arac.backends.hcc_gcb import (  # noqa: E402
+    gcb_optimizer_seed,
+    gcb_phase_boundary_action_source_hash,
 )
 
 
-PHASE_BOUNDARY_CHECKPOINT_SCHEMA = (
-    "full-space-sep-cma-phase-boundary-checkpoint-v1"
-)
+PHASE_BOUNDARY_CHECKPOINT_SCHEMA = "gcb-phase-boundary-checkpoint-v1"
 
 
 @dataclass(frozen=True)
@@ -200,18 +198,18 @@ def _action_from_artifact_payload(
     payload: object,
     *,
     artifact_path: Path,
-) -> FullSpaceSepCmaAction:
+) -> GcbAction:
     if not isinstance(payload, dict):
         raise ValueError(f"global action payload missing: {artifact_path}")
     if payload.get("trigger_scope") != TRIGGER_SCOPE:
         raise ValueError(f"global action trigger_scope mismatch: {artifact_path}")
     try:
-        action = FullSpaceSepCmaAction(
+        action = GcbAction(
             problem_id=payload["problem_id"],
             run_seed=payload["run_seed"],
             checkpoint_fe=payload["checkpoint_fe"],
             dispatch_checkpoint_hash=payload["dispatch_checkpoint_hash"],
-            trigger_relation_hash=payload["trigger_context_hash"],
+            trigger_context_hash=payload["trigger_context_hash"],
             anchor_hash=payload["anchor_hash"],
             initial_mean=tuple(payload["initial_mean"]),
             initial_mean_hash=payload["initial_mean_hash"],
@@ -299,8 +297,8 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, object]:
     artifact = payload.get("artifact_contract")
     _require(isinstance(artifact, dict), "artifact_contract missing")
     for field, expected in {
-        "filename": GLOBAL_ACTION_ARTIFACT_FILENAME,
-        "schema_version": GLOBAL_ACTION_ARTIFACT_SCHEMA,
+        "filename": GCB_ACTION_ARTIFACT_FILENAME,
+        "schema_version": GCB_ACTION_ARTIFACT_SCHEMA,
         "run_summary_protocol_version": RUN_SUMMARY_PROTOCOL_VERSION,
     }.items():
         _require(artifact.get(field) == expected, f"artifact_contract {field} must be {expected!r}")
@@ -382,7 +380,7 @@ def build_command(
 
 def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
     summary_path = spec.result_directory / "run_summary.json"
-    action_path = spec.result_directory / GLOBAL_ACTION_ARTIFACT_FILENAME
+    action_path = spec.result_directory / GCB_ACTION_ARTIFACT_FILENAME
     summary = _read_json(summary_path, "runner summary")
     for field, expected in {
         "protocol_version": RUN_SUMMARY_PROTOCOL_VERSION,
@@ -392,8 +390,8 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
         "fitness_evaluations": EXACT_MAX_FES,
         "comparison_fe": EXACT_MAX_FES,
         "group_optimizer_mode": "full_cmaes",
-        "global_phase2_action": ACTION,
-        "global_phase2_action_artifact": GLOBAL_ACTION_ARTIFACT_FILENAME,
+        "runtime_action": ACTION,
+        "runtime_action_artifact": GCB_ACTION_ARTIFACT_FILENAME,
     }.items():
         _require(summary.get(field) == expected, f"runner summary {field} mismatch: {summary_path}")
     summary_error = _finite_non_negative(summary.get("final_error"), f"{summary_path} final_error")
@@ -406,12 +404,12 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
     artifact_bytes = action_path.read_bytes() if action_path.is_file() else b""
     artifact_sha256 = hashlib.sha256(artifact_bytes).hexdigest()
     _require(
-        summary.get("global_phase2_action_artifact_sha256") == artifact_sha256,
+        summary.get("runtime_action_artifact_sha256") == artifact_sha256,
         f"runner summary action artifact SHA-256 mismatch: {summary_path}",
     )
     artifact = _read_json(action_path, "global Phase2 action artifact")
     for field, expected in {
-        "schema_version": GLOBAL_ACTION_ARTIFACT_SCHEMA,
+        "schema_version": GCB_ACTION_ARTIFACT_SCHEMA,
         "problem_id": CASE,
         "run_seed": spec.seed,
         "configured_max_fes": EXACT_MAX_FES,
@@ -505,7 +503,7 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
     )
     _require(
         action_instance.optimizer_seed
-        == full_space_sep_cma_burst_optimizer_seed(artifact["checkpoint_hash"]),
+        == gcb_optimizer_seed(artifact["checkpoint_hash"]),
         f"global action optimizer seed mismatch: {action_path}",
     )
 
@@ -537,7 +535,7 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
     topology_hash = artifact["topology_hash"]
     order_hash = artifact["order_hash"]
     fitness_prefix_hash = artifact["fitness_prefix_hash"]
-    expected_source_hash = full_space_sep_cma_phase_boundary_action_source_hash(
+    expected_source_hash = gcb_phase_boundary_action_source_hash(
         problem_id=CASE,
         run_seed=spec.seed,
         issued_sweep=issued_sweep,
@@ -599,7 +597,7 @@ def read_trajectory_artifacts(spec: RunSpec) -> dict[str, object]:
         )
     _require(_is_sha256(details.get("final_state_hash")), f"global lifecycle final_state_hash invalid: {action_path}")
     try:
-        lifecycle_state = FullSpaceSepCmaExecutionState(
+        lifecycle_state = GcbExecutionState(
             action_hash=details["action_hash"],
             initial_state_hash=details["initial_state_hash"],
             status=details["status"],

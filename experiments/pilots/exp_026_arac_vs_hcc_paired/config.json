@@ -1,12 +1,12 @@
 {
-  "protocol_version": "rs-phase2-action-validation-v2",
+  "protocol_version": "rs-phase2-action-validation-v3",
   "experiment_id": "exp_026_arac_vs_hcc_paired",
-  "config_schema_version": 6,
+  "config_schema_version": 7,
   "stage": "phase2_action_validation",
   "preregistration_date": "2026-07-21",
   "executor": "Codex",
   "purpose": "validate_rs_phase2_actions_at_exact_terminal_fe",
-  "description": "Five-seed Phase2 action pilot on R2-R6 and S2-S6. Each trajectory selects and consumes exactly one frozen action: R executes one native-sweep Sep-CMA burst and then resumes HCC, while S applies frozen budget caps until 3,000,000 FE. Native HCC and paper baselines are not rerun.",
+  "description": "Five-seed Phase2 action pilot on R2-R6 and S2-S6. Each trajectory selects and consumes exactly one frozen action: R executes one GCB burst backed by canonical GCB and then resumes HCC, while S applies frozen budget caps until 3,000,000 FE. Native HCC and paper baselines are not rerun.",
   "execution": {
     "cases": ["R2", "R3", "R4", "R5", "R6", "S2", "S3", "S4", "S5", "S6"],
     "seeds": [117, 118, 119, 120, 121],
@@ -27,11 +27,11 @@
       "group_optimizer_mode": "full_cmaes"
     },
     "case_actions": {
-      "R2": "full_space_sep_cma",
-      "R3": "full_space_sep_cma",
-      "R4": "full_space_sep_cma",
-      "R5": "full_space_sep_cma",
-      "R6": "full_space_sep_cma",
+      "R2": "gcb",
+      "R3": "gcb",
+      "R4": "gcb",
+      "R5": "gcb",
+      "R6": "gcb",
       "S2": "persistent_frozen_efficiency_budget_reallocation",
       "S3": "persistent_frozen_efficiency_budget_reallocation",
       "S4": "persistent_frozen_efficiency_budget_reallocation",

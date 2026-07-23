@@ -142,7 +142,7 @@ Tier 1 的对照设计要求：
 
 | 动作 | 机制 | 生效条件 | FE | 风险 | 依据 |
 |------|------|---------|----|------|------|
-| **B1 full_space_nda_continuation_mm_es**（新增；与现有 full_space_sep_cma 对比） | checkpoint 从 incumbent 初始化全空间 MM-ES（或 SLR-ES），horizon 内消耗声明预算，strict improvement 接受 | 高重叠 Elliptic（E3；E4/E6 全程反超证据）；CC 段停滞时发行 | 声明预算（horizon 内扣） | 中-高，强 case 依赖；sep-CMA 版先验最差 | W8；HCC Table 2；SLR-ES F12–F15 全第 1 |
+| **B1 full_space_nda_continuation_mm_es**（新增；与现有 gcb 对比） | checkpoint 从 incumbent 初始化全空间 MM-ES（或 SLR-ES），horizon 内消耗声明预算，strict improvement 接受 | 高重叠 Elliptic（E3；E4/E6 全程反超证据）；CC 段停滞时发行 | 声明预算（horizon 内扣） | 中-高，强 case 依赖；sep-CMA 版先验最差 | W8；HCC Table 2；SLR-ES F12–F15 全第 1 |
 | **B2 restart_policy_action**（新增） | 组 dispatch 构造时冻结 is_restart=False（suppress），或将 restart mean 改为 incumbent[dims]（incumbent_mean_restart） | E3/S5 单峰已收敛段（suppress）；R4/A4 多模态（对照方向） | 0 | 中：多峰上抑制跳出机制 | W7；Hansen & Kern 小步长重启条件 |
 | **B3 group_warm_start 族**（已有 stagnation_cross_group_warm_start；扩展 σ 状态携带/软压缩） | (a) 跨 sweep 携带 mean/σ 而非冷启动；(b) SGCC 重构：mean ← x_best + w·(mean − x_best)，w=0.3，σ 同步缩减；仅在停滞证据强时签发 | S5（背景漂移快）；(b) overlap/不可分 case 停滞后 | 0 | 中-高：陈旧 σ 探索不足烧 FE；方向错误的 warm start 文献级负面 | W6；SGCC C3 全胜；Nomura 条件性 |
 | **B4 exploration_injection_ats**（新增） | 组停滞 T_i≥τ 时按剂量 prob_r=0.1+0.09·min(T_i,10) 注入指引个体，strict improvement 接受 | 多模态 case（R4） | 1–数 FE | 低-中：严格接受保底，过度注入则 Δ<0 | MSORL ATS 逃逸证据 |

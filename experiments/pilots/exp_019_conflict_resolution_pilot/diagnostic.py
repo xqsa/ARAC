@@ -20,17 +20,17 @@ from arac.actions.budget_reallocation import (
     BudgetAllocationAction,
     BudgetAllocationExecutionState,
 )
-from arac.actions.full_space_sep_cma import (
+from arac.actions.gcb import (
     CANONICAL_SEP_CMA_PARAMETERIZATION,
     CANONICAL_SEP_CMA_PARAMETERS_HASH,
     CANONICAL_SEP_CMA_POPULATION_SIZE,
     CANONICAL_SEP_CMA_REFERENCE_VERSION,
     FULL_SPACE_DIMENSION,
-    FULL_SPACE_SEP_CMA_ACTION,
+    GCB_ACTION,
     NO_RESTART_POLICY,
     STRICT_IMPROVEMENT_ACCEPTANCE,
-    FullSpaceSepCmaAction,
-    FullSpaceSepCmaExecutionState,
+    GcbAction,
+    GcbExecutionState,
 )
 from arac.backends.hcc import required_aob_data_files
 from arac.backends.hcc_action_ceiling import freeze_efficiency_budget_action
@@ -73,7 +73,7 @@ from .benchmark import REPO_ROOT, VENDOR_DATA_DIR, validate_synthetic_bundle
 EXPERIMENT_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = EXPERIMENT_DIR / "diagnostic_config.json"
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "results" / "exp_019_conflict_resolution_pilot"
-CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v7"
+CONFIG_SCHEMA_VERSION = "exp019-action-ceiling-config-v8"
 AOB_INPUT_MANIFEST_FIELDS = (
     "problem_id",
     "file",
@@ -170,8 +170,8 @@ RS_SUMMARY_FIELDS = (
     "catastrophic_rate",
     "gate",
 )
-_FULL_SPACE_CONTEXT_FIELDS = tuple(
-    field for field in CONTEXT_FIELDS if field.startswith("full_space_")
+_GCB_CONTEXT_FIELDS = tuple(
+    field for field in CONTEXT_FIELDS if field.startswith("gcb_")
 )
 
 
@@ -291,7 +291,7 @@ def load_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
             "perturb_unique_mean_positions_only": True,
             "preserve_shared_mean_positions": True,
         },
-        FULL_SPACE_SEP_CMA_ACTION: {
+        GCB_ACTION: {
             "scope": "full_space",
             "dimension": FULL_SPACE_DIMENSION,
             "population_size": CANONICAL_SEP_CMA_POPULATION_SIZE,
@@ -475,7 +475,7 @@ def validate_raw_rows(
     arm_rows: Sequence[Mapping[str, str]],
 ) -> tuple[ActionCeilingObservation, ...]:
     contexts: dict[str, Mapping[str, str]] = {}
-    full_space_actions: dict[str, FullSpaceSepCmaAction] = {}
+    gcb_actions: dict[str, GcbAction] = {}
     for row in context_rows:
         if row.get("protocol_version") != ACTION_CEILING_PROTOCOL_VERSION:
             raise ValueError("legacy action-ceiling context row")
@@ -531,63 +531,63 @@ def validate_raw_rows(
             raise ValueError("action-ceiling continuation context is invalid")
         horizon_fe = int(row.get("horizon_fe", "0"))
         acceptance_fitness = float(
-            row.get("full_space_acceptance_fitness", "nan")
+            row.get("gcb_acceptance_fitness", "nan")
         )
         try:
             action_payload = json.loads(
-                str(row.get("full_space_action_payload", ""))
+                str(row.get("gcb_action_payload", ""))
             )
             if not isinstance(action_payload, dict):
                 raise ValueError("action payload must be an object")
             action_fields = dict(action_payload)
-            if action_fields.pop("action", None) != FULL_SPACE_SEP_CMA_ACTION:
+            if action_fields.pop("action", None) != GCB_ACTION:
                 raise ValueError("action payload name is invalid")
-            full_space_action = FullSpaceSepCmaAction(**action_fields)
+            gcb_action = GcbAction(**action_fields)
         except (TypeError, ValueError, json.JSONDecodeError) as error:
             raise ValueError(
-                "full-space Sep-CMA action payload is invalid"
+                "GCB action payload is invalid"
             ) from error
         if (
             horizon_fe < CANONICAL_SEP_CMA_POPULATION_SIZE
-            or int(row.get("full_space_budget_fes", "-1")) != horizon_fe
-            or int(row.get("full_space_population_size", "-1"))
+            or int(row.get("gcb_budget_fes", "-1")) != horizon_fe
+            or int(row.get("gcb_population_size", "-1"))
             != CANONICAL_SEP_CMA_POPULATION_SIZE
-            or int(row.get("full_space_optimizer_seed", "-1")) < 0
-            or not _is_sha256(row.get("full_space_action_hash"))
-            or not _is_sha256(row.get("full_space_initial_mean_hash"))
-            or not _is_sha256(row.get("full_space_parameter_hash"))
-            or row.get("full_space_parameter_hash")
+            or int(row.get("gcb_optimizer_seed", "-1")) < 0
+            or not _is_sha256(row.get("gcb_action_hash"))
+            or not _is_sha256(row.get("gcb_initial_mean_hash"))
+            or not _is_sha256(row.get("gcb_parameter_hash"))
+            or row.get("gcb_parameter_hash")
             != CANONICAL_SEP_CMA_PARAMETERS_HASH
             or not math.isfinite(acceptance_fitness)
             or _canonical_payload_hash(action_payload)
-            != row.get("full_space_action_hash")
-            or full_space_action.action_hash
-            != row.get("full_space_action_hash")
-            or full_space_action.problem_id != row.get("problem_id")
-            or full_space_action.run_seed != int(row.get("seed", "-1"))
-            or full_space_action.checkpoint_fe
+            != row.get("gcb_action_hash")
+            or gcb_action.action_hash
+            != row.get("gcb_action_hash")
+            or gcb_action.problem_id != row.get("problem_id")
+            or gcb_action.run_seed != int(row.get("seed", "-1"))
+            or gcb_action.checkpoint_fe
             != int(row.get("dispatch_fe", "-1"))
-            or full_space_action.dispatch_checkpoint_hash
+            or gcb_action.dispatch_checkpoint_hash
             != row.get("dispatch_checkpoint_hash")
-            or full_space_action.initial_mean_hash
-            != row.get("full_space_initial_mean_hash")
-            or full_space_action.canonical_parameters_hash
-            != row.get("full_space_parameter_hash")
-            or full_space_action.optimizer_seed
-            != int(row.get("full_space_optimizer_seed", "-1"))
-            or full_space_action.population_size
-            != int(row.get("full_space_population_size", "-1"))
-            or full_space_action.budget_fes
-            != int(row.get("full_space_budget_fes", "-1"))
-            or full_space_action.acceptance_fitness != acceptance_fitness
-            or full_space_action.issued_sweep
+            or gcb_action.initial_mean_hash
+            != row.get("gcb_initial_mean_hash")
+            or gcb_action.canonical_parameters_hash
+            != row.get("gcb_parameter_hash")
+            or gcb_action.optimizer_seed
+            != int(row.get("gcb_optimizer_seed", "-1"))
+            or gcb_action.population_size
+            != int(row.get("gcb_population_size", "-1"))
+            or gcb_action.budget_fes
+            != int(row.get("gcb_budget_fes", "-1"))
+            or gcb_action.acceptance_fitness != acceptance_fitness
+            or gcb_action.issued_sweep
             != int(row.get("issued_sweep", "-1"))
-            or full_space_action.target_sweep
+            or gcb_action.target_sweep
             != int(row.get("target_sweep", "-1"))
         ):
-            raise ValueError("full-space Sep-CMA context contract is invalid")
+            raise ValueError("GCB context contract is invalid")
         contexts[context_id] = row
-        full_space_actions[context_id] = full_space_action
+        gcb_actions[context_id] = gcb_action
 
     by_context: dict[str, dict[tuple[str, str], Mapping[str, str]]] = {}
     for row in arm_rows:
@@ -645,7 +645,7 @@ def validate_raw_rows(
         )
         empty_action_prefix = (
             (
-                arm == FULL_SPACE_SEP_CMA_ACTION
+                arm == GCB_ACTION
                 and horizon in {"immediate", PRIMARY_HORIZON}
             )
             or (arm == GUARDED_EQ8_WRITEBACK_ACTION and horizon == "immediate")
@@ -727,8 +727,8 @@ def validate_raw_rows(
             or any(int(value) > target_relative_fe for value in start_fe_trace)
         ):
             raise ValueError("action-ceiling horizon FE trace is invalid")
-        if arm == FULL_SPACE_SEP_CMA_ACTION:
-            full_space_action = full_space_actions[context_id]
+        if arm == GCB_ACTION:
+            gcb_action = gcb_actions[context_id]
             try:
                 lifecycle_payload = json.loads(
                     str(row.get("action_lifecycle_payload", ""))
@@ -736,15 +736,15 @@ def validate_raw_rows(
                 if not isinstance(lifecycle_payload, dict):
                     raise ValueError("lifecycle payload must be an object")
                 lifecycle_fields = dict(lifecycle_payload)
-                if lifecycle_fields.pop("action", None) != FULL_SPACE_SEP_CMA_ACTION:
+                if lifecycle_fields.pop("action", None) != GCB_ACTION:
                     raise ValueError("lifecycle action name is invalid")
-                execution_state = FullSpaceSepCmaExecutionState(
+                execution_state = GcbExecutionState(
                     **lifecycle_fields
                 )
-                execution_state.validate_for(full_space_action)
+                execution_state.validate_for(gcb_action)
             except (TypeError, ValueError, json.JSONDecodeError) as error:
                 raise ValueError(
-                    "full-space Sep-CMA lifecycle payload is invalid"
+                    "GCB lifecycle payload is invalid"
                 ) from error
             candidate_fitness = float(
                 row.get("action_candidate_fitness", "nan")
@@ -752,23 +752,23 @@ def validate_raw_rows(
             expected_accepted = str(
                 int(
                     candidate_fitness
-                    < float(context["full_space_acceptance_fitness"])
+                    < float(context["gcb_acceptance_fitness"])
                 )
             )
             expected_post_hash = (
                 row.get("action_candidate_hash")
                 if expected_accepted == "1"
-                else context.get("full_space_initial_mean_hash")
+                else context.get("gcb_initial_mean_hash")
             )
             if (
                 action_budget_fes != horizon_fe
                 or action_actual_fes != horizon_fe
                 or row.get("action_instance_hash")
-                != context.get("full_space_action_hash")
+                != context.get("gcb_action_hash")
                 or not _is_sha256(row.get("action_lifecycle_hash"))
                 or _canonical_payload_hash(lifecycle_payload)
                 != row.get("action_lifecycle_hash")
-                or execution_state.state_hash(full_space_action)
+                or execution_state.state_hash(gcb_action)
                 != row.get("action_lifecycle_hash")
                 or execution_state.status != "completed"
                 or execution_state.consumed_fes != action_actual_fes
@@ -777,7 +777,7 @@ def validate_raw_rows(
                 or execution_state.final_state_hash
                 != row.get("optimizer_final_state_hash")
                 or row.get("optimizer_parameter_hash")
-                != context.get("full_space_parameter_hash")
+                != context.get("gcb_parameter_hash")
                 or not _is_sha256(row.get("action_candidate_hash"))
                 or not math.isfinite(candidate_fitness)
                 or row.get("action_accepted") != expected_accepted
@@ -785,7 +785,7 @@ def validate_raw_rows(
                 != expected_post_hash
                 or not _is_sha256(row.get("optimizer_initial_state_hash"))
                 or row.get("optimizer_initial_state_hash")
-                != full_space_action.initial_state_hash
+                != gcb_action.initial_state_hash
                 or not _is_sha256(row.get("optimizer_final_state_hash"))
                 or row.get("optimizer_scope") != "full_space"
                 or optimizer_population_size
@@ -799,7 +799,7 @@ def validate_raw_rows(
                     and int(start_fe_trace[0]) != horizon_fe + 1
                 )
             ):
-                raise ValueError("full-space Sep-CMA arm contract is invalid")
+                raise ValueError("GCB arm contract is invalid")
         elif arm in AUDITED_RELATION_WRITEBACK_ACTIONS:
             try:
                 writeback_payload = json.loads(
@@ -1002,7 +1002,7 @@ def validate_raw_rows(
         if set(result_rows) != expected:
             raise ValueError("context does not contain every frozen arm and horizon")
         sep_rows = [
-            result_rows[(FULL_SPACE_SEP_CMA_ACTION, horizon)]
+            result_rows[(GCB_ACTION, horizon)]
             for horizon in ACTION_CEILING_HORIZONS
         ]
         invariant_fields = (
@@ -1021,7 +1021,7 @@ def validate_raw_rows(
             for field in invariant_fields
         ):
             raise ValueError(
-                "full-space Sep-CMA action outcome differs across horizons"
+                "GCB action outcome differs across horizons"
             )
         for arm in AUDITED_RELATION_WRITEBACK_ACTIONS:
             writeback_rows = [
@@ -1156,53 +1156,53 @@ def _rs_context_state(
     return populations, uniform_budgets, horizon_fe
 
 
-def _rs_full_space_action(row: Mapping[str, str]) -> FullSpaceSepCmaAction:
+def _rs_gcb_action(row: Mapping[str, str]) -> GcbAction:
     try:
-        payload = json.loads(str(row.get("full_space_action_payload", "")))
+        payload = json.loads(str(row.get("gcb_action_payload", "")))
         if not isinstance(payload, dict):
             raise ValueError("action payload must be an object")
         action_fields = dict(payload)
-        if action_fields.pop("action", None) != FULL_SPACE_SEP_CMA_ACTION:
+        if action_fields.pop("action", None) != GCB_ACTION:
             raise ValueError("action payload name is invalid")
-        action = FullSpaceSepCmaAction(**action_fields)
-        acceptance_fitness = float(row.get("full_space_acceptance_fitness", "nan"))
+        action = GcbAction(**action_fields)
+        acceptance_fitness = float(row.get("gcb_acceptance_fitness", "nan"))
     except (TypeError, ValueError, json.JSONDecodeError) as error:
-        raise ValueError("R/S Sep-CMA context action is invalid") from error
+        raise ValueError("R/S GCB context action is invalid") from error
     if (
         int(row.get("horizon_fe", "0")) < CANONICAL_SEP_CMA_POPULATION_SIZE
-        or int(row.get("full_space_budget_fes", "-1"))
+        or int(row.get("gcb_budget_fes", "-1"))
         != int(row.get("horizon_fe", "0"))
-        or int(row.get("full_space_population_size", "-1"))
+        or int(row.get("gcb_population_size", "-1"))
         != CANONICAL_SEP_CMA_POPULATION_SIZE
-        or int(row.get("full_space_optimizer_seed", "-1")) < 0
+        or int(row.get("gcb_optimizer_seed", "-1")) < 0
         or not math.isfinite(acceptance_fitness)
         or not all(
             _is_sha256(row.get(field))
             for field in (
-                "full_space_action_hash",
-                "full_space_initial_mean_hash",
-                "full_space_parameter_hash",
+                "gcb_action_hash",
+                "gcb_initial_mean_hash",
+                "gcb_parameter_hash",
             )
         )
-        or row.get("full_space_parameter_hash")
+        or row.get("gcb_parameter_hash")
         != CANONICAL_SEP_CMA_PARAMETERS_HASH
-        or _canonical_payload_hash(payload) != row.get("full_space_action_hash")
-        or action.action_hash != row.get("full_space_action_hash")
+        or _canonical_payload_hash(payload) != row.get("gcb_action_hash")
+        or action.action_hash != row.get("gcb_action_hash")
         or action.problem_id != row.get("problem_id")
         or action.run_seed != int(row.get("seed", "-1"))
         or action.checkpoint_fe != int(row.get("dispatch_fe", "-1"))
         or action.dispatch_checkpoint_hash != row.get("dispatch_checkpoint_hash")
-        or action.initial_mean_hash != row.get("full_space_initial_mean_hash")
-        or action.canonical_parameters_hash != row.get("full_space_parameter_hash")
-        or action.optimizer_seed != int(row.get("full_space_optimizer_seed", "-1"))
+        or action.initial_mean_hash != row.get("gcb_initial_mean_hash")
+        or action.canonical_parameters_hash != row.get("gcb_parameter_hash")
+        or action.optimizer_seed != int(row.get("gcb_optimizer_seed", "-1"))
         or action.population_size
-        != int(row.get("full_space_population_size", "-1"))
-        or action.budget_fes != int(row.get("full_space_budget_fes", "-1"))
+        != int(row.get("gcb_population_size", "-1"))
+        or action.budget_fes != int(row.get("gcb_budget_fes", "-1"))
         or action.acceptance_fitness != acceptance_fitness
         or action.issued_sweep != int(row.get("issued_sweep", "-1"))
         or action.target_sweep != int(row.get("target_sweep", "-1"))
     ):
-        raise ValueError("R/S Sep-CMA context contract is invalid")
+        raise ValueError("R/S GCB context contract is invalid")
     return action
 
 
@@ -1285,10 +1285,10 @@ def _rs_arm_traces(
     )
 
 
-def _validate_rs_sep_arm(
+def _validate_rs_gcb_arm(
     row: Mapping[str, str],
     context: Mapping[str, str],
-    action: FullSpaceSepCmaAction,
+    action: GcbAction,
     *,
     start_fe_trace: Sequence[int],
 ) -> None:
@@ -1297,26 +1297,26 @@ def _validate_rs_sep_arm(
         if not isinstance(lifecycle_payload, dict):
             raise ValueError("lifecycle payload must be an object")
         lifecycle_fields = dict(lifecycle_payload)
-        if lifecycle_fields.pop("action", None) != FULL_SPACE_SEP_CMA_ACTION:
+        if lifecycle_fields.pop("action", None) != GCB_ACTION:
             raise ValueError("lifecycle action name is invalid")
-        state = FullSpaceSepCmaExecutionState(**lifecycle_fields)
+        state = GcbExecutionState(**lifecycle_fields)
         state.validate_for(action)
         candidate_fitness = float(row.get("action_candidate_fitness", "nan"))
     except (TypeError, ValueError, json.JSONDecodeError) as error:
-        raise ValueError("R/S Sep-CMA lifecycle is invalid") from error
+        raise ValueError("R/S GCB lifecycle is invalid") from error
     horizon_fe = int(context["horizon_fe"])
     expected_accepted = str(
-        int(candidate_fitness < float(context["full_space_acceptance_fitness"]))
+        int(candidate_fitness < float(context["gcb_acceptance_fitness"]))
     )
     expected_post_hash = (
         row.get("action_candidate_hash")
         if expected_accepted == "1"
-        else context.get("full_space_initial_mean_hash")
+        else context.get("gcb_initial_mean_hash")
     )
     if (
         int(row.get("action_budget_fes", "-1")) != horizon_fe
         or int(row.get("action_actual_fes", "-1")) != horizon_fe
-        or row.get("action_instance_hash") != context.get("full_space_action_hash")
+        or row.get("action_instance_hash") != context.get("gcb_action_hash")
         or _canonical_payload_hash(lifecycle_payload)
         != row.get("action_lifecycle_hash")
         or state.state_hash(action) != row.get("action_lifecycle_hash")
@@ -1326,7 +1326,7 @@ def _validate_rs_sep_arm(
         or state.completed_fe != int(context["dispatch_fe"]) + horizon_fe
         or state.final_state_hash != row.get("optimizer_final_state_hash")
         or row.get("optimizer_parameter_hash")
-        != context.get("full_space_parameter_hash")
+        != context.get("gcb_parameter_hash")
         or not _is_sha256(row.get("action_candidate_hash"))
         or not math.isfinite(candidate_fitness)
         or row.get("action_accepted") != expected_accepted
@@ -1334,7 +1334,7 @@ def _validate_rs_sep_arm(
         or row.get("optimizer_initial_state_hash") != action.initial_state_hash
         or not _is_sha256(row.get("optimizer_final_state_hash"))
         or row.get("optimizer_scope") != "full_space"
-        or row.get("selected_candidate") != FULL_SPACE_SEP_CMA_ACTION
+        or row.get("selected_candidate") != GCB_ACTION
         or int(row.get("optimizer_population_size", "-1"))
         != CANONICAL_SEP_CMA_POPULATION_SIZE
         or int(row.get("optimizer_generation_count", "-1"))
@@ -1346,7 +1346,7 @@ def _validate_rs_sep_arm(
             and (not start_fe_trace or start_fe_trace[0] != horizon_fe + 1)
         )
     ):
-        raise ValueError("R/S Sep-CMA arm contract is invalid")
+        raise ValueError("R/S GCB arm contract is invalid")
 
 
 def _validate_rs_budget_arm(
@@ -1451,11 +1451,11 @@ def validate_rs_family_target_rows(
     context_rows: Sequence[Mapping[str, str]],
     arm_rows: Sequence[Mapping[str, str]],
 ) -> tuple[ActionCeilingObservation, ...]:
-    """Validate the two-arm R/S action experiment without weakening v6."""
+    """Validate the two-arm R/S action experiment under the GCB protocol."""
 
     contexts: dict[str, Mapping[str, str]] = {}
     states: dict[str, tuple[tuple[int, ...], tuple[int, ...], int]] = {}
-    sep_actions: dict[str, FullSpaceSepCmaAction] = {}
+    gcb_actions: dict[str, GcbAction] = {}
     budget_actions: dict[str, BudgetAllocationAction] = {}
     for row in context_rows:
         problem_id = str(row.get("problem_id", ""))
@@ -1492,10 +1492,10 @@ def validate_rs_family_target_rows(
             raise ValueError("R/S target-action context truth contract is invalid")
         states[context_id] = _rs_context_state(row)
         if contract.arms == RS_FAMILY_RASTRIGIN_ARMS:
-            sep_actions[context_id] = _rs_full_space_action(row)
+            gcb_actions[context_id] = _rs_gcb_action(row)
         elif contract.arms == RS_FAMILY_SCHWEFEL_ARMS:
-            if any(row.get(field) for field in _FULL_SPACE_CONTEXT_FIELDS):
-                raise ValueError("Schwefel target context contains Sep-CMA fields")
+            if any(row.get(field) for field in _GCB_CONTEXT_FIELDS):
+                raise ValueError("Schwefel target context contains GCB fields")
             budget_actions[context_id] = _rs_budget_action(row)
         else:
             raise ValueError("R/S target-action arm contract is unsupported")
@@ -1579,7 +1579,7 @@ def validate_rs_family_target_rows(
             "sweep_3": 3 * horizon_fe,
         }[horizon]
         allow_empty = (
-            arm == FULL_SPACE_SEP_CMA_ACTION
+            arm == GCB_ACTION
             and horizon in {"immediate", PRIMARY_HORIZON}
         )
         sweep_trace, order_trace, budget_trace, start_fe_trace = _rs_arm_traces(
@@ -1635,11 +1635,11 @@ def validate_rs_family_target_rows(
                 ) != math.fsum(uniform_budgets):
                     raise ValueError("R/S adaptive budget did not preserve sweep FEs")
 
-        if arm == FULL_SPACE_SEP_CMA_ACTION:
-            _validate_rs_sep_arm(
+        if arm == GCB_ACTION:
+            _validate_rs_gcb_arm(
                 row,
                 context,
-                sep_actions[context_id],
+                gcb_actions[context_id],
                 start_fe_trace=start_fe_trace,
             )
         elif arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
@@ -1712,9 +1712,9 @@ def validate_rs_family_target_rows(
         result_rows = by_context.get(context_id, {})
         if set(result_rows) != expected:
             raise ValueError("R/S context does not contain exactly two arms and three horizons")
-        if FULL_SPACE_SEP_CMA_ACTION in contract.arms:
+        if GCB_ACTION in contract.arms:
             sep_rows = [
-                result_rows[(FULL_SPACE_SEP_CMA_ACTION, horizon)]
+                result_rows[(GCB_ACTION, horizon)]
                 for horizon in ACTION_CEILING_HORIZONS
             ]
             if any(
@@ -1722,7 +1722,7 @@ def validate_rs_family_target_rows(
                 for row in sep_rows[1:]
                 for field in invariant_fields
             ):
-                raise ValueError("R/S Sep-CMA outcome differs across horizons")
+                raise ValueError("R/S GCB outcome differs across horizons")
         if FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION in contract.arms:
             budget_rows = [
                 result_rows[
@@ -2350,7 +2350,7 @@ def aggregate_stage_artifacts(
         )
         manifest = {
             "protocol_version": RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION,
-            "schema_version": "exp019-rs-family-action-validation-manifest-v1",
+            "schema_version": "exp019-rs-family-gcb-action-validation-manifest-v2",
             "profile": RS_FAMILY_TARGET_PROFILE,
             "stage": stage,
             "cohort_filter": "real_aob",

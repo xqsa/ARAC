@@ -61,11 +61,11 @@ Phase1 可观测证据 E(s)
 - 不允许 probe、fallback、repair 或 blend 以隐藏分支混入另一个动作。
 - 任何动作都必须说明修改了哪些状态、消耗多少 FE、何时开始生效以及何时结束。
 
-### 2.1 已冻结的 R 系列动作
+### 2.1 已冻结的 R 系列 GCB 动作
 
-- `full_space_sep_cma` 的动作契约、canonical optimizer 构造和确定性 executor 只允许存在于
-  `src/arac/actions/full_space_sep_cma.py`；runner、backend 和实验目录不得复制数值执行逻辑。
-- selector 或协议层只能生成 `FullSpaceSepCmaAction`；runtime 必须通过
+- GCB 的 runtime id 为 `gcb`。动作契约、canonical optimizer 构造和确定性 executor 只允许存在于
+  `src/arac/actions/gcb.py`；runner、backend 和实验目录不得复制数值执行逻辑。
+- selector 或协议层只能生成 `GcbAction`；runtime 必须通过
   `RuntimeActionDispatcher` 按实例类型调用 executor，不得按字符串重新解释动作。
 - R1 使用 `phase_boundary` trigger；R2-R6 使用 `relation_dispatch` trigger。trigger adapter 可以
   分开，但两条路径必须调用同一个 executor。
@@ -73,7 +73,7 @@ Phase1 可观测证据 E(s)
   才接受、下一 sweep 一次性消费；R 系列实验的 sigma 固定为 0.5，burst 预算取前一完整 native
   sweep 的实际 FE，随后恢复 3 个 frozen native sweeps。
 - 后续实验需要改变上述任一语义时，必须使用新的 action 名、schema 和 protocol；不得原地修改
-  `full_space_sep_cma` 后继续引用已有 R 系列结果。
+  `gcb` 后继续引用已有 R 系列结果。
 - 当前证据边界不变：R3-R6 已通过 action-ceiling；R2 因 catastrophic context 被拒绝；R1 仅有
   forced phase-boundary terminal 结果，没有同 seed paired-native 证据。
 

@@ -20,6 +20,7 @@ from arac.actions.budget_reallocation import (
 PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION = (
     "persistent_frozen_efficiency_budget_reallocation"
 )
+PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA = "persistent-budget-action-v1"
 PERSISTENT_BUDGET_REALLOCATION_ACTION_SPEC = ActionSpec(
     name=PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     semantic_surface="persistent_budget_allocation",
@@ -504,6 +505,7 @@ def execute_persistent_budget_allocation_action(
 
 
 __all__ = [
+    "PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA",
     "PERSISTENT_BUDGET_REALLOCATION_ACTION_SPEC",
     "PERSISTENT_EFFICIENCY_BUDGET_REALLOCATION_ACTION",
     "PersistentBudgetAllocationAction",

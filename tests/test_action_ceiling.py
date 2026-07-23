@@ -12,7 +12,7 @@ from arac.actions.budget_reallocation import (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     BudgetAllocationExecutionState,
 )
-from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
+from arac.actions.gcb import GCB_ACTION
 from arac.backends.hcc_action_ceiling import (
     ActionExecutionRequest,
     ContinuationResult,
@@ -354,7 +354,7 @@ def test_shared_writeback_repairs_stale_owner_means_even_without_incumbent_delta
         "efficiency_budget_reallocation",
         "delta_priority_scan",
         "stagnation_cross_group_warm_start",
-        FULL_SPACE_SEP_CMA_ACTION,
+        GCB_ACTION,
     ],
 )
 def test_continuation_arms_reuse_native_eq8_at_dispatch(arm: str) -> None:

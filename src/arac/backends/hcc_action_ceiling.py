@@ -17,7 +17,7 @@ from arac.actions.budget_reallocation import (
     budget_allocation_anchor_hash,
     budget_allocation_parameter_hash,
 )
-from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
+from arac.actions.gcb import GCB_ACTION
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
@@ -488,7 +488,7 @@ def execute_action_ceiling_arm(
         "efficiency_budget_reallocation",
         "delta_priority_scan",
         "stagnation_cross_group_warm_start",
-        FULL_SPACE_SEP_CMA_ACTION,
+        GCB_ACTION,
     }:
         # Keep the target dispatch identical to native; only continuation changes.
         write_shared_values(
@@ -566,7 +566,7 @@ def execute_action_ceiling_arm(
                 FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
-                FULL_SPACE_SEP_CMA_ACTION,
+                GCB_ACTION,
             }
             else "relation_writeback"
         ),

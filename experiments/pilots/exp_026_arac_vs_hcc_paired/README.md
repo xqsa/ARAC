@@ -4,7 +4,7 @@ This is a five-seed descriptive validation of one explicit Phase2 action per
 trajectory on `R2-R6` and `S2-S6`, at exactly 3,000,000 FE. The 50 trajectories
 use seeds `117-121`.
 
-- R cases run `full_space_sep_cma` once, with a budget equal to the previous
+- R cases run `gcb` once, with a budget equal to the previous
   complete native sweep, accept only a strict improvement, and then resume
   three frozen native sweeps before continuing native HCC to the terminal FE.
 - S cases run `persistent_frozen_efficiency_budget_reallocation`: the frozen
@@ -13,12 +13,13 @@ use seeds `117-121`.
 
 The runner must be called with `persistent_phase2`, `paired_owner`, relation
 dispatch, and the case-specific `--persistent-phase2-action`. Every successful
-trajectory must write `run_summary.json` with `hcc-run-summary-v3` and an
-adjacent `persistent_phase2_action.json` with schema
-`phase2-action-v2`. The latter is fail-closed: one selected action, authorized
+trajectory must write `run_summary.json` with `hcc-run-summary-v3` and either
+`gcb_action.json` (`gcb-relation-action-v1`) or
+`persistent_budget_action.json` (`persistent-budget-action-v1`). These
+artifacts are fail-closed: one selected action, authorized
 and consumed runtime execution, terminal 3M FE, matching SHA-256
 action/lifecycle hashes, and the case-specific R/S lifecycle semantics above
-are mandatory. Version-1 artifacts are stale and `--resume` reruns them.
+are mandatory. Pre-migration artifacts are stale and `--resume` reruns them.
 
 `run.py` reports per-case mean, median, sample standard deviation, and a 2,000
 replicate within-case seed bootstrap mean 95% interval. It also reports the

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import overload
 
-from arac.actions.full_space_sep_cma import (
-    FullSpaceSepCmaAction,
-    FullSpaceSepCmaExecutionContext,
-    FullSpaceSepCmaExecutionResult,
-    execute_full_space_sep_cma_action,
+from arac.actions.gcb import (
+    GcbAction,
+    GcbExecutionContext,
+    GcbExecutionResult,
+    execute_gcb_action,
 )
 
 
@@ -22,18 +22,18 @@ class RuntimeActionDispatcher:
     @overload
     def execute(
         self,
-        action: FullSpaceSepCmaAction,
-        context: FullSpaceSepCmaExecutionContext,
-    ) -> FullSpaceSepCmaExecutionResult: ...
+        action: GcbAction,
+        context: GcbExecutionContext,
+    ) -> GcbExecutionResult: ...
 
     def execute(self, action: object, context: object) -> object:
-        if type(action) is FullSpaceSepCmaAction:
-            if not isinstance(context, FullSpaceSepCmaExecutionContext):
+        if type(action) is GcbAction:
+            if not isinstance(context, GcbExecutionContext):
                 raise TypeError(
-                    "FullSpaceSepCmaAction requires "
-                    "FullSpaceSepCmaExecutionContext"
+                    "GcbAction requires "
+                    "GcbExecutionContext"
                 )
-            return execute_full_space_sep_cma_action(action, context)
+            return execute_gcb_action(action, context)
         raise UnsupportedRuntimeActionError(
             f"no runtime executor registered for {type(action).__name__}"
         )

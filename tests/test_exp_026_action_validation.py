@@ -18,10 +18,19 @@ def _spec(case: str = "R4", seed: int = 117, output_root: Path = Path("unused"))
     return exp026.RunSpec("exp_026_arac_vs_hcc_paired", case, seed, exp026._expected_action(case), output_root)
 
 
+def _artifact_path(spec: exp026.RunSpec) -> Path:
+    filename = (
+        "gcb_action.json"
+        if spec.action == exp026.R_ACTION
+        else "persistent_budget_action.json"
+    )
+    return spec.result_directory / filename
+
+
 def _write_valid_artifacts(
     spec: exp026.RunSpec,
     *,
-    schema: str = exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA,
+    schema: str | None = None,
     action_hash: str = "a" * 64,
 ) -> None:
     spec.result_directory.mkdir(parents=True, exist_ok=True)
@@ -36,8 +45,13 @@ def _write_valid_artifacts(
 
     checkpoint_fe = 100_000
     action_start_fe = checkpoint_fe + 1
+    expected_schema = schema or (
+        exp026.GCB_ACTION_ARTIFACT_SCHEMA
+        if spec.action == exp026.R_ACTION
+        else exp026.PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA
+    )
     common = {
-        "schema_version": schema,
+        "schema_version": expected_schema,
         "problem_id": spec.case,
         "run_seed": spec.seed,
         "configured_max_fes": exp026.EXACT_MAX_FES,
@@ -140,7 +154,7 @@ def _write_valid_artifacts(
                 },
             },
         }
-    (spec.result_directory / "persistent_phase2_action.json").write_text(
+    _artifact_path(spec).write_text(
         json.dumps(artifact),
         encoding="utf-8",
     )
@@ -158,16 +172,18 @@ def test_config_freezes_exact_persistent_phase2_cohort() -> None:
     config = _config()
     execution = config["execution"]
     assert isinstance(execution, dict)
-    assert (
-        exp026.PERSISTENT_ACTION_ARTIFACT_SCHEMA
-        == hcc_smoke_runner.PERSISTENT_PHASE2_ARTIFACT_SCHEMA
+    assert exp026.GCB_ACTION_ARTIFACT_SCHEMA == (
+        hcc_smoke_runner.GCB_RELATION_ACTION_ARTIFACT_SCHEMA
+    )
+    assert exp026.PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA == (
+        hcc_smoke_runner.PERSISTENT_BUDGET_ACTION_ARTIFACT_SCHEMA
     )
     assert (
         exp026.NATIVE_RESUME_SWEEPS
-        == hcc_smoke_runner.PERSISTENT_SEP_CMA_NATIVE_RESUME_SWEEPS
+        == hcc_smoke_runner.GCB_NATIVE_RESUME_SWEEPS
     )
-    assert config["protocol_version"] == "rs-phase2-action-validation-v2"
-    assert config["config_schema_version"] == 6
+    assert config["protocol_version"] == "rs-phase2-action-validation-v3"
+    assert config["config_schema_version"] == 7
     assert config["stage"] == "phase2_action_validation"
     assert tuple(execution["cases"]) == exp026.SUPPORTED_CASES
     assert tuple(execution["seeds"]) == exp026.VALIDATION_SEEDS
@@ -203,7 +219,7 @@ def test_config_rejects_old_or_relaxed_protocol(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("case", ("R4", "S5"))
-def test_artifact_gate_accepts_case_specific_v2_lifecycle(
+def test_artifact_gate_accepts_case_specific_action_schema(
     tmp_path: Path,
     case: str,
 ) -> None:
@@ -246,7 +262,7 @@ def test_r_artifact_gate_rejects_burst_semantic_mismatch(
 ) -> None:
     spec = _spec("R4", output_root=tmp_path)
     _write_valid_artifacts(spec)
-    path = spec.result_directory / "persistent_phase2_action.json"
+    path = _artifact_path(spec)
     artifact = json.loads(path.read_text(encoding="utf-8"))
     artifact[field] = value
     path.write_text(json.dumps(artifact), encoding="utf-8")
@@ -272,7 +288,7 @@ def test_s_artifact_gate_rejects_persistent_semantic_mismatch(
 ) -> None:
     spec = _spec("S5", output_root=tmp_path)
     _write_valid_artifacts(spec)
-    path = spec.result_directory / "persistent_phase2_action.json"
+    path = _artifact_path(spec)
     artifact = json.loads(path.read_text(encoding="utf-8"))
     artifact[field] = value
     if field == "action_completed_fe":
@@ -288,7 +304,7 @@ def test_s_artifact_gate_rejects_persistent_semantic_mismatch(
 def test_artifact_gate_rejects_duplicate_or_hash_mismatched_action(tmp_path: Path) -> None:
     spec = _spec(output_root=tmp_path)
     _write_valid_artifacts(spec)
-    path = spec.result_directory / "persistent_phase2_action.json"
+    path = _artifact_path(spec)
     payload = json.loads(path.read_text(encoding="utf-8"))
     payload["selection_count"] = 2
     path.write_text(json.dumps(payload), encoding="utf-8")

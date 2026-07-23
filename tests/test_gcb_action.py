@@ -6,19 +6,19 @@ from pathlib import Path
 
 import pytest
 
-from arac.actions.full_space_sep_cma import (
+from arac.actions.gcb import (
     FULL_SPACE_DIMENSION,
-    FULL_SPACE_SEP_CMA_ACTION,
-    FULL_SPACE_SEP_CMA_ACTION_SPEC,
+    GCB_ACTION,
+    GCB_ACTION_SPEC,
     CANONICAL_SEP_CMA_PARAMETERIZATION,
     CANONICAL_SEP_CMA_PARAMETERS_HASH,
     CANONICAL_SEP_CMA_POPULATION_SIZE,
     CANONICAL_SEP_CMA_REFERENCE_VERSION,
     TRIGGER_SCOPE_PHASE_BOUNDARY,
     TRIGGER_SCOPE_RELATION_DISPATCH,
-    FullSpaceSepCmaAction,
-    FullSpaceSepCmaExecutionState,
-    full_space_sep_cma_anchor_hash,
+    GcbAction,
+    GcbExecutionState,
+    gcb_anchor_hash,
     full_space_vector_hash,
 )
 
@@ -32,7 +32,7 @@ def _action(
     mean: object | None = None,
     mean_hash: str | None = None,
     anchor_hash: str | None = None,
-    trigger_relation_hash: str = "e" * 64,
+    trigger_context_hash: str = "e" * 64,
     sigma: float = 0.5,
     lower_bound: float = -5.12,
     upper_bound: float = 5.12,
@@ -48,16 +48,16 @@ def _action(
     ttl_sweeps: int = 1,
     expires_sweep: int = 4,
     trigger_scope: str = TRIGGER_SCOPE_RELATION_DISPATCH,
-) -> FullSpaceSepCmaAction:
+) -> GcbAction:
     values = tuple(0.0 for _ in range(FULL_SPACE_DIMENSION)) if mean is None else mean
-    return FullSpaceSepCmaAction(
+    return GcbAction(
         problem_id="R4",
         run_seed=117,
         checkpoint_fe=300_000,
         dispatch_checkpoint_hash=_hash("a"),
-        trigger_relation_hash=trigger_relation_hash,
+        trigger_context_hash=trigger_context_hash,
         anchor_hash=(
-            full_space_sep_cma_anchor_hash("R4", values)
+            gcb_anchor_hash("R4", values)
             if anchor_hash is None
             else anchor_hash
         ),
@@ -117,20 +117,26 @@ def test_action_freezes_the_vendor_parameter_snapshot(monkeypatch: pytest.Monkey
     )
 
 
-def test_full_space_action_is_frozen_and_hashes_exact_initial_mean() -> None:
+def test_gcb_action_is_frozen_and_hashes_exact_initial_mean() -> None:
     action = _action(mean=[0.0] * 1000)
 
-    assert FULL_SPACE_SEP_CMA_ACTION == "full_space_sep_cma"
-    assert FULL_SPACE_SEP_CMA_ACTION_SPEC.name == FULL_SPACE_SEP_CMA_ACTION
+    assert GCB_ACTION == "gcb"
+    assert GCB_ACTION_SPEC.name == GCB_ACTION
     assert isinstance(action.initial_mean, tuple)
     assert action.initial_mean_hash == full_space_vector_hash(action.initial_mean)
-    assert action.anchor_hash == full_space_sep_cma_anchor_hash(
+    assert action.anchor_hash == gcb_anchor_hash(
         action.problem_id,
         action.initial_mean,
     )
     assert len(action.action_hash) == 64
     assert action.audit_payload()["canonical_parameters_hash"] == (
         CANONICAL_SEP_CMA_PARAMETERS_HASH
+    )
+    assert action.audit_payload()["trigger_scope"] == (
+        TRIGGER_SCOPE_RELATION_DISPATCH
+    )
+    assert action.audit_payload()["trigger_context_hash"] == (
+        action.trigger_context_hash
     )
     with pytest.raises(FrozenInstanceError):
         action.budget_fes = 100  # type: ignore[misc]
@@ -153,8 +159,7 @@ def test_phase_boundary_action_audit_binds_context_without_a_relation() -> None:
 
     assert action.trigger_scope == TRIGGER_SCOPE_PHASE_BOUNDARY
     assert payload["trigger_scope"] == TRIGGER_SCOPE_PHASE_BOUNDARY
-    assert payload["trigger_context_hash"] == action.trigger_relation_hash
-    assert "trigger_relation_hash" not in payload
+    assert payload["trigger_context_hash"] == action.trigger_context_hash
 
 
 @pytest.mark.parametrize(
@@ -177,9 +182,9 @@ def test_action_rejects_mean_and_anchor_hash_mismatch() -> None:
         _action(anchor_hash=_hash("c"))
 
 
-def test_action_rejects_invalid_relation_hash_bounds_and_acceptance() -> None:
-    with pytest.raises(ValueError, match="trigger_relation_hash"):
-        _action(trigger_relation_hash="not-a-hash")
+def test_action_rejects_invalid_context_hash_bounds_and_acceptance() -> None:
+    with pytest.raises(ValueError, match="trigger_context_hash"):
+        _action(trigger_context_hash="not-a-hash")
 
     with pytest.raises(ValueError, match="smaller than"):
         _action(lower_bound=1.0, upper_bound=1.0)
@@ -232,7 +237,7 @@ def test_action_rejects_restart_and_lifecycle_drift() -> None:
 
 def test_execution_state_tracks_hashes_without_duplicating_optimizer_arrays() -> None:
     action = _action(budget_fes=96)
-    execution = FullSpaceSepCmaExecutionState.for_action(action)
+    execution = GcbExecutionState.for_action(action)
     issued_hash = execution.state_hash(action)
 
     assert execution.status == "issued"
@@ -242,7 +247,7 @@ def test_execution_state_tracks_hashes_without_duplicating_optimizer_arrays() ->
         current_fe=action.checkpoint_fe,
         current_sweep=action.target_sweep,
         dispatch_checkpoint_hash=action.dispatch_checkpoint_hash,
-        trigger_relation_hash=action.trigger_relation_hash,
+        trigger_context_hash=action.trigger_context_hash,
         anchor_hash=action.anchor_hash,
     )
     running_hash = execution.state_hash(action)
@@ -265,7 +270,7 @@ def test_execution_state_tracks_hashes_without_duplicating_optimizer_arrays() ->
 
 def test_execution_state_can_abstain_before_start_only() -> None:
     action = _action()
-    execution = FullSpaceSepCmaExecutionState.for_action(action)
+    execution = GcbExecutionState.for_action(action)
 
     execution.abstain(action, reason="anchor_mismatch")
 
@@ -277,7 +282,7 @@ def test_execution_state_can_abstain_before_start_only() -> None:
             current_fe=action.checkpoint_fe,
             current_sweep=action.target_sweep,
             dispatch_checkpoint_hash=action.dispatch_checkpoint_hash,
-            trigger_relation_hash=action.trigger_relation_hash,
+            trigger_context_hash=action.trigger_context_hash,
             anchor_hash=action.anchor_hash,
         )
 
@@ -289,7 +294,7 @@ def test_execution_state_can_abstain_before_start_only() -> None:
         ("current_sweep", 3, "target_sweep"),
         ("current_sweep", 5, "TTL expired"),
         ("dispatch_checkpoint_hash", "f" * 64, "dispatch_checkpoint_hash mismatch"),
-        ("trigger_relation_hash", "f" * 64, "trigger_relation_hash mismatch"),
+        ("trigger_context_hash", "f" * 64, "trigger_context_hash mismatch"),
         ("anchor_hash", "f" * 64, "anchor_hash mismatch"),
     ],
 )
@@ -299,13 +304,13 @@ def test_execution_state_start_fails_closed_on_context_mismatch(
     message: str,
 ) -> None:
     action = _action()
-    execution = FullSpaceSepCmaExecutionState.for_action(action)
+    execution = GcbExecutionState.for_action(action)
     issued_hash = execution.state_hash(action)
     context: dict[str, object] = {
         "current_fe": action.checkpoint_fe,
         "current_sweep": action.target_sweep,
         "dispatch_checkpoint_hash": action.dispatch_checkpoint_hash,
-        "trigger_relation_hash": action.trigger_relation_hash,
+        "trigger_context_hash": action.trigger_context_hash,
         "anchor_hash": action.anchor_hash,
     }
     context[field] = value
@@ -321,7 +326,7 @@ def test_execution_state_start_fails_closed_on_context_mismatch(
 def test_execution_state_rejects_action_mismatch_and_fe_drift() -> None:
     action = _action(budget_fes=96)
     other = _action(budget_fes=120)
-    execution = FullSpaceSepCmaExecutionState.for_action(action)
+    execution = GcbExecutionState.for_action(action)
 
     with pytest.raises(ValueError, match="action_hash"):
         execution.validate_for(other)
@@ -331,7 +336,7 @@ def test_execution_state_rejects_action_mismatch_and_fe_drift() -> None:
         current_fe=action.checkpoint_fe,
         current_sweep=action.target_sweep,
         dispatch_checkpoint_hash=action.dispatch_checkpoint_hash,
-        trigger_relation_hash=action.trigger_relation_hash,
+        trigger_context_hash=action.trigger_context_hash,
         anchor_hash=action.anchor_hash,
     )
     with pytest.raises(ValueError, match="frozen FE budget"):
@@ -355,12 +360,12 @@ def test_phase_boundary_lifecycle_validates_scope_and_consumes_once() -> None:
         budget_fes=24,
         trigger_scope=TRIGGER_SCOPE_PHASE_BOUNDARY,
     )
-    execution = FullSpaceSepCmaExecutionState.for_action(action)
+    execution = GcbExecutionState.for_action(action)
     start_context = {
         "current_fe": action.checkpoint_fe,
         "current_sweep": action.target_sweep,
         "dispatch_checkpoint_hash": action.dispatch_checkpoint_hash,
-        "trigger_relation_hash": action.trigger_relation_hash,
+        "trigger_context_hash": action.trigger_context_hash,
         "anchor_hash": action.anchor_hash,
     }
 

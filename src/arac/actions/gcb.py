@@ -1,4 +1,4 @@
-"""Frozen contract for a full-space canonical Sep-CMA-ES continuation."""
+"""Frozen contract and deterministic executor for the GCB runtime action."""
 
 from __future__ import annotations
 
@@ -14,10 +14,9 @@ import numpy as np
 from arac.actions.action_spec import ActionSpec
 
 
-FULL_SPACE_SEP_CMA_ACTION = "full_space_sep_cma"
+GCB_ACTION = "gcb"
 FULL_SPACE_DIMENSION = 1000
-FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE = FULL_SPACE_SEP_CMA_ACTION
-PERSISTENT_SEP_CMA_SEED_NAMESPACE = "persistent_phase2_full_space_sep_cma"
+GCB_SEED_NAMESPACE = GCB_ACTION
 CANONICAL_SEP_CMA_PARAMETERIZATION = "ros_hansen_2008_pypop7"
 CANONICAL_SEP_CMA_POPULATION_SIZE = 24
 CANONICAL_SEP_CMA_REFERENCE_VERSION = (
@@ -34,9 +33,9 @@ TRIGGER_SCOPES = frozenset(
     {TRIGGER_SCOPE_RELATION_DISPATCH, TRIGGER_SCOPE_PHASE_BOUNDARY}
 )
 
-FULL_SPACE_SEP_CMA_ACTION_SPEC = ActionSpec(
-    name=FULL_SPACE_SEP_CMA_ACTION,
-    semantic_surface="full_space_optimizer_continuation",
+GCB_ACTION_SPEC = ActionSpec(
+    name=GCB_ACTION,
+    semantic_surface="gcb_optimizer_continuation",
     parameter_names=(
         "initial_mean",
         "initial_sigma",
@@ -110,7 +109,7 @@ def full_space_vector_hash(values: object) -> str:
     )
 
 
-def full_space_sep_cma_anchor_hash(problem_id: str, values: object) -> str:
+def gcb_anchor_hash(problem_id: str, values: object) -> str:
     """Bind the full-space action anchor to the problem and incumbent."""
 
     if not isinstance(problem_id, str) or not problem_id.strip():
@@ -118,7 +117,7 @@ def full_space_sep_cma_anchor_hash(problem_id: str, values: object) -> str:
     vector = _full_space_vector(values, "full-space anchor")
     return _canonical_sha256(
         {
-            "action": FULL_SPACE_SEP_CMA_ACTION,
+            "action": GCB_ACTION,
             "problem_id": problem_id,
             "dimension": FULL_SPACE_DIMENSION,
             "anchor_values": vector,
@@ -127,14 +126,14 @@ def full_space_sep_cma_anchor_hash(problem_id: str, values: object) -> str:
 
 
 @dataclass(frozen=True)
-class FullSpaceSepCmaAction:
+class GcbAction:
     """Immutable full-space continuation compiled before Phase2 execution."""
 
     problem_id: str
     run_seed: int
     checkpoint_fe: int
     dispatch_checkpoint_hash: str
-    trigger_relation_hash: str
+    trigger_context_hash: str
     anchor_hash: str
     initial_mean: tuple[float, ...]
     initial_mean_hash: str
@@ -168,7 +167,7 @@ class FullSpaceSepCmaAction:
         _integer(self.checkpoint_fe, "checkpoint_fe")
         for name in (
             "dispatch_checkpoint_hash",
-            "trigger_relation_hash",
+            "trigger_context_hash",
             "anchor_hash",
             "initial_mean_hash",
             "initial_state_hash",
@@ -180,7 +179,7 @@ class FullSpaceSepCmaAction:
         object.__setattr__(self, "initial_mean", mean)
         if self.initial_mean_hash != full_space_vector_hash(mean):
             raise ValueError("initial_mean_hash does not match initial_mean")
-        if self.anchor_hash != full_space_sep_cma_anchor_hash(
+        if self.anchor_hash != gcb_anchor_hash(
             self.problem_id,
             mean,
         ):
@@ -216,18 +215,18 @@ class FullSpaceSepCmaAction:
         if budget < population:
             raise ValueError("budget_fes must cover at least one population")
         if self.restart_policy != NO_RESTART_POLICY:
-            raise ValueError("full-space Sep-CMA currently supports restart_policy='none'")
+            raise ValueError("GCB currently supports restart_policy='none'")
         if self.acceptance_rule != STRICT_IMPROVEMENT_ACCEPTANCE:
-            raise ValueError("unsupported full-space Sep-CMA acceptance_rule")
+            raise ValueError("unsupported GCB acceptance_rule")
         if self.trigger_scope not in TRIGGER_SCOPES:
-            raise ValueError("unsupported full-space Sep-CMA trigger_scope")
+            raise ValueError("unsupported GCB trigger_scope")
 
         issued = _integer(self.issued_sweep, "issued_sweep")
         target = _integer(self.target_sweep, "target_sweep")
         ttl = _integer(self.ttl_sweeps, "ttl_sweeps", minimum=1)
         expires = _integer(self.expires_sweep, "expires_sweep")
         if ttl != 1:
-            raise ValueError("full-space Sep-CMA actions must have ttl_sweeps=1")
+            raise ValueError("GCB actions must have ttl_sweeps=1")
         if target != issued + 1:
             raise ValueError("target_sweep must be the next sweep")
         if expires != issued + ttl:
@@ -235,7 +234,7 @@ class FullSpaceSepCmaAction:
 
     def audit_payload(self) -> dict[str, object]:
         payload = {
-            "action": FULL_SPACE_SEP_CMA_ACTION,
+            "action": GCB_ACTION,
             "problem_id": self.problem_id,
             "run_seed": self.run_seed,
             "checkpoint_fe": self.checkpoint_fe,
@@ -261,15 +260,9 @@ class FullSpaceSepCmaAction:
             "expires_sweep": self.expires_sweep,
             "acceptance_rule": self.acceptance_rule,
         }
-        # Keep the relation-dispatch payload byte-for-byte compatible with v2
-        # artifacts.  A phase-boundary action has a different, explicit scope
-        # and binds its trigger to a global checkpoint instead of a relation.
         payload["dispatch_checkpoint_hash"] = self.dispatch_checkpoint_hash
-        if self.trigger_scope == TRIGGER_SCOPE_RELATION_DISPATCH:
-            payload["trigger_relation_hash"] = self.trigger_relation_hash
-        else:
-            payload["trigger_scope"] = self.trigger_scope
-            payload["trigger_context_hash"] = self.trigger_relation_hash
+        payload["trigger_scope"] = self.trigger_scope
+        payload["trigger_context_hash"] = self.trigger_context_hash
         return payload
 
     @property
@@ -278,7 +271,7 @@ class FullSpaceSepCmaAction:
 
 
 @dataclass
-class FullSpaceSepCmaExecutionState:
+class GcbExecutionState:
     """Mutable lifecycle audit; numerical state remains owned by vendor Sep-CMA."""
 
     action_hash: str
@@ -294,7 +287,7 @@ class FullSpaceSepCmaExecutionState:
         self._validate_shape()
 
     @classmethod
-    def for_action(cls, action: FullSpaceSepCmaAction) -> FullSpaceSepCmaExecutionState:
+    def for_action(cls, action: GcbAction) -> GcbExecutionState:
         return cls(
             action_hash=action.action_hash,
             initial_state_hash=action.initial_state_hash,
@@ -304,7 +297,7 @@ class FullSpaceSepCmaExecutionState:
         _validate_hash(self.action_hash, "action_hash")
         _validate_hash(self.initial_state_hash, "initial_state_hash")
         if self.status not in _EXECUTION_STATUSES:
-            raise ValueError("unsupported full-space Sep-CMA execution status")
+            raise ValueError("unsupported GCB execution status")
         _integer(self.consumed_fes, "consumed_fes")
         if self.started_fe is not None:
             _integer(self.started_fe, "started_fe")
@@ -315,7 +308,7 @@ class FullSpaceSepCmaExecutionState:
         if not isinstance(self.invalidation_reason, str):
             raise ValueError("invalidation_reason must be a string")
 
-    def validate_for(self, action: FullSpaceSepCmaAction) -> None:
+    def validate_for(self, action: GcbAction) -> None:
         self._validate_shape()
         if self.action_hash != action.action_hash:
             raise ValueError("execution state does not match action_hash")
@@ -359,12 +352,12 @@ class FullSpaceSepCmaExecutionState:
 
     def start(
         self,
-        action: FullSpaceSepCmaAction,
+        action: GcbAction,
         *,
         current_fe: int,
         current_sweep: int,
         dispatch_checkpoint_hash: str,
-        trigger_relation_hash: str,
+        trigger_context_hash: str,
         anchor_hash: str,
         trigger_scope: str | None = None,
     ) -> None:
@@ -377,30 +370,26 @@ class FullSpaceSepCmaExecutionState:
             dispatch_checkpoint_hash,
             "dispatch_checkpoint_hash",
         )
-        observed_relation = _validate_hash(
-            trigger_relation_hash,
-            "trigger_relation_hash",
+        observed_context = _validate_hash(
+            trigger_context_hash,
+            "trigger_context_hash",
         )
         observed_scope = (
             action.trigger_scope if trigger_scope is None else trigger_scope
         )
         if observed_scope not in TRIGGER_SCOPES:
-            raise ValueError("unsupported full-space Sep-CMA trigger_scope")
+            raise ValueError("unsupported GCB trigger_scope")
         observed_anchor = _validate_hash(anchor_hash, "anchor_hash")
         if observed_fe != action.checkpoint_fe:
             raise ValueError("current_fe does not match checkpoint_fe")
         if observed_sweep > action.expires_sweep:
-            raise ValueError("full-space Sep-CMA action TTL expired")
+            raise ValueError("GCB action TTL expired")
         if observed_sweep != action.target_sweep:
             raise ValueError("current_sweep does not match target_sweep")
         if observed_checkpoint != action.dispatch_checkpoint_hash:
             raise ValueError("dispatch_checkpoint_hash mismatch")
-        if observed_relation != action.trigger_relation_hash:
-            raise ValueError(
-                "trigger_relation_hash mismatch"
-                if action.trigger_scope == TRIGGER_SCOPE_RELATION_DISPATCH
-                else "trigger_context_hash mismatch"
-            )
+        if observed_context != action.trigger_context_hash:
+            raise ValueError("trigger_context_hash mismatch")
         if observed_scope != action.trigger_scope:
             raise ValueError("trigger_scope mismatch")
         if observed_anchor != action.anchor_hash:
@@ -410,7 +399,7 @@ class FullSpaceSepCmaExecutionState:
 
     def complete(
         self,
-        action: FullSpaceSepCmaAction,
+        action: GcbAction,
         *,
         consumed_fes: int,
         completed_fe: int,
@@ -431,7 +420,7 @@ class FullSpaceSepCmaExecutionState:
         self.final_state_hash = final_hash
         self.status = "completed"
 
-    def abstain(self, action: FullSpaceSepCmaAction, *, reason: str) -> None:
+    def abstain(self, action: GcbAction, *, reason: str) -> None:
         self.validate_for(action)
         if self.status != "issued":
             raise ValueError("only an issued action can abstain")
@@ -440,10 +429,10 @@ class FullSpaceSepCmaExecutionState:
         self.invalidation_reason = reason
         self.status = "abstained"
 
-    def audit_payload(self, action: FullSpaceSepCmaAction) -> dict[str, Any]:
+    def audit_payload(self, action: GcbAction) -> dict[str, Any]:
         self.validate_for(action)
         return {
-            "action": FULL_SPACE_SEP_CMA_ACTION,
+            "action": GCB_ACTION,
             "action_hash": self.action_hash,
             "initial_state_hash": self.initial_state_hash,
             "status": self.status,
@@ -454,12 +443,12 @@ class FullSpaceSepCmaExecutionState:
             "invalidation_reason": self.invalidation_reason,
         }
 
-    def state_hash(self, action: FullSpaceSepCmaAction) -> str:
+    def state_hash(self, action: GcbAction) -> str:
         return _canonical_sha256(self.audit_payload(action))
 
 
 @dataclass(frozen=True)
-class FullSpaceSepCmaExecutionContext:
+class GcbExecutionContext:
     """Runtime-only inputs supplied by the HCC adapter at action dispatch."""
 
     objective: Callable[[Any], Any]
@@ -486,7 +475,7 @@ class FullSpaceSepCmaExecutionContext:
         )
         _validate_hash(self.trigger_context_hash, "trigger_context_hash")
         if self.trigger_scope not in TRIGGER_SCOPES:
-            raise ValueError("unsupported full-space Sep-CMA trigger_scope")
+            raise ValueError("unsupported GCB trigger_scope")
         if (
             not isinstance(self.required_seed_namespace, str)
             or not self.required_seed_namespace.strip()
@@ -505,8 +494,8 @@ class FullSpaceSepCmaExecutionContext:
 
 
 @dataclass(frozen=True)
-class FullSpaceSepCmaExecutionResult:
-    """Auditable result of exactly one frozen full-space Sep-CMA action."""
+class GcbExecutionResult:
+    """Auditable result of exactly one frozen GCB action."""
 
     incumbent: tuple[float, ...]
     incumbent_fitness: float
@@ -516,7 +505,7 @@ class FullSpaceSepCmaExecutionResult:
     consumed_fes: int
     final_state_hash: str
     action_hash: str
-    lifecycle: FullSpaceSepCmaExecutionState
+    lifecycle: GcbExecutionState
     lifecycle_hash: str
     candidate_hash: str
     post_incumbent_hash: str
@@ -524,7 +513,7 @@ class FullSpaceSepCmaExecutionResult:
     resume_native: bool = True
 
 
-def build_full_space_sep_cma_optimizer(
+def build_gcb_optimizer(
     factory: Callable[..., Any],
     *,
     objective: Callable[[Any], Any],
@@ -573,29 +562,29 @@ def build_full_space_sep_cma_optimizer(
     )
 
 
-def execute_full_space_sep_cma_action(
-    action: FullSpaceSepCmaAction,
-    context: FullSpaceSepCmaExecutionContext,
-) -> FullSpaceSepCmaExecutionResult:
+def execute_gcb_action(
+    action: GcbAction,
+    context: GcbExecutionContext,
+) -> GcbExecutionResult:
     """Execute only the parameters frozen in ``action`` against ``context``."""
 
-    if not isinstance(action, FullSpaceSepCmaAction):
-        raise TypeError("action must be FullSpaceSepCmaAction")
-    if not isinstance(context, FullSpaceSepCmaExecutionContext):
-        raise TypeError("context must be FullSpaceSepCmaExecutionContext")
+    if not isinstance(action, GcbAction):
+        raise TypeError("action must be GcbAction")
+    if not isinstance(context, GcbExecutionContext):
+        raise TypeError("context must be GcbExecutionContext")
     if action.seed_namespace != context.required_seed_namespace:
         raise ValueError("action seed namespace does not match the execution mode")
     if full_space_vector_hash(context.incumbent) != action.initial_mean_hash:
-        raise ValueError("full-space Sep-CMA incumbent anchor changed")
+        raise ValueError("GCB incumbent anchor changed")
 
-    lifecycle = FullSpaceSepCmaExecutionState.for_action(action)
+    lifecycle = GcbExecutionState.for_action(action)
     lifecycle.start(
         action,
         current_fe=context.current_fe,
         current_sweep=context.current_sweep,
         dispatch_checkpoint_hash=context.dispatch_checkpoint_hash,
-        trigger_relation_hash=context.trigger_context_hash,
-        anchor_hash=full_space_sep_cma_anchor_hash(
+        trigger_context_hash=context.trigger_context_hash,
+        anchor_hash=gcb_anchor_hash(
             action.problem_id,
             context.incumbent,
         ),
@@ -603,7 +592,7 @@ def execute_full_space_sep_cma_action(
     )
     optimizer = context.prepared_optimizer
     if optimizer is None:
-        optimizer = build_full_space_sep_cma_optimizer(
+        optimizer = build_gcb_optimizer(
             context.sepcmaes_factory,
             objective=context.objective,
             initial_mean=context.incumbent,
@@ -615,7 +604,7 @@ def execute_full_space_sep_cma_action(
         )
     initial_state = optimizer.initialize_state()
     if initial_state.state_hash != action.initial_state_hash:
-        raise RuntimeError("full-space Sep-CMA initial state hash drifted")
+        raise RuntimeError("GCB initial state hash drifted")
 
     optimizer_result = optimizer.advance(action.budget_fes)
     consumed = int(optimizer_result["advanced_function_evaluations"])
@@ -623,9 +612,9 @@ def execute_full_space_sep_cma_action(
         consumed != action.budget_fes
         or int(optimizer_result["n_function_evaluations"]) != consumed
     ):
-        raise RuntimeError("full-space Sep-CMA did not consume its exact frozen budget")
+        raise RuntimeError("GCB did not consume its exact frozen budget")
     if optimizer_result["parameter_hash"] != action.canonical_parameters_hash:
-        raise RuntimeError("full-space Sep-CMA parameter hash drifted")
+        raise RuntimeError("GCB parameter hash drifted")
 
     final_state = optimizer_result["optimizer_state"]
     final_state_hash = final_state.state_hash
@@ -646,10 +635,10 @@ def execute_full_space_sep_cma_action(
         "Sep-CMA candidate fitness",
     )
     if candidate_fitness < 0.0:
-        raise RuntimeError("full-space Sep-CMA returned invalid fitness")
+        raise RuntimeError("GCB returned invalid fitness")
     accepted = candidate_fitness < action.acceptance_fitness
     post_incumbent = candidate if accepted else context.incumbent
-    return FullSpaceSepCmaExecutionResult(
+    return GcbExecutionResult(
         incumbent=post_incumbent,
         incumbent_fitness=(
             candidate_fitness if accepted else action.acceptance_fitness
@@ -677,19 +666,18 @@ __all__ = [
     "CANONICAL_SEP_CMA_PARAMETERS_HASH",
     "CANONICAL_SEP_CMA_REFERENCE_VERSION",
     "FULL_SPACE_DIMENSION",
-    "FULL_SPACE_SEP_CMA_ACTION",
-    "FULL_SPACE_SEP_CMA_ACTION_SPEC",
-    "FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE",
-    "PERSISTENT_SEP_CMA_SEED_NAMESPACE",
+    "GCB_ACTION",
+    "GCB_ACTION_SPEC",
+    "GCB_SEED_NAMESPACE",
     "TRIGGER_SCOPE_PHASE_BOUNDARY",
     "TRIGGER_SCOPE_RELATION_DISPATCH",
     "TRIGGER_SCOPES",
-    "FullSpaceSepCmaAction",
-    "FullSpaceSepCmaExecutionContext",
-    "FullSpaceSepCmaExecutionResult",
-    "FullSpaceSepCmaExecutionState",
-    "build_full_space_sep_cma_optimizer",
-    "execute_full_space_sep_cma_action",
-    "full_space_sep_cma_anchor_hash",
+    "GcbAction",
+    "GcbExecutionContext",
+    "GcbExecutionResult",
+    "GcbExecutionState",
+    "build_gcb_optimizer",
+    "execute_gcb_action",
+    "gcb_anchor_hash",
     "full_space_vector_hash",
 ]

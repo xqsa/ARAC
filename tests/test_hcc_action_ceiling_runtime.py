@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from arac.actions.full_space_sep_cma import (
-    FULL_SPACE_SEP_CMA_ACTION,
+from arac.actions.gcb import (
+    GCB_ACTION,
     full_space_vector_hash,
 )
 from arac.backends.hcc_action_ceiling import native_eq8_values
@@ -202,7 +202,7 @@ def _target_runtime(
 @pytest.mark.parametrize(
     ("capture_arms", "protocol_version", "fun_name"),
     [
-        (("full_space_sep_cma", "native_eq8"), ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
+        (("gcb", "native_eq8"), ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
         (("native_eq8", "native_eq8"), ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
         (("native_eq8", "unknown_arm"), ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
         (("native_eq8",), RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
@@ -251,7 +251,7 @@ def test_action_ceiling_profiles_freeze_default_and_family_target_arms() -> None
         ACTION_CEILING_ARMS
     )
     assert len(full.arms) == 13
-    assert full.protocol_version == "exp019-action-ceiling-v6"
+    assert full.protocol_version == "exp019-action-ceiling-v7"
     assert rastrigin.arms == RS_FAMILY_RASTRIGIN_ARMS
     assert schwefel.arms == RS_FAMILY_SCHWEFEL_ARMS
     assert rastrigin.protocol_version == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
@@ -302,14 +302,14 @@ def test_schwefel_target_capture_never_constructs_sep_cma(tmp_path: Path) -> Non
     assert all(
         captured.context_row[field] == ""
         for field in (
-            "full_space_action_hash",
-            "full_space_action_payload",
-            "full_space_initial_mean_hash",
-            "full_space_parameter_hash",
-            "full_space_optimizer_seed",
-            "full_space_population_size",
-            "full_space_budget_fes",
-            "full_space_acceptance_fitness",
+            "gcb_action_hash",
+            "gcb_action_payload",
+            "gcb_initial_mean_hash",
+            "gcb_parameter_hash",
+            "gcb_optimizer_seed",
+            "gcb_population_size",
+            "gcb_budget_fes",
+            "gcb_acceptance_fitness",
         )
     )
     assert all(
@@ -358,7 +358,7 @@ def test_rastrigin_target_capture_constructs_sep_cma_once(tmp_path: Path) -> Non
     assert {row["arm"] for row in captured.arm_rows} == set(
         RS_FAMILY_RASTRIGIN_ARMS
     )
-    assert captured.context_row["full_space_action_hash"]
+    assert captured.context_row["gcb_action_hash"]
 
 
 def test_full_and_target_rastrigin_share_checkpoint_and_sep_seed(
@@ -381,8 +381,8 @@ def test_full_and_target_rastrigin_share_checkpoint_and_sep_seed(
     assert target.context_row["dispatch_checkpoint_hash"] == (
         full.context_row["dispatch_checkpoint_hash"]
     )
-    assert target.context_row["full_space_optimizer_seed"] == (
-        full.context_row["full_space_optimizer_seed"]
+    assert target.context_row["gcb_optimizer_seed"] == (
+        full.context_row["gcb_optimizer_seed"]
     )
 
 
@@ -562,7 +562,7 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     assert {
         row["action_actual_fes"]
         for row in captured.arm_rows
-        if row["arm"] not in {FULL_SPACE_SEP_CMA_ACTION, "guarded_eq8_writeback"}
+        if row["arm"] not in {GCB_ACTION, "guarded_eq8_writeback"}
     } == {"0"}
     assert {
         row["action_actual_fes"]
@@ -572,7 +572,7 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
     assert {
         row["action_actual_fes"]
         for row in captured.arm_rows
-        if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+        if row["arm"] == GCB_ACTION
     } == {"26"}
     assert all(row["runtime_authorized"] == "0" for row in captured.arm_rows)
     assert all(
@@ -580,7 +580,7 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         for row in captured.arm_rows
         if not (
             (
-                row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+                row["arm"] == GCB_ACTION
                 and row["horizon"] in {"immediate", "sweep_1"}
             )
             or (row["arm"] == "guarded_eq8_writeback" and row["horizon"] == "immediate")
@@ -591,7 +591,7 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         for row in captured.arm_rows
         if not (
             (
-                row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+                row["arm"] == GCB_ACTION
                 and row["horizon"] in {"immediate", "sweep_1"}
             )
             or (row["arm"] == "guarded_eq8_writeback" and row["horizon"] == "immediate")
@@ -615,7 +615,7 @@ def test_runtime_capture_executes_all_arms_from_one_context(tmp_path: Path) -> N
         "efficiency_budget_reallocation": "1",
         "delta_priority_scan": "1",
         "stagnation_cross_group_warm_start": "1",
-        FULL_SPACE_SEP_CMA_ACTION: "1",
+        GCB_ACTION: "1",
     }
     no_trigger_warm_start = [
         row
@@ -683,7 +683,7 @@ def test_native_cycle_parity_requires_exact_relation_trace_and_horizon_fe() -> N
     assert reason == "native_relation_parity_mismatch"
 
 
-def test_full_space_sep_cma_strict_gate_and_frozen_fe_cost(tmp_path: Path) -> None:
+def test_gcb_strict_gate_and_frozen_fe_cost(tmp_path: Path) -> None:
     runtime = HccActionCeilingRuntime(
         benchmark_factory=FakeBenchmark,
         cmaes_factory=FakeOptimizer,
@@ -743,15 +743,15 @@ def test_full_space_sep_cma_strict_gate_and_frozen_fe_cost(tmp_path: Path) -> No
         sep_rows = [
             row
             for row in captured.arm_rows
-            if row["arm"] == FULL_SPACE_SEP_CMA_ACTION
+            if row["arm"] == GCB_ACTION
         ]
         sweep_3 = next(row for row in sep_rows if row["horizon"] == "sweep_3")
         candidate_fitness = float(sweep_3["action_candidate_fitness"])
 
         assert float(
-            captured.context_row["full_space_acceptance_fitness"]
+            captured.context_row["gcb_acceptance_fitness"]
         ) == acceptance_fitness
-        assert captured.context_row["full_space_initial_mean_hash"] == (
+        assert captured.context_row["gcb_initial_mean_hash"] == (
             full_space_vector_hash(post_eq8)
         )
         assert all(row["action_actual_fes"] == str(horizon_fe) for row in sep_rows)
@@ -762,7 +762,7 @@ def test_full_space_sep_cma_strict_gate_and_frozen_fe_cost(tmp_path: Path) -> No
         assert sweep_3["action_post_incumbent_hash"] == (
             sweep_3["action_candidate_hash"]
             if expected_accepted == "1"
-            else captured.context_row["full_space_initial_mean_hash"]
+            else captured.context_row["gcb_initial_mean_hash"]
         )
         assert all(row["counterfactual_applied"] == "1" for row in sep_rows)
         assert all(

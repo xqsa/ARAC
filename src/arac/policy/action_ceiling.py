@@ -12,7 +12,7 @@ from typing import Mapping, Sequence
 from arac.actions.budget_reallocation import (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
 )
-from arac.actions.full_space_sep_cma import FULL_SPACE_SEP_CMA_ACTION
+from arac.actions.gcb import GCB_ACTION
 from arac.policy.evidence_overlay import (
     BridgeWeights,
     ProbeUtilities,
@@ -23,11 +23,11 @@ from arac.policy.evidence_overlay import (
 )
 
 
-ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v6"
+ACTION_CEILING_PROTOCOL_VERSION = "exp019-action-ceiling-v7"
 ACTION_CEILING_FULL_MATRIX_PROFILE = "full_matrix"
 RS_FAMILY_TARGET_PROFILE = "rs_family_target"
 RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION = (
-    "exp019-rs-family-action-validation-v1"
+    "exp019-rs-family-gcb-action-validation-v2"
 )
 GUARDED_EQ8_WRITEBACK_ACTION = "guarded_eq8_writeback"
 GUARDED_EQ8_PROBE_FES = 2
@@ -53,14 +53,14 @@ ACTION_CEILING_ARMS = (
     "efficiency_budget_reallocation",
     "delta_priority_scan",
     "stagnation_cross_group_warm_start",
-    FULL_SPACE_SEP_CMA_ACTION,
+    GCB_ACTION,
 )
 ACTION_CEILING_KNOWN_ARMS = ACTION_CEILING_ARMS + (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
 )
 RS_FAMILY_RASTRIGIN_ARMS = (
     "native_eq8",
-    FULL_SPACE_SEP_CMA_ACTION,
+    GCB_ACTION,
 )
 RS_FAMILY_SCHWEFEL_ARMS = (
     "native_eq8",
@@ -92,14 +92,14 @@ ACTION_CEILING_CONTEXT_FIELDS = (
     "population_sizes",
     "uniform_group_budgets",
     "horizon_fe",
-    "full_space_action_hash",
-    "full_space_action_payload",
-    "full_space_initial_mean_hash",
-    "full_space_parameter_hash",
-    "full_space_optimizer_seed",
-    "full_space_population_size",
-    "full_space_budget_fes",
-    "full_space_acceptance_fitness",
+    "gcb_action_hash",
+    "gcb_action_payload",
+    "gcb_initial_mean_hash",
+    "gcb_parameter_hash",
+    "gcb_optimizer_seed",
+    "gcb_population_size",
+    "gcb_budget_fes",
+    "gcb_acceptance_fitness",
     "selector_arm",
     "selector_reason",
     "anchor_values",

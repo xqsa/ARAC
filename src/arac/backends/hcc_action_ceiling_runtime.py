@@ -14,15 +14,15 @@ from arac.actions.budget_reallocation import (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
     BudgetAllocationAction,
 )
-from arac.actions.full_space_sep_cma import (
+from arac.actions.gcb import (
     FULL_SPACE_DIMENSION,
-    FULL_SPACE_SEP_CMA_ACTION,
-    FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE,
+    GCB_ACTION,
+    GCB_SEED_NAMESPACE,
     TRIGGER_SCOPE_RELATION_DISPATCH,
-    FullSpaceSepCmaAction,
-    build_full_space_sep_cma_optimizer,
+    GcbAction,
+    build_gcb_optimizer,
 )
-from arac.actions.full_space_sep_cma import FullSpaceSepCmaExecutionContext
+from arac.actions.gcb import GcbExecutionContext
 from arac.actions.runtime_dispatcher import DEFAULT_RUNTIME_ACTION_DISPATCHER
 from arac.backends.hcc_action_ceiling import (
     ActionExecutionRequest,
@@ -36,11 +36,11 @@ from arac.backends.hcc_action_ceiling import (
     run_native_continuation,
     selector_arm_for_context,
 )
-from arac.backends.hcc_persistent_phase2 import (
-    compile_full_space_sep_cma_burst_action,
-    full_space_sep_cma_burst_optimizer_seed,
-    persistent_relation_hash,
+from arac.backends.hcc_gcb import (
+    compile_gcb_relation_action,
+    gcb_optimizer_seed,
 )
+from arac.backends.hcc_phase2_action_context import phase2_relation_hash
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_PROTOCOL_VERSION,
@@ -456,24 +456,24 @@ class HccActionCeilingRuntime:
             ),
         }
 
-        full_space_action: FullSpaceSepCmaAction | None = None
+        gcb_action: GcbAction | None = None
         for arm in self.capture_arms:
             if arm == "native_eq8":
                 continue
             objective, record, action_result, evaluate, branch_optimizer = start_branch(
                 arm
             )
-            if arm == FULL_SPACE_SEP_CMA_ACTION:
+            if arm == GCB_ACTION:
                 if self.dimension != FULL_SPACE_DIMENSION:
-                    raise ValueError("full-space Sep-CMA requires the 1000D AOB space")
-                trigger_relation_hash = persistent_relation_hash(
+                    raise ValueError("GCB requires the 1000D AOB space")
+                trigger_context_hash = phase2_relation_hash(
                     relation.owner_group_indices,
                     relation.shared_variable_indices,
                 )
-                optimizer_seed = full_space_sep_cma_burst_optimizer_seed(
+                optimizer_seed = gcb_optimizer_seed(
                     dispatch_checkpoint_hash
                 )
-                prepared_optimizer = build_full_space_sep_cma_optimizer(
+                prepared_optimizer = build_gcb_optimizer(
                     self.sepcmaes_factory,
                     objective=evaluate,
                     initial_mean=action_result.incumbent,
@@ -483,7 +483,7 @@ class HccActionCeilingRuntime:
                     budget_fes=horizon_fe,
                     optimizer_seed=optimizer_seed,
                 )
-                full_space_action = compile_full_space_sep_cma_burst_action(
+                gcb_action = compile_gcb_relation_action(
                     problem_id=problem_id,
                     run_seed=int(seed),
                     dispatch_fe=int(dispatch_fe),
@@ -504,18 +504,18 @@ class HccActionCeilingRuntime:
                 )
                 before = len(record)
                 execution_result = DEFAULT_RUNTIME_ACTION_DISPATCHER.execute(
-                    full_space_action,
-                    FullSpaceSepCmaExecutionContext(
+                    gcb_action,
+                    GcbExecutionContext(
                         objective=evaluate,
                         sepcmaes_factory=self.sepcmaes_factory,
                         current_fe=int(dispatch_fe),
                         current_sweep=int(outer_iter),
                         dispatch_checkpoint_hash=dispatch_checkpoint_hash,
-                        trigger_context_hash=trigger_relation_hash,
+                        trigger_context_hash=trigger_context_hash,
                         trigger_scope=TRIGGER_SCOPE_RELATION_DISPATCH,
                         incumbent=tuple(action_result.incumbent),
                         required_seed_namespace=(
-                            FULL_SPACE_SEP_CMA_BURST_SEED_NAMESPACE
+                            GCB_SEED_NAMESPACE
                         ),
                         prepared_optimizer=prepared_optimizer,
                     ),
@@ -523,10 +523,10 @@ class HccActionCeilingRuntime:
                 observed_fes = len(record) - before
                 if observed_fes != execution_result.consumed_fes:
                     raise RuntimeError(
-                        "full-space Sep-CMA did not consume its frozen FE budget"
+                        "GCB did not consume its frozen FE budget"
                     )
                 lifecycle_payload = execution_result.lifecycle.audit_payload(
-                    full_space_action
+                    gcb_action
                 )
 
                 candidate_fitness = execution_result.candidate_fitness
@@ -538,9 +538,9 @@ class HccActionCeilingRuntime:
                     action_result,
                     incumbent=tuple(float(value) for value in post_action_incumbent),
                     incumbent_fitness=execution_result.incumbent_fitness,
-                    action_budget_fes=full_space_action.budget_fes,
+                    action_budget_fes=gcb_action.budget_fes,
                     action_actual_fes=observed_fes,
-                    action_instance_hash=full_space_action.action_hash,
+                    action_instance_hash=gcb_action.action_hash,
                     action_lifecycle_payload=json.dumps(
                         lifecycle_payload,
                         sort_keys=True,
@@ -554,11 +554,11 @@ class HccActionCeilingRuntime:
                     action_post_incumbent_hash=execution_result.post_incumbent_hash,
                     optimizer_scope="full_space",
                     optimizer_parameter_hash=(
-                        full_space_action.canonical_parameters_hash
+                        gcb_action.canonical_parameters_hash
                     ),
-                    optimizer_initial_state_hash=full_space_action.initial_state_hash,
+                    optimizer_initial_state_hash=gcb_action.initial_state_hash,
                     optimizer_final_state_hash=execution_result.final_state_hash,
-                    optimizer_population_size=full_space_action.population_size,
+                    optimizer_population_size=gcb_action.population_size,
                     optimizer_generation_count=(
                         execution_result.optimizer_generation_count
                     ),
@@ -658,10 +658,10 @@ class HccActionCeilingRuntime:
             }
 
         if (
-            FULL_SPACE_SEP_CMA_ACTION in self.capture_arms
-            and full_space_action is None
+            GCB_ACTION in self.capture_arms
+            and gcb_action is None
         ):
-            raise RuntimeError("full-space Sep-CMA action arm was not executed")
+            raise RuntimeError("GCB action arm was not executed")
         context_row = {
             "protocol_version": self.artifact_protocol_version,
             "cohort": cohort,
@@ -690,42 +690,42 @@ class HccActionCeilingRuntime:
             "population_sizes": json.dumps(list(population_sizes)),
             "uniform_group_budgets": json.dumps(list(optimizer_budgets)),
             "horizon_fe": str(horizon_fe),
-            "full_space_action_hash": (
-                "" if full_space_action is None else full_space_action.action_hash
+            "gcb_action_hash": (
+                "" if gcb_action is None else gcb_action.action_hash
             ),
-            "full_space_action_payload": (
+            "gcb_action_payload": (
                 ""
-                if full_space_action is None
+                if gcb_action is None
                 else json.dumps(
-                    full_space_action.audit_payload(),
+                    gcb_action.audit_payload(),
                     sort_keys=True,
                     separators=(",", ":"),
                     allow_nan=False,
                 )
             ),
-            "full_space_initial_mean_hash": (
-                "" if full_space_action is None else full_space_action.initial_mean_hash
+            "gcb_initial_mean_hash": (
+                "" if gcb_action is None else gcb_action.initial_mean_hash
             ),
-            "full_space_parameter_hash": (
+            "gcb_parameter_hash": (
                 ""
-                if full_space_action is None
-                else full_space_action.canonical_parameters_hash
+                if gcb_action is None
+                else gcb_action.canonical_parameters_hash
             ),
-            "full_space_optimizer_seed": (
-                "" if full_space_action is None else str(full_space_action.optimizer_seed)
+            "gcb_optimizer_seed": (
+                "" if gcb_action is None else str(gcb_action.optimizer_seed)
             ),
-            "full_space_population_size": (
+            "gcb_population_size": (
                 ""
-                if full_space_action is None
-                else str(full_space_action.population_size)
+                if gcb_action is None
+                else str(gcb_action.population_size)
             ),
-            "full_space_budget_fes": (
-                "" if full_space_action is None else str(full_space_action.budget_fes)
+            "gcb_budget_fes": (
+                "" if gcb_action is None else str(gcb_action.budget_fes)
             ),
-            "full_space_acceptance_fitness": (
+            "gcb_acceptance_fitness": (
                 ""
-                if full_space_action is None
-                else f"{full_space_action.acceptance_fitness:.17e}"
+                if gcb_action is None
+                else f"{gcb_action.acceptance_fitness:.17e}"
             ),
             "selector_arm": selector_arm,
             "selector_reason": selector_reason,
