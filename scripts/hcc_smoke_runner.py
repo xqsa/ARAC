@@ -123,6 +123,7 @@ from arac.policy.action_ceiling import (
     ACTION_CEILING_CONTEXT_FIELDS,
     ACTION_CEILING_PROFILES,
     RS_FAMILY_TARGET_PROFILE,
+    S_FAMILY_BUDGET_PULSE_PROFILE,
     RelationActionSet,
     STAGNATION_EPSILON,
     action_ceiling_capture_contract,
@@ -3332,6 +3333,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
     ):
         raise ValueError("rs_family_target requires the real_aob cohort")
     if (
+        config.action_ceiling_profile == S_FAMILY_BUDGET_PULSE_PROFILE
+        and config.action_ceiling_cohort != "real_aob"
+    ):
+        raise ValueError("s_family_budget_pulse requires the real_aob cohort")
+    if (
         not config.action_ceiling_capture
         and config.action_ceiling_profile != ACTION_CEILING_FULL_MATRIX_PROFILE
     ):
@@ -3447,7 +3453,11 @@ def run_problem(fun_name: str, fun_id: int, output_path: Path, config: SmokeConf
             ),
             allow_structural_cutoff_tie_break=(
                 config.relation_policy_mode == ACTION_CEILING_POLICY
-                and config.action_ceiling_profile == RS_FAMILY_TARGET_PROFILE
+                and config.action_ceiling_profile
+                in {
+                    RS_FAMILY_TARGET_PROFILE,
+                    S_FAMILY_BUDGET_PULSE_PROFILE,
+                }
             ),
             require_delayed_outcomes=(
                 config.relation_policy_mode != PERSISTENT_PHASE2_POLICY
@@ -6096,6 +6106,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         and args.action_ceiling_cohort != "real_aob"
     ):
         parser.error("rs_family_target requires --action-ceiling-cohort real_aob")
+    if (
+        args.action_ceiling_profile == S_FAMILY_BUDGET_PULSE_PROFILE
+        and args.action_ceiling_cohort != "real_aob"
+    ):
+        parser.error(
+            "s_family_budget_pulse requires --action-ceiling-cohort real_aob"
+        )
     if args.action_ceiling_capture:
         try:
             action_ceiling_capture_contract(

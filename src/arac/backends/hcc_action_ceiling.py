@@ -18,6 +18,14 @@ from arac.actions.budget_reallocation import (
     budget_allocation_parameter_hash,
 )
 from arac.actions.gcb import GCB_ACTION
+from arac.actions.shrunk_budget_pulse import (
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    ShrunkBudgetPulseExecutionState,
+    ShrunkEfficiencyBudgetPulseAction,
+    allocate_shrunk_efficiency_budgets,
+    shrunk_budget_pulse_anchor_hash,
+    shrunk_budget_pulse_parameter_hash,
+)
 from arac.policy.action_ceiling import (
     ACTION_CEILING_ARMS,
     ACTION_CEILING_HORIZONS,
@@ -39,6 +47,18 @@ from arac.policy.action_ceiling import (
 from arac.policy.evidence_overlay import (
     RelationKey,
     runtime_probe_anchor_hash,
+)
+
+
+_FROZEN_BUDGET_ACTIONS = frozenset(
+    {
+        FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+        SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    }
+)
+FrozenBudgetAction = BudgetAllocationAction | ShrunkEfficiencyBudgetPulseAction
+FrozenBudgetLifecycle = (
+    BudgetAllocationExecutionState | ShrunkBudgetPulseExecutionState
 )
 
 
@@ -109,12 +129,12 @@ class ActionExecutionRequest:
     current_delta: float
     owner_group_dimensions: tuple[tuple[int, ...], tuple[int, ...]]
     owner_optimizer_means: tuple[tuple[float, ...], tuple[float, ...]]
-    budget_action: BudgetAllocationAction | None = None
+    budget_action: FrozenBudgetAction | None = None
 
     def __post_init__(self) -> None:
         if (
             self.arm not in ACTION_CEILING_ARMS
-            and self.arm != FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+            and self.arm not in _FROZEN_BUDGET_ACTIONS
         ):
             raise ValueError("unsupported action-ceiling arm")
         if len(self.context_hash) != 64:
@@ -159,9 +179,22 @@ class ActionExecutionRequest:
                 raise ValueError("owner optimizer mean must be finite and match its group")
         object.__setattr__(self, "owner_optimizer_means", owner_means)
 
-        if self.arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+        if self.arm in _FROZEN_BUDGET_ACTIONS:
             if self.budget_action is None:
-                raise ValueError("frozen budget arm requires a BudgetAllocationAction")
+                if self.arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+                    raise ValueError(
+                        "frozen budget arm requires a BudgetAllocationAction"
+                    )
+                raise ValueError(
+                    "shrunk budget arm requires a ShrunkEfficiencyBudgetPulseAction"
+                )
+            expected_type = (
+                BudgetAllocationAction
+                if self.arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+                else ShrunkEfficiencyBudgetPulseAction
+            )
+            if type(self.budget_action) is not expected_type:
+                raise ValueError("frozen budget arm received the wrong action type")
             if self.budget_action.dispatch_checkpoint_hash != self.context_hash:
                 raise ValueError("frozen budget dispatch checkpoint hash mismatch")
             if self.budget_action.checkpoint_fe != self.dispatch_fe:
@@ -453,7 +486,7 @@ def execute_action_ceiling_arm(
                 selected_candidate = "left_owner"
             selected_values = winner_values
             write_shared_values(winner_values)
-    elif request.arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+    elif request.arm in _FROZEN_BUDGET_ACTIONS:
         if request.budget_action is None:
             raise RuntimeError("validated frozen budget request lost its action")
         # The target relation dispatch remains native. The immutable budget
@@ -467,8 +500,10 @@ def execute_action_ceiling_arm(
             ),
             synchronize_owner_means=False,
         )
-        budget_lifecycle = BudgetAllocationExecutionState.for_action(
-            request.budget_action
+        budget_lifecycle = (
+            BudgetAllocationExecutionState.for_action(request.budget_action)
+            if isinstance(request.budget_action, BudgetAllocationAction)
+            else ShrunkBudgetPulseExecutionState.for_action(request.budget_action)
         )
         action_instance_hash = request.budget_action.action_hash
         action_lifecycle_payload = json.dumps(
@@ -564,6 +599,7 @@ def execute_action_ceiling_arm(
             if request.arm in {
                 "efficiency_budget_reallocation",
                 FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+                SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
                 "delta_priority_scan",
                 "stagnation_cross_group_warm_start",
                 GCB_ACTION,
@@ -769,6 +805,66 @@ def freeze_efficiency_budget_action(
     )
 
 
+def freeze_shrunk_efficiency_budget_pulse_action(
+    *,
+    problem_id: str,
+    run_seed: int,
+    checkpoint_fe: int,
+    dispatch_checkpoint_hash: str,
+    raw_group_budgets: Sequence[int],
+    population_sizes: Sequence[int],
+    uniform_group_budgets: Sequence[int],
+    issued_sweep: int,
+    target_sweep: int,
+) -> ShrunkEfficiencyBudgetPulseAction:
+    """Compile one exact 50/50 shrink of a frozen raw allocation."""
+
+    raw = tuple(raw_group_budgets)
+    populations = tuple(population_sizes)
+    uniform = tuple(uniform_group_budgets)
+    if any(
+        isinstance(value, bool) or not isinstance(value, int)
+        for value in (*raw, *populations, *uniform)
+    ):
+        raise ValueError("shrunk budget source vectors must contain integers")
+    budgets = allocate_shrunk_efficiency_budgets(raw, uniform, populations)
+    frozen_total = sum(uniform)
+    anchor_hash = shrunk_budget_pulse_anchor_hash(
+        problem_id=problem_id,
+        run_seed=run_seed,
+        checkpoint_fe=checkpoint_fe,
+        dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+        raw_group_budgets=raw,
+        uniform_group_budgets=uniform,
+        population_sizes=populations,
+        issued_sweep=issued_sweep,
+    )
+    parameter_hash = shrunk_budget_pulse_parameter_hash(
+        raw_group_budgets=raw,
+        uniform_group_budgets=uniform,
+        group_budgets=budgets,
+        population_sizes=populations,
+        frozen_total_fes=frozen_total,
+    )
+    return ShrunkEfficiencyBudgetPulseAction(
+        problem_id=problem_id,
+        run_seed=run_seed,
+        checkpoint_fe=checkpoint_fe,
+        dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+        anchor_hash=anchor_hash,
+        raw_group_budgets=raw,
+        uniform_group_budgets=uniform,
+        group_budgets=budgets,
+        population_sizes=populations,
+        frozen_total_fes=frozen_total,
+        issued_sweep=issued_sweep,
+        target_sweep=target_sweep,
+        ttl_sweeps=1,
+        expires_sweep=target_sweep,
+        parameter_hash=parameter_hash,
+    )
+
+
 def delta_priority_order(previous_deltas: Sequence[float]) -> tuple[int, ...]:
     deltas = tuple(float(value) for value in previous_deltas)
     if not deltas or any(not math.isfinite(value) or value < 0.0 for value in deltas):
@@ -931,16 +1027,29 @@ def _run_native_group_steps(
     group_seed: Callable[[int, int], int],
     should_continue: Callable[[int], bool],
     continuation_arm: str,
-    frozen_budget_action: BudgetAllocationAction | None = None,
+    frozen_budget_action: FrozenBudgetAction | None = None,
 ) -> ContinuationResult:
     if (
         continuation_arm not in ACTION_CEILING_ARMS
-        and continuation_arm != FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+        and continuation_arm not in _FROZEN_BUDGET_ACTIONS
     ):
         raise ValueError("unsupported continuation arm")
-    if continuation_arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+    if continuation_arm in _FROZEN_BUDGET_ACTIONS:
         if frozen_budget_action is None:
-            raise ValueError("frozen budget arm requires a BudgetAllocationAction")
+            if continuation_arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
+                raise ValueError(
+                    "frozen budget arm requires a BudgetAllocationAction"
+                )
+            raise ValueError(
+                "shrunk budget arm requires a ShrunkEfficiencyBudgetPulseAction"
+            )
+        expected_type = (
+            BudgetAllocationAction
+            if continuation_arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+            else ShrunkEfficiencyBudgetPulseAction
+        )
+        if type(frozen_budget_action) is not expected_type:
+            raise ValueError("frozen budget arm received the wrong action type")
     elif frozen_budget_action is not None:
         raise ValueError("frozen_budget_action requires the frozen budget arm")
     incumbent = np.asarray(state.incumbent, dtype=float).copy()
@@ -981,23 +1090,48 @@ def _run_native_group_steps(
     warm_start_shift_norms: list[float] = []
     warm_start_trigger_count = 0
     warm_start_squared_shift = 0.0
-    budget_lifecycle = (
-        BudgetAllocationExecutionState.for_action(frozen_budget_action)
-        if frozen_budget_action is not None
-        else None
-    )
+    budget_lifecycle: FrozenBudgetLifecycle | None = None
+    if type(frozen_budget_action) is BudgetAllocationAction:
+        budget_lifecycle = BudgetAllocationExecutionState.for_action(
+            frozen_budget_action
+        )
+    elif type(frozen_budget_action) is ShrunkEfficiencyBudgetPulseAction:
+        budget_lifecycle = ShrunkBudgetPulseExecutionState.for_action(
+            frozen_budget_action
+        )
     observed_budget_anchor_hash = ""
     if frozen_budget_action is not None and budget_lifecycle is not None:
-        observed_budget_anchor_hash = budget_allocation_anchor_hash(
-            problem_id=frozen_budget_action.problem_id,
-            run_seed=frozen_budget_action.run_seed,
-            checkpoint_fe=frozen_budget_action.checkpoint_fe,
-            dispatch_checkpoint_hash=frozen_budget_action.dispatch_checkpoint_hash,
-            source_efficiency_ewma=state.efficiency_ewma,
-            population_sizes=state.population_sizes,
-            uniform_group_budgets=state.optimizer_budgets,
-            issued_sweep=state.sweep_index,
-        )
+        if type(frozen_budget_action) is BudgetAllocationAction:
+            observed_budget_anchor_hash = budget_allocation_anchor_hash(
+                problem_id=frozen_budget_action.problem_id,
+                run_seed=frozen_budget_action.run_seed,
+                checkpoint_fe=frozen_budget_action.checkpoint_fe,
+                dispatch_checkpoint_hash=(
+                    frozen_budget_action.dispatch_checkpoint_hash
+                ),
+                source_efficiency_ewma=state.efficiency_ewma,
+                population_sizes=state.population_sizes,
+                uniform_group_budgets=state.optimizer_budgets,
+                issued_sweep=state.sweep_index,
+            )
+        else:
+            observed_raw_budgets = allocate_efficiency_budgets(
+                state.efficiency_ewma,
+                state.optimizer_budgets,
+                state.population_sizes,
+            )
+            observed_budget_anchor_hash = shrunk_budget_pulse_anchor_hash(
+                problem_id=frozen_budget_action.problem_id,
+                run_seed=frozen_budget_action.run_seed,
+                checkpoint_fe=frozen_budget_action.checkpoint_fe,
+                dispatch_checkpoint_hash=(
+                    frozen_budget_action.dispatch_checkpoint_hash
+                ),
+                raw_group_budgets=observed_raw_budgets,
+                uniform_group_budgets=state.optimizer_budgets,
+                population_sizes=state.population_sizes,
+                issued_sweep=state.sweep_index,
+            )
         if state.sweep_index > frozen_budget_action.expires_sweep:
             budget_lifecycle.abstain(frozen_budget_action, reason="ttl_expired")
         elif state.sweep_index != frozen_budget_action.issued_sweep:
@@ -1252,7 +1386,7 @@ def run_native_continuation(
     group_seed: Callable[[int, int], int],
     target_relative_fe: int,
     continuation_arm: str = "native_eq8",
-    frozen_budget_action: BudgetAllocationAction | None = None,
+    frozen_budget_action: FrozenBudgetAction | None = None,
 ) -> ContinuationResult:
     if target_relative_fe <= 0:
         raise ValueError("target_relative_fe must be positive")

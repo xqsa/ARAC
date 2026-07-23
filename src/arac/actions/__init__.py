@@ -38,6 +38,17 @@ from .persistent_budget_reallocation import (
     PersistentBudgetApplication,
     execute_persistent_budget_allocation_action,
 )
+from .shrunk_budget_pulse import (
+    SHRUNK_BUDGET_PULSE_SCHEMA,
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION_SPEC,
+    ShrunkBudgetPulseExecutionState,
+    ShrunkEfficiencyBudgetPulseAction,
+    allocate_shrunk_efficiency_budgets,
+    execute_shrunk_efficiency_budget_pulse_action,
+    shrunk_budget_pulse_anchor_hash,
+    shrunk_budget_pulse_parameter_hash,
+)
 from .sweep_ordering import (
     SWEEP_ORDERING_ACTION_SPECS,
     apply_sweep_ordering_action,
@@ -108,7 +119,12 @@ __all__ = [
     "PersistentBudgetAllocationExecutionState",
     "PersistentBudgetApplication",
     "SHARED_VARIABLE_ACTION_SPECS",
+    "SHRUNK_BUDGET_PULSE_SCHEMA",
+    "SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION",
+    "SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION_SPEC",
     "SWEEP_ORDERING_ACTION_SPECS",
+    "ShrunkBudgetPulseExecutionState",
+    "ShrunkEfficiencyBudgetPulseAction",
     "TRUE_NO_WRITEBACK_ACTION",
     "DEFAULT_RUNTIME_ACTION_DISPATCHER",
     "RuntimeActionDispatcher",
@@ -119,6 +135,7 @@ __all__ = [
     "apply_shared_variable_action",
     "apply_sweep_ordering_action",
     "apply_warm_start_action",
+    "allocate_shrunk_efficiency_budgets",
     "blend_overlap_values",
     "budget_allocation_anchor_hash",
     "budget_allocation_parameter_hash",
@@ -133,5 +150,8 @@ __all__ = [
     "full_space_vector_hash",
     "execute_budget_allocation_action",
     "execute_persistent_budget_allocation_action",
+    "execute_shrunk_efficiency_budget_pulse_action",
     "resolve_group_optimizer_action",
+    "shrunk_budget_pulse_anchor_hash",
+    "shrunk_budget_pulse_parameter_hash",
 ]

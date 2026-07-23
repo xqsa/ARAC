@@ -24,6 +24,10 @@ from arac.actions.gcb import (
 )
 from arac.actions.gcb import GcbExecutionContext
 from arac.actions.runtime_dispatcher import DEFAULT_RUNTIME_ACTION_DISPATCHER
+from arac.actions.shrunk_budget_pulse import (
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    ShrunkEfficiencyBudgetPulseAction,
+)
 from arac.backends.hcc_action_ceiling import (
     ActionExecutionRequest,
     NativeContinuationState,
@@ -31,6 +35,7 @@ from arac.backends.hcc_action_ceiling import (
     branch_horizon_errors,
     execute_action_ceiling_arm,
     freeze_efficiency_budget_action,
+    freeze_shrunk_efficiency_budget_pulse_action,
     paired_arm_rows,
     run_native_group_cycle,
     run_native_continuation,
@@ -47,6 +52,8 @@ from arac.policy.action_ceiling import (
     RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION,
     RS_FAMILY_RASTRIGIN_ARMS,
     RS_FAMILY_SCHWEFEL_ARMS,
+    S_FAMILY_BUDGET_PULSE_ARMS,
+    S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION,
     RelationActionSet,
 )
 from arac.policy.evidence_overlay import runtime_probe_anchor_hash
@@ -131,7 +138,18 @@ class HccActionCeilingRuntime:
             and arms == RS_FAMILY_SCHWEFEL_ARMS
             and problem_id.startswith("S")
         )
-        if not (full_matrix or rastrigin_target or schwefel_target):
+        schwefel_budget_pulse = (
+            self.artifact_protocol_version
+            == S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION
+            and arms == S_FAMILY_BUDGET_PULSE_ARMS
+            and problem_id.startswith("S")
+        )
+        if not (
+            full_matrix
+            or rastrigin_target
+            or schwefel_target
+            or schwefel_budget_pulse
+        ):
             raise ValueError("unsupported action-ceiling runtime protocol/arms/family")
         object.__setattr__(self, "capture_arms", arms)
 
@@ -313,13 +331,20 @@ class HccActionCeilingRuntime:
             tuple(float(incumbent_array[dimension]) for dimension in dimensions)
             for dimensions in owner_group_dimensions
         )
-        frozen_budget_action: BudgetAllocationAction | None = None
-        if FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION in self.capture_arms:
+        raw_budget_action: BudgetAllocationAction | None = None
+        shrunk_budget_action: ShrunkEfficiencyBudgetPulseAction | None = None
+        if any(
+            arm in self.capture_arms
+            for arm in (
+                FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+                SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+            )
+        ):
             if int(outer_iter) != action_set.target_sweep:
                 raise ValueError(
                     "frozen budget action must be compiled at its target sweep"
                 )
-            frozen_budget_action = freeze_efficiency_budget_action(
+            raw_budget_action = freeze_efficiency_budget_action(
                 problem_id=problem_id,
                 run_seed=int(seed),
                 checkpoint_fe=int(dispatch_fe),
@@ -330,6 +355,24 @@ class HccActionCeilingRuntime:
                 issued_sweep=int(outer_iter),
                 target_sweep=int(outer_iter) + 1,
             )
+            if SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION in self.capture_arms:
+                shrunk_budget_action = (
+                    freeze_shrunk_efficiency_budget_pulse_action(
+                        problem_id=problem_id,
+                        run_seed=int(seed),
+                        checkpoint_fe=int(dispatch_fe),
+                        dispatch_checkpoint_hash=dispatch_checkpoint_hash,
+                        raw_group_budgets=raw_budget_action.group_budgets,
+                        population_sizes=population_sizes,
+                        uniform_group_budgets=optimizer_budgets,
+                        issued_sweep=int(outer_iter),
+                        target_sweep=int(outer_iter) + 1,
+                    )
+                )
+        budget_actions = {
+            FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION: raw_budget_action,
+            SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION: shrunk_budget_action,
+        }
 
         def group_seed(sweep: int, group: int) -> int:
             return self.derive_seed(
@@ -361,12 +404,7 @@ class HccActionCeilingRuntime:
                     current_delta=float(current_delta),
                     owner_group_dimensions=owner_group_dimensions,
                     owner_optimizer_means=owner_optimizer_means,
-                    budget_action=(
-                        frozen_budget_action
-                        if arm
-                        == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
-                        else None
-                    ),
+                    budget_action=budget_actions.get(arm),
                 ),
                 evaluate=evaluate,
             )
@@ -604,18 +642,15 @@ class HccActionCeilingRuntime:
                 group_seed=group_seed,
                 target_relative_fe=3 * horizon_fe,
                 continuation_arm=arm,
-                frozen_budget_action=(
-                    frozen_budget_action
-                    if arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
-                    else None
-                ),
+                frozen_budget_action=budget_actions.get(arm),
             )
-            if arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION:
-                if frozen_budget_action is None:
+            if arm in budget_actions:
+                budget_action = budget_actions[arm]
+                if budget_action is None:
                     raise RuntimeError("frozen budget branch lost its action instance")
                 if (
                     continuation.budget_action_instance_hash
-                    != frozen_budget_action.action_hash
+                    != budget_action.action_hash
                     or not continuation.budget_action_lifecycle_payload
                     or not continuation.budget_action_lifecycle_hash
                 ):
@@ -628,15 +663,15 @@ class HccActionCeilingRuntime:
                         "frozen budget action was not consumed at the target sweep"
                     )
                 lifecycle_payload = {
-                    "action": FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
-                    "instance": frozen_budget_action.audit_payload(),
-                    "instance_hash": frozen_budget_action.action_hash,
+                    "action": arm,
+                    "instance": budget_action.audit_payload(),
+                    "instance_hash": budget_action.action_hash,
                     "execution": execution_payload,
                     "execution_hash": continuation.budget_action_lifecycle_hash,
                 }
                 action_result = replace(
                     action_result,
-                    action_instance_hash=frozen_budget_action.action_hash,
+                    action_instance_hash=budget_action.action_hash,
                     action_lifecycle_payload=json.dumps(
                         lifecycle_payload,
                         sort_keys=True,
@@ -816,7 +851,10 @@ class HccActionCeilingRuntime:
                         "action_post_incumbent_hash": (
                             _sha256(list(action_result.incumbent))
                             if self.artifact_protocol_version
-                            == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+                            in {
+                                RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION,
+                                S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION,
+                            }
                             and arm == "native_eq8"
                             else action_result.action_post_incumbent_hash
                         ),

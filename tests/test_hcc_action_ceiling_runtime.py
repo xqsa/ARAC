@@ -13,6 +13,10 @@ from arac.actions.gcb import (
     GCB_ACTION,
     full_space_vector_hash,
 )
+from arac.actions.shrunk_budget_pulse import (
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    allocate_shrunk_efficiency_budgets,
+)
 from arac.backends.hcc_action_ceiling import native_eq8_values
 from arac.backends.hcc_action_ceiling_runtime import HccActionCeilingRuntime
 from arac.policy.action_ceiling import (
@@ -27,6 +31,9 @@ from arac.policy.action_ceiling import (
     RS_FAMILY_RASTRIGIN_ARMS,
     RS_FAMILY_SCHWEFEL_ARMS,
     RS_FAMILY_TARGET_PROFILE,
+    S_FAMILY_BUDGET_PULSE_ARMS,
+    S_FAMILY_BUDGET_PULSE_PROFILE,
+    S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION,
     RelationActionSet,
     action_ceiling_capture_contract,
 )
@@ -199,6 +206,36 @@ def _target_runtime(
     )
 
 
+def _budget_pulse_runtime(
+    tmp_path: Path,
+    *,
+    sepcmaes_factory,
+) -> HccActionCeilingRuntime:
+    contract = action_ceiling_capture_contract(
+        S_FAMILY_BUDGET_PULSE_PROFILE,
+        "S5",
+    )
+    return HccActionCeilingRuntime(
+        benchmark_factory=FakeBenchmark,
+        cmaes_factory=FakeOptimizer,
+        sepcmaes_factory=sepcmaes_factory,
+        combine=lambda x, background, dims: runner.combine(x, background, dims),
+        derive_seed=runner.derive_optimizer_seed,
+        fun_name="schwefel",
+        fun_id=5,
+        output_path=tmp_path,
+        data_root=tmp_path,
+        sigma=0.5,
+        cmaes_restart=True,
+        early_stopping_evaluations=1000,
+        lower=-100.0,
+        upper=100.0,
+        dimension=1000,
+        capture_arms=contract.arms,
+        artifact_protocol_version=contract.protocol_version,
+    )
+
+
 @pytest.mark.parametrize(
     ("capture_arms", "protocol_version", "fun_name"),
     [
@@ -208,6 +245,8 @@ def _target_runtime(
         (("native_eq8",), RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
         (RS_FAMILY_RASTRIGIN_ARMS, RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION, "schwefel"),
         (RS_FAMILY_SCHWEFEL_ARMS, RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION, "rastrigin"),
+        (S_FAMILY_BUDGET_PULSE_ARMS, S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION, "rastrigin"),
+        (RS_FAMILY_SCHWEFEL_ARMS, S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION, "schwefel"),
     ],
 )
 def test_runtime_rejects_invalid_contract_combinations(
@@ -245,6 +284,10 @@ def test_action_ceiling_profiles_freeze_default_and_family_target_arms() -> None
     )
     rastrigin = action_ceiling_capture_contract(RS_FAMILY_TARGET_PROFILE, "R2")
     schwefel = action_ceiling_capture_contract(RS_FAMILY_TARGET_PROFILE, "S6")
+    budget_pulse = action_ceiling_capture_contract(
+        S_FAMILY_BUDGET_PULSE_PROFILE,
+        "S5",
+    )
 
     assert full.arms == ACTION_CEILING_ARMS
     assert ACTION_CEILING_KNOWN_ARMS[: len(ACTION_CEILING_ARMS)] == (
@@ -254,15 +297,27 @@ def test_action_ceiling_profiles_freeze_default_and_family_target_arms() -> None
     assert full.protocol_version == "exp019-action-ceiling-v7"
     assert rastrigin.arms == RS_FAMILY_RASTRIGIN_ARMS
     assert schwefel.arms == RS_FAMILY_SCHWEFEL_ARMS
+    assert budget_pulse.arms == S_FAMILY_BUDGET_PULSE_ARMS
     assert rastrigin.protocol_version == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
     assert schwefel.protocol_version == RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION
+    assert budget_pulse.protocol_version == S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION
     assert action_ceiling_capture_contract(RS_FAMILY_TARGET_PROFILE, "r2") == (
         rastrigin
     )
+    assert action_ceiling_capture_contract(
+        S_FAMILY_BUDGET_PULSE_PROFILE,
+        "s5",
+    ) == budget_pulse
     for invalid_problem_id in ("R0", "R7", "R01", "S", "E3"):
         with pytest.raises(ValueError):
             action_ceiling_capture_contract(
                 RS_FAMILY_TARGET_PROFILE,
+                invalid_problem_id,
+            )
+    for invalid_problem_id in ("S0", "S7", "S01", "R3", "A4"):
+        with pytest.raises(ValueError):
+            action_ceiling_capture_contract(
+                S_FAMILY_BUDGET_PULSE_PROFILE,
                 invalid_problem_id,
             )
 
@@ -334,6 +389,95 @@ def test_schwefel_target_capture_never_constructs_sep_cma(tmp_path: Path) -> Non
     assert all(
         row["action_post_incumbent_hash"] == native_post_hashes[row["horizon"]]
         for row in budget_rows
+    )
+
+
+def test_s_budget_pulse_capture_pairs_raw_and_shrunk_typed_actions(
+    tmp_path: Path,
+) -> None:
+    def forbidden_sep_cma(*args, **kwargs):
+        raise AssertionError("S budget pulse capture constructed Sep-CMA")
+
+    captured = _capture_target_context(
+        _budget_pulse_runtime(
+            tmp_path,
+            sepcmaes_factory=forbidden_sep_cma,
+        ),
+        problem_id="S5",
+    )
+
+    assert captured.context_row["protocol_version"] == (
+        S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION
+    )
+    assert {row["arm"] for row in captured.arm_rows} == set(
+        S_FAMILY_BUDGET_PULSE_ARMS
+    )
+    assert len(captured.arm_rows) == (
+        len(S_FAMILY_BUDGET_PULSE_ARMS) * len(ACTION_CEILING_HORIZONS)
+    )
+
+    lifecycle_by_arm = {}
+    for arm in (
+        RS_FAMILY_SCHWEFEL_ARMS[1],
+        SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    ):
+        rows = [row for row in captured.arm_rows if row["arm"] == arm]
+        assert len({row["context_id"] for row in rows}) == 1
+        assert len({row["action_instance_hash"] for row in rows}) == 1
+        assert len({row["action_lifecycle_payload"] for row in rows}) == 1
+        lifecycle_by_arm[arm] = json.loads(rows[0]["action_lifecycle_payload"])
+
+    raw = lifecycle_by_arm[RS_FAMILY_SCHWEFEL_ARMS[1]]
+    shrunk = lifecycle_by_arm[SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION]
+    assert raw["instance_hash"] != shrunk["instance_hash"]
+    assert raw["instance"]["dispatch_checkpoint_hash"] == (
+        captured.context_row["dispatch_checkpoint_hash"]
+    )
+    assert shrunk["instance"]["dispatch_checkpoint_hash"] == (
+        captured.context_row["dispatch_checkpoint_hash"]
+    )
+    assert shrunk["instance"]["raw_group_budgets"] == raw["instance"][
+        "group_budgets"
+    ]
+    assert tuple(shrunk["instance"]["group_budgets"]) == (
+        allocate_shrunk_efficiency_budgets(
+            raw["instance"]["group_budgets"],
+            shrunk["instance"]["uniform_group_budgets"],
+            shrunk["instance"]["population_sizes"],
+        )
+    )
+    for lifecycle in (raw, shrunk):
+        assert lifecycle["instance"]["issued_sweep"] == 3
+        assert lifecycle["instance"]["target_sweep"] == 4
+        assert lifecycle["instance"]["ttl_sweeps"] == 1
+        assert lifecycle["execution"]["status"] == "consumed"
+        assert lifecycle["execution"]["consumed_sweep"] == 4
+        assert lifecycle["execution"]["applied_group_budgets"] == lifecycle[
+            "instance"
+        ]["group_budgets"]
+
+    shrunk_sweep_3 = next(
+        row
+        for row in captured.arm_rows
+        if row["arm"] == SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION
+        and row["horizon"] == "sweep_3"
+    )
+    budget_trace = json.loads(shrunk_sweep_3["group_budget_trace"])
+    order_trace = json.loads(shrunk_sweep_3["execution_order_trace"])
+    sweep_trace = json.loads(shrunk_sweep_3["execution_sweep_trace"])
+    target_budgets = tuple(shrunk["instance"]["group_budgets"])
+    uniform_budgets = tuple(shrunk["instance"]["uniform_group_budgets"])
+    assert tuple(budget_trace[:2]) == target_budgets
+    assert sweep_trace[:2] == [4, 4]
+    assert all(
+        budget == uniform_budgets[group]
+        for budget, group, sweep in zip(
+            budget_trace[2:],
+            order_trace[2:],
+            sweep_trace[2:],
+            strict=True,
+        )
+        if sweep > 4
     )
 
 
@@ -906,6 +1050,43 @@ def test_action_ceiling_cli_requires_explicit_capture_flag(tmp_path: Path) -> No
         ]
     )
     assert target_args.action_ceiling_profile == RS_FAMILY_TARGET_PROFILE
+
+    s_common = common.copy()
+    s_common[1] = "schwefel"
+    s_common[3] = "5"
+    s_args = runner.parse_args(
+        s_common
+        + [
+            "--action-ceiling-capture",
+            "--action-ceiling-profile",
+            S_FAMILY_BUDGET_PULSE_PROFILE,
+        ]
+    )
+    assert s_args.action_ceiling_profile == S_FAMILY_BUDGET_PULSE_PROFILE
+
+    with pytest.raises(SystemExit) as error:
+        runner.parse_args(
+            target_common
+            + [
+                "--action-ceiling-capture",
+                "--action-ceiling-profile",
+                S_FAMILY_BUDGET_PULSE_PROFILE,
+            ]
+        )
+    assert error.value.code == 2
+
+    with pytest.raises(SystemExit) as error:
+        runner.parse_args(
+            s_common
+            + [
+                "--action-ceiling-capture",
+                "--action-ceiling-profile",
+                S_FAMILY_BUDGET_PULSE_PROFILE,
+                "--action-ceiling-cohort",
+                "synthetic_conflict",
+            ]
+        )
+    assert error.value.code == 2
 
     with pytest.raises(SystemExit) as error:
         runner.parse_args(

@@ -13,6 +13,10 @@ from arac.actions.budget_reallocation import (
     BudgetAllocationExecutionState,
 )
 from arac.actions.gcb import GCB_ACTION
+from arac.actions.shrunk_budget_pulse import (
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    ShrunkBudgetPulseExecutionState,
+)
 from arac.backends.hcc_action_ceiling import (
     ActionExecutionRequest,
     ContinuationResult,
@@ -23,6 +27,7 @@ from arac.backends.hcc_action_ceiling import (
     delta_priority_order,
     execute_action_ceiling_arm,
     freeze_efficiency_budget_action,
+    freeze_shrunk_efficiency_budget_pulse_action,
     native_eq8_values,
     run_native_group_cycle,
     run_native_continuation,
@@ -497,10 +502,36 @@ def _frozen_budget_action(
     )
 
 
+def _shrunk_budget_action(
+    state: NativeContinuationState,
+    *,
+    context_hash: str = "a" * 64,
+    checkpoint_fe: int = 100,
+):
+    raw_action = _frozen_budget_action(
+        state,
+        context_hash=context_hash,
+        checkpoint_fe=checkpoint_fe,
+    )
+    return freeze_shrunk_efficiency_budget_pulse_action(
+        problem_id="S5",
+        run_seed=117,
+        checkpoint_fe=checkpoint_fe,
+        dispatch_checkpoint_hash=context_hash,
+        raw_group_budgets=raw_action.group_budgets,
+        population_sizes=state.population_sizes,
+        uniform_group_budgets=state.optimizer_budgets,
+        issued_sweep=state.sweep_index,
+        target_sweep=state.sweep_index + 1,
+    )
+
+
 def _run_frozen_budget_continuation(
     state: NativeContinuationState,
     *,
     target_relative_fe: int,
+    arm: str = FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    action=None,
 ):
     record: list[float] = []
     requested_budgets: list[int] = []
@@ -524,7 +555,16 @@ def _run_frozen_budget_continuation(
         values = evaluate(batch)
         return OptimizationResult(tuple(mean), float(np.min(values)), len(values))
 
-    action = _frozen_budget_action(state)
+    if action is None:
+        action = (
+            _frozen_budget_action(state)
+            if arm == FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION
+            else _shrunk_budget_action(state)
+            if arm == SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION
+            else None
+        )
+    if action is None:
+        raise ValueError("test helper requires a frozen budget arm")
     result = run_native_continuation(
         state,
         evaluate=evaluate,
@@ -532,7 +572,7 @@ def _run_frozen_budget_continuation(
         optimize_group=optimize,
         group_seed=lambda sweep, group: sweep * 100 + group,
         target_relative_fe=target_relative_fe,
-        continuation_arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+        continuation_arm=arm,
         frozen_budget_action=action,
     )
     return action, result, tuple(requested_budgets)
@@ -669,6 +709,48 @@ def test_frozen_budget_applies_only_target_sweep_then_restores_uniform() -> None
     assert result.policy_application_fes == (1,)
 
 
+def test_shrunk_budget_uses_typed_lifecycle_for_one_target_sweep() -> None:
+    state = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
+    action, result, requested = _run_frozen_budget_continuation(
+        state,
+        target_relative_fe=2 * state.sweep_horizon_fe,
+        arm=SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+    )
+
+    assert action.group_budgets != action.raw_group_budgets
+    assert requested[:3] == action.group_budgets
+    assert requested[3:] == state.optimizer_budgets
+    assert result.execution_sweep_trace == (4, 4, 4, 5, 5, 5)
+    assert result.policy_application_fes == (1,)
+    lifecycle_payload = json.loads(result.budget_action_lifecycle_payload)
+    lifecycle_payload.pop("action")
+    lifecycle = ShrunkBudgetPulseExecutionState(**lifecycle_payload)
+    lifecycle.validate_for(action)
+    assert lifecycle.status == "consumed"
+
+
+def test_shrunk_budget_dispatch_rejects_wrong_typed_action() -> None:
+    state = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
+    raw_action = _frozen_budget_action(state, context_hash=_hash("context"))
+    shrunk_action = _shrunk_budget_action(
+        state,
+        context_hash=_hash("context"),
+    )
+
+    with pytest.raises(ValueError, match="wrong action type"):
+        replace(
+            _request("native_eq8"),
+            arm=SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+            budget_action=raw_action,
+        )
+    with pytest.raises(ValueError, match="wrong action type"):
+        replace(
+            _request("native_eq8"),
+            arm=FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+            budget_action=shrunk_action,
+        )
+
+
 def test_frozen_budget_anchor_mismatch_abstains_to_uniform() -> None:
     source = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
     action = _frozen_budget_action(source)
@@ -706,6 +788,25 @@ def test_frozen_budget_anchor_mismatch_abstains_to_uniform() -> None:
     payload = json.loads(result.budget_action_lifecycle_payload)
 
     assert tuple(observed) == mismatched.optimizer_budgets
+    assert payload["status"] == "abstained"
+    assert payload["invalidation_reason"] == "anchor_hash_mismatch"
+    assert result.continuation_policy_applied is False
+
+
+def test_shrunk_budget_anchor_mismatch_abstains_to_uniform() -> None:
+    source = _completed_continuation_state(efficiency_ewma=(9.0, 1.0, 0.0))
+    action = _shrunk_budget_action(source)
+    mismatched = replace(source, efficiency_ewma=(1.0, 9.0, 0.0))
+
+    _, result, requested = _run_frozen_budget_continuation(
+        mismatched,
+        target_relative_fe=mismatched.sweep_horizon_fe,
+        arm=SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+        action=action,
+    )
+    payload = json.loads(result.budget_action_lifecycle_payload)
+
+    assert requested == mismatched.optimizer_budgets
     assert payload["status"] == "abstained"
     assert payload["invalidation_reason"] == "anchor_hash_mismatch"
     assert result.continuation_policy_applied is False

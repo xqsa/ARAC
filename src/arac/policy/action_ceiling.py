@@ -13,6 +13,9 @@ from arac.actions.budget_reallocation import (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
 )
 from arac.actions.gcb import GCB_ACTION
+from arac.actions.shrunk_budget_pulse import (
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+)
 from arac.policy.evidence_overlay import (
     BridgeWeights,
     ProbeUtilities,
@@ -28,6 +31,10 @@ ACTION_CEILING_FULL_MATRIX_PROFILE = "full_matrix"
 RS_FAMILY_TARGET_PROFILE = "rs_family_target"
 RS_FAMILY_ACTION_CEILING_PROTOCOL_VERSION = (
     "exp019-rs-family-gcb-action-validation-v2"
+)
+S_FAMILY_BUDGET_PULSE_PROFILE = "s_family_budget_pulse"
+S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION = (
+    "exp029-s-family-budget-pulse-validation-v1"
 )
 GUARDED_EQ8_WRITEBACK_ACTION = "guarded_eq8_writeback"
 GUARDED_EQ8_PROBE_FES = 2
@@ -57,6 +64,7 @@ ACTION_CEILING_ARMS = (
 )
 ACTION_CEILING_KNOWN_ARMS = ACTION_CEILING_ARMS + (
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
 )
 RS_FAMILY_RASTRIGIN_ARMS = (
     "native_eq8",
@@ -66,8 +74,18 @@ RS_FAMILY_SCHWEFEL_ARMS = (
     "native_eq8",
     FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
 )
+S_FAMILY_BUDGET_PULSE_ARMS = (
+    "native_eq8",
+    "true_no_writeback",
+    FROZEN_EFFICIENCY_BUDGET_REALLOCATION_ACTION,
+    SHRUNK_EFFICIENCY_BUDGET_PULSE_ACTION,
+)
 ACTION_CEILING_PROFILES = frozenset(
-    {ACTION_CEILING_FULL_MATRIX_PROFILE, RS_FAMILY_TARGET_PROFILE}
+    {
+        ACTION_CEILING_FULL_MATRIX_PROFILE,
+        RS_FAMILY_TARGET_PROFILE,
+        S_FAMILY_BUDGET_PULSE_PROFILE,
+    }
 )
 ACTION_CEILING_HORIZONS = ("immediate", "sweep_1", "sweep_3")
 ACTION_CEILING_CONTEXT_FIELDS = (
@@ -188,6 +206,21 @@ def action_ceiling_capture_contract(
             profile=profile,
             protocol_version=ACTION_CEILING_PROTOCOL_VERSION,
             arms=ACTION_CEILING_ARMS,
+        )
+    if profile == S_FAMILY_BUDGET_PULSE_PROFILE:
+        if not isinstance(problem_id, str):
+            raise ValueError("s_family_budget_pulse requires a string problem id")
+        normalized_problem_id = problem_id.upper()
+        if (
+            len(normalized_problem_id) != 2
+            or normalized_problem_id[0] != "S"
+            or normalized_problem_id[1] not in "123456"
+        ):
+            raise ValueError("s_family_budget_pulse requires S case id 1 through 6")
+        return ActionCeilingCaptureContract(
+            profile=profile,
+            protocol_version=S_FAMILY_BUDGET_PULSE_PROTOCOL_VERSION,
+            arms=S_FAMILY_BUDGET_PULSE_ARMS,
         )
     if profile != RS_FAMILY_TARGET_PROFILE:
         raise ValueError(f"unsupported action-ceiling profile: {profile}")
