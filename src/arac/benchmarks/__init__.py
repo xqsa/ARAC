@@ -17,16 +17,26 @@ from .wang2025_local_escape import (
     Wang2025LocalEscapeCase,
     get_wang2025_local_escape_case,
 )
+from .wang2025_continuous import (
+    WANG2025_CONTINUOUS_EXTENSION,
+    WANG2025_CONTINUOUS_INTERACTION_STRENGTH,
+    WANG2025_CONTINUOUS_SCHEMA_VERSION,
+    Wang2025ContinuousProblem,
+)
 
 __all__ = [
     "CHEN2018_SCHEMA_VERSION",
     "Chen2018BinaryProblem",
     "Chen2018Spec",
     "WANG2025_MAX_SHARED_MEMBERSHIPS",
+    "WANG2025_CONTINUOUS_EXTENSION",
+    "WANG2025_CONTINUOUS_INTERACTION_STRENGTH",
+    "WANG2025_CONTINUOUS_SCHEMA_VERSION",
     "WANG2025_LOCAL_ESCAPE_CASES",
     "WANG2025_LOCAL_ESCAPE_SUITE_VERSION",
     "WANG2025_SCHEMA_VERSION",
     "Wang2025LocalEscapeCase",
+    "Wang2025ContinuousProblem",
     "Wang2025OverlappingProblem",
     "Wang2025OverlappingSpec",
     "get_wang2025_local_escape_case",
