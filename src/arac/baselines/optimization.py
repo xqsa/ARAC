@@ -99,6 +99,7 @@ def _run_cmaes_block(
     seed: int,
     sigma: float,
     phase: str,
+    restart: bool = False,
 ) -> tuple[np.ndarray, float]:
     indices = np.asarray(group, dtype=int)
     snapshot = context.copy()
@@ -129,7 +130,7 @@ def _run_cmaes_block(
         "sigma": sigma,
         "n_individuals": cmaes_population_size(len(group)),
         "seed_rng": seed,
-        "is_restart": False,
+        "is_restart": restart,
         "verbose": 0,
     }
     before = ledger.evaluations
