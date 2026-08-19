@@ -1668,3 +1668,36 @@ R2 梯档）现在有了明确的 fresh-seed 收据证据支撑。A3 非劣是
 运行时恰停在 450k 穿越线）是否并入 v5.2 再跑 51c 复判，还是 v5.2 按当前
 内容（仅杠杆 1）出判。复判命令：
 `.venv\Scripts\python.exe -m experiments.oc_phase_aware_gate51c_v5_2 --workers 8 --pin-p-cores`（OC 24 cell，约 2 小时）。
+
+## v5.2 杠杆 2 落地：material horizon promotion（2026-08-19 午后）
+
+用户裁决取代原"R2 顶档 300k→450k"表述（协议 §6 已冻结最终定义）：
+诊断表显示三 seed AOR 恰停 450k 穿越线，但仅 20260902 material
+（0.0511），另两 seed 零增益且后续收益在 GSS——无条件加档会挤占已证明
+有效的利用预算。根因（用户定位）：`_current_leader_name` 只认
+exploit_history，material horizon 属 challenger 通道，发现的价值无法
+进入利用阶段。
+
+**实现**（episodes.py，v5.2 语义、hpr 门控、无新配置旗标）：
+- 触发：`_execute` 中 horizon 保留段 material 且未用过 promotion →
+  `horizon_material_pending=True`（pending 标记使触发能穿越 material
+  leader 的 runway 交错存活，不重蹈 v4.2"救援通道被健康 leader 扼流"）；
+- 授予：`_horizon_promotion_grant` 返回 probe_order 首个 pending 且
+  可执行的 episode，窗 = min(2×w1, segment, remaining)，exploit 类、
+  exploitation 账本、reservation_kind=horizon_promotion、每 episode
+  每 run 一次；插入两处——adaptive 块（adaptive_lock 之后、P1 之前，
+  "立即"语义）与 P2 hpr 路径（runway 之后、新 horizon 保留之前）；
+  material leader 的 runway 不被打断（S5 保护保持）；
+- 后果链：material 验证窗写入首个 exploit 速率样本 → 按常规排名竞争
+  leadership → 赢得则进入有界 runway；平坦验证窗 plateau 释放——
+  损失上界 2×w1=150k；
+- 审计四条：promotion 收据必须是 exploit、必须由同 episode 更早的
+  material horizon 收据挣得、窗 ≤ 2×w1、每 episode 单次。
+
+**测试**：翻转计数玩具（前 N 次评估 1.0、之后 0.5）确定性复现 R2
+机制缩影——N 落在 AOR horizon 窗内（18,200）：material horizon
+0.693 → 下一段立即 promotion（窗 975 ≤ 1,600）→ 平坦释放，审计绿；
+N 晚一段落在 smp exploit 窗（18,800）：exploit 通道 material 不铸
+promotion（负对照）。v5_2 契约测试 11 个全过；定向 47 过；ruff 绿。
+
+51c v5_2 复判待启动（协议 §6 已定稿，manifest 就绪）。

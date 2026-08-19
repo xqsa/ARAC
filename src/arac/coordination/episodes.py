@@ -1254,6 +1254,14 @@ def run_oc_episode_schedule_v4(
             "reservation_due": False,
             "handoff_penalty": 0,
             "handoff_cooldown": 0,
+            # v5.2 material horizon promotion: a material horizon
+            # reservation owes its episode one bounded post-revelation
+            # verification exploit (2*w1).  Challenger-lane evidence
+            # cannot enter the exploit-only leadership ranking on its
+            # own (Gate 51c R2: AOR crossed at exactly 450k runtime and
+            # the gain stranded in the development lane).
+            "horizon_material_pending": False,
+            "horizon_promotion_used": False,
         }
         for episode in EPISODES
     }
@@ -1635,6 +1643,35 @@ def run_oc_episode_schedule_v4(
         window, ledger_class = _hpr_reservation(episode)
         return episode, window, ledger_class
 
+    def _horizon_promotion_grant(segment_window: int) -> tuple[str, int] | None:
+        """One bounded post-revelation verification for a material horizon.
+
+        A challenger-lane discovery cannot enter leadership (exploit-only
+        evidence), so a material horizon reservation immediately earns one
+        2*w1 verification exploit.  A material window writes the episode's
+        exploit-rate sample and it competes for the runway by the normal
+        ranking; a flat window leaves released=True -- the loss is bounded
+        at 2*w1.  One shot per episode per run (v5.2 lever 2,
+        pre-registered).
+        """
+
+        if not hpr_mode:
+            return None
+        for episode in probe_order:
+            if episode in stuck:
+                continue
+            if not book[episode]["horizon_material_pending"]:
+                continue
+            if book[episode]["horizon_promotion_used"]:
+                continue
+            window = min(2 * config.maturity_window_fes, segment_window)
+            if window < max(_progress(episode).min_step_fes, min_window_needed[episode]):
+                continue
+            book[episode]["horizon_promotion_used"] = True
+            book[episode]["horizon_material_pending"] = False
+            return episode, window
+        return None
+
     def _adjudicate() -> tuple[str, str, int, dict[str, object]]:
         """Exactly one grant decision; raises on an unsolvable state."""
         nonlocal sampling_debt
@@ -1705,6 +1742,16 @@ def run_oc_episode_schedule_v4(
                         "ledger_class": "exploitation",
                         "reservation_kind": "adaptive_lock",
                     }
+            # v5.2 lever 2: a material horizon discovery is verified
+            # immediately -- it never has to wait behind pending tickets
+            # or further horizon spending.
+            promotion = _horizon_promotion_grant(segment_window)
+            if promotion is not None:
+                promoted, promotion_window = promotion
+                return promoted, "exploit", promotion_window, {
+                    "ledger_class": "exploitation",
+                    "reservation_kind": "horizon_promotion",
+                }
         # P1 -- unfinished affordable maturity tickets, probe order.
         for episode in probe_order:
             if episode in stuck or book[episode]["ticket_done"]:
@@ -1774,6 +1821,15 @@ def run_oc_episode_schedule_v4(
                 return leader, "exploit", runway_window, {
                     "ledger_class": "exploitation",
                     "reservation_kind": "protected_runway",
+                }
+            # v5.2 lever 2 (hpr path): the material-horizon verification
+            # takes precedence over granting further horizon reservations.
+            promotion = _horizon_promotion_grant(segment_window)
+            if promotion is not None:
+                promoted, promotion_window = promotion
+                return promoted, "exploit", promotion_window, {
+                    "ledger_class": "exploitation",
+                    "reservation_kind": "horizon_promotion",
                 }
             # Before the first exploit there is no delayed feedback to
             # arbitrate; let the calibrated bootstrap credit establish the
@@ -2049,6 +2105,17 @@ def run_oc_episode_schedule_v4(
         l_after = float(ledgers[episode].best_error)
         g_gain = _log_gain(g_before, g_after)
         material = g_gain > config.material_log_gain
+        if (
+            hpr_mode
+            and grant_kind == "challenger"
+            and reservation_kind == "horizon"
+            and material
+            and not book[episode]["horizon_promotion_used"]
+        ):
+            # v5.2 lever 2: the discovery is banked as pending until the
+            # promotion grant executes (a material leader's runway is not
+            # interrupted, so the trigger must survive interleaving).
+            book[episode]["horizon_material_pending"] = True
         if grant_kind == "exploit":
             exploit_since_event += consumed
             book[episode]["exploit_history"].append((g_gain, consumed))
@@ -2310,6 +2377,31 @@ def run_oc_episode_schedule_v4(
         audit["hpr_reservation_progress_monotone"] = all(
             funded[episode] >= 0 for episode in EPISODES
         )
+        horizon_promotions = [
+            receipt for receipt in receipts
+            if receipt.reservation_kind == "horizon_promotion"
+        ]
+        audit["horizon_promotion_receipts_are_exploit"] = all(
+            receipt.grant_kind == "exploit" for receipt in horizon_promotions
+        )
+        audit["horizon_promotion_is_earned"] = all(
+            any(
+                prior.episode == receipt.episode
+                and prior.reservation_kind == "horizon"
+                and prior.material
+                and prior.segment_index < receipt.segment_index
+                for prior in receipts
+            )
+            for receipt in horizon_promotions
+        )
+        audit["horizon_promotion_window_bounded"] = all(
+            receipt.window_fes <= 2 * config.maturity_window_fes
+            for receipt in horizon_promotions
+        )
+        audit["horizon_promotion_is_one_shot"] = (
+            len({receipt.episode for receipt in horizon_promotions})
+            == len(horizon_promotions)
+        )
     if adaptive_mode:
         adaptive_locks = [
             receipt for receipt in receipts
@@ -2501,10 +2593,14 @@ def run_oc_episode_schedule_v5_2(
     """Run v5.2: adaptive HPR-GCB with the bounded protected runway.
 
     Identical flag surface to v5.1 (horizon protection plus adaptive
-    material-ticket verification), but the post-lock verification window
-    and every material-leader continuation are bounded by one calibrated
-    maturity window, a zero-gain window releases the runway immediately,
-    and ``released``/``plateau_release`` are receipt/audit fields.
+    material-ticket verification), with the two pre-registered v5.2
+    levers: the post-lock verification window and every material-leader
+    continuation are bounded by one calibrated maturity window (a
+    zero-gain window releases the runway immediately, and
+    ``released``/``plateau_release`` are receipt/audit fields), and a
+    material horizon reservation earns one 2*w1 post-revelation
+    verification exploit (``horizon_promotion``) so challenger-lane
+    discoveries can enter the exploit-only leadership ranking.
     """
 
     if not isinstance(config, PhaseAwareSchedulerConfig):

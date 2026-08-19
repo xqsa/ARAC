@@ -60,3 +60,28 @@ v5.2 杠杆（R2 horizon 梯档 450k、S5 plateau 释放阈值）已预注册，
 ```powershell
 .venv\Scripts\python.exe -m experiments.oc_phase_aware_gate51c --workers 8 --pin-p-cores
 ```
+
+## 6. v5.2 杠杆最终定义（2026-08-19 用户裁决，跑批前冻结）
+
+诊断（`artifacts/oc_phase_aware_gate51c_v5_1/mechanism_diagnostics.md`）：
+三个 fresh seed 的 AOR 运行时恰好停在 450k 穿越线，但仅 20260902 在
+450k 产生 material gain（0.0511），另两 seed 为零且后续主要收益来自
+GSS。据此本节取代 §4 中"R2 horizon 梯档 450k"的原表述——不做无条件
+顶档扩展，v5.2 定稿为：
+
+1. **有界验证窗（杠杆 1）**：adaptive lock 后的 protected runway 与
+   material leader 续跑窗均以 w1 为上界；plateau 在 w1 FE 后释放，
+   released/plateau_release 入收据与审计；
+2. **material horizon promotion（杠杆 2）**：horizon 保留段产生全局
+   material gain 的 episode **立即**获得一个 2×w1 显现后验证 exploit
+   （reservation_kind=horizon_promotion、exploitation 账本、每 episode
+   每 run 一次）。material 验证窗写入首个 exploit 速率样本、按常规
+   排名竞争 leadership；平坦验证窗置 released——损失上界 2×w1。根因
+   修复：leader 选举只认 exploit_history，challenger 通道的发现原本
+   无法进入利用阶段。
+
+复判入口：`experiments/oc_phase_aware_gate51c_v5_2.py`（版本隔离目录
+`oc_phase_aware_gate51c_v5_2`；OC 臂重跑，standalone/Phase-I 复用冻结
+v5.1 产物，锚 = v5.1 confirmation manifest + checkpoint hash；冻结 cell
+的 anytime 轨迹从 segments 确定性重算并经 anytime_auc.json 12/12
+逐位验证）。

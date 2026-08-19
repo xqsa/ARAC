@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
+from arac.benchmarks import OptimizationProblem
 from arac.coordination.episodes import (
     DEFAULT_SCHEDULER_VERSION_V5_2,
     OC_EPISODE_SCHEMA_V5_2,
@@ -15,12 +17,40 @@ from arac.coordination.episodes import (
     PhaseAwareSchedulerConfig,
 )
 from test_oc_episode_schedule_v5 import (
+    DIMENSION,
     _config,
     _flat_checkpoint,
     _flat_problem,
     _checkpoint,
     _problem,
 )
+
+
+def _flip_problem(flip_after: int) -> OptimizationProblem:
+    """Flat 1.0 until ``flip_after`` objective calls, then 0.5 forever.
+
+    The grant window containing the flip is the only material segment.
+    With ``flip_after`` inside AOR's horizon reservation, the discovery
+    strands in the challenger lane unless the promotion fires -- the
+    Gate 51c R2 mechanism in miniature.
+    """
+
+    state = {"calls": 0}
+
+    def objective(values):
+        rows = np.asarray(values, dtype=float)
+        batch = rows[np.newaxis, :] if rows.ndim == 1 else rows
+        state["calls"] += batch.shape[0]
+        level = 1.0 if state["calls"] <= flip_after else 0.5
+        out = np.full(batch.shape[0], level)
+        return float(out[0]) if rows.ndim == 1 else out
+
+    return OptimizationProblem(
+        objective=objective,
+        dimension=DIMENSION,
+        lower_bounds=(-5.0,) * DIMENSION,
+        upper_bounds=(5.0,) * DIMENSION,
+    )
 
 
 def test_v5_2_earns_lock_from_a_material_maturity_ticket() -> None:
@@ -135,3 +165,48 @@ def test_legacy_version_labels_are_not_producible() -> None:
             action_seed=20260845,
             config=_config(scheduler_version="v5.1"),
         )
+
+
+def test_v5_2_material_horizon_earns_one_bounded_promotion() -> None:
+    result = run_oc_episode_schedule_v5_2(
+        _flip_problem(18_200), _flat_checkpoint(), action_seed=20260845, config=_config()
+    )
+    material_horizons = [
+        receipt
+        for receipt in result.receipts
+        if receipt.reservation_kind == "horizon" and receipt.material
+    ]
+    assert material_horizons
+    promotions = [
+        receipt
+        for receipt in result.receipts
+        if receipt.reservation_kind == "horizon_promotion"
+    ]
+    assert len(promotions) == 1
+    promotion = promotions[0]
+    assert promotion.grant_kind == "exploit"
+    assert promotion.episode == material_horizons[0].episode
+    assert promotion.segment_index == material_horizons[0].segment_index + 1
+    assert promotion.window_fes <= 2 * _config().maturity_window_fes
+    # The post-flip landscape is flat at the new level: the verification
+    # window plateaus and releases immediately -- bounded loss.
+    assert promotion.plateau_release and promotion.released
+    assert all(result.audit.values()), result.audit
+
+
+def test_v5_2_no_promotion_without_a_material_horizon() -> None:
+    # One batch later the flip lands in an smp EXPLOIT window instead;
+    # exploit-lane materiality must not mint a horizon promotion.
+    result = run_oc_episode_schedule_v5_2(
+        _flip_problem(18_800), _flat_checkpoint(), action_seed=20260845, config=_config()
+    )
+    assert not [
+        receipt
+        for receipt in result.receipts
+        if receipt.reservation_kind == "horizon_promotion"
+    ]
+    assert any(
+        receipt.grant_kind == "exploit" and receipt.material
+        for receipt in result.receipts
+    )
+    assert all(result.audit.values()), result.audit

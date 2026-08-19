@@ -9,9 +9,15 @@ Judgment math and protocol constants are imported unchanged from the v5.1
 entry, so the two judgments are comparable by construction.
 
 Pre-registered levers for v5.2 (docs/arac-oc-gate51c-protocol.md appendix):
-the protected-runway verification window is bounded by one calibrated
+(1) the protected-runway verification window is bounded by one calibrated
 maturity window (plateau release after w1 FE instead of a full segment)
-and the released state is a receipt/audit field.
+and the released state is a receipt/audit field; (2) material horizon
+promotion -- an episode whose horizon reservation produces a global
+material gain immediately earns one 2*w1 post-revelation verification
+exploit, so challenger-lane discoveries can enter the exploit-only
+leadership ranking (R2: three seeds' AOR stopped at exactly the 450k
+crossing; only a material discovery is funded, never an unconditional
+top-rung extension).
 """
 
 # Thread caps must be set before NumPy imports.
