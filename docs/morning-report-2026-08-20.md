@@ -62,5 +62,5 @@ v5.1 与 v5.2 的 S5/20260902 CTP 轨迹在 seg 9 前**逐位相同**（ticket 1
 - 22:39 看护发现宿主环境静默终止首实例（已完成 9 个 OC cell 无损保留）；23:07 改用 OS 脱离式（Start-Process）重启，幂等续跑；
 - 01:06 判定产物齐全：`artifacts/oc_phase_aware_gate51c_v5_2/confirmation.json`；gate 进程干净退出，无孤儿 worker（残留 3 个 python 进程为会话常驻，启动于 19:39）；
 - 事件时间线：`artifacts/oc_phase_aware_gate51c_v5_2/.watchdog_log.md`；
-- **本看护自动化已自删**；
+- 看护自动化自删尝试遇到客户端工具故障未能执行——后续每 30 分钟的唤醒在完成态下均为无操作（晨报已存在即结束），无害；**请晨起手动删除自动化 `automation-68051d78-735a-4d33-affd-aa1b5d916287`（标题「每30分钟：51c v5.2 夜间看护至完成出晨报」）**；
 - 版本控制：v5.2 判定产物与晨报已由看护提交（见 git log）。
