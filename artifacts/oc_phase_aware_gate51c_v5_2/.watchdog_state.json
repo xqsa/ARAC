@@ -1,0 +1,13 @@
+{
+  "updated": "2026-08-20T00:36",
+  "cells": 71,
+  "last_growth": "2026-08-20T00:36",
+  "restarts_no_process": 1,
+  "restarts_failures": 0,
+  "instructions": {
+    "process_check_bug": "自动化 prompt 4a 的进程检查命令在 Git Bash 下损坏（$_ 被 bash 展开吞掉）。判活改用：powershell -Command '(Get-Process python -ErrorAction SilentlyContinue | Measure-Object).Count' ——本机 python 进程只属于本项目，>0 即 gate 存活。绝不能凭损坏命令的空输出或报错判死并重启。",
+    "relaunch_command": "powershell -Command 'Start-Process -FilePath \"E:\\ARAC\\.venv\\Scripts\\python.exe\" -ArgumentList \"-m\",\"experiments.oc_phase_aware_gate51c_v5_2\",\"--workers\",\"8\",\"--pin-p-cores\" -WorkingDirectory \"E:\\ARAC\" -WindowStyle Hidden -RedirectStandardOutput \"E:\\ARAC\u0007rtifacts\\oc_phase_aware_gate51c_v5_2\run_stdout.log\" -RedirectStandardError \"E:\\ARAC\u0007rtifacts\\oc_phase_aware_gate51c_v5_2\run_stderr.log\"'",
+    "relaunch_note": "重启前先看 run_stderr.log 是否有崩溃原因；必须用上述 OS 脱离式命令。",
+    "no_duplicate": "已有实例存活时绝不启动第二个实例（8+8 worker 过饱和 + 同 cell 写竞争）。"
+  }
+}

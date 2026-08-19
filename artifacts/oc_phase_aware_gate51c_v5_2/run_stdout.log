@@ -1,0 +1,38 @@
+affinity pinned to P-cores
+R2/20260903/on: final=378503
+R2/20260902/on: final=329991
+S5/20260902/on: final=449810
+R6/20260902/off: final=289040
+R6/20260902/on: final=289040
+S5/20260902/off: final=49481.5
+A3/20260902/off: final=78548
+A3/20260902/on: final=78599.1
+R2/20260903/off: final=358364
+S5/20260903/on: final=689807
+R6/20260903/on: final=406552
+R6/20260903/off: final=403123
+S5/20260903/off: final=81193
+A3/20260903/on: final=78625.3
+A3/20260903/off: final=78625.3
+{
+ "median_ratios": {
+  "R2": 1.5368,
+  "A3": 1.0026,
+  "S5": 39.6524,
+  "R6": 1.0489
+ },
+ "worst_ratios": {
+  "R2": 1.5752,
+  "A3": 1.0078,
+  "S5": 46.6359,
+  "R6": 1.0836
+ },
+ "strict_win_cases": [],
+ "on_beats_off_seeds": {
+  "R2": 1,
+  "A3": 1,
+  "S5": 0,
+  "R6": 0
+ },
+ "passed": false
+}

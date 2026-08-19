@@ -1,0 +1,277 @@
+{
+  "result": {
+    "arm": "smp",
+    "case_id": "R6",
+    "checkpoint_hash": "cbf051f19dae49d5b4fcdbefc4b70f5ec994fafb3ae6dc30f8f5799d965e9a65",
+    "manifest_hash": "sha256:3d3f789205953e4ea3775739c9b51441db7016345910b22a02a914243eadc644",
+    "result": {
+      "anytime": {
+        "1000000": 1469236.456182913,
+        "2000000": 1081483.315615702,
+        "3000000": 886896.8431455058,
+        "600000": 9432824.891770503
+      },
+      "anytime_points": [
+        {
+          "error": 11737474.071392657,
+          "total_fes": 180000.0
+        },
+        {
+          "error": 10270152.367236676,
+          "total_fes": 329989.0
+        },
+        {
+          "error": 9432824.891770503,
+          "total_fes": 479977.0
+        },
+        {
+          "error": 5353989.845942359,
+          "total_fes": 629967.0
+        },
+        {
+          "error": 1564964.5490377254,
+          "total_fes": 779962.0
+        },
+        {
+          "error": 1469236.456182913,
+          "total_fes": 929955.0
+        },
+        {
+          "error": 1315577.030128208,
+          "total_fes": 1079943.0
+        },
+        {
+          "error": 1263441.810718329,
+          "total_fes": 1229939.0
+        },
+        {
+          "error": 1251947.5919095168,
+          "total_fes": 1379925.0
+        },
+        {
+          "error": 1250670.0580968903,
+          "total_fes": 1529922.0
+        },
+        {
+          "error": 1248764.7990184042,
+          "total_fes": 1679910.0
+        },
+        {
+          "error": 1178465.9572433764,
+          "total_fes": 1829899.0
+        },
+        {
+          "error": 1081483.315615702,
+          "total_fes": 1979892.0
+        },
+        {
+          "error": 1058113.5208481294,
+          "total_fes": 2129890.0
+        },
+        {
+          "error": 1057857.7889468756,
+          "total_fes": 2279887.0
+        },
+        {
+          "error": 889119.3688657619,
+          "total_fes": 2429881.0
+        },
+        {
+          "error": 887700.6972249473,
+          "total_fes": 2579874.0
+        },
+        {
+          "error": 887253.1064809148,
+          "total_fes": 2729860.0
+        },
+        {
+          "error": 887002.0219911593,
+          "total_fes": 2879855.0
+        },
+        {
+          "error": 886896.8431455058,
+          "total_fes": 3000000.0
+        }
+      ],
+      "final_error": 886896.8431455058,
+      "log_error_auc": 6.215675142864766,
+      "route": "recovered_stateful_visits_2819984_visits_224_stale_resets_60_noop_16",
+      "segments": [
+        {
+          "consumed_fes": 149989,
+          "cumulative_phase2_fes": 149989,
+          "error_after": 10270152.367236676,
+          "error_before": 11737474.071392657,
+          "requested_fes": 150000,
+          "segment_index": 0,
+          "state_hash": "e2826a5302027dd3635878d5317a4ee63f8d8eff3de0e0c368c21e514f58c3ce"
+        },
+        {
+          "consumed_fes": 149988,
+          "cumulative_phase2_fes": 299977,
+          "error_after": 9432824.891770503,
+          "error_before": 10270152.367236676,
+          "requested_fes": 150000,
+          "segment_index": 1,
+          "state_hash": "db8a23e3612d5556634ea526c5cad660ec742e5df592386b9fbdc28eceaede0d"
+        },
+        {
+          "consumed_fes": 149990,
+          "cumulative_phase2_fes": 449967,
+          "error_after": 5353989.845942359,
+          "error_before": 9432824.891770503,
+          "requested_fes": 150000,
+          "segment_index": 2,
+          "state_hash": "2894cb53f89e403858723d5b6f7ab6a57752433ab813e36c14b65def34be4ba6"
+        },
+        {
+          "consumed_fes": 149995,
+          "cumulative_phase2_fes": 599962,
+          "error_after": 1564964.5490377254,
+          "error_before": 5353989.845942359,
+          "requested_fes": 150000,
+          "segment_index": 3,
+          "state_hash": "9679d54afc9d3ce2da3c117d9a2b1555e3e7c09ace78989be7a394ee2fe60913"
+        },
+        {
+          "consumed_fes": 149993,
+          "cumulative_phase2_fes": 749955,
+          "error_after": 1469236.456182913,
+          "error_before": 1564964.5490377254,
+          "requested_fes": 150000,
+          "segment_index": 4,
+          "state_hash": "096fbbe30c00fd48998836abfc6bb4adb2ea5677ce8c335799bbb6181a8c7956"
+        },
+        {
+          "consumed_fes": 149988,
+          "cumulative_phase2_fes": 899943,
+          "error_after": 1315577.030128208,
+          "error_before": 1469236.456182913,
+          "requested_fes": 150000,
+          "segment_index": 5,
+          "state_hash": "875e339c8f0e1c7358789d1b4f991b0ff5479e84b917db6cfae57fbfd05d945d"
+        },
+        {
+          "consumed_fes": 149996,
+          "cumulative_phase2_fes": 1049939,
+          "error_after": 1263441.810718329,
+          "error_before": 1315577.030128208,
+          "requested_fes": 150000,
+          "segment_index": 6,
+          "state_hash": "e9a6423590e1a620dc195f7964bcd4168b718477dfdb01866683224b4ef36d80"
+        },
+        {
+          "consumed_fes": 149986,
+          "cumulative_phase2_fes": 1199925,
+          "error_after": 1251947.5919095168,
+          "error_before": 1263441.810718329,
+          "requested_fes": 150000,
+          "segment_index": 7,
+          "state_hash": "bf3c61024b22c161b96a517fae12b8c87208a7d6a08ca106ab5c515450b19984"
+        },
+        {
+          "consumed_fes": 149997,
+          "cumulative_phase2_fes": 1349922,
+          "error_after": 1250670.0580968903,
+          "error_before": 1251947.5919095168,
+          "requested_fes": 150000,
+          "segment_index": 8,
+          "state_hash": "2bf7fa251c353cf2b4570e9cc8ec03da5b32c9bc2e9d468797923ae6ae0e191f"
+        },
+        {
+          "consumed_fes": 149988,
+          "cumulative_phase2_fes": 1499910,
+          "error_after": 1248764.7990184042,
+          "error_before": 1250670.0580968903,
+          "requested_fes": 150000,
+          "segment_index": 9,
+          "state_hash": "fc2a69c0f3d3ed254584f0a2e943159794a14e39b76209462b27052b8b04567b"
+        },
+        {
+          "consumed_fes": 149989,
+          "cumulative_phase2_fes": 1649899,
+          "error_after": 1178465.9572433764,
+          "error_before": 1248764.7990184042,
+          "requested_fes": 150000,
+          "segment_index": 10,
+          "state_hash": "09c3098c9112a5327e75faf5148db3e516fb0c33d591c786c35b3847cf244e14"
+        },
+        {
+          "consumed_fes": 149993,
+          "cumulative_phase2_fes": 1799892,
+          "error_after": 1081483.315615702,
+          "error_before": 1178465.9572433764,
+          "requested_fes": 150000,
+          "segment_index": 11,
+          "state_hash": "74905a98b24aedf24ff90c461680cc6a6e6b64c95d1cc15a72ccaf0c9cbeee18"
+        },
+        {
+          "consumed_fes": 149998,
+          "cumulative_phase2_fes": 1949890,
+          "error_after": 1058113.5208481294,
+          "error_before": 1081483.315615702,
+          "requested_fes": 150000,
+          "segment_index": 12,
+          "state_hash": "bbdef749e6f832b12ec2241c853106f165215db5a8f111054b300186bfaaf3bc"
+        },
+        {
+          "consumed_fes": 149997,
+          "cumulative_phase2_fes": 2099887,
+          "error_after": 1057857.7889468756,
+          "error_before": 1058113.5208481294,
+          "requested_fes": 150000,
+          "segment_index": 13,
+          "state_hash": "e30997ee883f004682f78eb175251fc4230c513f6d975719ace5fca1dbde365b"
+        },
+        {
+          "consumed_fes": 149994,
+          "cumulative_phase2_fes": 2249881,
+          "error_after": 889119.3688657619,
+          "error_before": 1057857.7889468756,
+          "requested_fes": 150000,
+          "segment_index": 14,
+          "state_hash": "17918d6469972f8816006a2a47f0dd697d92be2625157c1595267e81de26314d"
+        },
+        {
+          "consumed_fes": 149993,
+          "cumulative_phase2_fes": 2399874,
+          "error_after": 887700.6972249473,
+          "error_before": 889119.3688657619,
+          "requested_fes": 150000,
+          "segment_index": 15,
+          "state_hash": "21dd152fd27312681f73b7a1920f7b33ee6689591fd391f093ad0cfb5654ba81"
+        },
+        {
+          "consumed_fes": 149986,
+          "cumulative_phase2_fes": 2549860,
+          "error_after": 887253.1064809148,
+          "error_before": 887700.6972249473,
+          "requested_fes": 150000,
+          "segment_index": 16,
+          "state_hash": "4a4c66c98c9fd54f03bd084a59cf9e6fe5a2a0f2a911be91b424be22840172f6"
+        },
+        {
+          "consumed_fes": 149995,
+          "cumulative_phase2_fes": 2699855,
+          "error_after": 887002.0219911593,
+          "error_before": 887253.1064809148,
+          "requested_fes": 150000,
+          "segment_index": 17,
+          "state_hash": "28f9d13bc2f3a6d48e8699c33f9401658adad9980bb3cb5d824060c197c00588"
+        },
+        {
+          "consumed_fes": 120145,
+          "cumulative_phase2_fes": 2820000,
+          "error_after": 886896.8431455058,
+          "error_before": 887002.0219911593,
+          "requested_fes": 120145,
+          "segment_index": 18,
+          "state_hash": "a335b25b3639d40523004fa909a63d01cc8ae1fb20151e340e8d15a6f58a9706"
+        }
+      ],
+      "terminal_fes": 3000000
+    },
+    "seed": 20260903
+  },
+  "schema_version": "arac-oc-gate51c-cell-v1"
+}
