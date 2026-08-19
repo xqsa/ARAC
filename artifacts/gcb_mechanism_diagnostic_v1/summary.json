@@ -1,0 +1,347 @@
+{
+  "all_runtime_warnings_known": true,
+  "arm_count": 27,
+  "diagnostic_gate_passed": false,
+  "final_25_seed_recovery_evaluated": false,
+  "generated_at_utc": "2026-08-11T07:11:53.559218+00:00",
+  "integrity_gate_passed": true,
+  "passing_variants": [],
+  "runtime_warning_context_count": 9,
+  "runtime_warning_count": 54,
+  "runtime_warning_counts_by_action": {
+    "unknown": 54
+  },
+  "schema_version": "arac-gcb-mechanism-diagnostic-summary-v1",
+  "selector_or_routing_authorized": false,
+  "summary_sha256": "17a53f65dd8a0c5d078c1a4564d02d80b2a13418bd2b5dc5e9c0f5a500f859aa",
+  "unexpected_runtime_warning_count": 0,
+  "variant_summaries": [
+    {
+      "candidate_win_or_tie_count": 2,
+      "case_summaries": [
+        {
+          "case_id": "R1",
+          "geometric_mean_ratio": 1.0753566876155074,
+          "passed": false,
+          "win_or_tie_count": 0
+        },
+        {
+          "case_id": "R3",
+          "geometric_mean_ratio": 1.3115033147369,
+          "passed": false,
+          "win_or_tie_count": 1
+        },
+        {
+          "case_id": "R6",
+          "geometric_mean_ratio": 1.0264971256795419,
+          "passed": false,
+          "win_or_tie_count": 1
+        }
+      ],
+      "maximum_candidate_to_baseline_ratio": 1.8485994137262096,
+      "pairs": [
+        {
+          "baseline_final_error": 139909.0623082949,
+          "candidate_final_error": 152169.86061785364,
+          "candidate_to_baseline_ratio": 1.0876340539152611,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 182359.8057350373,
+          "candidate_final_error": 337110.22996901546,
+          "candidate_to_baseline_ratio": 1.8485994137262096,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 424581.2664405905,
+          "candidate_final_error": 425651.18627440784,
+          "candidate_to_baseline_ratio": 1.00251994121829,
+          "candidate_won_or_tied": false,
+          "case_id": "R6",
+          "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 175698.51620068593,
+          "candidate_final_error": 176722.04284607383,
+          "candidate_to_baseline_ratio": 1.0058254711964603,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 338555.66495516745,
+          "candidate_final_error": 285270.2980733411,
+          "candidate_to_baseline_ratio": 0.8426097318770827,
+          "candidate_won_or_tied": true,
+          "case_id": "R3",
+          "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 356781.16265379183,
+          "candidate_final_error": 406993.3552667018,
+          "candidate_to_baseline_ratio": 1.1407366696140124,
+          "candidate_won_or_tied": false,
+          "case_id": "R6",
+          "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 134685.93404894767,
+          "candidate_final_error": 153099.73434860026,
+          "candidate_to_baseline_ratio": 1.1367165801661265,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 246830.70073614758,
+          "candidate_final_error": 357468.74214890774,
+          "candidate_to_baseline_ratio": 1.448234523026485,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 358718.6221504866,
+          "candidate_final_error": 339272.5424177597,
+          "candidate_to_baseline_ratio": 0.9457901582690372,
+          "candidate_won_or_tied": true,
+          "case_id": "R6",
+          "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+          "run_seed": 31003
+        }
+      ],
+      "performance_gate_passed": false,
+      "variant": "graph_order_historical_seeds"
+    },
+    {
+      "candidate_win_or_tie_count": 3,
+      "case_summaries": [
+        {
+          "case_id": "R1",
+          "geometric_mean_ratio": 1.1032986829094444,
+          "passed": false,
+          "win_or_tie_count": 0
+        },
+        {
+          "case_id": "R3",
+          "geometric_mean_ratio": 1.1460891881696462,
+          "passed": false,
+          "win_or_tie_count": 0
+        },
+        {
+          "case_id": "R6",
+          "geometric_mean_ratio": 0.816355042151114,
+          "passed": true,
+          "win_or_tie_count": 3
+        }
+      ],
+      "maximum_candidate_to_baseline_ratio": 1.2438877187330217,
+      "pairs": [
+        {
+          "baseline_final_error": 139909.0623082949,
+          "candidate_final_error": 149681.42923463363,
+          "candidate_to_baseline_ratio": 1.0698479910100815,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 182359.8057350373,
+          "candidate_final_error": 226835.1227443526,
+          "candidate_to_baseline_ratio": 1.2438877187330217,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 424581.2664405905,
+          "candidate_final_error": 327781.8192428635,
+          "candidate_to_baseline_ratio": 0.7720119683818607,
+          "candidate_won_or_tied": true,
+          "case_id": "R6",
+          "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 175698.51620068593,
+          "candidate_final_error": 189869.70109406026,
+          "candidate_to_baseline_ratio": 1.080656258230364,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 338555.66495516745,
+          "candidate_final_error": 381277.1314605595,
+          "candidate_to_baseline_ratio": 1.126187421826332,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 356781.16265379183,
+          "candidate_final_error": 335599.9851131768,
+          "candidate_to_baseline_ratio": 0.940632578852913,
+          "candidate_won_or_tied": true,
+          "case_id": "R6",
+          "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 134685.93404894767,
+          "candidate_final_error": 156455.8813140814,
+          "candidate_to_baseline_ratio": 1.1616348983942308,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 246830.70073614758,
+          "candidate_final_error": 265254.3839821084,
+          "candidate_to_baseline_ratio": 1.0746409712852332,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 358718.6221504866,
+          "candidate_final_error": 268749.1575562476,
+          "candidate_to_baseline_ratio": 0.7491920992144763,
+          "candidate_won_or_tied": true,
+          "case_id": "R6",
+          "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+          "run_seed": 31003
+        }
+      ],
+      "performance_gate_passed": false,
+      "variant": "native_order_legacy_seeds"
+    },
+    {
+      "candidate_win_or_tie_count": 2,
+      "case_summaries": [
+        {
+          "case_id": "R1",
+          "geometric_mean_ratio": 1.0753566876155074,
+          "passed": false,
+          "win_or_tie_count": 0
+        },
+        {
+          "case_id": "R3",
+          "geometric_mean_ratio": 1.1776477476761824,
+          "passed": false,
+          "win_or_tie_count": 1
+        },
+        {
+          "case_id": "R6",
+          "geometric_mean_ratio": 0.9352227039820644,
+          "passed": true,
+          "win_or_tie_count": 1
+        }
+      ],
+      "maximum_candidate_to_baseline_ratio": 1.4992203030709235,
+      "pairs": [
+        {
+          "baseline_final_error": 139909.0623082949,
+          "candidate_final_error": 152169.86061785364,
+          "candidate_to_baseline_ratio": 1.0876340539152611,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 182359.8057350373,
+          "candidate_final_error": 273397.52322203736,
+          "candidate_to_baseline_ratio": 1.4992203030709235,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 424581.2664405905,
+          "candidate_final_error": 299472.65270143835,
+          "candidate_to_baseline_ratio": 0.7053364723602144,
+          "candidate_won_or_tied": true,
+          "case_id": "R6",
+          "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 175698.51620068593,
+          "candidate_final_error": 176722.04284607383,
+          "candidate_to_baseline_ratio": 1.0058254711964603,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 338555.66495516745,
+          "candidate_final_error": 322812.7799120418,
+          "candidate_to_baseline_ratio": 0.9534998622893804,
+          "candidate_won_or_tied": true,
+          "case_id": "R3",
+          "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 356781.16265379183,
+          "candidate_final_error": 394910.9270162229,
+          "candidate_to_baseline_ratio": 1.1068715738208155,
+          "candidate_won_or_tied": false,
+          "case_id": "R6",
+          "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 134685.93404894767,
+          "candidate_final_error": 153099.73434860026,
+          "candidate_to_baseline_ratio": 1.1367165801661265,
+          "candidate_won_or_tied": false,
+          "case_id": "R1",
+          "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 246830.70073614758,
+          "candidate_final_error": 282006.6203733977,
+          "candidate_to_baseline_ratio": 1.1425103098291318,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 358718.6221504866,
+          "candidate_final_error": 375842.139322142,
+          "candidate_to_baseline_ratio": 1.0477352334512253,
+          "candidate_won_or_tied": false,
+          "case_id": "R6",
+          "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+          "run_seed": 31003
+        }
+      ],
+      "performance_gate_passed": false,
+      "variant": "native_order_historical_seeds"
+    }
+  ]
+}

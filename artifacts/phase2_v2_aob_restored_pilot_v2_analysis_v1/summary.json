@@ -1,0 +1,179 @@
+{
+  "all_completed_receipt_budgets_valid": true,
+  "complete_context_triplets": 7,
+  "completed_receipts": 23,
+  "downstream_blocked": true,
+  "failed_receipts": 1,
+  "failure_evidence": [
+    {
+      "context_id": "aob_E1_s20261212",
+      "error": "optimizer sigma became non-finite or negative",
+      "error_type": "RuntimeError",
+      "method": "probe_commit_v2",
+      "receipt_sha256": "3985d7a689aaaacc3fe3731ef2ef05fd61da7c3a25344052d5c958f2377593e6",
+      "run_index": 9
+    }
+  ],
+  "incomplete_contexts": [
+    "aob_E1_s20261212"
+  ],
+  "input_manifest_sha256": "68eddedda80b1c16867f7e500adf4c3b38628359f37134c7ee329632159b7e58",
+  "partial_comparison": {
+    "context_count": 7,
+    "method_action_counts": {
+      "mechanism_score_full_v1": {
+        "ctp": 2,
+        "smp": 5
+      },
+      "mechanism_score_matched_v1": {
+        "ctp": 2,
+        "smp": 5
+      },
+      "probe_commit_v2": {
+        "ctp": 3,
+        "gcb": 2,
+        "smp": 2
+      }
+    },
+    "probe_vs_full": {
+      "losses": 2,
+      "ties": 0,
+      "wins": 5
+    },
+    "probe_vs_matched": {
+      "losses": 2,
+      "ties": 0,
+      "wins": 5
+    },
+    "rows": [
+      {
+        "context_id": "aob_A1_s20261211",
+        "full_action": "ctp",
+        "full_error": 78449.73187914694,
+        "matched_action": "ctp",
+        "matched_error": 78449.73187914694,
+        "matched_vs_full_shifted_log10": 0.0,
+        "phase1_fes": 180000,
+        "probe_action": "smp",
+        "probe_error": 77725.41095515483,
+        "probe_tax_fes": 131072,
+        "probe_vs_full_shifted_log10": -0.004028385077672613,
+        "probe_vs_matched_shifted_log10": -0.004028385077672613,
+        "same_full_matched_action": true,
+        "same_probe_matched_action": false,
+        "structural_inference_complete": 1.0
+      },
+      {
+        "context_id": "aob_A1_s20261212",
+        "full_action": "ctp",
+        "full_error": 78296.28921257565,
+        "matched_action": "ctp",
+        "matched_error": 78296.8395847965,
+        "matched_vs_full_shifted_log10": 3.0527593080164142e-06,
+        "phase1_fes": 180000,
+        "probe_action": "smp",
+        "probe_error": 77702.59322258938,
+        "probe_tax_fes": 131072,
+        "probe_vs_full_shifted_log10": -0.003305624085838299,
+        "probe_vs_matched_shifted_log10": -0.0033086768451462785,
+        "same_full_matched_action": true,
+        "same_probe_matched_action": false,
+        "structural_inference_complete": 1.0
+      },
+      {
+        "context_id": "aob_E1_s20261211",
+        "full_action": "smp",
+        "full_error": 18983525.411825124,
+        "matched_action": "smp",
+        "matched_error": 18983525.411825124,
+        "matched_vs_full_shifted_log10": 0.0,
+        "phase1_fes": 180000,
+        "probe_action": "gcb",
+        "probe_error": 50271149.81262984,
+        "probe_tax_fes": 131072,
+        "probe_vs_full_shifted_log10": 0.42294193639871114,
+        "probe_vs_matched_shifted_log10": 0.42294193639871114,
+        "same_full_matched_action": true,
+        "same_probe_matched_action": false,
+        "structural_inference_complete": 1.0
+      },
+      {
+        "context_id": "aob_R1_s20261211",
+        "full_action": "smp",
+        "full_error": 262336.0273289826,
+        "matched_action": "smp",
+        "matched_error": 262336.0273289826,
+        "matched_vs_full_shifted_log10": 0.0,
+        "phase1_fes": 180000,
+        "probe_action": "ctp",
+        "probe_error": 254274.73628311334,
+        "probe_tax_fes": 131072,
+        "probe_vs_full_shifted_log10": -0.013554672496205244,
+        "probe_vs_matched_shifted_log10": -0.013554672496205244,
+        "same_full_matched_action": true,
+        "same_probe_matched_action": false,
+        "structural_inference_complete": 1.0
+      },
+      {
+        "context_id": "aob_R1_s20261212",
+        "full_action": "smp",
+        "full_error": 392550.3981307002,
+        "matched_action": "smp",
+        "matched_error": 392550.3981307002,
+        "matched_vs_full_shifted_log10": 0.0,
+        "phase1_fes": 180000,
+        "probe_action": "ctp",
+        "probe_error": 365666.1015180451,
+        "probe_tax_fes": 131072,
+        "probe_vs_full_shifted_log10": -0.030810639184846254,
+        "probe_vs_matched_shifted_log10": -0.030810639184846254,
+        "same_full_matched_action": true,
+        "same_probe_matched_action": false,
+        "structural_inference_complete": 1.0
+      },
+      {
+        "context_id": "aob_S1_s20261211",
+        "full_action": "smp",
+        "full_error": 4.6297764629677305,
+        "matched_action": "smp",
+        "matched_error": 4.629776462967788,
+        "matched_vs_full_shifted_log10": 4.435906346145098e-15,
+        "phase1_fes": 180000,
+        "probe_action": "ctp",
+        "probe_error": 3178.460946328561,
+        "probe_tax_fes": 131072,
+        "probe_vs_full_shifted_log10": 2.751862343855135,
+        "probe_vs_matched_shifted_log10": 2.7518623438551306,
+        "same_full_matched_action": true,
+        "same_probe_matched_action": false,
+        "structural_inference_complete": 1.0
+      },
+      {
+        "context_id": "aob_S1_s20261212",
+        "full_action": "smp",
+        "full_error": 3198.9642045378846,
+        "matched_action": "smp",
+        "matched_error": 3198.964204537885,
+        "matched_vs_full_shifted_log10": 9.64327466553287e-17,
+        "phase1_fes": 180000,
+        "probe_action": "gcb",
+        "probe_error": 0.05343516305808502,
+        "probe_tax_fes": 131072,
+        "probe_vs_full_shifted_log10": -3.4825373094763865,
+        "probe_vs_matched_shifted_log10": -3.482537309476387,
+        "same_full_matched_action": true,
+        "same_probe_matched_action": false,
+        "structural_inference_complete": 1.0
+      }
+    ],
+    "shifted_log10_means": {
+      "matched_vs_full_shifted_log10": 4.361084732212505e-07,
+      "probe_vs_full_shifted_log10": -0.051347478581014676,
+      "probe_vs_matched_shifted_log10": -0.05134791468948794
+    }
+  },
+  "planned_receipts": 24,
+  "promotion_gate_passed": false,
+  "quality_claim": "failed_campaign_partial_context_diagnostic_not_promotion",
+  "schema_version": "arac-phase2-v2-aob-restored-analysis-summary-v1"
+}

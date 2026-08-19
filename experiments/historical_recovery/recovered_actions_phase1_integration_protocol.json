@@ -1,0 +1,90 @@
+{
+  "schema_version": "arac-recovered-actions-phase1-integration-protocol-v1",
+  "status": "frozen_before_terminal_execution",
+  "frozen_at": "2026-08-12",
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "native_threads_per_worker": 1,
+  "identity_blind_action_contract": {
+    "required_inputs": [
+      "checkpoint.incumbent",
+      "checkpoint.blocks",
+      "checkpoint.relations",
+      "checkpoint.feature_names_and_values",
+      "ledger.remaining",
+      "action_seed"
+    ],
+    "forbidden_runtime_inputs": [
+      "case_id",
+      "family_id",
+      "oracle_action_label",
+      "AOB data files",
+      "historical result tables",
+      "HCC runtime"
+    ],
+    "terminal_rule": "consume exactly checkpoint.remaining_fes and bind ActionResult to checkpoint_hash"
+  },
+  "representative_lanes": [
+    {
+      "action": "aor",
+      "case_id_audit_metadata": "A1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/A1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "32979485799abf472ff3180a9e90c97b00d76febe3122495fbe59278519d3bc2",
+      "checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+      "historical_p90": 78098.55697849873
+    },
+    {
+      "action": "smp",
+      "case_id_audit_metadata": "E1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "3ef0d6f2e3123070a64d271e928cab61bae8e6139d4250cae39417458b4f5932",
+      "checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+      "historical_p90": 1.8255606813339802
+    },
+    {
+      "action": "gcb",
+      "case_id_audit_metadata": "R1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/R1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "3114dcb8c89f693fc7751a9d61de3d2fcc9f03516094b3be513bf99c5d7139c8",
+      "checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+      "historical_p90": 176367.0467002794
+    },
+    {
+      "action": "ctp",
+      "case_id_audit_metadata": "S1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/S1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "1fee12ccc093fe10610bf98339199cbc5096999cb6206879ffb2b6378c68798c",
+      "checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+      "historical_p90": 0.03184487388259503
+    }
+  ],
+  "smp_checkpoint_handoff_gate": {
+    "short_screen_summary": "artifacts/smp_checkpoint_handoff_ablation_v1/summary.json",
+    "short_screen_summary_sha256": "9bebf5992f9af0f22a49223a0408483173d80f6fe3a459d7c5022319844d30bf",
+    "mid_screen_summary": "artifacts/smp_checkpoint_handoff_mid_v1/summary.json",
+    "mid_screen_summary_sha256": "c2d19cec354820020dc3a67abb61e797b73c13960e8f12231fa087b0919ced3c",
+    "terminal_output_root": "artifacts/smp_checkpoint_handoff_terminal_v1",
+    "terminal_variants": [
+      "recovered",
+      "derived_seed"
+    ],
+    "diagnostic_variant": "recovered",
+    "production_candidate_variant": "derived_seed",
+    "diagnostic_interpretation": "passing recovered proves checkpoint compatibility only",
+    "production_authorization_rule": "derived_seed final_error <= historical_p90 at exact 3000000 terminal FE",
+    "historical_p90": 1.8255606813339802
+  },
+  "source_sha256": {
+    "smp_handoff_runner": "efad2cc6fd51648b97e6f1f4555866f9b2b15b68b0b87e35f0a2792d056b5b5c",
+    "zero_start_recovery_audit": "b829c4a9c7d2bbf598b9be71863a568a7b6722e39888e264ac05e5a8b490d381",
+    "action_execution": "f8125a17e4a2598c94e6a36d16d83e72bfe3cd1522d31240b0f1d4c6f04b8cfe",
+    "contracts": "fee9484be85605526b0b73a790311879b0ec922974235ef2c32e6f026631646a",
+    "ledger": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5",
+    "aob_adapter": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0"
+  },
+  "promotion_rule": "All four fixed-action representative lanes must meet their frozen historical P90 before recovered-registry ARAC-Core E2E is authorized.",
+  "selector_execution_allowed_before_fixed_action_gate": false,
+  "default_production_registry_replacement_allowed": false
+}
+

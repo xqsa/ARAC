@@ -1,0 +1,15 @@
+{
+  "manifest_hash": "d5eca5ee755dc7d68e928dde271b19af2998efea368af21b75f5ffe9fb3982dc",
+  "protocol_sha256": "b676d34014972df6b9774bc8a236c04a3862d655a1dc9e9c4b134f2dc3325856",
+  "schema_version": "arac-recovered-fixed-action-manifest-v1",
+  "selector_execution_allowed": false,
+  "source_sha256": {
+    "src/arac/actions/_execution.py": "f8125a17e4a2598c94e6a36d16d83e72bfe3cd1522d31240b0f1d4c6f04b8cfe",
+    "src/arac/actions/ctp.py": "0d413c47205d447750c528da43c07efada0c20bdd8305c160026b757192fe256",
+    "src/arac/actions/gcb.py": "454fe2bf43854729d110983e7bb0d127acdd59116cb33d6320a28b2465299497",
+    "src/arac/actions/recovered.py": "bbe8f9a9bd855c0645414e62e5078d901bbc835e965201718da695d422568107",
+    "src/arac/actions/recovered_registry.py": "8ad28d874651d4c19b7ad938e8823d05dcfc8e5c0a151883a0e0b27fd746b7de",
+    "src/arac/runtime/contracts.py": "7fce0173b1e0a167d6f002f9c34b820a6439b1131efe092c6537a80385b9db92",
+    "src/arac/runtime/ledger.py": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5"
+  }
+}

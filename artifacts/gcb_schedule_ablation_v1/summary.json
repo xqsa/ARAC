@@ -1,0 +1,150 @@
+{
+  "all_final_errors_finite": true,
+  "all_runtime_warnings_known": false,
+  "arm_count": 18,
+  "candidate_schedule_trace_valid": true,
+  "candidate_win_or_tie_count": 1,
+  "case_summaries": [
+    {
+      "candidate_to_baseline_geometric_mean_ratio": 1.3444679032553184,
+      "candidate_win_or_tie_count": 0,
+      "case_id": "R1",
+      "pair_count": 3,
+      "paired_improvement_passed": false
+    },
+    {
+      "candidate_to_baseline_geometric_mean_ratio": 1.29723847161528,
+      "candidate_win_or_tie_count": 1,
+      "case_id": "R3",
+      "pair_count": 3,
+      "paired_improvement_passed": false
+    },
+    {
+      "candidate_to_baseline_geometric_mean_ratio": 1.1081449305535163,
+      "candidate_win_or_tie_count": 0,
+      "case_id": "R6",
+      "pair_count": 3,
+      "paired_improvement_passed": false
+    }
+  ],
+  "checkpoint_count": 9,
+  "exact_terminal_fes": true,
+  "final_25_seed_recovery_evaluated": false,
+  "generated_at_utc": "2026-08-11T05:58:42.800176+00:00",
+  "maximum_candidate_to_baseline_ratio": 1.7205259978887353,
+  "pair_count": 9,
+  "paired_development_gate_passed": false,
+  "pairs": [
+    {
+      "baseline_final_error": 139909.0623082949,
+      "candidate_final_error": 188455.87901220506,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.346988364463021,
+      "candidate_won_or_tied": false,
+      "case_id": "R1",
+      "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+      "run_seed": 31001,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 175698.51620068593,
+      "candidate_final_error": 215159.35574491703,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.2245940398219313,
+      "candidate_won_or_tied": false,
+      "case_id": "R1",
+      "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+      "run_seed": 31002,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 134685.93404894767,
+      "candidate_final_error": 198434.67898381673,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.473314050090052,
+      "candidate_won_or_tied": false,
+      "case_id": "R1",
+      "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+      "run_seed": 31003,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 182359.8057350373,
+      "candidate_final_error": 313754.786737071,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.7205259978887353,
+      "candidate_won_or_tied": false,
+      "case_id": "R3",
+      "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+      "run_seed": 31001,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 338555.66495516745,
+      "candidate_final_error": 278671.59671466873,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 0.8231189891670289,
+      "candidate_won_or_tied": true,
+      "case_id": "R3",
+      "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+      "run_seed": 31002,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 246830.70073614758,
+      "candidate_final_error": 380482.5779427093,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.5414718542221795,
+      "candidate_won_or_tied": false,
+      "case_id": "R3",
+      "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+      "run_seed": 31003,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 424581.2664405905,
+      "candidate_final_error": 441654.4271970228,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.0402117618131446,
+      "candidate_won_or_tied": false,
+      "case_id": "R6",
+      "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+      "run_seed": 31001,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 356781.16265379183,
+      "candidate_final_error": 430901.4798205631,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.2077472829996214,
+      "candidate_won_or_tied": false,
+      "case_id": "R6",
+      "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+      "run_seed": 31002,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 358718.6221504866,
+      "candidate_final_error": 388548.9910914455,
+      "candidate_schedule_trace_valid": true,
+      "candidate_to_baseline_ratio": 1.0831581275656346,
+      "candidate_won_or_tied": false,
+      "case_id": "R6",
+      "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+      "run_seed": 31003,
+      "same_checkpoint": true
+    }
+  ],
+  "phase1_fes": 180000,
+  "runtime_warning_context_count": 5,
+  "runtime_warning_count": 16,
+  "runtime_warning_counts_by_action": {
+    "unknown": 16
+  },
+  "same_checkpoint_per_pair": true,
+  "schema_version": "arac-gcb-schedule-ablation-summary-v1",
+  "selector_or_routing_authorized": false,
+  "summary_sha256": "d29e85813e4d403f0bee3f02e64811718921e06022220f6dcb4b71b4d90f73cb",
+  "terminal_fes": 3000000,
+  "unexpected_runtime_warning_count": 12
+}

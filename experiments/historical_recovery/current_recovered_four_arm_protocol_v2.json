@@ -1,0 +1,32 @@
+{
+  "schema_version": "arac-current-recovered-four-arm-protocol-v1",
+  "cases": [
+    "A1", "A2", "A3", "A4", "A5", "A6",
+    "E1", "E2", "E3", "E4", "E5", "E6",
+    "R1", "R2", "R3", "R4", "R5", "R6",
+    "S1", "S2", "S3", "S4", "S5", "S6"
+  ],
+  "seeds": [
+    117, 118, 119, 120, 121, 122, 123, 124, 125,
+    126, 127, 128, 129, 130, 131, 132, 133, 134,
+    135, 136, 137, 138, 139, 140, 141
+  ],
+  "actions": ["ctp", "smp", "gcb", "aor"],
+  "preflight_cases": ["A1", "E1", "R1", "S1"],
+  "preflight_seeds": [117],
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "preflight_output_root": "artifacts/current_recovered_four_arm_preflight_v2",
+  "output_root": "artifacts/current_recovered_four_arm_matrix_v2",
+  "registry": "RecoveredActionRegistry",
+  "allow_out_of_bounds": true,
+  "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+  "max_workers": 24,
+  "native_threads": 1,
+  "selector_execution_allowed": false,
+  "probe_execution_allowed": false,
+  "racing_execution_allowed": false
+}

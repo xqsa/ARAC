@@ -1,0 +1,27 @@
+{
+  "all_exact_global_fes": true,
+  "all_single_commit": true,
+  "archive_source_action_counts": {
+    "aor": 5,
+    "ctp": 0,
+    "gcb": 1,
+    "smp": 0
+  },
+  "commit_reason_counts": {
+    "probe_cap_insufficient_margin": 3,
+    "probe_cap_unstable_leader_gain": 2,
+    "stable_margin": 1
+  },
+  "completed": 6,
+  "failed": 0,
+  "manifest_sha256": "1842f37b1a847058bad0ddd4489fb1957ba8fc328639e86cbd94ecfa31cd0da5",
+  "quality_claim": "none_protocol_pilot_only",
+  "run_count": 6,
+  "schema_version": "arac-phase2-v2-pilot-summary-v1",
+  "selected_action_counts": {
+    "aor": 5,
+    "ctp": 0,
+    "gcb": 1,
+    "smp": 0
+  }
+}

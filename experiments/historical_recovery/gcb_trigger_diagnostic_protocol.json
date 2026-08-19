@@ -1,0 +1,35 @@
+{
+  "schema_version": "arac-gcb-trigger-diagnostic-protocol-v1",
+  "status": "frozen_paired_development_diagnostic",
+  "purpose": "isolate relation-dispatch timing while preserving source sweeps, block order, stage seeds, and burst budget",
+  "cases": ["R1", "R3", "R6"],
+  "seeds": [31001, 31002, 31003],
+  "variants": [
+    "native_order_relation_dispatch"
+  ],
+  "matched_baseline_variants": {
+    "native_order_relation_dispatch": "native_order_historical_seeds"
+  },
+  "total_budget_fes": 3000000,
+  "expected_phase1_fes": 180000,
+  "native_threads": 1,
+  "max_workers": 9,
+  "checkpoint_source_root": "artifacts/gcb_schedule_ablation_v2",
+  "baseline_source_root": "artifacts/gcb_mechanism_diagnostic_v1",
+  "output_root": "artifacts/gcb_trigger_diagnostic_v1",
+  "production_hcc_runtime_imports_allowed": false,
+  "selector_execution_allowed": false,
+  "reference_thresholds_used_for_decision": false,
+  "acceptance_gates": {
+    "same_checkpoint_as_matched_baseline": true,
+    "exact_terminal_fes": true,
+    "all_final_errors_finite": true,
+    "candidate_schedule_trace_valid": true,
+    "zero_relation_bitwise_equivalent": true,
+    "positive_relation_per_case_geometric_mean_ratio_lt": 1.0,
+    "positive_relation_vs_frozen_current_per_case_geometric_mean_ratio_lt": 1.0,
+    "positive_relation_win_count_gte": 4,
+    "maximum_pair_ratio_lte": 10.0,
+    "all_runtime_warnings_known": true
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "acceptance_gates": {
+    "all_final_errors_finite": true,
+    "all_runtime_warnings_known": true,
+    "candidate_schedule_trace_valid": true,
+    "exact_terminal_fes": true,
+    "maximum_pair_ratio_lte": 10.0,
+    "overall_candidate_win_count_gte": 6,
+    "per_case_geometric_mean_ratio_lt": 1.0,
+    "same_checkpoint_as_frozen_baseline": true
+  },
+  "cases": [
+    "R1",
+    "R3",
+    "R6"
+  ],
+  "expected_phase1_fes": 180000,
+  "max_workers": 18,
+  "native_threads": 1,
+  "output_root": "artifacts/gcb_mechanism_diagnostic_v1",
+  "production_hcc_runtime_imports_allowed": false,
+  "purpose": "isolate continuous stage seeds and preserved checkpoint block order under the frozen current GCB budget schedule",
+  "reference_thresholds_used_for_decision": false,
+  "schema_version": "arac-gcb-mechanism-diagnostic-protocol-v1",
+  "seeds": [
+    31001,
+    31002,
+    31003
+  ],
+  "selector_execution_allowed": false,
+  "source_root": "artifacts/gcb_schedule_ablation_v2",
+  "status": "frozen_paired_development_diagnostic",
+  "total_budget_fes": 3000000,
+  "variants": [
+    "graph_order_historical_seeds",
+    "native_order_legacy_seeds",
+    "native_order_historical_seeds"
+  ]
+}

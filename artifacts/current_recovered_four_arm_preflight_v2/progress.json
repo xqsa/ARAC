@@ -1,0 +1,9 @@
+{
+  "completed": 16,
+  "failed": 0,
+  "mode": "preflight",
+  "pending": 0,
+  "schema_version": "arac-current-recovered-four-arm-progress-v1",
+  "total": 16,
+  "updated_at_utc": "2026-08-12T11:54:17.387809+00:00"
+}

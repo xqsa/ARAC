@@ -1,0 +1,8 @@
+{
+  "manifest_sha256": "72f4b4dc3ac8531f8a44f09b80d38d2b6493cb41d9800504aed36a4485867de3",
+  "schema_version": "arac-phase2-v2-aob-preservation-audit-v1",
+  "v2_manifest_sha256": "29ae0964098c4ff2737b72c97db1fcf150b69c4a36384fe55d76937a07369dbc",
+  "v2_root": "E:\\ARAC\\artifacts\\phase2_v2_validation_ioh_v2",
+  "v3_config_sha256": "9d6f6ab3f3c4bb6cc9910058863a338d7c917f84a59491f640fcbce74e2bd8ca",
+  "v3_root": "E:\\ARAC\\artifacts\\final_24x25_v3_bounded"
+}

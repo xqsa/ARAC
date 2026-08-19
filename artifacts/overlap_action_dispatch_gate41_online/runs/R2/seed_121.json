@@ -1,0 +1,15 @@
+{
+  "action": "gcb",
+  "case_id": "R2",
+  "checkpoint_hash": "81de485dd5c85ed018afc3ecb9b414ebadb1f6dee59bc25810c2eec7fbb87edd",
+  "dispatch_features": {
+    "structural_relation_density": 0.1368421052631579,
+    "tail_log10_gain": 0.286745319968512
+  },
+  "final_error": 206780.9426723996,
+  "receipt_hash": "eb04910273afa6b95b1ddc89a2b94fcf9a70c532942c14f279c775d2708df7fc",
+  "run_seed": 121,
+  "schema_version": "arac-overlap-action-dispatch-gate41b-receipt-v1",
+  "source": "four_arm_reuse",
+  "terminal_fes": 3000000
+}

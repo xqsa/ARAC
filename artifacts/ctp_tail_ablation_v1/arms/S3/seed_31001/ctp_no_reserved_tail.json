@@ -1,0 +1,47 @@
+{
+  "action_checkpoint_hash": "d84d6d65f6d84e343001e06b73939d0bb072aa5d2051b97d48b233dbc6fb2e06",
+  "action_result_hash": "27c72f84f803f3a227c7746dffe8a927c77bf2add32f3c6636a6a7224389b562",
+  "action_seed": 31001,
+  "case_id": "S3",
+  "checkpoint_hash": "d84d6d65f6d84e343001e06b73939d0bb072aa5d2051b97d48b233dbc6fb2e06",
+  "coverage_fes": 564000,
+  "final_error": 5774.842191898576,
+  "manifest_sha256": "feaad54ada977a3dd19bfa87985b43480f6e0758951910b14f6c349b2c9c678d",
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "phase1_relation_count": 26,
+  "phase2_consumed_fes": 2820000,
+  "polish_fes": 2255472,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "bfcc1baa7dd3c1757d6ea8face53ea7567d53c2339608fad25cbecc7d43c58b0",
+  "reference_thresholds_used_for_decision": false,
+  "route": "coverage_564000_then_relation_cover_polish_2255472",
+  "run_seed": 31001,
+  "runtime_warnings": [],
+  "schema_version": "arac-ctp-tail-ablation-receipt-v1",
+  "selector_execution_allowed": false,
+  "tail_fes": 528,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "vcomp",
+      "user_api": "openmp"
+    }
+  ],
+  "variant": "ctp_no_reserved_tail"
+}

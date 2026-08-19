@@ -1,0 +1,45 @@
+{
+  "all_replays_passed": false,
+  "context_count": 4,
+  "failed_count": 4,
+  "passed_count": 0,
+  "receipts": [
+    {
+      "action": "aor",
+      "case": "A1",
+      "exact_result_match": false,
+      "final_error_match": false,
+      "receipt_hash": "a9d1b4f6caf0f718f880f075e3863173af9554a832ffb82380f92ec94194f37d",
+      "replay_passed": false,
+      "terminal_fes_match": true
+    },
+    {
+      "action": "smp",
+      "case": "E1",
+      "exact_result_match": false,
+      "final_error_match": false,
+      "receipt_hash": "492d16c7c71689a49dde99f486c6c1e04e4fe40c6761ef991b019aeb2b55aeda",
+      "replay_passed": false,
+      "terminal_fes_match": true
+    },
+    {
+      "action": "gcb",
+      "case": "R1",
+      "exact_result_match": false,
+      "final_error_match": false,
+      "receipt_hash": "5065df17d2dfad4291cd97793ffc2b525f43d8d598e023d764b1302df82a8d79",
+      "replay_passed": false,
+      "terminal_fes_match": true
+    },
+    {
+      "action": "ctp",
+      "case": "S1",
+      "exact_result_match": false,
+      "final_error_match": false,
+      "receipt_hash": "89c4db0b4bf231ee020540d81c8cd6b69f265a436bfeb2823937575322f00703",
+      "replay_passed": false,
+      "terminal_fes_match": true
+    }
+  ],
+  "schema_version": "arac-current-action-replay-summary-v1"
+}

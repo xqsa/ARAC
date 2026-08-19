@@ -1,0 +1,731 @@
+{
+  "cells": [
+    {
+      "arms": [
+        {
+          "checkpoint_error": 2758.284915770947,
+          "checkpoint_hash": "5db857e5876de5642830f9cc316c04814b7918a62b1b1d157e87c4187060b2d8",
+          "final_error": 364.54084596429465,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 1252.5923508241717,
+          "total_proposal_gain": 1141.1517189824804
+        },
+        {
+          "checkpoint_error": 2758.284915770947,
+          "checkpoint_hash": "5db857e5876de5642830f9cc316c04814b7918a62b1b1d157e87c4187060b2d8",
+          "final_error": 555.6591480246341,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 2201.9205927797243
+        },
+        {
+          "checkpoint_error": 2758.284915770947,
+          "checkpoint_hash": "5db857e5876de5642830f9cc316c04814b7918a62b1b1d157e87c4187060b2d8",
+          "final_error": 360.968181241645,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 1284.5633526613817,
+          "total_proposal_gain": 1112.7533818679203
+        }
+      ],
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260829,
+        "topology": "chain"
+      },
+      "checkpoint_error": 2758.284915770947,
+      "checkpoint_hash": "5db857e5876de5642830f9cc316c04814b7918a62b1b1d157e87c4187060b2d8",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 3,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 1786.6379908518616,
+          "checkpoint_hash": "3f076f5b971d74dab21218b6dfc5072d62c96c85365d39da04c8849ba62159a1",
+          "final_error": 822.5685216669181,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 635.758493040191,
+          "total_proposal_gain": 328.31097614475254
+        },
+        {
+          "checkpoint_error": 1786.6379908518616,
+          "checkpoint_hash": "3f076f5b971d74dab21218b6dfc5072d62c96c85365d39da04c8849ba62159a1",
+          "final_error": 846.0701445944366,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 940.567846257425
+        },
+        {
+          "checkpoint_error": 1786.6379908518616,
+          "checkpoint_hash": "3f076f5b971d74dab21218b6dfc5072d62c96c85365d39da04c8849ba62159a1",
+          "final_error": 822.5685216669182,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 635.7287540236542,
+          "total_proposal_gain": 328.34071516128915
+        }
+      ],
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260829,
+        "topology": "chain"
+      },
+      "checkpoint_error": 1786.6379908518616,
+      "checkpoint_hash": "3f076f5b971d74dab21218b6dfc5072d62c96c85365d39da04c8849ba62159a1",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 6,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 6
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 2780.993650425492,
+          "checkpoint_hash": "b8409ef2a8efe6ecd7be3b53ec0e30e8351864fdec94ff363cb2c7dfd5429239",
+          "final_error": 664.4585353051809,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 11745,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 1060.5714082615987,
+          "total_proposal_gain": 1055.9637068587126
+        },
+        {
+          "checkpoint_error": 2780.993650425492,
+          "checkpoint_hash": "b8409ef2a8efe6ecd7be3b53ec0e30e8351864fdec94ff363cb2c7dfd5429239",
+          "final_error": 736.7625823962435,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 11745,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 2044.2310680292485
+        },
+        {
+          "checkpoint_error": 2780.993650425492,
+          "checkpoint_hash": "b8409ef2a8efe6ecd7be3b53ec0e30e8351864fdec94ff363cb2c7dfd5429239",
+          "final_error": 664.4585353051812,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 11745,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 1060.7189424193762,
+          "total_proposal_gain": 1055.8161727009347
+        }
+      ],
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260829,
+        "topology": "random"
+      },
+      "checkpoint_error": 2780.993650425492,
+      "checkpoint_hash": "b8409ef2a8efe6ecd7be3b53ec0e30e8351864fdec94ff363cb2c7dfd5429239",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 3,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 1586.4620863619236,
+          "checkpoint_hash": "97defd42da40e722f149d4e59474c51d70df934f23b577cadde00948bc21e4a9",
+          "final_error": 1384.7318169080077,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 16017,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 86.85673599795132,
+          "total_proposal_gain": 114.87353345596466
+        },
+        {
+          "checkpoint_error": 1586.4620863619236,
+          "checkpoint_hash": "97defd42da40e722f149d4e59474c51d70df934f23b577cadde00948bc21e4a9",
+          "final_error": 1384.7329249575873,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 16017,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 201.7291614043363
+        },
+        {
+          "checkpoint_error": 1586.4620863619236,
+          "checkpoint_hash": "97defd42da40e722f149d4e59474c51d70df934f23b577cadde00948bc21e4a9",
+          "final_error": 1384.7318169080077,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 16017,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 86.95363651940602,
+          "total_proposal_gain": 114.77663293450996
+        }
+      ],
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260829,
+        "topology": "random"
+      },
+      "checkpoint_error": 1586.4620863619236,
+      "checkpoint_hash": "97defd42da40e722f149d4e59474c51d70df934f23b577cadde00948bc21e4a9",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 6,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 6
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 567.4137250406363,
+          "checkpoint_hash": "c4c5100b5a17c40976e278d06b48b8be20a8e8c00a2164fa48e3c97f410ca5f6",
+          "final_error": 285.9133619906989,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 116.2908116181955,
+          "total_proposal_gain": 165.20955143174194
+        },
+        {
+          "checkpoint_error": 567.4137250406363,
+          "checkpoint_hash": "c4c5100b5a17c40976e278d06b48b8be20a8e8c00a2164fa48e3c97f410ca5f6",
+          "final_error": 301.378767606697,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 266.0349574339393
+        },
+        {
+          "checkpoint_error": 567.4137250406363,
+          "checkpoint_hash": "c4c5100b5a17c40976e278d06b48b8be20a8e8c00a2164fa48e3c97f410ca5f6",
+          "final_error": 285.9133619906988,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 101.53717661978845,
+          "total_proposal_gain": 179.9631864301491
+        }
+      ],
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260829,
+        "topology": "star"
+      },
+      "checkpoint_error": 567.4137250406363,
+      "checkpoint_hash": "c4c5100b5a17c40976e278d06b48b8be20a8e8c00a2164fa48e3c97f410ca5f6",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 3,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 1087.932464107655,
+          "checkpoint_hash": "97f24b57fee5f1102d3226bc2286d15e7635cbe9b651aa5b2bcf6fc566c8e261",
+          "final_error": 368.37191518004005,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 269.0139214145397,
+          "total_proposal_gain": 450.5466275130753
+        },
+        {
+          "checkpoint_error": 1087.932464107655,
+          "checkpoint_hash": "97f24b57fee5f1102d3226bc2286d15e7635cbe9b651aa5b2bcf6fc566c8e261",
+          "final_error": 425.64245245681985,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 662.2900116508351
+        },
+        {
+          "checkpoint_error": 1087.932464107655,
+          "checkpoint_hash": "97f24b57fee5f1102d3226bc2286d15e7635cbe9b651aa5b2bcf6fc566c8e261",
+          "final_error": 368.37191518004016,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 184.2458526366538,
+          "total_proposal_gain": 535.3146962909611
+        }
+      ],
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260829,
+        "topology": "star"
+      },
+      "checkpoint_error": 1087.932464107655,
+      "checkpoint_hash": "97f24b57fee5f1102d3226bc2286d15e7635cbe9b651aa5b2bcf6fc566c8e261",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 6,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 6
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 1206.4197199855473,
+          "checkpoint_hash": "5f032ded2012de9ab143b5cc89efb0ab8d4f79717cd489dcd6e3a9fbc86d6f84",
+          "final_error": 57.242101173693385,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 434.02968271117777,
+          "total_proposal_gain": 715.1479361006761
+        },
+        {
+          "checkpoint_error": 1206.4197199855473,
+          "checkpoint_hash": "5f032ded2012de9ab143b5cc89efb0ab8d4f79717cd489dcd6e3a9fbc86d6f84",
+          "final_error": 125.19653625868058,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 1081.2231837268666
+        },
+        {
+          "checkpoint_error": 1206.4197199855473,
+          "checkpoint_hash": "5f032ded2012de9ab143b5cc89efb0ab8d4f79717cd489dcd6e3a9fbc86d6f84",
+          "final_error": 57.24210117369352,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 434.02968290282473,
+          "total_proposal_gain": 715.147935909029
+        }
+      ],
+      "cell": {
+        "mode": "conforming",
+        "overlap_budget": 3,
+        "seed": 20260829,
+        "topology": "chain"
+      },
+      "checkpoint_error": 1206.4197199855473,
+      "checkpoint_hash": "5f032ded2012de9ab143b5cc89efb0ab8d4f79717cd489dcd6e3a9fbc86d6f84",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 3,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 2569.3848772368915,
+          "checkpoint_hash": "8dcf7fd8254bc9d43bc556737f70dafde04b8cfabac2aa9752a4384c3495ec7a",
+          "final_error": 44.54370972474521,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 355.9843348686268,
+          "total_proposal_gain": 2168.8568326435193
+        },
+        {
+          "checkpoint_error": 2569.3848772368915,
+          "checkpoint_hash": "8dcf7fd8254bc9d43bc556737f70dafde04b8cfabac2aa9752a4384c3495ec7a",
+          "final_error": 214.8621947067703,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 2354.522682530121
+        },
+        {
+          "checkpoint_error": 2569.3848772368915,
+          "checkpoint_hash": "8dcf7fd8254bc9d43bc556737f70dafde04b8cfabac2aa9752a4384c3495ec7a",
+          "final_error": 44.54370972474521,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 355.98433486628426,
+          "total_proposal_gain": 2168.856832645862
+        }
+      ],
+      "cell": {
+        "mode": "conforming",
+        "overlap_budget": 6,
+        "seed": 20260829,
+        "topology": "chain"
+      },
+      "checkpoint_error": 2569.3848772368915,
+      "checkpoint_hash": "8dcf7fd8254bc9d43bc556737f70dafde04b8cfabac2aa9752a4384c3495ec7a",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 6,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 6
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 343.5687776683912,
+          "checkpoint_hash": "0823b266d1357a0f4c1d199434e5176a520c127b733a97b6db6b5e814bb31c27",
+          "final_error": 85.97191482416068,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 11745,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 68.06501067808512,
+          "total_proposal_gain": 189.5318521661454
+        },
+        {
+          "checkpoint_error": 343.5687776683912,
+          "checkpoint_hash": "0823b266d1357a0f4c1d199434e5176a520c127b733a97b6db6b5e814bb31c27",
+          "final_error": 117.34201305792372,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 11745,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 226.22676461046746
+        },
+        {
+          "checkpoint_error": 343.5687776683912,
+          "checkpoint_hash": "0823b266d1357a0f4c1d199434e5176a520c127b733a97b6db6b5e814bb31c27",
+          "final_error": 85.97191482416068,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 11745,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 67.04043613828284,
+          "total_proposal_gain": 190.55642670594767
+        }
+      ],
+      "cell": {
+        "mode": "conforming",
+        "overlap_budget": 3,
+        "seed": 20260829,
+        "topology": "random"
+      },
+      "checkpoint_error": 343.5687776683912,
+      "checkpoint_hash": "0823b266d1357a0f4c1d199434e5176a520c127b733a97b6db6b5e814bb31c27",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 3,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 595.6993712005572,
+          "checkpoint_hash": "3b995c1d652cffe36d623b2ea63aec7fdb9722269db318cb261648d6b8c02c04",
+          "final_error": 209.7427868260083,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 16017,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 107.83736769476755,
+          "total_proposal_gain": 278.1192166797813
+        },
+        {
+          "checkpoint_error": 595.6993712005572,
+          "checkpoint_hash": "3b995c1d652cffe36d623b2ea63aec7fdb9722269db318cb261648d6b8c02c04",
+          "final_error": 272.91771246245816,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 16017,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 322.781658738099
+        },
+        {
+          "checkpoint_error": 595.6993712005572,
+          "checkpoint_hash": "3b995c1d652cffe36d623b2ea63aec7fdb9722269db318cb261648d6b8c02c04",
+          "final_error": 209.74278687497628,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 16017,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 107.83736763993215,
+          "total_proposal_gain": 278.1192166856487
+        }
+      ],
+      "cell": {
+        "mode": "conforming",
+        "overlap_budget": 6,
+        "seed": 20260829,
+        "topology": "random"
+      },
+      "checkpoint_error": 595.6993712005572,
+      "checkpoint_hash": "3b995c1d652cffe36d623b2ea63aec7fdb9722269db318cb261648d6b8c02c04",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 6,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 6
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 1177.5989246506974,
+          "checkpoint_hash": "4cebb6385f289efa48ad024c00e8d67a50aaf8e74ae2119a35f34d15a036c524",
+          "final_error": 30.554809763143645,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 553.1669684088056,
+          "total_proposal_gain": 593.8771464787482
+        },
+        {
+          "checkpoint_error": 1177.5989246506974,
+          "checkpoint_hash": "4cebb6385f289efa48ad024c00e8d67a50aaf8e74ae2119a35f34d15a036c524",
+          "final_error": 156.00509825466935,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 1021.2777843084893
+        },
+        {
+          "checkpoint_error": 1177.5989246506974,
+          "checkpoint_hash": "4cebb6385f289efa48ad024c00e8d67a50aaf8e74ae2119a35f34d15a036c524",
+          "final_error": 30.554809763143645,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 8389,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 553.1669684088059,
+          "total_proposal_gain": 593.8771464787479
+        }
+      ],
+      "cell": {
+        "mode": "conforming",
+        "overlap_budget": 3,
+        "seed": 20260829,
+        "topology": "star"
+      },
+      "checkpoint_error": 1177.5989246506974,
+      "checkpoint_hash": "4cebb6385f289efa48ad024c00e8d67a50aaf8e74ae2119a35f34d15a036c524",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 3,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": [
+        {
+          "checkpoint_error": 1125.5187610939543,
+          "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+          "final_error": 57.5494731992409,
+          "mode": "proposal_neighborhood",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 443.41685868861094,
+          "total_proposal_gain": 624.5524292061024
+        },
+        {
+          "checkpoint_error": 1125.5187610939543,
+          "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+          "final_error": 215.6620247218847,
+          "mode": "proposal_only",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 0.0,
+          "total_proposal_gain": 909.8567363720696
+        },
+        {
+          "checkpoint_error": 1125.5187610939543,
+          "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+          "final_error": 61.09595484894706,
+          "mode": "full_context",
+          "phase2_consumed_fes": 2820000,
+          "proposal_budget_fes": 9787,
+          "strict_best": true,
+          "terminal_fes": 3000000,
+          "total_coordination_gain": 439.8703768770111,
+          "total_proposal_gain": 624.5524293679961
+        }
+      ],
+      "cell": {
+        "mode": "conforming",
+        "overlap_budget": 6,
+        "seed": 20260829,
+        "topology": "star"
+      },
+      "checkpoint_error": 1125.5187610939543,
+      "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+      "checkpoint_parity": true,
+      "inferred_component_count": 1,
+      "inferred_shared_count": 6,
+      "phase1_consumed_fes": 180000,
+      "proposal_budget_parity": true,
+      "strict_best": true,
+      "terminal_exact": true,
+      "truth_group_count": 980,
+      "truth_shared_count": 6
+    }
+  ],
+  "gate_checks": {
+    "cell_count_12": true,
+    "checkpoint_parity": true,
+    "conflicting_coordination_nonzero": true,
+    "conforming_coordination_nonzero": true,
+    "inferred_components_present": true,
+    "median_gain_vs_full_positive": true,
+    "median_gain_vs_proposal_positive": true,
+    "neighborhood_vs_full_win_tie_ge_0_60": true,
+    "neighborhood_vs_proposal_win_tie_ge_0_60": true,
+    "phase1_exact": true,
+    "proposal_budget_parity": true,
+    "strict_best": true,
+    "terminal_exact": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "active_dimension": 24,
+    "active_group_count": 4,
+    "dimension": 1000,
+    "neighborhood_fes": 32,
+    "phase1_fes": 180000,
+    "phase1_kwargs": {
+      "anchor_count": 5,
+      "bucket_size": 16,
+      "max_candidate_pairs": 128,
+      "rounds": 12,
+      "step": 0.25
+    },
+    "phase2_fes": 2820000,
+    "refresh_cycles": 16,
+    "seed": 20260829,
+    "total_budget_fes": 3000000
+  },
+  "schema_version": "arac-overlap-gate29-screening-v1",
+  "summary": {
+    "conflicting_coordination_gain_max": 1252.5923508241717,
+    "conforming_coordination_gain_max": 553.1669684088056,
+    "neighborhood_vs_full_median_gain": 5.684341886080802e-14,
+    "neighborhood_vs_full_win_or_tie": 0.8333333333333334,
+    "neighborhood_vs_proposal_median_gain": 65.56468036071851,
+    "neighborhood_vs_proposal_win_or_tie": 1.0
+  }
+}

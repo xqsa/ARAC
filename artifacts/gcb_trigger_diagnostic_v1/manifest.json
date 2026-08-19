@@ -1,0 +1,31 @@
+{
+  "baseline_summary_sha256": "17a53f65dd8a0c5d078c1a4564d02d80b2a13418bd2b5dc5e9c0f5a500f859aa",
+  "created_at_utc": "2026-08-11T07:31:00.737335+00:00",
+  "manifest_sha256": "5bb9f521cfa48511297b3cbf7f2d42be22d2efeaed72f66e511f49e159ed911c",
+  "production_hcc_runtime_imports": [],
+  "protocol_sha256": "26960795e6f7886e5029d5bd2f2c7ce4518f7b4cce42ef7d9bcf5b2aaffd4b94",
+  "reference_thresholds_used_for_decision": false,
+  "schema_version": "arac-gcb-trigger-diagnostic-manifest-v1",
+  "selector_execution_allowed": false,
+  "source_sha256": {
+    "experiments/final/run.py": "e1574ded337ff93cd7988c85a0bcb12702a767301b6cd5a66ec2073c36e08711",
+    "experiments/historical_recovery/gcb_mechanism_diagnostic.py": "341fa415b40d7ad8a5ae640aba612b18c8557d2237359279ee01ab295e0bfcb4",
+    "experiments/historical_recovery/gcb_mechanism_diagnostic_protocol.json": "7dc9c8cd175f6f87338495413d4e491f0b70c608128fb76197c8986a599245b9",
+    "experiments/historical_recovery/gcb_schedule_ablation.py": "f1e6b3e4026ae30c555a8139a51b5c210040148ddd998f00a4fbed26e4ab69c1",
+    "experiments/historical_recovery/gcb_trigger_diagnostic.py": "56572554584de9781d0d13b1b105d5cd91863e694570dae1d22f9dc2bfc6b0aa",
+    "experiments/historical_recovery/gcb_trigger_diagnostic_protocol.json": "26960795e6f7886e5029d5bd2f2c7ce4518f7b4cce42ef7d9bcf5b2aaffd4b94",
+    "src/arac/actions/_execution.py": "f8125a17e4a2598c94e6a36d16d83e72bfe3cd1522d31240b0f1d4c6f04b8cfe",
+    "src/arac/actions/gcb.py": "454fe2bf43854729d110983e7bb0d127acdd59116cb33d6320a28b2465299497",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/runtime/contracts.py": "fee9484be85605526b0b73a790311879b0ec922974235ef2c32e6f026631646a",
+    "src/arac/runtime/ledger.py": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5",
+    "src/arac/runtime/optimizers.py": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954"
+  },
+  "vendor_trees": {
+    "vendor/aob": {
+      "file_count": 67,
+      "tree_sha256": "9af372d908f9f6996efc91f0859789bdfdb53f1d904576e8c732c42f3deede31"
+    }
+  }
+}

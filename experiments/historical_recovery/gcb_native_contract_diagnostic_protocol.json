@@ -1,0 +1,36 @@
+{
+  "schema_version": "arac-gcb-native-contract-diagnostic-protocol-v1",
+  "status": "frozen_paired_development_diagnostic",
+  "purpose": "isolate no-clipping and incumbent-precheck semantics in fresh native GCB block visits",
+  "cases": ["R1", "R3", "R6"],
+  "seeds": [31001, 31002, 31003],
+  "variants": [
+    "native_order_no_clip",
+    "native_order_precheck",
+    "native_order_no_clip_precheck"
+  ],
+  "matched_baseline_variant": "native_order_historical_seeds",
+  "total_budget_fes": 3000000,
+  "expected_phase1_fes": 180000,
+  "source_sweep_count": 3,
+  "native_window_count": 3,
+  "native_threads": 1,
+  "max_workers": 18,
+  "checkpoint_source_root": "artifacts/gcb_schedule_ablation_v2",
+  "baseline_source_root": "artifacts/gcb_mechanism_diagnostic_v1",
+  "output_root": "artifacts/gcb_native_contract_diagnostic_v1",
+  "production_hcc_runtime_imports_allowed": false,
+  "selector_execution_allowed": false,
+  "reference_thresholds_used_for_decision": false,
+  "acceptance_gates": {
+    "same_checkpoint_as_matched_baseline": true,
+    "exact_terminal_fes": true,
+    "all_final_errors_finite": true,
+    "candidate_schedule_trace_valid": true,
+    "per_case_parent_geometric_mean_ratio_lt": 1.0,
+    "per_case_frozen_current_geometric_mean_ratio_lt": 1.0,
+    "overall_parent_win_count_gte": 6,
+    "maximum_parent_pair_ratio_lte": 10.0,
+    "all_runtime_warnings_known": true
+  }
+}

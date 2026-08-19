@@ -1,0 +1,62 @@
+{
+  "config_sha256": "a6d8d94820314375f4462be8f39288cd6b0b6ae72d3f00fd62e38c576d1409fd",
+  "contexts": [
+    {
+      "action": "aor",
+      "case": "A1",
+      "checkpoint_hash": "be49c03af8526b2f2c88e0fc4a1e2a53b921fa1845fa9c140be5812702509197",
+      "expected_final_error": 78216.10675551635,
+      "expected_result_hash": "f2900a699e7cbd9941f6fee86bd1a8bbdd8abdfd856c7b177555ad32fb645a7b",
+      "expected_terminal_fes": 3000000,
+      "seed": 20260901
+    },
+    {
+      "action": "smp",
+      "case": "E1",
+      "checkpoint_hash": "ac27f86cfb9302c4122fc52885b18ef0a013e43bf7411095b460181e5de6a83c",
+      "expected_final_error": 3387152.2200136315,
+      "expected_result_hash": "dd5259a4ce3720e1ef56365a1b16a8dfbbc6fe31aef01c7dc879fdc58bf92550",
+      "expected_terminal_fes": 3000000,
+      "seed": 20260901
+    },
+    {
+      "action": "gcb",
+      "case": "R1",
+      "checkpoint_hash": "c78fc2e17c8b844525c2621ecab233a6a0a35b96f1a1201b62a8f9a5d3ffb40e",
+      "expected_final_error": 173779.44596404317,
+      "expected_result_hash": "72104bc807ee6d70f8c3f861bb5fc7425a3fe0d5b47163055488045005dd7b6b",
+      "expected_terminal_fes": 3000000,
+      "seed": 20260901
+    },
+    {
+      "action": "ctp",
+      "case": "S1",
+      "checkpoint_hash": "7ec1614da1cb76d08c0f1f10051f53434b7c5b42429e0c0a407f52af3923acaa",
+      "expected_final_error": 1.6300049743120472e-07,
+      "expected_result_hash": "99d69ba4598352de30a6513368d94c1477e88e318e0052b43a1d6b362bed8a22",
+      "expected_terminal_fes": 3000000,
+      "seed": 20260901
+    }
+  ],
+  "current_source_hashes": {
+    "action_execution": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "action_registry": "aec04994b287d0c419b893e8189ec12e4fafc0be9fcee9b56c23cb47d5118c06",
+    "aor": "4a20462788569dc7aecc88de0c26b1f45cd0f545611ec6a91e351b316698211e",
+    "benchmark": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "contracts": "b9011c7f0e283714ddd1f1065351d574bd6a07f1c5d2857ecbdbcd285de090a6",
+    "ctp": "199f69ddab4f15e85828b663d684429d89bb00909deebdae70848b67f2eb9d37",
+    "gcb": "36c0dcae3c47b9d82016a683270b6b33b04d9eaf1ff52d36da8aeaed037961dd",
+    "ledger": "d2cbc0d3536c3a7d1f4ff0eafb88e0e643e5081e0687e8483624333e5cffa513",
+    "optimizers": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954",
+    "phase1": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "smp": "d97c8779213c3037276f4fe1df0f0fa20346dd3b472635737d78ccdc05c72fb2",
+    "structural_evidence": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2"
+  },
+  "manifest_sha256": "3fd6a14608363763d6b0e8af593b4a1b084339fd5124bad97a48ed56f16863e9",
+  "schema_version": "arac-current-action-replay-manifest-v1",
+  "source_manifest_sha256": "3fcd0c7647e64040267cb53cc0d7a068b250452b4fb5db1edc46d842cd69e28c",
+  "vendor_tree": {
+    "file_count": 67,
+    "tree_sha256": "9af372d908f9f6996efc91f0859789bdfdb53f1d904576e8c732c42f3deede31"
+  }
+}

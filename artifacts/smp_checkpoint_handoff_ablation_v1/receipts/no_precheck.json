@@ -1,0 +1,26 @@
+{
+  "cold_start_count": 20,
+  "consumed_fes": 119995,
+  "final_error": 708217975.8759111,
+  "historical_p90": 1.8255606813339802,
+  "initial_error": 2692663045.520366,
+  "noop_fes": 5,
+  "phase1_fes": 180000,
+  "phase2_fes": 120000,
+  "receipt_hash": "e4507c884ed1bee5e0cc01a3707fe4196ae9888625cfe9b8c3f556447a723138",
+  "reset_count": 0,
+  "restore_count": 4,
+  "schema_version": "arac-smp-checkpoint-handoff-ablation-receipt-v1",
+  "screen_checkpoint_hash": "582f5cbdf2fd795d549222d80bddfa838d14da92a39160e081e39d82cbe38350",
+  "settings": {
+    "clip_offspring": false,
+    "historical_seed": true,
+    "precheck_incumbent": false,
+    "strict_material_gain": true
+  },
+  "source_checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "terminal_fes": 300000,
+  "terminal_state_finite": true,
+  "variant": "no_precheck",
+  "visit_count": 24
+}

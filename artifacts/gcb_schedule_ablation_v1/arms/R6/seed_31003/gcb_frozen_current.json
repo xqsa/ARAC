@@ -1,0 +1,63 @@
+{
+  "action_checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+  "action_result_hash": "ccd272d2c67286c4afb94841207d3bcab4fc798baa92fa8707580f99177145aa",
+  "action_seed": 31003,
+  "case_id": "R6",
+  "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+  "final_error": 358718.6221504866,
+  "manifest_sha256": "418a5d48cf37f3bca868f550dd6c2e1032be7e4b0ff76b4547cdecbdaaf8bab2",
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "phase1_relation_count": 21,
+  "phase2_consumed_fes": 2820000,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "345d9d489b52e14961cef59af249cfb239390a375454d805d33ba45855d205d5",
+  "reference_thresholds_used_for_decision": false,
+  "route": "positive_relation_graph_cold_warmup_1095869_sweeps_3_coordination_356784_cold_continuation_1367344_sweeps_8_tail_3",
+  "run_seed": 31003,
+  "runtime_warnings": [
+    {
+      "category": "RuntimeWarning",
+      "count": 11,
+      "known": false,
+      "line": 163,
+      "message": "overflow encountered in multiply",
+      "source": "src/arac/actions/_execution.py"
+    },
+    {
+      "category": "RuntimeWarning",
+      "count": 1,
+      "known": true,
+      "line": 228,
+      "message": "overflow encountered in scalar multiply",
+      "source": ".venv/Lib/site-packages/pypop7/optimizers/es/cmaes.py"
+    }
+  ],
+  "schedule_trace": [],
+  "schedule_trace_summary": null,
+  "schema_version": "arac-gcb-schedule-ablation-receipt-v1",
+  "selector_execution_allowed": false,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "vcomp",
+      "user_api": "openmp"
+    }
+  ],
+  "variant": "gcb_frozen_current"
+}

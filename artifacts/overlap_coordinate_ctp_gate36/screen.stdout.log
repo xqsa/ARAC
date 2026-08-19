@@ -1,0 +1,41 @@
+completed conforming/chain/overlap=3
+completed conforming/random/overlap=3
+completed conforming/chain/overlap=6
+completed conforming/random/overlap=6
+completed conforming/star/overlap=3
+completed conforming/star/overlap=6
+completed conflicting/random/overlap=3
+completed conflicting/random/overlap=6
+completed conflicting/chain/overlap=3
+completed conflicting/star/overlap=3
+completed conflicting/chain/overlap=6
+completed conflicting/star/overlap=6
+{
+  "gate_passed": false,
+  "protocol_checks": {
+    "cell_count_12": true,
+    "checkpoint_parity": true,
+    "phase1_exact": true,
+    "proposal_budget_parity": true,
+    "strict_best": true,
+    "terminal_exact": true
+  },
+  "screening_checks": {
+    "conflicting_positive_gain": true,
+    "vs_full_median_nonnegative": true,
+    "vs_full_win_tie_ge_0_50": true,
+    "vs_proposal_median_nonnegative": true,
+    "vs_proposal_no_material_regression": false,
+    "vs_proposal_win_tie_ge_0_75": true
+  },
+  "summary": {
+    "conflicting_max_gain": 3.5726647226497334,
+    "ctp_total_fes": 1312,
+    "ctp_triggered_cell_count": 9,
+    "vs_full_median_gain": 0.0,
+    "vs_full_win_or_tie": 0.9166666666666666,
+    "vs_proposal_median_gain": 0.0,
+    "vs_proposal_min_gain": -17.87120398498837,
+    "vs_proposal_win_or_tie": 0.9166666666666666
+  }
+}

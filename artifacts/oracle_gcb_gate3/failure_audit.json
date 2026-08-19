@@ -1,0 +1,1061 @@
+{
+  "schema_version": "arac-oracle-gcb-gate3-failure-audit-v1",
+  "trials": [
+    {
+      "component_isomorphism": {
+        "same_group_sizes": true,
+        "same_objective_weights": true,
+        "same_shared_variable_multiplicities": true
+      },
+      "components": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "priorities": [
+        {
+          "component": [
+            2,
+            3
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 269.31230941588393,
+          "mean_conflict_score": 269.31230941588393,
+          "overlap_load": 1,
+          "priority_score": 807.9369282476518,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            4
+          ],
+          "topology_factor": 1.5
+        },
+        {
+          "component": [
+            0,
+            1
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 264.7682734322195,
+          "mean_conflict_score": 264.7682734322195,
+          "overlap_load": 1,
+          "priority_score": 794.3048202966584,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            1
+          ],
+          "topology_factor": 1.5
+        }
+      ],
+      "proposals": [
+        {
+          "group": 0,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              0,
+              0.0
+            ],
+            [
+              1,
+              -1.3471588993579429
+            ]
+          ]
+        },
+        {
+          "group": 1,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              1,
+              0.08
+            ],
+            [
+              2,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              1,
+              1.2563133591698665
+            ],
+            [
+              2,
+              0.0
+            ]
+          ]
+        },
+        {
+          "group": 2,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              3,
+              0.08
+            ],
+            [
+              4,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              3,
+              0.0
+            ],
+            [
+              4,
+              -1.3173247510585964
+            ]
+          ]
+        },
+        {
+          "group": 3,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              4,
+              0.08
+            ],
+            [
+              5,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              4,
+              1.3083932692405902
+            ],
+            [
+              5,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "replays": {
+        "canonical": {
+          "after_prime_error": 0.4020274263864028,
+          "after_prime_x": [
+            0.0,
+            -0.04542277009403817,
+            0.0,
+            0.0,
+            -0.004465740909003091,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.4020274263864028,
+          "second_after_ctp_error": 0.314758407617183,
+          "second_before_error": 0.4020274263864028,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.4020274263864028
+            ],
+            [
+              "owner",
+              2.8656693630946433
+            ],
+            [
+              "weighted_mean",
+              0.4020274263864028
+            ],
+            [
+              "weighted_median",
+              2.8656693630946433
+            ],
+            [
+              "ctp_shared_core",
+              0.314758407617183
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 3742800151,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.6945169502309732,
+              "conflict_score": 264.7682734322195,
+              "variable": 1,
+              "weighted_mean": -0.04542277009403817,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            0,
+            1
+          ],
+          "selected_priority": 794.3048202966584,
+          "total_ledger_fes": 44
+        },
+        "gcb": {
+          "after_prime_error": 0.4020274263864028,
+          "after_prime_x": [
+            0.0,
+            -0.04542277009403817,
+            0.0,
+            0.0,
+            -0.004465740909003091,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.4020274263864028,
+          "second_after_ctp_error": 0.3389634837776177,
+          "second_before_error": 0.4020274263864028,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.4020274263864028
+            ],
+            [
+              "owner",
+              2.793781488370926
+            ],
+            [
+              "weighted_mean",
+              0.4020274263864028
+            ],
+            [
+              "weighted_median",
+              2.793781488370926
+            ],
+            [
+              "ctp_shared_core",
+              0.3389634837776177
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 3742800151,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.7235987805309696,
+              "conflict_score": 269.31230941588393,
+              "variable": 4,
+              "weighted_mean": -0.004465740909003091,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            2,
+            3
+          ],
+          "selected_priority": 807.9369282476518,
+          "total_ledger_fes": 44
+        }
+      },
+      "seed": 2026081803,
+      "topology": "pair_pair"
+    },
+    {
+      "component_isomorphism": {
+        "same_group_sizes": true,
+        "same_objective_weights": true,
+        "same_shared_variable_multiplicities": true
+      },
+      "components": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "priorities": [
+        {
+          "component": [
+            2,
+            3
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 269.16083594548866,
+          "mean_conflict_score": 269.16083594548866,
+          "overlap_load": 1,
+          "priority_score": 807.482507836466,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            4
+          ],
+          "topology_factor": 1.5
+        },
+        {
+          "component": [
+            0,
+            1
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 255.90025776207926,
+          "mean_conflict_score": 255.90025776207926,
+          "overlap_load": 1,
+          "priority_score": 767.7007732862378,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            1
+          ],
+          "topology_factor": 1.5
+        }
+      ],
+      "proposals": [
+        {
+          "group": 0,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              0,
+              0.0
+            ],
+            [
+              1,
+              -1.2870345185579561
+            ]
+          ]
+        },
+        {
+          "group": 1,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              1,
+              0.08
+            ],
+            [
+              2,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              1,
+              1.272466721866207
+            ],
+            [
+              2,
+              0.0
+            ]
+          ]
+        },
+        {
+          "group": 2,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              3,
+              0.08
+            ],
+            [
+              4,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              3,
+              0.0
+            ],
+            [
+              4,
+              -1.296187080852434
+            ]
+          ]
+        },
+        {
+          "group": 3,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              4,
+              0.08
+            ],
+            [
+              5,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              4,
+              1.3287924240734907
+            ],
+            [
+              5,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "replays": {
+        "canonical": {
+          "after_prime_error": 0.3708094456444269,
+          "after_prime_x": [
+            0.0,
+            -0.007283898345874618,
+            0.0,
+            0.0,
+            0.01630267161052834,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.3708094456444269,
+          "second_after_ctp_error": 0.3094017659792004,
+          "second_before_error": 0.3708094456444269,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.3708094456444269
+            ],
+            [
+              "owner",
+              2.6670895525350646
+            ],
+            [
+              "weighted_mean",
+              0.3708094456444269
+            ],
+            [
+              "weighted_median",
+              2.6670895525350646
+            ],
+            [
+              "ctp_shared_core",
+              0.3094017659792004
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 3416926855,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.6377616499332077,
+              "conflict_score": 255.90025776207926,
+              "variable": 1,
+              "weighted_mean": -0.007283898345874618,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            0,
+            1
+          ],
+          "selected_priority": 767.7007732862378,
+          "total_ledger_fes": 44
+        },
+        "gcb": {
+          "after_prime_error": 0.3708094456444269,
+          "after_prime_x": [
+            0.0,
+            -0.007283898345874618,
+            0.0,
+            0.0,
+            0.01630267161052834,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.3708094456444269,
+          "second_after_ctp_error": 0.31785899480289775,
+          "second_before_error": 0.3708094456444269,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.3708094456444269
+            ],
+            [
+              "owner",
+              2.706889493343022
+            ],
+            [
+              "weighted_mean",
+              0.3708094456444269
+            ],
+            [
+              "weighted_median",
+              2.706889493343022
+            ],
+            [
+              "ctp_shared_core",
+              0.31785899480289775
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 3416926855,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.7226293503202883,
+              "conflict_score": 269.16083594548866,
+              "variable": 4,
+              "weighted_mean": 0.01630267161052834,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            2,
+            3
+          ],
+          "selected_priority": 807.482507836466,
+          "total_ledger_fes": 44
+        }
+      },
+      "seed": 2026081815,
+      "topology": "pair_pair"
+    },
+    {
+      "component_isomorphism": {
+        "same_group_sizes": true,
+        "same_objective_weights": true,
+        "same_shared_variable_multiplicities": true
+      },
+      "components": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "priorities": [
+        {
+          "component": [
+            2,
+            3
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 278.22248638026156,
+          "mean_conflict_score": 278.22248638026156,
+          "overlap_load": 1,
+          "priority_score": 834.6674591407847,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            4
+          ],
+          "topology_factor": 1.5
+        },
+        {
+          "component": [
+            0,
+            1
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 263.19118074638897,
+          "mean_conflict_score": 263.19118074638897,
+          "overlap_load": 1,
+          "priority_score": 789.573542239167,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            1
+          ],
+          "topology_factor": 1.5
+        }
+      ],
+      "proposals": [
+        {
+          "group": 0,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              0,
+              0.0
+            ],
+            [
+              1,
+              -1.3379660717090762
+            ]
+          ]
+        },
+        {
+          "group": 1,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              1,
+              0.08
+            ],
+            [
+              2,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              1,
+              1.2577408123901905
+            ],
+            [
+              2,
+              0.0
+            ]
+          ]
+        },
+        {
+          "group": 2,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              3,
+              0.08
+            ],
+            [
+              4,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              3,
+              0.0
+            ],
+            [
+              4,
+              -1.3384555604112318
+            ]
+          ]
+        },
+        {
+          "group": 3,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              4,
+              0.08
+            ],
+            [
+              5,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              4,
+              1.3303448540910565
+            ],
+            [
+              5,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "replays": {
+        "canonical": {
+          "after_prime_error": 0.3987094603572139,
+          "after_prime_x": [
+            0.0,
+            -0.040112629659442844,
+            0.0,
+            0.0,
+            -0.004055353160087649,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.3987094603572139,
+          "second_after_ctp_error": 0.3146387192419181,
+          "second_before_error": 0.3987094603572139,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.3987094603572139
+            ],
+            [
+              "owner",
+              2.836180367368452
+            ],
+            [
+              "weighted_mean",
+              0.3987094603572139
+            ],
+            [
+              "weighted_median",
+              2.836180367368452
+            ],
+            [
+              "ctp_shared_core",
+              0.3146387192419181
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 2966381792,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.6844235570400807,
+              "conflict_score": 263.19118074638897,
+              "variable": 1,
+              "weighted_mean": -0.040112629659442844,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            0,
+            1
+          ],
+          "selected_priority": 789.573542239167,
+          "total_ledger_fes": 44
+        },
+        "gcb": {
+          "after_prime_error": 0.3987094603572139,
+          "after_prime_x": [
+            0.0,
+            -0.040112629659442844,
+            0.0,
+            0.0,
+            -0.004055353160087649,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.3987094603572139,
+          "second_after_ctp_error": 0.33420815988971714,
+          "second_before_error": 0.3987094603572139,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.3987094603572139
+            ],
+            [
+              "owner",
+              2.857356405289278
+            ],
+            [
+              "weighted_mean",
+              0.3987094603572139
+            ],
+            [
+              "weighted_median",
+              2.857356405289278
+            ],
+            [
+              "ctp_shared_core",
+              0.33420815988971714
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 2966381792,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.7806239131118968,
+              "conflict_score": 278.22248638026156,
+              "variable": 4,
+              "weighted_mean": -0.004055353160087649,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            2,
+            3
+          ],
+          "selected_priority": 834.6674591407847,
+          "total_ledger_fes": 44
+        }
+      },
+      "seed": 2026081818,
+      "topology": "pair_pair"
+    },
+    {
+      "component_isomorphism": {
+        "same_group_sizes": true,
+        "same_objective_weights": true,
+        "same_shared_variable_multiplicities": true
+      },
+      "components": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      "priorities": [
+        {
+          "component": [
+            2,
+            3
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 265.8875515255232,
+          "mean_conflict_score": 265.8875515255232,
+          "overlap_load": 1,
+          "priority_score": 797.6626545765696,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            4
+          ],
+          "topology_factor": 1.5
+        },
+        {
+          "component": [
+            0,
+            1
+          ],
+          "conflict_level": "high",
+          "conflict_streak": 1,
+          "max_conflict_score": 261.2092818372552,
+          "mean_conflict_score": 261.2092818372552,
+          "overlap_load": 1,
+          "priority_score": 783.6278455117656,
+          "proposal_contribution": 1.0,
+          "shared_variables": [
+            1
+          ],
+          "topology_factor": 1.5
+        }
+      ],
+      "proposals": [
+        {
+          "group": 0,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              0,
+              0.08
+            ],
+            [
+              1,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              0,
+              0.0
+            ],
+            [
+              1,
+              -1.3069153057566285
+            ]
+          ]
+        },
+        {
+          "group": 1,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              1,
+              0.08
+            ],
+            [
+              2,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              1,
+              1.2789999318485352
+            ],
+            [
+              2,
+              0.0
+            ]
+          ]
+        },
+        {
+          "group": 2,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              3,
+              0.08
+            ],
+            [
+              4,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              3,
+              0.0
+            ],
+            [
+              4,
+              -1.259711884452311
+            ]
+          ]
+        },
+        {
+          "group": 3,
+          "improvement": 1.0,
+          "uncertainty": [
+            [
+              4,
+              0.08
+            ],
+            [
+              5,
+              0.08
+            ]
+          ],
+          "values": [
+            [
+              4,
+              1.3492575136275025
+            ],
+            [
+              5,
+              0.0
+            ]
+          ]
+        }
+      ],
+      "replays": {
+        "canonical": {
+          "after_prime_error": 0.3617918581344278,
+          "after_prime_x": [
+            0.0,
+            -0.013957686954046644,
+            0.0,
+            0.0,
+            0.044772814587595744,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.3617918581344278,
+          "second_after_ctp_error": 0.31679649366915147,
+          "second_before_error": 0.3617918581344278,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.3617918581344278
+            ],
+            [
+              "owner",
+              2.7161034669315534
+            ],
+            [
+              "weighted_mean",
+              0.3617918581344278
+            ],
+            [
+              "weighted_median",
+              2.7161034669315534
+            ],
+            [
+              "ctp_shared_core",
+              0.31679649366915147
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 2726754155,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.671739404019643,
+              "conflict_score": 261.2092818372552,
+              "variable": 1,
+              "weighted_mean": -0.013957686954046644,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            0,
+            1
+          ],
+          "selected_priority": 783.6278455117656,
+          "total_ledger_fes": 44
+        },
+        "gcb": {
+          "after_prime_error": 0.3617918581344278,
+          "after_prime_x": [
+            0.0,
+            -0.013957686954046644,
+            0.0,
+            0.0,
+            0.044772814587595744,
+            0.0
+          ],
+          "initial_error": 18.375,
+          "second_after_candidates_error": 0.3617918581344278,
+          "second_after_ctp_error": 0.3617918581344278,
+          "second_before_error": 0.3617918581344278,
+          "second_candidate_errors": [
+            [
+              "incumbent",
+              0.3617918581344278
+            ],
+            [
+              "owner",
+              2.5989036345586785
+            ],
+            [
+              "weighted_mean",
+              0.3617918581344278
+            ],
+            [
+              "weighted_median",
+              2.5989036345586785
+            ]
+          ],
+          "second_ctp_consumed_fes": 32,
+          "second_ctp_seed": 2726754155,
+          "second_ctp_triggered": true,
+          "second_residuals": [
+            {
+              "between_variance": 1.7016803300292362,
+              "conflict_score": 265.8875515255232,
+              "variable": 4,
+              "weighted_mean": 0.044772814587595744,
+              "within_variance": 0.0064
+            }
+          ],
+          "selected_component": [
+            2,
+            3
+          ],
+          "selected_priority": 797.6626545765696,
+          "total_ledger_fes": 44
+        }
+      },
+      "seed": 2026081819,
+      "topology": "pair_pair"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "result": {
+    "arm": "smp",
+    "case_id": "A3",
+    "checkpoint_hash": "2df44cc7442cb5ad10a75c8bd9249e0e48eab704e9c572c6cdf409e51e4ff679",
+    "incumbent_error": 79223.76089077012,
+    "result": {
+      "final_error": 78690.1104263965,
+      "route": "recovered_stateful_visits_2819999_visits_1584_stale_resets_528_noop_1",
+      "steps": 1,
+      "terminal_fes": 3000000
+    },
+    "structure": {
+      "cached": true
+    }
+  },
+  "schema_version": "arac-oc-gate50-cell-v1"
+}

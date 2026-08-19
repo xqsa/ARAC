@@ -1,0 +1,11 @@
+{
+  "final_error": 72195.19251439234,
+  "phase1_fes": 180000,
+  "receipt_sha256": "9d7b3f4e6bbc390f9abc06560285bf05f564dc5decb08700ed70f5c25e164bc2",
+  "same_boundary_recovered_or_exceeded": true,
+  "same_boundary_reference_final_error": 72195.19251439234,
+  "schema_version": "arac-current-arac-e2e-recovery-summary-v1",
+  "selected_action": "smp",
+  "summary_sha256": "db712e3ac0cba24eebec503d44856e1d0e95219319b00bba65bc70d755e81153",
+  "terminal_fes": 3000000
+}

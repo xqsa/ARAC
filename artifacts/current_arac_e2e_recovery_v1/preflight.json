@@ -1,0 +1,29 @@
+{
+  "output_root": "E:\\ARAC\\artifacts\\current_arac_e2e_recovery_v1",
+  "passed": true,
+  "production_hcc_runtime_imports": [],
+  "protocol_sha256": "91fedd891c19f56093e466ec1c6d17546a26607905bdf45b60f4534ee5f796a4",
+  "schema_version": "arac-current-arac-e2e-recovery-preflight-v1",
+  "selector_execution_allowed": false,
+  "source_sha256": {
+    "experiments/historical_recovery/current_arac_e2e_recovery.py": "1fb2f72bad1d33eaebbf6ab183dc9a365a97a6eb10860113c658672862855d1d",
+    "src/arac/actions/_execution.py": "e52d03480eec77f13f4b1c8e05a481e1997eaab3805ce67ccd386451deaa63b7",
+    "src/arac/actions/aor.py": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805",
+    "src/arac/actions/ctp.py": "a10847d65f39a564b5b16c1d592e14a6f2837c1adc537cce9154e5f059a7f3a4",
+    "src/arac/actions/gcb.py": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d",
+    "src/arac/actions/registry.py": "aec04994b287d0c419b893e8189ec12e4fafc0be9fcee9b56c23cb47d5118c06",
+    "src/arac/actions/smp.py": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "src/arac/core.py": "7147f00b15497ae8181632d910e760d5ed7c4e5bf3371aabd59d1767010b839e",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/runtime/contracts.py": "fee9484be85605526b0b73a790311879b0ec922974235ef2c32e6f026631646a",
+    "src/arac/runtime/ledger.py": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5",
+    "vendor/aob/AOB/AOB.py": "f230bf4fc5de5feaa8ee0e809653fb6bfdd4a8f9e3528f8d671b4d5e4de9d42c",
+    "vendor/aob/AOB/AOBG/datafile/F1-R100.txt": "22c9442a3bd16987b36c65d2abc238fb24f96d8eb9554f40b68168be3485e8d6",
+    "vendor/aob/AOB/AOBG/datafile/F1-R25.txt": "3fceb383eb2282a55e0e40dbd8e795acc93a10d80227b6175dffaf8b73070567",
+    "vendor/aob/AOB/AOBG/datafile/F1-R50.txt": "061cf7fed413cc66472d0b8f61a11c5f9a29c1a1be2aa79fa48c667490337ed6",
+    "vendor/aob/AOB/AOBG/datafile/F1-info.txt": "685c25443b17a068aad4519df5101bde55eaf12018a918c71e85e51741fbb686",
+    "vendor/aob/AOB/AOBG/datafile/F1-p.txt": "921f7ce3dec321c0491d64e39151534991bbd620930d2a9990a0e0d167f7919f",
+    "vendor/aob/AOB/AOBG/datafile/F1-s.txt": "d2d1290770797cfd2246fc443a659abefa3d22f2025959c2a0899b73c02545d7",
+    "vendor/aob/AOB/elliptic.py": "adaea7bf6c822bc60ef8d3a3f05e3a408c2dee7896177e8ef8844d0f30d894a9"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "checkpoint_sha256": "3ef0d6f2e3123070a64d271e928cab61bae8e6139d4250cae39417458b4f5932",
+  "historical_action_sha256": "ddbb8e7cbc341556ae88e0e3eea777a69802e8e1e11b474bffadadb1e217728f",
+  "manifest_sha256": "986c89540294158c23c4c51b4d924f577648b556a16d28abd740802ce7b6487b",
+  "production_hcc_runtime_imports": [],
+  "protocol": {
+    "acceptance_gates": {
+      "exact_screen_step_fes": true,
+      "native_thread_limit_verified": true,
+      "production_source_unchanged": true,
+      "runtime_warnings_empty": true,
+      "same_screen_checkpoint": true,
+      "same_source_checkpoint": true,
+      "selector_evaluation": false,
+      "terminal_parity": false
+    },
+    "case_id": "E1",
+    "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+    "historical_action": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+    "max_workers": 3,
+    "native_threads": 1,
+    "output_root": "artifacts/smp_semantic_parity_diagnostic_v1",
+    "phase1_fes": 180000,
+    "production_hcc_dependency_allowed": false,
+    "purpose": "decompose current SMP semantics against EXP-052 evidence on one common checkpoint",
+    "restart_note": "native restart on is a diagnostic adapter option only; the current manual session loop does not call CMAES.optimize restart_reinitialize",
+    "run_seed": 117,
+    "schema_version": "arac-smp-semantic-parity-diagnostic-protocol-v1",
+    "screen_step_fes": 120000,
+    "selector_execution_allowed": false,
+    "status": "frozen_short_prefix",
+    "variants": [
+      "schedule_only",
+      "stateful_only",
+      "stateful_prefix_no_rescue",
+      "stateful_plus_rescue",
+      "current_complete_smp",
+      "stateful_native_restart_on"
+    ]
+  },
+  "protocol_sha256": "36f6203c00fc34c2fe3e785fe89789ec5516308d17ce70416490d74c0afcad6e",
+  "receipt_hashes": [
+    "24c96128f4cfba5d27dcfb64c5b5720ff2ac82381162bf078ff1f01f966e68c7",
+    "9394a383eb81c7792cd107dd5b27fed85b7e9f01fdb8902fc152e90eab3119d8",
+    "cc6cf90fccd9e3d9770152aa18b36fcde68bc60cb393d35bfa6b2add05c0bd12",
+    "e4926afcdca52ca385cc5171c93dd1d989cd571236435d3f09485e348a9a3645",
+    "f1e7f8f39dd23c3536fbafef6c33411dda0156332f2d2d1b7484c7465ccb4b74",
+    "f7551c9c48a8c6508b0fa9054407f8b4663b3ed575a404f7586f21c27f6f91d8"
+  ],
+  "schema_version": "arac-smp-semantic-parity-diagnostic-manifest-v1",
+  "selector_execution_allowed": false,
+  "source_hashes": {
+    "experiments/historical_recovery/smp_semantic_parity_diagnostic.py": "883f1c1bf361b2d85e726c7700a85df9524328f6ecdcefdc8748fe17495a3bce",
+    "experiments/historical_recovery/smp_semantic_parity_diagnostic_protocol.json": "36f6203c00fc34c2fe3e785fe89789ec5516308d17ce70416490d74c0afcad6e",
+    "src/arac/actions/_execution.py": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "src/arac/actions/smp.py": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "src/arac/runtime/ledger.py": "d2cbc0d3536c3a7d1f4ff0eafb88e0e643e5081e0687e8483624333e5cffa513"
+  }
+}

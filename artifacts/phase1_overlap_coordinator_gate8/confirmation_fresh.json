@@ -1,0 +1,79 @@
+{
+  "adapter_ready": true,
+  "checkpoint_hash": "b6dd4953300d448f3a254897c4e95cd66e691f2de95ac31588a212ca03b4f03a",
+  "components": [
+    {
+      "accepted": false,
+      "best_error_after": 6.0776212818091345e-05,
+      "best_error_before": 6.0776212818091345e-05,
+      "candidate_count": 3,
+      "component": [
+        0,
+        1
+      ],
+      "consumed_fes": 3,
+      "residual_variables": [
+        2
+      ],
+      "shared_variables": [
+        2
+      ]
+    },
+    {
+      "accepted": false,
+      "best_error_after": 6.0776212818091345e-05,
+      "best_error_before": 6.0776212818091345e-05,
+      "candidate_count": 3,
+      "component": [
+        97,
+        98
+      ],
+      "consumed_fes": 3,
+      "residual_variables": [
+        102
+      ],
+      "shared_variables": [
+        102
+      ]
+    }
+  ],
+  "dimension": 1000,
+  "gate_checks": {
+    "adapter_ready": true,
+    "all_shared_variables_consumed": true,
+    "phase2_budget_not_exhausted": true,
+    "strict_best_preserved": true,
+    "two_overlap_components_consumed": true
+  },
+  "gate_passed": true,
+  "groups": [
+    [
+      0,
+      1,
+      2
+    ],
+    [
+      2,
+      3,
+      4
+    ],
+    [
+      100,
+      101,
+      102
+    ],
+    [
+      102,
+      103,
+      104
+    ]
+  ],
+  "phase1_fes": 180000,
+  "phase2_budget": 2820000,
+  "phase2_ledger_count_after_coordination": 180006,
+  "schema_version": "arac-phase1-overlap-coordinator-gate8-v1",
+  "shared_variables": [
+    2,
+    102
+  ]
+}

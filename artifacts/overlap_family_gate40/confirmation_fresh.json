@@ -1,0 +1,590 @@
+{
+  "cells": [
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 65.98079017359926,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 65.98079017359926,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 65.98079017359925,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "dispatch": {
+        "action_counts": {
+          "coordinate_ctp": 1
+        },
+        "dispatch_count": 1,
+        "dispatch_fes": 32,
+        "escalations": 0,
+        "gained_count": 1,
+        "gained_fes": 32,
+        "max_hub_degree": 2,
+        "reason_counts": {
+          "pairwise_topology": 1
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 116.69391797382862,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 116.69391797382862,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 116.6939179738286,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "dispatch": {
+        "action_counts": {
+          "coordinate_ctp": 1
+        },
+        "dispatch_count": 1,
+        "dispatch_fes": 32,
+        "escalations": 0,
+        "gained_count": 1,
+        "gained_fes": 32,
+        "max_hub_degree": 2,
+        "reason_counts": {
+          "pairwise_topology": 1
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 65.15283968216734,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 65.15283968216734,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 65.15283968216734,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "dispatch": {
+        "action_counts": {
+          "joint_ctp": 1
+        },
+        "dispatch_count": 1,
+        "dispatch_fes": 32,
+        "escalations": 0,
+        "gained_count": 0,
+        "gained_fes": 0,
+        "max_hub_degree": 3,
+        "reason_counts": {
+          "complex_topology": 1
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 112.90923914995867,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 112.90923914995867,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 112.90923914995867,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "dispatch": {
+        "action_counts": {
+          "joint_ctp": 2
+        },
+        "dispatch_count": 2,
+        "dispatch_fes": 64,
+        "escalations": 0,
+        "gained_count": 0,
+        "gained_fes": 0,
+        "max_hub_degree": 3,
+        "reason_counts": {
+          "complex_topology": 2
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 26445192.95958261,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 26445192.95958261,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 26445192.95958261,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "dispatch": {
+        "action_counts": {},
+        "dispatch_count": 0,
+        "dispatch_fes": 0,
+        "escalations": 0,
+        "gained_count": 0,
+        "gained_fes": 0,
+        "max_hub_degree": 0,
+        "reason_counts": {}
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 4607879.009397579,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 4607879.009397579,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 4607879.009397579,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "dispatch": {
+        "action_counts": {},
+        "dispatch_count": 0,
+        "dispatch_fes": 0,
+        "escalations": 0,
+        "gained_count": 0,
+        "gained_fes": 0,
+        "max_hub_degree": 0,
+        "reason_counts": {}
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 134064.3249357528,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 134064.3249357528,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 134064.3249357528,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "dispatch": {
+        "action_counts": {},
+        "dispatch_count": 0,
+        "dispatch_fes": 0,
+        "escalations": 0,
+        "gained_count": 0,
+        "gained_fes": 0,
+        "max_hub_degree": 0,
+        "reason_counts": {}
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 821918.1463182636,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 821918.1463182636,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 821918.1463182636,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "dispatch": {
+        "action_counts": {},
+        "dispatch_count": 0,
+        "dispatch_fes": 0,
+        "escalations": 0,
+        "gained_count": 0,
+        "gained_fes": 0,
+        "max_hub_degree": 0,
+        "reason_counts": {}
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 130.51357763358962,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 130.51357763358962,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 130.51357763358962,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "dispatch": {
+        "action_counts": {
+          "coordinate_ctp": 2
+        },
+        "dispatch_count": 2,
+        "dispatch_fes": 64,
+        "escalations": 0,
+        "gained_count": 2,
+        "gained_fes": 64,
+        "max_hub_degree": 2,
+        "reason_counts": {
+          "pairwise_topology": 2
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 186.60423465964894,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 186.604234659649,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 186.60423465964894,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "dispatch": {
+        "action_counts": {
+          "coordinate_ctp": 3,
+          "joint_cmaes_escalation": 1
+        },
+        "dispatch_count": 4,
+        "dispatch_fes": 128,
+        "escalations": 1,
+        "gained_count": 3,
+        "gained_fes": 96,
+        "max_hub_degree": 2,
+        "reason_counts": {
+          "pairwise_topology": 3,
+          "persistent_escalation": 1
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 103.64100892376982,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 103.64100892376982,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 103.64100892376983,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "dispatch": {
+        "action_counts": {
+          "joint_ctp": 2
+        },
+        "dispatch_count": 2,
+        "dispatch_fes": 64,
+        "escalations": 0,
+        "gained_count": 2,
+        "gained_fes": 64,
+        "max_hub_degree": 3,
+        "reason_counts": {
+          "complex_topology": 2
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 208.40928985686628,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "persistent_ctp": {
+          "final_error": 208.4092898568663,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 208.40928985686628,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "dispatch": {
+        "action_counts": {
+          "joint_cmaes_escalation": 1,
+          "joint_ctp": 3
+        },
+        "dispatch_count": 4,
+        "dispatch_fes": 128,
+        "escalations": 1,
+        "gained_count": 3,
+        "gained_fes": 96,
+        "max_hub_degree": 3,
+        "reason_counts": {
+          "complex_topology": 3,
+          "persistent_escalation": 1
+        }
+      },
+      "dispatch_consumption_parity": true,
+      "envelope_no_encroachment": true,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    }
+  ],
+  "gate_passed": true,
+  "protocol": {
+    "aob24_audit_source": "artifacts/aob24_overlap_applicability_audit/audit.json",
+    "calibration_source": "artifacts/overlap_family_calibration_gate40/calibration.json",
+    "cell_count": 12,
+    "comparison_tolerance": 1e-09,
+    "dispatch_config": {
+      "complex_hub_degree": 3,
+      "complex_hub_ratio": 0.9,
+      "cooldown_cycles": 1,
+      "escalation_streak": 6,
+      "hub_mode": "relative",
+      "persistent_streak": 2,
+      "stall_cap": 2
+    },
+    "families": [
+      "ackley",
+      "elliptic",
+      "schwefel"
+    ],
+    "gate_seed": 20260832,
+    "neighborhood_fes": 32,
+    "phase1_fes": 180000,
+    "refresh_cycles": 16,
+    "topologies": [
+      "chain",
+      "star"
+    ],
+    "total_budget_fes": 3000000,
+    "workers": 4
+  },
+  "protocol_checks": {
+    "adapter_ready_all": true,
+    "cell_count_12": true,
+    "dispatch_consumption_parity": true,
+    "envelope_no_encroachment": true,
+    "phase1_exact": true,
+    "strict_best": true,
+    "terminal_exact": true
+  },
+  "schema_version": "arac-overlap-family-gate40-screen-v1",
+  "screening_checks": {
+    "chain_positive_where_potential": true,
+    "not_worse_than_persistent_ctp_all": true,
+    "star_no_regression_all": true,
+    "win_or_tie_vs_proposal_ge_0_75": true
+  },
+  "summary": {
+    "chain_gains": [
+      -1.4210854715202004e-14,
+      -1.4210854715202004e-14,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "dispatch_total_count": 17,
+    "dispatch_total_fes": 544,
+    "star_gains": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.4210854715202004e-14,
+      0.0
+    ],
+    "vs_persistent_ctp_min_gain": 0.0,
+    "vs_proposal_min_gain": -1.4210854715202004e-14,
+    "vs_proposal_win_or_tie": 1.0
+  }
+}

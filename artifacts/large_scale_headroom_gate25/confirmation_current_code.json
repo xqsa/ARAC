@@ -1,0 +1,110 @@
+{
+  "arms": [
+    {
+      "accepted_rounds": [],
+      "arbitration_fes": 4,
+      "arm": "current_ctp",
+      "checkpoint_error": 553.9440228586699,
+      "consumed_fes": 292,
+      "continuation_fes": 32,
+      "final_error": 443.26872734067115,
+      "proposal_fes": 256,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "strict_best": true,
+      "trace_rounds": 0
+    },
+    {
+      "accepted_rounds": [
+        0,
+        4,
+        8,
+        12
+      ],
+      "arbitration_fes": 4,
+      "arm": "full_context",
+      "checkpoint_error": 553.9440228586699,
+      "consumed_fes": 292,
+      "continuation_fes": 32,
+      "final_error": 442.2991215629139,
+      "proposal_fes": 256,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "strict_best": true,
+      "trace_rounds": 16
+    },
+    {
+      "accepted_rounds": [],
+      "arbitration_fes": 4,
+      "arm": "owner_full",
+      "checkpoint_error": 553.9440228586699,
+      "consumed_fes": 292,
+      "continuation_fes": 32,
+      "final_error": 427.9864170987402,
+      "proposal_fes": 256,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "strict_best": true,
+      "trace_rounds": 0
+    }
+  ],
+  "discovered_components": [
+    [
+      0,
+      1,
+      2,
+      3
+    ]
+  ],
+  "gate_checks": {
+    "adapter_ready": true,
+    "arbitration_parity": true,
+    "continuation_parity": true,
+    "discovery_complete": true,
+    "full_no_worse_current": true,
+    "full_no_worse_owner": false,
+    "full_trace": true,
+    "phase1_boundary": true,
+    "proposal_coverage": true,
+    "proposal_fes_parity": true,
+    "shared_recall": true,
+    "strict_best": true
+  },
+  "gate_passed": false,
+  "inferred_shared_variables": [
+    5,
+    10,
+    15
+  ],
+  "protocol": {
+    "continuation_fes": 32,
+    "dimension": 1000,
+    "phase1_fes": 180000,
+    "proposal_budget_fes": 64,
+    "total_budget_fes": 3000000
+  },
+  "schema_version": "arac-large-scale-headroom-gate25-v1",
+  "selected_component": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "truth_shared_variables_audit_only": [
+    5,
+    10,
+    15
+  ]
+}

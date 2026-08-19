@@ -1,0 +1,61 @@
+{
+  "action_checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "action_seed": 117,
+  "allow_out_of_bounds": true,
+  "case_id_audit_metadata": "R1",
+  "checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "checkpoint_reproduced": true,
+  "consumed_fes": 2820000,
+  "e2e_lane_passed": false,
+  "expected_action": "gcb",
+  "expected_checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "final_error": 167292.67126028266,
+  "historical_level_passed": true,
+  "historical_p90": 176367.0467002794,
+  "largest_component_fraction": 0.0,
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "receipt_hash": "c73a473ffc0fd2d8de05c203e34d6b03f58264c2c34d043507a1c38ffe2c02ac",
+  "relation_count": 0,
+  "result_hash": "d7a2e20b5551e59132af10d17ea2460146597e1f9a5e2bd5b1a66bcb33d3a3df",
+  "route": "recovered_stateful_visits_2819990_visits_673_stale_resets_209_noop_10",
+  "run_seed": 117,
+  "runtime_warnings": [],
+  "schema_version": "arac-recovered-core-e2e-receipt-v1",
+  "selected_action": "smp",
+  "selection_match": false,
+  "selection_reason": "complete_zero_relation_blocks",
+  "selection_scores": [
+    [
+      "ctp",
+      0.0
+    ],
+    [
+      "smp",
+      1.0
+    ],
+    [
+      "gcb",
+      0.0
+    ],
+    [
+      "aor",
+      0.0
+    ]
+  ],
+  "selector_fallback_used": false,
+  "structural_inference_complete": true,
+  "terminal_fes": 3000000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    }
+  ]
+}

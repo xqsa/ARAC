@@ -1,0 +1,930 @@
+{
+  "source": "HCC paper (GECCO 2025) results table, user-provided 24结果.docx",
+  "extracted": "2026-08-17",
+  "methods": [
+    "DG2-CMAES",
+    "Random-CMAES",
+    "RDG3-CMAES",
+    "RDDSM-CMAES",
+    "Sep-CMAES",
+    "LM-MA-ES",
+    "LMCMA",
+    "MM-ES",
+    "HCC-ES"
+  ],
+  "note": "significance_vs_hcc: (+) HCC better, (-) method better, (≈) tie -- markers as printed in the paper table",
+  "functions": {
+    "E1": {
+      "DG2-CMAES": {
+        "mean": 3150000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 980000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 3130000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 2880000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 562000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 381000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 86900000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 16000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 2840000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "E2": {
+      "DG2-CMAES": {
+        "mean": 227000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 356000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 672000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 634000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 543000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 340000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 95400000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 17700000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 6870000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "E3": {
+      "DG2-CMAES": {
+        "mean": 238000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 545000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 202000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 207000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 697000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 432000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 140000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 19900000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 16000000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "E4": {
+      "DG2-CMAES": {
+        "mean": 270000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 475000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 6350000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 4860000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 489000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 489000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 113000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 19000000.0,
+        "significance_vs_hcc": "-"
+      },
+      "HCC-ES": {
+        "mean": 22600000.0,
+        "significance_vs_hcc": "-"
+      }
+    },
+    "E5": {
+      "DG2-CMAES": {
+        "mean": 286000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 723000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 12900000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 11000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 745000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 461000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 163000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 24800000.0,
+        "significance_vs_hcc": "-"
+      },
+      "HCC-ES": {
+        "mean": 7760000.0,
+        "significance_vs_hcc": "-"
+      }
+    },
+    "E6": {
+      "DG2-CMAES": {
+        "mean": 320000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 519000000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 38800000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 34200000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 792000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 471000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 144000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 26200000.0,
+        "significance_vs_hcc": "-"
+      },
+      "HCC-ES": {
+        "mean": 43200000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "S1": {
+      "DG2-CMAES": {
+        "mean": 0.00198,
+        "significance_vs_hcc": "-"
+      },
+      "Random-CMAES": {
+        "mean": 967000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 0.00137,
+        "significance_vs_hcc": "-"
+      },
+      "RDDSM-CMAES": {
+        "mean": 0.00146,
+        "significance_vs_hcc": "-"
+      },
+      "Sep-CMAES": {
+        "mean": 5060000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 222000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 550000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 16700.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 0.00192,
+        "significance_vs_hcc": "-"
+      }
+    },
+    "S2": {
+      "DG2-CMAES": {
+        "mean": 467000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 1040000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 792000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 81000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 2630000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 220000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 776000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 13000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 5580.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "S3": {
+      "DG2-CMAES": {
+        "mean": 457000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 997000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 7600000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 2480000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 4140000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 243000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 489000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 19100.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 9720.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "S4": {
+      "DG2-CMAES": {
+        "mean": 543000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 844000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 203000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 28800000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 3140000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 254000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 535000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 15000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 1240.0,
+        "significance_vs_hcc": "-"
+      }
+    },
+    "S5": {
+      "DG2-CMAES": {
+        "mean": 683000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 1320000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 88400000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 6770000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 2140000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 301000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 1320000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 18700.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 9230.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "S6": {
+      "DG2-CMAES": {
+        "mean": 701000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 1060000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 90100000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 6010000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 2860000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 226000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 738000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 13300.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 66500.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "R1": {
+      "DG2-CMAES": {
+        "mean": 187000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 407000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 174000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 176000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 203000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 792000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 3550000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 1360000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 174000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "R2": {
+      "DG2-CMAES": {
+        "mean": 43900000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 796000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 1470000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 302000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 248000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 830000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 2170000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 1390000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 372000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "R3": {
+      "DG2-CMAES": {
+        "mean": 44300000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 1060000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 957000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 616000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 328000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 885000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 2970000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 1340000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 506000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "R4": {
+      "DG2-CMAES": {
+        "mean": 46100000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 1390000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 2600000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 793000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 320000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 897000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 2360000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 1480000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 559000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "R5": {
+      "DG2-CMAES": {
+        "mean": 52500000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 684000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 2050000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 1250000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 248000.0,
+        "significance_vs_hcc": "-"
+      },
+      "LM-MA-ES": {
+        "mean": 950000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 4050000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 1520000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 684000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "R6": {
+      "DG2-CMAES": {
+        "mean": 58600000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 1410000000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 3850000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 1300000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 266000.0,
+        "significance_vs_hcc": "-"
+      },
+      "LM-MA-ES": {
+        "mean": 957000.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 3030000.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 1680000.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 815000.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "A1": {
+      "DG2-CMAES": {
+        "mean": 77600.0,
+        "significance_vs_hcc": "-"
+      },
+      "Random-CMAES": {
+        "mean": 79300.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 77600.0,
+        "significance_vs_hcc": "-"
+      },
+      "RDDSM-CMAES": {
+        "mean": 77600.0,
+        "significance_vs_hcc": "-"
+      },
+      "Sep-CMAES": {
+        "mean": 78100.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 78400.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 79400.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 79400.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 77600.0,
+        "significance_vs_hcc": "-"
+      }
+    },
+    "A2": {
+      "DG2-CMAES": {
+        "mean": 80900.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 79700.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 80700.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 78200.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 78100.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 78600.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 78600.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 78300.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 78100.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "A3": {
+      "DG2-CMAES": {
+        "mean": 81000.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 79800.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 81200.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 78100.0,
+        "significance_vs_hcc": "≈"
+      },
+      "Sep-CMAES": {
+        "mean": 78000.0,
+        "significance_vs_hcc": "-"
+      },
+      "LM-MA-ES": {
+        "mean": 78400.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 79200.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 78500.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 78600.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "A4": {
+      "DG2-CMAES": {
+        "mean": 81200.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 79600.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 79000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 78300.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 78400.0,
+        "significance_vs_hcc": "+"
+      },
+      "LM-MA-ES": {
+        "mean": 78500.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 78700.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 78900.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 78300.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "A5": {
+      "DG2-CMAES": {
+        "mean": 81400.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 80000.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 79900.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 78500.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 78200.0,
+        "significance_vs_hcc": "-"
+      },
+      "LM-MA-ES": {
+        "mean": 78400.0,
+        "significance_vs_hcc": "≈"
+      },
+      "LMCMA": {
+        "mean": 80600.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 78700.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 78500.0,
+        "significance_vs_hcc": "+"
+      }
+    },
+    "A6": {
+      "DG2-CMAES": {
+        "mean": 81300.0,
+        "significance_vs_hcc": "+"
+      },
+      "Random-CMAES": {
+        "mean": 79600.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDG3-CMAES": {
+        "mean": 79100.0,
+        "significance_vs_hcc": "+"
+      },
+      "RDDSM-CMAES": {
+        "mean": 78200.0,
+        "significance_vs_hcc": "+"
+      },
+      "Sep-CMAES": {
+        "mean": 78000.0,
+        "significance_vs_hcc": "≈"
+      },
+      "LM-MA-ES": {
+        "mean": 78400.0,
+        "significance_vs_hcc": "+"
+      },
+      "LMCMA": {
+        "mean": 79900.0,
+        "significance_vs_hcc": "+"
+      },
+      "MM-ES": {
+        "mean": 78900.0,
+        "significance_vs_hcc": "+"
+      },
+      "HCC-ES": {
+        "mean": 78000.0,
+        "significance_vs_hcc": "≈"
+      }
+    }
+  }
+}

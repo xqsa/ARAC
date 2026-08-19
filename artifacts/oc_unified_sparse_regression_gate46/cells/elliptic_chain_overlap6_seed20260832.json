@@ -1,0 +1,50 @@
+{
+  "result": {
+    "adapter_ready": true,
+    "arms": {
+      "coordinator": {
+        "final_error": 4607879.009397579,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "oc_unified": {
+        "final_error": 4607769.67381869,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    "cell": {
+      "base_function": "elliptic",
+      "overlap_budget": 6,
+      "seed": 20260832,
+      "topology": "chain"
+    },
+    "checkpoint_hash": "82f87c1d558160765b25ad15bf8dbb66e6a7d725e0895563cd762c496f613931",
+    "gate40_frozen": {
+      "coordinator": 4607879.009397579,
+      "persistent_ctp": 4607879.009397579,
+      "proposal_neighborhood": 4607879.009397579
+    },
+    "kernel_envelope_no_encroachment": true,
+    "kernel_receipt_parity": true,
+    "kernel_reproduces_gate40": true,
+    "layer": "repro",
+    "phase1_fes": 180000,
+    "sense_budget_fes": 9787,
+    "truth_shared_count": 6,
+    "unified_action_counts": {
+      "arbitration_only": 4,
+      "none": 12
+    },
+    "unified_budget_flow": {
+      "arbitration": 12,
+      "operator": 0,
+      "probe": 48,
+      "sense": 704664,
+      "tail": 2115276
+    },
+    "unified_receipt_parity": true,
+    "unified_state_hash_chain": true
+  },
+  "schema_version": "arac-oc-unified-gate46-cell-v1"
+}

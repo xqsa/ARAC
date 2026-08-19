@@ -1,0 +1,38 @@
+{
+  "result": {
+    "arm": "oc_unified",
+    "cell": {
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "seed": 20260838,
+      "topology": "chain"
+    },
+    "checkpoint_hash": "c223c1be73b0e2ea0310c0583a174c5eb462ed6259126cfffc05b1f9e5f86995",
+    "layer": 2,
+    "phase1_fes": 180000,
+    "result": {
+      "action_counts": {
+        "arbitration_only": 1,
+        "ctp_restricted": 2,
+        "none": 13
+      },
+      "budget_flow": {
+        "arbitration": 108,
+        "operator": 16,
+        "probe": 36,
+        "sense": 2818656,
+        "smp": 512,
+        "tail": 768
+      },
+      "final_error": 279.7027016153955,
+      "operator_fes": 16,
+      "receipt_parity": true,
+      "smp_fes": 512,
+      "state_hash_chain": true,
+      "strict_best": true,
+      "terminal_fes": 3000000
+    },
+    "truth_shared_count": 6
+  },
+  "schema_version": "arac-oc-streak-gate47b-cell-v1"
+}

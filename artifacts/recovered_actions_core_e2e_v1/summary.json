@@ -1,0 +1,62 @@
+{
+  "checkpoint_reproduction_count": 4,
+  "core_gate_passed": false,
+  "e2e_lane_pass_count": 1,
+  "execution_integrity_passed": true,
+  "historical_level_pass_count": 4,
+  "lane_count": 4,
+  "rows": [
+    {
+      "case_id_audit_metadata": "A1",
+      "checkpoint_reproduced": true,
+      "e2e_lane_passed": false,
+      "expected_action": "aor",
+      "final_error": 77822.7810005195,
+      "historical_level_passed": true,
+      "historical_p90": 78098.55697849873,
+      "receipt_hash": "98e3b3bf1156427f7e471e65deb3a6caa10e5eb40b3cba61fc0b948b2342ceb1",
+      "selected_action": "ctp",
+      "selection_match": false
+    },
+    {
+      "case_id_audit_metadata": "E1",
+      "checkpoint_reproduced": true,
+      "e2e_lane_passed": true,
+      "expected_action": "smp",
+      "final_error": 2.7812810315273853e-07,
+      "historical_level_passed": true,
+      "historical_p90": 1.8255606813339802,
+      "receipt_hash": "b73a2030db2740cab5d059c8d9204f96b04268ae2f4147ce63c41ca9a8787cb0",
+      "selected_action": "smp",
+      "selection_match": true
+    },
+    {
+      "case_id_audit_metadata": "R1",
+      "checkpoint_reproduced": true,
+      "e2e_lane_passed": false,
+      "expected_action": "gcb",
+      "final_error": 167292.67126028266,
+      "historical_level_passed": true,
+      "historical_p90": 176367.0467002794,
+      "receipt_hash": "c73a473ffc0fd2d8de05c203e34d6b03f58264c2c34d043507a1c38ffe2c02ac",
+      "selected_action": "smp",
+      "selection_match": false
+    },
+    {
+      "case_id_audit_metadata": "S1",
+      "checkpoint_reproduced": true,
+      "e2e_lane_passed": false,
+      "expected_action": "ctp",
+      "final_error": 8.957871648103003e-16,
+      "historical_level_passed": true,
+      "historical_p90": 0.03184487388259503,
+      "receipt_hash": "b831e47d01a380a353bd01b14e2048da6de10c54c42d564ef465ff309d63cccb",
+      "selected_action": "smp",
+      "selection_match": false
+    }
+  ],
+  "schema_version": "arac-recovered-core-e2e-summary-v1",
+  "selection_match_count": 1,
+  "selector_fallback_used": false,
+  "summary_hash": "299a1fc0d57665b3eb30c213164ae16059d44864c49e2fe6d1d943d74f42d05b"
+}

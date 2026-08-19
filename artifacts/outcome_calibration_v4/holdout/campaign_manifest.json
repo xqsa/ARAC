@@ -1,0 +1,66 @@
+{
+  "actions": [
+    "ctp",
+    "smp",
+    "gcb",
+    "aor"
+  ],
+  "campaign_kind": "outcome_matrix",
+  "cases": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "config_sha256": "0380ceb13708914f48a04fe65a53a84d9add38fb12d3da7820945fbc205b7e87",
+  "manifest_sha256": "f72918cf04131bb0075c45ae8562dbdefc2d81d54df3de5f1e5461be43716a2c",
+  "max_fes": 3000000,
+  "phase1_protocol": "arac-identity-blind-evidence-v8",
+  "schema_version": "arac-independent-campaign-manifest-v1",
+  "seeds": [
+    147
+  ],
+  "selector_hashes": {},
+  "source_hashes": {
+    "action_execution": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "action_registry": "b5c3dc4cf3928dec165d41d03a5a540cf902ebdb1dda5350bb9a49afa528b44a",
+    "aor": "c1cdbf00c9c1c8344b2d106fe199b80bfc000142e3cdd4f92fd40ea6f609b1d2",
+    "benchmark": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "contracts": "2f53adf12c797155e5970733782ca78117e58eba0a1909db30e49d95acf3e012",
+    "ctp": "61b787d37d898558b43b02d9c139d54687a3688436b58c58f6a831bedda5975e",
+    "experiment": "807b2a109b872a2e72ca6aa7a7682d3c669edb36ba5fa4dba53c1bf80e7c8ad7",
+    "gcb": "6b9254de241840b4890aba493f0e5c02d1e38c89e95f1fdcb099653f38854c1a",
+    "ledger": "0f23335824d59bbca69f8e816c609e3e70b0805e143175f368b9a3f7691c1ba7",
+    "optimizers": "d8d98f58d4922c94b4561979901e41f102cda0209f493098c6b3d1e2f0893288",
+    "phase1": "093978aaeddf1541cef428d3b0829274d4be244d40dfad8737defb4e2c5cc1cf",
+    "selector": "54eb257feeef396e4e854f9ec4601a86a34a70040cf9030ceeacdbfd2c7dbd8b",
+    "smp": "deb6d12bbb27b21f026e73bd326d230c2643bae9c4432ee29884499c2650cbfe",
+    "structural_evidence": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2"
+  },
+  "vendor_trees": {
+    "vendor/aob": {
+      "file_count": 74,
+      "tree_sha256": "7582a8d05fef02197058d05fbb6e355f5906f5ead79679af182881b901b8e678"
+    }
+  }
+}

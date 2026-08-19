@@ -1,0 +1,42 @@
+{
+  "schema_version": "arac-gcb-schedule-ablation-protocol-v2",
+  "status": "frozen_paired_development_gate",
+  "purpose": "measure the causal effect of restoring three source sweeps, a last-sweep-FE burst, continuous stage seeds, and fresh native continuation on shared Phase-I checkpoints",
+  "cases": [
+    "R1",
+    "R3",
+    "R6"
+  ],
+  "seeds": [
+    31001,
+    31002,
+    31003
+  ],
+  "variants": [
+    "gcb_frozen_current",
+    "gcb_three_source_burst_native"
+  ],
+  "total_budget_fes": 3000000,
+  "expected_phase1_fes": 180000,
+  "source_window_fraction": 0.08,
+  "source_sweep_count": 3,
+  "native_window_count": 3,
+  "native_threads": 1,
+  "max_workers": 18,
+  "output_root": "artifacts/gcb_schedule_ablation_v2",
+  "legacy_source": "artifacts/historical_recovery_fixed_expert_v1/frozen_protocol/sources/gcb.py",
+  "legacy_source_sha256": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d",
+  "production_hcc_runtime_imports_allowed": false,
+  "selector_execution_allowed": false,
+  "reference_thresholds_used_for_decision": false,
+  "acceptance_gates": {
+    "same_checkpoint_per_pair": true,
+    "exact_terminal_fes": true,
+    "all_final_errors_finite": true,
+    "candidate_schedule_trace_valid": true,
+    "per_case_geometric_mean_ratio_lt": 1.0,
+    "overall_candidate_win_count_gte": 6,
+    "maximum_pair_ratio_lte": 10.0,
+    "all_runtime_warnings_known": true
+  }
+}

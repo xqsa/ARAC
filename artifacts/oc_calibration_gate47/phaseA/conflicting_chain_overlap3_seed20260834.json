@@ -1,0 +1,35 @@
+{
+  "result": {
+    "cell": {
+      "mode": "conflicting",
+      "overlap_budget": 3,
+      "seed": 20260834,
+      "topology": "chain"
+    },
+    "checkpoint_hash": "cf5139fcb1f1193456967fd2fa891fbd0a830c7a5e5b7e1c939ff7fc77a427c7",
+    "phase": "A",
+    "phase1_fes": 180000,
+    "truth_shared_count": 3,
+    "unified": {
+      "action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "budget_flow": {
+        "arbitration": 32,
+        "operator": 0,
+        "probe": 48,
+        "sense": 1409352,
+        "tail": 1410568
+      },
+      "final_error": 258.3347209926241,
+      "max_probe_c": 0.16096301052108533,
+      "operator_fes": 0,
+      "receipt_parity": true,
+      "state_hash_chain": true,
+      "strict_best": true,
+      "terminal_fes": 3000000
+    }
+  },
+  "schema_version": "arac-oc-calibration-gate47-cell-v1"
+}

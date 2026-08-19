@@ -1,0 +1,10 @@
+{
+  "completed": 600,
+  "failed": 0,
+  "failures": {},
+  "max_workers": 24,
+  "pending": 0,
+  "planned": 600,
+  "schema_version": "arac-current-arac-aob24-recovery-progress-v1",
+  "updated_at_utc": "2026-08-11T02:21:28.754363+00:00"
+}

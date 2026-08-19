@@ -1,0 +1,411 @@
+{
+  "all_runtime_warnings_known": true,
+  "arm_count": 27,
+  "diagnostic_gate_passed": false,
+  "final_25_seed_recovery_evaluated": false,
+  "generated_at_utc": "2026-08-11T08:30:50.289193+00:00",
+  "integrity_gate_passed": true,
+  "passing_variants": [],
+  "production_gcb_integration_authorized": false,
+  "runtime_warning_context_count": 3,
+  "runtime_warning_count": 24,
+  "runtime_warning_counts_by_action": {
+    "unknown": 24
+  },
+  "schema_version": "arac-gcb-native-contract-diagnostic-summary-v1",
+  "selector_or_routing_authorized": false,
+  "summary_sha256": "f3e927a8bde27c85cf405b179fe1ec45ac35e712b37d36c1c8d4b9f7ddc8d663",
+  "unexpected_runtime_warning_count": 0,
+  "variant_summaries": [
+    {
+      "case_summaries": [
+        {
+          "case_id": "R1",
+          "frozen_current_geometric_mean_ratio": 1.0215802162706553,
+          "parent_geometric_mean_ratio": 0.9499919682797565,
+          "parent_win_or_tie_count": 2,
+          "passed": false
+        },
+        {
+          "case_id": "R3",
+          "frozen_current_geometric_mean_ratio": 1.2693620882491334,
+          "parent_geometric_mean_ratio": 1.077879264622149,
+          "parent_win_or_tie_count": 1,
+          "passed": false
+        },
+        {
+          "case_id": "R6",
+          "frozen_current_geometric_mean_ratio": 1.0465631225033103,
+          "parent_geometric_mean_ratio": 1.1190523049185739,
+          "parent_win_or_tie_count": 1,
+          "passed": false
+        }
+      ],
+      "maximum_parent_ratio": 1.3902838200405776,
+      "pairs": [
+        {
+          "candidate_final_error": 151423.30129407326,
+          "candidate_to_frozen_current_ratio": 1.0822980212704614,
+          "candidate_to_parent_ratio": 0.9950939080791088,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R1",
+          "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+          "frozen_current_final_error": 139909.0623082949,
+          "parent_final_error": 152169.86061785364,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 307058.9709887883,
+          "candidate_to_frozen_current_ratio": 1.6838083905119678,
+          "candidate_to_parent_ratio": 1.1231227239005128,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R3",
+          "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+          "frozen_current_final_error": 182359.8057350373,
+          "parent_final_error": 273397.52322203736,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 416351.9835954409,
+          "candidate_to_frozen_current_ratio": 0.9806178852069041,
+          "candidate_to_parent_ratio": 1.3902838200405776,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R6",
+          "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+          "frozen_current_final_error": 424581.2664405905,
+          "parent_final_error": 299472.65270143835,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 123303.82047562915,
+          "candidate_to_frozen_current_ratio": 0.7017920420841196,
+          "candidate_to_parent_ratio": 0.6977274509158298,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R1",
+          "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+          "frozen_current_final_error": 175698.51620068593,
+          "parent_final_error": 176722.04284607383,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 298348.2236233148,
+          "candidate_to_frozen_current_ratio": 0.881238314717974,
+          "candidate_to_parent_ratio": 0.9242144121574339,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R3",
+          "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+          "frozen_current_final_error": 338555.66495516745,
+          "parent_final_error": 322812.7799120418,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 414676.68024691177,
+          "candidate_to_frozen_current_ratio": 1.1622717891339454,
+          "candidate_to_parent_ratio": 1.0500511681964093,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R6",
+          "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+          "frozen_current_final_error": 356781.16265379183,
+          "parent_final_error": 394910.9270162229,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 189053.34258811807,
+          "candidate_to_frozen_current_ratio": 1.4036606266502347,
+          "candidate_to_parent_ratio": 1.2348378224984589,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R1",
+          "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+          "frozen_current_final_error": 134685.93404894767,
+          "parent_final_error": 153099.73434860026,
+          "run_seed": 31003
+        },
+        {
+          "candidate_final_error": 340227.72813424503,
+          "candidate_to_frozen_current_ratio": 1.3783849704252764,
+          "candidate_to_parent_ratio": 1.2064529821454484,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R3",
+          "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+          "frozen_current_final_error": 246830.70073614758,
+          "parent_final_error": 282006.6203733977,
+          "run_seed": 31003
+        },
+        {
+          "candidate_final_error": 360780.203163564,
+          "candidate_to_frozen_current_ratio": 1.0057470699478002,
+          "candidate_to_parent_ratio": 0.9599248339056836,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R6",
+          "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+          "frozen_current_final_error": 358718.6221504866,
+          "parent_final_error": 375842.139322142,
+          "run_seed": 31003
+        }
+      ],
+      "parent_win_or_tie_count": 4,
+      "performance_gate_passed": false,
+      "variant": "native_order_no_clip"
+    },
+    {
+      "case_summaries": [
+        {
+          "case_id": "R1",
+          "frozen_current_geometric_mean_ratio": 1.0623718717661528,
+          "parent_geometric_mean_ratio": 0.9879251080140237,
+          "parent_win_or_tie_count": 2,
+          "passed": false
+        },
+        {
+          "case_id": "R3",
+          "frozen_current_geometric_mean_ratio": 1.1776462696551986,
+          "parent_geometric_mean_ratio": 0.9999987449379607,
+          "parent_win_or_tie_count": 2,
+          "passed": false
+        },
+        {
+          "case_id": "R6",
+          "frozen_current_geometric_mean_ratio": 0.9373559875436716,
+          "parent_geometric_mean_ratio": 1.0022810433841307,
+          "parent_win_or_tie_count": 2,
+          "passed": false
+        }
+      ],
+      "maximum_parent_ratio": 1.0095220535251084,
+      "pairs": [
+        {
+          "candidate_final_error": 152166.74280506096,
+          "candidate_to_frozen_current_ratio": 1.0876117693488345,
+          "candidate_to_parent_ratio": 0.9999795109703064,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R1",
+          "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+          "frozen_current_final_error": 139909.0623082949,
+          "parent_final_error": 152169.86061785364,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 273396.49383077014,
+          "candidate_to_frozen_current_ratio": 1.499214658234535,
+          "candidate_to_parent_ratio": 0.9999962348186074,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R3",
+          "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+          "frozen_current_final_error": 182359.8057350373,
+          "parent_final_error": 273397.52322203736,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 302324.2473297676,
+          "candidate_to_frozen_current_ratio": 0.7120527240032394,
+          "candidate_to_parent_ratio": 1.0095220535251084,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R6",
+          "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+          "frozen_current_final_error": 424581.2664405905,
+          "parent_final_error": 299472.65270143835,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 176722.10065147383,
+          "candidate_to_frozen_current_ratio": 1.0058258001998077,
+          "candidate_to_parent_ratio": 1.0000003270978484,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R1",
+          "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+          "frozen_current_final_error": 175698.51620068593,
+          "parent_final_error": 176722.04284607383,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 322812.77991204185,
+          "candidate_to_frozen_current_ratio": 0.9534998622893807,
+          "candidate_to_parent_ratio": 1.0000000000000002,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R3",
+          "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+          "frozen_current_final_error": 338555.66495516745,
+          "parent_final_error": 322812.7799120418,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 394312.70385042374,
+          "candidate_to_frozen_current_ratio": 1.1051948508645093,
+          "candidate_to_parent_ratio": 0.9984851693764994,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R6",
+          "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+          "frozen_current_final_error": 356781.16265379183,
+          "parent_final_error": 394910.9270162229,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 147623.42012556345,
+          "candidate_to_frozen_current_ratio": 1.0960566978873534,
+          "candidate_to_parent_ratio": 0.9642304132901529,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R1",
+          "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+          "frozen_current_final_error": 134685.93404894767,
+          "parent_final_error": 153099.73434860026,
+          "run_seed": 31003
+        },
+        {
+          "candidate_final_error": 282006.6203733977,
+          "candidate_to_frozen_current_ratio": 1.1425103098291318,
+          "candidate_to_parent_ratio": 1.0,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R3",
+          "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+          "frozen_current_final_error": 246830.70073614758,
+          "parent_final_error": 282006.6203733977,
+          "run_seed": 31003
+        },
+        {
+          "candidate_final_error": 375419.29633077275,
+          "candidate_to_frozen_current_ratio": 1.046556473929809,
+          "candidate_to_parent_ratio": 0.9988749452306442,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R6",
+          "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+          "frozen_current_final_error": 358718.6221504866,
+          "parent_final_error": 375842.139322142,
+          "run_seed": 31003
+        }
+      ],
+      "parent_win_or_tie_count": 6,
+      "performance_gate_passed": false,
+      "variant": "native_order_precheck"
+    },
+    {
+      "case_summaries": [
+        {
+          "case_id": "R1",
+          "frozen_current_geometric_mean_ratio": 1.0215841927275695,
+          "parent_geometric_mean_ratio": 0.9499956660825042,
+          "parent_win_or_tie_count": 2,
+          "passed": false
+        },
+        {
+          "case_id": "R3",
+          "frozen_current_geometric_mean_ratio": 1.269339675874898,
+          "parent_geometric_mean_ratio": 1.0778602331466676,
+          "parent_win_or_tie_count": 1,
+          "passed": false
+        },
+        {
+          "case_id": "R6",
+          "frozen_current_geometric_mean_ratio": 1.0316627812662014,
+          "parent_geometric_mean_ratio": 1.1031199059577006,
+          "parent_win_or_tie_count": 1,
+          "passed": false
+        }
+      ],
+      "maximum_parent_ratio": 1.3801468557396523,
+      "pairs": [
+        {
+          "candidate_final_error": 151423.09527957285,
+          "candidate_to_frozen_current_ratio": 1.0822965487818534,
+          "candidate_to_parent_ratio": 0.9950925542334815,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R1",
+          "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+          "frozen_current_final_error": 139909.0623082949,
+          "parent_final_error": 152169.86061785364,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 307058.9709887883,
+          "candidate_to_frozen_current_ratio": 1.6838083905119678,
+          "candidate_to_parent_ratio": 1.1231227239005128,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R3",
+          "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+          "frozen_current_final_error": 182359.8057350373,
+          "parent_final_error": 273397.52322203736,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 413316.24000590306,
+          "candidate_to_frozen_current_ratio": 0.9734679145664481,
+          "candidate_to_parent_ratio": 1.3801468557396523,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R6",
+          "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+          "frozen_current_final_error": 424581.2664405905,
+          "parent_final_error": 299472.65270143835,
+          "run_seed": 31001
+        },
+        {
+          "candidate_final_error": 123305.42810182157,
+          "candidate_to_frozen_current_ratio": 0.7018011919974324,
+          "candidate_to_parent_ratio": 0.6977365478353003,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R1",
+          "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+          "frozen_current_final_error": 175698.51620068593,
+          "parent_final_error": 176722.04284607383,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 298336.9585441524,
+          "candidate_to_frozen_current_ratio": 0.8812050407830543,
+          "candidate_to_parent_ratio": 0.9241795155242662,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R3",
+          "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+          "frozen_current_final_error": 338555.66495516745,
+          "parent_final_error": 322812.7799120418,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 399840.2305712445,
+          "candidate_to_frozen_current_ratio": 1.1206876158964583,
+          "candidate_to_parent_ratio": 1.0124820642271544,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R6",
+          "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+          "frozen_current_final_error": 356781.16265379183,
+          "parent_final_error": 394910.9270162229,
+          "run_seed": 31002
+        },
+        {
+          "candidate_final_error": 189053.34259329093,
+          "candidate_to_frozen_current_ratio": 1.4036606266886416,
+          "candidate_to_parent_ratio": 1.2348378225322465,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R1",
+          "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+          "frozen_current_final_error": 134685.93404894767,
+          "parent_final_error": 153099.73434860026,
+          "run_seed": 31003
+        },
+        {
+          "candidate_final_error": 340222.55303093535,
+          "candidate_to_frozen_current_ratio": 1.378364004219313,
+          "candidate_to_parent_ratio": 1.2064346311460894,
+          "candidate_won_or_tied_parent": false,
+          "case_id": "R3",
+          "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+          "frozen_current_final_error": 246830.70073614758,
+          "parent_final_error": 282006.6203733977,
+          "run_seed": 31003
+        },
+        {
+          "candidate_final_error": 361044.71924854,
+          "candidate_to_frozen_current_ratio": 1.0064844615094377,
+          "candidate_to_parent_ratio": 0.9606286296148425,
+          "candidate_won_or_tied_parent": true,
+          "case_id": "R6",
+          "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+          "frozen_current_final_error": 358718.6221504866,
+          "parent_final_error": 375842.139322142,
+          "run_seed": 31003
+        }
+      ],
+      "parent_win_or_tie_count": 4,
+      "performance_gate_passed": false,
+      "variant": "native_order_no_clip_precheck"
+    }
+  ]
+}

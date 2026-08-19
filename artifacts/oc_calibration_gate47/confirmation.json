@@ -1,0 +1,214 @@
+{
+  "calibration": {
+    "chain": [
+      0.16096301052108533,
+      0.21355264678118938
+    ],
+    "gap_exists": false,
+    "star": [
+      0.2723372425051327,
+      0.1045694773943351
+    ]
+  },
+  "failure": "tau_gap_absent",
+  "gate_passed": false,
+  "phase_a": [
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260834,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "cf5139fcb1f1193456967fd2fa891fbd0a830c7a5e5b7e1c939ff7fc77a427c7",
+      "phase": "A",
+      "phase1_fes": 180000,
+      "truth_shared_count": 3,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 8,
+          "none": 8
+        },
+        "budget_flow": {
+          "arbitration": 32,
+          "operator": 0,
+          "probe": 48,
+          "sense": 1409352,
+          "tail": 1410568
+        },
+        "final_error": 258.3347209926241,
+        "max_probe_c": 0.16096301052108533,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260834,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "763f6d25b2dee2e52c3722daf2411510f874b5ff3c164497ced0522b87e3dac8",
+      "phase": "A",
+      "phase1_fes": 180000,
+      "truth_shared_count": 6,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 8,
+          "none": 8
+        },
+        "budget_flow": {
+          "arbitration": 32,
+          "operator": 0,
+          "probe": 96,
+          "sense": 1409328,
+          "tail": 1410544
+        },
+        "final_error": 489.3616962636639,
+        "max_probe_c": 0.21355264678118938,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260834,
+        "topology": "random"
+      },
+      "checkpoint_hash": "24619955971e377ab564894f279b10ebf0bedc9cf202d44e3619bc73797d9abe",
+      "phase": "A",
+      "phase1_fes": 180000,
+      "truth_shared_count": 2,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 8,
+          "none": 8
+        },
+        "budget_flow": {
+          "arbitration": 32,
+          "operator": 0,
+          "probe": 32,
+          "sense": 1409232,
+          "tail": 1410704
+        },
+        "final_error": 161.13966481965628,
+        "max_probe_c": 0.14032927135746545,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260834,
+        "topology": "random"
+      },
+      "checkpoint_hash": "a857a575528eed0acc31776a91eed765fd105f66dde2f0307f359fc0c3605495",
+      "phase": "A",
+      "phase1_fes": 180000,
+      "truth_shared_count": 5,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 8,
+          "none": 8
+        },
+        "budget_flow": {
+          "arbitration": 32,
+          "operator": 0,
+          "probe": 80,
+          "sense": 1409344,
+          "tail": 1410544
+        },
+        "final_error": 433.0941285333353,
+        "max_probe_c": 0.15864428432654423,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260834,
+        "topology": "star"
+      },
+      "checkpoint_hash": "bf629bf778c696e38e3e7722def8e9f693a9c6f05ee551501dd7835eb1fd326e",
+      "phase": "A",
+      "phase1_fes": 180000,
+      "truth_shared_count": 3,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 8,
+          "none": 8
+        },
+        "budget_flow": {
+          "arbitration": 31,
+          "operator": 0,
+          "probe": 48,
+          "sense": 1409352,
+          "tail": 1410569
+        },
+        "final_error": 270.5899544363987,
+        "max_probe_c": 0.2723372425051327,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260834,
+        "topology": "star"
+      },
+      "checkpoint_hash": "929aa72a8422864d985d61ec440d60ade90ad8895a38dd8da65e4650313ec5fd",
+      "phase": "A",
+      "phase1_fes": 180000,
+      "truth_shared_count": 6,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 8,
+          "none": 8
+        },
+        "budget_flow": {
+          "arbitration": 32,
+          "operator": 0,
+          "probe": 96,
+          "sense": 1409328,
+          "tail": 1410544
+        },
+        "final_error": 503.9843156778035,
+        "max_probe_c": 0.1045694773943351,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    }
+  ],
+  "protocol": {
+    "phase_a_seed": 20260834,
+    "phase_b_seed": 20260835
+  },
+  "schema_version": "arac-oc-calibration-gate47-v1"
+}

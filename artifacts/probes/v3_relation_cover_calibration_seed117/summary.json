@@ -1,0 +1,13 @@
+{
+  "arm_count": 64,
+  "label_counts": {
+    "aor": 2,
+    "ctp": 1,
+    "gcb": 2,
+    "smp": 11
+  },
+  "labels_derived_from_action_outcomes": true,
+  "max_fes": 3000000,
+  "record_count": 16,
+  "schema_version": "arac-outcome-campaign-summary-v1"
+}

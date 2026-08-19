@@ -1,0 +1,68 @@
+{
+  "checks": {
+    "A3_off_complete": true,
+    "A3_on_complete": true,
+    "R2_off_complete": true,
+    "R2_on_complete": true,
+    "R6_off_complete": true,
+    "R6_on_complete": true,
+    "S5_off_complete": true,
+    "S5_on_complete": true
+  },
+  "failures": [],
+  "manifest_hash": "sha256:03fdf33847207ee6d291728c6bf5ab1fd8e7c4c714853c9887c91d1458b83ece",
+  "mechanism": {
+    "adaptive_lock_counts": {
+      "A3": {
+        "off": 0,
+        "on": 0
+      },
+      "R2": {
+        "off": 1,
+        "on": 0
+      },
+      "R6": {
+        "off": 1,
+        "on": 0
+      },
+      "S5": {
+        "off": 1,
+        "on": 1
+      }
+    }
+  },
+  "passed": true,
+  "protocol": {
+    "arms": [
+      "on",
+      "off"
+    ],
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "total_fes": 600000
+  },
+  "scheduler_version": "v5.1",
+  "schema_version": "arac-oc-gate51a-v5.1",
+  "summary": {
+    "A3": {
+      "off": 78823.85215654335,
+      "on": 78828.88168208805
+    },
+    "R2": {
+      "off": 1838396.2050586576,
+      "on": 1260556.7495871184
+    },
+    "R6": {
+      "off": 1967995.9529437511,
+      "on": 1967995.9529437511
+    },
+    "S5": {
+      "off": 9636347.83595109,
+      "on": 8381347.338389845
+    }
+  }
+}

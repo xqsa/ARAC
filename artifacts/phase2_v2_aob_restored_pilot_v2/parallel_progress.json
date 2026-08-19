@@ -1,0 +1,13 @@
+{
+  "completed_contexts": 7,
+  "completed_receipts": 21,
+  "failed_contexts": 1,
+  "failures": {
+    "aob_E1_s20261212": "RuntimeError: restored pilot failed receipt cannot resume: 009_aob_E1_s20261212_probe_commit_v2.json"
+  },
+  "max_workers": 8,
+  "pending_contexts": 0,
+  "planned_contexts": 8,
+  "planned_receipts": 24,
+  "updated_at_utc": "2026-08-09T06:49:02.466760+00:00"
+}

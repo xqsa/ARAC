@@ -1,0 +1,32 @@
+{
+  "result": {
+    "arm": "ctp",
+    "case_id": "R6",
+    "checkpoint_hash": "8603ea2e1b8eb445521b7571d532fe51e13565c116d4dd4b5ed439c2df43093a",
+    "elapsed_seconds": 3149.4071635,
+    "manifest_hash": "sha256:266f22f873f69833b60c04663c4e61f4c2538a306f52a8cd77279458eea585b7",
+    "reference": {
+      "gate50_final_error": 1394582.841189002,
+      "gate50_terminal_fes": 3000000,
+      "overflow_reference_error": 1387733.0631064237
+    },
+    "result": {
+      "final_error": 1387733.0631064237,
+      "route": "phase2_v2_coverage_then_polish",
+      "segments": [
+        {
+          "consumed_fes": 2820000,
+          "cumulative_phase2_fes": 2820000,
+          "error_after": 1387733.0631064237,
+          "error_before": 15631511.41896857,
+          "requested_fes": 2820000,
+          "segment_index": 0,
+          "state_hash": "b740f7eb7bb8613b81830ff5ac0dd4a2885c9ad14f00bd5b84d670f85ea0af30"
+        }
+      ],
+      "terminal_fes": 3000000
+    },
+    "segment_fes": 2820000
+  },
+  "schema_version": "arac-oc-gate51b-cell-v1"
+}

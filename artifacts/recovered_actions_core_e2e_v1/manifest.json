@@ -1,0 +1,22 @@
+{
+  "fixed_action_summary_sha256": "4fdf632f080a3fa9f68f12ac608f5f4109c8c7b4f7ac7b189c8e6e0d931bf464",
+  "manifest_hash": "d66af83f8be4cd46375ec426dd47a49e68a2ac6170c5ed99a30862828afca060",
+  "protocol_sha256": "9f0275deacb960f75a6c5f3f85b1157952840618e9cce4854e42f96a9db651cf",
+  "schema_version": "arac-recovered-core-e2e-manifest-v1",
+  "selector_execution_allowed": true,
+  "selector_fallback_allowed": false,
+  "source_sha256": {
+    "experiments/historical_recovery/recovered_actions_phase1_integration.py": "ca78d6172d77726b6183183ae2b8f608f95450d507db901e98e03981a77931aa",
+    "src/arac/actions/_execution.py": "f8125a17e4a2598c94e6a36d16d83e72bfe3cd1522d31240b0f1d4c6f04b8cfe",
+    "src/arac/actions/ctp.py": "0d413c47205d447750c528da43c07efada0c20bdd8305c160026b757192fe256",
+    "src/arac/actions/gcb.py": "454fe2bf43854729d110983e7bb0d127acdd59116cb33d6320a28b2465299497",
+    "src/arac/actions/recovered.py": "bbe8f9a9bd855c0645414e62e5078d901bbc835e965201718da695d422568107",
+    "src/arac/actions/recovered_registry.py": "8ad28d874651d4c19b7ad938e8823d05dcfc8e5c0a151883a0e0b27fd746b7de",
+    "src/arac/core.py": "642e69c2e94e7966421cd164111c1ec02cb914d56d63c1bf746d2b2ac1b8a8b5",
+    "src/arac/evidence/mechanism_features.py": "a0ed388c36f4be89f8429121b0d389f34ac49244354ca4158b4c686b1506e720",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/evidence/structural.py": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2",
+    "src/arac/runtime/contracts.py": "7fce0173b1e0a167d6f002f9c34b820a6439b1131efe092c6537a80385b9db92",
+    "src/arac/runtime/ledger.py": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5"
+  }
+}

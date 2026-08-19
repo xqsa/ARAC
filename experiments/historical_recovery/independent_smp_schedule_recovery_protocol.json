@@ -1,0 +1,91 @@
+{
+  "schema_version": "arac-independent-smp-schedule-recovery-protocol-v1",
+  "status": "frozen_design_not_run",
+  "case_id": "E1",
+  "checkpoint_seed": 117,
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "trace_step_fes": 120000,
+  "native_threads": 1,
+  "historical_p90": 1.8255606813339802,
+  "checkpoint": {
+    "path": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+    "sha256": "3ef0d6f2e3123070a64d271e928cab61bae8e6139d4250cae39417458b4f5932"
+  },
+  "historical_reference": {
+    "action_path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+    "action_sha256": "ddbb8e7cbc341556ae88e0e3eea777a69802e8e1e11b474bffadadb1e217728f",
+    "run_summary_path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/run_summary.json",
+    "run_summary_sha256": "afea40838190a78c70cd312a860b57396cd00170de921c5c99d26b0cf9769ea1",
+    "execution_receipt_path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/exp052_execution_receipt.json",
+    "execution_receipt_sha256": "7d78a99a053689dd1baed7f5c5026836ed9d73b75cc314b5e6aef334ccc11740",
+    "budget_summary_path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/E1_budget_summary.csv",
+    "budget_summary_sha256": "6f291db30a67b3253999d6d9fcb463c181bf3b36cfa26c8c2d43153653b3fa95",
+    "runner_sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+    "exact_runner_source_available": false,
+    "record_count": 165,
+    "restore_count": 122,
+    "reset_count": 36,
+    "group_count": 20,
+    "min_visits_per_group": 8,
+    "max_visits_per_group": 9,
+    "cc_phase_fes": 2999831,
+    "seed117_final_error": 5.983267874603139e-7
+  },
+  "historical_distribution": [
+    {
+      "seed": 117,
+      "final_error": 5.983267874603139e-7,
+      "path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/run_summary.json",
+      "sha256": "afea40838190a78c70cd312a860b57396cd00170de921c5c99d26b0cf9769ea1"
+    },
+    {
+      "seed": 118,
+      "final_error": 7.69314257650053e-6,
+      "path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_118/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed118/elliptic/run_summary.json",
+      "sha256": "ab159c61268ec0b3de334e5f7c735c51e14690647c187ac36d75e0e3225a7817"
+    },
+    {
+      "seed": 119,
+      "final_error": 4.999709267686309e-6,
+      "path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_119/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed119/elliptic/run_summary.json",
+      "sha256": "bb9e981d4112ec71665698535578a95037c4ab118946e83b0a61e2058725255d"
+    },
+    {
+      "seed": 120,
+      "final_error": 3.2826649696473606e-8,
+      "path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_120/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed120/elliptic/run_summary.json",
+      "sha256": "59157d652d491e1c8287e108494cb0a0bcbea378bf6a3f99336c26b91e4c0aee"
+    },
+    {
+      "seed": 121,
+      "final_error": 1.8255606813339802,
+      "path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_121/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed121/elliptic/run_summary.json",
+      "sha256": "351229cdcd3b6eea1592c0dc94023bca28cfe50eb52eebaff5668441224709d1"
+    }
+  ],
+  "schedule_contract": {
+    "visit_granularity": "one_long_optimizer_run_per_group_per_outer_sweep",
+    "requested_fes_rule": "ceil(sweep_start_remaining_fes / group_count)",
+    "population_alignment": "floor(min(requested_fes, remaining_fes) / population_size) * population_size",
+    "early_stopping_evaluations": 1000,
+    "mean_rule": "incumbent_slice_at_visit_start",
+    "state_persistence": "full_dense_cma_distribution_and_rng",
+    "material_log_gain": 0.009950330853168092,
+    "stale_window": 3,
+    "reset_rule": "discard_full_group_optimizer_after_three_stale_group_visits",
+    "tail_rule": "strict_best_noop_fill_below_one_population"
+  },
+  "trace_gate": {
+    "minimum_median_population_batches_per_visit": 10,
+    "maximum_terminal_visits_per_group": 32,
+    "require_optimizer_identity_continuity": true,
+    "require_state_digest_continuity": true,
+    "require_restart_identity_change": true
+  },
+  "trace_output_root": "artifacts/independent_smp_schedule_recovery_trace_v1",
+  "terminal_output_root": "artifacts/independent_smp_schedule_recovery_terminal_v1",
+  "production_hcc_dependency_allowed": false,
+  "production_smp_modification_allowed": false,
+  "selector_execution_allowed": false
+}

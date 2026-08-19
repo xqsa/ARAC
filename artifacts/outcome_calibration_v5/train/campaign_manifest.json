@@ -1,0 +1,109 @@
+{
+  "actions": [
+    "ctp",
+    "smp",
+    "gcb",
+    "aor"
+  ],
+  "amendments": [
+    {
+      "accepted_vendor_tree": {
+        "file_count": 67,
+        "tree_sha256": "ac757555b4f3dd4311cc847d9b3cb38205a555cc4cf2037877eb5b7346c1d24c"
+      },
+      "change": "vendor_tree_re_frozen",
+      "date": "2026-08-17",
+      "evidence": [
+        "tests/test_vendor_perf_patch_bitwise.py",
+        "artifacts/vendor_perf_patch_20260817/golden_reference.npy"
+      ],
+      "original_vendor_tree": {
+        "file_count": 67,
+        "tree_sha256": "9af372d908f9f6996efc91f0859789bdfdb53f1d904576e8c732c42f3deede31"
+      },
+      "reason": "AOB performance patch (hot-loop constant precompute + fitness_record default off); outputs bitwise identical to the original tree"
+    }
+  ],
+  "campaign_kind": "outcome_matrix",
+  "cases": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "config_sha256": "731cd1d9f8f54712aa3763e9007b0dbd792e2752d13b493ae8acf820213c4313",
+  "manifest_sha256": "09ed17d51630637fb628896c5ac4c322cc7cb52376f7035b1aff2509a64d344a",
+  "max_fes": 3000000,
+  "phase1_protocol": "arac-identity-blind-evidence-v8",
+  "schema_version": "arac-independent-campaign-manifest-v1",
+  "seeds": [
+    20260901,
+    20260902,
+    20260903,
+    20260904,
+    20260905,
+    20260906,
+    20260907,
+    20260908,
+    20260909,
+    20260910,
+    20260911,
+    20260912,
+    20260913,
+    20260914,
+    20260915,
+    20260916,
+    20260917,
+    20260918,
+    20260919,
+    20260920,
+    20260921,
+    20260922,
+    20260923,
+    20260924,
+    20260925
+  ],
+  "selector_hashes": {},
+  "source_hashes": {
+    "action_execution": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "action_registry": "b5c3dc4cf3928dec165d41d03a5a540cf902ebdb1dda5350bb9a49afa528b44a",
+    "aor": "c1cdbf00c9c1c8344b2d106fe199b80bfc000142e3cdd4f92fd40ea6f609b1d2",
+    "benchmark": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "contracts": "2f53adf12c797155e5970733782ca78117e58eba0a1909db30e49d95acf3e012",
+    "ctp": "61b787d37d898558b43b02d9c139d54687a3688436b58c58f6a831bedda5975e",
+    "experiment": "e1e6f66bf562a00700cd237a98c34cbfb13e3e804fe18b6afddac976bb177bac",
+    "gcb": "6b9254de241840b4890aba493f0e5c02d1e38c89e95f1fdcb099653f38854c1a",
+    "ledger": "0f23335824d59bbca69f8e816c609e3e70b0805e143175f368b9a3f7691c1ba7",
+    "optimizers": "d8d98f58d4922c94b4561979901e41f102cda0209f493098c6b3d1e2f0893288",
+    "phase1": "093978aaeddf1541cef428d3b0829274d4be244d40dfad8737defb4e2c5cc1cf",
+    "selector": "b29f6f9b074333c2c9ff6c0f0f149a6d8b2cf184a88361255110a893df15f45f",
+    "smp": "deb6d12bbb27b21f026e73bd326d230c2643bae9c4432ee29884499c2650cbfe",
+    "structural_evidence": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2"
+  },
+  "vendor_trees": {
+    "vendor/aob": {
+      "file_count": 67,
+      "tree_sha256": "ac757555b4f3dd4311cc847d9b3cb38205a555cc4cf2037877eb5b7346c1d24c"
+    }
+  }
+}

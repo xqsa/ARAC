@@ -1,0 +1,5612 @@
+{
+  "cell_summary": [
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 6,
+      "topology": "random"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 12,
+      "topology": "random"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 6,
+      "topology": "chain"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 12,
+      "topology": "chain"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 6,
+      "topology": "star"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 12,
+      "topology": "star"
+    }
+  ],
+  "context_count": 60,
+  "contexts": [
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23369.512946284955,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23321.08471921812,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 48.42822706683364,
+      "mixture_vs_full_owner_gain": -953.0381705733416,
+      "mixture_vs_shared_owner_gain": -65.75672073277747,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 22368.04654864478,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23255.327998485343,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6081.8868855906385,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6221.806519318135,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -139.91963372749615,
+      "mixture_vs_full_owner_gain": 17.47047936313811,
+      "mixture_vs_shared_owner_gain": -325.5325467843477,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6239.276998681273,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5896.273972533787,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9108.404017201212,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9306.899322666273,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -198.4953054650614,
+      "mixture_vs_full_owner_gain": -339.8179977363361,
+      "mixture_vs_shared_owner_gain": -122.00883235197398,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8967.081324929937,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9184.8904903143,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4892.583690935757,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4844.057365829109,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 48.52632510664807,
+      "mixture_vs_full_owner_gain": 388.65543393708685,
+      "mixture_vs_shared_owner_gain": 155.66396895372327,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5232.7127997661955,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4999.721334782832,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27331.866479137905,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27823.8446367071,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -491.9781575691959,
+      "mixture_vs_full_owner_gain": -32.62579002410348,
+      "mixture_vs_shared_owner_gain": 675.454920674907,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27791.218846682998,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28499.299557382008,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8833.926281837157,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9374.605176332407,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -540.6788944952496,
+      "mixture_vs_full_owner_gain": 364.02819451828327,
+      "mixture_vs_shared_owner_gain": 135.1333772853668,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9738.63337085069,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9509.738553617774,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12126.537360870669,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12268.395843075865,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -141.8584822051962,
+      "mixture_vs_full_owner_gain": 58.873693775933134,
+      "mixture_vs_shared_owner_gain": 22.689855305154197,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12327.269536851798,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12291.085698381019,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6061.00044780371,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6858.235817692718,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -797.2353698890083,
+      "mixture_vs_full_owner_gain": 0.3856030934530281,
+      "mixture_vs_shared_owner_gain": -581.4073636478479,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6858.621420786171,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6276.82845404487,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12583.92524722514,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12375.474031925103,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 208.45121530003598,
+      "mixture_vs_full_owner_gain": 15.87165465666294,
+      "mixture_vs_shared_owner_gain": 253.02259362011318,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12391.345686581766,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12628.496625545216,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4548.146098359344,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4548.146098359344,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 0.0,
+      "mixture_vs_full_owner_gain": -167.09376089799116,
+      "mixture_vs_shared_owner_gain": -170.46075577120155,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4381.052337461353,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4377.685342588143,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 40961.7553852988,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 41401.48874535411,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -439.7333600553102,
+      "mixture_vs_full_owner_gain": -897.9570192271422,
+      "mixture_vs_shared_owner_gain": -760.8563088548835,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 40503.53172612697,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 40640.632436499225,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 32177.49953582526,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28724.721576955508,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 3452.777958869752,
+      "mixture_vs_full_owner_gain": 2572.10251153876,
+      "mixture_vs_shared_owner_gain": 23.636120385726826,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31296.824088494268,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28748.357697341235,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31085.17188387715,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 32580.84705957817,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -1495.6751757010206,
+      "mixture_vs_full_owner_gain": -1047.9092023185513,
+      "mixture_vs_shared_owner_gain": -1579.3420149032463,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31532.937857259618,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31001.505044674923,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20090.825303815618,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20655.95781599328,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -565.1325121776608,
+      "mixture_vs_full_owner_gain": 240.33775032081758,
+      "mixture_vs_shared_owner_gain": -213.80125854960352,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20896.295566314097,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20442.156557443675,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 58795.336298197246,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 59526.51151762928,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -731.1752194320361,
+      "mixture_vs_full_owner_gain": 1576.2258671263553,
+      "mixture_vs_shared_owner_gain": -2456.0628271036912,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 61102.73738475564,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 57070.44869052559,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47486.5973591815,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45183.75462801872,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 2302.8427311627747,
+      "mixture_vs_full_owner_gain": 2946.43755832281,
+      "mixture_vs_shared_owner_gain": -960.7102195527332,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 48130.192186341534,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 44223.04440846599,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23220.026677306545,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 22023.38313377095,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 1196.643543535596,
+      "mixture_vs_full_owner_gain": -31.043207914670347,
+      "mixture_vs_shared_owner_gain": -727.2147598379779,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 21992.33992585628,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 21296.16837393297,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12254.297855153984,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 14144.205423224575,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -1889.9075680705919,
+      "mixture_vs_full_owner_gain": 2789.070798341134,
+      "mixture_vs_shared_owner_gain": -1555.0816564076194,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16933.27622156571,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12589.123766816956,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45866.03775906346,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47991.19369557657,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -2125.1559365131106,
+      "mixture_vs_full_owner_gain": -2038.8031593796695,
+      "mixture_vs_shared_owner_gain": -220.39777989966387,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45952.3905361969,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47770.79591567691,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16959.481560544496,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 14005.80677556236,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 2953.6747849821368,
+      "mixture_vs_full_owner_gain": 2844.6381863098068,
+      "mixture_vs_shared_owner_gain": -222.5136548988612,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16850.444961872166,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13783.293120663498,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33714.06164982295,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33307.11065079165,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 406.95099903130176,
+      "mixture_vs_full_owner_gain": -1402.7874985143208,
+      "mixture_vs_shared_owner_gain": 406.95099903130176,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31904.323152277328,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33714.06164982295,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10288.660335175366,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10387.081507548308,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -98.42117237294224,
+      "mixture_vs_full_owner_gain": -1173.6743118871927,
+      "mixture_vs_shared_owner_gain": -1777.4656057606226,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9213.407195661115,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8609.615901787685,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16715.217677947934,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16374.816826864577,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 340.40085108335734,
+      "mixture_vs_full_owner_gain": -13.452779062823538,
+      "mixture_vs_shared_owner_gain": 363.1704215705231,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16361.364047801753,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16737.9872484351,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        7,
+        8,
+        10
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4767.806149171263,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4816.4794685688885,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -48.673319397625164,
+      "mixture_vs_full_owner_gain": -140.48443081471942,
+      "mixture_vs_shared_owner_gain": -129.39276444428833,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4675.995037754169,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4687.0867041246,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        7,
+        8,
+        10
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 3,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 24034.033590464598,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 22927.837507889017,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 1106.1960825755814,
+      "mixture_vs_full_owner_gain": 179.93427725134097,
+      "mixture_vs_shared_owner_gain": -338.15065415017307,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 23107.771785140358,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 22589.686853738844,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 3,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 8683.436799437835,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 7646.264710156964,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 1037.1720892808717,
+      "mixture_vs_full_owner_gain": -1076.7409350022463,
+      "mixture_vs_shared_owner_gain": -1426.1882511560434,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 6569.523775154717,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 6220.07645900092,
+        "probe_fes": 6,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12826.961937214395,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13597.725375196747,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -770.7634379823521,
+      "mixture_vs_full_owner_gain": -1064.0498525780422,
+      "mixture_vs_shared_owner_gain": -757.2699429415406,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12533.675522618705,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12840.455432255207,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10593.731171302163,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9806.795430292117,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 786.9357410100456,
+      "mixture_vs_full_owner_gain": 2249.3844964878444,
+      "mixture_vs_shared_owner_gain": 1112.6006424836778,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12056.179926779962,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10919.396072775795,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27578.71816711874,
+        "probe_fes": 4,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27047.350555734134,
+        "probe_fes": 4,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 531.367611384605,
+      "mixture_vs_full_owner_gain": -362.6164169083204,
+      "mixture_vs_shared_owner_gain": 87.32238408616104,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 26684.734138825814,
+        "probe_fes": 4,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27134.672939820295,
+        "probe_fes": 4,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6660.999648634819,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6790.798718942837,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -129.7990703080177,
+      "mixture_vs_full_owner_gain": -757.5060774492576,
+      "mixture_vs_shared_owner_gain": -231.47231442004158,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6033.292641493579,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6559.326404522795,
+        "probe_fes": 4,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39248.07441709728,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 35782.03319143762,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 3466.041225659661,
+      "mixture_vs_full_owner_gain": 55.450548611166596,
+      "mixture_vs_shared_owner_gain": -900.6169345954404,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 35837.48374004879,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 34881.41625684218,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45942.56619109336,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47721.99394805229,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -1779.4277569589249,
+      "mixture_vs_full_owner_gain": 891.5468645161673,
+      "mixture_vs_shared_owner_gain": -189.15876246482367,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 48613.540812568455,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47532.835185587464,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 46420.44021595626,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45149.1039299042,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 1271.3362860520574,
+      "mixture_vs_full_owner_gain": -2480.5568273956014,
+      "mixture_vs_shared_owner_gain": -1700.724015778207,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 42668.5471025086,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 43448.379914125995,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28563.019275019393,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29528.70320114145,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -965.6839261220557,
+      "mixture_vs_full_owner_gain": -361.62895994025894,
+      "mixture_vs_shared_owner_gain": -1021.2897541406637,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29167.07424120119,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28507.413447000785,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 43303.88555739104,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45288.462660351914,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -1984.5771029608732,
+      "mixture_vs_full_owner_gain": -1181.0814753621453,
+      "mixture_vs_shared_owner_gain": -6212.756403084597,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 44107.38118498977,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39075.70625726732,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 37667.120950307486,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31281.571160501524,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 6385.549789805962,
+      "mixture_vs_full_owner_gain": 3708.4987878930624,
+      "mixture_vs_shared_owner_gain": -2236.1762755228156,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 34990.06994839459,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29045.39488497871,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 34510.171480031815,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 34150.22806742466,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 359.94341260715737,
+      "mixture_vs_full_owner_gain": -786.0308581733843,
+      "mixture_vs_shared_owner_gain": -339.8204361422686,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33364.19720925127,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33810.40763128239,
+        "probe_fes": 4,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30048.074010417276,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 32389.83516298295,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -2341.761152565672,
+      "mixture_vs_full_owner_gain": 1131.918491348879,
+      "mixture_vs_shared_owner_gain": -1100.423825343496,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33521.75365433183,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31289.411337639453,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 58268.223757428335,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 58619.16166324544,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -350.93790581710346,
+      "mixture_vs_full_owner_gain": -621.3891864375182,
+      "mixture_vs_shared_owner_gain": -440.63690288535145,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 57997.77247680792,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 58178.52476036009,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 19271.680368443587,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 18131.59845770542,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 1140.0819107381685,
+      "mixture_vs_full_owner_gain": 5582.500305625756,
+      "mixture_vs_shared_owner_gain": 4015.2328999743113,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23714.098763331174,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 22146.83135767973,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27867.859579157463,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28060.859986549134,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -193.00040739167162,
+      "mixture_vs_full_owner_gain": -381.6247866550184,
+      "mixture_vs_shared_owner_gain": -63.592438381328975,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27679.235199894116,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27997.267548167805,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8211.05171199524,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7927.452455790467,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 283.59925620477316,
+      "mixture_vs_full_owner_gain": 52.65470411276419,
+      "mixture_vs_shared_owner_gain": -769.6890774842423,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7980.107159903231,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7157.763378306225,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13438.200896803726,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 14539.153285797001,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -1100.9523889932752,
+      "mixture_vs_full_owner_gain": -275.06501653855594,
+      "mixture_vs_shared_owner_gain": -4399.946644863761,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 14264.088269258446,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10139.20664093324,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4185.926331710994,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 3697.571668646811,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 488.35466306418357,
+      "mixture_vs_full_owner_gain": 277.06185375076666,
+      "mixture_vs_shared_owner_gain": -469.08099245546737,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 3974.6335223975775,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 3228.4906761913435,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28040.607246771895,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28520.603777953034,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -479.9965311811393,
+      "mixture_vs_full_owner_gain": 934.6094096973138,
+      "mixture_vs_shared_owner_gain": -493.52462136411486,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29455.213187650348,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28027.07915658892,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12450.304542296726,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13308.613781810212,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -858.3092395134863,
+      "mixture_vs_full_owner_gain": -193.35198553550435,
+      "mixture_vs_shared_owner_gain": -6790.5108156622455,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13115.261796274708,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6518.102966147967,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12407.666593770082,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13437.630726118354,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -1029.964132348272,
+      "mixture_vs_full_owner_gain": -834.579146995191,
+      "mixture_vs_shared_owner_gain": -1124.9218941107356,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12603.051579123163,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12312.708832007618,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6481.1396488482005,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7811.593412602748,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -1330.4537637545473,
+      "mixture_vs_full_owner_gain": 616.1890722840362,
+      "mixture_vs_shared_owner_gain": -884.8696219081885,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8427.782484886784,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6926.723790694559,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12295.787094954532,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 11969.56976912936,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 326.21732582517143,
+      "mixture_vs_full_owner_gain": 315.57222240852207,
+      "mixture_vs_shared_owner_gain": 74.28268465785186,
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12285.141991537883,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12043.852453787213,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5222.794084748595,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7382.7521132227275,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -2159.9580284741323,
+      "mixture_vs_full_owner_gain": -752.2474122101985,
+      "mixture_vs_shared_owner_gain": -1958.5964907795342,
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6630.504701012529,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5424.155622443193,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 50741.24617901555,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 51631.87813609695,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -890.6319570814012,
+      "mixture_vs_full_owner_gain": 146.22818631065456,
+      "mixture_vs_shared_owner_gain": -285.75676428615407,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 51778.106322407606,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 51346.1213718108,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31146.59500800423,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31463.875005967988,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -317.2799979637566,
+      "mixture_vs_full_owner_gain": -1088.9515325987159,
+      "mixture_vs_shared_owner_gain": -6344.828046252922,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30374.923473369272,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 25119.046959715066,
+        "probe_fes": 4,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 66411.05329543859,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 68793.4583338589,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -2382.4050384203147,
+      "mixture_vs_full_owner_gain": -1960.0644810331578,
+      "mixture_vs_shared_owner_gain": -3791.976853988097,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 66833.39385282574,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 65001.4814798708,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30213.837655422103,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31196.356444805817,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -982.5187893837137,
+      "mixture_vs_full_owner_gain": -2009.25137387024,
+      "mixture_vs_shared_owner_gain": -4366.923263583427,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29187.105070935577,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 26829.43318122239,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 67170.25859963993,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 73175.2891482474,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -6005.030548607465,
+      "mixture_vs_full_owner_gain": -7436.88076571039,
+      "mixture_vs_shared_owner_gain": -20639.47867672336,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 65738.408382537,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 52535.81047152403,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 35897.007954775094,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 50182.565480207566,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -14285.557525432472,
+      "mixture_vs_full_owner_gain": -46.535919314548664,
+      "mixture_vs_shared_owner_gain": -20107.25090404689,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 50136.02956089302,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30075.314576160676,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30444.78917482126,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30603.748678730706,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -158.95950390944563,
+      "mixture_vs_full_owner_gain": 290.69189895169984,
+      "mixture_vs_shared_owner_gain": -681.6162044438024,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30894.440577682406,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29922.132474286904,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20528.62024758166,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 24090.364968500216,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": -3561.7447209185557,
+      "mixture_vs_full_owner_gain": 1078.375476150628,
+      "mixture_vs_shared_owner_gain": -4789.124926008135,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 25168.740444650844,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 19301.24004249208,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 48722.14683636637,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45223.29185438755,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 3498.854981978824,
+      "mixture_vs_full_owner_gain": -667.5887483351107,
+      "mixture_vs_shared_owner_gain": -5891.675486244181,
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 44555.70310605244,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39331.61636814337,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 11708.711993189107,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "mixture": {
+        "arbitration_fes": 4,
+        "arm": "mixture",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10638.756685933087,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mixture_vs_current_gain": 1069.9553072560193,
+      "mixture_vs_full_owner_gain": 1610.3245588530117,
+      "mixture_vs_shared_owner_gain": -2390.619318094228,
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12249.081244786099,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "owner_shared_core": {
+        "arbitration_fes": 4,
+        "arm": "owner_shared_core",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8248.137367838859,
+        "probe_fes": 4,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star"
+    }
+  ],
+  "gate_checks": {
+    "at_least_two_components": true,
+    "cells_complete": true,
+    "context_count_60": true,
+    "fe_parity": true,
+    "mixture_vs_current_ge_0_60": false,
+    "mixture_vs_shared_owner_ge_0_60": false,
+    "mixture_vs_shared_owner_median_nonnegative": false,
+    "probes_identical": true,
+    "proposals_identical": true,
+    "strict_best": true
+  },
+  "gate_passed": false,
+  "protocol": {
+    "anchor_fes": 4,
+    "anchors": [
+      "incumbent",
+      "weighted_mean",
+      "weighted_median",
+      "owner"
+    ],
+    "contexts": 60,
+    "perturbations_per_anchor": 7,
+    "repair_fes": 32
+  },
+  "schema_version": "arac-overlap-mixture-repair-gate17-v1",
+  "summary": {
+    "mixture_vs_current_median_gain": -175.97995565055862,
+    "mixture_vs_current_win_or_tie": 0.4,
+    "mixture_vs_full_owner_median_gain": -31.834498969386914,
+    "mixture_vs_full_owner_win_or_tie": 0.4666666666666667,
+    "mixture_vs_shared_owner_median_gain": -631.5117840458252,
+    "mixture_vs_shared_owner_win_or_tie": 0.2
+  }
+}

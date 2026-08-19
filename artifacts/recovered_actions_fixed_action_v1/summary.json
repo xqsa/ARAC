@@ -1,0 +1,42 @@
+{
+  "fixed_action_gate_passed": true,
+  "historical_level_pass_count": 4,
+  "lane_count": 4,
+  "rows": [
+    {
+      "action": "ctp",
+      "case_id_audit_metadata": "S1",
+      "final_error": 5.168148355100764e-07,
+      "historical_level_passed": true,
+      "historical_p90": 0.03184487388259503,
+      "receipt_hash": "02c207ca25e931b479e16d5268954fde3705ad38eae3494d425cf9fbcd9fa2f0"
+    },
+    {
+      "action": "smp",
+      "case_id_audit_metadata": "E1",
+      "final_error": 2.7812810315273853e-07,
+      "historical_level_passed": true,
+      "historical_p90": 1.8255606813339802,
+      "receipt_hash": "4145026e28cedd7e915fb4110155b75eed84eb7d429b9d01d9f41278ad8528d7"
+    },
+    {
+      "action": "gcb",
+      "case_id_audit_metadata": "R1",
+      "final_error": 142644.51064973444,
+      "historical_level_passed": true,
+      "historical_p90": 176367.0467002794,
+      "receipt_hash": "f2aa177583c734fa562b2b337b34209d42532838c579b1925f834ba4037f9691"
+    },
+    {
+      "action": "aor",
+      "case_id_audit_metadata": "A1",
+      "final_error": 77957.80539189112,
+      "historical_level_passed": true,
+      "historical_p90": 78098.55697849873,
+      "receipt_hash": "2b6587b26bc5047d48e27b370d5ba693e2242725f8c6df2f28e03921c367fd4d"
+    }
+  ],
+  "schema_version": "arac-recovered-fixed-action-summary-v1",
+  "selector_execution_authorized": true,
+  "summary_hash": "7d13dbc8b80e6013fc65d34c32c13cc79f4420d5542d31f10a31343bc81e6611"
+}

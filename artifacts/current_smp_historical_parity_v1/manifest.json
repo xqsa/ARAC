@@ -1,0 +1,22 @@
+{
+  "created_at_utc": "2026-08-10T14:52:22.266781+00:00",
+  "manifest_sha256": "c53d447458c9f4f86fcafaff96e78d3564a3c65286377bf4b2295d52a84778fc",
+  "preflight_sha256": "dfe034ee9439a005612321ebd140f2e41b93ddcf9a6d5de00f8c20b997723d41",
+  "production_hcc_runtime_imports": [],
+  "protocol_sha256": "cee0f9a83c9cc5372f8f0e3cd0d1d303b27b64344b7f5d410511c30ee0bae52f",
+  "schema_version": "arac-current-smp-historical-manifest-v1",
+  "source_sha256": {
+    "experiments/historical_recovery/current_smp_historical_parity.py": "4c63a3759736c19ac61427bd0c98a0499cfe4111faaa9ec0518f92865b3b024d",
+    "src/arac/actions/_execution.py": "ffacbfd686850cf9fd00cd17837411df2edd9d79bc7a8ef2aa7123726de5a488",
+    "src/arac/runtime/contracts.py": "fee9484be85605526b0b73a790311879b0ec922974235ef2c32e6f026631646a",
+    "vendor/aob/AOB/AOB.py": "f230bf4fc5de5feaa8ee0e809653fb6bfdd4a8f9e3528f8d671b4d5e4de9d42c",
+    "vendor/aob/AOB/AOBG/datafile/F1-R100.txt": "22c9442a3bd16987b36c65d2abc238fb24f96d8eb9554f40b68168be3485e8d6",
+    "vendor/aob/AOB/AOBG/datafile/F1-R25.txt": "3fceb383eb2282a55e0e40dbd8e795acc93a10d80227b6175dffaf8b73070567",
+    "vendor/aob/AOB/AOBG/datafile/F1-R50.txt": "061cf7fed413cc66472d0b8f61a11c5f9a29c1a1be2aa79fa48c667490337ed6",
+    "vendor/aob/AOB/AOBG/datafile/F1-info.txt": "685c25443b17a068aad4519df5101bde55eaf12018a918c71e85e51741fbb686",
+    "vendor/aob/AOB/AOBG/datafile/F1-p.txt": "921f7ce3dec321c0491d64e39151534991bbd620930d2a9990a0e0d167f7919f",
+    "vendor/aob/AOB/AOBG/datafile/F1-s.txt": "d2d1290770797cfd2246fc443a659abefa3d22f2025959c2a0899b73c02545d7",
+    "vendor/aob/AOB/elliptic.py": "adaea7bf6c822bc60ef8d3a3f05e3a408c2dee7896177e8ef8844d0f30d894a9"
+  },
+  "terminal_run_count": 1
+}

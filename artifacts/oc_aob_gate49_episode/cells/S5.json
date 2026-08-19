@@ -1,0 +1,72 @@
+{
+  "result": {
+    "case_id": "S5",
+    "checkpoint_hash": "4190dd15a306fee8c01553058646be577ac55a9c605ba3b0ea09dcdb2473ba23",
+    "components": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ]
+    ],
+    "control": {
+      "best_error_before": 159723190.18357623,
+      "checkpoint_hash": "4190dd15a306fee8c01553058646be577ac55a9c605ba3b0ea09dcdb2473ba23",
+      "final_error": 14836.41659474603,
+      "phase2_fes": 2820000,
+      "terminal_fes": 3000000
+    },
+    "discovery_fes": 107039,
+    "paired_final_delta_control_minus_unified": -623.5912213707452,
+    "phase1_fes": 180000,
+    "phase1_incumbent_error": 159723190.18357623,
+    "sense_budget_fes_per_group": 979,
+    "sense_budget_share": 0.1,
+    "shared_precision": 1.0,
+    "shared_recall": 0.8947368421052632,
+    "structure_groups": 18,
+    "structure_shared": 119,
+    "truth_group_count": 20,
+    "truth_shared_count": 133,
+    "unified": {
+      "action_counts": {
+        "aor": 1,
+        "arbitration_only": 3,
+        "ctp_restricted": 5,
+        "none": 7
+      },
+      "budget_flow": {
+        "arbitration": 36,
+        "operator": 85120,
+        "probe": 2142,
+        "sense": 281952,
+        "smp_writeback": 1088,
+        "tail": 2449662
+      },
+      "checkpoint_hash": "4190dd15a306fee8c01553058646be577ac55a9c605ba3b0ea09dcdb2473ba23",
+      "final_error": 15460.007816116775,
+      "final_state_hash": "2fe42bc45bf2b8fd681559e6af8e43ea8e3f7d361d6109a266d1b562db2249ac",
+      "operator_fired": true,
+      "receipt_parity": true,
+      "state_hash_chain": true,
+      "strict_best": true,
+      "terminal_fes": 3000000
+    }
+  },
+  "schema_version": "arac-oc-gate49-episode-v1"
+}

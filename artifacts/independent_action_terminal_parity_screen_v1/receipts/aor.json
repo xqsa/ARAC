@@ -1,0 +1,41 @@
+{
+  "action": "aor",
+  "case_id": "A1",
+  "checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+  "consumed_fes": 2820000,
+  "events": {
+    "algorithm": "sepcmaes",
+    "initial_mean_max_abs": 0.0,
+    "optimizer_fes": 2820000,
+    "population_size": 24,
+    "restart": false,
+    "sigma": 0.5
+  },
+  "final_error": 77957.80539189112,
+  "historical_level_passed": true,
+  "historical_p90": 78098.55697849873,
+  "mechanism_trace_passed": true,
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "receipt_hash": "ea3c83ed8717aef70c055c7c41d0f787e7482d741d0f9ce086af17eba851dc03",
+  "result_hash": "4c8af1635f4f9b331ad065c988da49b5641aff3db54e01916dcd6fe1f866b650",
+  "route": "historical_fresh_zero_mean_sepcmaes_2820000",
+  "run_seed": 117,
+  "runtime_warnings": [],
+  "schema_version": "arac-independent-terminal-parity-receipt-v1",
+  "selector_evaluation_authorized": false,
+  "terminal_fes": 3000000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    }
+  ],
+  "total_budget_fes": 3000000
+}

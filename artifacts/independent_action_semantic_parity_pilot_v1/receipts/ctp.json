@@ -1,0 +1,52 @@
+{
+  "action": "ctp",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "coverage_24000_then_sequential_block_polish_96000"
+      },
+      "final_error": 12456495.77258392,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_match": false,
+      "result_hash": "52f92c9d98379fe2dcb7f426a9bf5f17a81c86a643763e4145597257bc4b2d42",
+      "route": "coverage_24000_then_sequential_block_polish_96000",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "coverage_fes": 960,
+        "coverage_sweeps": 4,
+        "polish_fes": 119040,
+        "polish_mode": "unbounded_group_polish",
+        "polished_blocks": 20,
+        "tail_fes": 0
+      },
+      "final_error": 10897537.525188351,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_match": true,
+      "result_hash": "29e619b3007058ddf35870f9c8cfb68d26718ffa19f4be92d49ef2abe9308d6b",
+      "route": "historical_coverage_sweeps_4_fes_960_unbounded_group_polish_119040_tail_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "S1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "receipt_hash": "548e2d61169a0d7ba24104726219cfd7d9690fff4dcc07c418a65c15d776c0ab",
+  "reference_contract": "results/exp_058_ctp_stable_v2_25seed/validation/runs/S1/seed_117/exp_058_ctp_stable_v2_25seed-s1-seed117/schwefel/ctp_stable_action.json",
+  "reference_contract_sha256": "99684aabba2394334da03e89bac7ea9425f21317a02dd553164c2a3c7c4ede25",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v1",
+  "screen_checkpoint_hash": "a2894d7f5a643c6569d3165126f89fab20e1de0a56747d721288fc60314e68f4",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+  "source_phase1_fes": 180000
+}

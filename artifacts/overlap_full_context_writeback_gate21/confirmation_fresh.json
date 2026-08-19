@@ -1,0 +1,7114 @@
+{
+  "cell_summary": [
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 6,
+      "topology": "random"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 12,
+      "topology": "random"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 6,
+      "topology": "chain"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 12,
+      "topology": "chain"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 6,
+      "topology": "star"
+    },
+    {
+      "complete": true,
+      "context_count": 10,
+      "overlap_budget": 12,
+      "topology": "star"
+    }
+  ],
+  "context_count": 60,
+  "contexts": [
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23369.512946284955,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23087.944811858844,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 281.5681344261102,
+      "full_vs_joint_gain": 152.4339668670109,
+      "full_vs_owner_gain": -719.8982632140651,
+      "joint_patch": {
+        "accepted_rounds": [
+          3,
+          5,
+          7,
+          8,
+          9,
+          10,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23240.378778725855,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 57333.23002403367,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 22368.04654864478,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6081.8868855906385,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          9,
+          11,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6186.3758282328345,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -104.48894264219598,
+      "full_vs_joint_gain": 131.61383037985615,
+      "full_vs_owner_gain": 52.90117044843828,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          3,
+          4,
+          6,
+          9,
+          11,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6317.989658612691,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 37229.55258400805,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6239.276998681273,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9108.404017201212,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9078.370906590791,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 30.033110610420408,
+      "full_vs_joint_gain": -97.6661086783206,
+      "full_vs_owner_gain": -111.28958166085431,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          5,
+          7,
+          9,
+          10,
+          11,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8980.70479791247,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 35734.15909133627,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8967.081324929937,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4892.583690935757,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4200.974096064748,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 691.609594871009,
+      "full_vs_joint_gain": 742.6888778624952,
+      "full_vs_owner_gain": 1031.7387037014478,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4943.662973927243,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 27424.044927695028,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5232.7127997661955,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27331.866479137905,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27042.6852759218,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 289.1812032161033,
+      "full_vs_joint_gain": -857.0243820918913,
+      "full_vs_owner_gain": 748.5335707611957,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          5,
+          8,
+          12
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 26185.66089382991,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 65385.89307274769,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27791.218846682998,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8833.926281837157,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          3,
+          4,
+          5,
+          6,
+          7,
+          9
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8123.539412458331,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 710.3868693788263,
+      "full_vs_joint_gain": 1131.4800412199638,
+      "full_vs_owner_gain": 1615.0939583923591,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          3,
+          4,
+          5,
+          9,
+          12,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9255.019453678295,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 80494.17085369969,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9738.63337085069,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12126.537360870669,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          3,
+          4,
+          5,
+          7,
+          8
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12237.542136824195,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -111.0047759535264,
+      "full_vs_joint_gain": 645.4131118736295,
+      "full_vs_owner_gain": 89.72740002760293,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          5,
+          6,
+          8,
+          11,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12882.955248697825,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 41193.87943425819,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12327.269536851798,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6061.00044780371,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          12,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5360.969083787335,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 700.0313640163749,
+      "full_vs_joint_gain": 2322.756655906098,
+      "full_vs_owner_gain": 1497.6523369988363,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          7,
+          9,
+          11,
+          12
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7683.725739693433,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 47782.72756737842,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6858.621420786171,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12583.92524722514,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12635.989435825082,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -52.06418859994301,
+      "full_vs_joint_gain": 71.23182306690433,
+      "full_vs_owner_gain": -244.64374924331605,
+      "joint_patch": {
+        "accepted_rounds": [
+          3,
+          5,
+          7,
+          9,
+          10,
+          11,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12707.221258891987,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 42728.86091378288,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12391.345686581766,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4548.146098359344,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          3,
+          4,
+          6,
+          9,
+          10
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4333.092095060975,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 215.05400329836903,
+      "full_vs_joint_gain": 15.634531904580399,
+      "full_vs_owner_gain": 47.960242400377865,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          4,
+          7,
+          8,
+          9,
+          10,
+          11,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4348.726626965556,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 21793.02811154692,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4381.052337461353,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 40961.7553852988,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39336.734698018554,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 1625.0206872802446,
+      "full_vs_joint_gain": 912.756491146065,
+      "full_vs_owner_gain": 1166.7970281084126,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          4,
+          6,
+          9,
+          11,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 40249.49118916462,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 84885.635929015,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 40503.53172612697,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 32177.49953582526,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28431.615639124826,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 3745.883896700434,
+      "full_vs_joint_gain": 4270.935942052474,
+      "full_vs_owner_gain": 2865.208449369442,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          3,
+          5,
+          6,
+          7,
+          8,
+          10,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 32702.5515811773,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 86573.07858366435,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31296.824088494268,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31085.17188387715,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          9,
+          10,
+          11
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23417.767631672952,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 7667.404252204196,
+      "full_vs_joint_gain": 5316.6976007230805,
+      "full_vs_owner_gain": 8115.170225586666,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          3,
+          5,
+          7,
+          8,
+          9,
+          10,
+          12,
+          13,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28734.465232396033,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 86406.9143216585,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31532.937857259618,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20090.825303815618,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          12
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 17102.41110040494,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 2988.414203410677,
+      "full_vs_joint_gain": 1685.351464801999,
+      "full_vs_owner_gain": 3793.8844659091556,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          5,
+          8,
+          12
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 18787.76256520694,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 69762.62574764233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20896.295566314097,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 58795.336298197246,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          8,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 57655.7763967001,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 1139.559901497145,
+      "full_vs_joint_gain": 1233.4798900306414,
+      "full_vs_owner_gain": 3446.9609880555363,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          5,
+          8,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 58889.25628673074,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 128337.22223624177,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 61102.73738475564,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47486.5973591815,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          10,
+          11
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39968.148316203566,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 7518.449042977933,
+      "full_vs_joint_gain": 8353.671221001547,
+      "full_vs_owner_gain": 8162.043870137968,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          3,
+          4,
+          6,
+          8,
+          9,
+          10,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 48321.81953720511,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 149053.62066149333,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 48130.192186341534,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23220.026677306545,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          8,
+          9
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 21872.563606755757,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 1347.463070550788,
+      "full_vs_joint_gain": -1045.6422112229484,
+      "full_vs_owner_gain": 119.7763191005215,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          4,
+          6,
+          7,
+          8,
+          9,
+          10,
+          12,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20826.92139553281,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 60913.80805185441,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 21992.33992585628,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12254.297855153984,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12899.600651397337,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -645.3027962433534,
+      "full_vs_joint_gain": 4986.9329749134195,
+      "full_vs_owner_gain": 4033.6755701683724,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          4,
+          7,
+          9,
+          10,
+          11,
+          13,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 17886.533626310757,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 77321.76239202233,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16933.27622156571,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45866.03775906346,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          4
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 46070.503773563665,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -204.46601450020535,
+      "full_vs_joint_gain": 76.15513844859379,
+      "full_vs_owner_gain": -118.11323736676422,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          4,
+          5,
+          6,
+          7,
+          9,
+          10,
+          12,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 46146.65891201226,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 90679.7060618671,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45952.3905361969,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16959.481560544496,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 15310.362721016942,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 1649.1188395275549,
+      "full_vs_joint_gain": 945.667916325805,
+      "full_vs_owner_gain": 1540.0822408552249,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          3,
+          5,
+          7,
+          8,
+          9,
+          11,
+          12,
+          13,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16256.030637342747,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 67254.38314263854,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16850.444961872166,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "chain",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33714.06164982295,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          2,
+          4
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33619.73493091597,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 94.32671890698111,
+      "full_vs_joint_gain": -60.88171908746153,
+      "full_vs_owner_gain": -1715.4117786386414,
+      "joint_patch": {
+        "accepted_rounds": [
+          3,
+          5,
+          6,
+          8,
+          9,
+          11,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33558.85321182851,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 57199.70093220164,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31904.323152277328,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10288.660335175366,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          3
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9089.85634593506,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 1198.8039892403049,
+      "full_vs_joint_gain": -757.145255733114,
+      "full_vs_owner_gain": 123.55084972605437,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          3,
+          5,
+          7,
+          10,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8332.711090201947,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 37117.92215788706,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 9213.407195661115,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          1,
+          2,
+          3,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16715.217677947934,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 17117.36196748639,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -402.1442895384571,
+      "full_vs_joint_gain": -385.6601178553283,
+      "full_vs_owner_gain": -755.997919684638,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          4,
+          5,
+          9,
+          10,
+          12,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16731.701849631063,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 31737.19567635669,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16361.364047801753,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        7,
+        8,
+        10
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4767.806149171263,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4816.4794685688885,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -48.673319397625164,
+      "full_vs_joint_gain": -239.12805089769063,
+      "full_vs_owner_gain": -140.48443081471942,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          4,
+          7,
+          9,
+          11,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4577.351417671198,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 19231.68447926419,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4675.995037754169,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          10
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        7,
+        8,
+        10
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 3,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 24034.033590464598,
+        "probe_fes": 6,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          2,
+          3,
+          4,
+          7
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 23173.42969192022,
+        "probe_fes": 6,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 860.6038985443774,
+      "full_vs_joint_gain": -844.3232108818738,
+      "full_vs_owner_gain": -65.65790677986297,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          4,
+          5,
+          6,
+          8,
+          10,
+          12,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 22329.106481038347,
+        "probe_fes": 6,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 61648.854681561614,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 23107.771785140358,
+        "probe_fes": 6,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 3,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 8683.436799437835,
+        "probe_fes": 6,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          3,
+          4
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 6397.989776690861,
+        "probe_fes": 6,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 2285.4470227469747,
+      "full_vs_joint_gain": -181.6926997928067,
+      "full_vs_owner_gain": 171.53399846385673,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          3,
+          4,
+          7,
+          10,
+          11,
+          12
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 6216.297076898054,
+        "probe_fes": 6,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 39573.258361140404,
+        "consumed_fes": 54,
+        "continuation_fes": 32,
+        "final_error": 6569.523775154717,
+        "probe_fes": 6,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12826.961937214395,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          2,
+          3,
+          4,
+          7,
+          9
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12311.075228631904,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 515.8867085824913,
+      "full_vs_joint_gain": 506.30183386095814,
+      "full_vs_owner_gain": 222.60029398680126,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          6,
+          8,
+          11,
+          12,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12817.377062492862,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 33115.82316464849,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12533.675522618705,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10593.731171302163,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          7
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 11098.226884444066,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -504.49571314190325,
+      "full_vs_joint_gain": -351.5844976632179,
+      "full_vs_owner_gain": 957.9530423358956,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          7,
+          11,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10746.642386780848,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 33764.756150078254,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12056.179926779962,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27578.71816711874,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27843.086281790078,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -264.36811467133884,
+      "full_vs_joint_gain": -956.5914673824409,
+      "full_vs_owner_gain": -1158.3521429642642,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          4,
+          5,
+          7,
+          8,
+          10,
+          11,
+          12
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 26886.494814407637,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 42390.02225829144,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 26684.734138825814,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6660.999648634819,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          4
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6132.579037441177,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 528.4206111936419,
+      "full_vs_joint_gain": 213.70979594268465,
+      "full_vs_owner_gain": -99.28639594759807,
+      "joint_patch": {
+        "accepted_rounds": [
+          4,
+          5,
+          6,
+          7,
+          9,
+          10,
+          11,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6346.288833383862,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 17958.04176639553,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6033.292641493579,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39248.07441709728,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          3,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33895.60873729545,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 5352.465679801833,
+      "full_vs_joint_gain": -807.4836102378249,
+      "full_vs_owner_gain": 1941.8750027533388,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          2,
+          6,
+          9,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33088.125127057625,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 84812.61856541655,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 35837.48374004879,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 45942.56619109336,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          4,
+          6,
+          8,
+          9
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47349.32197472597,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -1406.7557836326087,
+      "full_vs_joint_gain": -1082.5758580110123,
+      "full_vs_owner_gain": 1264.2188378424835,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          2,
+          3,
+          5,
+          7,
+          10,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 46266.74611671496,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 108509.86690197773,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 48613.540812568455,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 46420.44021595626,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          7
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 37206.08557115086,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 9214.354644805397,
+      "full_vs_joint_gain": 10007.42057786425,
+      "full_vs_owner_gain": 5462.461531357738,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          3,
+          6,
+          7,
+          8,
+          10,
+          12,
+          13,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 47213.50614901511,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 80675.4856261987,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 42668.5471025086,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28563.019275019393,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29383.69806862341,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -820.6787936040164,
+      "full_vs_joint_gain": -1269.0094474810248,
+      "full_vs_owner_gain": -216.62382742221962,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          3,
+          4,
+          6,
+          9,
+          11,
+          12,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28114.688621142384,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 65968.72005085544,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29167.07424120119,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 43303.88555739104,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          7
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39009.91652795012,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 4293.969029440923,
+      "full_vs_joint_gain": 1663.1026734396,
+      "full_vs_owner_gain": 5097.464657039651,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          8,
+          9,
+          10,
+          12,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 40673.01920138972,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 102153.55568035401,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 44107.38118498977,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 37667.120950307486,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          2,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 25216.111625218626,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 12451.00932508886,
+      "full_vs_joint_gain": -5509.374709486645,
+      "full_vs_owner_gain": 9773.95832317596,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          2,
+          6,
+          7,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 19706.73691573198,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 117239.95478297946,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 34990.06994839459,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 34510.171480031815,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          4
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 34093.424663594546,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 416.74681643726944,
+      "full_vs_joint_gain": -390.56393859103264,
+      "full_vs_owner_gain": -729.2274543432723,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          3,
+          5,
+          7,
+          8,
+          10,
+          11,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33702.86072500351,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 55100.309092543204,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33364.19720925127,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30048.074010417276,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          11
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 24833.233629290913,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 5214.840381126363,
+      "full_vs_joint_gain": 4714.174838204748,
+      "full_vs_owner_gain": 8688.520025040914,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          3,
+          6,
+          7,
+          8,
+          9,
+          12,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29547.40846749566,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 78777.16522705171,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 33521.75365433183,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 58268.223757428335,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 44913.54907391076,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 13354.674683517573,
+      "full_vs_joint_gain": 8406.74441764249,
+      "full_vs_owner_gain": 13084.223402897158,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          4,
+          8,
+          10,
+          11,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 53320.29349155325,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 114814.6728034698,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 57997.77247680792,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 19271.680368443587,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20678.59286733169,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -1406.9124988881013,
+      "full_vs_joint_gain": 2055.4375244847215,
+      "full_vs_owner_gain": 3035.505895999486,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          2,
+          4,
+          5,
+          8,
+          9,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 22734.03039181641,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 79286.96134296304,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 23714.098763331174,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "random",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27867.859579157463,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          7,
+          11,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27902.427404538714,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -34.56782538125117,
+      "full_vs_joint_gain": 82.61973988851969,
+      "full_vs_owner_gain": -223.19220464459795,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          6,
+          9,
+          12,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27985.047144427233,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 57475.91025950658,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27679.235199894116,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8211.05171199524,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          5,
+          8,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7733.677386163461,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 477.37432583177906,
+      "full_vs_joint_gain": 947.1003675942902,
+      "full_vs_owner_gain": 246.4297737397701,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          6,
+          7,
+          10,
+          11,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8680.777753757751,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 35615.55586673421,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7980.107159903231,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13438.200896803726,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10312.762150794562,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 3125.438746009164,
+      "full_vs_joint_gain": 1987.79641743735,
+      "full_vs_owner_gain": 3951.326118463883,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          7,
+          8,
+          9,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12300.558568231912,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 41606.489156451134,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 14264.088269258446,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 4185.926331710994,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 3450.928585915514,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 734.9977457954806,
+      "full_vs_joint_gain": 371.5983812212344,
+      "full_vs_owner_gain": 523.7049364820637,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          3,
+          5,
+          6,
+          9,
+          10,
+          12,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 3822.526967136748,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 19542.41080304004,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 3974.6335223975775,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28040.607246771895,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          3,
+          4,
+          5,
+          11
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28416.21163040473,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -375.6043836328354,
+      "full_vs_joint_gain": 144.73593842411356,
+      "full_vs_owner_gain": 1039.0015572456177,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          5,
+          7,
+          9,
+          12,
+          13,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28560.947568828844,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 63761.361796643316,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29455.213187650348,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12450.304542296726,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          9,
+          11
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5212.175938033673,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 7238.128604263053,
+      "full_vs_joint_gain": 1796.5886376343988,
+      "full_vs_owner_gain": 7903.085858241035,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7008.764575668072,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 42742.27921415388,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 13115.261796274708,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12407.666593770082,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12286.749889507402,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 120.91670426267956,
+      "full_vs_joint_gain": -160.65070025728346,
+      "full_vs_owner_gain": 316.30168961576055,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          4,
+          5,
+          8,
+          9,
+          10,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12126.099189250119,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 35938.00859988229,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12603.051579123163,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6481.1396488482005,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 7038.366413235739,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -557.2267643875384,
+      "full_vs_joint_gain": 1138.378646010282,
+      "full_vs_owner_gain": 1389.416071651045,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          7,
+          8,
+          11,
+          12,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8176.745059246021,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 31784.69079425105,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8427.782484886784,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12295.787094954532,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          10
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 11978.518246265054,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 317.26884868947855,
+      "full_vs_joint_gain": 594.5935329597123,
+      "full_vs_owner_gain": 306.6237452728292,
+      "joint_patch": {
+        "accepted_rounds": [
+          2,
+          5,
+          6,
+          8,
+          9,
+          10,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12573.111779224766,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 32087.07439637128,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12285.141991537883,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5222.794084748595,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          13
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6471.686029892708,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -1248.8919451441125,
+      "full_vs_joint_gain": -858.8149374112381,
+      "full_vs_owner_gain": 158.81867111982137,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          3,
+          4,
+          5,
+          8,
+          9,
+          12,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 5612.8710924814695,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 24432.622072048813,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 6630.504701012529,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 50741.24617901555,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          3,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 51010.20150138542,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": -268.95532236986764,
+      "full_vs_joint_gain": -689.1308553729759,
+      "full_vs_owner_gain": 767.9048210221881,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          2,
+          5,
+          6,
+          8,
+          10,
+          11,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 50321.07064601244,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 119624.83225074578,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 51778.106322407606,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 31146.59500800423,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 25166.279284541273,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 5980.315723462958,
+      "full_vs_joint_gain": 3406.516486751065,
+      "full_vs_owner_gain": 5208.644188827999,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          4,
+          6,
+          8,
+          9,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 28572.795771292338,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 108923.83489022552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30374.923473369272,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31501,
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 66411.05329543859,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 66346.09854711623,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 64.95474832235777,
+      "full_vs_joint_gain": -2322.466612356715,
+      "full_vs_owner_gain": 487.29530570951465,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          4,
+          5,
+          7,
+          8,
+          9,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 64023.63193475951,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 108913.1606064812,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 66833.39385282574,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30213.837655422103,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 26911.372064519663,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 3302.4655909024405,
+      "full_vs_joint_gain": 275.13587804250346,
+      "full_vs_owner_gain": 2275.733006415914,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          4,
+          7,
+          8,
+          9,
+          11,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 27186.507942562166,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 77589.98155476942,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29187.105070935577,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31502,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 67170.25859963993,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 54823.263044061285,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 12346.995555578644,
+      "full_vs_joint_gain": 13224.279500362696,
+      "full_vs_owner_gain": 10915.145338475719,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          4,
+          7,
+          9,
+          10,
+          11,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 68047.54254442398,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 168182.15887623624,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 65738.408382537,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 35897.007954775094,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          4,
+          5,
+          6,
+          8,
+          9,
+          10,
+          11
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 19309.977223744132,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 16587.03073103096,
+      "full_vs_joint_gain": 44165.63004738589,
+      "full_vs_owner_gain": 30826.052337148885,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          5,
+          9,
+          11,
+          12
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 63475.60727113002,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 143426.6881788241,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 50136.02956089302,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31503,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30444.78917482126,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 29863.461643921502,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 581.3275308997581,
+      "full_vs_joint_gain": 398.78060522569285,
+      "full_vs_owner_gain": 1030.9789337609036,
+      "joint_patch": {
+        "accepted_rounds": [
+          1,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          12,
+          14,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30262.242249147195,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 63292.71632047552,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 30894.440577682406,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 20528.62024758166,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          11,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 14716.138916006486,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 5812.481331575174,
+      "full_vs_joint_gain": 1479.504442496207,
+      "full_vs_owner_gain": 10452.601528644358,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          1,
+          4,
+          7,
+          9,
+          11,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 16195.643358502693,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 69597.68451773938,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 25168.740444650844,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31504,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 48722.14683636637,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 38414.74370552495,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 10307.403130841427,
+      "full_vs_joint_gain": 839.9382297229022,
+      "full_vs_owner_gain": 6140.959400527492,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          4,
+          7,
+          14
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 39254.68193524785,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conflicting",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 98490.84575313979,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 44555.70310605244,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    },
+    {
+      "component_count": 2,
+      "current": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "current",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 11708.711993189107,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "fe_parity": true,
+      "full_context": {
+        "accepted_rounds": [
+          0,
+          1,
+          3,
+          4,
+          5
+        ],
+        "arbitration_fes": 4,
+        "arm": "full_context",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 8789.06974507835,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "full_vs_current_gain": 2919.6422481107566,
+      "full_vs_joint_gain": 2037.0736374297612,
+      "full_vs_owner_gain": 3460.011499707749,
+      "joint_patch": {
+        "accepted_rounds": [
+          0,
+          3,
+          6,
+          9,
+          13,
+          15
+        ],
+        "arbitration_fes": 4,
+        "arm": "joint_patch",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 10826.143382508111,
+        "probe_fes": 4,
+        "round_count": 16,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "mode": "conforming",
+      "overlap_budget": 12,
+      "owner_full": {
+        "accepted_rounds": [],
+        "arbitration_fes": 4,
+        "arm": "owner_full",
+        "checkpoint_error": 50740.27466481266,
+        "consumed_fes": 48,
+        "continuation_fes": 32,
+        "final_error": 12249.081244786099,
+        "probe_fes": 4,
+        "round_count": 0,
+        "selected_component": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "strict_best": true
+      },
+      "probes_identical": true,
+      "proposals_identical": true,
+      "seed": 31505,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "strict_best": true,
+      "topology": "star",
+      "trace_complete": true
+    }
+  ],
+  "gate_checks": {
+    "cells_complete": true,
+    "components": true,
+    "context_count_60": true,
+    "fe_parity": true,
+    "full_vs_current_ge_0_60": true,
+    "full_vs_owner_ge_0_60": true,
+    "full_vs_owner_median_nonnegative": true,
+    "probes_identical": true,
+    "proposals_identical": true,
+    "strict_best": true,
+    "trace_complete": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "contexts": 60,
+    "evaluations_per_round": 2,
+    "repair_fes": 32,
+    "rounds": 16
+  },
+  "schema_version": "arac-overlap-full-context-writeback-gate21-v1",
+  "summary": {
+    "full_vs_current_median_gain": 636.4685628853836,
+    "full_vs_current_win_or_tie": 0.7166666666666667,
+    "full_vs_joint_median_gain": 385.1894932234636,
+    "full_vs_joint_win_or_tie": 0.6666666666666666,
+    "full_vs_owner_median_gain": 1031.3588187311757,
+    "full_vs_owner_win_or_tie": 0.7833333333333333
+  }
+}

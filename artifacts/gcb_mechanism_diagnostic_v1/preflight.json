@@ -1,0 +1,34 @@
+{
+  "arm_count": 27,
+  "baseline_receipt_sha256": {
+    "R1:31001": "33c5f096b0bc7bde5d55abaf498788314cab6b8211babaf25f26debabf59d71c",
+    "R1:31002": "3a9a7ef3807eda13f7919913b12d81038f3fb22c233e017753e4e4b2810eb50a",
+    "R1:31003": "2aa68f9699566cbabe5d4df5b557953995dda247fb4cb968f8580a0c0c24852d",
+    "R3:31001": "d8e9581ef4e700450d9417e149d55056c9f6fba515652a159de2d7782140ec9c",
+    "R3:31002": "20971bd41d5bcf3951b0db6f510af2cf73540296a0459a94712a6aa76c3557d2",
+    "R3:31003": "158ce582217075d27c18b538901af9fbd70b8d2f6830f3d298804be3d6eebf3e",
+    "R6:31001": "722173fc255771c9b63d444caf518fc443df0336c061c238a48868f88a347c8e",
+    "R6:31002": "a96d48a2fab04783aa602f9a105a5a4fddb86c33252da19859480662ccc137a3",
+    "R6:31003": "56020fdf1d194795634008afb9ea00b120e5a8a21b7b9f1848763e195b49c1e1"
+  },
+  "passed": true,
+  "production_hcc_runtime_imports": [],
+  "protocol_sha256": "7dc9c8cd175f6f87338495413d4e491f0b70c608128fb76197c8986a599245b9",
+  "reference_thresholds_used_for_decision": false,
+  "schema_version": "arac-gcb-mechanism-diagnostic-preflight-v1",
+  "selector_execution_allowed": false,
+  "source_sha256": {
+    "experiments/final/run.py": "e1574ded337ff93cd7988c85a0bcb12702a767301b6cd5a66ec2073c36e08711",
+    "experiments/historical_recovery/gcb_mechanism_diagnostic.py": "341fa415b40d7ad8a5ae640aba612b18c8557d2237359279ee01ab295e0bfcb4",
+    "experiments/historical_recovery/gcb_mechanism_diagnostic_protocol.json": "7dc9c8cd175f6f87338495413d4e491f0b70c608128fb76197c8986a599245b9",
+    "experiments/historical_recovery/gcb_schedule_ablation.py": "f1e6b3e4026ae30c555a8139a51b5c210040148ddd998f00a4fbed26e4ab69c1",
+    "src/arac/actions/_execution.py": "f8125a17e4a2598c94e6a36d16d83e72bfe3cd1522d31240b0f1d4c6f04b8cfe",
+    "src/arac/actions/gcb.py": "454fe2bf43854729d110983e7bb0d127acdd59116cb33d6320a28b2465299497",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/runtime/contracts.py": "fee9484be85605526b0b73a790311879b0ec922974235ef2c32e6f026631646a",
+    "src/arac/runtime/ledger.py": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5",
+    "src/arac/runtime/optimizers.py": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954"
+  },
+  "source_summary_sha256": "921ff113b045adba2692066de12a6a1b37396112048e5a6a25b27542193614e6"
+}

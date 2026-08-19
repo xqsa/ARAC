@@ -1,0 +1,63 @@
+{
+  "audit_source_sha256": {
+    "current_execution": "e52d03480eec77f13f4b1c8e05a481e1997eaab3805ce67ccd386451deaa63b7",
+    "current_smp": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "historical_cmaes": "128a208adfee4f7ec548b5db6415280fa323693726bab7caca9f22be9447e5c1",
+    "historical_runner": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+    "historical_smp_cache": "5130b18a39c8f76e0713a30026fd9a997d34e982c7d7f8287b6d1047161efc16"
+  },
+  "lockstep": {
+    "case_id": "E1",
+    "current_clip_offspring": false,
+    "first_visit": {
+      "candidate_matrix_bitwise_equal": true,
+      "fitness_bitwise_equal": true,
+      "state_bitwise_equal": true
+    },
+    "group_dimension": 50,
+    "group_index": 0,
+    "historical_stage_indices": [
+      1,
+      21
+    ],
+    "ledger_consumed_fes": 32,
+    "passed": true,
+    "phase1_fes": 0,
+    "population_size": 16,
+    "production_hcc_import_allowed": false,
+    "schema_version": "arac-current-smp-two-visit-lockstep-v1",
+    "second_visit": {
+      "candidate_matrix_bitwise_equal": true,
+      "fitness_bitwise_equal": true,
+      "state_bitwise_equal": true
+    },
+    "seed": 117,
+    "terminal_3m_run_authorized": false,
+    "visit_fes": 16
+  },
+  "output_root": "E:\\ARAC\\artifacts\\current_smp_historical_parity_v3",
+  "passed": true,
+  "production_hcc_runtime_imports": [],
+  "protocol_sha256": "4e55022723ec45b670c51f4cad7dd167a76201e9008ec4d089b2d0174bc652eb",
+  "schema_version": "arac-current-smp-historical-preflight-v1",
+  "short_gate": {
+    "clip_offspring": false,
+    "consumed_fes": 3197,
+    "group_fes": 3176,
+    "historical_order": true,
+    "ledger_count": 3200,
+    "noop_fes": 3,
+    "passed": true,
+    "precheck_fes": 21,
+    "requested_fes": 3200,
+    "restart_count": 0,
+    "schema_version": "arac-current-smp-historical-prefix-gate-v1",
+    "seed_schedule": "elliptic:1:0:outer_iter*20+group_index+1",
+    "stale_window": 3,
+    "terminal_3m_run_authorized": false,
+    "terminal_state_finite": true,
+    "visit_count": 21,
+    "zero_start": true
+  },
+  "terminal_run_authorized": true
+}

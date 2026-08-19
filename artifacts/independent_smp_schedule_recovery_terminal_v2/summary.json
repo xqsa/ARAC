@@ -1,0 +1,12 @@
+{
+  "final_error": 44354095.01828163,
+  "historical_level_passed": false,
+  "historical_p90": 1.8255606813339802,
+  "integrity_gate_passed": true,
+  "production_smp_integration_authorized": false,
+  "receipt_hash": "6a52823f0728ccb2e48c7058685d9863d033a538a3d987c21bd9bad5dc8294e6",
+  "schema_version": "arac-independent-smp-schedule-terminal-summary-v2",
+  "selector_evaluation_authorized": false,
+  "summary_hash": "fb81f66ba6f9e2c084869ee80291f751c10b3696ae3e8ae7aa38bf53e9f94604",
+  "terminal_screen_passed": false
+}

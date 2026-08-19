@@ -1,0 +1,49 @@
+{
+  "result": {
+    "arms": {
+      "coordinator": {
+        "final_error": 362.0563184653786,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "persistent_ctp": {
+        "final_error": 362.0751469460027,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "proposal_neighborhood": {
+        "final_error": 362.0563184653786,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    "cell": {
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "seed": 20260830,
+      "topology": "random"
+    },
+    "checkpoint_hash": "3d745d8309103b6e979e6fdd6650353b0442563339e5d0374e84a3c1bf863cbf",
+    "dispatch": {
+      "action_counts": {
+        "joint_cmaes_escalation": 1,
+        "joint_ctp": 5
+      },
+      "dispatch_count": 6,
+      "dispatch_fes": 192,
+      "escalations": 1,
+      "gained_count": 3,
+      "gained_fes": 96,
+      "max_hub_degree": 12,
+      "reason_counts": {
+        "complex_topology": 5,
+        "persistent_escalation": 1
+      }
+    },
+    "dispatch_consumption_parity": true,
+    "envelope_no_encroachment": true,
+    "phase1_fes": 180000,
+    "truth_shared_count": 6
+  },
+  "schema_version": "arac-overlap-gcb-multiseed-gate39-cell-v1"
+}

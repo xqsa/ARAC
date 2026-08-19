@@ -1,0 +1,65 @@
+{
+  "all_exact_global_fes": true,
+  "all_single_commit": true,
+  "checkpoint_pairs_equal": true,
+  "comparison": {
+    "all": {
+      "contexts": 32,
+      "mean_log10_probe_over_mechanism": -8.314318468830521,
+      "mechanism_wins": 13,
+      "median_log10_probe_over_mechanism": 0.0,
+      "probe_wins": 7,
+      "ties": 12
+    },
+    "aob": {
+      "contexts": 8,
+      "mean_log10_probe_over_mechanism": 0.019308480223909723,
+      "mechanism_wins": 6,
+      "median_log10_probe_over_mechanism": 0.0115800880134939,
+      "probe_wins": 0,
+      "ties": 2
+    },
+    "ioh_bbob": {
+      "contexts": 24,
+      "mean_log10_probe_over_mechanism": -11.092194118515332,
+      "mechanism_wins": 7,
+      "median_log10_probe_over_mechanism": 0.0,
+      "probe_wins": 7,
+      "ties": 10
+    }
+  },
+  "comparison_error": null,
+  "completed": 64,
+  "context_count": 32,
+  "expected_method_runs": 64,
+  "failed": 0,
+  "manifest_sha256": "29ae0964098c4ff2737b72c97db1fcf150b69c4a36384fe55d76937a07369dbc",
+  "method_action_counts": {
+    "mechanism_score_v1": {
+      "aor": 8,
+      "ctp": 0,
+      "gcb": 6,
+      "smp": 18
+    },
+    "probe_commit_v2": {
+      "aor": 16,
+      "ctp": 7,
+      "gcb": 6,
+      "smp": 3
+    }
+  },
+  "numerical_sigma_floor_repairs": {
+    "mechanism_score_v1": {
+      "runs": 0,
+      "total": 0
+    },
+    "probe_commit_v2": {
+      "runs": 4,
+      "total": 3443
+    }
+  },
+  "probe_cap_fallback_count": 24,
+  "probe_context_count": 32,
+  "quality_claim": "limited_pre_registered_validation_not_generalization",
+  "schema_version": "arac-phase2-v2-validation-summary-v1"
+}

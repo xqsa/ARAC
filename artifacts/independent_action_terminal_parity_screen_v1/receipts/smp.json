@@ -1,0 +1,240 @@
+{
+  "action": "smp",
+  "case_id": "E1",
+  "checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "consumed_fes": 2820000,
+  "events": {
+    "cross_visit_boundary_checks": 168320,
+    "cross_visit_state_digest_matches": 168320,
+    "full_sweeps": 8417,
+    "optimizer_identity_preserved_visits": 168340,
+    "reference_status": "five_seed_mechanism_only",
+    "restart_count": 56100,
+    "restart_identity_change_count": 56100,
+    "session_count": 20,
+    "session_restart_counts": [
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805,
+      2805
+    ],
+    "stale_window": 3,
+    "state_fields": [
+      "covariance",
+      "mean",
+      "path_sigma",
+      "rng_state",
+      "sigma"
+    ],
+    "state_persistence": true,
+    "state_trace": [
+      {
+        "block_index": 0,
+        "final_state": "53189b3992691a9ba82435f4bda18117a24f9a6189a664602987b62314588ead",
+        "first_recorded_state": "ac904b03a7886fb00d589072adcc7675f8042c01a3af8d3289325624134cc63b",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 1,
+        "final_state": "32635f83338681b11c69c788c06108b7e3a50e710dfecdff12ebcea7863dcb5c",
+        "first_recorded_state": "578ef0296a4213b7a50319f858246c168a79359c72b917027935ab12bd7cc001",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 2,
+        "final_state": "63915ab9aef46a33d46a53b4361f26c3fe6fbf7d8bef733290376e4383827ee7",
+        "first_recorded_state": "4ffdad839354f5d1a00b659ac4dc5d615b675d8522884a1b61702c25891ddaea",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 3,
+        "final_state": "f389bd6e9a954cd31080f9bc2a397e3d05088eb1751628a50566cafbe9601058",
+        "first_recorded_state": "dcaf37ac2298f91f1fb67d59b3cc6dc0ab4517c77ee9948756497fbd12608eb0",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 4,
+        "final_state": "4515d9889817076f00b58d3236af05cff3694790b6f51ba9c09a6477d1f3ac09",
+        "first_recorded_state": "f4d11fb1eee79cfa8d815c11718c621a87276e36fc9546c1f0298523c99096ba",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 5,
+        "final_state": "74af18d6cf95d8be998d29af8ba86dca9cb78c778a1db17d67fcadf0fec43db2",
+        "first_recorded_state": "03f2a04303b95e27744d82c4dbe6c20b39b4fe0987d19de5e38041db3c2a3ca9",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 6,
+        "final_state": "46009b12bc314c3ea489778ec6ce3f677b6b873cf1808ed02146906c98d72eca",
+        "first_recorded_state": "4fc6abb3e94b74a9699c5282691c04556bc0576a9058c44626e3984bffa4b679",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 7,
+        "final_state": "f39aeb0b2478d323d3954492d16d5852e95287c8008c7b1b820bec03ba5bcd0b",
+        "first_recorded_state": "2a6b350e483d3a72c8660efcb9d70f2e5344041e9faa4882a142d91a50b6d286",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 8,
+        "final_state": "25d32dfa5c0878ec95445c6cdd3a509cc8446279133c388c832f44c7dab0d3dd",
+        "first_recorded_state": "0b413fb1deb52a00bc0b78f3e56be5266b833a566ffe5d0d4b0d5a592d7021f9",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 9,
+        "final_state": "777954764b7013b2411f2af0272fab3682ab23eb80620ad3fcda2b1d6b8206cf",
+        "first_recorded_state": "2aae09ce9781ace5125b493470b5fadc2f741021a8d816410ecc264e1106772a",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 10,
+        "final_state": "940808351911015dbc9c037372d4b64e5b7c788208446d04650326c9a1263415",
+        "first_recorded_state": "e6a86c1b753e1938be70784b5e80b978f27c66ed77b7a66280f681255bdf19ec",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 11,
+        "final_state": "d665ae37db104461387a261e7ecd5777ffce82fb599d35a3dc7815c4706489db",
+        "first_recorded_state": "ae8c2a858c8c4750e6378069d53e13aff4793b7d2762974779dc64f611922469",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 12,
+        "final_state": "9d8c2a27550f01525285079a99298397f39a6af8726ee7ef8f176b5ffbda4c4a",
+        "first_recorded_state": "0496f5f6714991421acf7a1a3a7de0064fca5c8b21c08cde46dcfa66aca9329e",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 13,
+        "final_state": "9a901cf0bbbd3e37f6682711bb70b81d0e11fe8ce687611b7d7963ba71468e5b",
+        "first_recorded_state": "64bc4fbf0c48ee5e2f6d6596f4cb8a9af7c11b03f9369130c9caf538b694208d",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 14,
+        "final_state": "97f51eb1ecfbcd7befba77dae5589d2449a2fe4a9673f84b7dca7612fab49031",
+        "first_recorded_state": "66e3ed1ba15b08049773c32d6f208aa1cc5064cf2a233e613aacc382af39361c",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 15,
+        "final_state": "7ee88c4b809c297125234a2948fbc502d03b277a01d13f679e6c13d33cdfac8f",
+        "first_recorded_state": "d99663618a088d10ba0a6aac157537cb0fc2f0cc417d5d2a67ae88058cca615b",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 16,
+        "final_state": "3a53dd75e376ce3189e8ce781947bd4c10929abfbbc8a184369d7d77a785e7b8",
+        "first_recorded_state": "103b645536a6c249d03b4b52b845094c9d361d4938929fb486bdaccc0c2de68f",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 17,
+        "final_state": "56a46b8127bdb8a2fc6f59d446fb739ba3ed7abcc29ca71e4dc888245f1e4788",
+        "first_recorded_state": "422814e21633b211d012e928606b7926f5cc7ef226e1eac6facefe6d9181b202",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 18,
+        "final_state": "337618f714c84bd05f42eddaade59f737d9e98fb649f990a406e1a04fd8619bc",
+        "first_recorded_state": "c8a7b96908ea79920bfbb6e63a650fe59ee1f709b182fa250b7066437aaf49d7",
+        "restart_count": 2805,
+        "visit_count": 8417
+      },
+      {
+        "block_index": 19,
+        "final_state": "e590981f632603295d97e5f8de8a2887c1d3096fcdd950fcb167d904ecb9a45f",
+        "first_recorded_state": "020efecccde27a1da57422f9056d9a6d1096e7f1da2e2b24336bb138f8370ffc",
+        "restart_count": 2805,
+        "visit_count": 8417
+      }
+    ],
+    "state_update_count": 168340,
+    "tail_fes": 305,
+    "visits_per_session": [
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417,
+      8417
+    ]
+  },
+  "final_error": 813413731.8409803,
+  "historical_level_passed": false,
+  "historical_p90": 1.8255606813339802,
+  "mechanism_trace_passed": true,
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "receipt_hash": "af33ad5f37bfacd28701ce7064a761af30d7fcf225ecdbbaa8d805f433d7d6c4",
+  "result_hash": "61f7ebc6e4070686491901726abcbb32501daab4c0607b963abb0b97e8eeab7a",
+  "route": "historical_stateful_sessions_20_sweeps_8417_stale_restarts_56100_tail_305",
+  "run_seed": 117,
+  "runtime_warnings": [],
+  "schema_version": "arac-independent-terminal-parity-receipt-v1",
+  "selector_evaluation_authorized": false,
+  "terminal_fes": 3000000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    }
+  ],
+  "total_budget_fes": 3000000
+}

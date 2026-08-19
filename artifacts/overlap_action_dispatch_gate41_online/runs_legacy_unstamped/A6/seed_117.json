@@ -1,0 +1,13 @@
+{
+  "action": "aor",
+  "case_id": "A6",
+  "checkpoint_hash": "a0d15a7f3d5930ecac7bac3792f545e89319ab430a82b1e387f872a72b6f254b",
+  "dispatch_features": {
+    "structural_relation_density": 0.1368421052631579,
+    "tail_log10_gain": 0.009553388399621022
+  },
+  "final_error": 78069.11459556864,
+  "run_seed": 117,
+  "source": "four_arm_reuse",
+  "terminal_fes": 3000000
+}

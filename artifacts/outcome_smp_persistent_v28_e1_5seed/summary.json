@@ -1,0 +1,75 @@
+{
+  "action_name": "smp",
+  "all_terminal_fes_exact": true,
+  "case_id": "E1",
+  "completed": 5,
+  "failed": 0,
+  "max_fes": 3000000,
+  "max_final_error": 2205272889.166734,
+  "max_final_error_sci": "2.21e+09",
+  "mean_final_error": 2040556776.2171135,
+  "mean_final_error_sci": "2.04e+09",
+  "mean_gate_passed": false,
+  "mean_target": 569000.0,
+  "mean_target_sci": "5.69e+05",
+  "median_final_error": 2028308981.8996997,
+  "median_final_error_sci": "2.03e+09",
+  "output_root": "E:\\ARAC\\artifacts\\outcome_smp_persistent_v28_e1_5seed",
+  "promotion_gate_passed": false,
+  "sample_std_final_error": 138910818.7287482,
+  "sample_std_final_error_sci": "1.39e+08",
+  "schema_version": "arac-smp-validation-v28",
+  "seed_results": [
+    {
+      "checkpoint_hash": "8a3eba96690a7a5f38df9ab5cd6f0af606f7ce41589d4b414b6d1e1500d18ca3",
+      "final_error": 2205272889.166734,
+      "final_error_sci": "2.21e+09",
+      "route": "persistent_block_cma_2820000_terminal_fallback_0",
+      "run_seed": 117,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "5980d57bc09de0639f80ca3b835cf10c9a6b9edc20e789db124d7b5dd0d0a483",
+      "final_error": 2028308981.8996997,
+      "final_error_sci": "2.03e+09",
+      "route": "persistent_block_cma_2820000_terminal_fallback_0",
+      "run_seed": 129,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "caee90e2f5e6bcdbe8212739183dc8df291af3ff4bdcde6125b2b135119a1fd5",
+      "final_error": 2152318858.401506,
+      "final_error_sci": "2.15e+09",
+      "route": "persistent_block_cma_2820000_terminal_fallback_0",
+      "run_seed": 141,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "99b3116d91c166ffee07cdeb8c6d56a913188a9d051c38ae7f2b2f8ee4141920",
+      "final_error": 1943824061.1416006,
+      "final_error_sci": "1.94e+09",
+      "route": "persistent_block_cma_2820000_terminal_fallback_0",
+      "run_seed": 142,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "9ab0e88991f6e5c6cf8983d4fbae793dbe43660c5c63cea9db6aadfc947049a1",
+      "final_error": 1873059090.476028,
+      "final_error_sci": "1.87e+09",
+      "route": "persistent_block_cma_2820000_terminal_fallback_0",
+      "run_seed": 20260753,
+      "terminal_fes": 3000000
+    }
+  ],
+  "source_checkpoint_root": "E:\\ARAC\\artifacts\\outcome_smp_balanced_v25_e1_5seed",
+  "source_hashes": {
+    "action_execution": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "contracts": "2f53adf12c797155e5970733782ca78117e58eba0a1909db30e49d95acf3e012",
+    "optimizers": "d8d98f58d4922c94b4561979901e41f102cda0209f493098c6b3d1e2f0893288",
+    "phase1": "093978aaeddf1541cef428d3b0829274d4be244d40dfad8737defb4e2c5cc1cf",
+    "validation_runner": "3ef6690737eb1d7cb5eaacc77cfee5232d15993fcdef344e344267f2b7a7c26c"
+  },
+  "tail_gate_definition": "sample_std <= mean and max <= 4 * median",
+  "tail_gate_passed": true,
+  "variant": "all-block-persistent-smp"
+}

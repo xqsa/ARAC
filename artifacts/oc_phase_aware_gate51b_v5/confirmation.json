@@ -1,0 +1,89 @@
+{
+  "checks": {
+    "A3_off_complete": true,
+    "A3_on_complete": true,
+    "R2_off_complete": true,
+    "R2_on_complete": true,
+    "R6_off_complete": true,
+    "R6_on_complete": true,
+    "S5_off_complete": true,
+    "S5_on_complete": true
+  },
+  "failures": [],
+  "interpretation": {
+    "primary_comparison": "ON vs best standalone and ON vs HCC are reported separately",
+    "v4_4_baseline": "artifacts/oc_phase_aware_gate51b_v4_4"
+  },
+  "manifest_hash": "sha256:d9815d5f997cfd4f31edde25e17ad512c452a28d6caf18c5ae8ae4031dfe4471",
+  "passed": true,
+  "protocol": {
+    "arms": [
+      "on",
+      "off"
+    ],
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "phase1_fes": 180000,
+    "total_fes": 3000000
+  },
+  "ratios": {
+    "A3": {
+      "best_standalone": 78179.21187434359,
+      "hcc": 78600.0,
+      "off": 78579.75400241755,
+      "on": 78494.9436604578,
+      "on_vs_best_standalone": 1.0040385644539584,
+      "on_vs_hcc": 0.9986634053493358,
+      "on_vs_off": 0.9989207100093854,
+      "standalone_aor": 78179.21187434359,
+      "standalone_ctp": 78288.4927333929,
+      "standalone_gcb": 78432.75760362559,
+      "standalone_smp": 78690.1104263965
+    },
+    "R2": {
+      "best_standalone": 221181.93105459498,
+      "hcc": 372000.0,
+      "off": 320833.5914781528,
+      "on": 234611.93842171144,
+      "on_vs_best_standalone": 1.0607192789351383,
+      "on_vs_hcc": 0.630677253821805,
+      "on_vs_off": 0.731257401510862,
+      "standalone_aor": 221181.93105459498,
+      "standalone_ctp": 573695.9122300792,
+      "standalone_gcb": 295662.8082010315,
+      "standalone_smp": 393906.1471835091
+    },
+    "R6": {
+      "best_standalone": 317117.8593953589,
+      "hcc": 815000.0,
+      "off": 465718.1636046689,
+      "on": 388043.7895849016,
+      "on_vs_best_standalone": 1.2236579495231694,
+      "on_vs_hcc": 0.47612734918392835,
+      "on_vs_off": 0.8332159230841117,
+      "standalone_aor": 317117.8593953589,
+      "standalone_ctp": 1387733.0631064237,
+      "standalone_gcb": 432592.1516055041,
+      "standalone_smp": 1026120.9027513781
+    },
+    "S5": {
+      "best_standalone": 13244.72686263674,
+      "hcc": 9230.0,
+      "off": 719146.5206530014,
+      "on": 38273.391703740584,
+      "on_vs_best_standalone": 2.8897078890852397,
+      "on_vs_hcc": 4.146629653709706,
+      "on_vs_off": 0.053220575508016746,
+      "standalone_aor": 795398.8821776642,
+      "standalone_ctp": 13244.72686263674,
+      "standalone_gcb": 706595.317736778,
+      "standalone_smp": 990257.3922205528
+    }
+  },
+  "scheduler_version": "v5.0",
+  "schema_version": "arac-oc-gate51b-v5"
+}

@@ -1,0 +1,19 @@
+{
+  "benchmark": {
+    "dimension": 40,
+    "function_id": 1,
+    "instance": 1,
+    "run_seed": 20261202,
+    "suite": "ioh_bbob"
+  },
+  "context_id": "ioh_f01_i1_d40_s20261202",
+  "error": "candidate values must be finite",
+  "error_type": "ValueError",
+  "manifest_sha256": "dceecfcb526c84446ce493a836b73466cb84ff04fa7486a1697871afe98082d9",
+  "method": "probe_commit_v2",
+  "receipt_sha256": "98027d914fca8ee6224f4ffabd972113aaff39b74f03e5962aa47caf87b92c8a",
+  "run_index": 18,
+  "schema_version": "arac-phase2-v2-validation-receipt-v1",
+  "status": "failed",
+  "traceback": "Traceback (most recent call last):\n  File \"E:\\ARAC\\experiments\\phase2_v2_validation.py\", line 378, in run_validation\n    result, objective_fes = _run_method(context_spec, method, config)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\experiments\\phase2_v2_validation.py\", line 206, in _run_method\n    result = run_probe_commit_policy(\n             ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\src\\arac\\runtime\\probe_policy.py\", line 111, in run_probe_commit_policy\n    selected_state.step(continuation_fes)\n  File \"E:\\ARAC\\src\\arac\\runtime\\phase2.py\", line 64, in step\n    self._advance(budget_fes)\n  File \"E:\\ARAC\\src\\arac\\actions\\phase2_v2.py\", line 391, in _advance\n    trace = self._segment_session.step(chunk)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\src\\arac\\runtime\\optimizers.py\", line 428, in step\n    value = self.optimizer._evaluate_fitness(candidate)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\.venv\\Lib\\site-packages\\pypop7\\optimizers\\core\\optimizer.py\", line 91, in _evaluate_fitness\n    y = self.fitness_function(x)\n        ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\src\\arac\\runtime\\optimizers.py\", line 334, in _evaluate_optimizer_candidate\n    result = self.ledger.evaluate(full[0] if single else full)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\src\\arac\\runtime\\ledger.py\", line 81, in evaluate\n    raise ValueError(\"candidate values must be finite\")\nValueError: candidate values must be finite\n"
+}

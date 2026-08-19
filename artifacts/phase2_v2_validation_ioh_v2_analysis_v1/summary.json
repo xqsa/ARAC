@@ -1,0 +1,55 @@
+{
+  "analysis_manifest_sha256": "a911bb9a7cbb2ae8e3ec05723842d66acf5a3fdbf9ab5a0d249b47f367d583f2",
+  "comparison": {
+    "all": {
+      "contexts": 32,
+      "mean_shifted_log10_probe_over_mechanism": -0.022042845375458836,
+      "mechanism_wins": 13,
+      "median_shifted_log10_probe_over_mechanism": 0.0,
+      "probe_wins": 7,
+      "ties": 12
+    },
+    "aob": {
+      "contexts": 8,
+      "mean_shifted_log10_probe_over_mechanism": 0.01930847928677796,
+      "mechanism_wins": 6,
+      "median_shifted_log10_probe_over_mechanism": 0.011580088001309965,
+      "probe_wins": 0,
+      "ties": 2
+    },
+    "ioh_bbob": {
+      "contexts": 24,
+      "mean_shifted_log10_probe_over_mechanism": -0.0358266202628711,
+      "mechanism_wins": 7,
+      "median_shifted_log10_probe_over_mechanism": 0.0,
+      "probe_wins": 7,
+      "ties": 10
+    }
+  },
+  "context_count": 32,
+  "input_manifest_sha256": "29ae0964098c4ff2737b72c97db1fcf150b69c4a36384fe55d76937a07369dbc",
+  "mechanism_reason_counts": {
+    "complete_connected_relation_graph": 6,
+    "complete_zero_relation_blocks": 18,
+    "incomplete_structure": 8
+  },
+  "numerical_sigma_floor_repairs": {
+    "mechanism_score_v1": {
+      "runs": 0,
+      "total": 0
+    },
+    "probe_commit_v2": {
+      "runs": 4,
+      "total": 3443
+    }
+  },
+  "probe_cap_fallback_count": 24,
+  "probe_cap_fallback_rate": 0.75,
+  "probe_reason_counts": {
+    "probe_cap_insufficient_margin": 24,
+    "stable_margin": 8
+  },
+  "quality_claim": "limited_pre_registered_validation_not_generalization",
+  "receipt_count": 64,
+  "schema_version": "arac-phase2-v2-validation-analysis-summary-v1"
+}

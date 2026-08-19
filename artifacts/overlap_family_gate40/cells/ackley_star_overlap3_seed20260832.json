@@ -1,0 +1,47 @@
+{
+  "result": {
+    "adapter_ready": true,
+    "arms": {
+      "coordinator": {
+        "final_error": 65.15283968216734,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "persistent_ctp": {
+        "final_error": 65.15283968216734,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "proposal_neighborhood": {
+        "final_error": 65.15283968216734,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    "cell": {
+      "base_function": "ackley",
+      "overlap_budget": 3,
+      "seed": 20260832,
+      "topology": "star"
+    },
+    "dispatch": {
+      "action_counts": {
+        "joint_ctp": 1
+      },
+      "dispatch_count": 1,
+      "dispatch_fes": 32,
+      "escalations": 0,
+      "gained_count": 0,
+      "gained_fes": 0,
+      "max_hub_degree": 3,
+      "reason_counts": {
+        "complex_topology": 1
+      }
+    },
+    "dispatch_consumption_parity": true,
+    "envelope_no_encroachment": true,
+    "phase1_fes": 180000,
+    "truth_shared_count": 3
+  },
+  "schema_version": "arac-overlap-family-gate40-cell-v1"
+}

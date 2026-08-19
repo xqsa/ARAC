@@ -1,0 +1,55 @@
+{
+  "action_checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+  "action_result_hash": "50f99dc5e59dbf4d8fc19ea9d700ce10e18af86578979515d7c7b42d8759efd7",
+  "action_seed": 31001,
+  "case_id": "R6",
+  "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+  "final_error": 424581.2664405905,
+  "manifest_sha256": "b39f6a3026b106c9568aff0701768e6360e72a4318fd8071cc5f6435a10f36d2",
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "phase1_relation_count": 24,
+  "phase2_consumed_fes": 2820000,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "722173fc255771c9b63d444caf518fc443df0336c061c238a48868f88a347c8e",
+  "reference_thresholds_used_for_decision": false,
+  "route": "positive_relation_graph_cold_warmup_1090168_sweeps_3_coordination_286039_cold_continuation_1443783_sweeps_10_tail_10",
+  "run_seed": 31001,
+  "runtime_warnings": [
+    {
+      "category": "RuntimeWarning",
+      "count": 1,
+      "known": true,
+      "line": 228,
+      "message": "overflow encountered in scalar multiply",
+      "source": ".venv/Lib/site-packages/pypop7/optimizers/es/cmaes.py"
+    }
+  ],
+  "schedule_trace": [],
+  "schedule_trace_summary": null,
+  "schema_version": "arac-gcb-schedule-ablation-receipt-v2",
+  "selector_execution_allowed": false,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "vcomp",
+      "user_api": "openmp"
+    }
+  ],
+  "variant": "gcb_frozen_current"
+}

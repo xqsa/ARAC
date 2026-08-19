@@ -1,0 +1,46 @@
+{
+  "action_checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+  "action_result_hash": "57c5c16c2fb3a2624083398b5f97557fe4f75a03905b3d509510f9dd86253c85",
+  "action_seed": 31002,
+  "case_id": "R1",
+  "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+  "final_error": 175698.51620068593,
+  "manifest_sha256": "b39f6a3026b106c9568aff0701768e6360e72a4318fd8071cc5f6435a10f36d2",
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "phase1_relation_count": 0,
+  "phase2_consumed_fes": 2820000,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "3a9a7ef3807eda13f7919913b12d81038f3fb22c233e017753e4e4b2810eb50a",
+  "reference_thresholds_used_for_decision": false,
+  "route": "zero_relation_cold_warmup_478162_sweeps_3_coordination_142799_cold_continuation_2199021_sweeps_16_tail_18",
+  "run_seed": 31002,
+  "runtime_warnings": [],
+  "schedule_trace": [],
+  "schedule_trace_summary": null,
+  "schema_version": "arac-gcb-schedule-ablation-receipt-v2",
+  "selector_execution_allowed": false,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "vcomp",
+      "user_api": "openmp"
+    }
+  ],
+  "variant": "gcb_frozen_current"
+}

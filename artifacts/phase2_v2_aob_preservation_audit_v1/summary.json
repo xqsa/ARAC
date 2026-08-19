@@ -1,0 +1,57 @@
+{
+  "manifest_sha256": "72f4b4dc3ac8531f8a44f09b80d38d2b6493cb41d9800504aed36a4485867de3",
+  "quality_claim": "budget_and_selection_diagnostic_only",
+  "schema_version": "arac-phase2-v2-aob-preservation-audit-v1",
+  "v2": {
+    "action_pair_counts": {
+      "aor->aor": 8
+    },
+    "context_count": 8,
+    "mechanism_action_counts": {
+      "aor": 8,
+      "ctp": 0,
+      "gcb": 0,
+      "smp": 0
+    },
+    "phase1_fes": [
+      2500
+    ],
+    "probe_action_counts": {
+      "aor": 8,
+      "ctp": 0,
+      "gcb": 0,
+      "smp": 0
+    },
+    "probe_tax_fes": [
+      1536
+    ],
+    "same_action_count": 8,
+    "structural_complete_counts": {
+      "0.0": 8
+    }
+  },
+  "v3_reference": {
+    "action_counts": {
+      "aor": 0,
+      "ctp": 24,
+      "gcb": 5,
+      "smp": 71
+    },
+    "cases": [
+      "A1",
+      "E1",
+      "R1",
+      "S1"
+    ],
+    "context_count": 100,
+    "global_max_fes": [
+      3000000
+    ],
+    "phase1_fes": [
+      180000
+    ],
+    "structural_complete_counts": {
+      "1.0": 100
+    }
+  }
+}

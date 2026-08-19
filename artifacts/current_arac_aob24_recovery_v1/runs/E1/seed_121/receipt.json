@@ -1,0 +1,64 @@
+{
+  "action_checkpoint_hash": "b22ff9d3aaf5302e3642fa92317175897aa5bcf333fe9e86a7ac0c4707245c8e",
+  "action_seed": 121,
+  "case_id": "E1",
+  "elapsed_seconds": 1264.73994,
+  "final_error": 768822.062911641,
+  "largest_component_fraction": 0.0,
+  "manifest_sha256": "1db577a5ba1213ed370b3a7fdbe342e2d99add3904e4ca629e9aa9c6e10fe7de",
+  "phase1_checkpoint_hash": "b22ff9d3aaf5302e3642fa92317175897aa5bcf333fe9e86a7ac0c4707245c8e",
+  "phase1_fes": 180000,
+  "phase2_consumed_fes": 2820000,
+  "probe_execution_allowed": false,
+  "production_hcc_runtime_imports": [],
+  "racing_execution_allowed": false,
+  "receipt_sha256": "39d8a2ab05af083452ca2c6b8d5af17334e54e573651d9b9a1f0ca1d52101f1b",
+  "relation_count": 0,
+  "run_seed": 121,
+  "schema_version": "arac-current-arac-aob24-recovery-receipt-v1",
+  "selected_action": "smp",
+  "selection_reason": "complete_zero_relation_blocks",
+  "selection_scores": [
+    [
+      "ctp",
+      0.0
+    ],
+    [
+      "smp",
+      1.0
+    ],
+    [
+      "gcb",
+      0.0
+    ],
+    [
+      "aor",
+      0.0
+    ]
+  ],
+  "selector_execution_allowed": false,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "architecture": "Haswell",
+      "filepath": "E:\\ARAC\\.venv\\Lib\\site-packages\\numpy.libs\\libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll",
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "threading_layer": "pthreads",
+      "user_api": "blas",
+      "version": "0.3.30"
+    },
+    {
+      "architecture": "Haswell",
+      "filepath": "E:\\ARAC\\.venv\\Lib\\site-packages\\scipy.libs\\libscipy_openblas-197ee2fc9b4d071f7e048078cac74115.dll",
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "threading_layer": "pthreads",
+      "user_api": "blas",
+      "version": "0.3.31.dev"
+    }
+  ]
+}

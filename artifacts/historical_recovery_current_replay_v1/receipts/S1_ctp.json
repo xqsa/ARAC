@@ -1,0 +1,19 @@
+{
+  "action": "ctp",
+  "case": "S1",
+  "checkpoint_hash": "7ec1614da1cb76d08c0f1f10051f53434b7c5b42429e0c0a407f52af3923acaa",
+  "exact_result_match": false,
+  "expected_final_error": 1.6300049743120472e-07,
+  "expected_result_hash": "99d69ba4598352de30a6513368d94c1477e88e318e0052b43a1d6b362bed8a22",
+  "expected_terminal_fes": 3000000,
+  "final_error": 1.8079551058594875e-07,
+  "final_error_match": false,
+  "receipt_hash": "89c4db0b4bf231ee020540d81c8cd6b69f265a436bfeb2823937575322f00703",
+  "replay_passed": false,
+  "result_hash": "deba2c8e197f263f66b56417c70f790523923e12504762bdecadabf7aabcbaee",
+  "runtime_warnings": [],
+  "schema_version": "arac-current-action-replay-receipt-v1",
+  "seed": 20260901,
+  "terminal_fes": 3000000,
+  "terminal_fes_match": true
+}

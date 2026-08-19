@@ -1,0 +1,21 @@
+{
+  "result": {
+    "arm": "coordinator",
+    "cell": {
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "seed": 20260841,
+      "topology": "random"
+    },
+    "checkpoint_hash": "675b6c0d24d57a956ca52fccd0233b014845e223ae7f1f6ffade1823cd750946",
+    "layer": 2,
+    "phase1_fes": 180000,
+    "result": {
+      "final_error": 228.37111612920035,
+      "strict_best": true,
+      "terminal_fes": 3000000
+    },
+    "truth_shared_count": 6
+  },
+  "schema_version": "arac-oc-streak-gate47b-cell-v1"
+}

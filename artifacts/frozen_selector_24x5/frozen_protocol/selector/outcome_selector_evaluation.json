@@ -1,0 +1,257 @@
+{
+  "actions": [
+    "ctp",
+    "smp",
+    "gcb",
+    "aor"
+  ],
+  "feature_names": [
+    "log10_center_error",
+    "log10_best_probe_error",
+    "probe_log_relative_std",
+    "probe_log_relative_iqr",
+    "block_response_median",
+    "block_response_cv",
+    "block_asymmetry_median",
+    "relation_strength_median",
+    "relation_strength_maximum",
+    "significant_relation_fraction",
+    "line_residual_std_median",
+    "line_residual_std_std",
+    "line_residual_std_minimum",
+    "line_residual_std_maximum",
+    "line_high_frequency_fraction_median",
+    "line_high_frequency_fraction_std",
+    "line_high_frequency_fraction_minimum",
+    "line_high_frequency_fraction_maximum",
+    "line_second_difference_total_median",
+    "line_second_difference_total_std",
+    "line_second_difference_total_minimum",
+    "line_second_difference_total_maximum",
+    "line_residual_max_median",
+    "line_residual_max_std",
+    "line_residual_max_minimum",
+    "line_residual_max_maximum",
+    "line_third_difference_std_median",
+    "line_third_difference_std_std",
+    "line_third_difference_std_minimum",
+    "line_third_difference_std_maximum",
+    "structural_block_count_normalized",
+    "structural_largest_block_fraction",
+    "structural_relation_density",
+    "structural_probe_fraction",
+    "structural_inference_complete",
+    "phase1_log10_improvement"
+  ],
+  "holdout": {
+    "accuracy": 0.75,
+    "balanced_accuracy": 0.8020833333333334,
+    "confusion_matrix": [
+      [
+        5,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        7,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        3,
+        0
+      ],
+      [
+        0,
+        1,
+        4,
+        3
+      ]
+    ],
+    "gate_parameters": {
+      "maximum_mean_log10_regret": 0.05,
+      "maximum_worst_log10_regret": 0.25,
+      "minimum_accuracy": 0.5,
+      "minimum_balanced_accuracy": 0.5
+    },
+    "passed": true,
+    "per_action_recall": {
+      "aor": 0.375,
+      "ctp": 0.8333333333333334,
+      "gcb": 1.0,
+      "smp": 1.0
+    },
+    "prediction_counts": {
+      "aor": 3,
+      "ctp": 5,
+      "gcb": 8,
+      "smp": 8
+    },
+    "record_count": 24,
+    "terminal_regret": {
+      "mean_log10_regret": 0.015470921994462082,
+      "mean_selected_to_oracle_ratio": 1.0411809203742295,
+      "within_10_percent_of_oracle": 0.875,
+      "within_1_percent_of_oracle": 0.875,
+      "within_5_percent_of_oracle": 0.875,
+      "worst_log10_regret": 0.1311999488198189,
+      "worst_selected_to_oracle_ratio": 1.3526951996023342
+    }
+  },
+  "holdout_errors": [
+    {
+      "actual_action": "ctp",
+      "case_id": "A1",
+      "predicted_action": "gcb",
+      "run_seed": 142
+    },
+    {
+      "actual_action": "aor",
+      "case_id": "A3",
+      "predicted_action": "gcb",
+      "run_seed": 142
+    },
+    {
+      "actual_action": "aor",
+      "case_id": "A5",
+      "predicted_action": "gcb",
+      "run_seed": 142
+    },
+    {
+      "actual_action": "aor",
+      "case_id": "R1",
+      "predicted_action": "smp",
+      "run_seed": 142
+    },
+    {
+      "actual_action": "aor",
+      "case_id": "R4",
+      "predicted_action": "gcb",
+      "run_seed": 142
+    },
+    {
+      "actual_action": "aor",
+      "case_id": "R5",
+      "predicted_action": "gcb",
+      "run_seed": 142
+    }
+  ],
+  "model_selection": {
+    "criterion": "leave-one-training-seed-out strict accuracy",
+    "holdout_used_for_model_selection": false
+  },
+  "schema_version": "arac-outcome-selector-evaluation-v1",
+  "training": {
+    "accuracy": 1.0,
+    "balanced_accuracy": 1.0,
+    "confusion_matrix": [
+      [
+        21,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        20,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        16,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        15
+      ]
+    ],
+    "per_action_recall": {
+      "aor": 1.0,
+      "ctp": 1.0,
+      "gcb": 1.0,
+      "smp": 1.0
+    },
+    "prediction_counts": {
+      "aor": 15,
+      "ctp": 21,
+      "gcb": 16,
+      "smp": 20
+    },
+    "record_count": 72,
+    "terminal_regret": {
+      "mean_log10_regret": 0.0,
+      "mean_selected_to_oracle_ratio": 1.0,
+      "within_10_percent_of_oracle": 1.0,
+      "within_1_percent_of_oracle": 1.0,
+      "within_5_percent_of_oracle": 1.0,
+      "worst_log10_regret": 0.0,
+      "worst_selected_to_oracle_ratio": 1.0
+    }
+  },
+  "training_seed_cv": {
+    "accuracy": 0.7083333333333334,
+    "balanced_accuracy": 0.688392857142857,
+    "confusion_matrix": [
+      [
+        16,
+        2,
+        2,
+        1
+      ],
+      [
+        0,
+        19,
+        0,
+        1
+      ],
+      [
+        2,
+        2,
+        6,
+        6
+      ],
+      [
+        0,
+        2,
+        3,
+        10
+      ]
+    ],
+    "held_out_run_seeds": [
+      117,
+      129,
+      141
+    ],
+    "per_action_recall": {
+      "aor": 0.6666666666666666,
+      "ctp": 0.7619047619047619,
+      "gcb": 0.375,
+      "smp": 0.95
+    },
+    "prediction_counts": {
+      "aor": 18,
+      "ctp": 18,
+      "gcb": 11,
+      "smp": 25
+    },
+    "record_count": 72,
+    "terminal_regret": {
+      "mean_log10_regret": 0.06421843111991542,
+      "mean_selected_to_oracle_ratio": 1.327767320016375,
+      "within_10_percent_of_oracle": 0.8611111111111112,
+      "within_1_percent_of_oracle": 0.8333333333333334,
+      "within_5_percent_of_oracle": 0.8611111111111112,
+      "worst_log10_regret": 0.7493273840068944,
+      "worst_selected_to_oracle_ratio": 5.614710700171071
+    }
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "attribution": {},
+  "calibration_ref": "gate51-0-20260817",
+  "complement_checks": {
+    "no_case_on_much_worse_than_off": true
+  },
+  "failures": [
+    {
+      "arm": "off",
+      "case": "A3",
+      "error": "RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']"
+    },
+    {
+      "arm": "on",
+      "case": "S5",
+      "error": "RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']"
+    },
+    {
+      "arm": "off",
+      "case": "S5",
+      "error": "RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']"
+    }
+  ],
+  "gate_passed": false,
+  "implementation_manifest_hash": "sha256:b8c48a0919533b6a3d06b4df9187cd4d196bf5a2d8ba46cee6294ad27ed48cb2",
+  "performance_checks": {
+    "R2_not_worse": false,
+    "R6_not_worse": false,
+    "not_worse_all_4_of_4": false,
+    "strict_win_exists": false
+  },
+  "protocol": {
+    "action_seed": 20260845,
+    "arms": [
+      "ctp",
+      "gcb",
+      "smp",
+      "aor",
+      "on",
+      "off"
+    ],
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "noninferior_tol": 1.05,
+    "on_off_worse_tol": 1.1,
+    "strict_win_tol": 0.98,
+    "total_fes": 3000000
+  },
+  "protocol_checks": {
+    "A3_aor_bitwise_vs_gate50": true,
+    "A3_aor_terminal_exact": true,
+    "A3_aor_trajectory_monotone": true,
+    "A3_ctp_bitwise_vs_gate50": true,
+    "A3_ctp_terminal_exact": true,
+    "A3_ctp_trajectory_monotone": true,
+    "A3_gcb_bitwise_vs_gate50": true,
+    "A3_gcb_terminal_exact": true,
+    "A3_gcb_trajectory_monotone": true,
+    "A3_on_audit_all": true,
+    "A3_on_manifest_stamped": true,
+    "A3_on_probes_four_first": true,
+    "A3_on_terminal_exact": true,
+    "A3_smp_bitwise_vs_gate50": true,
+    "A3_smp_terminal_exact": true,
+    "A3_smp_trajectory_monotone": true,
+    "R2_aor_bitwise_vs_gate50": true,
+    "R2_aor_terminal_exact": true,
+    "R2_aor_trajectory_monotone": true,
+    "R2_ctp_bitwise_vs_gate50": false,
+    "R2_ctp_terminal_exact": true,
+    "R2_ctp_trajectory_monotone": true,
+    "R2_gcb_bitwise_vs_gate50": false,
+    "R2_gcb_terminal_exact": true,
+    "R2_gcb_trajectory_monotone": true,
+    "R2_off_audit_all": true,
+    "R2_off_manifest_stamped": true,
+    "R2_off_probes_four_first": true,
+    "R2_off_terminal_exact": true,
+    "R2_on_audit_all": true,
+    "R2_on_manifest_stamped": true,
+    "R2_on_probes_four_first": true,
+    "R2_on_terminal_exact": true,
+    "R2_smp_bitwise_vs_gate50": true,
+    "R2_smp_terminal_exact": true,
+    "R2_smp_trajectory_monotone": true,
+    "R6_aor_bitwise_vs_gate50": true,
+    "R6_aor_terminal_exact": true,
+    "R6_aor_trajectory_monotone": true,
+    "R6_ctp_bitwise_vs_gate50": false,
+    "R6_ctp_terminal_exact": true,
+    "R6_ctp_trajectory_monotone": true,
+    "R6_gcb_bitwise_vs_gate50": false,
+    "R6_gcb_terminal_exact": true,
+    "R6_gcb_trajectory_monotone": true,
+    "R6_off_audit_all": true,
+    "R6_off_manifest_stamped": true,
+    "R6_off_probes_four_first": true,
+    "R6_off_terminal_exact": true,
+    "R6_on_audit_all": true,
+    "R6_on_manifest_stamped": true,
+    "R6_on_probes_four_first": true,
+    "R6_on_terminal_exact": true,
+    "R6_smp_bitwise_vs_gate50": true,
+    "R6_smp_terminal_exact": true,
+    "R6_smp_trajectory_monotone": true,
+    "S5_aor_bitwise_vs_gate50": true,
+    "S5_aor_terminal_exact": true,
+    "S5_aor_trajectory_monotone": true,
+    "S5_ctp_bitwise_vs_gate50": true,
+    "S5_ctp_terminal_exact": true,
+    "S5_ctp_trajectory_monotone": true,
+    "S5_gcb_bitwise_vs_gate50": true,
+    "S5_gcb_terminal_exact": true,
+    "S5_gcb_trajectory_monotone": true,
+    "S5_smp_bitwise_vs_gate50": true,
+    "S5_smp_terminal_exact": true,
+    "S5_smp_trajectory_monotone": true
+  },
+  "ratios": {
+    "R2": {
+      "best_standalone": 221181.93105459498,
+      "oc_off": 460219.52571841126,
+      "oc_on": 433870.3330096782,
+      "on_vs_best": 1.9615993537129608,
+      "on_vs_off": 0.9427464693776269,
+      "standalone": {
+        "aor": 221181.93105459498,
+        "ctp": 573695.9122300792,
+        "gcb": 295662.8082010315,
+        "smp": 393906.1471835091
+      }
+    },
+    "R6": {
+      "best_standalone": 317117.8593953589,
+      "oc_off": 619037.8037896842,
+      "oc_on": 401342.4081097772,
+      "on_vs_best": 1.2655938359164232,
+      "on_vs_off": 0.6483326311459514,
+      "standalone": {
+        "aor": 317117.8593953589,
+        "ctp": 1387733.0631064237,
+        "gcb": 432592.1516055041,
+        "smp": 1026120.9027513781
+      }
+    }
+  },
+  "schema_version": "arac-oc-gate51b-v1",
+  "strict_wins": []
+}

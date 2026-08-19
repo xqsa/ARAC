@@ -1,0 +1,30 @@
+{
+  "all_exact_global_fes": true,
+  "all_single_commit": true,
+  "checkpoint_pairs_equal": false,
+  "comparison": {},
+  "comparison_error": null,
+  "completed": 62,
+  "context_count": 32,
+  "expected_method_runs": 64,
+  "failed": 2,
+  "manifest_sha256": "dceecfcb526c84446ce493a836b73466cb84ff04fa7486a1697871afe98082d9",
+  "method_action_counts": {
+    "mechanism_score_v1": {
+      "aor": 8,
+      "ctp": 0,
+      "gcb": 6,
+      "smp": 18
+    },
+    "probe_commit_v2": {
+      "aor": 16,
+      "ctp": 5,
+      "gcb": 6,
+      "smp": 3
+    }
+  },
+  "probe_cap_fallback_count": 22,
+  "probe_context_count": 30,
+  "quality_claim": "limited_pre_registered_validation_not_generalization",
+  "schema_version": "arac-phase2-v2-validation-summary-v1"
+}

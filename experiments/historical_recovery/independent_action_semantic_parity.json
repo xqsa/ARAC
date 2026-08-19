@@ -1,0 +1,155 @@
+{
+  "lanes": [
+    {
+      "action": "aor",
+      "current_semantics": "The same evidence route is retained inside the independent runtime.",
+      "current_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "src/arac/actions/aor.py",
+        "required_markers": [
+          "_optimizer_route",
+          "run_full_space",
+          "sepcmaes",
+          "mmes"
+        ],
+        "sha256": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805"
+      },
+      "frozen_v3_semantics": "Phase-I evidence routes one full-space Sep-CMA or MMES continuation.",
+      "frozen_v3_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "artifacts/final_24x25_v3_bounded/frozen_protocol/sources/aor.py",
+        "required_markers": [
+          "evidence_routed_",
+          "run_full_space",
+          "sepcmaes",
+          "mmes"
+        ],
+        "sha256": "c1cdbf00c9c1c8344b2d106fe199b80bfc000142e3cdd4f92fd40ea6f609b1d2"
+      },
+      "historical_hcc_parity": "not_equivalent",
+      "historical_protocol_verdict": "partial",
+      "historical_reason": "Historical AOR is a fresh 3,000,000-FE vendor Sep-CMA run from mean 0; current AOR starts from a Phase-I checkpoint and receives only the remaining budget.",
+      "historical_replay_authorized": false,
+      "independent_v3_parity": "compatible",
+      "lane": "AOR",
+      "ready_for_selector_evaluation": false,
+      "source_hash_equal": false
+    },
+    {
+      "action": "ctp_stable",
+      "current_semantics": "Spend about 20% on persistent coverage and then allocate nearly all remaining budget to sequential block or relation-cover polish.",
+      "current_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "src/arac/actions/ctp.py",
+        "required_markers": [
+          "_COVERAGE_FRACTION = 0.20",
+          "run_sequential_blocks",
+          "ctp-terminal"
+        ],
+        "sha256": "a10847d65f39a564b5b16c1d592e14a6f2837c1adc537cce9154e5f059a7f3a4"
+      },
+      "frozen_v3_semantics": "Use 4 zero-relation or 2 positive-relation coverage sweeps, then 8 block polish sweeps, then terminal full-space MMES.",
+      "frozen_v3_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "artifacts/final_24x25_v3_bounded/frozen_protocol/sources/ctp.py",
+        "required_markers": [
+          "_POLISH_SWEEPS = 8",
+          "coverage_sweeps = 4",
+          "run_persistent_blocks"
+        ],
+        "sha256": "2078b250d864508b47d7e1f2a1dc9f4293f9f21faf16199b5c6ea397c4df8df2"
+      },
+      "historical_hcc_parity": "not_equivalent",
+      "historical_protocol_verdict": "partial",
+      "historical_reason": "Historical CTP binds four coverage sweeps at a separate HCC decision boundary before full-space polish; current scheduling and checkpoint lifecycle differ.",
+      "historical_replay_authorized": false,
+      "independent_v3_parity": "different",
+      "lane": "CTP",
+      "ready_for_selector_evaluation": false,
+      "source_hash_equal": false
+    },
+    {
+      "action": "smp",
+      "current_semantics": "Use stateful visits, stale-state restarts, directional rescue, and conditional full-space polish.",
+      "current_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "src/arac/actions/smp.py",
+        "required_markers": [
+          "run_stateful_block_visits",
+          "run_zero_relation_hybrid_rescue",
+          "global_polish"
+        ],
+        "sha256": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd"
+      },
+      "frozen_v3_semantics": "Persist one block-CMA state per block for the available Phase-II budget.",
+      "frozen_v3_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "artifacts/final_24x25_v3_bounded/frozen_protocol/sources/smp.py",
+        "required_markers": [
+          "run_persistent_blocks",
+          "persistent_block_cma_"
+        ],
+        "sha256": "57b7aa0acde87332971e7059ae649a25af931bd590d5993f510e67da8ba046f8"
+      },
+      "historical_hcc_parity": "unresolved",
+      "historical_protocol_verdict": "partial",
+      "historical_reason": "The complete historical 25-seed SMP lane and its exact action lifecycle are absent.",
+      "historical_replay_authorized": false,
+      "independent_v3_parity": "different",
+      "lane": "SMP",
+      "ready_for_selector_evaluation": false,
+      "source_hash_equal": false
+    },
+    {
+      "action": "gcb",
+      "current_semantics": "Run up to three cold block sweeps, one short full-space coordination burst, then restart cold block sweeps to the terminal budget.",
+      "current_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "src/arac/actions/gcb.py",
+        "required_markers": [
+          "run_cold_start_block_sweeps",
+          "gcb-global-coordination",
+          "gcb-continuation"
+        ],
+        "sha256": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d"
+      },
+      "frozen_v3_semantics": "Use full-space Sep-CMA immediately for zero relations; otherwise spend about 10% on graph-ordered persistent blocks before global coordination.",
+      "frozen_v3_source": {
+        "auditable": true,
+        "missing_markers": [],
+        "path": "artifacts/final_24x25_v3_bounded/frozen_protocol/sources/gcb.py",
+        "required_markers": [
+          "zero_relation_global_coordination",
+          "run_persistent_blocks",
+          "// 10"
+        ],
+        "sha256": "2509059a9e1eb0b3db56538867d42cd90079e86f88160575d0d81ea7e175ee67"
+      },
+      "historical_hcc_parity": "not_equivalent",
+      "historical_protocol_verdict": "partial",
+      "historical_reason": "Historical GCB uses a native phase-boundary burst followed by persistent native resume sweeps; current cold-start sessions do not preserve that lifecycle.",
+      "historical_replay_authorized": false,
+      "independent_v3_parity": "different",
+      "lane": "GCB",
+      "ready_for_selector_evaluation": false,
+      "source_hash_equal": false
+    }
+  ],
+  "next_gate": "fixed_checkpoint_single_case_mechanism_screen",
+  "production_hcc_runtime_clean": true,
+  "production_hcc_runtime_imports": [],
+  "reference_policy": {
+    "current": "production_candidate",
+    "frozen_independent_v3": "mechanism_reference",
+    "historical_hcc": "numerical_golden_reference_only"
+  },
+  "schema_version": "arac-independent-action-semantic-parity-v1",
+  "selector_evaluation_authorized": false
+}

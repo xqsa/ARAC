@@ -1,0 +1,28 @@
+{
+  "case_id": "E1",
+  "historical_gate_final_error_lte": 5.983267874603139e-07,
+  "multi_seed_execution_allowed": false,
+  "output_root": "artifacts/current_smp_historical_parity_v3",
+  "phase1_fes": 0,
+  "production_hcc_runtime_imports_allowed": false,
+  "schema_version": "arac-current-smp-historical-parity-protocol-v3",
+  "seed": 117,
+  "selector_execution_allowed": false,
+  "short_gate_fes": 3200,
+  "source_paths": [
+    "experiments/historical_recovery/current_smp_historical_parity.py",
+    "src/arac/actions/_execution.py",
+    "src/arac/runtime/ledger.py",
+    "src/arac/runtime/contracts.py",
+    "vendor/aob/AOB/AOB.py",
+    "vendor/aob/AOB/elliptic.py",
+    "vendor/aob/AOB/AOBG/datafile/F1-info.txt",
+    "vendor/aob/AOB/AOBG/datafile/F1-p.txt",
+    "vendor/aob/AOB/AOBG/datafile/F1-s.txt",
+    "vendor/aob/AOB/AOBG/datafile/F1-R25.txt",
+    "vendor/aob/AOB/AOBG/datafile/F1-R50.txt",
+    "vendor/aob/AOB/AOBG/datafile/F1-R100.txt"
+  ],
+  "terminal_run_count": 1,
+  "total_budget_fes": 3000000
+}

@@ -1,0 +1,24 @@
+{
+  "manifest_sha256": "f41e82c4704f88c3c645675ce8bbd696ff7ac0a6fc9249ef668b2237f224519c",
+  "production_hcc_runtime_imports": [],
+  "production_source_hashes": {
+    "action_execution": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "action_registry": "aec04994b287d0c419b893e8189ec12e4fafc0be9fcee9b56c23cb47d5118c06",
+    "aor": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805",
+    "benchmark": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "contracts": "b9011c7f0e283714ddd1f1065351d574bd6a07f1c5d2857ecbdbcd285de090a6",
+    "ctp": "a10847d65f39a564b5b16c1d592e14a6f2837c1adc537cce9154e5f059a7f3a4",
+    "gcb": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d",
+    "ledger": "d2cbc0d3536c3a7d1f4ff0eafb88e0e643e5081e0687e8483624333e5cffa513",
+    "optimizers": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954",
+    "smp": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd"
+  },
+  "protocol_sha256": "28f1981082f189b2aa66f80da32ccb7e4de98801f1ffb49f1a499f380be1a1bf",
+  "schema_version": "arac-independent-terminal-parity-manifest-v1",
+  "selector_execution_allowed": false,
+  "source_hashes": {
+    "experiments/historical_recovery/independent_semantic_parity_pilot.py": "b0a019b69ec2c14525911d708304aa3635745ff0c1e550113b59d3842817877b",
+    "experiments/historical_recovery/independent_terminal_parity.py": "15ce791e5e8851de9c6af5293a5130af0ec947cef703b46154be83024e724205",
+    "experiments/historical_recovery/independent_terminal_parity_protocol.json": "28f1981082f189b2aa66f80da32ccb7e4de98801f1ffb49f1a499f380be1a1bf"
+  }
+}

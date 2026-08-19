@@ -1,0 +1,57 @@
+{
+  "historical_level_pass_count": 3,
+  "lane_count": 4,
+  "lanes": [
+    {
+      "action": "aor",
+      "candidate_error": 77957.80539189112,
+      "case_id": "A1",
+      "current_error": 78226.67936445617,
+      "historical_count": 25,
+      "historical_level_passed": true,
+      "historical_median": 78022.81774473883,
+      "historical_p90": 78098.55697849873,
+      "selected_arm": "historical_semantic_port",
+      "selected_error": 77957.80539189112
+    },
+    {
+      "action": "smp",
+      "candidate_error": 813413731.8409803,
+      "case_id": "E1",
+      "current_error": 72195.19251439234,
+      "historical_count": 5,
+      "historical_level_passed": false,
+      "historical_median": 4.999709267686309e-06,
+      "historical_p90": 1.8255606813339802,
+      "selected_arm": "historical_semantic_port",
+      "selected_error": 813413731.8409803
+    },
+    {
+      "action": "gcb",
+      "candidate_error": null,
+      "case_id": "R1",
+      "current_error": 172257.91675072524,
+      "historical_count": 25,
+      "historical_level_passed": true,
+      "historical_median": 153584.54364866158,
+      "historical_p90": 176367.0467002794,
+      "selected_arm": "current_production_reused",
+      "selected_error": 172257.91675072524
+    },
+    {
+      "action": "ctp",
+      "candidate_error": null,
+      "case_id": "S1",
+      "current_error": 5.168148355100764e-07,
+      "historical_count": 25,
+      "historical_level_passed": true,
+      "historical_median": 0.008858581596006,
+      "historical_p90": 0.03184487388259503,
+      "selected_arm": "current_production_reused",
+      "selected_error": 5.168148355100764e-07
+    }
+  ],
+  "schema_version": "arac-independent-terminal-parity-summary-v1",
+  "selector_evaluation_authorized": false,
+  "terminal_screen_passed": false
+}

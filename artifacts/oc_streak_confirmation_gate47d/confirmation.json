@@ -1,0 +1,750 @@
+{
+  "gate_passed": false,
+  "layer1": [
+    {
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "427cd67cbbb6bd16b4792118bc7ac93a14e740b71318f81e883a2c812632e745",
+      "frozen_kernel": 65.98079017359926,
+      "frozen_proposal": 65.98079017359925,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 14,
+          "ctp_restricted": 1,
+          "none": 1
+        },
+        "budget_flow": {
+          "arbitration": 527,
+          "operator": 8,
+          "probe": 90,
+          "sense": 2819264,
+          "smp": 512,
+          "tail": 79
+        },
+        "final_error": 65.98079017359925,
+        "operator_fes": 8,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "cbc31c3aa79fb9ba8f70b931bcce598ecba038e45ea9b833df35539f96cf6d02",
+      "frozen_kernel": 116.69391797382862,
+      "frozen_proposal": 116.6939179738286,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 15,
+          "none": 1
+        },
+        "budget_flow": {
+          "arbitration": 530,
+          "operator": 0,
+          "probe": 186,
+          "sense": 2819264,
+          "smp": 480,
+          "tail": 20
+        },
+        "final_error": 116.6939179738286,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 480,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "d0672bece677812edd6a1f26f7e9442460443c2555ba3a3a2f3cc9c5ae15af91",
+      "frozen_kernel": 65.15283968216734,
+      "frozen_proposal": 65.15283968216734,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 14,
+          "ctp_shared_core": 1,
+          "none": 1
+        },
+        "budget_flow": {
+          "arbitration": 527,
+          "operator": 8,
+          "probe": 90,
+          "sense": 2819264,
+          "smp": 512,
+          "tail": 79
+        },
+        "final_error": 65.15283968216734,
+        "operator_fes": 8,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "bbc26980df4e75d5be87bb50c27d0c52a237f2b114d86e027335ed59578b8870",
+      "frozen_kernel": 112.90923914995867,
+      "frozen_proposal": 112.90923914995867,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 13,
+          "none": 3
+        },
+        "budget_flow": {
+          "arbitration": 532,
+          "operator": 0,
+          "probe": 186,
+          "sense": 2819264,
+          "smp": 480,
+          "tail": 18
+        },
+        "final_error": 112.90923914995867,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 480,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "cb3dad8ed0ce09ef777ea42fd909b297d364c50253c11803e74bd33dede07eeb",
+      "frozen_kernel": 26445192.95958261,
+      "frozen_proposal": 26445192.95958261,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 16
+        },
+        "budget_flow": {
+          "arbitration": 560,
+          "operator": 0,
+          "probe": 96,
+          "sense": 2818704,
+          "smp": 512,
+          "tail": 640
+        },
+        "final_error": 26445192.959582612,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "82f87c1d558160765b25ad15bf8dbb66e6a7d725e0895563cd762c496f613931",
+      "frozen_kernel": 4607879.009397579,
+      "frozen_proposal": 4607879.009397579,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 16
+        },
+        "budget_flow": {
+          "arbitration": 560,
+          "operator": 0,
+          "probe": 192,
+          "sense": 2818656,
+          "smp": 512,
+          "tail": 592
+        },
+        "final_error": 4607879.009397579,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "d248559578232bbc1cc44623b5e93ad14365bede34bfb2e8036a460ccec68d59",
+      "frozen_kernel": 134064.3249357528,
+      "frozen_proposal": 134064.3249357528,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 16
+        },
+        "budget_flow": {
+          "arbitration": 560,
+          "operator": 0,
+          "probe": 96,
+          "sense": 2818704,
+          "smp": 512,
+          "tail": 640
+        },
+        "final_error": 134064.32493575284,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "db6544a7f7fdbcdb2ee95d76e28481dcf0d0618c2721e472fd51f3585def6518",
+      "frozen_kernel": 821918.1463182636,
+      "frozen_proposal": 821918.1463182636,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 16
+        },
+        "budget_flow": {
+          "arbitration": 561,
+          "operator": 0,
+          "probe": 192,
+          "sense": 2818656,
+          "smp": 512,
+          "tail": 591
+        },
+        "final_error": 821918.1463182635,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "4801a44046737fba79e39c72ef61e61fca0fbffd4d9f3f73f3762a7e7e84de3f",
+      "frozen_kernel": 130.51357763358962,
+      "frozen_proposal": 130.51357763358962,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 12,
+          "ctp_restricted": 2,
+          "none": 2
+        },
+        "budget_flow": {
+          "arbitration": 493,
+          "operator": 20,
+          "probe": 84,
+          "sense": 2819264,
+          "smp": 512,
+          "tail": 75
+        },
+        "final_error": 130.51357763358962,
+        "operator_fes": 20,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "ced40820b2b4839d588504cc9fefd053487579e80de2b37db1a789e010d8a96c",
+      "frozen_kernel": 186.60423465964894,
+      "frozen_proposal": 186.60423465964894,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 9,
+          "none": 7
+        },
+        "budget_flow": {
+          "arbitration": 537,
+          "operator": 0,
+          "probe": 184,
+          "sense": 2819264,
+          "smp": 480,
+          "tail": 15
+        },
+        "final_error": 186.60423465964894,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 480,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "ece54e4d5a4766afbcf97409dc11cb0e3c10b2335d2c5678f52ff10981b20aad",
+      "frozen_kernel": 103.64100892376982,
+      "frozen_proposal": 103.64100892376983,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 10,
+          "ctp_shared_core": 2,
+          "none": 3,
+          "smp": 1
+        },
+        "budget_flow": {
+          "arbitration": 459,
+          "operator": 52,
+          "probe": 78,
+          "sense": 2819264,
+          "smp": 512,
+          "tail": 51
+        },
+        "final_error": 103.64100892376983,
+        "operator_fes": 52,
+        "receipt_parity": true,
+        "smp_fes": 512,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    },
+    {
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "711ba26b7f89b14e984124a91b5678d07cddafca28bbf40ba014c678de94e341",
+      "frozen_kernel": 208.40928985686628,
+      "frozen_proposal": 208.40928985686628,
+      "layer": 1,
+      "oc_unified": {
+        "action_counts": {
+          "arbitration_only": 9,
+          "none": 7
+        },
+        "budget_flow": {
+          "arbitration": 536,
+          "operator": 0,
+          "probe": 184,
+          "sense": 2819264,
+          "smp": 480,
+          "tail": 16
+        },
+        "final_error": 208.40928985686637,
+        "operator_fes": 0,
+        "receipt_parity": true,
+        "smp_fes": 480,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000
+    }
+  ],
+  "layer2": [
+    {
+      "arms": {
+        "coordinator": {
+          "final_error": 89.05988766507386,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "action_counts": {
+            "arbitration_only": 1,
+            "ctp_restricted": 2,
+            "none": 13
+          },
+          "budget_flow": {
+            "arbitration": 108,
+            "operator": 16,
+            "probe": 18,
+            "sense": 2818704,
+            "smp": 512,
+            "tail": 738
+          },
+          "final_error": 72.555329096252,
+          "operator_fes": 16,
+          "receipt_parity": true,
+          "smp_fes": 512,
+          "state_hash_chain": true,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 89.05988766507383,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260838,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "6574c0cb3c4d77bff4d9b89068960d1816dcb9a713efcef9121e01fa43a0d1e0",
+      "layer": 2,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": {
+        "coordinator": {
+          "final_error": 265.23215540792427,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "action_counts": {
+            "arbitration_only": 1,
+            "ctp_restricted": 2,
+            "none": 13
+          },
+          "budget_flow": {
+            "arbitration": 108,
+            "operator": 16,
+            "probe": 36,
+            "sense": 2818656,
+            "smp": 512,
+            "tail": 768
+          },
+          "final_error": 279.7027016153955,
+          "operator_fes": 16,
+          "receipt_parity": true,
+          "smp_fes": 512,
+          "state_hash_chain": true,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 265.2321554079244,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260838,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "c223c1be73b0e2ea0310c0583a174c5eb462ed6259126cfffc05b1f9e5f86995",
+      "layer": 2,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    },
+    {
+      "arms": {
+        "coordinator": {
+          "final_error": 115.11462207911849,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "action_counts": {
+            "arbitration_only": 1,
+            "ctp_shared_core": 2,
+            "none": 13
+          },
+          "budget_flow": {
+            "arbitration": 108,
+            "operator": 16,
+            "probe": 18,
+            "sense": 2818800,
+            "smp": 512,
+            "tail": 642
+          },
+          "final_error": 115.1146220791185,
+          "operator_fes": 16,
+          "receipt_parity": true,
+          "smp_fes": 512,
+          "state_hash_chain": true,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 115.11462207911849,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260838,
+        "topology": "random"
+      },
+      "checkpoint_hash": "08546b6cc27bc75115c0eb81dffa750a07cbe688295843b78678e1cec9e43e95",
+      "layer": 2,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": {
+        "coordinator": {
+          "final_error": 219.93229188077382,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "action_counts": {
+            "arbitration_only": 1,
+            "ctp_shared_core": 2,
+            "none": 13
+          },
+          "budget_flow": {
+            "arbitration": 108,
+            "operator": 16,
+            "probe": 36,
+            "sense": 2818688,
+            "smp": 512,
+            "tail": 736
+          },
+          "final_error": 228.8502913807477,
+          "operator_fes": 16,
+          "receipt_parity": true,
+          "smp_fes": 512,
+          "state_hash_chain": true,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 228.11997432389046,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260838,
+        "topology": "random"
+      },
+      "checkpoint_hash": "a3c135c5cd6b04b9160c547e6cb13ee9e74c08a1ff44f2f6a3e2b66e368812b8",
+      "layer": 2,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    },
+    {
+      "arms": {
+        "coordinator": {
+          "final_error": 225.61867278870358,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "action_counts": {
+            "arbitration_only": 1,
+            "ctp_shared_core": 2,
+            "none": 13
+          },
+          "budget_flow": {
+            "arbitration": 108,
+            "operator": 16,
+            "probe": 18,
+            "sense": 2818704,
+            "smp": 512,
+            "tail": 738
+          },
+          "final_error": 215.28895664413852,
+          "operator_fes": 16,
+          "receipt_parity": true,
+          "smp_fes": 512,
+          "state_hash_chain": true,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 225.61867278870355,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260838,
+        "topology": "star"
+      },
+      "checkpoint_hash": "4129e2007b1cd18dce583ddde1314133393266c7e84a4ce95f74a3d9003b7cf6",
+      "layer": 2,
+      "phase1_fes": 180000,
+      "truth_shared_count": 3
+    },
+    {
+      "arms": {
+        "coordinator": {
+          "final_error": 344.0075467191009,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "action_counts": {
+            "arbitration_only": 1,
+            "ctp_shared_core": 2,
+            "none": 11,
+            "smp": 2
+          },
+          "budget_flow": {
+            "arbitration": 180,
+            "operator": 304,
+            "probe": 60,
+            "sense": 2818656,
+            "smp": 512,
+            "tail": 448
+          },
+          "final_error": 349.5343424390416,
+          "operator_fes": 304,
+          "receipt_parity": true,
+          "smp_fes": 512,
+          "state_hash_chain": true,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 349.5343424390415,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260838,
+        "topology": "star"
+      },
+      "checkpoint_hash": "5d7429df3d7c5a36903d056fdd5c8b09e0ed34e2b3739ac518f283a8ef5e364b",
+      "layer": 2,
+      "phase1_fes": 180000,
+      "truth_shared_count": 6
+    }
+  ],
+  "protocol": {
+    "gate46_reference": "artifacts\\oc_unified_sparse_regression_gate46\\cells",
+    "kernel_dispatch_config": {
+      "complex_hub_degree": 3,
+      "complex_hub_ratio": 0.9,
+      "cooldown_cycles": 1,
+      "escalation_streak": 6,
+      "hub_mode": "relative",
+      "persistent_streak": 2,
+      "stall_cap": 2
+    },
+    "layer1_seed": 20260832,
+    "layer2_seed": 20260838,
+    "streak_config": {
+      "calibration_status": "partial-v1-uncalibrated",
+      "complex_hub_degree": 3,
+      "complex_hub_ratio": 0.9,
+      "config_version": "arac-oc-coordinator-config-v1",
+      "cooldown_cycles": 1,
+      "ema_alpha": 0.3,
+      "escalation_streak": 6,
+      "gain_floor": 1e-12,
+      "gamma_down": 0.5,
+      "gamma_up": 1.5,
+      "hub_mode": "relative",
+      "k_enter": 3,
+      "k_exit": 3,
+      "k_window": 4,
+      "persistent_streak": 2,
+      "probe_budget_share": 0.25,
+      "pulse_max_fes": 32,
+      "pulse_min_fes": 8,
+      "smp_trust_floor": 0.5,
+      "stall_cap": 2,
+      "tau_enter": 0.5,
+      "tau_exit": 0.2
+    }
+  },
+  "protocol_checks": {
+    "layer1_cell_count_12": true,
+    "layer2_cell_count_6": true,
+    "phase1_exact": true,
+    "strict_best": true,
+    "terminal_exact": true,
+    "unified_receipts_ok": true
+  },
+  "schema_version": "arac-oc-streak-gate47b-v1",
+  "screening_checks": {
+    "not_worse_than_kernel_all": false,
+    "path_fires_on_chain": true,
+    "star_no_regression_vs_proposal": true
+  },
+  "summary": {
+    "cells_with_operator_dispatch": 10,
+    "layer1_unified_wins": 0,
+    "layer2_unified_wins": 2
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "result": {
+    "arm": "oc_schedule",
+    "case_id": "R2",
+    "checkpoint_hash": "8ec759891b851077ffcaf428a1d216108256b2819491beec944e7bb34f6c3185",
+    "incumbent_error": 11979709.052856771,
+    "result": {
+      "final_error": 421694.76229059347,
+      "funded_fes": {
+        "aor": 1,
+        "ctp": 900000,
+        "gcb": 600000,
+        "smp": 1319999
+      },
+      "receipts_valid": true,
+      "schedule_hash": "dbcc58ab8edfc290cd225208f0c4896e1a2ba5fe1a857a1ccf6b6fbe0db2b1c0",
+      "segments": [
+        {
+          "consumed_fes": 300000,
+          "episode": "gcb",
+          "log_gain": 2.873761379358954,
+          "material": true,
+          "next_episode": "gcb",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "gcb",
+          "log_gain": 0.0036196585547520377,
+          "material": false,
+          "next_episode": "ctp",
+          "switched": true
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 2.996802847354921,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 0.033033432281101234,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 0.0005164771433851569,
+          "material": false,
+          "next_episode": "smp",
+          "switched": true
+        },
+        {
+          "consumed_fes": 299985,
+          "episode": "smp",
+          "log_gain": 3.151571197593055,
+          "material": true,
+          "next_episode": "smp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 299983,
+          "episode": "smp",
+          "log_gain": 0.08159084403759365,
+          "material": true,
+          "next_episode": "smp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 299991,
+          "episode": "smp",
+          "log_gain": 0.02383566163687997,
+          "material": true,
+          "next_episode": "smp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 299988,
+          "episode": "smp",
+          "log_gain": 0.014914733488501614,
+          "material": true,
+          "next_episode": "smp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 120052,
+          "episode": "smp",
+          "log_gain": 0.07477540833444152,
+          "material": true,
+          "next_episode": "smp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 1,
+          "episode": "aor",
+          "log_gain": 0.0,
+          "material": false,
+          "next_episode": "aor",
+          "switched": false
+        }
+      ],
+      "switches": 2,
+      "terminal_fes": 3000000
+    },
+    "structure": {
+      "cached": true
+    }
+  },
+  "schema_version": "arac-oc-gate50-cell-v1"
+}

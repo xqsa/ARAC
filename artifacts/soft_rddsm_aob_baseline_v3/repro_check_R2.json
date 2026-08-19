@@ -1,0 +1,97 @@
+{
+  "protocol": {
+    "audit_seed": 20260845,
+    "cases": [
+      "R2"
+    ],
+    "phase1_budget_fes": 180000,
+    "soft_config": {
+      "block_separability_probes": 5,
+      "dsm_budget": 55000,
+      "edge_threshold": 1e-13,
+      "k_mutual": 6,
+      "min_residual_size": 3,
+      "rdg_region_size": 16
+    },
+    "truth_source": "vendor/aob/AOB/AOBG/datafile F*-info/s/p (offline audit only)"
+  },
+  "rows": [
+    {
+      "block_count": 22,
+      "block_max_size": 101,
+      "block_min_size": 3,
+      "block_sizes": [
+        3,
+        4,
+        4,
+        24,
+        24,
+        24,
+        24,
+        25,
+        25,
+        25,
+        25,
+        26,
+        49,
+        49,
+        50,
+        50,
+        51,
+        100,
+        101,
+        101,
+        101,
+        101
+      ],
+      "budget_reconciled": true,
+      "case_id": "R2",
+      "hyperedge_count": 19,
+      "interaction_count": 928,
+      "ledger_count": 105404,
+      "level_budgets": {
+        "dsm": 48408,
+        "rdg": 43791,
+        "signature": 13205
+      },
+      "mean_fragments_per_truth_group": 2.05,
+      "recovered_shared_count": 19,
+      "shared_precision": 1.0,
+      "shared_recall": 1.0,
+      "singleton_count": 14,
+      "truth_group_count": 20,
+      "truth_group_sizes": [
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        50,
+        51,
+        51,
+        51,
+        51,
+        101,
+        101,
+        101,
+        101,
+        101
+      ],
+      "truth_shared_count": 19,
+      "variables_in_blocks": 986
+    }
+  ],
+  "schema_version": "arac-soft-rddsm-aob-baseline-v3",
+  "summary": {
+    "budget_reconciled_all": true,
+    "case_count": 1,
+    "mean_shared_precision": 1.0,
+    "mean_shared_recall": 1.0,
+    "nonzero_recall_case_count": 1
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": "arac-current-action-replay-config-v1",
+  "audit_config": "experiments/historical_recovery/config.json",
+  "source_matrix_root": "artifacts/outcome_calibration_v5/train",
+  "output_root": "artifacts/historical_recovery_current_replay_v2",
+  "max_workers": 4,
+  "final_error_relative_tolerance": 1e-12,
+  "final_error_absolute_tolerance": 1e-12,
+  "contexts": [
+    {
+      "case": "A1",
+      "action": "aor",
+      "seed": 20260901,
+      "checkpoint_hash": "be49c03af8526b2f2c88e0fc4a1e2a53b921fa1845fa9c140be5812702509197",
+      "expected_final_error": 78216.10675551635,
+      "expected_result_hash": "f2900a699e7cbd9941f6fee86bd1a8bbdd8abdfd856c7b177555ad32fb645a7b",
+      "expected_terminal_fes": 3000000
+    },
+    {
+      "case": "E1",
+      "action": "smp",
+      "seed": 20260901,
+      "checkpoint_hash": "ac27f86cfb9302c4122fc52885b18ef0a013e43bf7411095b460181e5de6a83c",
+      "expected_final_error": 3387152.2200136315,
+      "expected_result_hash": "dd5259a4ce3720e1ef56365a1b16a8dfbbc6fe31aef01c7dc879fdc58bf92550",
+      "expected_terminal_fes": 3000000
+    },
+    {
+      "case": "R1",
+      "action": "gcb",
+      "seed": 20260901,
+      "checkpoint_hash": "c78fc2e17c8b844525c2621ecab233a6a0a35b96f1a1201b62a8f9a5d3ffb40e",
+      "expected_final_error": 173779.44596404317,
+      "expected_result_hash": "72104bc807ee6d70f8c3f861bb5fc7425a3fe0d5b47163055488045005dd7b6b",
+      "expected_terminal_fes": 3000000
+    },
+    {
+      "case": "S1",
+      "action": "ctp",
+      "seed": 20260901,
+      "checkpoint_hash": "7ec1614da1cb76d08c0f1f10051f53434b7c5b42429e0c0a407f52af3923acaa",
+      "expected_final_error": 1.6300049743120472e-7,
+      "expected_result_hash": "99d69ba4598352de30a6513368d94c1477e88e318e0052b43a1d6b362bed8a22",
+      "expected_terminal_fes": 3000000
+    }
+  ]
+}

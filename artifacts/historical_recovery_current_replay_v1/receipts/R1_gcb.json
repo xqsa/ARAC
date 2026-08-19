@@ -1,0 +1,19 @@
+{
+  "action": "gcb",
+  "case": "R1",
+  "checkpoint_hash": "c78fc2e17c8b844525c2621ecab233a6a0a35b96f1a1201b62a8f9a5d3ffb40e",
+  "exact_result_match": false,
+  "expected_final_error": 173779.44596404317,
+  "expected_result_hash": "72104bc807ee6d70f8c3f861bb5fc7425a3fe0d5b47163055488045005dd7b6b",
+  "expected_terminal_fes": 3000000,
+  "final_error": 157010.98921357712,
+  "final_error_match": false,
+  "receipt_hash": "5065df17d2dfad4291cd97793ffc2b525f43d8d598e023d764b1302df82a8d79",
+  "replay_passed": false,
+  "result_hash": "1ca83dc22a10e46fc7a85f26cc3e524a6b67b614053daa69a08f0f72a096fc6c",
+  "runtime_warnings": [],
+  "schema_version": "arac-current-action-replay-receipt-v1",
+  "seed": 20260901,
+  "terminal_fes": 3000000,
+  "terminal_fes_match": true
+}

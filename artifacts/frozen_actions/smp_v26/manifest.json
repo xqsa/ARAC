@@ -1,0 +1,41 @@
+{
+  "schema_version": "arac-frozen-action-v1",
+  "candidate": "smp_v26_hybrid",
+  "frozen_at_utc": "2026-08-03T19:30:25.3204321Z",
+  "selection_status": "development_candidate_frozen_before_v4_calibration",
+  "selection_evidence": {
+    "case_id": "E1",
+    "seeds": [117, 129, 141, 142, 20260753],
+    "completed": 5,
+    "failed": 0,
+    "max_fes": 3000000,
+    "all_terminal_fes_exact": true,
+    "mean_final_error": 1282914.970176869,
+    "sample_std_final_error": 1095772.6403575202,
+    "mean_final_error_sci": "1.28E+06",
+    "sample_std_final_error_sci": "1.10E+06",
+    "tail_gate_passed": true,
+    "summary_sha256": "b9e78dad59ac8a4f0d7293dc7ff7d010f76646739f3f800335cc7ad8414b6cf8"
+  },
+  "source_hashes": {
+    "pyproject.toml": "5ea3bbf9cf043dbec69d8a326cbc06cdbf6765246b043710a46a21ca14976165",
+    "src/arac/actions/_execution.py": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "src/arac/actions/aor.py": "c1cdbf00c9c1c8344b2d106fe199b80bfc000142e3cdd4f92fd40ea6f609b1d2",
+    "src/arac/actions/ctp.py": "61b787d37d898558b43b02d9c139d54687a3688436b58c58f6a831bedda5975e",
+    "src/arac/actions/gcb.py": "6b9254de241840b4890aba493f0e5c02d1e38c89e95f1fdcb099653f38854c1a",
+    "src/arac/actions/registry.py": "b5c3dc4cf3928dec165d41d03a5a540cf902ebdb1dda5350bb9a49afa528b44a",
+    "src/arac/actions/smp.py": "deb6d12bbb27b21f026e73bd326d230c2643bae9c4432ee29884499c2650cbfe",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/evidence/phase1.py": "093978aaeddf1541cef428d3b0829274d4be244d40dfad8737defb4e2c5cc1cf",
+    "src/arac/evidence/structural.py": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2",
+    "src/arac/runtime/contracts.py": "2f53adf12c797155e5970733782ca78117e58eba0a1909db30e49d95acf3e012",
+    "src/arac/runtime/ledger.py": "0f23335824d59bbca69f8e816c609e3e70b0805e143175f368b9a3f7691c1ba7",
+    "src/arac/runtime/optimizers.py": "d8d98f58d4922c94b4561979901e41f102cda0209f493098c6b3d1e2f0893288"
+  },
+  "runtime_constraints": {
+    "actions": ["ctp", "smp", "gcb", "aor"],
+    "runtime_identity_features_forbidden": ["case_id", "family", "function_number"],
+    "gcb_internal_route": "overlap_relation_count == 0",
+    "selector_calls_per_run": 1
+  }
+}

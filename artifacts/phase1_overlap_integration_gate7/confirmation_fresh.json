@@ -1,0 +1,41 @@
+{
+  "adapter_reason": "variable_membership_evidence_complete",
+  "adapter_status": "ready",
+  "anchor_count": 5,
+  "bucket_size": 16,
+  "candidate_pair_count": 12,
+  "checkpoint_hash": "b6dd4953300d448f3a254897c4e95cd66e691f2de95ac31588a212ca03b4f03a",
+  "dimension": 1000,
+  "discovery_complete": true,
+  "discovery_consumed_fes": 126085,
+  "discovery_expected_fes": 126085,
+  "discovery_reason": "complete",
+  "expected_shared": [
+    2,
+    102
+  ],
+  "gate_checks": {
+    "adapter_ready": true,
+    "coverage_complete": true,
+    "discovery_complete": true,
+    "exact_phase1_boundary": true,
+    "phase2_budget_preserved": true,
+    "shared_variables_exact": true,
+    "structure_matches_evidence": true
+  },
+  "gate_passed": true,
+  "inferred_shared": [
+    2,
+    102
+  ],
+  "phase1_budget_fes": 180000,
+  "phase1_consumed_fes": 180000,
+  "phase1_remaining_to_total": 2820000,
+  "protocol": "arac-phase1-overlap-pilot-v1",
+  "rounds": 12,
+  "schema_version": "arac-phase1-overlap-integration-gate7-v1",
+  "seed": 20260813,
+  "separated_pair_fraction": 1.0,
+  "structure_matches_evidence": true,
+  "total_budget_fes": 3000000
+}

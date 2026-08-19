@@ -1,0 +1,52 @@
+{
+  "schema_version": "arac-independent-terminal-parity-protocol-v1",
+  "status": "frozen_design_not_run",
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "checkpoint_seed": 117,
+  "historical_gate": "same_case_nearest_rank_p90",
+  "max_workers": 2,
+  "native_threads": 1,
+  "current_campaign_manifest": "artifacts/historical_recovery_fixed_expert_v1/campaign_manifest.json",
+  "new_output_root": "artifacts/independent_action_terminal_parity_screen_v1",
+  "selector_execution_allowed": false,
+  "required_candidate_actions": [
+    "aor",
+    "smp"
+  ],
+  "lanes": [
+    {
+      "action": "aor",
+      "case_id": "A1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/A1/seed_117/checkpoint.json",
+      "current_receipt": "artifacts/historical_recovery_fixed_expert_v1/arms/A1/seed_117/aor.json",
+      "historical_glob": "results/exp_057_a_series_aor_25seed/a1-a6-25seed-v1/runs/A1/seed_*/run_summary.json",
+      "reference_contract": "results/exp_057_a_series_aor_25seed/a1-a6-25seed-v1/runs/A1/seed_117/run_summary.json"
+    },
+    {
+      "action": "smp",
+      "case_id": "E1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+      "current_receipt": "artifacts/historical_recovery_fixed_expert_v1/arms/E1/seed_117/smp.json",
+      "historical_glob": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_*/*/elliptic/run_summary.json",
+      "reference_contract": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json"
+    },
+    {
+      "action": "gcb",
+      "case_id": "R1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/R1/seed_117/checkpoint.json",
+      "current_receipt": "artifacts/historical_recovery_fixed_expert_v1/arms/R1/seed_117/gcb.json",
+      "historical_glob": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_*/*/rastrigin/run_summary.json",
+      "reference_contract": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_117/exp_059_gcb_stable_all_case_25seed-r1-seed117/rastrigin/gcb_action.json"
+    },
+    {
+      "action": "ctp",
+      "case_id": "S1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/S1/seed_117/checkpoint.json",
+      "current_receipt": "artifacts/historical_recovery_fixed_expert_v1/arms/S1/seed_117/ctp.json",
+      "historical_glob": "results/exp_058_ctp_stable_v2_25seed/validation/runs/S1/seed_*/*/schwefel/run_summary.json",
+      "reference_contract": "results/exp_058_ctp_stable_v2_25seed/validation/runs/S1/seed_117/exp_058_ctp_stable_v2_25seed-s1-seed117/schwefel/ctp_stable_action.json"
+    }
+  ],
+  "promotion_rule": "All four matched actions must meet their frozen historical P90 before any selector experiment; a negative result remains a valid audited outcome."
+}

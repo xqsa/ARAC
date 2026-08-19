@@ -1,0 +1,220 @@
+{
+  "action": "gcb",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "zero_relation_cold_warmup_119987_sweeps_3_coordination_13_cold_continuation_0_sweeps_0_tail_0"
+      },
+      "final_error": 672103.6004551077,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": false,
+      "reference_mechanism_match": null,
+      "result_hash": "604b26613a81b0c732d24ac746bb66b6f591866f9d8d52fe45d2effb5f3fd4c9",
+      "route": "zero_relation_cold_warmup_119987_sweeps_3_coordination_13_cold_continuation_0_sweeps_0_tail_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "coordination_fes": 6046,
+        "coordination_identity_preserved": true,
+        "coordination_state_digest_preserved": true,
+        "native_before_fes": 6046,
+        "native_resume_fes": 107894,
+        "resume_identity_preserved": true,
+        "session_consumed_after_resume": [
+          6080,
+          5328,
+          5904,
+          5928,
+          6176,
+          5700,
+          5952,
+          5888,
+          5472,
+          5947,
+          5757,
+          4144,
+          6160,
+          6000,
+          5888,
+          5856,
+          5952,
+          6160,
+          5664,
+          3984
+        ],
+        "session_consumed_before_coordination": [
+          418,
+          448,
+          256,
+          266,
+          528,
+          38,
+          304,
+          240,
+          528,
+          285,
+          95,
+          240,
+          528,
+          368,
+          256,
+          224,
+          320,
+          528,
+          32,
+          144
+        ],
+        "session_count": 20,
+        "state_changed_after_resume_count": 20,
+        "state_reused_after_coordination": true,
+        "state_trace": [
+          {
+            "after_resume": "13bb8c7cfc8b5a5e4b8bd4cb260ce9cdf51ac923ed7d5e344f40c3fe88076749",
+            "before_coordination": "0861f1ad951dbee3d6d2c5619fe3ecf1da6c7b4b2b610bb8434ad3899d32382d",
+            "block_index": 0
+          },
+          {
+            "after_resume": "f219a3d76a278c44a37474973e13d08780f6b97637ecfc76ceb4d8cd84c33cd3",
+            "before_coordination": "d0ab50215175fd8a97e5ebf3e2a05318e722aa7c4ed291c65fdfe96207633e85",
+            "block_index": 1
+          },
+          {
+            "after_resume": "47a6601552651c134d185f161f4560d5a4858c9825b6cfefaeefaf6cd8c39520",
+            "before_coordination": "fa45454b5c1cce2fee70303302877ce25a49120acf157f0a85e7bf4410a092a6",
+            "block_index": 2
+          },
+          {
+            "after_resume": "93fb36c73213e6ffcc29bb32f6a3b839671ab14a5cd08590726e9cc7ea8f9ea6",
+            "before_coordination": "0b534c80f334c1ddbafe9d068d279d6be595c6dee9a58f6eecc1cc710a7bc154",
+            "block_index": 3
+          },
+          {
+            "after_resume": "aef6a9087b226d842cdb7218a28bcab130468723a7957ff0485d6fe2457e2f9b",
+            "before_coordination": "67cd11b8d91d76d9d61797bbc89b6b960c51848e72d0e5fe9a9631c3e5aa844d",
+            "block_index": 4
+          },
+          {
+            "after_resume": "a7ef4dcf18d31efd5f428c68fc79840af32f6ec811905bb8411a62c3231c2936",
+            "before_coordination": "fb26fbbbe73742f899b8778a9fafe377f312b6b48e98160f8e8eb6f8f314e235",
+            "block_index": 5
+          },
+          {
+            "after_resume": "dec8f25b29bbbcb6e378c455e099890c68cf84e64d6592aad22ee7103e6351e2",
+            "before_coordination": "8c0528b0262ee5085e21dc097409c436afe3d82830104a2f8dda8ead91e271cd",
+            "block_index": 6
+          },
+          {
+            "after_resume": "063dbe4a0550a75eb55973327690af43c138f122af472dc75af4d602191ca7e7",
+            "before_coordination": "f6bc554658780bc1d78c5555814ef47e88b3edf4716d350576c37bb254f9baa5",
+            "block_index": 7
+          },
+          {
+            "after_resume": "ad2382ef882197ff023227983ecb74804d6441401c3c1872833606e3cd6b51f9",
+            "before_coordination": "19a745d626d1f97702cd1c8807dcf3b37b9fa6290677675cd3ad6af7e8cce762",
+            "block_index": 8
+          },
+          {
+            "after_resume": "ea02a703d44c79f1c8740066f85df6500f5da17271bc5d0134d8e803a5861b2f",
+            "before_coordination": "6ec37ddd5a245d7f91838aea04886cd72653e6a5196bb03ca624d3e851d94566",
+            "block_index": 9
+          },
+          {
+            "after_resume": "437c082b0a1385b52697972797f744d90d044f69815216e94ba30aa1c1c0f620",
+            "before_coordination": "c6b9c49b2582768b8ed6d7e204a82df0cfe7b55daceba37bbe06dc41dc2b1dae",
+            "block_index": 10
+          },
+          {
+            "after_resume": "5bf91512fbe8e3ee214f26623396ede4bdfe09e4ad8f500ffef835c4146defed",
+            "before_coordination": "5d0c1c87d787595120202bf3d425dcdeaf40fe5a519e862eaf6ac7277755ada7",
+            "block_index": 11
+          },
+          {
+            "after_resume": "3d6cf6d920ca265a15f779df6a29e3b14135513a57a8b45181c323508c8ebdc9",
+            "before_coordination": "4bd56bac92aab0e7067bb45096bc1be73ebd52f8c5db7724263c6a7c18d35045",
+            "block_index": 12
+          },
+          {
+            "after_resume": "7abc252ca8851ba2682d3c318c31914340c668d674329ddcce84263f6a57957a",
+            "before_coordination": "be0f30e86c6fb968dc47eb400d28138cb9e71b6a5648bcc3c54b639c7356121f",
+            "block_index": 13
+          },
+          {
+            "after_resume": "ececbf0eb6bb2e51bc45e6c6c9389dc3d05f20b1f39ebb70a3846535f659740e",
+            "before_coordination": "34cc0cd9cfd0de55fb5e2cd3fb7cd8850349d43489c1b37baf85eb5f965f88cb",
+            "block_index": 14
+          },
+          {
+            "after_resume": "9123f571c55592e94199062b13f0fe52dfd870e483757f529dff7f72ba185c77",
+            "before_coordination": "8394ee50afffba5b9f88774bc3da7d8ee137a262ba9b0df7c29c5a82c51b1ee2",
+            "block_index": 15
+          },
+          {
+            "after_resume": "bdd906b99e44fb80509084b1f4da870a026cc40efc366c4431470749ba167212",
+            "before_coordination": "2257deb7db28e7cb72c40dc9ad8b2b9261c8f558f79c28ad8658f1042b14bed8",
+            "block_index": 16
+          },
+          {
+            "after_resume": "dccd03035beffb35fc666d588bcf4717678cfa5e739e4fb143201575ae12e5ee",
+            "before_coordination": "7086f8654168c5b9f310746170f94c1b3da54034763b61b5c845a0fb3f71483d",
+            "block_index": 17
+          },
+          {
+            "after_resume": "7a950c81a8648aba2c9132171d66432f766082c23138f3d7d79938c66a488388",
+            "before_coordination": "7f5ab12706e9519523795b61664adb8264bd63950c29d00eea03af9989478459",
+            "block_index": 18
+          },
+          {
+            "after_resume": "0b79b2f2af0d2c6784670c5e66d0ee4214677b2ac4b8da4e4bb9cb28e10032fb",
+            "before_coordination": "a0f5fd27bd4ff5018873c6d6d314a8f97aaafd63ebeb95755f2e0df30f54efc1",
+            "block_index": 19
+          }
+        ],
+        "tail_fes": 14,
+        "trigger_scope": "phase_boundary"
+      },
+      "final_error": 644167.1210934825,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": true,
+      "reference_mechanism_match": true,
+      "result_hash": "58c20104533ad42ba69f0cbce4badc197054bc4f9ca58e146bd32d210eb5fbe6",
+      "route": "historical_native_6046_phase_boundary_coordination_6046_native_resume_107894_tail_14_state_reused",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "R1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "native_thread_limit_verified": true,
+  "receipt_hash": "eb6988faaa672b4460f9c2319c48096a7fcfbcf45b7c287edc163109cdb2398c",
+  "reference_contract": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_117/exp_059_gcb_stable_all_case_25seed-r1-seed117/rastrigin/gcb_action.json",
+  "reference_contract_sha256": "75df9c09ed12cb691bc5d653618bfc40750b22043b39cd3b537ebe1a286541a6",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v3",
+  "screen_checkpoint_hash": "33b683ad8d6e01d21d53ac7196749422378bff778e0f7a2be40053550c51e3fa",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "source_phase1_fes": 180000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    }
+  ]
+}

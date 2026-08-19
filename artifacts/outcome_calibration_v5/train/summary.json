@@ -1,0 +1,22 @@
+{
+  "all_runtime_warnings_known": true,
+  "arm_count": 2400,
+  "label_counts": {
+    "aor": 140,
+    "ctp": 71,
+    "gcb": 101,
+    "smp": 288
+  },
+  "labels_derived_from_action_outcomes": true,
+  "max_fes": 3000000,
+  "record_count": 600,
+  "runtime_warning_context_count": 296,
+  "runtime_warning_count": 1558,
+  "runtime_warning_counts_by_action": {
+    "ctp": 759,
+    "gcb": 571,
+    "smp": 228
+  },
+  "schema_version": "arac-outcome-campaign-summary-v2",
+  "unexpected_runtime_warning_count": 0
+}

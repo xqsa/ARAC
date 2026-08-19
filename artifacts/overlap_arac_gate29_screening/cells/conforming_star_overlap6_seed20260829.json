@@ -1,0 +1,60 @@
+{
+  "result": {
+    "arms": [
+      {
+        "checkpoint_error": 1125.5187610939543,
+        "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+        "final_error": 57.5494731992409,
+        "mode": "proposal_neighborhood",
+        "phase2_consumed_fes": 2820000,
+        "proposal_budget_fes": 9787,
+        "strict_best": true,
+        "terminal_fes": 3000000,
+        "total_coordination_gain": 443.41685868861094,
+        "total_proposal_gain": 624.5524292061024
+      },
+      {
+        "checkpoint_error": 1125.5187610939543,
+        "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+        "final_error": 215.6620247218847,
+        "mode": "proposal_only",
+        "phase2_consumed_fes": 2820000,
+        "proposal_budget_fes": 9787,
+        "strict_best": true,
+        "terminal_fes": 3000000,
+        "total_coordination_gain": 0.0,
+        "total_proposal_gain": 909.8567363720696
+      },
+      {
+        "checkpoint_error": 1125.5187610939543,
+        "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+        "final_error": 61.09595484894706,
+        "mode": "full_context",
+        "phase2_consumed_fes": 2820000,
+        "proposal_budget_fes": 9787,
+        "strict_best": true,
+        "terminal_fes": 3000000,
+        "total_coordination_gain": 439.8703768770111,
+        "total_proposal_gain": 624.5524293679961
+      }
+    ],
+    "cell": {
+      "mode": "conforming",
+      "overlap_budget": 6,
+      "seed": 20260829,
+      "topology": "star"
+    },
+    "checkpoint_error": 1125.5187610939543,
+    "checkpoint_hash": "297c6d99c4350a1368b4f8634284e59c01115858c5d9bf1ad4e8ebfd1877d844",
+    "checkpoint_parity": true,
+    "inferred_component_count": 1,
+    "inferred_shared_count": 6,
+    "phase1_consumed_fes": 180000,
+    "proposal_budget_parity": true,
+    "strict_best": true,
+    "terminal_exact": true,
+    "truth_group_count": 980,
+    "truth_shared_count": 6
+  },
+  "schema_version": "arac-overlap-gate29-cell-v1-rastrigin"
+}

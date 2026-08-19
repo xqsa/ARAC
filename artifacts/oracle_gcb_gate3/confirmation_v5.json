@@ -1,0 +1,1411 @@
+{
+  "dispatch_budget_fes": 32,
+  "schema_version": "arac-oracle-gcb-gate3-v2",
+  "seeds": [
+    2026081801,
+    2026081802,
+    2026081803,
+    2026081804,
+    2026081805,
+    2026081806,
+    2026081807,
+    2026081808,
+    2026081809,
+    2026081810,
+    2026081811,
+    2026081812,
+    2026081813,
+    2026081814,
+    2026081815,
+    2026081816,
+    2026081817,
+    2026081818,
+    2026081819,
+    2026081820,
+    2026081821,
+    2026081822,
+    2026081823,
+    2026081824,
+    2026081825
+  ],
+  "summary": {
+    "gate_checks": {
+      "all_archives_nonworsening": true,
+      "all_budgets_exact": true,
+      "all_topologies_have_90pct_gcb_wins_or_ties": false
+    },
+    "gate_passed": false,
+    "pair_hub": {
+      "archive_nonworsening": true,
+      "exact_budget": true,
+      "gcb_losses": 0,
+      "gcb_ties": 25,
+      "gcb_wins": 0,
+      "median_gain": 0.0,
+      "runs": 25,
+      "selection_accuracy": 0.0
+    },
+    "pair_pair": {
+      "archive_nonworsening": true,
+      "exact_budget": true,
+      "gcb_losses": 4,
+      "gcb_ties": 15,
+      "gcb_wins": 6,
+      "median_gain": 0.0,
+      "runs": 25,
+      "selection_accuracy": 0.4
+    }
+  },
+  "trials": [
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.2940135214821866,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 820.3138322668108,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.2940135214821866,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081801,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 820.3138322668108,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3770976043192254,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3578.1797540411862,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3770976043192254,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081801,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3578.1797540411862,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.35331595709431585,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 809.9568397464677,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.35331595709431585,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081802,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 809.9568397464677,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 1.0611984519800575,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3541.7826714974412,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 1.0611984519800575,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081802,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3541.7826714974412,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.314758407617183,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 794.3048202966584,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3389634837776177,
+      "gcb_gain": -0.024205076160434713,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081803,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 807.9369282476518,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.43440487992338456,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3490.252863972609,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.43440487992338456,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081803,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3490.252863972609,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3147767300842603,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 812.1318020615149,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3147767300842603,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081804,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 812.1318020615149,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4309157224351681,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3522.1669533870017,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4309157224351681,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081804,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3522.1669533870017,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3251849250645416,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 793.7862742003894,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3251849250645416,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081805,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 793.7862742003894,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4142757071468372,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3591.185106890168,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4142757071468372,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081805,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3591.185106890168,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.32579179364181865,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 762.7525798145398,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31288718802173093,
+      "gcb_gain": 0.012904605620087717,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081806,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 806.9677076502842,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.37054398670141964,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3472.4524479842867,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.37054398670141964,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081806,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3472.4524479842867,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.2998297955800271,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 783.4957340219182,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.2998297955800271,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081807,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 783.4957340219182,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3930043000032672,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3423.318073979583,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3930043000032672,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081807,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3423.318073979583,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31966357512204036,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 826.2493836011203,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31966357512204036,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081808,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 826.2493836011203,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.6336060024191856,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3647.6648576761254,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.6336060024191856,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081808,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3647.6648576761254,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31084332775951584,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 814.0783730141818,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31084332775951584,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081809,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 814.0783730141818,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4914767205577625,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3570.37913121716,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4914767205577625,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081809,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3570.37913121716,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31669572180228633,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 738.618198414571,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3137783714312608,
+      "gcb_gain": 0.002917350371025529,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081810,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 770.0856846718782,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3647365290893043,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3325.7648769281896,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3647365290893043,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081810,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3325.7648769281896,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31506868865327453,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 794.2800272054908,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31506868865327453,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081811,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 794.2800272054908,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.37016968298320785,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3489.7829186964286,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.37016968298320785,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081811,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3489.7829186964286,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.29949581457192165,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 833.2309747431102,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.29949581457192165,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081812,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 833.2309747431102,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3880126122047277,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3600.0534320113597,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3880126122047277,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081812,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3600.0534320113597,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3317862118492554,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 794.2366398659748,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3317862118492554,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081813,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 794.2366398659748,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4433580964744056,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3524.449670114337,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4433580964744056,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081813,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3524.449670114337,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.325719878576873,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 830.3311068752147,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.325719878576873,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081814,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 830.3311068752147,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4498204132513828,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3685.2414406766648,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4498204132513828,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081814,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3685.2414406766648,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3094017659792004,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 767.7007732862378,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31785899480289775,
+      "gcb_gain": -0.008457228823697371,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081815,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 807.482507836466,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.6010209257256198,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3424.248105545773,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.6010209257256198,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081815,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3424.248105545773,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31303418809818057,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 781.7690191286857,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3049725364138858,
+      "gcb_gain": 0.00806165168429479,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081816,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 810.3395201084936,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.41961284653353337,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3529.2955007145124,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.41961284653353337,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081816,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3529.2955007145124,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3498939133713815,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 790.3362484226275,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3439998999158309,
+      "gcb_gain": 0.005894013455550573,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081817,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 790.6798983643596,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.40867990608052807,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3522.285568363859,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.40867990608052807,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081817,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3522.285568363859,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3146387192419181,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 789.573542239167,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.33420815988971714,
+      "gcb_gain": -0.01956944064779903,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081818,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 834.6674591407847,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.39564764774620154,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3509.877622864804,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.39564764774620154,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081818,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3509.877622864804,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31679649366915147,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 783.6278455117656,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3617918581344278,
+      "gcb_gain": -0.044995364465276355,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081819,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 797.6626545765696,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4893107990214712,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3420.375901884041,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4893107990214712,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081819,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3420.375901884041,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3139380002290926,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 776.2046626623506,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.2992378600048028,
+      "gcb_gain": 0.014700140224289782,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081820,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 806.2854175833472,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.38957108314577804,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3521.0209790272324,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.38957108314577804,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081820,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3521.0209790272324,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.33407011030834033,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 772.3436840227353,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.33407011030834033,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081821,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 772.3436840227353,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3950893689667585,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3407.145186994693,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3950893689667585,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081821,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3407.145186994693,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.2998045656355142,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 822.0006693947605,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.2998045656355142,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081822,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 822.0006693947605,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.47067447690923164,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3523.090897994891,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.47067447690923164,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081822,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3523.090897994891,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3052303903939329,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 799.4206180694289,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3052303903939329,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081823,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 799.4206180694289,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4057640328298029,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3569.7912324048884,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4057640328298029,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081823,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3569.7912324048884,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.32530858488317194,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 756.7654377820096,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3228737478409081,
+      "gcb_gain": 0.0024348370422638266,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081824,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 769.1093656102997,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4021679444784082,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3383.231087745324,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4021679444784082,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081824,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3383.231087745324,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.329420486445958,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 815.1623578966511,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.329420486445958,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081825,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 815.1623578966511,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3584977539745115,
+      "canonical_ledger_fes": 44,
+      "canonical_priority": 3636.3313983312614,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3584977539745115,
+      "gcb_gain": 0.0,
+      "gcb_ledger_fes": 44,
+      "seed": 2026081825,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3636.3313983312614,
+      "topology": "pair_hub"
+    }
+  ]
+}

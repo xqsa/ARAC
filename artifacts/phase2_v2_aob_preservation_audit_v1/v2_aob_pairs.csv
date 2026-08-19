@@ -1,0 +1,9 @@
+context_id,case_id,run_seed,phase1_fes,structural_inference_complete,probe_action,mechanism_action,same_action,probe_error,mechanism_error,probe_selected_ledger_fes,mechanism_selected_ledger_fes,probe_tax_fes,probe_reason,mechanism_reason
+aob_A1_s20261201,A1,20261201,2500,0.0,aor,aor,True,79607.69836058716,79607.34700008015,38464,40000,1536,probe_cap_insufficient_margin,incomplete_structure
+aob_A1_s20261202,A1,20261202,2500,0.0,aor,aor,True,80271.35207269048,80270.99107923859,38464,40000,1536,probe_cap_insufficient_margin,incomplete_structure
+aob_E1_s20261201,E1,20261201,2500,0.0,aor,aor,True,577366348667.0215,500759503355.82056,38464,40000,1536,stable_margin,incomplete_structure
+aob_E1_s20261202,E1,20261202,2500,0.0,aor,aor,True,644559481074.7927,611089438808.5564,38464,40000,1536,stable_margin,incomplete_structure
+aob_R1_s20261201,R1,20261201,2500,0.0,aor,aor,True,9568229.322169939,8926361.33288333,38464,40000,1536,stable_margin,incomplete_structure
+aob_R1_s20261202,R1,20261202,2500,0.0,aor,aor,True,9836306.972025426,8984743.95692533,38464,40000,1536,stable_margin,incomplete_structure
+aob_S1_s20261201,S1,20261201,2500,0.0,aor,aor,True,798473264.6931483,798473264.6931483,38464,40000,1536,stable_margin,incomplete_structure
+aob_S1_s20261202,S1,20261202,2500,0.0,aor,aor,True,791617813.3211664,791617813.3211664,38464,40000,1536,stable_margin,incomplete_structure

@@ -1,0 +1,114 @@
+{
+  "schema_version": "arac-aob-landscape-family-separability-protocol-v1",
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "current_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "output_root": "artifacts/aob_landscape_family_separability_v1",
+  "families": ["A", "E", "R", "S"],
+  "variant_indices": [1, 2, 3, 4, 5, 6],
+  "seeds": [
+    117, 118, 119, 120, 121, 122, 123, 124, 125,
+    126, 127, 128, 129, 130, 131, 132, 133, 134,
+    135, 136, 137, 138, 139, 140, 141
+  ],
+  "expected_context_count": 600,
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "expected_feature_names": [
+    "log10_center_error",
+    "log10_best_probe_error",
+    "probe_log_relative_std",
+    "probe_log_relative_iqr",
+    "block_response_median",
+    "block_response_cv",
+    "block_asymmetry_median",
+    "relation_strength_median",
+    "relation_strength_maximum",
+    "significant_relation_fraction",
+    "line_residual_std_median",
+    "line_residual_std_std",
+    "line_residual_std_minimum",
+    "line_residual_std_maximum",
+    "line_high_frequency_fraction_median",
+    "line_high_frequency_fraction_std",
+    "line_high_frequency_fraction_minimum",
+    "line_high_frequency_fraction_maximum",
+    "line_second_difference_total_median",
+    "line_second_difference_total_std",
+    "line_second_difference_total_minimum",
+    "line_second_difference_total_maximum",
+    "line_residual_max_median",
+    "line_residual_max_std",
+    "line_residual_max_minimum",
+    "line_residual_max_maximum",
+    "line_third_difference_std_median",
+    "line_third_difference_std_std",
+    "line_third_difference_std_minimum",
+    "line_third_difference_std_maximum",
+    "structural_block_count_normalized",
+    "structural_largest_block_fraction",
+    "structural_relation_density",
+    "structural_probe_fraction",
+    "structural_inference_complete",
+    "phase1_log10_improvement",
+    "warmup_log10_gain",
+    "structure_log10_gain",
+    "tail_log10_gain",
+    "late_gain_fraction"
+  ],
+  "feature_groups": {
+    "landscape_probe_30": {"start": 0, "stop": 30, "role": "fixed_ablation"},
+    "structure_5": {"start": 30, "stop": 35, "role": "fixed_ablation"},
+    "progress_5": {"start": 35, "stop": 40, "role": "fixed_ablation"},
+    "all_40": {"start": 0, "stop": 40, "role": "primary"},
+    "landscape_shape_28": {
+      "start": 0,
+      "stop": 30,
+      "exclude": ["log10_center_error", "log10_best_probe_error"],
+      "role": "post_hoc_scale_sensitivity"
+    },
+    "all_without_level_38": {
+      "start": 0,
+      "stop": 40,
+      "exclude": ["log10_center_error", "log10_best_probe_error"],
+      "role": "post_hoc_scale_sensitivity"
+    }
+  },
+  "primary_feature_group": "all_40",
+  "family_action_mapping": {
+    "A": "aor",
+    "E": "smp",
+    "R": "gcb",
+    "S": "ctp"
+  },
+  "cross_validation": {
+    "strategy": "leave-one-variant-index-out",
+    "fold_count": 6,
+    "training_contexts_per_fold": 500,
+    "test_contexts_per_fold": 100
+  },
+  "model": {
+    "pipeline": ["StandardScaler", "LogisticRegression"],
+    "solver": "lbfgs",
+    "l1_ratio": 0.0,
+    "C": 1.0,
+    "tol": 1e-8,
+    "max_iter": 5000,
+    "random_state": 0
+  },
+  "separability_gate": {
+    "minimum_balanced_accuracy": 0.70,
+    "minimum_family_recall": 0.60,
+    "minimum_fold_balanced_accuracy": 0.50
+  },
+  "identity_fields_forbidden_as_model_inputs": [
+    "case_id", "family", "variant_index", "run_seed", "selected_action", "final_error"
+  ],
+  "scientific_boundaries": [
+    "Tests four known AOB base-function families on held-out variant indices only.",
+    "Does not establish generalization to unseen base-function families or external suites.",
+    "Mapped-action label accuracy means agreement with A-to-AOR, E-to-SMP, R-to-GCB, and S-to-CTP; it is not an oracle terminal-performance label.",
+    "Does not establish that the historical family-to-action mapping is optimal at the current 180000-FE checkpoint.",
+    "Does not modify or validate the production ARAC-Core action selector."
+  ]
+}

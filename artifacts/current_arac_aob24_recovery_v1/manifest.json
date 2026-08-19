@@ -1,0 +1,25 @@
+{
+  "manifest_sha256": "1db577a5ba1213ed370b3a7fdbe342e2d99add3904e4ca629e9aa9c6e10fe7de",
+  "protocol_sha256": "793ea3bdef8e28728a261db24fabffbe92d205611899bc1029e773e78efbe269",
+  "reference_table_sha256": "1b27b193c37bba031f820c62fed3cf01bde600355a093ed34c136ee4dc8735bf",
+  "schema_version": "arac-current-arac-aob24-recovery-manifest-v1",
+  "source_sha256": {
+    "experiments/historical_recovery/current_arac_aob24_recovery.py": "51ccc96087dad0a725dc2d7aa1e5217ab3e5aea39b02adb8fd164b462dc0755d",
+    "src/arac/actions/_execution.py": "e52d03480eec77f13f4b1c8e05a481e1997eaab3805ce67ccd386451deaa63b7",
+    "src/arac/actions/aor.py": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805",
+    "src/arac/actions/ctp.py": "a10847d65f39a564b5b16c1d592e14a6f2837c1adc537cce9154e5f059a7f3a4",
+    "src/arac/actions/gcb.py": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d",
+    "src/arac/actions/registry.py": "aec04994b287d0c419b893e8189ec12e4fafc0be9fcee9b56c23cb47d5118c06",
+    "src/arac/actions/smp.py": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "src/arac/core.py": "7147f00b15497ae8181632d910e760d5ed7c4e5bf3371aabd59d1767010b839e",
+    "src/arac/evidence/mechanism_features.py": "a0ed388c36f4be89f8429121b0d389f34ac49244354ca4158b4c686b1506e720",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/evidence/structural.py": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2",
+    "src/arac/runtime/contracts.py": "fee9484be85605526b0b73a790311879b0ec922974235ef2c32e6f026631646a",
+    "src/arac/runtime/ledger.py": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5",
+    "src/arac/runtime/optimizers.py": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954"
+  },
+  "terminal_run_count": 1,
+  "vendor_aob_file_count": 67,
+  "vendor_aob_tree_sha256": "9af372d908f9f6996efc91f0859789bdfdb53f1d904576e8c732c42f3deede31"
+}

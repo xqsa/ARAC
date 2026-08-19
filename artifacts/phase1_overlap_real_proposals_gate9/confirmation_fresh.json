@@ -1,0 +1,294 @@
+{
+  "adapter_ready": true,
+  "checkpoint_hash": "b6dd4953300d448f3a254897c4e95cd66e691f2de95ac31588a212ca03b4f03a",
+  "components": [
+    {
+      "accepted": false,
+      "accepted_candidate": null,
+      "best_error_after": 6.0776212818091345e-05,
+      "best_error_before": 6.0776212818091345e-05,
+      "candidate_count": 3,
+      "candidate_errors": [
+        [
+          "incumbent",
+          6.0776212818091345e-05
+        ],
+        [
+          "owner",
+          6.0776212818091345e-05
+        ],
+        [
+          "weighted_mean",
+          6.0776212818091345e-05
+        ]
+      ],
+      "candidate_names": [
+        "incumbent",
+        "owner",
+        "weighted_mean"
+      ],
+      "component": [
+        0,
+        1
+      ],
+      "conflict_level": "low",
+      "conflict_streak": 0,
+      "coordination_consumed_fes": 3,
+      "proposal_groups": [
+        0,
+        1
+      ],
+      "residual_variables": [
+        2
+      ],
+      "shared_variables": [
+        2
+      ]
+    },
+    {
+      "accepted": false,
+      "accepted_candidate": null,
+      "best_error_after": 6.0776212818091345e-05,
+      "best_error_before": 6.0776212818091345e-05,
+      "candidate_count": 3,
+      "candidate_errors": [
+        [
+          "incumbent",
+          6.0776212818091345e-05
+        ],
+        [
+          "owner",
+          6.0776212818091345e-05
+        ],
+        [
+          "weighted_mean",
+          6.0776212818091345e-05
+        ]
+      ],
+      "candidate_names": [
+        "incumbent",
+        "owner",
+        "weighted_mean"
+      ],
+      "component": [
+        97,
+        98
+      ],
+      "conflict_level": "low",
+      "conflict_streak": 0,
+      "coordination_consumed_fes": 3,
+      "proposal_groups": [
+        97,
+        98
+      ],
+      "residual_variables": [
+        102
+      ],
+      "shared_variables": [
+        102
+      ]
+    }
+  ],
+  "coordination_fes": 6,
+  "dimension": 1000,
+  "gate_checks": {
+    "adapter_ready": true,
+    "all_overlap_components_have_real_proposals": true,
+    "exact_phase1_boundary": true,
+    "global_phase2_fe_reconciles": true,
+    "phase2_budget_not_exhausted": true,
+    "proposal_covers_complete_groups": true,
+    "proposal_fe_exact": true,
+    "proposal_metrics_finite_nonnegative": true,
+    "residual_variables_exact": true,
+    "strict_best_preserved": true
+  },
+  "gate_passed": true,
+  "groups": [
+    [
+      0,
+      1,
+      2
+    ],
+    [
+      2,
+      3,
+      4
+    ],
+    [
+      100,
+      101,
+      102
+    ],
+    [
+      102,
+      103,
+      104
+    ]
+  ],
+  "phase1_fes": 180000,
+  "phase1_incumbent_error": 6.0776212818091345e-05,
+  "phase2_budget": 2820000,
+  "phase2_fes_consumed": 262,
+  "phase2_ledger_count_after_coordination": 180262,
+  "proposal_algorithm": "sepcmaes",
+  "proposal_budget_fes_each": 64,
+  "proposal_fes": 256,
+  "proposal_population_size": 8,
+  "proposals": [
+    {
+      "algorithm": "sepcmaes",
+      "best_error": 6.0776212818091345e-05,
+      "consumed_fes": 64,
+      "global_end_fes": 180064,
+      "global_start_fes": 180000,
+      "group": 0,
+      "improvement": 0.0,
+      "uncertainty": [
+        [
+          0,
+          0.12296880064690902
+        ],
+        [
+          1,
+          0.1344642893701555
+        ],
+        [
+          2,
+          0.1413774006003328
+        ]
+      ],
+      "values": [
+        [
+          0,
+          0.0013511837174926674
+        ],
+        [
+          1,
+          0.000926004761309708
+        ],
+        [
+          2,
+          -0.0028354355480252483
+        ]
+      ]
+    },
+    {
+      "algorithm": "sepcmaes",
+      "best_error": 6.0776212818091345e-05,
+      "consumed_fes": 64,
+      "global_end_fes": 180128,
+      "global_start_fes": 180064,
+      "group": 1,
+      "improvement": 0.0,
+      "uncertainty": [
+        [
+          2,
+          0.09523442258242878
+        ],
+        [
+          3,
+          0.10950979750797733
+        ],
+        [
+          4,
+          0.1325848199004523
+        ]
+      ],
+      "values": [
+        [
+          2,
+          -0.0028354355480252483
+        ],
+        [
+          3,
+          0.0011901674175076348
+        ],
+        [
+          4,
+          0.0010648759705920343
+        ]
+      ]
+    },
+    {
+      "algorithm": "sepcmaes",
+      "best_error": 6.0776212818091345e-05,
+      "consumed_fes": 64,
+      "global_end_fes": 180195,
+      "global_start_fes": 180131,
+      "group": 97,
+      "improvement": 0.0,
+      "uncertainty": [
+        [
+          100,
+          0.04616485717341819
+        ],
+        [
+          101,
+          0.09872308769133956
+        ],
+        [
+          102,
+          0.058679601617486685
+        ]
+      ],
+      "values": [
+        [
+          100,
+          -0.0006410879282862638
+        ],
+        [
+          101,
+          -0.0010867173998931419
+        ],
+        [
+          102,
+          0.002074453778964866
+        ]
+      ]
+    },
+    {
+      "algorithm": "sepcmaes",
+      "best_error": 6.0776212818091345e-05,
+      "consumed_fes": 64,
+      "global_end_fes": 180259,
+      "global_start_fes": 180195,
+      "group": 98,
+      "improvement": 0.0,
+      "uncertainty": [
+        [
+          102,
+          0.09633494360224046
+        ],
+        [
+          103,
+          0.1248213584573773
+        ],
+        [
+          104,
+          0.04924293153439971
+        ]
+      ],
+      "values": [
+        [
+          102,
+          0.002074453778964866
+        ],
+        [
+          103,
+          -0.001040523084871319
+        ],
+        [
+          104,
+          -0.0008909411734669147
+        ]
+      ]
+    }
+  ],
+  "schema_version": "arac-phase1-overlap-real-proposals-gate9-v1",
+  "shared_variables": [
+    2,
+    102
+  ],
+  "total_budget_fes": 3000000
+}

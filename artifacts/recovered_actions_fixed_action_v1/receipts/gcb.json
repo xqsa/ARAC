@@ -1,0 +1,33 @@
+{
+  "action": "gcb",
+  "action_seed": 117,
+  "allow_out_of_bounds": true,
+  "case_id_audit_metadata": "R1",
+  "checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "consumed_fes": 2820000,
+  "final_error": 142644.51064973444,
+  "historical_level_passed": true,
+  "historical_p90": 176367.0467002794,
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "receipt_hash": "f2aa177583c734fa562b2b337b34209d42532838c579b1925f834ba4037f9691",
+  "result_hash": "38ea6c4fda0b8f75d78e08b5d76860856d458a2dc8d63cc7097cd7b5345bdebd",
+  "route": "zero_relation_source_424164_sweeps_3_coordination_151080_cold_native_2244746_windows_16_tail_10",
+  "run_seed": 117,
+  "runtime_warnings": [],
+  "schema_version": "arac-recovered-fixed-action-receipt-v1",
+  "selector_execution_authorized": false,
+  "terminal_fes": 3000000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    }
+  ]
+}

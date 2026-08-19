@@ -1,0 +1,17 @@
+{
+  "benchmark": {
+    "case": "E1",
+    "run_seed": 20261212,
+    "suite": "aob"
+  },
+  "context_id": "aob_E1_s20261212",
+  "error": "optimizer sigma became non-finite or negative",
+  "error_type": "RuntimeError",
+  "manifest_sha256": "68eddedda80b1c16867f7e500adf4c3b38628359f37134c7ee329632159b7e58",
+  "method": "probe_commit_v2",
+  "receipt_sha256": "3985d7a689aaaacc3fe3731ef2ef05fd61da7c3a25344052d5c958f2377593e6",
+  "run_index": 9,
+  "schema_version": "arac-phase2-v2-aob-restored-pilot-receipt-v2",
+  "status": "failed",
+  "traceback": "Traceback (most recent call last):\n  File \"E:\\ARAC\\experiments\\phase2_v2_aob_restored_pilot.py\", line 484, in _write_method_receipt\n    result, objective_fes = _run_one(context, method, config)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\experiments\\phase2_v2_aob_restored_pilot.py\", line 244, in _run_one\n    result = run_probe_commit_policy(\n             ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\src\\arac\\runtime\\probe_policy.py\", line 114, in run_probe_commit_policy\n    selected_state.step(continuation_fes)\n  File \"E:\\ARAC\\src\\arac\\runtime\\phase2.py\", line 64, in step\n    self._advance(budget_fes)\n  File \"E:\\ARAC\\src\\arac\\actions\\phase2_v2.py\", line 400, in _advance\n    trace = self._segment_session.step(chunk)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\src\\arac\\runtime\\optimizers.py\", line 448, in step\n    self._finish_population()\n  File \"E:\\ARAC\\src\\arac\\runtime\\optimizers.py\", line 429, in _finish_population\n    self._enforce_sigma_floor()\n  File \"E:\\ARAC\\src\\arac\\runtime\\optimizers.py\", line 332, in _enforce_sigma_floor\n    raise RuntimeError(\"optimizer sigma became non-finite or negative\")\nRuntimeError: optimizer sigma became non-finite or negative\n"
+}

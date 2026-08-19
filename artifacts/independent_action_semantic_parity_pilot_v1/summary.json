@@ -1,0 +1,49 @@
+{
+  "all_exact_screen_fes": true,
+  "all_same_screen_checkpoint": true,
+  "candidate_mechanism_passed_count": 4,
+  "current_reference_match_count": 1,
+  "historical_terminal_parity_evaluated": false,
+  "lane_count": 4,
+  "lanes": [
+    {
+      "action": "ctp",
+      "candidate_final_error": 10897537.525188351,
+      "candidate_mechanism_passed": true,
+      "case_id_audit_metadata": "S1",
+      "current_final_error": 12456495.77258392,
+      "current_reference_match": false,
+      "receipt_hash": "548e2d61169a0d7ba24104726219cfd7d9690fff4dcc07c418a65c15d776c0ab"
+    },
+    {
+      "action": "smp",
+      "candidate_final_error": 771635812.8683519,
+      "candidate_mechanism_passed": true,
+      "case_id_audit_metadata": "E1",
+      "current_final_error": 771635812.8683519,
+      "current_reference_match": true,
+      "receipt_hash": "dccce817fa23eed6c77b405d9755319e46b9305804112e4d92b07e2a6a1c37ad"
+    },
+    {
+      "action": "gcb",
+      "candidate_final_error": 653907.9475766156,
+      "candidate_mechanism_passed": true,
+      "case_id_audit_metadata": "R1",
+      "current_final_error": 684519.4081353431,
+      "current_reference_match": false,
+      "receipt_hash": "b35f69b9e1db75ce2fe5c7b6f2b8155bba1ba678dca3fbd4c5fffd864536e6cb"
+    },
+    {
+      "action": "aor",
+      "candidate_final_error": 78888.9967278425,
+      "candidate_mechanism_passed": true,
+      "case_id_audit_metadata": "A1",
+      "current_final_error": 78888.9967278425,
+      "current_reference_match": false,
+      "receipt_hash": "44822d3f357d20655626cdd990d6f862d2665d231e15683e0eabccba267699ce"
+    }
+  ],
+  "mechanism_screen_passed": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-summary-v1",
+  "selector_evaluation_authorized": false
+}

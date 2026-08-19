@@ -1,0 +1,13 @@
+{
+  "action": "smp",
+  "case_id": "E1",
+  "checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "dispatch_features": {
+    "structural_relation_density": 0.0,
+    "tail_log10_gain": 0.8254529754193138
+  },
+  "final_error": 2.7812810315273853e-07,
+  "run_seed": 117,
+  "source": "four_arm_reuse",
+  "terminal_fes": 3000000
+}

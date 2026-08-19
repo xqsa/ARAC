@@ -1,0 +1,432 @@
+{
+  "phase1_fes": 180000,
+  "rows": {
+    "R2": [
+      {
+        "aor_receipts": [
+          {
+            "global_gain": 0.0,
+            "grant_kind": "probe",
+            "material": false,
+            "reservation_kind": "",
+            "runtime_fes": 20000,
+            "segment_index": 3
+          },
+          {
+            "global_gain": 0.0,
+            "grant_kind": "ticket",
+            "material": false,
+            "reservation_kind": "",
+            "runtime_fes": 150000,
+            "segment_index": 9
+          },
+          {
+            "global_gain": 0.0,
+            "grant_kind": "challenger",
+            "material": false,
+            "reservation_kind": "horizon",
+            "runtime_fes": 450000,
+            "segment_index": 11
+          }
+        ],
+        "aor_runtime_fes": 450000,
+        "case": "R2",
+        "final_error": 297118.3077380647,
+        "first_material_global_receipt": null,
+        "horizon_crossing": {
+          "global_error_after": 489437.5939120136,
+          "runtime_fes": 450000,
+          "segment_index": 11
+        },
+        "horizon_fes": 450000,
+        "horizon_receipt_count": 1,
+        "seed": 20260901,
+        "standalone_aor_final_error": 503387.08993887843,
+        "standalone_horizon_segment": {
+          "consumed_fes": 150000,
+          "cumulative_phase2_fes": 450000,
+          "error_after": 539299.1166026443,
+          "error_before": 771660.1782292634,
+          "requested_fes": 150000,
+          "segment_index": 2,
+          "state_hash": "38b4e9c371abffc6b426bf828cbdc9ad57e20555783ac8744b61890999507436"
+        }
+      },
+      {
+        "aor_receipts": [
+          {
+            "global_gain": 0.0,
+            "grant_kind": "probe",
+            "material": false,
+            "reservation_kind": "",
+            "runtime_fes": 20000,
+            "segment_index": 3
+          },
+          {
+            "global_gain": 0.0,
+            "grant_kind": "ticket",
+            "material": false,
+            "reservation_kind": "",
+            "runtime_fes": 150000,
+            "segment_index": 9
+          },
+          {
+            "global_gain": 0.051089242476434725,
+            "grant_kind": "challenger",
+            "material": true,
+            "reservation_kind": "horizon",
+            "runtime_fes": 450000,
+            "segment_index": 11
+          }
+        ],
+        "aor_runtime_fes": 450000,
+        "case": "R2",
+        "final_error": 346374.5478006069,
+        "first_material_global_receipt": {
+          "global_gain": 0.051089242476434725,
+          "reservation_kind": "horizon",
+          "runtime_fes": 450000,
+          "segment_index": 11
+        },
+        "horizon_crossing": {
+          "global_error_after": 419938.247244386,
+          "runtime_fes": 450000,
+          "segment_index": 11
+        },
+        "horizon_fes": 450000,
+        "horizon_receipt_count": 1,
+        "seed": 20260902,
+        "standalone_aor_final_error": 322834.8488706293,
+        "standalone_horizon_segment": {
+          "consumed_fes": 150000,
+          "cumulative_phase2_fes": 450000,
+          "error_after": 419938.247244386,
+          "error_before": 621775.3536750809,
+          "requested_fes": 150000,
+          "segment_index": 2,
+          "state_hash": "c747a42556c4a39abbca91d6b8425937258b2e64c72c2fbd8ab282da4aee6314"
+        }
+      },
+      {
+        "aor_receipts": [
+          {
+            "global_gain": 0.0,
+            "grant_kind": "probe",
+            "material": false,
+            "reservation_kind": "",
+            "runtime_fes": 20000,
+            "segment_index": 3
+          },
+          {
+            "global_gain": 0.0,
+            "grant_kind": "ticket",
+            "material": false,
+            "reservation_kind": "",
+            "runtime_fes": 150000,
+            "segment_index": 9
+          },
+          {
+            "global_gain": 0.0,
+            "grant_kind": "challenger",
+            "material": false,
+            "reservation_kind": "horizon",
+            "runtime_fes": 450000,
+            "segment_index": 11
+          }
+        ],
+        "aor_runtime_fes": 450000,
+        "case": "R2",
+        "final_error": 305312.81441872945,
+        "first_material_global_receipt": null,
+        "horizon_crossing": {
+          "global_error_after": 384117.7656475046,
+          "runtime_fes": 450000,
+          "segment_index": 11
+        },
+        "horizon_fes": 450000,
+        "horizon_receipt_count": 1,
+        "seed": 20260903,
+        "standalone_aor_final_error": 344919.7634561726,
+        "standalone_horizon_segment": {
+          "consumed_fes": 150000,
+          "cumulative_phase2_fes": 450000,
+          "error_after": 418458.5607113634,
+          "error_before": 635342.2603345551,
+          "requested_fes": 150000,
+          "segment_index": 2,
+          "state_hash": "2d5905e052703c254471dc1423b964c5efef5c5c2591a721ae718d1ffa559d0b"
+        }
+      }
+    ],
+    "S5": [
+      {
+        "adaptive_lock": [
+          {
+            "consumed_fes": 300000,
+            "global_error_after": 6298098.631043098,
+            "global_gain": 1.4953045091563404,
+            "segment_index": 9
+          }
+        ],
+        "all_plateau_release_count": 2,
+        "case": "S5",
+        "ctp_matched_budget": [
+          {
+            "oc_local_error": 216413855.95001414,
+            "oc_minus_standalone": -31160967.882267863,
+            "plateau_release": false,
+            "reservation_kind": "",
+            "runtime_fes": 20000,
+            "segment_index": 1,
+            "standalone_ctp_error": 247574823.832282
+          },
+          {
+            "oc_local_error": 28093894.98472884,
+            "oc_minus_standalone": -26115576.96879931,
+            "plateau_release": false,
+            "reservation_kind": "",
+            "runtime_fes": 357000,
+            "segment_index": 8,
+            "standalone_ctp_error": 54209471.95352815
+          },
+          {
+            "oc_local_error": 6298098.631043098,
+            "oc_minus_standalone": -846174.0966298487,
+            "plateau_release": false,
+            "reservation_kind": "adaptive_lock",
+            "runtime_fes": 657000,
+            "segment_index": 9,
+            "standalone_ctp_error": 7144272.727672947
+          },
+          {
+            "oc_local_error": 1330246.4238119172,
+            "oc_minus_standalone": -483875.3272172238,
+            "plateau_release": true,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 957000,
+            "segment_index": 12,
+            "standalone_ctp_error": 1814121.751029141
+          },
+          {
+            "oc_local_error": 630132.8150588489,
+            "oc_minus_standalone": -1183988.935970292,
+            "plateau_release": true,
+            "reservation_kind": "",
+            "runtime_fes": 981017,
+            "segment_index": 16,
+            "standalone_ctp_error": 1814121.751029141
+          }
+        ],
+        "final_error": 630132.8150588489,
+        "handoff_count": 13,
+        "plateau_release_count": 1,
+        "post_release_non_ctp_fes": 893326,
+        "protected_runway_count": 1,
+        "protected_runway_fes": 300000,
+        "release_receipts": [
+          {
+            "episode": "ctp",
+            "global_gain": 0.0,
+            "next_episode": "aor",
+            "released": true,
+            "segment_index": 12
+          }
+        ],
+        "seed": 20260901,
+        "standalone_ctp_final_error": 13511.762345618443
+      },
+      {
+        "adaptive_lock": [
+          {
+            "consumed_fes": 300000,
+            "global_error_after": 4225537.534386051,
+            "global_gain": 1.3109189090897033,
+            "segment_index": 9
+          }
+        ],
+        "all_plateau_release_count": 0,
+        "case": "S5",
+        "ctp_matched_budget": [
+          {
+            "oc_local_error": 144882000.04466963,
+            "oc_minus_standalone": -26500566.976997614,
+            "plateau_release": false,
+            "reservation_kind": "",
+            "runtime_fes": 20000,
+            "segment_index": 1,
+            "standalone_ctp_error": 171382567.02166724
+          },
+          {
+            "oc_local_error": 15674973.389528126,
+            "oc_minus_standalone": -17289718.121159088,
+            "plateau_release": false,
+            "reservation_kind": "",
+            "runtime_fes": 357000,
+            "segment_index": 8,
+            "standalone_ctp_error": 32964691.510687213
+          },
+          {
+            "oc_local_error": 4225537.534386051,
+            "oc_minus_standalone": -1344846.1662930986,
+            "plateau_release": false,
+            "reservation_kind": "adaptive_lock",
+            "runtime_fes": 657000,
+            "segment_index": 9,
+            "standalone_ctp_error": 5570383.7006791495
+          },
+          {
+            "oc_local_error": 811945.0868593268,
+            "oc_minus_standalone": -307232.91377492296,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 957000,
+            "segment_index": 12,
+            "standalone_ctp_error": 1119178.0006342498
+          },
+          {
+            "oc_local_error": 234186.5376176845,
+            "oc_minus_standalone": -45793.95784594692,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1257000,
+            "segment_index": 13,
+            "standalone_ctp_error": 279980.4954636314
+          },
+          {
+            "oc_local_error": 103945.6012234008,
+            "oc_minus_standalone": -14393.931278569842,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1557000,
+            "segment_index": 14,
+            "standalone_ctp_error": 118339.53250197064
+          },
+          {
+            "oc_local_error": 51575.308319566386,
+            "oc_minus_standalone": -6723.594112051433,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1857000,
+            "segment_index": 15,
+            "standalone_ctp_error": 58298.90243161782
+          },
+          {
+            "oc_local_error": 49481.501222196355,
+            "oc_minus_standalone": -8817.401209421463,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1874343,
+            "segment_index": 16,
+            "standalone_ctp_error": 58298.90243161782
+          }
+        ],
+        "final_error": 49481.501222196355,
+        "handoff_count": 9,
+        "plateau_release_count": 0,
+        "post_release_non_ctp_fes": 0,
+        "protected_runway_count": 5,
+        "protected_runway_fes": 1217343,
+        "release_receipts": [],
+        "seed": 20260902,
+        "standalone_ctp_final_error": 13173.044710119588
+      },
+      {
+        "adaptive_lock": [
+          {
+            "consumed_fes": 300000,
+            "global_error_after": 4783582.385565433,
+            "global_gain": 1.5582166101480925,
+            "segment_index": 9
+          }
+        ],
+        "all_plateau_release_count": 0,
+        "case": "S5",
+        "ctp_matched_budget": [
+          {
+            "oc_local_error": 223243502.28195393,
+            "oc_minus_standalone": -40204629.09916562,
+            "plateau_release": false,
+            "reservation_kind": "",
+            "runtime_fes": 20000,
+            "segment_index": 1,
+            "standalone_ctp_error": 263448131.38111955
+          },
+          {
+            "oc_local_error": 22723652.196026754,
+            "oc_minus_standalone": -21619744.328971278,
+            "plateau_release": false,
+            "reservation_kind": "",
+            "runtime_fes": 357000,
+            "segment_index": 8,
+            "standalone_ctp_error": 44343396.52499803
+          },
+          {
+            "oc_local_error": 4783582.385565433,
+            "oc_minus_standalone": -1341016.0359756816,
+            "plateau_release": false,
+            "reservation_kind": "adaptive_lock",
+            "runtime_fes": 657000,
+            "segment_index": 9,
+            "standalone_ctp_error": 6124598.421541114
+          },
+          {
+            "oc_local_error": 1040870.7572407197,
+            "oc_minus_standalone": -432299.9601382039,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 957000,
+            "segment_index": 12,
+            "standalone_ctp_error": 1473170.7173789237
+          },
+          {
+            "oc_local_error": 284872.7608112462,
+            "oc_minus_standalone": -63749.43019563932,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1257000,
+            "segment_index": 13,
+            "standalone_ctp_error": 348622.1910068855
+          },
+          {
+            "oc_local_error": 145762.0391387162,
+            "oc_minus_standalone": -17400.782000696316,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1557000,
+            "segment_index": 14,
+            "standalone_ctp_error": 163162.82113941252
+          },
+          {
+            "oc_local_error": 84212.82680220212,
+            "oc_minus_standalone": -9937.890404001926,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1857000,
+            "segment_index": 15,
+            "standalone_ctp_error": 94150.71720620405
+          },
+          {
+            "oc_local_error": 81193.04615493352,
+            "oc_minus_standalone": -12957.671051270532,
+            "plateau_release": false,
+            "reservation_kind": "protected_runway",
+            "runtime_fes": 1874343,
+            "segment_index": 16,
+            "standalone_ctp_error": 94150.71720620405
+          }
+        ],
+        "final_error": 81193.04615493352,
+        "handoff_count": 9,
+        "plateau_release_count": 0,
+        "post_release_non_ctp_fes": 0,
+        "protected_runway_count": 5,
+        "protected_runway_fes": 1217343,
+        "release_receipts": [],
+        "seed": 20260903,
+        "standalone_ctp_final_error": 17396.361194052533
+      }
+    ]
+  },
+  "schema_version": "arac-oc-mechanism-diagnostics-v1",
+  "source": "artifacts\\oc_phase_aware_gate51c_v5_1"
+}

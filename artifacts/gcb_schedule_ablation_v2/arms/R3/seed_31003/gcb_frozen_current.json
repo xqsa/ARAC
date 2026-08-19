@@ -1,0 +1,46 @@
+{
+  "action_checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+  "action_result_hash": "493bdba1786408a7fe37207556f23eeadf0308becf4876e15d60e54c3e831a6d",
+  "action_seed": 31003,
+  "case_id": "R3",
+  "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+  "final_error": 246830.70073614758,
+  "manifest_sha256": "b39f6a3026b106c9568aff0701768e6360e72a4318fd8071cc5f6435a10f36d2",
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "phase1_relation_count": 24,
+  "phase2_consumed_fes": 2820000,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "158ce582217075d27c18b538901af9fbd70b8d2f6830f3d298804be3d6eebf3e",
+  "reference_thresholds_used_for_decision": false,
+  "route": "positive_relation_graph_cold_warmup_724084_sweeps_3_coordination_229802_cold_continuation_1866112_sweeps_15_tail_2",
+  "run_seed": 31003,
+  "runtime_warnings": [],
+  "schedule_trace": [],
+  "schedule_trace_summary": null,
+  "schema_version": "arac-gcb-schedule-ablation-receipt-v2",
+  "selector_execution_allowed": false,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "vcomp",
+      "user_api": "openmp"
+    }
+  ],
+  "variant": "gcb_frozen_current"
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": "arac-oc-budget-lifecycle-repair-v1",
+  "cell": {
+    "mode": "conflicting",
+    "topology": "star",
+    "overlap_budget": 3,
+    "seed": 20260835
+  },
+  "phase1_fes": 180000,
+  "total_budget_fes": 3000000,
+  "inferred_component": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+  "sense_budget_per_group": 8389,
+  "before_repair": {
+    "final_error": 301.7233626120805,
+    "sense_fes": 528507,
+    "operator_fes": 20,
+    "tail_fes": 2291443,
+    "kernel_final_error": 131.59500699675158
+  },
+  "after_repair": {
+    "final_error": 132.5685212509322,
+    "sense_fes": 2818704,
+    "probe_fes": 18,
+    "arbitration_fes": 12,
+    "operator_fes": 16,
+    "tail_fes": 1250,
+    "terminal_fes": 3000000,
+    "actions": {
+      "arbitration_only": 1,
+      "ctp_shared_core": 2,
+      "none": 13
+    },
+    "strict_best": true,
+    "receipt_parity": true,
+    "state_hash_chain": true
+  },
+  "checks": {
+    "terminal_exact": true,
+    "strict_best": true,
+    "receipt_parity": true,
+    "state_hash_chain": true,
+    "not_worse_than_kernel_1p05": true
+  },
+  "note": "Same-seed causal confirmation after separating dispatch lifecycle from persistent SMP sensing; old Gate47b artifacts are unchanged."
+}

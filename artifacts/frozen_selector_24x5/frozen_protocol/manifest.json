@@ -1,0 +1,35 @@
+{
+  "actions": [
+    "ctp",
+    "smp",
+    "gcb",
+    "aor"
+  ],
+  "config_sha256": "db3e4fa4d391a6dcef75dc0070c2357994fcf2d43c664428ca71db544d421bc7",
+  "frozen_at_utc": "2026-07-31T09:52:15.480778+00:00",
+  "labels_derived_from_action_outcomes": true,
+  "phase1_fes": 180000,
+  "phase1_max_fes": 180000,
+  "phase1_protocol": "arac-identity-blind-evidence-v2",
+  "schema_version": "arac-independent-frozen-protocol-v1",
+  "selector_hashes": {
+    "outcome_selector.joblib": "861252e120f7cc3eadf81b352b7a05a8ca67604ec139541445b227538bc265e9",
+    "outcome_selector.json": "7f1dbbe8372d8992c9cc1e3ca6906956052d8f1dc93dc7aff21fb31693bfc98f",
+    "outcome_selector_evaluation.json": "6b84bdca2b5287c8ef65f6de706e92946e590ee5a4d6912100744b803dcc815c"
+  },
+  "source_hashes": {
+    "action_execution": "dd9c1d07b2c958d038bed8f9a292aac29639f3816c3412c8a436e3c08375cc33",
+    "aor": "c1cdbf00c9c1c8344b2d106fe199b80bfc000142e3cdd4f92fd40ea6f609b1d2",
+    "benchmark": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "contracts": "2f53adf12c797155e5970733782ca78117e58eba0a1909db30e49d95acf3e012",
+    "ctp": "18b4824bd2577303b5143c68d027839632985658d48063ab0017543b953d135e",
+    "experiment": "5cf7a8f9c65fad58cbde269b85ebc48f23f3f0b04de1db0b060294d494826a1f",
+    "gcb": "2509059a9e1eb0b3db56538867d42cd90079e86f88160575d0d81ea7e175ee67",
+    "ledger": "35c98a3a25a0d5717e0e946e042a2cff63e909c770e3ef8f578e1335dfca987e",
+    "optimizers": "aea3bcfde8f2c086c8d099ceb83e88e40d6ff190b09345ec63562934bafed834",
+    "phase1": "17b41a0eac4784f5c9024bf73dbaef5996f40a763e2287c383761aed920c603d",
+    "selector": "aeac61ba7a2a2d837f8861826c7de79a6db0699b2e6ba11681f3c13e31709486",
+    "smp": "57b7aa0acde87332971e7059ae649a25af931bd590d5993f510e67da8ba046f8",
+    "structural_evidence": "c69e22c57701eeb9026b6c23c565faf1ca3c02157eafbf7eed757d04ed1056d4"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "action": "gcb",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "zero_relation_cold_warmup_120000_sweeps_2_coordination_0_cold_continuation_0_sweeps_0_tail_0"
+      },
+      "final_error": 684519.4081353431,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_match": false,
+      "result_hash": "6d71f666915069055dae7160a634147a23c605f769516ccf790c3fbe14ccfa01",
+      "route": "zero_relation_cold_warmup_120000_sweeps_2_coordination_0_cold_continuation_0_sweeps_0_tail_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "coordination_fes": 6046,
+        "native_before_fes": 6046,
+        "native_resume_fes": 107902,
+        "session_count": 20,
+        "state_reused_after_coordination": true,
+        "tail_fes": 6,
+        "trigger_scope": "phase_boundary"
+      },
+      "final_error": 653907.9475766156,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_match": true,
+      "result_hash": "6469c46a60bae11d6d91f2faa7ef99a4b08b2322b47c80ffa555b6ea2fe800f1",
+      "route": "historical_native_6046_phase_boundary_coordination_6046_native_resume_107902_tail_6_state_reused",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "R1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "receipt_hash": "b35f69b9e1db75ce2fe5c7b6f2b8155bba1ba678dca3fbd4c5fffd864536e6cb",
+  "reference_contract": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_117/exp_059_gcb_stable_all_case_25seed-r1-seed117/rastrigin/gcb_action.json",
+  "reference_contract_sha256": "75df9c09ed12cb691bc5d653618bfc40750b22043b39cd3b537ebe1a286541a6",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v1",
+  "screen_checkpoint_hash": "33b683ad8d6e01d21d53ac7196749422378bff778e0f7a2be40053550c51e3fa",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "source_phase1_fes": 180000
+}

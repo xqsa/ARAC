@@ -1,0 +1,10 @@
+[
+  {
+    "context_id": "aob_E1_s20261212",
+    "error": "optimizer sigma became non-finite or negative",
+    "error_type": "RuntimeError",
+    "method": "probe_commit_v2",
+    "receipt_sha256": "3985d7a689aaaacc3fe3731ef2ef05fd61da7c3a25344052d5c958f2377593e6",
+    "run_index": 9
+  }
+]

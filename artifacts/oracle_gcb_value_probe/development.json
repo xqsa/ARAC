@@ -1,0 +1,1263 @@
+{
+  "ctp_budget_fes": 32,
+  "probe_fes_per_component": 2,
+  "schema_version": "arac-oracle-gcb-value-probe-v1",
+  "seeds": [
+    2026081801,
+    2026081802,
+    2026081803,
+    2026081804,
+    2026081805,
+    2026081806,
+    2026081807,
+    2026081808,
+    2026081809,
+    2026081810,
+    2026081811,
+    2026081812,
+    2026081813,
+    2026081814,
+    2026081815,
+    2026081816,
+    2026081817,
+    2026081818,
+    2026081819,
+    2026081820,
+    2026081821,
+    2026081822,
+    2026081823,
+    2026081824,
+    2026081825
+  ],
+  "summary": {
+    "gate_checks": {
+      "all_archives_nonworsening": true,
+      "all_budgets_exact_and_equal": true,
+      "all_probes_identical": true,
+      "all_topologies_have_90pct_wins_or_ties": false
+    },
+    "gate_passed": false,
+    "pair_hub": {
+      "archive_nonworsening": true,
+      "exact_equal_budget": true,
+      "losses": 0,
+      "median_gain": 0.0,
+      "probes_identical": true,
+      "runs": 25,
+      "ties": 25,
+      "wins": 0
+    },
+    "pair_pair": {
+      "archive_nonworsening": true,
+      "exact_equal_budget": true,
+      "losses": 13,
+      "median_gain": -0.03044848107050596,
+      "probes_identical": true,
+      "runs": 25,
+      "ties": 12,
+      "wins": 0
+    }
+  },
+  "trials": [
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2940135214821866,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.04600374399036622,
+      "probes_identical": true,
+      "seed": 2026081801,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.04600374399036622,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.2940135214821866,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3770976043192254,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.0805334036298166,
+      "probes_identical": true,
+      "seed": 2026081801,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.0805334036298166,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3770976043192254,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.28922964569301646,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.061302599844221484,
+      "probes_identical": true,
+      "seed": 2026081802,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.06408631140129945,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3196781267635224,
+      "value_probe_gain": -0.03044848107050596,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.8419516961418984,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.22699626079172,
+      "probes_identical": true,
+      "seed": 2026081802,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.22699626079172,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.8419516961418984,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.314758407617183,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.08637393722988101,
+      "probes_identical": true,
+      "seed": 2026081803,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.08637393722988101,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.314758407617183,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.43440487992338456,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.4767896982530795,
+      "probes_identical": true,
+      "seed": 2026081803,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.4767896982530795,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.43440487992338456,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.30756910011305505,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.05582026161673731,
+      "probes_identical": true,
+      "seed": 2026081804,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.05582026161673731,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.30756910011305505,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4309157224351681,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.1176447581884537,
+      "probes_identical": true,
+      "seed": 2026081804,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.1176447581884537,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4309157224351681,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.252416234826531,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.02532030703348387,
+      "probes_identical": true,
+      "seed": 2026081805,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.07276869023801058,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.2926837442943432,
+      "value_probe_gain": -0.04026750946781216,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4142757071468372,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.0234898437110322,
+      "probes_identical": true,
+      "seed": 2026081805,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.0234898437110322,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4142757071468372,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2530321053804755,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.05824019261082902,
+      "probes_identical": true,
+      "seed": 2026081806,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.07275968826134316,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.31288718802173093,
+      "value_probe_gain": -0.05985508264125544,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.37054398670141964,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.3115631554326135,
+      "probes_identical": true,
+      "seed": 2026081806,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.3115631554326135,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.37054398670141964,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2998297955800271,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.058795469229371455,
+      "probes_identical": true,
+      "seed": 2026081807,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.058795469229371455,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.2998297955800271,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3930043000032672,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.1107275973252606,
+      "probes_identical": true,
+      "seed": 2026081807,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.1107275973252606,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3930043000032672,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.316175092422268,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.0631579937444312,
+      "probes_identical": true,
+      "seed": 2026081808,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.0631579937444312,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.316175092422268,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.6336060024191856,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.3673198635305335,
+      "probes_identical": true,
+      "seed": 2026081808,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.3673198635305335,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.6336060024191856,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.31084332775951584,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.058396815214661446,
+      "probes_identical": true,
+      "seed": 2026081809,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.058396815214661446,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.31084332775951584,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4914767205577625,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.2304150689354314,
+      "probes_identical": true,
+      "seed": 2026081809,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.2304150689354314,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4914767205577625,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2556645499520878,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.058070193294624595,
+      "probes_identical": true,
+      "seed": 2026081810,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.06103117185019852,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3137783714312608,
+      "value_probe_gain": -0.05811382147917299,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3647365290893043,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.154223852456927,
+      "probes_identical": true,
+      "seed": 2026081810,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.154223852456927,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3647365290893043,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.25346506348134146,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.0496656516863197,
+      "probes_identical": true,
+      "seed": 2026081811,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.06160362517193313,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3076244988250838,
+      "value_probe_gain": -0.054159435343742346,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.37016968298320785,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.0866870844024903,
+      "probes_identical": true,
+      "seed": 2026081811,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.0866870844024903,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.37016968298320785,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.29912534347296943,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.059053000186092164,
+      "probes_identical": true,
+      "seed": 2026081812,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.059053000186092164,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.29912534347296943,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3880126122047277,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.1899103156406388,
+      "probes_identical": true,
+      "seed": 2026081812,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.1899103156406388,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3880126122047277,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.26611659073490224,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.049389342123399516,
+      "probes_identical": true,
+      "seed": 2026081813,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.06566962111435315,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3100788504422405,
+      "value_probe_gain": -0.04396225970733825,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4433580964744056,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.151838891872149,
+      "probes_identical": true,
+      "seed": 2026081813,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.151838891872149,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4433580964744056,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.25849634166587787,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.05267866380683006,
+      "probes_identical": true,
+      "seed": 2026081814,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.06722353691099514,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3139333055026236,
+      "value_probe_gain": -0.055436963836745734,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4498204132513828,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.3074211344617996,
+      "probes_identical": true,
+      "seed": 2026081814,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.3074211344617996,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4498204132513828,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3085399345258948,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.06226951111853213,
+      "probes_identical": true,
+      "seed": 2026081815,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.06226951111853213,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3085399345258948,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.6010209257256198,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.2358327776202067,
+      "probes_identical": true,
+      "seed": 2026081815,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.2358327776202067,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.6010209257256198,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.25605235290148975,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.04707063843565884,
+      "probes_identical": true,
+      "seed": 2026081816,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.056981835196690866,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3049725364138858,
+      "value_probe_gain": -0.04892018351239602,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.41961284653353337,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.201591659843306,
+      "probes_identical": true,
+      "seed": 2026081816,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.201591659843306,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.41961284653353337,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.28564574080568195,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.05980670159166085,
+      "probes_identical": true,
+      "seed": 2026081817,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.06424817256569948,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.31875416505233184,
+      "value_probe_gain": -0.03310842424664989,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.40867990608052807,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.2795998877318286,
+      "probes_identical": true,
+      "seed": 2026081817,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.2795998877318286,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.40867990608052807,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3146387192419181,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.08298536517778415,
+      "probes_identical": true,
+      "seed": 2026081818,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.08298536517778415,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3146387192419181,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.39564764774620154,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.5067104811146033,
+      "probes_identical": true,
+      "seed": 2026081818,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.5067104811146033,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.39564764774620154,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2956325196912848,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.06615933844314303,
+      "probes_identical": true,
+      "seed": 2026081819,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.06615933844314303,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.2956325196912848,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4893107990214712,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.1819353194519486,
+      "probes_identical": true,
+      "seed": 2026081819,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.1819353194519486,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4893107990214712,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2595512501113628,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.03773077143609638,
+      "probes_identical": true,
+      "seed": 2026081820,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.054386750117729754,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.2992378600048028,
+      "value_probe_gain": -0.03968660989343997,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.38957108314577804,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.1137496388921284,
+      "probes_identical": true,
+      "seed": 2026081820,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.1137496388921284,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.38957108314577804,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.32597116298143014,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.07884425208717893,
+      "probes_identical": true,
+      "seed": 2026081821,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.07884425208717893,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.32597116298143014,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3950893689667585,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.353092694525078,
+      "probes_identical": true,
+      "seed": 2026081821,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.353092694525078,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3950893689667585,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2998045656355142,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.07281080893905456,
+      "probes_identical": true,
+      "seed": 2026081822,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_probe_gain": 0.07281080893905456,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.2998045656355142,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.47067447690923164,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.2413637254154546,
+      "probes_identical": true,
+      "seed": 2026081822,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.2413637254154546,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.47067447690923164,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2587301016183333,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.03636524724871598,
+      "probes_identical": true,
+      "seed": 2026081823,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.046500288775599585,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.299139989701481,
+      "value_probe_gain": -0.04040988808314766,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4057640328298029,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.072993185188568,
+      "probes_identical": true,
+      "seed": 2026081823,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.072993185188568,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4057640328298029,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.25220463350776456,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.07042880451814942,
+      "probes_identical": true,
+      "seed": 2026081824,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.07310395137540732,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3228737478409081,
+      "value_probe_gain": -0.07066911433314355,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.4021679444784082,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.301667277380984,
+      "probes_identical": true,
+      "seed": 2026081824,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.301667277380984,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.4021679444784082,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.2530892944302996,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 0.05472613075091909,
+      "probes_identical": true,
+      "seed": 2026081825,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_probe_gain": 0.07633119201565852,
+      "topology": "pair_pair",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.312070030245189,
+      "value_probe_gain": -0.058980735814889385,
+      "value_probe_ledger_fes": 48
+    },
+    {
+      "archive_nonworsening": true,
+      "control_component": [
+        0,
+        1,
+        2
+      ],
+      "control_ctp_fes": 32,
+      "control_error": 0.3584977539745115,
+      "control_ledger_fes": 48,
+      "control_probe_gain": 3.31488651258439,
+      "probes_identical": true,
+      "seed": 2026081825,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_probe_gain": 3.31488651258439,
+      "topology": "pair_hub",
+      "value_probe_ctp_fes": 32,
+      "value_probe_error": 0.3584977539745115,
+      "value_probe_gain": 0.0,
+      "value_probe_ledger_fes": 48
+    }
+  ]
+}

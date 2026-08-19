@@ -1,0 +1,44 @@
+{
+  "acceptance_gates": {
+    "all_final_errors_finite": true,
+    "all_runtime_warnings_known": true,
+    "candidate_schedule_trace_valid": true,
+    "exact_terminal_fes": true,
+    "maximum_parent_pair_ratio_lte": 10.0,
+    "overall_parent_win_count_gte": 6,
+    "per_case_frozen_current_geometric_mean_ratio_lt": 1.0,
+    "per_case_parent_geometric_mean_ratio_lt": 1.0,
+    "same_checkpoint_as_matched_baseline": true
+  },
+  "baseline_source_root": "artifacts/gcb_mechanism_diagnostic_v1",
+  "cases": [
+    "R1",
+    "R3",
+    "R6"
+  ],
+  "checkpoint_source_root": "artifacts/gcb_schedule_ablation_v2",
+  "expected_phase1_fes": 180000,
+  "matched_baseline_variant": "native_order_historical_seeds",
+  "max_workers": 18,
+  "native_threads": 1,
+  "native_window_count": 3,
+  "output_root": "artifacts/gcb_native_contract_diagnostic_v1",
+  "production_hcc_runtime_imports_allowed": false,
+  "purpose": "isolate no-clipping and incumbent-precheck semantics in fresh native GCB block visits",
+  "reference_thresholds_used_for_decision": false,
+  "schema_version": "arac-gcb-native-contract-diagnostic-protocol-v1",
+  "seeds": [
+    31001,
+    31002,
+    31003
+  ],
+  "selector_execution_allowed": false,
+  "source_sweep_count": 3,
+  "status": "frozen_paired_development_diagnostic",
+  "total_budget_fes": 3000000,
+  "variants": [
+    "native_order_no_clip",
+    "native_order_precheck",
+    "native_order_no_clip_precheck"
+  ]
+}

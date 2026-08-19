@@ -1,0 +1,39 @@
+{
+  "result": {
+    "baseline_checkpoint_hash": "c4c5100b5a17c40976e278d06b48b8be20a8e8c00a2164fa48e3c97f410ca5f6",
+    "baselines": {
+      "full_context": {
+        "final_error": 285.9133619906988,
+        "proposal_budget_fes": 8389,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "proposal_neighborhood": {
+        "final_error": 285.9133619906989,
+        "proposal_budget_fes": 8389,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    "cell": {
+      "mode": "conflicting",
+      "overlap_budget": 3,
+      "seed": 20260829,
+      "topology": "star"
+    },
+    "checkpoint_hash": "c4c5100b5a17c40976e278d06b48b8be20a8e8c00a2164fa48e3c97f410ca5f6",
+    "checkpoint_parity": true,
+    "ctp_fes": 192,
+    "ctp_triggered_cycles": 6,
+    "final_error": 285.9133619906988,
+    "max_conflict_streak": 6,
+    "phase1_fes": 180000,
+    "phase2_consumed_fes": 2820000,
+    "proposal_budget_fes": 8389,
+    "proposal_budget_parity": true,
+    "strict_best": true,
+    "terminal_fes": 3000000,
+    "truth_shared_count": 3
+  },
+  "schema_version": "arac-overlap-coordinate-ctp-gate35-cell-v1"
+}

@@ -1,0 +1,244 @@
+{
+  "arms": [
+    {
+      "accepted_rounds": [],
+      "arbitration_fes": 4,
+      "arm": "current_ctp",
+      "checkpoint_error": 294.7414648764999,
+      "consumed_phase2_fes": 900,
+      "continuation_fes": 32,
+      "final_error": 294.7414648764999,
+      "proposal_fes": 864,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "strict_best": true,
+      "trace_rounds": 0
+    },
+    {
+      "accepted_rounds": [],
+      "arbitration_fes": 4,
+      "arm": "full_context",
+      "checkpoint_error": 294.7414648764999,
+      "consumed_phase2_fes": 900,
+      "continuation_fes": 32,
+      "final_error": 294.7414648764999,
+      "proposal_fes": 864,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "strict_best": true,
+      "trace_rounds": 16
+    },
+    {
+      "accepted_rounds": [],
+      "arbitration_fes": 4,
+      "arm": "owner_full",
+      "checkpoint_error": 294.7414648764999,
+      "consumed_phase2_fes": 900,
+      "continuation_fes": 32,
+      "final_error": 294.7414648764999,
+      "proposal_fes": 864,
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "strict_best": true,
+      "trace_rounds": 0
+    }
+  ],
+  "gate_checks": {
+    "adapter_ready": true,
+    "full_no_worse_current": true,
+    "full_no_worse_owner": true,
+    "full_trace_exact": true,
+    "paired_arbitration": true,
+    "paired_continuation": true,
+    "phase1_boundary": true,
+    "proposal_coverage": true,
+    "proposal_fes_exact": true,
+    "shared_precision_one": true,
+    "shared_recall_one": true,
+    "strict_best": true
+  },
+  "gate_passed": true,
+  "inferred_groups": [
+    [
+      0,
+      3,
+      6
+    ],
+    [
+      1,
+      3,
+      6
+    ],
+    [
+      2,
+      3,
+      6
+    ],
+    [
+      3,
+      4,
+      5,
+      6
+    ],
+    [
+      5,
+      7,
+      10
+    ],
+    [
+      5,
+      8,
+      10
+    ],
+    [
+      5,
+      9,
+      10
+    ],
+    [
+      5,
+      10,
+      11
+    ],
+    [
+      10,
+      12,
+      15
+    ],
+    [
+      10,
+      13,
+      15
+    ],
+    [
+      10,
+      14,
+      15
+    ],
+    [
+      15,
+      16,
+      17
+    ],
+    [
+      15,
+      16,
+      18
+    ],
+    [
+      15,
+      16,
+      19
+    ],
+    [
+      15,
+      16,
+      20
+    ],
+    [
+      16,
+      21
+    ],
+    [
+      16,
+      22
+    ],
+    [
+      16,
+      23
+    ]
+  ],
+  "inferred_shared": [
+    3,
+    5,
+    6,
+    10,
+    15,
+    16
+  ],
+  "proposal_fes": 864,
+  "protocol": {
+    "mode": "conflicting",
+    "overlap_budget": 6,
+    "phase1_fes": 180000,
+    "proposal_budget_fes": 48,
+    "seed": 31001,
+    "topology": "chain",
+    "writeback_rounds": 16
+  },
+  "schema_version": "arac-evidence-clique-full-context-gate24-v1",
+  "selected_component": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+  ]
+}

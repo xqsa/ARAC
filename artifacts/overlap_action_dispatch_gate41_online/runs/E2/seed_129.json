@@ -1,0 +1,15 @@
+{
+  "action": "ctp",
+  "case_id": "E2",
+  "checkpoint_hash": "f3520195d169fbd6167e3e50f3f1bae38997c3bcd61b3e844aa7cc54f675eac4",
+  "dispatch_features": {
+    "structural_relation_density": 0.1368421052631579,
+    "tail_log10_gain": 0.7807520767651974
+  },
+  "final_error": 4809963.433397748,
+  "receipt_hash": "7cc0c63ddd89cf1ba0c3d12d63ccdc0bfe1c505f825e04c1315ec7fef3951a3b",
+  "run_seed": 129,
+  "schema_version": "arac-overlap-action-dispatch-gate41b-receipt-v1",
+  "source": "online_run",
+  "terminal_fes": 3000000
+}

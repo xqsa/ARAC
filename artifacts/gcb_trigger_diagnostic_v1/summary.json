@@ -1,0 +1,145 @@
+{
+  "all_runtime_warnings_known": true,
+  "arm_count": 9,
+  "diagnostic_gate_passed": false,
+  "final_25_seed_recovery_evaluated": false,
+  "generated_at_utc": "2026-08-11T07:48:13.347193+00:00",
+  "integrity_gate_passed": true,
+  "passing_variants": [],
+  "production_gcb_integration_authorized": false,
+  "runtime_warning_context_count": 3,
+  "runtime_warning_count": 32,
+  "runtime_warning_counts_by_action": {
+    "unknown": 32
+  },
+  "schema_version": "arac-gcb-trigger-diagnostic-summary-v1",
+  "selector_or_routing_authorized": false,
+  "summary_sha256": "d428f8d0617a9c993ce4e493f9f3b2c4bdf41ddca8991d47074f920ee82bb066",
+  "unexpected_runtime_warning_count": 0,
+  "variant_summaries": [
+    {
+      "maximum_positive_relation_ratio": 1.3400769155232553,
+      "pairs": [
+        {
+          "baseline_final_error": 152169.86061785364,
+          "candidate_final_error": 152169.86061785364,
+          "candidate_to_baseline_ratio": 1.0,
+          "candidate_to_frozen_current_ratio": 1.0876340539152611,
+          "candidate_won_or_tied": true,
+          "case_id": "R1",
+          "checkpoint_hash": "36940e8677ee2552b705d3e72b4a640f14f9d5c6dd8e2675ab1519f8a6e7d1ef",
+          "frozen_current_final_error": 139909.0623082949,
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 273397.52322203736,
+          "candidate_final_error": 366373.7096310854,
+          "candidate_to_baseline_ratio": 1.3400769155232553,
+          "candidate_to_frozen_current_ratio": 2.009070519429123,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "d77da5a046ef80b9a5153dd1240aba6f727c9b63feac23157865f658bdb97c44",
+          "frozen_current_final_error": 182359.8057350373,
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 299472.65270143835,
+          "candidate_final_error": 357325.68388714164,
+          "candidate_to_baseline_ratio": 1.193183019096506,
+          "candidate_to_frozen_current_ratio": 0.8415955015696398,
+          "candidate_won_or_tied": false,
+          "case_id": "R6",
+          "checkpoint_hash": "10c59a9a6c575da9839a65c73b360b5c2a9e8cb3c501b6f8b89fca747fd214b0",
+          "frozen_current_final_error": 424581.2664405905,
+          "run_seed": 31001
+        },
+        {
+          "baseline_final_error": 176722.04284607383,
+          "candidate_final_error": 176722.04284607383,
+          "candidate_to_baseline_ratio": 1.0,
+          "candidate_to_frozen_current_ratio": 1.0058254711964603,
+          "candidate_won_or_tied": true,
+          "case_id": "R1",
+          "checkpoint_hash": "ec5e2e5ca4258446e66aeaabaf29bc7d7ac9cce9b66276cde6b63b9b8475ebce",
+          "frozen_current_final_error": 175698.51620068593,
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 322812.7799120418,
+          "candidate_final_error": 250274.0234421916,
+          "candidate_to_baseline_ratio": 0.7752915591210016,
+          "candidate_to_frozen_current_ratio": 0.739240394855994,
+          "candidate_won_or_tied": true,
+          "case_id": "R3",
+          "checkpoint_hash": "aaf32fc4fa5f909c00df40c96eb3f62024cae595b362b3ce3e080a5eaa567c5e",
+          "frozen_current_final_error": 338555.66495516745,
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 394910.9270162229,
+          "candidate_final_error": 383142.3089064619,
+          "candidate_to_baseline_ratio": 0.9701993100097797,
+          "candidate_to_frozen_current_ratio": 1.073886037190394,
+          "candidate_won_or_tied": true,
+          "case_id": "R6",
+          "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+          "frozen_current_final_error": 356781.16265379183,
+          "run_seed": 31002
+        },
+        {
+          "baseline_final_error": 153099.73434860026,
+          "candidate_final_error": 153099.73434860026,
+          "candidate_to_baseline_ratio": 1.0,
+          "candidate_to_frozen_current_ratio": 1.1367165801661265,
+          "candidate_won_or_tied": true,
+          "case_id": "R1",
+          "checkpoint_hash": "58d0c4d79df8fad118c2b8ebf9b80f9590b2b492871e20aab36ebed1e7462e42",
+          "frozen_current_final_error": 134685.93404894767,
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 282006.6203733977,
+          "candidate_final_error": 329756.2254853427,
+          "candidate_to_baseline_ratio": 1.169320865760956,
+          "candidate_to_frozen_current_ratio": 1.3359611446302186,
+          "candidate_won_or_tied": false,
+          "case_id": "R3",
+          "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+          "frozen_current_final_error": 246830.70073614758,
+          "run_seed": 31003
+        },
+        {
+          "baseline_final_error": 375842.139322142,
+          "candidate_final_error": 393855.9372174286,
+          "candidate_to_baseline_ratio": 1.0479291596407356,
+          "candidate_to_frozen_current_ratio": 1.0979523027165325,
+          "candidate_won_or_tied": false,
+          "case_id": "R6",
+          "checkpoint_hash": "984089a47cb489579f00227107c17fa021b86b31cb9840eb3966b6d977fc1459",
+          "frozen_current_final_error": 358718.6221504866,
+          "run_seed": 31003
+        }
+      ],
+      "performance_gate_passed": false,
+      "positive_relation_case_summaries": [
+        {
+          "case_id": "R3",
+          "frozen_current_geometric_mean_ratio": 1.2565841174794297,
+          "parent_geometric_mean_ratio": 1.067028846239472,
+          "passed": false,
+          "win_or_tie_count": 1
+        },
+        {
+          "case_id": "R6",
+          "frozen_current_geometric_mean_ratio": 0.9974283123762256,
+          "parent_geometric_mean_ratio": 1.06651421969259,
+          "passed": false,
+          "win_or_tie_count": 1
+        }
+      ],
+      "positive_relation_win_or_tie_count": 2,
+      "variant": "native_order_relation_dispatch",
+      "zero_relation_bitwise_equivalent": true
+    }
+  ]
+}

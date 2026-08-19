@@ -1,0 +1,25 @@
+{
+  "schema_version": "arac-phase2-v2-aob-restored-pilot-config-v1",
+  "global_max_fes": 3000000,
+  "phase1_fes": 180000,
+  "branch_probe_fes": 32768,
+  "decision_horizon_fes": 16384,
+  "exploration_floor_fes": 32768,
+  "min_relative_margin": 0.05,
+  "min_leader_stability": 0.2,
+  "methods": [
+    "probe_commit_v2",
+    "mechanism_score_full_v1",
+    "mechanism_score_matched_v1"
+  ],
+  "aob_cases": [
+    "A1",
+    "E1",
+    "R1",
+    "S1"
+  ],
+  "run_seeds": [
+    20261211,
+    20261212
+  ]
+}

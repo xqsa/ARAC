@@ -1,0 +1,10 @@
+{
+  "absolute_delta": 7.232943842839057e-07,
+  "final_error": 1.3216211717442197e-06,
+  "historical_level_recovered_or_exceeded": false,
+  "historical_target": 5.983267874603139e-07,
+  "receipt_sha256": "b2e8679b5d2d488564df46db5d673675eb1dec1d2fefd1d580295df384a73ebb",
+  "schema_version": "arac-current-smp-historical-summary-v1",
+  "summary_sha256": "abf3e36282c961b1f2d92d72a3416d2b3322171823d89c175580c0e8cc8751ef",
+  "terminal_fes": 3000000
+}

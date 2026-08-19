@@ -1,0 +1,38 @@
+{
+  "case_id": "E1",
+  "completed_at_utc": "2026-08-10T15:03:12.553047+00:00",
+  "historical_gate_final_error_lte": 5.983267874603139e-07,
+  "historical_level_recovered_or_exceeded": false,
+  "native_thread_limit_verified": true,
+  "phase1_fes": 0,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "b2e8679b5d2d488564df46db5d673675eb1dec1d2fefd1d580295df384a73ebb",
+  "result": {
+    "consumed_fes": 3000000,
+    "final_error": 1.3216211717442197e-06,
+    "group_fes": 2999834,
+    "noop_fes": 0,
+    "precheck_fes": 166,
+    "restart_count": 37,
+    "route": "historical_contract_group_2999834_precheck_166_noop_0_visits_166_resets_37",
+    "terminal_state_finite": true,
+    "visit_count": 166
+  },
+  "schema_version": "arac-current-smp-historical-receipt-v1",
+  "seed": 117,
+  "selector_execution_allowed": false,
+  "started_at_utc": "2026-08-10T14:56:49.923011+00:00",
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    }
+  ],
+  "total_budget_fes": 3000000
+}

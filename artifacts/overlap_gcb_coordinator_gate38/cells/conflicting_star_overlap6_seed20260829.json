@@ -1,0 +1,60 @@
+{
+  "result": {
+    "baseline_checkpoint_hash": "97f24b57fee5f1102d3226bc2286d15e7635cbe9b651aa5b2bcf6fc566c8e261",
+    "baselines": {
+      "full_context": {
+        "final_error": 368.37191518004016,
+        "proposal_budget_fes": 9787,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "proposal_neighborhood": {
+        "final_error": 368.37191518004005,
+        "proposal_budget_fes": 9787,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    "cell": {
+      "mode": "conflicting",
+      "overlap_budget": 6,
+      "seed": 20260829,
+      "topology": "star"
+    },
+    "checkpoint_hash": "97f24b57fee5f1102d3226bc2286d15e7635cbe9b651aa5b2bcf6fc566c8e261",
+    "checkpoint_parity": true,
+    "ctp_fes": 128,
+    "ctp_triggered_cycles": 4,
+    "dispatch": {
+      "action_counts": {
+        "joint_cmaes_escalation": 1,
+        "joint_ctp": 3
+      },
+      "dispatch_count": 4,
+      "dispatch_fes": 128,
+      "escalations": 1,
+      "gained_count": 2,
+      "gained_fes": 64,
+      "max_hub_degree": 17,
+      "max_relative_hub": 1.0,
+      "reason_counts": {
+        "complex_topology": 3,
+        "persistent_escalation": 1
+      }
+    },
+    "dispatch_consumption_parity": true,
+    "envelope_no_encroachment": true,
+    "final_error": 368.37191518004016,
+    "fixed_ctp_ctp_fes": 256,
+    "fixed_ctp_final_error": 386.2431191650284,
+    "max_conflict_streak": 10,
+    "phase1_fes": 180000,
+    "phase2_consumed_fes": 2820000,
+    "proposal_budget_fes": 9787,
+    "proposal_budget_parity": true,
+    "strict_best": true,
+    "terminal_fes": 3000000,
+    "truth_shared_count": 6
+  },
+  "schema_version": "arac-overlap-gcb-coordinator-gate38-cell-v1"
+}

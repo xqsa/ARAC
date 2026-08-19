@@ -1,0 +1,26 @@
+{
+  "aob_vendor_tree": {
+    "file_count": 67,
+    "tree_sha256": "63919da2d9a501ae43496ddf3fba170ea648237854af4b14febee02f6eb9a612"
+  },
+  "config_sha256": "a55b4d1819289abb527c671ae424e5f9381eb6187ebd20cb0903fa39580293de",
+  "context_count": 32,
+  "ioh_version": "0.3.22",
+  "manifest_sha256": "dceecfcb526c84446ce493a836b73466cb84ff04fa7486a1697871afe98082d9",
+  "method_count": 2,
+  "schema_version": "arac-phase2-v2-validation-manifest-v1",
+  "source_hashes": {
+    "experiments/phase2_v2_pilot.py": "9a3113c974ef555e0da9288db4b36e6ee6d42d91105411b72c1411a459ffc7f2",
+    "experiments/phase2_v2_validation.py": "747f41fe3594418ce9dbab5165a5582b78ae38ac394155d35cace7f43212b820",
+    "src/arac/actions/phase2_v2.py": "f4dd779b926ae51ff93b09aefb7cff3e6ebd2a9ee57c0a3876ba3361bb954350",
+    "src/arac/analysis/delayed_commit.py": "3d9d57a34f16e02b787e3679076c3f24934fca9fd3d7fc1e5d0bccdc41e0fd07",
+    "src/arac/analysis/mechanism_policy.py": "b09b52b7dab991a2d50088430a67e0180dd13e55b0f6ff872c1fb39a15da0030",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/benchmarks/ioh_bbob.py": "69c96f577c3e4156aeaa5d2f5654f2037b481f29279c29fe03525ae5aacfff9f",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/evidence/structural.py": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2",
+    "src/arac/runtime/branches.py": "ad670644bcc87a60bd25cfc005244f62da15f514f14ec6ac15226757ae5c8c2a",
+    "src/arac/runtime/optimizers.py": "22eb07bd83429cb75d184e19c9576dc02ad431a0cd31e79c6dc8eed7f956042d",
+    "src/arac/runtime/probe_policy.py": "a8df53975705cb09ab1b9237005d650902fec822e27a32b488c666484d0ca547"
+  }
+}

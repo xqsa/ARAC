@@ -1,0 +1,39 @@
+{
+  "manifest_sha256": "293146a66dd7874af0be5afe094fecbc9329727d030bbde92042b7f6d7f6d336",
+  "production_hcc_runtime_imports": [],
+  "protocol_sha256": "7b789a1151612f6804b65c49bb9636634d07cf3042943057002e48548291e0c6",
+  "reference_contracts": {
+    "aor": {
+      "path": "results/exp_057_a_series_aor_25seed/a1-a6-25seed-v1/runs/A1/seed_117/run_summary.json",
+      "sha256": "c68131127eb072af9b828ae7095504318ce078b48fab34f2dea962b7550066d4"
+    },
+    "ctp": {
+      "path": "results/exp_058_ctp_stable_v2_25seed/validation/runs/S1/seed_117/exp_058_ctp_stable_v2_25seed-s1-seed117/schwefel/ctp_stable_action.json",
+      "sha256": "99684aabba2394334da03e89bac7ea9425f21317a02dd553164c2a3c7c4ede25"
+    },
+    "gcb": {
+      "path": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_117/exp_059_gcb_stable_all_case_25seed-r1-seed117/rastrigin/gcb_action.json",
+      "sha256": "75df9c09ed12cb691bc5d653618bfc40750b22043b39cd3b537ebe1a286541a6"
+    },
+    "smp": {
+      "path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+      "sha256": "ddbb8e7cbc341556ae88e0e3eea777a69802e8e1e11b474bffadadb1e217728f"
+    }
+  },
+  "schema_version": "arac-independent-semantic-parity-pilot-manifest-v3",
+  "selector_execution_allowed": false,
+  "source_hashes": {
+    "experiments/historical_recovery/independent_semantic_parity_pilot.py": "b0a019b69ec2c14525911d708304aa3635745ff0c1e550113b59d3842817877b",
+    "experiments/historical_recovery/independent_semantic_parity_protocol_v3.json": "7b789a1151612f6804b65c49bb9636634d07cf3042943057002e48548291e0c6",
+    "src/arac/actions/_execution.py": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "src/arac/actions/aor.py": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805",
+    "src/arac/actions/ctp.py": "a10847d65f39a564b5b16c1d592e14a6f2837c1adc537cce9154e5f059a7f3a4",
+    "src/arac/actions/gcb.py": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d",
+    "src/arac/actions/registry.py": "aec04994b287d0c419b893e8189ec12e4fafc0be9fcee9b56c23cb47d5118c06",
+    "src/arac/actions/smp.py": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/runtime/contracts.py": "b9011c7f0e283714ddd1f1065351d574bd6a07f1c5d2857ecbdbcd285de090a6",
+    "src/arac/runtime/ledger.py": "d2cbc0d3536c3a7d1f4ff0eafb88e0e643e5081e0687e8483624333e5cffa513",
+    "src/arac/runtime/optimizers.py": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954"
+  }
+}

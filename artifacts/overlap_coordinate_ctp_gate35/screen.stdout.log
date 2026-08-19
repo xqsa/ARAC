@@ -1,0 +1,37 @@
+completed conforming/chain/overlap=3
+completed conforming/random/overlap=3
+completed conforming/chain/overlap=6
+completed conforming/random/overlap=6
+completed conforming/star/overlap=3
+completed conforming/star/overlap=6
+completed conflicting/random/overlap=3
+completed conflicting/random/overlap=6
+completed conflicting/chain/overlap=3
+completed conflicting/star/overlap=3
+completed conflicting/chain/overlap=6
+completed conflicting/star/overlap=6
+{
+  "gate_passed": false,
+  "protocol_checks": {
+    "cell_count_12": true,
+    "checkpoint_parity": true,
+    "phase1_exact": true,
+    "proposal_budget_parity": true,
+    "strict_best": true,
+    "terminal_exact": true
+  },
+  "screening_checks": {
+    "vs_full_median_nonnegative": true,
+    "vs_full_win_tie_ge_0_50": true,
+    "vs_proposal_median_positive": false,
+    "vs_proposal_win_tie_ge_0_60": true
+  },
+  "summary": {
+    "ctp_total_fes": 1344,
+    "ctp_triggered_cell_count": 9,
+    "vs_full_median_gain": 5.684341886080802e-14,
+    "vs_full_win_or_tie": 0.8333333333333334,
+    "vs_proposal_median_gain": 0.0,
+    "vs_proposal_win_or_tie": 0.6666666666666666
+  }
+}

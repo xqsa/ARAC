@@ -1,0 +1,91 @@
+{
+  "generated_at_utc": "2026-08-06T02:13:51.112602+00:00",
+  "metrics": {
+    "accuracy": 0.8016666666666666,
+    "balanced_accuracy": 0.7637696711069497,
+    "confusion_matrix": [
+      [
+        42,
+        25,
+        2,
+        2
+      ],
+      [
+        5,
+        250,
+        12,
+        21
+      ],
+      [
+        0,
+        11,
+        89,
+        1
+      ],
+      [
+        4,
+        0,
+        36,
+        100
+      ]
+    ],
+    "gate_parameters": {
+      "maximum_mean_log10_regret": 0.05,
+      "maximum_worst_log10_regret": 0.25,
+      "minimum_accuracy": 0.5,
+      "minimum_balanced_accuracy": 0.5
+    },
+    "held_out_run_seeds": [
+      20260901,
+      20260902,
+      20260903,
+      20260904,
+      20260905,
+      20260906,
+      20260907,
+      20260908,
+      20260909,
+      20260910,
+      20260911,
+      20260912,
+      20260913,
+      20260914,
+      20260915,
+      20260916,
+      20260917,
+      20260918,
+      20260919,
+      20260920,
+      20260921,
+      20260922,
+      20260923,
+      20260924,
+      20260925
+    ],
+    "passed": false,
+    "per_action_recall": {
+      "aor": 0.7142857142857143,
+      "ctp": 0.5915492957746479,
+      "gcb": 0.8811881188118812,
+      "smp": 0.8680555555555556
+    },
+    "prediction_counts": {
+      "aor": 124,
+      "ctp": 51,
+      "gcb": 139,
+      "smp": 286
+    },
+    "record_count": 600,
+    "terminal_regret": {
+      "mean_log10_regret": 0.024238876028596302,
+      "mean_selected_to_oracle_ratio": 1.1507482411201557,
+      "within_10_percent_of_oracle": 0.9,
+      "within_1_percent_of_oracle": 0.8616666666666667,
+      "within_5_percent_of_oracle": 0.875,
+      "worst_log10_regret": 1.4334168644850662,
+      "worst_selected_to_oracle_ratio": 27.127943014609833
+    }
+  },
+  "record_count": 600,
+  "schema_version": "arac-selector-training-preflight-v1"
+}

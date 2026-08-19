@@ -1,0 +1,15 @@
+{
+  "action": "smp",
+  "case_id": "S1",
+  "checkpoint_hash": "3df57b46750339735684e717efa3dfb18d65e31b3f17eb1f3687abbc3a1df32a",
+  "dispatch_features": {
+    "structural_relation_density": 0.0,
+    "tail_log10_gain": 0.7092964565757021
+  },
+  "final_error": 5.476134320240644e-13,
+  "receipt_hash": "2f5929dfb16e5dc03956b6a4d9f23763f8e174f9505cab7786d5caee93e024b7",
+  "run_seed": 125,
+  "schema_version": "arac-overlap-action-dispatch-gate41b-receipt-v1",
+  "source": "online_run",
+  "terminal_fes": 3000000
+}

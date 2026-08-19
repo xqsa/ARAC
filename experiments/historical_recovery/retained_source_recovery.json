@@ -1,0 +1,4317 @@
+{
+  "decision": "exact_sources_recovered_dependency_bindings_missing_hold_all_experiments",
+  "git_blob_sha256_matches": [],
+  "git_candidate_source_count": 167,
+  "historical_ref": "c7505d91",
+  "lanes": [
+    {
+      "candidate_sources": [],
+      "checkpoint_binding_recovered": false,
+      "exact_git_blob_matches": [],
+      "exact_session_source_match": {
+        "bytes": 7276,
+        "characters": 7276,
+        "output_path": "exact-content/2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165/experiments/pilots/exp_057_a_series_aor_25seed/_worker.py",
+        "sha256": "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165",
+        "source_event": {
+          "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+          "change_type": "delete",
+          "session_line": 20015,
+          "timestamp": "2026-07-29T14:04:49.355Z"
+        }
+      },
+      "exact_source_candidates": [],
+      "lane": "AOR",
+      "receipt": {
+        "path": "results/exp_057_a_series_aor_25seed/a1-a6-25seed-v1/runs/A1/seed_117/execution_receipt.json",
+        "payload": {
+          "case": "A1",
+          "command": [
+            "E:\\ARAC\\.venv\\Scripts\\python.exe",
+            "E:\\ARAC\\experiments\\pilots\\exp_057_a_series_aor_25seed\\_worker.py",
+            "--case",
+            "A1",
+            "--seed",
+            "117",
+            "--max-fes",
+            "3000000",
+            "--output-dir",
+            "E:\\ARAC\\results\\exp_057_a_series_aor_25seed\\a1-a6-25seed-v1\\runs\\A1\\seed_117",
+            "--data-root",
+            "E:\\ARAC\\vendor\\hcc\\AOB\\AOBG\\datafile"
+          ],
+          "completed_at_utc": "2026-07-26T16:04:06.861395+00:00",
+          "config_sha256": "3d24b66d14a081fbf71212ff144519a033f1d6e9e0d7b06f6ecc098e4516c78c",
+          "elapsed_seconds": 1153.299865500012,
+          "execution_source": "fresh_execution",
+          "final_error": 78047.92159464832,
+          "mapping_sha256": "85a9945d6259e4d72e7e61cc746494685c0d0a4f1cdc2c529698148905780bb0",
+          "max_fes": 3000000,
+          "protocol_version": "exp057-a-series-aor-25seed-v1",
+          "seed": 117,
+          "started_at_utc": "2026-07-26T15:44:53.562178+00:00",
+          "worker_sha256": "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+        },
+        "present": true,
+        "sha256": "a30d2ab346e007c884d9ad20d73ba1fd5d5dab02e09b24dde2f1a1996741fe2c"
+      },
+      "replay_authorized": false,
+      "runner_sha256": "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165",
+      "verdict": "partial"
+    },
+    {
+      "candidate_sources": [
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c7505d91",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "521f29ec4d05640e39e5d341c964dcfe52784edd",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b5e23c28d73ec6dc5a71062ced45854256045694",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c39f8cb9c2d87ee176f36f086285cb35f6c7bc12",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c7505d91821f60e09f08a78cc690891748fce023",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1e774853bb3a113f8b3e61f3108d408d6c151b0f",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d431a5ce463a2dc4f2d55a7108aeb027b1f8a5bf",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "de8dcfe9d3403458fd4d5c118c5f6febbf86c0bf",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2ae2358b0d10a465ad4a96397aa439becae9c3b7",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "67db38b8fb07e2ecf78a675d7de1ee5631117d25",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6f42039f7c928f7a99bc5b104d8ba022d5f7934f",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "96aa56442192543dfc0492804dd2dc5e5f885904",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2bb0879a3ebb91c36e2e2bd3600d6d7842cfaba7",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a2c0fa308ec74f6a235c281fcd37cb38e852e3a2",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ccc890a2e46b8b007562071de9e7fcb892e294de",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "362f12409e0644b3a3acdd3275ff15f0c6ae240e",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "018f24f2692825d66e5d3ac29aee82414db2723f",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 279996,
+          "git_blob_sha1": "3f674ae9bfea18a440830216b66f1277e471b9f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "acd4d84bf7d4c7b0d17e674c927acd2f3c773053",
+          "sha256": "9876a8bf6c4f5a2a9cdb101b93169be9d51bf78c3fe0d057751f69d9c6e8d5d5"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "246cef135417278810dce0ba793c3bc1763fc742",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b53c712119d2176284e90462df040a63208bf772",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 279776,
+          "git_blob_sha1": "00deeb540574ff776cd8001b7a66b5f17f33c3fb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ba5f5fa3f894e1c77669ef8b0d2e474beeecb0af",
+          "sha256": "0b01ac7346b03679941205adcaa75bb42ebada79f9ffdcd7756f793be2aa6b6e"
+        },
+        {
+          "bytes": 275008,
+          "git_blob_sha1": "7e436fc89a3393192b1add4de94e7319cf35767a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "13751d2e1748b604fae4705d9d9e0d98c56a5c04",
+          "sha256": "f81cf318e16efa8eb6292428bc53e3c5a315c14d40e71c79952813043d434169"
+        },
+        {
+          "bytes": 264230,
+          "git_blob_sha1": "fb21fe6bfe1c13877d2192ea3a1f7a45fd07c800",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5d6ccd7ef27b975fe9e18501fbbcd71cc5dfee14",
+          "sha256": "af9a04c76fb651b5db36c0c58c1be4c424e9fe61b9dc27a547d101ce96339859"
+        },
+        {
+          "bytes": 265986,
+          "git_blob_sha1": "291b519de7736da18251e340b8021948d89146d2",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "306c5ab30d4af5917f373483535ccab232fc736d",
+          "sha256": "73314aefabb8b876abf6f889a256640766103b6bb522145df36793a5142b997a"
+        },
+        {
+          "bytes": 263959,
+          "git_blob_sha1": "a6055948094ec11191177567a10f1b0bce74f88d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d44f9ef7b106a7a7bca5ce1c74a3a4e3ea06f42e",
+          "sha256": "3a7ffe832cdc1a7d3cb637a47c24b5e14f2db38561632613101aad4bf5d420eb"
+        },
+        {
+          "bytes": 257882,
+          "git_blob_sha1": "f31050e7c47992a9efc5db5c861170262e227392",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2c3ba3bbbddde7f8c2121cc5a3c921f4a476cf3d",
+          "sha256": "dc1e6dd4ae5196392501d45168ff1a15ab53bf73e29c3a7dbc33c4e067b6a7b7"
+        },
+        {
+          "bytes": 242066,
+          "git_blob_sha1": "958cf9f883214df59a82edd7f66773f1aab766ac",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "71406683a0a5f9f8b688f9231794452eacaa4398",
+          "sha256": "38092ba95bd54b36df12a7be01bebf99b74055db1d2b3f33ca7e9804b4e81507"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "67b357d4c5a58035146155f3ac1884cfca4f0ed7",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5160b6b1a9db86e875d2b60246ef68b47494a294",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "375803f76e1f2774eb4845a9f933a6d9bd873a54",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 236855,
+          "git_blob_sha1": "295321ac3a9e349fc36812b473975f8f530fc148",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "00668710f66eaba8619c325fb5c0ba06ea4cf53f",
+          "sha256": "c62fdd2e6abea8c72dbe593746618e72cb46e94a59f682d1b9bc0e74e6ef2df5"
+        },
+        {
+          "bytes": 236855,
+          "git_blob_sha1": "295321ac3a9e349fc36812b473975f8f530fc148",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9b7e2eba29e4fa24f5c9e17f723de0fd4cde15e7",
+          "sha256": "c62fdd2e6abea8c72dbe593746618e72cb46e94a59f682d1b9bc0e74e6ef2df5"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6e11620d771f311cd7b785d3acd388fe5c045c94",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 236398,
+          "git_blob_sha1": "db95ec77e2f2359fba5cb415fb4a2c35d7c490a3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ffe2c0021bef3ab14cc0076f4340e0f3ef193a82",
+          "sha256": "f186afd800e2b96ae876cf4e2183119fce4a9af925f2fc4a4848937e5e4b8beb"
+        },
+        {
+          "bytes": 236398,
+          "git_blob_sha1": "db95ec77e2f2359fba5cb415fb4a2c35d7c490a3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b8108d663f0e9926f36d7bf33d4bdfba7da5ae68",
+          "sha256": "f186afd800e2b96ae876cf4e2183119fce4a9af925f2fc4a4848937e5e4b8beb"
+        },
+        {
+          "bytes": 210042,
+          "git_blob_sha1": "0487e20999af606f099e3f81e527fa8416261567",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1855ce77eba963c79abaed910b081fc15a945746",
+          "sha256": "8226354addb25f23628e6d751c4c030834a48f00b5ef4c002530d0ca6c72879c"
+        },
+        {
+          "bytes": 210042,
+          "git_blob_sha1": "0487e20999af606f099e3f81e527fa8416261567",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a25f997d0fe3403029c62f8c39777bf4ccfb826c",
+          "sha256": "8226354addb25f23628e6d751c4c030834a48f00b5ef4c002530d0ca6c72879c"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f6d6a6a9fb7db7b06c76406ed74b0f74402396f3",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9de85ab921cf14fdc1145285ce0e32b95b1775eb",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c12ef0c80b33d6dd443d32e9044bb1fe7ffdfd83",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207795,
+          "git_blob_sha1": "2c9e757246bee01bf8be44941a8edd0592b6532c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "391d315656b107232dbba2e9ffc78780be9724ef",
+          "sha256": "94df1d873e99a1a278246f5a6f3b74c3c03aab571d6cef248fdab831311d0d68"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b73881adf736baaf444ef5dd6051a6c30e8ac64f",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "badd7591004f8d13760db103ea8846fcbba261cf",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "dbd0fb889599932ecef9645448f1bcad27a4e099",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 200935,
+          "git_blob_sha1": "5951cc6adb96a28c6bed6ba10b9e6483676ad72a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "fbf2e011096a39a0d16fab82ba53801f36280719",
+          "sha256": "4ec1b09e00462fe325b93a9874e973e9acaede50c025c4251f3b05690da36cba"
+        },
+        {
+          "bytes": 199273,
+          "git_blob_sha1": "df19c1c330b29b1a3958889fc43644211c8907e5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c19e282ee2f723e6666960e6f346269aefcdc019",
+          "sha256": "3943fb74c3203917d47fc7ba1485887ec235959f8c86656f0ec528c0fcebe9a9"
+        },
+        {
+          "bytes": 199108,
+          "git_blob_sha1": "832b73130b0338673e1f46b39fc7256526731790",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7d72b1aca529bb4b8db5c1eecab76af210215b3d",
+          "sha256": "99ee608e6a8a1ee73a0fc35e71bcc66117c3fe3c1812b334501c8c7378e866e8"
+        },
+        {
+          "bytes": 199108,
+          "git_blob_sha1": "832b73130b0338673e1f46b39fc7256526731790",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bdc8e83822d38eeefa0956d444e3d1cbae4097fc",
+          "sha256": "99ee608e6a8a1ee73a0fc35e71bcc66117c3fe3c1812b334501c8c7378e866e8"
+        },
+        {
+          "bytes": 197355,
+          "git_blob_sha1": "8b7cbcc07c3ed94295d20380e8ec1e2826d21715",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f060a4750a9c06a8acb4d517053290fdd6176c1d",
+          "sha256": "e4d7922bbeee989f7b7d78f88dcbf0771003e6cae8fa9e65268f6d7f8fa8c2b1"
+        },
+        {
+          "bytes": 197386,
+          "git_blob_sha1": "56b8741463df83b72164c3fef5dde877611a94b1",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "69056ac81b2332c01f41cd70f33e385e39b9672b",
+          "sha256": "b6835fb159f3f143f2a415af83dff01ee4e7f4dd351d8308bdac28711076d17d"
+        },
+        {
+          "bytes": 195423,
+          "git_blob_sha1": "a4ae8a911e87d80c587b338704e83b696d577653",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7f69caba3308dc274fb1f8c81cee9fe613377728",
+          "sha256": "842f5120cde8cd339a6a5177119bb4c29a35f9deffeba2e4f4049a3b827c21c1"
+        },
+        {
+          "bytes": 192582,
+          "git_blob_sha1": "e9f67fe74d91f349a1c95d4aa9226d54631000f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "edfc85af0addbe22b5fb01a1e6dc5fad8cfc1a1f",
+          "sha256": "ab9fad407523a1f925ee103f13c2401c2ec854ca6177d418719162ce8953a996"
+        },
+        {
+          "bytes": 192582,
+          "git_blob_sha1": "e9f67fe74d91f349a1c95d4aa9226d54631000f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "184a7db4a1c9729cc295ffbd9063d25c82e111f9",
+          "sha256": "ab9fad407523a1f925ee103f13c2401c2ec854ca6177d418719162ce8953a996"
+        },
+        {
+          "bytes": 171942,
+          "git_blob_sha1": "7ad4059f6548d8f0f51f3df35806e5d9f69c054d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7ce1201199b3ebb893923137c71591baa881bbce",
+          "sha256": "18bbef6f5e5f53cfe21fc38818edd3c0bdb0175f3c85ab558f900022e0c938b5"
+        },
+        {
+          "bytes": 169834,
+          "git_blob_sha1": "9b4c6bc8c5a7662ce659edd03a9d328577b96a11",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f6426ad5c3cc257f5a5061fabc71254600f4e6f8",
+          "sha256": "5a5b8b712702c824f3f6919bd403e4f193d4b13318bce8d0c931d8aa31b4cc17"
+        },
+        {
+          "bytes": 167399,
+          "git_blob_sha1": "3aade87c2728e7d90fb88d3f934c70459c59ecdc",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6f6cd41aca49b548b210828bb128020c114a61ef",
+          "sha256": "6062414f18edf512ff4433a18ef836d85d39b4f848481ab86abb6beb5e44b307"
+        },
+        {
+          "bytes": 163688,
+          "git_blob_sha1": "11a7b58b5661b4a5b8f90b9cca25ef2921d095b9",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "3b970900388c5d91458bf5ab2114eec34eae09a2",
+          "sha256": "75031ed13de6da0d80728b59bb8ca61825b0b6de3da24b4c3c594b81b77ca6fd"
+        },
+        {
+          "bytes": 159509,
+          "git_blob_sha1": "5f24a1433d158537f19f0025b9826f0080c84c92",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a9deec6c972f4e6c52bc0e72cf592e3037408089",
+          "sha256": "d7337283b71cb4d2e0d946cbabbf35ad46e1fef6c950ec768567dc06883e9fe3"
+        },
+        {
+          "bytes": 149361,
+          "git_blob_sha1": "f402f40b96808ec7be13e1a0210604b3ab11877c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "42c55a8f7fd8994e4228ea95866855beed03ef91",
+          "sha256": "111b80e1f24cb9e919a0a1136bef15c1115c946914ed6768ade1e15971a36200"
+        },
+        {
+          "bytes": 149296,
+          "git_blob_sha1": "f1461965ac4c80db6c366bb2cd8129fc65462039",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "de63991371b92cce31f7cec7d999bb960a935dea",
+          "sha256": "7181fcdbf0856617288c051bba9a87a46dd4a0c6e069340cc5b04b1709cffe76"
+        },
+        {
+          "bytes": 148462,
+          "git_blob_sha1": "d9418601f9e2a90b4ed05d90bc4d7ba36b198796",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4993284d32b26a7907b4c653fcb00d5f112c1ee2",
+          "sha256": "118608ceb0ff2896727e81e77ccfc841c5238919b62aed34ed12245f40a7186f"
+        },
+        {
+          "bytes": 147200,
+          "git_blob_sha1": "d024591e61a1b5fed06bf57ba9a2bebb934ea58f",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "3deb6ef847266f58cd75c43572df355c047053ce",
+          "sha256": "2916cf54407f09424f551ff3a12347884f6ecb47d0b048c301a9f4e25c8d1d3d"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0937686a50e50366c723deb3a987539ed315ad48",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "53ee1650f57ef22e5eba9eecd466f6b523ca19b1",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e348890cb78c53058d0aae872bf99872d570e159",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 452011,
+          "git_blob_sha1": "be1eb9ac7ce97a701a060be71383b3fea216fa60",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8a378e46f7366a72fb7f9b29b2897e8d54241e88",
+          "sha256": "b1dfb17a26331ea8f0ce830bf5dac62277be366329e54153c3829ad83971fa31"
+        },
+        {
+          "bytes": 462326,
+          "git_blob_sha1": "dace67e7bdc5b100cf5a885cdcbb7638dca3fc27",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5e622f4552c6c27ec218dd8c4aadce4e6758f91d",
+          "sha256": "ab5b88ff5c186f125e5ac12ab3a2165442ca5ca876b910b5cfb43bea7ea26fc9"
+        },
+        {
+          "bytes": 425983,
+          "git_blob_sha1": "9afcd9332b8dd691a9179659a15597e3224d3c0a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5de06b389db9eb2653c4b410cb99aa7522b8d00a",
+          "sha256": "32009fac77d498086398093236c2fb57194b82aa319fd03aca60b020081a3865"
+        },
+        {
+          "bytes": 425983,
+          "git_blob_sha1": "9afcd9332b8dd691a9179659a15597e3224d3c0a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ed4946e249f657663658f2bbe0889753a66b3b62",
+          "sha256": "32009fac77d498086398093236c2fb57194b82aa319fd03aca60b020081a3865"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "071ee2089484370684b87db3acb4891de3c8f695",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b6588aa27ce5d99e968bc61056cc2293a81edca6",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "449e3a09db8de30c0e54215cc21fe56a32812d46",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b15d2f06c09a9059087dc33bde3682573796b8a9",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "71ba1d62901ccd563366d1fce5b5324f610fae80",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "87f3fe6b70c85bb81e58f03bf4b2333134c6448f",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400035,
+          "git_blob_sha1": "089e23a6a700702cbae68eca342421462de6dd02",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f234f9205f92d3a68ca42e54fb29954c05cdc9e8",
+          "sha256": "6adf7a7c8e9078c115856d50f6e38460bd9428c8c954a118309b2b5b9fec46a6"
+        },
+        {
+          "bytes": 400035,
+          "git_blob_sha1": "089e23a6a700702cbae68eca342421462de6dd02",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "52e130326311322bb88531b19ada9e2f3a2524a4",
+          "sha256": "6adf7a7c8e9078c115856d50f6e38460bd9428c8c954a118309b2b5b9fec46a6"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ad669a4f1e0f3ec5bc8827667cdb6ccf7e2d5964",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6917f63f183f74798b4b59042cfbc0442f92eff0",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bfade0e194f160792fcd715b756f66b7fae0388f",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b8e6e6405c2735d1f0999d079f93db1549db4773",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1eac98737027e2b87b79d651dcf6e1868fa9f90c",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "140fed2ebbdc6831854f086aae21601c9cbb20db",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7c62fe55ef5ef42afa19043611f9a51713027057",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8cf16ae32145bd664cb5cafb92916709ac586f8c",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0d736e1fba465acbb3e4beeb9846b31899732ee6",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "852a26813a6e4ff53b28da81a27e984b1facdd57",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "8e84265dc624ba9258c0a9f0a85acc134b798240",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "650d49126a27c48447ab4ab14e56d5e8ed847da2",
+          "sha256": "5e84cedae2beebe53055b43417866b7bb2fdc844a0d854d69e1a08ae00ff9991"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "8e84265dc624ba9258c0a9f0a85acc134b798240",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f184b840d52a1b0aff8cbe82f1341ba4b0e08d3e",
+          "sha256": "5e84cedae2beebe53055b43417866b7bb2fdc844a0d854d69e1a08ae00ff9991"
+        },
+        {
+          "bytes": 319617,
+          "git_blob_sha1": "0c1c668c738e768bce35b2384d89641dde6b2612",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5683f14f0f056212f2e4d6fbcb24433095d3614e",
+          "sha256": "0e20e3e94136ff12d7d6d7824178b7fee5ff522338b4623f16b96788a373abd1"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f7960eafc27f64f519d0d2137f5a2c4152b715c3",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a7399970412cf011b2808872beb463a78f59bc34",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5957a29daf7bd4fe5459f80cde9207245a86b11e",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8a55fb3e62129001d2ae12ce7f4c1d2dc19993e2",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f166882fdb9629d76f84c3312cc424a545397361",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "00188fd53b5e3524b54c1ce65b9059cb043c1905",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b39fd0746aa6bc7952112ffc3b9729becd0445a7",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4acc51c397473959914b5919380e6bace26cafbc",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "fedee0747b906741b419ca6a67a38936a232e287",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4210277f8b629f01c99484efbd9ccf9ad53fdb8a",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "84a31ce17ea20e998665208487eb3b5b8579d1fb",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6e5adc3d4b4ed3d87e125c0f0df2fc98efb81bd6",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bfbb7eda252da00f047db7804afa1b83ffc43203",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "aa1e3f25ece04f1d09e7f8f8234d600b817f1ed3",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 275855,
+          "git_blob_sha1": "f3bab5c220b01c238d5068527285d62359201d69",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "001d188126ae85dc906ab7969adacf76f6627607",
+          "sha256": "b1465ad3a12be3322d971cb6f8c3fba30be00842174469f8bc131008270c0dfa"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f5ef87b60ee844f7c2a72a22a25a55f395417d1c",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e2a65dad3e040f718230db1b02cba43136d9df4d",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "49e809fd46290c919c89d98aa16986be72a0d584",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f22d0932757a16dd4a24e0a5395414171cf86cb9",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "372116a654028fa7d7b73aac937e1ddc5392b406",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b6596a73c3601c310ccf081b64084c60bba46c99",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "554f7fdf09bca4faaf1c682e11ad4f2c9d49156d",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "17c13f8323a4c2901a009e78161e6cc8a24eaf1a",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8edfd5b58c478e68803aa2ea2fd7fa536c7c67a4",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cbcf1c3da00ceae9665632ac3cbb9aa019e37468",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "79769b3e34251b63304a16371aecfaf20ef3e114",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bab6df7ed1d6f2c5f483319626c9081cc1becc0b",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 252792,
+          "git_blob_sha1": "d78a2f14bcd70d1bcfa11b03dc8834660e426ff4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a1ce79935351bdbdc7faffc182c5d07b0c140f11",
+          "sha256": "d3ebcbe43dd6bf9bdaddf573bd67e2c86cfa23c82935d059499a9bd385c0ecc5"
+        },
+        {
+          "bytes": 251538,
+          "git_blob_sha1": "f9e704be2ed0b9e44e937846d130d0757b27605a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2802238b34d016fd68d7a6dd22da3db42711b52f",
+          "sha256": "bc4561384be29b1477e03ef7b3659a903fdff31b0a3b48eee959c9db0b83eb53"
+        },
+        {
+          "bytes": 251538,
+          "git_blob_sha1": "f9e704be2ed0b9e44e937846d130d0757b27605a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f5cd749124246e95580e73c54e9ee5a7e878fe3b",
+          "sha256": "bc4561384be29b1477e03ef7b3659a903fdff31b0a3b48eee959c9db0b83eb53"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "12a8319ebcaf4724f1e4663aa2743364962a50c0",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7c55ef2640fa19eba3c8ea1b0042420a3c44b6af",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0c301e95a6a9521bc4eeb02b2f051b619415a130",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "dd5ffec5b67ab61fcd3e05795586783191ebf3ca",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d86dd9f83d2b14e6323e9c75109dc9e8d3750dee",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "04e79bed3b8238ac4ec6f007bb7bd0bc656dbf17",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7e9c5c5e9d93d2f3dbc1214b545612b39ef5c360",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "984b00fc31d3f7995ff594574d524ed530933936",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9bc4da2d008f58e9cdf3329c8b04925cfda57f6e",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4fb3f776a7e39a1014ce94c8c4178ba7c34ac46c",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 217746,
+          "git_blob_sha1": "003b03ec03c19b58407d8162799153cb149d97d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e723b88a5f3abf3ed55a6b70fb224eecf3f00c5a",
+          "sha256": "b103e12e21cbabf155f1f675875565453f62eba33a85f023ad559ea8596a280f"
+        },
+        {
+          "bytes": 217746,
+          "git_blob_sha1": "003b03ec03c19b58407d8162799153cb149d97d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ee6f28cf663c5710737a59354ee56717b3ff3e0c",
+          "sha256": "b103e12e21cbabf155f1f675875565453f62eba33a85f023ad559ea8596a280f"
+        },
+        {
+          "bytes": 213838,
+          "git_blob_sha1": "0b3964cd69d56d3501079c13feb6273d5dce90a7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "93c8dc5e9118b72de507c9f5d3564f4da04a2c43",
+          "sha256": "62648722c04a36e97905473d2362f162e1048ba098771a843af2d0936e6250d1"
+        },
+        {
+          "bytes": 208622,
+          "git_blob_sha1": "e234a7994e366248775b643bdfa71507a14cdf3c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e67b05a54cca556f9d44d681dbd2f7ba983cc030",
+          "sha256": "5c28cf11a004936301b385bab2b105677af57b28abbba287c7ffd2cdc5c93407"
+        },
+        {
+          "bytes": 208560,
+          "git_blob_sha1": "1e87a2e5642daa67357e6790dec5cd7ec3528a6c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "823d3e2012cd39baa42a6294c0b930df0e7775e8",
+          "sha256": "8e00a4bd4a73af558112e8e69cc99a237266f22545ead5fda024769a12714fc0"
+        },
+        {
+          "bytes": 208560,
+          "git_blob_sha1": "1e87a2e5642daa67357e6790dec5cd7ec3528a6c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2c40937c1fd2419a43319a99a505e91dd71f01f2",
+          "sha256": "8e00a4bd4a73af558112e8e69cc99a237266f22545ead5fda024769a12714fc0"
+        },
+        {
+          "bytes": 208491,
+          "git_blob_sha1": "b30f3b188b8728195e6a20ba70e0a51af8977cef",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0e75f12fd0c53e1211982362fc31a0909c335a28",
+          "sha256": "d36d93d298ad9498b76879e0ba195e97c0d144aac332733b6745a19a07e38fbc"
+        },
+        {
+          "bytes": 208491,
+          "git_blob_sha1": "b30f3b188b8728195e6a20ba70e0a51af8977cef",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "abbaae07733766205bd10554cdb3baf6cd09266d",
+          "sha256": "d36d93d298ad9498b76879e0ba195e97c0d144aac332733b6745a19a07e38fbc"
+        },
+        {
+          "bytes": 208447,
+          "git_blob_sha1": "a34f58c6398c8a1d4846c5a19c1fababb6416842",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "afffa6d68c69566adaa8d621aeebaa7eff98d221",
+          "sha256": "4661ec551b1e6e8d2a9f61536eb486a1133b9ec9423e813ec2429cfe74bdf9ed"
+        },
+        {
+          "bytes": 202718,
+          "git_blob_sha1": "53d657e6b17bf4b89426f188788f0b71fb3b1ac5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0e197425aa3838c9e97d3012bc43ae86e1ea9dcf",
+          "sha256": "400d8a197854cca860465d3886fc10aa890fa8d5a33f42a527c280c2505a5dc9"
+        },
+        {
+          "bytes": 199576,
+          "git_blob_sha1": "db5955ec8884ee1f25dd4d24e071ae1b0562174d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5f671f8f5b51e50edc1eef34aef0e138edc8e42c",
+          "sha256": "89f7d3a54e610414068141e097cf579a9a918286bd8208e8534996958d5d446d"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "214a9fd8f28ed81e0813b54594575ea70b2588bd",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cd1234945d131fc4f35eda82df443c5718a6bfd2",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a9493c518a83e90962a69276f8488429811d06f7",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "933368d5c4de5a31d110a820099cc748f5080c74",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5b582c08ceb48c2284f949ef8088cfb38c553e90",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e422719cbd7e46cac1d53720003abdd4e7d56fec",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 194345,
+          "git_blob_sha1": "0b0933912a13dc7785f977c7b5af25a0a5ae6aae",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8567a17ef48777f0f0462e71779e3558fbc9d630",
+          "sha256": "e0d91443feea4a50c8220c4ea3ada505df8413fa985ab93ae9d21f48d7f3f6fc"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c05fc125cb7caab2f6ab2a005685b109d04e7058",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8ba6b458a016dba50399d90f6987f167e2212cdd",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9c82a13651629af3e2f019096a532a8ee9ce14ba",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "52a3b0ddb4aaf14315cc5c4df6215f6bfcee53cf",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b0e3f6b5c73a2f67d4fe5cad0730f5c28061d3c1",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6295ffeb4bb7d2f902ae5da7b3d9a929f24ec094",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "13569aca5aff4a85c89c3db513922f3edf08e2f5",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0ab1012fc8c7de95d9aef4bc511de538729ea61b",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b1ad0cb14f1efac14ac5282b83f6d35bb5e936f0",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f80ebbc3fe858688bffb1640341ca7fd581bc3ff",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 185021,
+          "git_blob_sha1": "b0bbbaf3c8ba7318f59a0caacca9f1805d33ba36",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2feb09356ca099b268e586939e23416d19ca0c23",
+          "sha256": "458eae893c1fbe1806b0c1b0d73a22e4f2fa151849ed9f4e28d60736a795825b"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c4c423a7e19dd4ee92c0e2ddbc5adc31f3dbe5e3",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "22bd77b83cf5e70abaf33c376fff47ab745c8920",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e24c3382eee1ff217dd2060dcdb4d30f44150b31",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9b7d9061376f6bfa31d04db414f9a9ea2abb3558",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4a72058d2281848d069195483d58e6eed912f366",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 150476,
+          "git_blob_sha1": "48d5d916a4a19e47966dc8dae1885ea68eb1b9e0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cd69d90d38a88c74223063d99b1434d08ffd0ca4",
+          "sha256": "03c917003c63bafebb19e7fe6f8c0e04ae439136ade981b5880bf3cbafa8b7fa"
+        },
+        {
+          "bytes": 150476,
+          "git_blob_sha1": "48d5d916a4a19e47966dc8dae1885ea68eb1b9e0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "95b5fd3b146d68bf9cd75ca42b8071e2c61f4b94",
+          "sha256": "03c917003c63bafebb19e7fe6f8c0e04ae439136ade981b5880bf3cbafa8b7fa"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "da431b1c3984a9b6a91b8c2e287b4d9bedc9ca53",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        }
+      ],
+      "checkpoint_binding_recovered": false,
+      "exact_git_blob_matches": [],
+      "exact_session_source_match": {
+        "boundary_event": {
+          "call_id": "exec-14085a7e-fcf2-4a3c-bf2b-7437d27e4f29",
+          "session_line": 4592,
+          "timestamp": "2026-07-27T06:38:40.643Z"
+        },
+        "bytes": 316117,
+        "characters": 316109,
+        "lines": 7458,
+        "output_path": "exact-runner/9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594/scripts/hcc_smoke_runner.py",
+        "reversed_patch_count_from_anchor": 88,
+        "sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+        "state": "immediately_before_recorded_update"
+      },
+      "exact_source_candidates": [],
+      "lane": "CTP",
+      "receipt": {
+        "path": "results/exp_058_ctp_stable_v2_25seed/validation/runs/S1/seed_117/exp_058_ctp_stable_v2_25seed-s1-seed117/schwefel/exp058_execution_receipt.json",
+        "payload": {
+          "case": "S1",
+          "command": [
+            "E:\\ARAC\\.venv\\Scripts\\python.exe",
+            "E:\\ARAC\\scripts\\hcc_smoke_runner.py",
+            "--functions",
+            "schwefel",
+            "--ids",
+            "1",
+            "--output-root",
+            "E:\\ARAC\\results\\exp_058_ctp_stable_v2_25seed\\validation\\runs\\S1\\seed_117",
+            "--aob-data-root",
+            "E:\\ARAC\\vendor\\hcc\\AOB\\AOBG\\datafile",
+            "--timestamp",
+            "exp_058_ctp_stable_v2_25seed-s1-seed117",
+            "--seed",
+            "117",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "native_eq8",
+            "--budget-accounting",
+            "strict",
+            "--search-state-backend",
+            "phase_i_mmes",
+            "--relation-policy",
+            "controller_v31",
+            "--evidence-overlay-mode",
+            "off",
+            "--runtime-probe-repair-mode",
+            "hard_repair",
+            "--group-optimizer-mode",
+            "full_cmaes",
+            "--s-series-action",
+            "ctp_stable",
+            "--terminal-noop-fill",
+            "--verbose",
+            "0",
+            "--skip-plots",
+            "--no-cmaes-restart"
+          ],
+          "completed_at_utc": "2026-07-27T02:34:08.695322+00:00",
+          "condition": "candidate_ctp_stable_v2",
+          "config_sha256": "3b9de15bff2fd1e64ba863c8a08a1e1f99a6edf869107475ff8776e73f67a830",
+          "configured_max_fes": 3000000,
+          "elapsed_seconds": 1477.953,
+          "final_error": 0.005747882589844738,
+          "protocol_version": "exp058-ctp-stable-v2-25seed-v1",
+          "runner_sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+          "runtime_action": "ctp_stable",
+          "runtime_action_hash": "77d23e3131e1954976a71de18f3109d8a16b81918aeacc017e2b030a137a7e16",
+          "seed": 117
+        },
+        "present": true,
+        "sha256": "791f4fe53ec448848c65b7bf646e70322ce5745c210d7c100ac2500bb7991aa9"
+      },
+      "replay_authorized": false,
+      "runner_sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+      "verdict": "partial"
+    },
+    {
+      "candidate_sources": [
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c7505d91",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "521f29ec4d05640e39e5d341c964dcfe52784edd",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b5e23c28d73ec6dc5a71062ced45854256045694",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c39f8cb9c2d87ee176f36f086285cb35f6c7bc12",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c7505d91821f60e09f08a78cc690891748fce023",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1e774853bb3a113f8b3e61f3108d408d6c151b0f",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d431a5ce463a2dc4f2d55a7108aeb027b1f8a5bf",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "de8dcfe9d3403458fd4d5c118c5f6febbf86c0bf",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2ae2358b0d10a465ad4a96397aa439becae9c3b7",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "67db38b8fb07e2ecf78a675d7de1ee5631117d25",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6f42039f7c928f7a99bc5b104d8ba022d5f7934f",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "96aa56442192543dfc0492804dd2dc5e5f885904",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2bb0879a3ebb91c36e2e2bd3600d6d7842cfaba7",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a2c0fa308ec74f6a235c281fcd37cb38e852e3a2",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ccc890a2e46b8b007562071de9e7fcb892e294de",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "362f12409e0644b3a3acdd3275ff15f0c6ae240e",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "018f24f2692825d66e5d3ac29aee82414db2723f",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 279996,
+          "git_blob_sha1": "3f674ae9bfea18a440830216b66f1277e471b9f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "acd4d84bf7d4c7b0d17e674c927acd2f3c773053",
+          "sha256": "9876a8bf6c4f5a2a9cdb101b93169be9d51bf78c3fe0d057751f69d9c6e8d5d5"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "246cef135417278810dce0ba793c3bc1763fc742",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b53c712119d2176284e90462df040a63208bf772",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 279776,
+          "git_blob_sha1": "00deeb540574ff776cd8001b7a66b5f17f33c3fb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ba5f5fa3f894e1c77669ef8b0d2e474beeecb0af",
+          "sha256": "0b01ac7346b03679941205adcaa75bb42ebada79f9ffdcd7756f793be2aa6b6e"
+        },
+        {
+          "bytes": 275008,
+          "git_blob_sha1": "7e436fc89a3393192b1add4de94e7319cf35767a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "13751d2e1748b604fae4705d9d9e0d98c56a5c04",
+          "sha256": "f81cf318e16efa8eb6292428bc53e3c5a315c14d40e71c79952813043d434169"
+        },
+        {
+          "bytes": 264230,
+          "git_blob_sha1": "fb21fe6bfe1c13877d2192ea3a1f7a45fd07c800",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5d6ccd7ef27b975fe9e18501fbbcd71cc5dfee14",
+          "sha256": "af9a04c76fb651b5db36c0c58c1be4c424e9fe61b9dc27a547d101ce96339859"
+        },
+        {
+          "bytes": 265986,
+          "git_blob_sha1": "291b519de7736da18251e340b8021948d89146d2",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "306c5ab30d4af5917f373483535ccab232fc736d",
+          "sha256": "73314aefabb8b876abf6f889a256640766103b6bb522145df36793a5142b997a"
+        },
+        {
+          "bytes": 263959,
+          "git_blob_sha1": "a6055948094ec11191177567a10f1b0bce74f88d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d44f9ef7b106a7a7bca5ce1c74a3a4e3ea06f42e",
+          "sha256": "3a7ffe832cdc1a7d3cb637a47c24b5e14f2db38561632613101aad4bf5d420eb"
+        },
+        {
+          "bytes": 257882,
+          "git_blob_sha1": "f31050e7c47992a9efc5db5c861170262e227392",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2c3ba3bbbddde7f8c2121cc5a3c921f4a476cf3d",
+          "sha256": "dc1e6dd4ae5196392501d45168ff1a15ab53bf73e29c3a7dbc33c4e067b6a7b7"
+        },
+        {
+          "bytes": 242066,
+          "git_blob_sha1": "958cf9f883214df59a82edd7f66773f1aab766ac",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "71406683a0a5f9f8b688f9231794452eacaa4398",
+          "sha256": "38092ba95bd54b36df12a7be01bebf99b74055db1d2b3f33ca7e9804b4e81507"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "67b357d4c5a58035146155f3ac1884cfca4f0ed7",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5160b6b1a9db86e875d2b60246ef68b47494a294",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "375803f76e1f2774eb4845a9f933a6d9bd873a54",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 236855,
+          "git_blob_sha1": "295321ac3a9e349fc36812b473975f8f530fc148",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "00668710f66eaba8619c325fb5c0ba06ea4cf53f",
+          "sha256": "c62fdd2e6abea8c72dbe593746618e72cb46e94a59f682d1b9bc0e74e6ef2df5"
+        },
+        {
+          "bytes": 236855,
+          "git_blob_sha1": "295321ac3a9e349fc36812b473975f8f530fc148",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9b7e2eba29e4fa24f5c9e17f723de0fd4cde15e7",
+          "sha256": "c62fdd2e6abea8c72dbe593746618e72cb46e94a59f682d1b9bc0e74e6ef2df5"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6e11620d771f311cd7b785d3acd388fe5c045c94",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 236398,
+          "git_blob_sha1": "db95ec77e2f2359fba5cb415fb4a2c35d7c490a3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ffe2c0021bef3ab14cc0076f4340e0f3ef193a82",
+          "sha256": "f186afd800e2b96ae876cf4e2183119fce4a9af925f2fc4a4848937e5e4b8beb"
+        },
+        {
+          "bytes": 236398,
+          "git_blob_sha1": "db95ec77e2f2359fba5cb415fb4a2c35d7c490a3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b8108d663f0e9926f36d7bf33d4bdfba7da5ae68",
+          "sha256": "f186afd800e2b96ae876cf4e2183119fce4a9af925f2fc4a4848937e5e4b8beb"
+        },
+        {
+          "bytes": 210042,
+          "git_blob_sha1": "0487e20999af606f099e3f81e527fa8416261567",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1855ce77eba963c79abaed910b081fc15a945746",
+          "sha256": "8226354addb25f23628e6d751c4c030834a48f00b5ef4c002530d0ca6c72879c"
+        },
+        {
+          "bytes": 210042,
+          "git_blob_sha1": "0487e20999af606f099e3f81e527fa8416261567",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a25f997d0fe3403029c62f8c39777bf4ccfb826c",
+          "sha256": "8226354addb25f23628e6d751c4c030834a48f00b5ef4c002530d0ca6c72879c"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f6d6a6a9fb7db7b06c76406ed74b0f74402396f3",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9de85ab921cf14fdc1145285ce0e32b95b1775eb",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c12ef0c80b33d6dd443d32e9044bb1fe7ffdfd83",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207795,
+          "git_blob_sha1": "2c9e757246bee01bf8be44941a8edd0592b6532c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "391d315656b107232dbba2e9ffc78780be9724ef",
+          "sha256": "94df1d873e99a1a278246f5a6f3b74c3c03aab571d6cef248fdab831311d0d68"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b73881adf736baaf444ef5dd6051a6c30e8ac64f",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "badd7591004f8d13760db103ea8846fcbba261cf",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "dbd0fb889599932ecef9645448f1bcad27a4e099",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 200935,
+          "git_blob_sha1": "5951cc6adb96a28c6bed6ba10b9e6483676ad72a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "fbf2e011096a39a0d16fab82ba53801f36280719",
+          "sha256": "4ec1b09e00462fe325b93a9874e973e9acaede50c025c4251f3b05690da36cba"
+        },
+        {
+          "bytes": 199273,
+          "git_blob_sha1": "df19c1c330b29b1a3958889fc43644211c8907e5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c19e282ee2f723e6666960e6f346269aefcdc019",
+          "sha256": "3943fb74c3203917d47fc7ba1485887ec235959f8c86656f0ec528c0fcebe9a9"
+        },
+        {
+          "bytes": 199108,
+          "git_blob_sha1": "832b73130b0338673e1f46b39fc7256526731790",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7d72b1aca529bb4b8db5c1eecab76af210215b3d",
+          "sha256": "99ee608e6a8a1ee73a0fc35e71bcc66117c3fe3c1812b334501c8c7378e866e8"
+        },
+        {
+          "bytes": 199108,
+          "git_blob_sha1": "832b73130b0338673e1f46b39fc7256526731790",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bdc8e83822d38eeefa0956d444e3d1cbae4097fc",
+          "sha256": "99ee608e6a8a1ee73a0fc35e71bcc66117c3fe3c1812b334501c8c7378e866e8"
+        },
+        {
+          "bytes": 197355,
+          "git_blob_sha1": "8b7cbcc07c3ed94295d20380e8ec1e2826d21715",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f060a4750a9c06a8acb4d517053290fdd6176c1d",
+          "sha256": "e4d7922bbeee989f7b7d78f88dcbf0771003e6cae8fa9e65268f6d7f8fa8c2b1"
+        },
+        {
+          "bytes": 197386,
+          "git_blob_sha1": "56b8741463df83b72164c3fef5dde877611a94b1",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "69056ac81b2332c01f41cd70f33e385e39b9672b",
+          "sha256": "b6835fb159f3f143f2a415af83dff01ee4e7f4dd351d8308bdac28711076d17d"
+        },
+        {
+          "bytes": 195423,
+          "git_blob_sha1": "a4ae8a911e87d80c587b338704e83b696d577653",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7f69caba3308dc274fb1f8c81cee9fe613377728",
+          "sha256": "842f5120cde8cd339a6a5177119bb4c29a35f9deffeba2e4f4049a3b827c21c1"
+        },
+        {
+          "bytes": 192582,
+          "git_blob_sha1": "e9f67fe74d91f349a1c95d4aa9226d54631000f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "edfc85af0addbe22b5fb01a1e6dc5fad8cfc1a1f",
+          "sha256": "ab9fad407523a1f925ee103f13c2401c2ec854ca6177d418719162ce8953a996"
+        },
+        {
+          "bytes": 192582,
+          "git_blob_sha1": "e9f67fe74d91f349a1c95d4aa9226d54631000f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "184a7db4a1c9729cc295ffbd9063d25c82e111f9",
+          "sha256": "ab9fad407523a1f925ee103f13c2401c2ec854ca6177d418719162ce8953a996"
+        },
+        {
+          "bytes": 171942,
+          "git_blob_sha1": "7ad4059f6548d8f0f51f3df35806e5d9f69c054d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7ce1201199b3ebb893923137c71591baa881bbce",
+          "sha256": "18bbef6f5e5f53cfe21fc38818edd3c0bdb0175f3c85ab558f900022e0c938b5"
+        },
+        {
+          "bytes": 169834,
+          "git_blob_sha1": "9b4c6bc8c5a7662ce659edd03a9d328577b96a11",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f6426ad5c3cc257f5a5061fabc71254600f4e6f8",
+          "sha256": "5a5b8b712702c824f3f6919bd403e4f193d4b13318bce8d0c931d8aa31b4cc17"
+        },
+        {
+          "bytes": 167399,
+          "git_blob_sha1": "3aade87c2728e7d90fb88d3f934c70459c59ecdc",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6f6cd41aca49b548b210828bb128020c114a61ef",
+          "sha256": "6062414f18edf512ff4433a18ef836d85d39b4f848481ab86abb6beb5e44b307"
+        },
+        {
+          "bytes": 163688,
+          "git_blob_sha1": "11a7b58b5661b4a5b8f90b9cca25ef2921d095b9",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "3b970900388c5d91458bf5ab2114eec34eae09a2",
+          "sha256": "75031ed13de6da0d80728b59bb8ca61825b0b6de3da24b4c3c594b81b77ca6fd"
+        },
+        {
+          "bytes": 159509,
+          "git_blob_sha1": "5f24a1433d158537f19f0025b9826f0080c84c92",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a9deec6c972f4e6c52bc0e72cf592e3037408089",
+          "sha256": "d7337283b71cb4d2e0d946cbabbf35ad46e1fef6c950ec768567dc06883e9fe3"
+        },
+        {
+          "bytes": 149361,
+          "git_blob_sha1": "f402f40b96808ec7be13e1a0210604b3ab11877c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "42c55a8f7fd8994e4228ea95866855beed03ef91",
+          "sha256": "111b80e1f24cb9e919a0a1136bef15c1115c946914ed6768ade1e15971a36200"
+        },
+        {
+          "bytes": 149296,
+          "git_blob_sha1": "f1461965ac4c80db6c366bb2cd8129fc65462039",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "de63991371b92cce31f7cec7d999bb960a935dea",
+          "sha256": "7181fcdbf0856617288c051bba9a87a46dd4a0c6e069340cc5b04b1709cffe76"
+        },
+        {
+          "bytes": 148462,
+          "git_blob_sha1": "d9418601f9e2a90b4ed05d90bc4d7ba36b198796",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4993284d32b26a7907b4c653fcb00d5f112c1ee2",
+          "sha256": "118608ceb0ff2896727e81e77ccfc841c5238919b62aed34ed12245f40a7186f"
+        },
+        {
+          "bytes": 147200,
+          "git_blob_sha1": "d024591e61a1b5fed06bf57ba9a2bebb934ea58f",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "3deb6ef847266f58cd75c43572df355c047053ce",
+          "sha256": "2916cf54407f09424f551ff3a12347884f6ecb47d0b048c301a9f4e25c8d1d3d"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0937686a50e50366c723deb3a987539ed315ad48",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "53ee1650f57ef22e5eba9eecd466f6b523ca19b1",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e348890cb78c53058d0aae872bf99872d570e159",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 452011,
+          "git_blob_sha1": "be1eb9ac7ce97a701a060be71383b3fea216fa60",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8a378e46f7366a72fb7f9b29b2897e8d54241e88",
+          "sha256": "b1dfb17a26331ea8f0ce830bf5dac62277be366329e54153c3829ad83971fa31"
+        },
+        {
+          "bytes": 462326,
+          "git_blob_sha1": "dace67e7bdc5b100cf5a885cdcbb7638dca3fc27",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5e622f4552c6c27ec218dd8c4aadce4e6758f91d",
+          "sha256": "ab5b88ff5c186f125e5ac12ab3a2165442ca5ca876b910b5cfb43bea7ea26fc9"
+        },
+        {
+          "bytes": 425983,
+          "git_blob_sha1": "9afcd9332b8dd691a9179659a15597e3224d3c0a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5de06b389db9eb2653c4b410cb99aa7522b8d00a",
+          "sha256": "32009fac77d498086398093236c2fb57194b82aa319fd03aca60b020081a3865"
+        },
+        {
+          "bytes": 425983,
+          "git_blob_sha1": "9afcd9332b8dd691a9179659a15597e3224d3c0a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ed4946e249f657663658f2bbe0889753a66b3b62",
+          "sha256": "32009fac77d498086398093236c2fb57194b82aa319fd03aca60b020081a3865"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "071ee2089484370684b87db3acb4891de3c8f695",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b6588aa27ce5d99e968bc61056cc2293a81edca6",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "449e3a09db8de30c0e54215cc21fe56a32812d46",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b15d2f06c09a9059087dc33bde3682573796b8a9",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "71ba1d62901ccd563366d1fce5b5324f610fae80",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "87f3fe6b70c85bb81e58f03bf4b2333134c6448f",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400035,
+          "git_blob_sha1": "089e23a6a700702cbae68eca342421462de6dd02",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f234f9205f92d3a68ca42e54fb29954c05cdc9e8",
+          "sha256": "6adf7a7c8e9078c115856d50f6e38460bd9428c8c954a118309b2b5b9fec46a6"
+        },
+        {
+          "bytes": 400035,
+          "git_blob_sha1": "089e23a6a700702cbae68eca342421462de6dd02",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "52e130326311322bb88531b19ada9e2f3a2524a4",
+          "sha256": "6adf7a7c8e9078c115856d50f6e38460bd9428c8c954a118309b2b5b9fec46a6"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ad669a4f1e0f3ec5bc8827667cdb6ccf7e2d5964",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6917f63f183f74798b4b59042cfbc0442f92eff0",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bfade0e194f160792fcd715b756f66b7fae0388f",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b8e6e6405c2735d1f0999d079f93db1549db4773",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1eac98737027e2b87b79d651dcf6e1868fa9f90c",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "140fed2ebbdc6831854f086aae21601c9cbb20db",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7c62fe55ef5ef42afa19043611f9a51713027057",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8cf16ae32145bd664cb5cafb92916709ac586f8c",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0d736e1fba465acbb3e4beeb9846b31899732ee6",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "852a26813a6e4ff53b28da81a27e984b1facdd57",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "8e84265dc624ba9258c0a9f0a85acc134b798240",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "650d49126a27c48447ab4ab14e56d5e8ed847da2",
+          "sha256": "5e84cedae2beebe53055b43417866b7bb2fdc844a0d854d69e1a08ae00ff9991"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "8e84265dc624ba9258c0a9f0a85acc134b798240",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f184b840d52a1b0aff8cbe82f1341ba4b0e08d3e",
+          "sha256": "5e84cedae2beebe53055b43417866b7bb2fdc844a0d854d69e1a08ae00ff9991"
+        },
+        {
+          "bytes": 319617,
+          "git_blob_sha1": "0c1c668c738e768bce35b2384d89641dde6b2612",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5683f14f0f056212f2e4d6fbcb24433095d3614e",
+          "sha256": "0e20e3e94136ff12d7d6d7824178b7fee5ff522338b4623f16b96788a373abd1"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f7960eafc27f64f519d0d2137f5a2c4152b715c3",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a7399970412cf011b2808872beb463a78f59bc34",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5957a29daf7bd4fe5459f80cde9207245a86b11e",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8a55fb3e62129001d2ae12ce7f4c1d2dc19993e2",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f166882fdb9629d76f84c3312cc424a545397361",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "00188fd53b5e3524b54c1ce65b9059cb043c1905",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b39fd0746aa6bc7952112ffc3b9729becd0445a7",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4acc51c397473959914b5919380e6bace26cafbc",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "fedee0747b906741b419ca6a67a38936a232e287",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4210277f8b629f01c99484efbd9ccf9ad53fdb8a",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "84a31ce17ea20e998665208487eb3b5b8579d1fb",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6e5adc3d4b4ed3d87e125c0f0df2fc98efb81bd6",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bfbb7eda252da00f047db7804afa1b83ffc43203",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "aa1e3f25ece04f1d09e7f8f8234d600b817f1ed3",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 275855,
+          "git_blob_sha1": "f3bab5c220b01c238d5068527285d62359201d69",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "001d188126ae85dc906ab7969adacf76f6627607",
+          "sha256": "b1465ad3a12be3322d971cb6f8c3fba30be00842174469f8bc131008270c0dfa"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f5ef87b60ee844f7c2a72a22a25a55f395417d1c",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e2a65dad3e040f718230db1b02cba43136d9df4d",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "49e809fd46290c919c89d98aa16986be72a0d584",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f22d0932757a16dd4a24e0a5395414171cf86cb9",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "372116a654028fa7d7b73aac937e1ddc5392b406",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b6596a73c3601c310ccf081b64084c60bba46c99",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "554f7fdf09bca4faaf1c682e11ad4f2c9d49156d",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "17c13f8323a4c2901a009e78161e6cc8a24eaf1a",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8edfd5b58c478e68803aa2ea2fd7fa536c7c67a4",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cbcf1c3da00ceae9665632ac3cbb9aa019e37468",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "79769b3e34251b63304a16371aecfaf20ef3e114",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bab6df7ed1d6f2c5f483319626c9081cc1becc0b",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 252792,
+          "git_blob_sha1": "d78a2f14bcd70d1bcfa11b03dc8834660e426ff4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a1ce79935351bdbdc7faffc182c5d07b0c140f11",
+          "sha256": "d3ebcbe43dd6bf9bdaddf573bd67e2c86cfa23c82935d059499a9bd385c0ecc5"
+        },
+        {
+          "bytes": 251538,
+          "git_blob_sha1": "f9e704be2ed0b9e44e937846d130d0757b27605a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2802238b34d016fd68d7a6dd22da3db42711b52f",
+          "sha256": "bc4561384be29b1477e03ef7b3659a903fdff31b0a3b48eee959c9db0b83eb53"
+        },
+        {
+          "bytes": 251538,
+          "git_blob_sha1": "f9e704be2ed0b9e44e937846d130d0757b27605a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f5cd749124246e95580e73c54e9ee5a7e878fe3b",
+          "sha256": "bc4561384be29b1477e03ef7b3659a903fdff31b0a3b48eee959c9db0b83eb53"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "12a8319ebcaf4724f1e4663aa2743364962a50c0",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7c55ef2640fa19eba3c8ea1b0042420a3c44b6af",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0c301e95a6a9521bc4eeb02b2f051b619415a130",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "dd5ffec5b67ab61fcd3e05795586783191ebf3ca",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d86dd9f83d2b14e6323e9c75109dc9e8d3750dee",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "04e79bed3b8238ac4ec6f007bb7bd0bc656dbf17",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7e9c5c5e9d93d2f3dbc1214b545612b39ef5c360",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "984b00fc31d3f7995ff594574d524ed530933936",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9bc4da2d008f58e9cdf3329c8b04925cfda57f6e",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4fb3f776a7e39a1014ce94c8c4178ba7c34ac46c",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 217746,
+          "git_blob_sha1": "003b03ec03c19b58407d8162799153cb149d97d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e723b88a5f3abf3ed55a6b70fb224eecf3f00c5a",
+          "sha256": "b103e12e21cbabf155f1f675875565453f62eba33a85f023ad559ea8596a280f"
+        },
+        {
+          "bytes": 217746,
+          "git_blob_sha1": "003b03ec03c19b58407d8162799153cb149d97d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ee6f28cf663c5710737a59354ee56717b3ff3e0c",
+          "sha256": "b103e12e21cbabf155f1f675875565453f62eba33a85f023ad559ea8596a280f"
+        },
+        {
+          "bytes": 213838,
+          "git_blob_sha1": "0b3964cd69d56d3501079c13feb6273d5dce90a7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "93c8dc5e9118b72de507c9f5d3564f4da04a2c43",
+          "sha256": "62648722c04a36e97905473d2362f162e1048ba098771a843af2d0936e6250d1"
+        },
+        {
+          "bytes": 208622,
+          "git_blob_sha1": "e234a7994e366248775b643bdfa71507a14cdf3c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e67b05a54cca556f9d44d681dbd2f7ba983cc030",
+          "sha256": "5c28cf11a004936301b385bab2b105677af57b28abbba287c7ffd2cdc5c93407"
+        },
+        {
+          "bytes": 208560,
+          "git_blob_sha1": "1e87a2e5642daa67357e6790dec5cd7ec3528a6c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "823d3e2012cd39baa42a6294c0b930df0e7775e8",
+          "sha256": "8e00a4bd4a73af558112e8e69cc99a237266f22545ead5fda024769a12714fc0"
+        },
+        {
+          "bytes": 208560,
+          "git_blob_sha1": "1e87a2e5642daa67357e6790dec5cd7ec3528a6c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2c40937c1fd2419a43319a99a505e91dd71f01f2",
+          "sha256": "8e00a4bd4a73af558112e8e69cc99a237266f22545ead5fda024769a12714fc0"
+        },
+        {
+          "bytes": 208491,
+          "git_blob_sha1": "b30f3b188b8728195e6a20ba70e0a51af8977cef",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0e75f12fd0c53e1211982362fc31a0909c335a28",
+          "sha256": "d36d93d298ad9498b76879e0ba195e97c0d144aac332733b6745a19a07e38fbc"
+        },
+        {
+          "bytes": 208491,
+          "git_blob_sha1": "b30f3b188b8728195e6a20ba70e0a51af8977cef",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "abbaae07733766205bd10554cdb3baf6cd09266d",
+          "sha256": "d36d93d298ad9498b76879e0ba195e97c0d144aac332733b6745a19a07e38fbc"
+        },
+        {
+          "bytes": 208447,
+          "git_blob_sha1": "a34f58c6398c8a1d4846c5a19c1fababb6416842",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "afffa6d68c69566adaa8d621aeebaa7eff98d221",
+          "sha256": "4661ec551b1e6e8d2a9f61536eb486a1133b9ec9423e813ec2429cfe74bdf9ed"
+        },
+        {
+          "bytes": 202718,
+          "git_blob_sha1": "53d657e6b17bf4b89426f188788f0b71fb3b1ac5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0e197425aa3838c9e97d3012bc43ae86e1ea9dcf",
+          "sha256": "400d8a197854cca860465d3886fc10aa890fa8d5a33f42a527c280c2505a5dc9"
+        },
+        {
+          "bytes": 199576,
+          "git_blob_sha1": "db5955ec8884ee1f25dd4d24e071ae1b0562174d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5f671f8f5b51e50edc1eef34aef0e138edc8e42c",
+          "sha256": "89f7d3a54e610414068141e097cf579a9a918286bd8208e8534996958d5d446d"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "214a9fd8f28ed81e0813b54594575ea70b2588bd",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cd1234945d131fc4f35eda82df443c5718a6bfd2",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a9493c518a83e90962a69276f8488429811d06f7",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "933368d5c4de5a31d110a820099cc748f5080c74",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5b582c08ceb48c2284f949ef8088cfb38c553e90",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e422719cbd7e46cac1d53720003abdd4e7d56fec",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 194345,
+          "git_blob_sha1": "0b0933912a13dc7785f977c7b5af25a0a5ae6aae",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8567a17ef48777f0f0462e71779e3558fbc9d630",
+          "sha256": "e0d91443feea4a50c8220c4ea3ada505df8413fa985ab93ae9d21f48d7f3f6fc"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c05fc125cb7caab2f6ab2a005685b109d04e7058",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8ba6b458a016dba50399d90f6987f167e2212cdd",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9c82a13651629af3e2f019096a532a8ee9ce14ba",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "52a3b0ddb4aaf14315cc5c4df6215f6bfcee53cf",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b0e3f6b5c73a2f67d4fe5cad0730f5c28061d3c1",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6295ffeb4bb7d2f902ae5da7b3d9a929f24ec094",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "13569aca5aff4a85c89c3db513922f3edf08e2f5",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0ab1012fc8c7de95d9aef4bc511de538729ea61b",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b1ad0cb14f1efac14ac5282b83f6d35bb5e936f0",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f80ebbc3fe858688bffb1640341ca7fd581bc3ff",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 185021,
+          "git_blob_sha1": "b0bbbaf3c8ba7318f59a0caacca9f1805d33ba36",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2feb09356ca099b268e586939e23416d19ca0c23",
+          "sha256": "458eae893c1fbe1806b0c1b0d73a22e4f2fa151849ed9f4e28d60736a795825b"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c4c423a7e19dd4ee92c0e2ddbc5adc31f3dbe5e3",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "22bd77b83cf5e70abaf33c376fff47ab745c8920",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e24c3382eee1ff217dd2060dcdb4d30f44150b31",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9b7d9061376f6bfa31d04db414f9a9ea2abb3558",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4a72058d2281848d069195483d58e6eed912f366",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 150476,
+          "git_blob_sha1": "48d5d916a4a19e47966dc8dae1885ea68eb1b9e0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cd69d90d38a88c74223063d99b1434d08ffd0ca4",
+          "sha256": "03c917003c63bafebb19e7fe6f8c0e04ae439136ade981b5880bf3cbafa8b7fa"
+        },
+        {
+          "bytes": 150476,
+          "git_blob_sha1": "48d5d916a4a19e47966dc8dae1885ea68eb1b9e0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "95b5fd3b146d68bf9cd75ca42b8071e2c61f4b94",
+          "sha256": "03c917003c63bafebb19e7fe6f8c0e04ae439136ade981b5880bf3cbafa8b7fa"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "da431b1c3984a9b6a91b8c2e287b4d9bedc9ca53",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        }
+      ],
+      "checkpoint_binding_recovered": false,
+      "exact_git_blob_matches": [],
+      "exact_session_source_match": {
+        "boundary_event": {
+          "call_id": "exec-14085a7e-fcf2-4a3c-bf2b-7437d27e4f29",
+          "session_line": 4592,
+          "timestamp": "2026-07-27T06:38:40.643Z"
+        },
+        "bytes": 316117,
+        "characters": 316109,
+        "lines": 7458,
+        "output_path": "exact-runner/9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594/scripts/hcc_smoke_runner.py",
+        "reversed_patch_count_from_anchor": 88,
+        "sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+        "state": "immediately_before_recorded_update"
+      },
+      "exact_source_candidates": [],
+      "lane": "GCB",
+      "receipt": {
+        "path": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_117/exp_059_gcb_stable_all_case_25seed-r1-seed117/rastrigin/exp059_execution_receipt.json",
+        "payload": {
+          "action_artifact_sha256": "75df9c09ed12cb691bc5d653618bfc40750b22043b39cd3b537ebe1a286541a6",
+          "authorization_artifact_sha256": "47a10e70053e149db2c0764d445c2e4eb5ba2a128bf9f28d699ddfcc79f8bcc5",
+          "case": "R1",
+          "command": [
+            "E:\\ARAC\\.venv\\Scripts\\python.exe",
+            "E:\\ARAC\\scripts\\hcc_smoke_runner.py",
+            "--functions",
+            "rastrigin",
+            "--ids",
+            "1",
+            "--output-root",
+            "E:\\ARAC\\results\\exp_059_gcb_stable_all_case_25seed\\validation\\runs\\R1\\seed_117",
+            "--aob-data-root",
+            "E:\\ARAC\\vendor\\hcc\\AOB\\AOBG\\datafile",
+            "--timestamp",
+            "exp_059_gcb_stable_all_case_25seed-r1-seed117",
+            "--seed",
+            "117",
+            "--max-fes",
+            "3000000",
+            "--budget-accounting",
+            "strict",
+            "--search-state-backend",
+            "phase_i_mmes",
+            "--runtime-probe-repair-mode",
+            "hard_repair",
+            "--group-optimizer-mode",
+            "full_cmaes",
+            "--persistent-phase2-action",
+            "gcb",
+            "--gcb-stable-protocol",
+            "r-series-gcb-stable-all-case-validation-v2",
+            "--verbose",
+            "0",
+            "--skip-plots",
+            "--arac-action",
+            "native_eq8",
+            "--relation-policy",
+            "global_phase2",
+            "--evidence-overlay-mode",
+            "off"
+          ],
+          "completed_at_utc": "2026-07-27T02:33:53.994757+00:00",
+          "config_sha256": "f7f406d4adc541d4765f3394b24dff4a1a3256b569bd5687ec5599b1bd4e296c",
+          "configured_max_fes": 3000000,
+          "elapsed_seconds": 1461.8129999999999,
+          "final_error": 154213.12684872153,
+          "protocol_version": "exp059-gcb-stable-all-case-25seed-v1",
+          "runner_sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+          "runtime_action": "gcb",
+          "runtime_action_hash": "e3410962a930002b0538d2014b33df324e24462a47beefe5b2048364cc049a6e",
+          "runtime_policy_action": "gcb_stable",
+          "runtime_policy_hash": "7c742c2a50c5f15736f1f0ce03461b86edf3effe23d4b45ad9329f26855c6810",
+          "runtime_policy_protocol": "r-series-gcb-stable-all-case-validation-v2",
+          "seed": 117
+        },
+        "present": true,
+        "sha256": "9e43aa4ba22f1555e81ed75015be21f88d838418b8fd843766be88d1fe02155e"
+      },
+      "replay_authorized": false,
+      "runner_sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+      "verdict": "partial"
+    },
+    {
+      "candidate_sources": [
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c7505d91",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "521f29ec4d05640e39e5d341c964dcfe52784edd",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b5e23c28d73ec6dc5a71062ced45854256045694",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c39f8cb9c2d87ee176f36f086285cb35f6c7bc12",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c7505d91821f60e09f08a78cc690891748fce023",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 266385,
+          "git_blob_sha1": "228e41e1aed10e2258ee90a1e39c2583a5ad0a67",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1e774853bb3a113f8b3e61f3108d408d6c151b0f",
+          "sha256": "80ebad54a4dc80d6b2c033596bfad34cb107ee9b05673e2d9d65c63a306bc4f9"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d431a5ce463a2dc4f2d55a7108aeb027b1f8a5bf",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "de8dcfe9d3403458fd4d5c118c5f6febbf86c0bf",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265727,
+          "git_blob_sha1": "5e4be3696b9f6345705a6fc2cd951084d4d20e1a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2ae2358b0d10a465ad4a96397aa439becae9c3b7",
+          "sha256": "420d2f3846754b822c470bca29ef1d21db57ba9be6191702e36d396a8277f521"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "67db38b8fb07e2ecf78a675d7de1ee5631117d25",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6f42039f7c928f7a99bc5b104d8ba022d5f7934f",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "96aa56442192543dfc0492804dd2dc5e5f885904",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2bb0879a3ebb91c36e2e2bd3600d6d7842cfaba7",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a2c0fa308ec74f6a235c281fcd37cb38e852e3a2",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 265115,
+          "git_blob_sha1": "b53c525ee106bd04b962c84863652e3d7deca0e8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ccc890a2e46b8b007562071de9e7fcb892e294de",
+          "sha256": "055d2a96a6111b9ee2321a1b65821fd1fd26aa7bd8cc038fafacca2a85bbe6af"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "362f12409e0644b3a3acdd3275ff15f0c6ae240e",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 278781,
+          "git_blob_sha1": "50368f047b34b088be4ce446403bdaada2ef9386",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "018f24f2692825d66e5d3ac29aee82414db2723f",
+          "sha256": "62ad58b28114c67b3ade4a6660e1185013d88d45975eaed136b352aa00e45254"
+        },
+        {
+          "bytes": 279996,
+          "git_blob_sha1": "3f674ae9bfea18a440830216b66f1277e471b9f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "acd4d84bf7d4c7b0d17e674c927acd2f3c773053",
+          "sha256": "9876a8bf6c4f5a2a9cdb101b93169be9d51bf78c3fe0d057751f69d9c6e8d5d5"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "246cef135417278810dce0ba793c3bc1763fc742",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 267254,
+          "git_blob_sha1": "3345e9c499c77e9834376b983bfd65d608905a0e",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b53c712119d2176284e90462df040a63208bf772",
+          "sha256": "80ecbb0345dc278b0752f97ffbaac9fb7433e5f19b387bcbd98529ba4965f9ae"
+        },
+        {
+          "bytes": 279776,
+          "git_blob_sha1": "00deeb540574ff776cd8001b7a66b5f17f33c3fb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ba5f5fa3f894e1c77669ef8b0d2e474beeecb0af",
+          "sha256": "0b01ac7346b03679941205adcaa75bb42ebada79f9ffdcd7756f793be2aa6b6e"
+        },
+        {
+          "bytes": 275008,
+          "git_blob_sha1": "7e436fc89a3393192b1add4de94e7319cf35767a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "13751d2e1748b604fae4705d9d9e0d98c56a5c04",
+          "sha256": "f81cf318e16efa8eb6292428bc53e3c5a315c14d40e71c79952813043d434169"
+        },
+        {
+          "bytes": 264230,
+          "git_blob_sha1": "fb21fe6bfe1c13877d2192ea3a1f7a45fd07c800",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5d6ccd7ef27b975fe9e18501fbbcd71cc5dfee14",
+          "sha256": "af9a04c76fb651b5db36c0c58c1be4c424e9fe61b9dc27a547d101ce96339859"
+        },
+        {
+          "bytes": 265986,
+          "git_blob_sha1": "291b519de7736da18251e340b8021948d89146d2",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "306c5ab30d4af5917f373483535ccab232fc736d",
+          "sha256": "73314aefabb8b876abf6f889a256640766103b6bb522145df36793a5142b997a"
+        },
+        {
+          "bytes": 263959,
+          "git_blob_sha1": "a6055948094ec11191177567a10f1b0bce74f88d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d44f9ef7b106a7a7bca5ce1c74a3a4e3ea06f42e",
+          "sha256": "3a7ffe832cdc1a7d3cb637a47c24b5e14f2db38561632613101aad4bf5d420eb"
+        },
+        {
+          "bytes": 257882,
+          "git_blob_sha1": "f31050e7c47992a9efc5db5c861170262e227392",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2c3ba3bbbddde7f8c2121cc5a3c921f4a476cf3d",
+          "sha256": "dc1e6dd4ae5196392501d45168ff1a15ab53bf73e29c3a7dbc33c4e067b6a7b7"
+        },
+        {
+          "bytes": 242066,
+          "git_blob_sha1": "958cf9f883214df59a82edd7f66773f1aab766ac",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "71406683a0a5f9f8b688f9231794452eacaa4398",
+          "sha256": "38092ba95bd54b36df12a7be01bebf99b74055db1d2b3f33ca7e9804b4e81507"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "67b357d4c5a58035146155f3ac1884cfca4f0ed7",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5160b6b1a9db86e875d2b60246ef68b47494a294",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "375803f76e1f2774eb4845a9f933a6d9bd873a54",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 236855,
+          "git_blob_sha1": "295321ac3a9e349fc36812b473975f8f530fc148",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "00668710f66eaba8619c325fb5c0ba06ea4cf53f",
+          "sha256": "c62fdd2e6abea8c72dbe593746618e72cb46e94a59f682d1b9bc0e74e6ef2df5"
+        },
+        {
+          "bytes": 236855,
+          "git_blob_sha1": "295321ac3a9e349fc36812b473975f8f530fc148",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9b7e2eba29e4fa24f5c9e17f723de0fd4cde15e7",
+          "sha256": "c62fdd2e6abea8c72dbe593746618e72cb46e94a59f682d1b9bc0e74e6ef2df5"
+        },
+        {
+          "bytes": 249947,
+          "git_blob_sha1": "3858168cd0ec1b19aab08ed16fa00727ae1780b0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6e11620d771f311cd7b785d3acd388fe5c045c94",
+          "sha256": "69123619df728b16303c555f748a1ace693669c8d63969e66704cf05e878729a"
+        },
+        {
+          "bytes": 236398,
+          "git_blob_sha1": "db95ec77e2f2359fba5cb415fb4a2c35d7c490a3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ffe2c0021bef3ab14cc0076f4340e0f3ef193a82",
+          "sha256": "f186afd800e2b96ae876cf4e2183119fce4a9af925f2fc4a4848937e5e4b8beb"
+        },
+        {
+          "bytes": 236398,
+          "git_blob_sha1": "db95ec77e2f2359fba5cb415fb4a2c35d7c490a3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b8108d663f0e9926f36d7bf33d4bdfba7da5ae68",
+          "sha256": "f186afd800e2b96ae876cf4e2183119fce4a9af925f2fc4a4848937e5e4b8beb"
+        },
+        {
+          "bytes": 210042,
+          "git_blob_sha1": "0487e20999af606f099e3f81e527fa8416261567",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1855ce77eba963c79abaed910b081fc15a945746",
+          "sha256": "8226354addb25f23628e6d751c4c030834a48f00b5ef4c002530d0ca6c72879c"
+        },
+        {
+          "bytes": 210042,
+          "git_blob_sha1": "0487e20999af606f099e3f81e527fa8416261567",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a25f997d0fe3403029c62f8c39777bf4ccfb826c",
+          "sha256": "8226354addb25f23628e6d751c4c030834a48f00b5ef4c002530d0ca6c72879c"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f6d6a6a9fb7db7b06c76406ed74b0f74402396f3",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9de85ab921cf14fdc1145285ce0e32b95b1775eb",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207675,
+          "git_blob_sha1": "2ba7f43816b23e1fa712a73a31549982850231a8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c12ef0c80b33d6dd443d32e9044bb1fe7ffdfd83",
+          "sha256": "83ffabc10dec67330159e607c54147b51699cad4c0003fe3de970b320b9b7a97"
+        },
+        {
+          "bytes": 207795,
+          "git_blob_sha1": "2c9e757246bee01bf8be44941a8edd0592b6532c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "391d315656b107232dbba2e9ffc78780be9724ef",
+          "sha256": "94df1d873e99a1a278246f5a6f3b74c3c03aab571d6cef248fdab831311d0d68"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b73881adf736baaf444ef5dd6051a6c30e8ac64f",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "badd7591004f8d13760db103ea8846fcbba261cf",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 207739,
+          "git_blob_sha1": "60721d4d0937395397241f4e51f40cbe8c0579c4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "dbd0fb889599932ecef9645448f1bcad27a4e099",
+          "sha256": "300b1ce793be256e4b10ab5c1f0edd1a1df3550b508958255c3e05158019f42f"
+        },
+        {
+          "bytes": 200935,
+          "git_blob_sha1": "5951cc6adb96a28c6bed6ba10b9e6483676ad72a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "fbf2e011096a39a0d16fab82ba53801f36280719",
+          "sha256": "4ec1b09e00462fe325b93a9874e973e9acaede50c025c4251f3b05690da36cba"
+        },
+        {
+          "bytes": 199273,
+          "git_blob_sha1": "df19c1c330b29b1a3958889fc43644211c8907e5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c19e282ee2f723e6666960e6f346269aefcdc019",
+          "sha256": "3943fb74c3203917d47fc7ba1485887ec235959f8c86656f0ec528c0fcebe9a9"
+        },
+        {
+          "bytes": 199108,
+          "git_blob_sha1": "832b73130b0338673e1f46b39fc7256526731790",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7d72b1aca529bb4b8db5c1eecab76af210215b3d",
+          "sha256": "99ee608e6a8a1ee73a0fc35e71bcc66117c3fe3c1812b334501c8c7378e866e8"
+        },
+        {
+          "bytes": 199108,
+          "git_blob_sha1": "832b73130b0338673e1f46b39fc7256526731790",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bdc8e83822d38eeefa0956d444e3d1cbae4097fc",
+          "sha256": "99ee608e6a8a1ee73a0fc35e71bcc66117c3fe3c1812b334501c8c7378e866e8"
+        },
+        {
+          "bytes": 197355,
+          "git_blob_sha1": "8b7cbcc07c3ed94295d20380e8ec1e2826d21715",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f060a4750a9c06a8acb4d517053290fdd6176c1d",
+          "sha256": "e4d7922bbeee989f7b7d78f88dcbf0771003e6cae8fa9e65268f6d7f8fa8c2b1"
+        },
+        {
+          "bytes": 197386,
+          "git_blob_sha1": "56b8741463df83b72164c3fef5dde877611a94b1",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "69056ac81b2332c01f41cd70f33e385e39b9672b",
+          "sha256": "b6835fb159f3f143f2a415af83dff01ee4e7f4dd351d8308bdac28711076d17d"
+        },
+        {
+          "bytes": 195423,
+          "git_blob_sha1": "a4ae8a911e87d80c587b338704e83b696d577653",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7f69caba3308dc274fb1f8c81cee9fe613377728",
+          "sha256": "842f5120cde8cd339a6a5177119bb4c29a35f9deffeba2e4f4049a3b827c21c1"
+        },
+        {
+          "bytes": 192582,
+          "git_blob_sha1": "e9f67fe74d91f349a1c95d4aa9226d54631000f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "edfc85af0addbe22b5fb01a1e6dc5fad8cfc1a1f",
+          "sha256": "ab9fad407523a1f925ee103f13c2401c2ec854ca6177d418719162ce8953a996"
+        },
+        {
+          "bytes": 192582,
+          "git_blob_sha1": "e9f67fe74d91f349a1c95d4aa9226d54631000f7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "184a7db4a1c9729cc295ffbd9063d25c82e111f9",
+          "sha256": "ab9fad407523a1f925ee103f13c2401c2ec854ca6177d418719162ce8953a996"
+        },
+        {
+          "bytes": 171942,
+          "git_blob_sha1": "7ad4059f6548d8f0f51f3df35806e5d9f69c054d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7ce1201199b3ebb893923137c71591baa881bbce",
+          "sha256": "18bbef6f5e5f53cfe21fc38818edd3c0bdb0175f3c85ab558f900022e0c938b5"
+        },
+        {
+          "bytes": 169834,
+          "git_blob_sha1": "9b4c6bc8c5a7662ce659edd03a9d328577b96a11",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f6426ad5c3cc257f5a5061fabc71254600f4e6f8",
+          "sha256": "5a5b8b712702c824f3f6919bd403e4f193d4b13318bce8d0c931d8aa31b4cc17"
+        },
+        {
+          "bytes": 167399,
+          "git_blob_sha1": "3aade87c2728e7d90fb88d3f934c70459c59ecdc",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6f6cd41aca49b548b210828bb128020c114a61ef",
+          "sha256": "6062414f18edf512ff4433a18ef836d85d39b4f848481ab86abb6beb5e44b307"
+        },
+        {
+          "bytes": 163688,
+          "git_blob_sha1": "11a7b58b5661b4a5b8f90b9cca25ef2921d095b9",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "3b970900388c5d91458bf5ab2114eec34eae09a2",
+          "sha256": "75031ed13de6da0d80728b59bb8ca61825b0b6de3da24b4c3c594b81b77ca6fd"
+        },
+        {
+          "bytes": 159509,
+          "git_blob_sha1": "5f24a1433d158537f19f0025b9826f0080c84c92",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a9deec6c972f4e6c52bc0e72cf592e3037408089",
+          "sha256": "d7337283b71cb4d2e0d946cbabbf35ad46e1fef6c950ec768567dc06883e9fe3"
+        },
+        {
+          "bytes": 149361,
+          "git_blob_sha1": "f402f40b96808ec7be13e1a0210604b3ab11877c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "42c55a8f7fd8994e4228ea95866855beed03ef91",
+          "sha256": "111b80e1f24cb9e919a0a1136bef15c1115c946914ed6768ade1e15971a36200"
+        },
+        {
+          "bytes": 149296,
+          "git_blob_sha1": "f1461965ac4c80db6c366bb2cd8129fc65462039",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "de63991371b92cce31f7cec7d999bb960a935dea",
+          "sha256": "7181fcdbf0856617288c051bba9a87a46dd4a0c6e069340cc5b04b1709cffe76"
+        },
+        {
+          "bytes": 148462,
+          "git_blob_sha1": "d9418601f9e2a90b4ed05d90bc4d7ba36b198796",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4993284d32b26a7907b4c653fcb00d5f112c1ee2",
+          "sha256": "118608ceb0ff2896727e81e77ccfc841c5238919b62aed34ed12245f40a7186f"
+        },
+        {
+          "bytes": 147200,
+          "git_blob_sha1": "d024591e61a1b5fed06bf57ba9a2bebb934ea58f",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "3deb6ef847266f58cd75c43572df355c047053ce",
+          "sha256": "2916cf54407f09424f551ff3a12347884f6ecb47d0b048c301a9f4e25c8d1d3d"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0937686a50e50366c723deb3a987539ed315ad48",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "53ee1650f57ef22e5eba9eecd466f6b523ca19b1",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 147080,
+          "git_blob_sha1": "a5a52c68a995b8139761af3b293d15e4ea1864d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e348890cb78c53058d0aae872bf99872d570e159",
+          "sha256": "7d50ff60a126cfb045053e437042575de9cf19d39ced1a4a9c1e763689bdc85c"
+        },
+        {
+          "bytes": 452011,
+          "git_blob_sha1": "be1eb9ac7ce97a701a060be71383b3fea216fa60",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8a378e46f7366a72fb7f9b29b2897e8d54241e88",
+          "sha256": "b1dfb17a26331ea8f0ce830bf5dac62277be366329e54153c3829ad83971fa31"
+        },
+        {
+          "bytes": 462326,
+          "git_blob_sha1": "dace67e7bdc5b100cf5a885cdcbb7638dca3fc27",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5e622f4552c6c27ec218dd8c4aadce4e6758f91d",
+          "sha256": "ab5b88ff5c186f125e5ac12ab3a2165442ca5ca876b910b5cfb43bea7ea26fc9"
+        },
+        {
+          "bytes": 425983,
+          "git_blob_sha1": "9afcd9332b8dd691a9179659a15597e3224d3c0a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5de06b389db9eb2653c4b410cb99aa7522b8d00a",
+          "sha256": "32009fac77d498086398093236c2fb57194b82aa319fd03aca60b020081a3865"
+        },
+        {
+          "bytes": 425983,
+          "git_blob_sha1": "9afcd9332b8dd691a9179659a15597e3224d3c0a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ed4946e249f657663658f2bbe0889753a66b3b62",
+          "sha256": "32009fac77d498086398093236c2fb57194b82aa319fd03aca60b020081a3865"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "071ee2089484370684b87db3acb4891de3c8f695",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b6588aa27ce5d99e968bc61056cc2293a81edca6",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 411821,
+          "git_blob_sha1": "3173407947c72edc9396051ae2b616c4299af4d3",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "449e3a09db8de30c0e54215cc21fe56a32812d46",
+          "sha256": "3992f0bb0f1052d370358abe679842bf9353c3f999b14e56a18cc2b079940c0f"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b15d2f06c09a9059087dc33bde3682573796b8a9",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "71ba1d62901ccd563366d1fce5b5324f610fae80",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400556,
+          "git_blob_sha1": "694e90de1f2f77258815cb7e257d25c3eae11726",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "87f3fe6b70c85bb81e58f03bf4b2333134c6448f",
+          "sha256": "f94637b7bdea880fe83284274782caa978f0606e3c162f2a1338905541d22931"
+        },
+        {
+          "bytes": 400035,
+          "git_blob_sha1": "089e23a6a700702cbae68eca342421462de6dd02",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f234f9205f92d3a68ca42e54fb29954c05cdc9e8",
+          "sha256": "6adf7a7c8e9078c115856d50f6e38460bd9428c8c954a118309b2b5b9fec46a6"
+        },
+        {
+          "bytes": 400035,
+          "git_blob_sha1": "089e23a6a700702cbae68eca342421462de6dd02",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "52e130326311322bb88531b19ada9e2f3a2524a4",
+          "sha256": "6adf7a7c8e9078c115856d50f6e38460bd9428c8c954a118309b2b5b9fec46a6"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ad669a4f1e0f3ec5bc8827667cdb6ccf7e2d5964",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6917f63f183f74798b4b59042cfbc0442f92eff0",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bfade0e194f160792fcd715b756f66b7fae0388f",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b8e6e6405c2735d1f0999d079f93db1549db4773",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "1eac98737027e2b87b79d651dcf6e1868fa9f90c",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 360739,
+          "git_blob_sha1": "5cd13ead4bb6beccdbc1e7da7146127024dc11e4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "140fed2ebbdc6831854f086aae21601c9cbb20db",
+          "sha256": "6b12ed0dac1f142e12f3af4bc701d201738a856e80a118af6356106e87bcec3f"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7c62fe55ef5ef42afa19043611f9a51713027057",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8cf16ae32145bd664cb5cafb92916709ac586f8c",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0d736e1fba465acbb3e4beeb9846b31899732ee6",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "e67681340a17664db1c61ad0cf6baf8c905fed4d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "852a26813a6e4ff53b28da81a27e984b1facdd57",
+          "sha256": "56b35473dafb86cd1a02a2fbe5dfec42deb6e46121a4c0204e5c03eaeadecb9b"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "8e84265dc624ba9258c0a9f0a85acc134b798240",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "650d49126a27c48447ab4ab14e56d5e8ed847da2",
+          "sha256": "5e84cedae2beebe53055b43417866b7bb2fdc844a0d854d69e1a08ae00ff9991"
+        },
+        {
+          "bytes": 325208,
+          "git_blob_sha1": "8e84265dc624ba9258c0a9f0a85acc134b798240",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f184b840d52a1b0aff8cbe82f1341ba4b0e08d3e",
+          "sha256": "5e84cedae2beebe53055b43417866b7bb2fdc844a0d854d69e1a08ae00ff9991"
+        },
+        {
+          "bytes": 319617,
+          "git_blob_sha1": "0c1c668c738e768bce35b2384d89641dde6b2612",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5683f14f0f056212f2e4d6fbcb24433095d3614e",
+          "sha256": "0e20e3e94136ff12d7d6d7824178b7fee5ff522338b4623f16b96788a373abd1"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f7960eafc27f64f519d0d2137f5a2c4152b715c3",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a7399970412cf011b2808872beb463a78f59bc34",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 285411,
+          "git_blob_sha1": "0637d83299034ba9fb3ad20c3201159549ed1b87",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5957a29daf7bd4fe5459f80cde9207245a86b11e",
+          "sha256": "ffa952b66d128d7e4444ed8a254ecffd1b7760b5d554a7b885b60eaff46991d2"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8a55fb3e62129001d2ae12ce7f4c1d2dc19993e2",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f166882fdb9629d76f84c3312cc424a545397361",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 282010,
+          "git_blob_sha1": "f827a54b1e5b738a8e84fe4f4689b5de59f6be31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "00188fd53b5e3524b54c1ce65b9059cb043c1905",
+          "sha256": "84c41565f1a601366d6aace202e3a875851b4febab06573eded4a2f2a1737ee6"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b39fd0746aa6bc7952112ffc3b9729becd0445a7",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4acc51c397473959914b5919380e6bace26cafbc",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "fedee0747b906741b419ca6a67a38936a232e287",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 281130,
+          "git_blob_sha1": "4e5f0475683cc26f933be3167612650e9f7a772c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4210277f8b629f01c99484efbd9ccf9ad53fdb8a",
+          "sha256": "f5ff005c0e63cd00318f1c5468547e845241dd9ea4ac7a56150aa4eaab6074b8"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "84a31ce17ea20e998665208487eb3b5b8579d1fb",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6e5adc3d4b4ed3d87e125c0f0df2fc98efb81bd6",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bfbb7eda252da00f047db7804afa1b83ffc43203",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 276336,
+          "git_blob_sha1": "2b435f122bc433dbd6153a953076cd7f8ac6e93c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "aa1e3f25ece04f1d09e7f8f8234d600b817f1ed3",
+          "sha256": "2e2f9db2c2225461bf09100d284dd26214cedd1c21ef230e0e6223d15f31efb2"
+        },
+        {
+          "bytes": 275855,
+          "git_blob_sha1": "f3bab5c220b01c238d5068527285d62359201d69",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "001d188126ae85dc906ab7969adacf76f6627607",
+          "sha256": "b1465ad3a12be3322d971cb6f8c3fba30be00842174469f8bc131008270c0dfa"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f5ef87b60ee844f7c2a72a22a25a55f395417d1c",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e2a65dad3e040f718230db1b02cba43136d9df4d",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "49e809fd46290c919c89d98aa16986be72a0d584",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254916,
+          "git_blob_sha1": "d64549d02e424b8b072c22bab025db1aa62b1de8",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f22d0932757a16dd4a24e0a5395414171cf86cb9",
+          "sha256": "57e0742872e585838148c60c2920ad47d5b7d3acb28d49aae7426d329b5935e3"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "372116a654028fa7d7b73aac937e1ddc5392b406",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b6596a73c3601c310ccf081b64084c60bba46c99",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "554f7fdf09bca4faaf1c682e11ad4f2c9d49156d",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 254362,
+          "git_blob_sha1": "39b47f79977c41626c8bb57ac4031bb686454adb",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "17c13f8323a4c2901a009e78161e6cc8a24eaf1a",
+          "sha256": "72686af582ed0001b0faef61bcab640d70f97f986b2792aea91d9ffa98ff2cfa"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8edfd5b58c478e68803aa2ea2fd7fa536c7c67a4",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cbcf1c3da00ceae9665632ac3cbb9aa019e37468",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "79769b3e34251b63304a16371aecfaf20ef3e114",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 253250,
+          "git_blob_sha1": "3808388cabfa3542e93a8872c9d1954f50e2d54d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "bab6df7ed1d6f2c5f483319626c9081cc1becc0b",
+          "sha256": "9f411cc898e1b54d74377348e17080bc3523b735d4d3c37939ce44a984d4b494"
+        },
+        {
+          "bytes": 252792,
+          "git_blob_sha1": "d78a2f14bcd70d1bcfa11b03dc8834660e426ff4",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a1ce79935351bdbdc7faffc182c5d07b0c140f11",
+          "sha256": "d3ebcbe43dd6bf9bdaddf573bd67e2c86cfa23c82935d059499a9bd385c0ecc5"
+        },
+        {
+          "bytes": 251538,
+          "git_blob_sha1": "f9e704be2ed0b9e44e937846d130d0757b27605a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2802238b34d016fd68d7a6dd22da3db42711b52f",
+          "sha256": "bc4561384be29b1477e03ef7b3659a903fdff31b0a3b48eee959c9db0b83eb53"
+        },
+        {
+          "bytes": 251538,
+          "git_blob_sha1": "f9e704be2ed0b9e44e937846d130d0757b27605a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f5cd749124246e95580e73c54e9ee5a7e878fe3b",
+          "sha256": "bc4561384be29b1477e03ef7b3659a903fdff31b0a3b48eee959c9db0b83eb53"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "12a8319ebcaf4724f1e4663aa2743364962a50c0",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7c55ef2640fa19eba3c8ea1b0042420a3c44b6af",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0c301e95a6a9521bc4eeb02b2f051b619415a130",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "dd5ffec5b67ab61fcd3e05795586783191ebf3ca",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "d86dd9f83d2b14e6323e9c75109dc9e8d3750dee",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226476,
+          "git_blob_sha1": "48e70feeada430f35a4c7e3f4a92b6d1545c2569",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "04e79bed3b8238ac4ec6f007bb7bd0bc656dbf17",
+          "sha256": "9ead37d942efc0c085b1f802bbbaaaf02833e68dda3013c560f261d95091c6d8"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "7e9c5c5e9d93d2f3dbc1214b545612b39ef5c360",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "984b00fc31d3f7995ff594574d524ed530933936",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9bc4da2d008f58e9cdf3329c8b04925cfda57f6e",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 226787,
+          "git_blob_sha1": "3f86b8f2d00cc12da2b3f69f5a775d6c77c9070c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4fb3f776a7e39a1014ce94c8c4178ba7c34ac46c",
+          "sha256": "d650e796e10e4efdaa9439e05292a93057baefcae060cb42fbf875e766df0b5e"
+        },
+        {
+          "bytes": 217746,
+          "git_blob_sha1": "003b03ec03c19b58407d8162799153cb149d97d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e723b88a5f3abf3ed55a6b70fb224eecf3f00c5a",
+          "sha256": "b103e12e21cbabf155f1f675875565453f62eba33a85f023ad559ea8596a280f"
+        },
+        {
+          "bytes": 217746,
+          "git_blob_sha1": "003b03ec03c19b58407d8162799153cb149d97d0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "ee6f28cf663c5710737a59354ee56717b3ff3e0c",
+          "sha256": "b103e12e21cbabf155f1f675875565453f62eba33a85f023ad559ea8596a280f"
+        },
+        {
+          "bytes": 213838,
+          "git_blob_sha1": "0b3964cd69d56d3501079c13feb6273d5dce90a7",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "93c8dc5e9118b72de507c9f5d3564f4da04a2c43",
+          "sha256": "62648722c04a36e97905473d2362f162e1048ba098771a843af2d0936e6250d1"
+        },
+        {
+          "bytes": 208622,
+          "git_blob_sha1": "e234a7994e366248775b643bdfa71507a14cdf3c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e67b05a54cca556f9d44d681dbd2f7ba983cc030",
+          "sha256": "5c28cf11a004936301b385bab2b105677af57b28abbba287c7ffd2cdc5c93407"
+        },
+        {
+          "bytes": 208560,
+          "git_blob_sha1": "1e87a2e5642daa67357e6790dec5cd7ec3528a6c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "823d3e2012cd39baa42a6294c0b930df0e7775e8",
+          "sha256": "8e00a4bd4a73af558112e8e69cc99a237266f22545ead5fda024769a12714fc0"
+        },
+        {
+          "bytes": 208560,
+          "git_blob_sha1": "1e87a2e5642daa67357e6790dec5cd7ec3528a6c",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2c40937c1fd2419a43319a99a505e91dd71f01f2",
+          "sha256": "8e00a4bd4a73af558112e8e69cc99a237266f22545ead5fda024769a12714fc0"
+        },
+        {
+          "bytes": 208491,
+          "git_blob_sha1": "b30f3b188b8728195e6a20ba70e0a51af8977cef",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0e75f12fd0c53e1211982362fc31a0909c335a28",
+          "sha256": "d36d93d298ad9498b76879e0ba195e97c0d144aac332733b6745a19a07e38fbc"
+        },
+        {
+          "bytes": 208491,
+          "git_blob_sha1": "b30f3b188b8728195e6a20ba70e0a51af8977cef",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "abbaae07733766205bd10554cdb3baf6cd09266d",
+          "sha256": "d36d93d298ad9498b76879e0ba195e97c0d144aac332733b6745a19a07e38fbc"
+        },
+        {
+          "bytes": 208447,
+          "git_blob_sha1": "a34f58c6398c8a1d4846c5a19c1fababb6416842",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "afffa6d68c69566adaa8d621aeebaa7eff98d221",
+          "sha256": "4661ec551b1e6e8d2a9f61536eb486a1133b9ec9423e813ec2429cfe74bdf9ed"
+        },
+        {
+          "bytes": 202718,
+          "git_blob_sha1": "53d657e6b17bf4b89426f188788f0b71fb3b1ac5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0e197425aa3838c9e97d3012bc43ae86e1ea9dcf",
+          "sha256": "400d8a197854cca860465d3886fc10aa890fa8d5a33f42a527c280c2505a5dc9"
+        },
+        {
+          "bytes": 199576,
+          "git_blob_sha1": "db5955ec8884ee1f25dd4d24e071ae1b0562174d",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5f671f8f5b51e50edc1eef34aef0e138edc8e42c",
+          "sha256": "89f7d3a54e610414068141e097cf579a9a918286bd8208e8534996958d5d446d"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "214a9fd8f28ed81e0813b54594575ea70b2588bd",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cd1234945d131fc4f35eda82df443c5718a6bfd2",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "a9493c518a83e90962a69276f8488429811d06f7",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "933368d5c4de5a31d110a820099cc748f5080c74",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "5b582c08ceb48c2284f949ef8088cfb38c553e90",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 195898,
+          "git_blob_sha1": "271411bc58d3304dd926912a686e8fbfc17dce31",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e422719cbd7e46cac1d53720003abdd4e7d56fec",
+          "sha256": "f3641189e49833b5bd0161686268221eba0d7f0b2de3e4b3f0570122e07d2987"
+        },
+        {
+          "bytes": 194345,
+          "git_blob_sha1": "0b0933912a13dc7785f977c7b5af25a0a5ae6aae",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8567a17ef48777f0f0462e71779e3558fbc9d630",
+          "sha256": "e0d91443feea4a50c8220c4ea3ada505df8413fa985ab93ae9d21f48d7f3f6fc"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c05fc125cb7caab2f6ab2a005685b109d04e7058",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "8ba6b458a016dba50399d90f6987f167e2212cdd",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9c82a13651629af3e2f019096a532a8ee9ce14ba",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 192337,
+          "git_blob_sha1": "ec596f76c632e334b1cd43786a1731c9579799a5",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "52a3b0ddb4aaf14315cc5c4df6215f6bfcee53cf",
+          "sha256": "734f4e5f5784825972963948d93a930131bcfe0ae9dc942e0f698a10ddc8c847"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b0e3f6b5c73a2f67d4fe5cad0730f5c28061d3c1",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "6295ffeb4bb7d2f902ae5da7b3d9a929f24ec094",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "13569aca5aff4a85c89c3db513922f3edf08e2f5",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "0ab1012fc8c7de95d9aef4bc511de538729ea61b",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "b1ad0cb14f1efac14ac5282b83f6d35bb5e936f0",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 191505,
+          "git_blob_sha1": "0a441cad25f6c2d3af220432c2069b36cb88e48a",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "f80ebbc3fe858688bffb1640341ca7fd581bc3ff",
+          "sha256": "321fa50af41db83700a1b3830d608350670614e1822ce2151f9e90f1e7a465f3"
+        },
+        {
+          "bytes": 185021,
+          "git_blob_sha1": "b0bbbaf3c8ba7318f59a0caacca9f1805d33ba36",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "2feb09356ca099b268e586939e23416d19ca0c23",
+          "sha256": "458eae893c1fbe1806b0c1b0d73a22e4f2fa151849ed9f4e28d60736a795825b"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "c4c423a7e19dd4ee92c0e2ddbc5adc31f3dbe5e3",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "22bd77b83cf5e70abaf33c376fff47ab745c8920",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "e24c3382eee1ff217dd2060dcdb4d30f44150b31",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "9b7d9061376f6bfa31d04db414f9a9ea2abb3558",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "4a72058d2281848d069195483d58e6eed912f366",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        },
+        {
+          "bytes": 150476,
+          "git_blob_sha1": "48d5d916a4a19e47966dc8dae1885ea68eb1b9e0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "cd69d90d38a88c74223063d99b1434d08ffd0ca4",
+          "sha256": "03c917003c63bafebb19e7fe6f8c0e04ae439136ade981b5880bf3cbafa8b7fa"
+        },
+        {
+          "bytes": 150476,
+          "git_blob_sha1": "48d5d916a4a19e47966dc8dae1885ea68eb1b9e0",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "95b5fd3b146d68bf9cd75ca42b8071e2c61f4b94",
+          "sha256": "03c917003c63bafebb19e7fe6f8c0e04ae439136ade981b5880bf3cbafa8b7fa"
+        },
+        {
+          "bytes": 182910,
+          "git_blob_sha1": "09819b63426fa049f7e5d72b997bb8eb3c314d7b",
+          "path": "scripts/hcc_smoke_runner.py",
+          "ref": "da431b1c3984a9b6a91b8c2e287b4d9bedc9ca53",
+          "sha256": "d92ab4d812f9d7554e5a90967d10b22fd429d88f5a3efa7514a0a270bff1ede4"
+        }
+      ],
+      "checkpoint_binding_recovered": false,
+      "exact_git_blob_matches": [],
+      "exact_session_source_match": {
+        "boundary_event": {
+          "call_id": "exec-ea441cb1-a2ea-4c2b-b608-c0e16b133b82",
+          "session_line": 3440,
+          "timestamp": "2026-07-27T01:52:48.632Z"
+        },
+        "bytes": 311758,
+        "characters": 311750,
+        "lines": 7374,
+        "output_path": "exact-runner/b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac/scripts/hcc_smoke_runner.py",
+        "reversed_patch_count_from_anchor": 90,
+        "sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+        "state": "immediately_before_recorded_update"
+      },
+      "exact_source_candidates": [],
+      "lane": "SMP",
+      "receipt": {
+        "path": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/exp052_execution_receipt.json",
+        "payload": {
+          "case": "E1",
+          "command": [
+            "E:\\ARAC\\.venv\\Scripts\\python.exe",
+            "E:\\ARAC\\scripts\\hcc_smoke_runner.py",
+            "--functions",
+            "elliptic",
+            "--ids",
+            "1",
+            "--output-root",
+            "E:\\ARAC\\results\\exp_052_e_series_smp_paired_gate\\validation\\runs\\E1\\candidate_smp\\seed_117",
+            "--aob-data-root",
+            "E:\\ARAC\\vendor\\hcc\\AOB\\AOBG\\datafile",
+            "--timestamp",
+            "exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117",
+            "--seed",
+            "117",
+            "--max-fes",
+            "3000000",
+            "--arac-action",
+            "native_eq8",
+            "--budget-accounting",
+            "strict",
+            "--search-state-backend",
+            "phase_i_mmes",
+            "--relation-policy",
+            "controller_v31",
+            "--evidence-overlay-mode",
+            "off",
+            "--runtime-probe-repair-mode",
+            "hard_repair",
+            "--group-optimizer-mode",
+            "smp",
+            "--terminal-noop-fill",
+            "--verbose",
+            "0",
+            "--skip-plots"
+          ],
+          "completed_at_utc": "2026-07-26T13:03:18.365213+00:00",
+          "condition": "candidate_smp",
+          "config_sha256": "a0dd60d6441cc8166b79f2e90a2f045bca0cc876b8eeb02a715b55660210a5de",
+          "configured_max_fes": 3000000,
+          "elapsed_seconds": 1373.0320000000065,
+          "final_error": 5.983267874603139e-07,
+          "protocol_version": "exp052-e-series-smp-paired-gate-v1",
+          "runner_sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+          "seed": 117
+        },
+        "present": true,
+        "sha256": "7d78a99a053689dd1baed7f5c5026836ed9d73b75cc314b5e6aef334ccc11740"
+      },
+      "replay_authorized": false,
+      "runner_sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+      "verdict": "partial"
+    }
+  ],
+  "reflog_commit_count": 333,
+  "refs_checked": [
+    "c7505d91",
+    "521f29ec4d05640e39e5d341c964dcfe52784edd",
+    "b5e23c28d73ec6dc5a71062ced45854256045694",
+    "c39f8cb9c2d87ee176f36f086285cb35f6c7bc12",
+    "c7505d91821f60e09f08a78cc690891748fce023",
+    "1e774853bb3a113f8b3e61f3108d408d6c151b0f",
+    "d431a5ce463a2dc4f2d55a7108aeb027b1f8a5bf",
+    "de8dcfe9d3403458fd4d5c118c5f6febbf86c0bf",
+    "2ae2358b0d10a465ad4a96397aa439becae9c3b7",
+    "67db38b8fb07e2ecf78a675d7de1ee5631117d25",
+    "6f42039f7c928f7a99bc5b104d8ba022d5f7934f",
+    "96aa56442192543dfc0492804dd2dc5e5f885904",
+    "2bb0879a3ebb91c36e2e2bd3600d6d7842cfaba7",
+    "a2c0fa308ec74f6a235c281fcd37cb38e852e3a2",
+    "ccc890a2e46b8b007562071de9e7fcb892e294de",
+    "362f12409e0644b3a3acdd3275ff15f0c6ae240e",
+    "018f24f2692825d66e5d3ac29aee82414db2723f",
+    "acd4d84bf7d4c7b0d17e674c927acd2f3c773053",
+    "246cef135417278810dce0ba793c3bc1763fc742",
+    "b53c712119d2176284e90462df040a63208bf772",
+    "ba5f5fa3f894e1c77669ef8b0d2e474beeecb0af",
+    "13751d2e1748b604fae4705d9d9e0d98c56a5c04",
+    "5d6ccd7ef27b975fe9e18501fbbcd71cc5dfee14",
+    "306c5ab30d4af5917f373483535ccab232fc736d",
+    "d44f9ef7b106a7a7bca5ce1c74a3a4e3ea06f42e",
+    "2c3ba3bbbddde7f8c2121cc5a3c921f4a476cf3d",
+    "71406683a0a5f9f8b688f9231794452eacaa4398",
+    "67b357d4c5a58035146155f3ac1884cfca4f0ed7",
+    "5160b6b1a9db86e875d2b60246ef68b47494a294",
+    "375803f76e1f2774eb4845a9f933a6d9bd873a54",
+    "00668710f66eaba8619c325fb5c0ba06ea4cf53f",
+    "9b7e2eba29e4fa24f5c9e17f723de0fd4cde15e7",
+    "6e11620d771f311cd7b785d3acd388fe5c045c94",
+    "ffe2c0021bef3ab14cc0076f4340e0f3ef193a82",
+    "b8108d663f0e9926f36d7bf33d4bdfba7da5ae68",
+    "1855ce77eba963c79abaed910b081fc15a945746",
+    "a25f997d0fe3403029c62f8c39777bf4ccfb826c",
+    "f6d6a6a9fb7db7b06c76406ed74b0f74402396f3",
+    "9de85ab921cf14fdc1145285ce0e32b95b1775eb",
+    "c12ef0c80b33d6dd443d32e9044bb1fe7ffdfd83",
+    "391d315656b107232dbba2e9ffc78780be9724ef",
+    "b73881adf736baaf444ef5dd6051a6c30e8ac64f",
+    "badd7591004f8d13760db103ea8846fcbba261cf",
+    "dbd0fb889599932ecef9645448f1bcad27a4e099",
+    "fbf2e011096a39a0d16fab82ba53801f36280719",
+    "c19e282ee2f723e6666960e6f346269aefcdc019",
+    "7d72b1aca529bb4b8db5c1eecab76af210215b3d",
+    "bdc8e83822d38eeefa0956d444e3d1cbae4097fc",
+    "f060a4750a9c06a8acb4d517053290fdd6176c1d",
+    "69056ac81b2332c01f41cd70f33e385e39b9672b",
+    "7f69caba3308dc274fb1f8c81cee9fe613377728",
+    "edfc85af0addbe22b5fb01a1e6dc5fad8cfc1a1f",
+    "184a7db4a1c9729cc295ffbd9063d25c82e111f9",
+    "7ce1201199b3ebb893923137c71591baa881bbce",
+    "f6426ad5c3cc257f5a5061fabc71254600f4e6f8",
+    "6f6cd41aca49b548b210828bb128020c114a61ef",
+    "3b970900388c5d91458bf5ab2114eec34eae09a2",
+    "a9deec6c972f4e6c52bc0e72cf592e3037408089",
+    "42c55a8f7fd8994e4228ea95866855beed03ef91",
+    "de63991371b92cce31f7cec7d999bb960a935dea",
+    "4993284d32b26a7907b4c653fcb00d5f112c1ee2",
+    "3deb6ef847266f58cd75c43572df355c047053ce",
+    "0937686a50e50366c723deb3a987539ed315ad48",
+    "53ee1650f57ef22e5eba9eecd466f6b523ca19b1",
+    "e348890cb78c53058d0aae872bf99872d570e159",
+    "8a378e46f7366a72fb7f9b29b2897e8d54241e88",
+    "5e622f4552c6c27ec218dd8c4aadce4e6758f91d",
+    "5de06b389db9eb2653c4b410cb99aa7522b8d00a",
+    "ed4946e249f657663658f2bbe0889753a66b3b62",
+    "071ee2089484370684b87db3acb4891de3c8f695",
+    "b6588aa27ce5d99e968bc61056cc2293a81edca6",
+    "449e3a09db8de30c0e54215cc21fe56a32812d46",
+    "b15d2f06c09a9059087dc33bde3682573796b8a9",
+    "71ba1d62901ccd563366d1fce5b5324f610fae80",
+    "87f3fe6b70c85bb81e58f03bf4b2333134c6448f",
+    "f234f9205f92d3a68ca42e54fb29954c05cdc9e8",
+    "52e130326311322bb88531b19ada9e2f3a2524a4",
+    "ad669a4f1e0f3ec5bc8827667cdb6ccf7e2d5964",
+    "6917f63f183f74798b4b59042cfbc0442f92eff0",
+    "bfade0e194f160792fcd715b756f66b7fae0388f",
+    "b8e6e6405c2735d1f0999d079f93db1549db4773",
+    "1eac98737027e2b87b79d651dcf6e1868fa9f90c",
+    "140fed2ebbdc6831854f086aae21601c9cbb20db",
+    "7c62fe55ef5ef42afa19043611f9a51713027057",
+    "8cf16ae32145bd664cb5cafb92916709ac586f8c",
+    "0d736e1fba465acbb3e4beeb9846b31899732ee6",
+    "852a26813a6e4ff53b28da81a27e984b1facdd57",
+    "650d49126a27c48447ab4ab14e56d5e8ed847da2",
+    "f184b840d52a1b0aff8cbe82f1341ba4b0e08d3e",
+    "5683f14f0f056212f2e4d6fbcb24433095d3614e",
+    "f7960eafc27f64f519d0d2137f5a2c4152b715c3",
+    "a7399970412cf011b2808872beb463a78f59bc34",
+    "5957a29daf7bd4fe5459f80cde9207245a86b11e",
+    "8a55fb3e62129001d2ae12ce7f4c1d2dc19993e2",
+    "f166882fdb9629d76f84c3312cc424a545397361",
+    "00188fd53b5e3524b54c1ce65b9059cb043c1905",
+    "b39fd0746aa6bc7952112ffc3b9729becd0445a7",
+    "4acc51c397473959914b5919380e6bace26cafbc",
+    "fedee0747b906741b419ca6a67a38936a232e287",
+    "4210277f8b629f01c99484efbd9ccf9ad53fdb8a",
+    "84a31ce17ea20e998665208487eb3b5b8579d1fb",
+    "6e5adc3d4b4ed3d87e125c0f0df2fc98efb81bd6",
+    "bfbb7eda252da00f047db7804afa1b83ffc43203",
+    "aa1e3f25ece04f1d09e7f8f8234d600b817f1ed3",
+    "001d188126ae85dc906ab7969adacf76f6627607",
+    "f5ef87b60ee844f7c2a72a22a25a55f395417d1c",
+    "e2a65dad3e040f718230db1b02cba43136d9df4d",
+    "49e809fd46290c919c89d98aa16986be72a0d584",
+    "f22d0932757a16dd4a24e0a5395414171cf86cb9",
+    "372116a654028fa7d7b73aac937e1ddc5392b406",
+    "b6596a73c3601c310ccf081b64084c60bba46c99",
+    "554f7fdf09bca4faaf1c682e11ad4f2c9d49156d",
+    "17c13f8323a4c2901a009e78161e6cc8a24eaf1a",
+    "8edfd5b58c478e68803aa2ea2fd7fa536c7c67a4",
+    "cbcf1c3da00ceae9665632ac3cbb9aa019e37468",
+    "79769b3e34251b63304a16371aecfaf20ef3e114",
+    "bab6df7ed1d6f2c5f483319626c9081cc1becc0b",
+    "a1ce79935351bdbdc7faffc182c5d07b0c140f11",
+    "2802238b34d016fd68d7a6dd22da3db42711b52f",
+    "f5cd749124246e95580e73c54e9ee5a7e878fe3b",
+    "12a8319ebcaf4724f1e4663aa2743364962a50c0",
+    "7c55ef2640fa19eba3c8ea1b0042420a3c44b6af",
+    "0c301e95a6a9521bc4eeb02b2f051b619415a130",
+    "dd5ffec5b67ab61fcd3e05795586783191ebf3ca",
+    "d86dd9f83d2b14e6323e9c75109dc9e8d3750dee",
+    "04e79bed3b8238ac4ec6f007bb7bd0bc656dbf17",
+    "7e9c5c5e9d93d2f3dbc1214b545612b39ef5c360",
+    "984b00fc31d3f7995ff594574d524ed530933936",
+    "9bc4da2d008f58e9cdf3329c8b04925cfda57f6e",
+    "4fb3f776a7e39a1014ce94c8c4178ba7c34ac46c",
+    "e723b88a5f3abf3ed55a6b70fb224eecf3f00c5a",
+    "ee6f28cf663c5710737a59354ee56717b3ff3e0c",
+    "93c8dc5e9118b72de507c9f5d3564f4da04a2c43",
+    "e67b05a54cca556f9d44d681dbd2f7ba983cc030",
+    "823d3e2012cd39baa42a6294c0b930df0e7775e8",
+    "2c40937c1fd2419a43319a99a505e91dd71f01f2",
+    "0e75f12fd0c53e1211982362fc31a0909c335a28",
+    "abbaae07733766205bd10554cdb3baf6cd09266d",
+    "afffa6d68c69566adaa8d621aeebaa7eff98d221",
+    "0e197425aa3838c9e97d3012bc43ae86e1ea9dcf",
+    "5f671f8f5b51e50edc1eef34aef0e138edc8e42c",
+    "214a9fd8f28ed81e0813b54594575ea70b2588bd",
+    "cd1234945d131fc4f35eda82df443c5718a6bfd2",
+    "a9493c518a83e90962a69276f8488429811d06f7",
+    "933368d5c4de5a31d110a820099cc748f5080c74",
+    "5b582c08ceb48c2284f949ef8088cfb38c553e90",
+    "e422719cbd7e46cac1d53720003abdd4e7d56fec",
+    "8567a17ef48777f0f0462e71779e3558fbc9d630",
+    "c05fc125cb7caab2f6ab2a005685b109d04e7058",
+    "8ba6b458a016dba50399d90f6987f167e2212cdd",
+    "9c82a13651629af3e2f019096a532a8ee9ce14ba",
+    "52a3b0ddb4aaf14315cc5c4df6215f6bfcee53cf",
+    "b0e3f6b5c73a2f67d4fe5cad0730f5c28061d3c1",
+    "6295ffeb4bb7d2f902ae5da7b3d9a929f24ec094",
+    "13569aca5aff4a85c89c3db513922f3edf08e2f5",
+    "0ab1012fc8c7de95d9aef4bc511de538729ea61b",
+    "b1ad0cb14f1efac14ac5282b83f6d35bb5e936f0",
+    "f80ebbc3fe858688bffb1640341ca7fd581bc3ff",
+    "2feb09356ca099b268e586939e23416d19ca0c23",
+    "c4c423a7e19dd4ee92c0e2ddbc5adc31f3dbe5e3",
+    "22bd77b83cf5e70abaf33c376fff47ab745c8920",
+    "e24c3382eee1ff217dd2060dcdb4d30f44150b31",
+    "9b7d9061376f6bfa31d04db414f9a9ea2abb3558",
+    "4a72058d2281848d069195483d58e6eed912f366",
+    "a1ad4931ce5bdec81409045dea6d9afaff1ac1bd",
+    "2cd792d5ae32b189f219d880e59c81977a4cbe1f",
+    "dbe1796191323edcb3f9cf28b58c74bc8aef35b0",
+    "1be0eeed76a58b16bd8c252b24f3f1e4d97a3fe2",
+    "a28746af811d9907d7d88e82fdc1fedf7e9c8e39",
+    "a9d4eaceb8afb90c00a84cc5045429a08aaa7a44",
+    "4b3b206cd5bda9fbadc3745ec3cc4ced00717bb7",
+    "a849e68a036fad2d6045988cb2dbc1d835917ec1",
+    "0985605da531afb336dc9528742c0bf590936644",
+    "8f06ad893564c307dd9bb777f4f0a0f50b56b542",
+    "9cb50f1f0c8d1e5b73ddade87e241fafc9d472b3",
+    "a6c5676fd2da2eda4329c8c99dfc37217ffc7626",
+    "89037be8dfea14c9ef24e3af23e1873616c4e3d0",
+    "0bcaca309ee8d744a994c04702cebcc540e3d53e",
+    "cd69d90d38a88c74223063d99b1434d08ffd0ca4",
+    "b88a4d9a68edd823b217ffa70ee06e7c10d00c73",
+    "437e6e9eeefd201ae1af52448becc2b9969bc759",
+    "95bbbaa027b9e6d2f10b87c36da419553c790a79",
+    "7fdb3d8bf5537cc8765b4d604d8a03bec52b2105",
+    "399b867c26506d45282d74976bf2dbdffa3a6ad0",
+    "30d2517f062165f379be0de3361698eaf796920b",
+    "16bda5cad66519e1d788ab0ca505a59070f9d9d7",
+    "79cf12e54b2a9ae04ac7f7d2cdf7f03aedafadd5",
+    "47e63718704b00d303c886a5023d67fb9f706ecb",
+    "eef2d145cb03bdae427250b998ebaa49186f1620",
+    "0feccb4a287e4ebde3ebf8c580ccd521d4d3dc2f",
+    "bf83b28c6e201225e2e5905811b4724976368177",
+    "9183a69c7571e3ff4a2a1ebf2e8ef36da778428f",
+    "b20aae6db38dcd34d46f3870078d66e37b544467",
+    "3dae4711f202740325f0468b2eb3b71a5a219257",
+    "aa573f9768143dbd42fc7e1567cbbb232ef3b4ba",
+    "8f4b2bad070760c308adaf7906676522a37e4f5d",
+    "6121ab791e9e8c705f32f022b21c5d34b85d6719",
+    "636d6616cd1fc3919ec9ac4397c3fa5c695cdb18",
+    "3ec2ad2f0bcb5ff15e0755d662cfdb8df5d1aaec",
+    "8d346caff2789704e32b3a823103add28eea6a34",
+    "491dc285d8672a710d9def86157781149fa2484f",
+    "bdee5fac33e89c6f0dd88128e1e06bd24f4173cb",
+    "03e2f90908eed9c68bd4f7026cb75f30f9f7ad68",
+    "b60078d91126022583a785757099ae4ad88241df",
+    "ad9a1a73a7cdb52175e2b599ef8c2a24e233a7db",
+    "b03dfdf077ba30b45194ba26b99b92b5f44c7888",
+    "6e90103d57bf448fc5736e63cf698bb8c9c3c6d4",
+    "2d9b90f0de09e96a79367583a904178d75ad0b73",
+    "943160d90332e937badc71954021bebb51dbcc86",
+    "0815163e2c0cfc7e11e3b993a7ea2f2315e051ac",
+    "795dcc223120715f326c488adee9bd7845c5c20a",
+    "80cece934ead3c2a2f1e375a8dc2b94d5f9336c9",
+    "89e5b0577a9e682cb81681ecd50cd8fa1f45ac49",
+    "681efad2472554265218cb47d2715326ba856a53",
+    "42d008ce8d81ef5fe6f1729abb3626742c756cc5",
+    "8eecfed048faee999321e15518f5050b1d1f6a29",
+    "f1e9c74e24f84ad1c7ec9af244cea678ed7a66e5",
+    "9fbe925434dcf8910d01eea1f2c7244bae5b23f3",
+    "a19ad5fe5dee30019a519c64fe8129b719d8016d",
+    "fc21fd02a63fff67aee08243dea39a9593656e4c",
+    "915a286ed0c2061e40908000f716d2c71d8bb16c",
+    "367ca008eb25d415e42fd7415ecd296fc9de62b7",
+    "1376922c8c1235eb7ff9db5452d3ac9e6027163f",
+    "fb6d8d8a4d09de788d94bcb463131b9c21376458",
+    "b986d2b9ed0922d7bb0c6d4cb9ee1f316c377856",
+    "0d280530fc361df30e451f37b162f029b82cde12",
+    "25b37af6975a51937a91fa9e095f6c6047c3668c",
+    "e71d447d1bdf5b96d05f2980f3f974f32ffb501d",
+    "0b32ee1778d3abfc857d2c726939c03a0a86e21e",
+    "eeaf9f6a74ce7223d9294ca6309b9e29e0e97e52",
+    "7772483f5738843d60b9c107c508523baad0385f",
+    "2cc6c1a5ee6778042335ac0f77f75777d04a28d8",
+    "34d026c54bfe00a162de8d8023e16430c5175b9e",
+    "eb7b3ecafe5a6af0c7a20e8b5c8bf05dbb7bd5d8",
+    "5a2ab70ce07733a9365ba45650739c9e9f9328eb",
+    "0b7bf5c2f600e4d2555464aabbdec6a38fc88d7d",
+    "a34f883227ad5a3f7abcd99546c2dfa93dacffca",
+    "0006d2f33b02f57b7a713cbb39b5f6ebbdea8797",
+    "ad0374718ec03b87f1ac4c3f4d87216de88a7c61",
+    "08a2a2fbc5ada4f6fa65c4e5f421d310ae784cbb",
+    "b35ed87f7818c43441593709a2f08d1977359148",
+    "6571335584419969e75b5571e555f138d3798ea5",
+    "e7d1939edbb0a934c3e6ea55ec6b3b6db5113928",
+    "15723e378f365e79da0eaaedebb0035c56a2ff75",
+    "eceb80678e2757aa206ae294b454dd9bd463825c",
+    "fa8fe48af00412ba1a11e8d50781faa0a179caef",
+    "2df2249543337a3ec3000ba368b396ce02c6c2e9",
+    "4dbe88b4d830bf95f1a0bd0b5c71e96e15a4407c",
+    "0737f2ff454262c6948e95c2e17459c095abc364",
+    "0fc823a44fdc01ccd9307e71e3c593391602d175",
+    "9fef402bda8b1508485ac6489c1001f9d2d91925",
+    "1a6419252b9c22c8013442f105e3ac69a494e4b8",
+    "be17308c24e7fde068f36b18010d6b80b832c6c0",
+    "1835d9324a6af965fd505f93ce2fc0971de13435",
+    "75d2031e072a4bc2d91f9fd7be871dce016b274a",
+    "703ac8ecd3d3444bc766533fb81181e97c7c0cfb",
+    "22d146cdd9efd66f25709e86975332597fc45e72",
+    "f4f638292393c27928ef27f4bfbc0ee56aca6f30",
+    "7cdf76632cd58a7e2e5b58c35bc52c88f61ca324",
+    "dcb121aa293aff0c5a3ba59984d822976f35aea7",
+    "7bb6fc08bf5c8183e718bc85087eeebc689108f1",
+    "002363c89e9be6ac6285c987d236fd6321a72137",
+    "42ab3d2da619f0284a76e279d0f35f6a79f88d5c",
+    "29857ffe83d44ef25d0b540f4a4fe5ae0dbb71c1",
+    "573724d2b184540ddeee2748e4d080e34fd2c499",
+    "2a95c2d1912022edaf12bf4a3e001b1b58ab9745",
+    "c7ec096ca6710d71b8ccbd3738063358c42c1bff",
+    "3583628dd628be305bbf4f68211cce10aeeba7f8",
+    "a8548328e53898e52ec9eb11678aecc30692b10b",
+    "39892a6cf56c8ff9d2f06b52362257a85761e327",
+    "b39447e05e0879ec3074c18d1ce28da413d4db6e",
+    "5ecb5404a6559a6c0fde5b168ef95afd23bc8a9a",
+    "f2326698f3f50aa377898bd55080f3d0ece6cdb4",
+    "2f542caf584a75f3d651f6ea77d55bf6014aa855",
+    "c60c8454fa48e76ac2d19f78eca430b6a830297f",
+    "943dacacaf1b0bcec116fa8a138deb717bb19a0b",
+    "809d4101e33422b47c13f6bf0578e6b22c35a9a0",
+    "7afcdada3990ad4420b769afff6b7800d21264ec",
+    "8119d7c81972a8bbb42eb7a9d41bd3f802f9a1d5",
+    "efc0e8f848e1cd03d41c579a510a35abf695cda5",
+    "975c74d3a48164bede20005da1ee04a9b41abea7",
+    "3968eef22666b2caf28efbaa4a32741a35dce640",
+    "7933eace51ba642bce8e6d81ffc262af5595f9e0",
+    "daa30f37d725e069c6b00ecb6245726cbd9efc40",
+    "4a42f45e741402834df7233b53ad5907a3fb537d",
+    "a37c52f01fdcfe928273a82a10ee3283c376eec5",
+    "3f71a254e487304716e321a5dc0749a6fb79343f",
+    "38569dc9cd0cb50a9711d7c89ec3824dfbf01917",
+    "a0a8049540442721305c0c858c7abd3b9e8f39c8",
+    "bb371cdc0c816f3b133b6d45c9c573ed4eecf686",
+    "e96cfbdfa6d9233c3fb6e1d51a9cdd0d601be567",
+    "d5d9719854a6184a668462acfcd8fea22dc4e299",
+    "fe490e7ede15216d6aaa85a4c9655bae64e7bab1",
+    "d21a86ab959bf191198cbb674ce95c3cdf2b1909",
+    "d365a2697261f439d98d203088fc2920648cf3db",
+    "1b73839b3c0f650cbc7466bba7f55ff1c9b42bfe",
+    "4a4c2738d275922604c291a685e502e750fd3b38",
+    "d8ed7ac084ed844134178e066c37aaff5a859625",
+    "1c56d97a1a9348cb1b61219c1b3bc9e3214fecdd",
+    "8957cb748b8ded49fe9a29b1afdc385ff7e1c7bc",
+    "f81ec91c248e21c67999c2beca383e131a4138d0",
+    "6f15505b12dca90ee4e1d2bd470c462d42d1d448",
+    "8905c5856ec61437011ec25e8559521652a8c29e",
+    "11d35115be319bea12baaf786f7d77bb18f6ba9a",
+    "4704242e620edb88b75609f59ac06b31d39393ff",
+    "bd8dfcf10a3a7620525932c23452752f29f115d3",
+    "72dc479207388ea55f226eb2aef7f0a5980e595c",
+    "46a16759125dcf4e50c271d828b1b3658445e57f",
+    "1788c68276a1fcab5fac68b7586993111ed47c9b",
+    "aac78d85cd794676c05a16e7f1414002acd45604",
+    "cc71bb85c863373694967d2da36a29e3296f2ee4",
+    "989e2b63246658421e20f463e5675816e57a1ce8",
+    "4c022e6b9a83ac2a39d5bf3eb471f3f15c24b420",
+    "1d2a8a60b242089c702773cef2836d908b02dd2c",
+    "b5b91c692055b3bcc1279c8ec9c142113f4315b9",
+    "11c5313215fb510e1f45a00c8ee5d7b7dfec5827",
+    "f350e9ef84e0c6adcde7772272c52b85273027a4",
+    "291ffdb79a6ef0f2794f5799b0977ddb4ae768dd",
+    "61cba5c9a106716b58e9e5a6dcce2c78f3c13752",
+    "9819b707b04aa50acfd88ddeede2347fdc9fb9da",
+    "f2bd8f4491d8013d3ff6d6be4d7f6d504475b931",
+    "256a598c3965993bbb804ee68dcf521345699734",
+    "825bcaca4f28336d2025c1b425579b684183642f",
+    "4203aac94455f98ea43341d60194d77ce7650063",
+    "ef894fad2590bc545cdb89c93251c1aa44efd784",
+    "8db37ae9d232c9f1687c66706af28a4afeef30a1",
+    "cfa43284bfef14d304506b463f0516f66364e2a3",
+    "78012199f4b4618d304f1cb5a4e5270a763cb6f1",
+    "609a89d01eb706bcadf316c5dfca4458693987b8",
+    "b57459b6f1ba6cfa31bc10ff3b3ca9a34cd11007",
+    "b06ffa4a49f26c97b2a8bef4a5687c023f3feabc",
+    "fad1f17d24054ecb51306fd05b983d9a379c8f28",
+    "460d8cc19fd17da75d741f4fa78c54d40465e34c",
+    "6c0bc148290a9bf6204383f69b940489840f5a55",
+    "95b5fd3b146d68bf9cd75ca42b8071e2c61f4b94",
+    "da431b1c3984a9b6a91b8c2e287b4d9bedc9ca53"
+  ],
+  "replay_authorized_lanes": [],
+  "schema_version": "arac-retained-historical-source-recovery-v1",
+  "session_hits": [
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\03\\rollout-2026-08-03T22-59-44-019fc823-4cfe-7fd3-8b7c-3497f61af72d.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\04\\rollout-2026-08-04T01-37-43-019fc8b3-f142-7342-809d-98004b6f51c7.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\04\\rollout-2026-08-04T02-34-21-019fc8e7-cb02-7463-b0aa-3d475eaf1496.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\04\\rollout-2026-08-04T03-27-12-019fc918-2d16-7cd2-b110-483471fe1176.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\04\\rollout-2026-08-04T03-33-43-019fc91e-21b3-7792-b3af-41a7c74eba1f.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\04\\rollout-2026-08-04T20-42-07-019fcccb-ab65-7233-a940-f868cc0ad824.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\06\\rollout-2026-08-06T11-07-44-019fd50a-84bd-7043-bb44-496bcde3a707.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\06\\rollout-2026-08-06T11-56-07-019fd536-d293-77b2-b026-5bc9ba6238ff.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\06\\rollout-2026-08-06T13-40-48-019fd596-a720-7b70-9c82-13cf21f9f4ff.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165",
+        "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+        "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\09\\rollout-2026-08-09T15-51-55-019fe581-c6fe-7121-95cb-087590698d18.jsonl"
+    },
+    {
+      "matched_sha256": [
+        "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165",
+        "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+        "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac"
+      ],
+      "path": "C:\\Users\\83718\\.codex\\sessions\\2026\\08\\10\\rollout-2026-08-10T11-40-56-019fe9c2-5c95-7993-87d0-52bdd7618300.jsonl"
+    }
+  ],
+  "session_source_recovery": {
+    "all_exact_sources_recovered": true,
+    "available": true,
+    "exact_sources": {
+      "AOR": {
+        "bytes": 7276,
+        "characters": 7276,
+        "output_path": "exact-content/2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165/experiments/pilots/exp_057_a_series_aor_25seed/_worker.py",
+        "sha256": "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165",
+        "source_event": {
+          "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+          "change_type": "delete",
+          "session_line": 20015,
+          "timestamp": "2026-07-29T14:04:49.355Z"
+        }
+      },
+      "CTP": {
+        "boundary_event": {
+          "call_id": "exec-14085a7e-fcf2-4a3c-bf2b-7437d27e4f29",
+          "session_line": 4592,
+          "timestamp": "2026-07-27T06:38:40.643Z"
+        },
+        "bytes": 316117,
+        "characters": 316109,
+        "lines": 7458,
+        "output_path": "exact-runner/9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594/scripts/hcc_smoke_runner.py",
+        "reversed_patch_count_from_anchor": 88,
+        "sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+        "state": "immediately_before_recorded_update"
+      },
+      "GCB": {
+        "boundary_event": {
+          "call_id": "exec-14085a7e-fcf2-4a3c-bf2b-7437d27e4f29",
+          "session_line": 4592,
+          "timestamp": "2026-07-27T06:38:40.643Z"
+        },
+        "bytes": 316117,
+        "characters": 316109,
+        "lines": 7458,
+        "output_path": "exact-runner/9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594/scripts/hcc_smoke_runner.py",
+        "reversed_patch_count_from_anchor": 88,
+        "sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+        "state": "immediately_before_recorded_update"
+      },
+      "SMP": {
+        "boundary_event": {
+          "call_id": "exec-ea441cb1-a2ea-4c2b-b608-c0e16b133b82",
+          "session_line": 3440,
+          "timestamp": "2026-07-27T01:52:48.632Z"
+        },
+        "bytes": 311758,
+        "characters": 311750,
+        "lines": 7374,
+        "output_path": "exact-runner/b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac/scripts/hcc_smoke_runner.py",
+        "reversed_patch_count_from_anchor": 90,
+        "sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+        "state": "immediately_before_recorded_update"
+      }
+    },
+    "patch_event_count": 965,
+    "runner_deletion_anchor": {
+      "bytes": 136571,
+      "call_id": "exec-e5c92e42-e541-4687-bf06-b741af9a986a",
+      "session_line": 29681,
+      "sha256": "6920a2c3b54f5861f6375dc42095d9218a19f5493e7e12cadcffec664ad1bf2b",
+      "timestamp": "2026-07-31T10:02:01.106Z"
+    },
+    "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\26\\rollout-2026-07-26T17-04-21-019f9dab-0f42-70f2-8f45-5cf51411e668.jsonl",
+    "source_policy": "session_patch_reconstruction_isolated_from_production",
+    "supporting_sources": {
+      "SMP action module": {
+        "bytes": 13843,
+        "characters": 13843,
+        "output_path": "exact-content/5130b18a39c8f76e0713a30026fd9a997d34e982c7d7f8287b6d1047161efc16/src/arac/actions/smp.py",
+        "sha256": "5130b18a39c8f76e0713a30026fd9a997d34e982c7d7f8287b6d1047161efc16",
+        "source_event": {
+          "call_id": "exec-85715849-7ad4-4c85-9864-1292bd14ae9e",
+          "change_type": "add",
+          "session_line": 2347,
+          "timestamp": "2026-07-26T12:16:25.251Z"
+        }
+      }
+    }
+  },
+  "source_policy": "git_scan_plus_isolated_session_patch_reconstruction_no_checkout",
+  "unreachable_commit_count": 9
+}

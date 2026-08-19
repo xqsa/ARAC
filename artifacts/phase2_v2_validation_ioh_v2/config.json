@@ -1,0 +1,36 @@
+{
+  "schema_version": "arac-phase2-v2-validation-config-v1",
+  "ioh_version": "0.3.22",
+  "methods": [
+    "probe_commit_v2",
+    "mechanism_score_v1"
+  ],
+  "global_max_fes": 40000,
+  "branch_probe_fes": 512,
+  "decision_horizon_fes": 256,
+  "exploration_floor_fes": 512,
+  "min_relative_margin": 0.05,
+  "min_leader_stability": 0.2,
+  "aob_cases": [
+    "A1",
+    "E1",
+    "R1",
+    "S1"
+  ],
+  "ioh_function_ids": [
+    1,
+    8,
+    15,
+    21
+  ],
+  "ioh_instances": [
+    1,
+    6,
+    11
+  ],
+  "ioh_dimension": 40,
+  "run_seeds": [
+    20261201,
+    20261202
+  ]
+}

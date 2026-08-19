@@ -1,0 +1,715 @@
+{
+  "failures": [],
+  "gate_passed": false,
+  "protocol": {
+    "action_seed": 20260845,
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "initial_episode": {
+      "A3": "ctp",
+      "R2": "gcb",
+      "R6": "gcb",
+      "S5": "ctp"
+    },
+    "max_switches": 6,
+    "pilot_seed": 20260845,
+    "segment_fes": 300000,
+    "tolerance_nonregression": 1.05
+  },
+  "protocol_checks": {
+    "arm_count_20": true,
+    "oc_receipts_valid": true,
+    "phase1_exact_180k": true,
+    "strict_best_all": true,
+    "terminal_exact_all": true
+  },
+  "rows": [
+    {
+      "arm": "aor",
+      "case_id": "A3",
+      "checkpoint_hash": "2df44cc7442cb5ad10a75c8bd9249e0e48eab704e9c572c6cdf409e51e4ff679",
+      "incumbent_error": 79223.76089077012,
+      "result": {
+        "final_error": 78179.21187434359,
+        "route": "recovered_fresh_zero_mean_sepcmaes_2820000",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "ctp",
+      "case_id": "A3",
+      "checkpoint_hash": "2df44cc7442cb5ad10a75c8bd9249e0e48eab704e9c572c6cdf409e51e4ff679",
+      "incumbent_error": 79223.76089077012,
+      "result": {
+        "final_error": 78288.4927333929,
+        "route": "phase2_v2_coverage_then_polish",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "gcb",
+      "case_id": "A3",
+      "checkpoint_hash": "2df44cc7442cb5ad10a75c8bd9249e0e48eab704e9c572c6cdf409e51e4ff679",
+      "incumbent_error": 79223.76089077012,
+      "result": {
+        "final_error": 78432.75760362559,
+        "route": "phase2_v2_positive_relation_graph",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "oc_schedule",
+      "case_id": "A3",
+      "checkpoint_hash": "2df44cc7442cb5ad10a75c8bd9249e0e48eab704e9c572c6cdf409e51e4ff679",
+      "incumbent_error": 79223.76089077012,
+      "result": {
+        "final_error": 78731.95484562515,
+        "funded_fes": {
+          "aor": 300004,
+          "ctp": 600000,
+          "gcb": 600000,
+          "smp": 1319996
+        },
+        "receipts_valid": true,
+        "schedule_hash": "e1112c609b116cde6fbf970700a025411206ed2685143514f880760bcfd426b4",
+        "segments": [
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.004254249363971582,
+            "material": false,
+            "next_episode": "gcb",
+            "switched": true
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.004575602727161733,
+            "material": false,
+            "next_episode": "smp",
+            "switched": true
+          },
+          {
+            "consumed_fes": 299999,
+            "episode": "smp",
+            "log_gain": 0.005078241541357993,
+            "material": false,
+            "next_episode": "aor",
+            "switched": true
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "aor",
+            "log_gain": 0.00405467221588931,
+            "material": false,
+            "next_episode": "ctp",
+            "switched": true
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.0019729090785318253,
+            "material": false,
+            "next_episode": "gcb",
+            "switched": true
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 1.4765966227513491e-13,
+            "material": false,
+            "next_episode": "smp",
+            "switched": true
+          },
+          {
+            "consumed_fes": 299990,
+            "episode": "smp",
+            "log_gain": 0.00017307342582894908,
+            "material": false,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 299985,
+            "episode": "smp",
+            "log_gain": 0.00010726844483479606,
+            "material": false,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "smp",
+            "log_gain": 2.1482772120008733e-05,
+            "material": false,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 120022,
+            "episode": "smp",
+            "log_gain": 0.0001106365511839126,
+            "material": false,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 4,
+            "episode": "aor",
+            "log_gain": 0.0,
+            "material": false,
+            "next_episode": "aor",
+            "switched": false
+          }
+        ],
+        "switches": 6,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "smp",
+      "case_id": "A3",
+      "checkpoint_hash": "2df44cc7442cb5ad10a75c8bd9249e0e48eab704e9c572c6cdf409e51e4ff679",
+      "incumbent_error": 79223.76089077012,
+      "result": {
+        "final_error": 78690.1104263965,
+        "route": "recovered_stateful_visits_2819999_visits_1584_stale_resets_528_noop_1",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "aor",
+      "case_id": "R2",
+      "checkpoint_hash": "8ec759891b851077ffcaf428a1d216108256b2819491beec944e7bb34f6c3185",
+      "incumbent_error": 11979709.052856771,
+      "result": {
+        "final_error": 221181.93105459498,
+        "route": "recovered_fresh_zero_mean_sepcmaes_2820000",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "ctp",
+      "case_id": "R2",
+      "checkpoint_hash": "8ec759891b851077ffcaf428a1d216108256b2819491beec944e7bb34f6c3185",
+      "incumbent_error": 11979709.052856771,
+      "result": {
+        "final_error": 573262.6776139046,
+        "route": "phase2_v2_coverage_then_polish",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "gcb",
+      "case_id": "R2",
+      "checkpoint_hash": "8ec759891b851077ffcaf428a1d216108256b2819491beec944e7bb34f6c3185",
+      "incumbent_error": 11979709.052856771,
+      "result": {
+        "final_error": 345712.8372443744,
+        "route": "phase2_v2_positive_relation_graph",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "oc_schedule",
+      "case_id": "R2",
+      "checkpoint_hash": "8ec759891b851077ffcaf428a1d216108256b2819491beec944e7bb34f6c3185",
+      "incumbent_error": 11979709.052856771,
+      "result": {
+        "final_error": 421694.76229059347,
+        "funded_fes": {
+          "aor": 1,
+          "ctp": 900000,
+          "gcb": 600000,
+          "smp": 1319999
+        },
+        "receipts_valid": true,
+        "schedule_hash": "dbcc58ab8edfc290cd225208f0c4896e1a2ba5fe1a857a1ccf6b6fbe0db2b1c0",
+        "segments": [
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 2.873761379358954,
+            "material": true,
+            "next_episode": "gcb",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.0036196585547520377,
+            "material": false,
+            "next_episode": "ctp",
+            "switched": true
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 2.996802847354921,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.033033432281101234,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.0005164771433851569,
+            "material": false,
+            "next_episode": "smp",
+            "switched": true
+          },
+          {
+            "consumed_fes": 299985,
+            "episode": "smp",
+            "log_gain": 3.151571197593055,
+            "material": true,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 299983,
+            "episode": "smp",
+            "log_gain": 0.08159084403759365,
+            "material": true,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 299991,
+            "episode": "smp",
+            "log_gain": 0.02383566163687997,
+            "material": true,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 299988,
+            "episode": "smp",
+            "log_gain": 0.014914733488501614,
+            "material": true,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 120052,
+            "episode": "smp",
+            "log_gain": 0.07477540833444152,
+            "material": true,
+            "next_episode": "smp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 1,
+            "episode": "aor",
+            "log_gain": 0.0,
+            "material": false,
+            "next_episode": "aor",
+            "switched": false
+          }
+        ],
+        "switches": 2,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "smp",
+      "case_id": "R2",
+      "checkpoint_hash": "8ec759891b851077ffcaf428a1d216108256b2819491beec944e7bb34f6c3185",
+      "incumbent_error": 11979709.052856771,
+      "result": {
+        "final_error": 393906.1471835091,
+        "route": "recovered_stateful_visits_2819993_visits_693_stale_resets_212_noop_7",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "aor",
+      "case_id": "R6",
+      "checkpoint_hash": "8603ea2e1b8eb445521b7571d532fe51e13565c116d4dd4b5ed439c2df43093a",
+      "incumbent_error": 15631511.41896857,
+      "result": {
+        "final_error": 317117.8593953589,
+        "route": "recovered_fresh_zero_mean_sepcmaes_2820000",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "ctp",
+      "case_id": "R6",
+      "checkpoint_hash": "8603ea2e1b8eb445521b7571d532fe51e13565c116d4dd4b5ed439c2df43093a",
+      "incumbent_error": 15631511.41896857,
+      "result": {
+        "final_error": 1394582.841189002,
+        "route": "phase2_v2_coverage_then_polish",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "gcb",
+      "case_id": "R6",
+      "checkpoint_hash": "8603ea2e1b8eb445521b7571d532fe51e13565c116d4dd4b5ed439c2df43093a",
+      "incumbent_error": 15631511.41896857,
+      "result": {
+        "final_error": 433898.74624897673,
+        "route": "phase2_v2_positive_relation_graph",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "oc_schedule",
+      "case_id": "R6",
+      "checkpoint_hash": "8603ea2e1b8eb445521b7571d532fe51e13565c116d4dd4b5ed439c2df43093a",
+      "incumbent_error": 15631511.41896857,
+      "result": {
+        "final_error": 468189.84426251875,
+        "funded_fes": {
+          "aor": 0,
+          "ctp": 720000,
+          "gcb": 2100000,
+          "smp": 0
+        },
+        "receipts_valid": true,
+        "schedule_hash": "1c958a3d1c7e90e7f3a52e6f30f73e290846f7278dd72617bb7f562180f261e1",
+        "segments": [
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.5632317092354348,
+            "material": true,
+            "next_episode": "gcb",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 1.5978407596115218,
+            "material": true,
+            "next_episode": "gcb",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.9203773269949159,
+            "material": true,
+            "next_episode": "gcb",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.0385089691227537,
+            "material": true,
+            "next_episode": "gcb",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.1094010981725367,
+            "material": true,
+            "next_episode": "gcb",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.26912464023204247,
+            "material": true,
+            "next_episode": "gcb",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "gcb",
+            "log_gain": 0.009685751443754248,
+            "material": false,
+            "next_episode": "ctp",
+            "switched": true
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 2.334613492271857,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.042822115490868715,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 120000,
+            "episode": "ctp",
+            "log_gain": 0.008536687044722288,
+            "material": false,
+            "next_episode": "ctp",
+            "switched": false
+          }
+        ],
+        "switches": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "smp",
+      "case_id": "R6",
+      "checkpoint_hash": "8603ea2e1b8eb445521b7571d532fe51e13565c116d4dd4b5ed439c2df43093a",
+      "incumbent_error": 15631511.41896857,
+      "result": {
+        "final_error": 1026120.9027513781,
+        "route": "recovered_stateful_visits_2819983_visits_259_stale_resets_69_noop_17",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "aor",
+      "case_id": "S5",
+      "checkpoint_hash": "5671ee7b1fa2a8046ec381fe7657f2bfdd44226d0eeaed738bdf542f0649ba59",
+      "incumbent_error": 159723190.18357623,
+      "result": {
+        "final_error": 795398.8821776642,
+        "route": "recovered_fresh_zero_mean_sepcmaes_2820000",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "ctp",
+      "case_id": "S5",
+      "checkpoint_hash": "5671ee7b1fa2a8046ec381fe7657f2bfdd44226d0eeaed738bdf542f0649ba59",
+      "incumbent_error": 159723190.18357623,
+      "result": {
+        "final_error": 13244.72686263674,
+        "route": "phase2_v2_coverage_then_polish",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "gcb",
+      "case_id": "S5",
+      "checkpoint_hash": "5671ee7b1fa2a8046ec381fe7657f2bfdd44226d0eeaed738bdf542f0649ba59",
+      "incumbent_error": 159723190.18357623,
+      "result": {
+        "final_error": 706595.317736778,
+        "route": "phase2_v2_positive_relation_graph",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "oc_schedule",
+      "case_id": "S5",
+      "checkpoint_hash": "5671ee7b1fa2a8046ec381fe7657f2bfdd44226d0eeaed738bdf542f0649ba59",
+      "incumbent_error": 159723190.18357623,
+      "result": {
+        "final_error": 13244.72686263674,
+        "funded_fes": {
+          "aor": 0,
+          "ctp": 2820000,
+          "gcb": 0,
+          "smp": 0
+        },
+        "receipts_valid": true,
+        "schedule_hash": "b6da29a02b0f74a9b603af8c3ef0d3f38eae4ec5331869e3d93fb7325ac463b5",
+        "segments": [
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 1.4672253539195073,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 2.0764435432620147,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 1.5444900830475756,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 1.5411803690621206,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.6956684450849413,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.602995464409418,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.5678620548503667,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.4455201028283794,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 300000,
+            "episode": "ctp",
+            "log_gain": 0.34969293285807307,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          },
+          {
+            "consumed_fes": 120000,
+            "episode": "ctp",
+            "log_gain": 0.10651968466752718,
+            "material": true,
+            "next_episode": "ctp",
+            "switched": false
+          }
+        ],
+        "switches": 0,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    },
+    {
+      "arm": "smp",
+      "case_id": "S5",
+      "checkpoint_hash": "5671ee7b1fa2a8046ec381fe7657f2bfdd44226d0eeaed738bdf542f0649ba59",
+      "incumbent_error": 159723190.18357623,
+      "result": {
+        "final_error": 990257.3922205528,
+        "route": "recovered_stateful_visits_2819995_visits_91_stale_resets_8_noop_5",
+        "steps": 1,
+        "terminal_fes": 3000000
+      },
+      "structure": {
+        "cached": true
+      }
+    }
+  ],
+  "schema_version": "arac-oc-gate50-v1",
+  "screening_checks": {
+    "A3_not_worse_than_best_episode": true,
+    "A3_not_worse_than_initial_episode": true,
+    "R2_not_worse_than_best_episode": false,
+    "R2_not_worse_than_initial_episode": false,
+    "R6_not_worse_than_best_episode": false,
+    "R6_not_worse_than_initial_episode": false,
+    "S5_not_worse_than_best_episode": true,
+    "S5_not_worse_than_initial_episode": true
+  }
+}

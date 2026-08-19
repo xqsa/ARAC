@@ -1,0 +1,137 @@
+{
+  "dispatch_budget_fes": 32,
+  "schema_version": "arac-oracle-gcb-gate3-v1",
+  "seeds": [
+    2026081701,
+    2026081702
+  ],
+  "summary": {
+    "gate_checks": {
+      "all_archives_nonworsening": true,
+      "all_budgets_exact": true,
+      "all_topologies_have_90pct_gcb_wins_or_ties": false
+    },
+    "gate_passed": false,
+    "pair_hub": {
+      "archive_nonworsening": true,
+      "exact_budget": true,
+      "gcb_losses": 1,
+      "gcb_ties": 1,
+      "gcb_wins": 0,
+      "median_gain": -0.19710252787323806,
+      "runs": 2,
+      "selection_accuracy": 0.5
+    },
+    "pair_pair": {
+      "archive_nonworsening": true,
+      "exact_budget": true,
+      "gcb_losses": 0,
+      "gcb_ties": 2,
+      "gcb_wins": 0,
+      "median_gain": 0.0,
+      "runs": 2,
+      "selection_accuracy": 0.0
+    }
+  },
+  "trials": [
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3186515280889736,
+      "canonical_priority": 397.49187396180935,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3186515280889736,
+      "gcb_gain": 0.0,
+      "seed": 2026081701,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 397.49187396180935,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.39214719627617967,
+      "canonical_priority": 384.03656422991554,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.7863522520226558,
+      "gcb_gain": -0.39420505574647613,
+      "seed": 2026081701,
+      "selected_component": [
+        3,
+        4
+      ],
+      "selected_priority": 394.4085011680387,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.316964805397359,
+      "canonical_priority": 396.5024357463966,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.316964805397359,
+      "gcb_gain": 0.0,
+      "seed": 2026081702,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 396.5024357463966,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3787883897846562,
+      "canonical_priority": 392.519095057511,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3787883897846562,
+      "gcb_gain": 0.0,
+      "seed": 2026081702,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 392.519095057511,
+      "topology": "pair_hub"
+    }
+  ]
+}

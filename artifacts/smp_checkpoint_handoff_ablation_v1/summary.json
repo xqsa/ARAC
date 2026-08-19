@@ -1,0 +1,37 @@
+{
+  "best_variant": "derived_seed",
+  "phase1_fes": 180000,
+  "phase2_fes": 120000,
+  "rows": [
+    {
+      "final_error": 689684108.3848329,
+      "receipt_hash": "1be3523543e175fe244da06b96a9d70cc2a758ea4cf29c7a9d44291788220e88",
+      "reset_count": 0,
+      "variant": "derived_seed",
+      "visit_count": 23
+    },
+    {
+      "final_error": 690343972.2775986,
+      "receipt_hash": "eb0e0e27767234f8abfcb9ac69843cb0c1fb8d78e5c2cdb94ece1a37d2e82068",
+      "reset_count": 1,
+      "variant": "clip",
+      "visit_count": 47
+    },
+    {
+      "final_error": 708217975.8759111,
+      "receipt_hash": "e4507c884ed1bee5e0cc01a3707fe4196ae9888625cfe9b8c3f556447a723138",
+      "reset_count": 0,
+      "variant": "no_precheck",
+      "visit_count": 24
+    },
+    {
+      "final_error": 708217975.8759111,
+      "receipt_hash": "b10d07b19791c0fa95cc33f7247885ac71d8cd38e450a55c2fb37813af331e73",
+      "reset_count": 0,
+      "variant": "recovered",
+      "visit_count": 23
+    }
+  ],
+  "schema_version": "arac-smp-checkpoint-handoff-ablation-summary-v1",
+  "summary_hash": "9bebf5992f9af0f22a49223a0408483173d80f6fe3a459d7c5022319844d30bf"
+}

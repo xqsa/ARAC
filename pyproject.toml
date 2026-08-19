@@ -1,33 +1,28 @@
 [project]
 name = "arac"
 version = "0.1.0"
-description = "Reference-blind RDDSM evidence overlay for two-phase cooperative coevolution."
+description = "Evidence-driven selection among four Phase-II optimization actions."
 requires-python = ">=3.11"
-dependencies = []
-
-[project.optional-dependencies]
-hcc = [
-    "cma==4.4.4",
+dependencies = [
+    "joblib==1.5.3",
     "numpy==2.3.5",
-    "PyYAML==6.0.3",
+    "pypop7==0.0.82",
+    "scikit-learn==1.9.0",
     "scipy==1.18.0",
 ]
-analysis = [
-    "pandas==3.0.3",
-    "scikit-learn==1.9.0",
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.15.22",
 ]
-baselines = [
-    "llvmlite==0.48.0",
-    "numba==0.66.0",
-    "pypop7==0.0.82",
+external-validation = [
+    "ioh==0.3.22",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-markers = [
-    "integration: tests that run the HCC subprocess smoke runner",
-]
 
 [tool.ruff]
 line-length = 100

@@ -1,0 +1,33 @@
+{
+  "schema_version": "arac-smp-bounded-checkpoint-handoff-protocol-v1",
+  "status": "frozen_before_bounded_execution",
+  "frozen_at": "2026-08-12",
+  "case_id_audit_metadata": "E1",
+  "action": "smp",
+  "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+  "checkpoint_file_sha256": "3ef0d6f2e3123070a64d271e928cab61bae8e6139d4250cae39417458b4f5932",
+  "checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "total_budget_fes": 3000000,
+  "variant": "identity_blind_bounded",
+  "variant_contract": {
+    "seed_source": "ActionContext action_seed through generic derived_seed",
+    "blocks_source": "ActionContext checkpoint.blocks",
+    "clip_offspring": true,
+    "ledger_allow_out_of_bounds": false,
+    "precheck_incumbent": true,
+    "strict_material_gain": true
+  },
+  "historical_p90": 1.8255606813339802,
+  "historical_seed117": 5.983267874603139e-7,
+  "unbounded_identity_blind_receipt": "artifacts/smp_checkpoint_handoff_terminal_v1/receipts/derived_seed.json",
+  "unbounded_identity_blind_receipt_hash": "c26f6c151d1468e91b8e974cd0f4a938cb799b45354f969b847f404f3694d4b9",
+  "short_output_root": "artifacts/smp_bounded_checkpoint_handoff_short_v1",
+  "mid_output_root": "artifacts/smp_bounded_checkpoint_handoff_mid_v1",
+  "terminal_output_root": "artifacts/smp_bounded_checkpoint_handoff_terminal_v1",
+  "short_phase2_fes": 120000,
+  "mid_phase2_fes": 600000,
+  "production_smp_authorization_rule": "terminal final_error <= historical_p90 with exact 3000000 FE and bounded ledger",
+  "default_registry_replacement_allowed": false
+}

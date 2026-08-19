@@ -1,0 +1,63 @@
+{
+  "result": {
+    "case_id": "A3",
+    "checkpoint_hash": "74d9618ba6d6822c28d2470ea0fae8991fb13bba9e5a423c10152d5b99f2a74c",
+    "components": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ]
+    ],
+    "discovery_blocks": 19,
+    "discovery_fes": 111514,
+    "gate41b_case_mean": 78065.04156919967,
+    "loop": {
+      "action_counts": {
+        "arbitration_only": 3,
+        "none": 12
+      },
+      "budget_flow": {
+        "arbitration": 59,
+        "operator": 0,
+        "probe": 1620,
+        "sense": 2642520,
+        "smp_writeback": 1050,
+        "tail": 174751
+      },
+      "final_error": 78509.82743630165,
+      "final_state_hash": "b02f847616ce0b8e560d28e34002ee2138047cea7ec9031a47ccd429105d150f",
+      "operator_value_gated_cycles": 0,
+      "receipt_parity": true,
+      "state_hash_chain": true,
+      "strict_best": true,
+      "terminal_fes": 3000000
+    },
+    "phase1_fes": 180000,
+    "ratio_vs_gate41b": 1.0056976318485362,
+    "sense_budget_fes": 9272,
+    "shared_precision": 1.0,
+    "shared_recall": 0.9473684210526315,
+    "structure_groups": 44,
+    "structure_shared": 54,
+    "truth_group_count": 20,
+    "truth_shared_count": 57
+  },
+  "schema_version": "arac-oc-gate48a-cell-v1"
+}

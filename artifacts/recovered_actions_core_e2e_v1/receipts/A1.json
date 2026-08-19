@@ -1,0 +1,61 @@
+{
+  "action_checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+  "action_seed": 117,
+  "allow_out_of_bounds": true,
+  "case_id_audit_metadata": "A1",
+  "checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+  "checkpoint_reproduced": true,
+  "consumed_fes": 2820000,
+  "e2e_lane_passed": false,
+  "expected_action": "aor",
+  "expected_checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+  "final_error": 77822.7810005195,
+  "historical_level_passed": true,
+  "historical_p90": 78098.55697849873,
+  "largest_component_fraction": 0.15,
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "receipt_hash": "98e3b3bf1156427f7e471e65deb3a6caa10e5eb40b3cba61fc0b948b2342ceb1",
+  "relation_count": 3,
+  "result_hash": "9df9bea3b210c668f51e268856f715ec11898e832ebb1e74b72b0b3cf62379f4",
+  "route": "coverage_451200_then_relation_cover_polish_1804764_then_mmes_tail_564036",
+  "run_seed": 117,
+  "runtime_warnings": [],
+  "schema_version": "arac-recovered-core-e2e-receipt-v1",
+  "selected_action": "ctp",
+  "selection_match": false,
+  "selection_reason": "complete_disconnected_relation_cover",
+  "selection_scores": [
+    [
+      "ctp",
+      1.0
+    ],
+    [
+      "smp",
+      0.0
+    ],
+    [
+      "gcb",
+      0.0
+    ],
+    [
+      "aor",
+      0.0
+    ]
+  ],
+  "selector_fallback_used": false,
+  "structural_inference_complete": true,
+  "terminal_fes": 3000000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    }
+  ]
+}

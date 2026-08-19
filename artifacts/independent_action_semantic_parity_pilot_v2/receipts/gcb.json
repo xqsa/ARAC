@@ -1,0 +1,114 @@
+{
+  "action": "gcb",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "zero_relation_cold_warmup_119987_sweeps_3_coordination_13_cold_continuation_0_sweeps_0_tail_0"
+      },
+      "final_error": 672103.6004551077,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": false,
+      "reference_mechanism_match": null,
+      "result_hash": "604b26613a81b0c732d24ac746bb66b6f591866f9d8d52fe45d2effb5f3fd4c9",
+      "route": "zero_relation_cold_warmup_119987_sweeps_3_coordination_13_cold_continuation_0_sweeps_0_tail_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "coordination_fes": 6046,
+        "native_before_fes": 6046,
+        "native_resume_fes": 107894,
+        "session_consumed_after_resume": [
+          6080,
+          5328,
+          5904,
+          5928,
+          6176,
+          5700,
+          5952,
+          5888,
+          5472,
+          5947,
+          5757,
+          4144,
+          6160,
+          6000,
+          5888,
+          5856,
+          5952,
+          6160,
+          5664,
+          3984
+        ],
+        "session_consumed_before_coordination": [
+          418,
+          448,
+          256,
+          266,
+          528,
+          38,
+          304,
+          240,
+          528,
+          285,
+          95,
+          240,
+          528,
+          368,
+          256,
+          224,
+          320,
+          528,
+          32,
+          144
+        ],
+        "session_count": 20,
+        "state_reused_after_coordination": true,
+        "tail_fes": 14,
+        "trigger_scope": "phase_boundary"
+      },
+      "final_error": 644167.1210934825,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": true,
+      "reference_mechanism_match": true,
+      "result_hash": "58c20104533ad42ba69f0cbce4badc197054bc4f9ca58e146bd32d210eb5fbe6",
+      "route": "historical_native_6046_phase_boundary_coordination_6046_native_resume_107894_tail_14_state_reused",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "R1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "native_thread_limit_verified": true,
+  "receipt_hash": "c4c4c8cb0b3cbda01ddae7fb0f7c66664579e801a88a4b90223a59a9490bc95b",
+  "reference_contract": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_117/exp_059_gcb_stable_all_case_25seed-r1-seed117/rastrigin/gcb_action.json",
+  "reference_contract_sha256": "75df9c09ed12cb691bc5d653618bfc40750b22043b39cd3b537ebe1a286541a6",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v2",
+  "screen_checkpoint_hash": "33b683ad8d6e01d21d53ac7196749422378bff778e0f7a2be40053550c51e3fa",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "source_phase1_fes": 180000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    }
+  ]
+}

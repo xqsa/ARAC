@@ -1,0 +1,16 @@
+{
+  "best_variant": "identity_blind_bounded",
+  "phase1_fes": 180000,
+  "phase2_fes": 600000,
+  "rows": [
+    {
+      "final_error": 94947741.7170617,
+      "receipt_hash": "85bd94b46b8569fe0ea8728b84be7de7ceff65128170bb2f2ce8c380fd3b73ac",
+      "reset_count": 21,
+      "variant": "identity_blind_bounded",
+      "visit_count": 124
+    }
+  ],
+  "schema_version": "arac-smp-checkpoint-handoff-ablation-summary-v1",
+  "summary_hash": "922073a3dc9d15eeffb62b841ac77a2a22db25b31ea4e91d2efcd27ae06b2040"
+}

@@ -1,0 +1,1836 @@
+{
+  "coordination_by_seed_mode": {
+    "20260829:conflicting": 1252.5923508241717,
+    "20260829:conforming": 553.1669684088056,
+    "20260830:conflicting": 782.7508683894337,
+    "20260830:conforming": 459.16518875821635,
+    "20260831:conflicting": 244.12476916522087,
+    "20260831:conforming": 95.49848056197587
+  },
+  "full_by_mode": {
+    "conflicting": {
+      "count": 18,
+      "losses": 4,
+      "median_gain": 0.0,
+      "median_practical_gain": 0.0,
+      "records": [
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": -3.5726647226496198,
+          "outcome": "loss",
+          "practical_gain": -3.5726647226496198,
+          "tolerance": 3.655408459642947e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": 1.1368683772161603e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 8.235685216669182e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 2.2737367544323206e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 6.654585353051812e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 1.3857318169080078e-06
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": -1.1368683772161603e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 2.8691336199069893e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": 1.1368683772161603e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.6937191518004023e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": 5.684341886080802e-14,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 1.4410676074113094e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": -2.2737367544323206e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 9.539931641989478e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": -7.565131493963065,
+          "outcome": "loss",
+          "practical_gain": -7.565131493963065,
+          "tolerance": 3.5724530128614854e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": 1.3460176659068566,
+          "outcome": "win",
+          "practical_gain": 1.3460176659068566,
+          "tolerance": 3.6440233613128546e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": -1.6638970808082547,
+          "outcome": "loss",
+          "practical_gain": -1.6638970808082547,
+          "tolerance": 1.7108637643952067e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": -0.7076137867552461,
+          "outcome": "loss",
+          "practical_gain": -0.7076137867552461,
+          "tolerance": 5.855638173392684e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 9.023043203306131e-08
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 2.598185790078152e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 4.363443432633956e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.7597250650073224e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 2.842170943040401e-14,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 8.089880288471309e-08
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 2.2737367544323206e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 8.338717105659443e-07
+        }
+      ],
+      "ties": 13,
+      "win_or_tie_rate": 0.7777777777777778,
+      "wins": 1
+    },
+    "conforming": {
+      "count": 18,
+      "losses": 0,
+      "median_gain": 5.329070518200751e-15,
+      "median_practical_gain": 0.0,
+      "records": [
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": 1.3500311979441904e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 5.8242101173693525e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 4.5543709724745216e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 8.697191482416067e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 4.896796212960908e-08,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 2.107427868749763e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.155480976314365e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": 3.546481649706159,
+          "outcome": "win",
+          "practical_gain": 3.546481649706159,
+          "tolerance": 6.209595484894706e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": 9.4153762120186e-08,
+          "outcome": "win",
+          "practical_gain": 9.4153762120186e-08,
+          "tolerance": 6.66912638854078e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": -1.4210854715202004e-14,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 5.309497655949131e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.3212350806898973e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": 5.684341886080802e-14,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.475553510981726e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.984113330296133e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 2.8602861919957528e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 2.1316282072803006e-14,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.059492454294575e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 1.0658141036401503e-13,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 4.0730805479169155e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.5292303238591123e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 0.0,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 2.0884031784631766e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 1.0658141036401503e-14,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 3.131708986250536e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 2.0899285857467476e-08,
+          "outcome": "tie",
+          "practical_gain": 0.0,
+          "tolerance": 4.4722916259247466e-08
+        }
+      ],
+      "ties": 16,
+      "win_or_tie_rate": 1.0,
+      "wins": 2
+    }
+  },
+  "gate_checks": {
+    "cell_count_36": true,
+    "cell_identities_unique": true,
+    "coordination_nonzero_each_seed_mode": true,
+    "full_mode_median_practical_nonnegative": true,
+    "full_mode_noninferior_win_tie_ge_0_60": true,
+    "full_noninferior_median_practical_nonnegative": true,
+    "full_noninferior_win_tie_ge_0_60": true,
+    "proposal_median_gain_positive": true,
+    "proposal_mode_median_gain_positive": true,
+    "proposal_mode_win_tie_ge_0_60": true,
+    "proposal_win_tie_ge_0_60": true,
+    "seeds_exact": true,
+    "source_integrity": true
+  },
+  "gate_passed": true,
+  "neighborhood_superiority_supported": false,
+  "proposal_by_mode": {
+    "conflicting": {
+      "count": 18,
+      "losses": 0,
+      "median_gain": 27.25199410196737,
+      "median_practical_gain": 27.25199410196737,
+      "records": [
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": 191.11830206033943,
+          "outcome": "win",
+          "practical_gain": 191.11830206033943,
+          "tolerance": 5.566591480246341e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": 23.501622927518497,
+          "outcome": "win",
+          "practical_gain": 23.501622927518497,
+          "tolerance": 8.470701445944366e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 72.30404709106256,
+          "outcome": "win",
+          "practical_gain": 72.30404709106256,
+          "tolerance": 7.377625823962436e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 0.0011080495796704781,
+          "outcome": "win",
+          "practical_gain": 0.0011080495796704781,
+          "tolerance": 1.3857329249575874e-06
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": 15.465405615998122,
+          "outcome": "win",
+          "practical_gain": 15.465405615998122,
+          "tolerance": 3.0237876760669705e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": 57.270537276779805,
+          "outcome": "win",
+          "practical_gain": 57.270537276779805,
+          "tolerance": 4.266424524568199e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": 37.40205853882284,
+          "outcome": "win",
+          "practical_gain": 37.40205853882284,
+          "tolerance": 1.8150881927995373e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": 0.00046792816931429115,
+          "outcome": "win",
+          "practical_gain": 0.00046792816931429115,
+          "tolerance": 9.53993632127117e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": 38.50073612694757,
+          "outcome": "win",
+          "practical_gain": 38.50073612694757,
+          "tolerance": 3.957460374130961e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": 17.365077741889536,
+          "outcome": "win",
+          "practical_gain": 17.365077741889536,
+          "tolerance": 3.8042139620726816e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": 132.60420435876887,
+          "outcome": "win",
+          "practical_gain": 132.60420435876887,
+          "tolerance": 3.0369058079828956e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": 3.51642772175353,
+          "outcome": "win",
+          "practical_gain": 3.51642772175353,
+          "tolerance": 5.89080245061022e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 0.5825106016333024,
+          "outcome": "win",
+          "practical_gain": 0.5825106016333024,
+          "tolerance": 9.081294263469461e-08
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 39.05716953262305,
+          "outcome": "win",
+          "practical_gain": 39.05716953262305,
+          "tolerance": 2.988757485404383e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 3.0838175307673055,
+          "outcome": "win",
+          "practical_gain": 3.0838175307673055,
+          "tolerance": 4.394281607941629e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 40.70901714407938,
+          "outcome": "win",
+          "practical_gain": 40.70901714407938,
+          "tolerance": 4.1668152364481163e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 31.002365276416242,
+          "outcome": "win",
+          "practical_gain": 31.002365276416242,
+          "tolerance": 1.1190116816112931e-07
+        },
+        {
+          "cell": {
+            "mode": "conflicting",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 5.9870367163985065,
+          "outcome": "win",
+          "practical_gain": 5.9870367163985065,
+          "tolerance": 8.398587472823425e-07
+        }
+      ],
+      "ties": 0,
+      "win_or_tie_rate": 1.0,
+      "wins": 18
+    },
+    "conforming": {
+      "count": 18,
+      "losses": 0,
+      "median_gain": 54.20740422058017,
+      "median_practical_gain": 54.20740422058017,
+      "records": [
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": 67.9544350849872,
+          "outcome": "win",
+          "practical_gain": 67.9544350849872,
+          "tolerance": 1.261965362586806e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "chain"
+          },
+          "gain": 170.3184849820251,
+          "outcome": "win",
+          "practical_gain": 170.3184849820251,
+          "tolerance": 2.1586219470677032e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 31.370098233763045,
+          "outcome": "win",
+          "practical_gain": 31.370098233763045,
+          "tolerance": 1.1834201305792372e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "random"
+          },
+          "gain": 63.17492563644984,
+          "outcome": "win",
+          "practical_gain": 63.17492563644984,
+          "tolerance": 2.739177124624582e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": 125.4502884915257,
+          "outcome": "win",
+          "practical_gain": 125.4502884915257,
+          "tolerance": 1.5700509825466936e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260829,
+            "topology": "star"
+          },
+          "gain": 158.1125515226438,
+          "outcome": "win",
+          "practical_gain": 158.1125515226438,
+          "tolerance": 2.1666202472188472e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": 148.30034210626818,
+          "outcome": "win",
+          "practical_gain": 148.30034210626818,
+          "tolerance": 2.1499160589752222e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "chain"
+          },
+          "gain": 85.11977045542915,
+          "outcome": "win",
+          "practical_gain": 85.11977045542915,
+          "tolerance": 1.3821474701492046e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": 43.6610959509116,
+          "outcome": "win",
+          "practical_gain": 43.6610959509116,
+          "tolerance": 3.757846040199013e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "random"
+          },
+          "gain": 20.453334048300803,
+          "outcome": "win",
+          "practical_gain": 20.453334048300803,
+          "tolerance": 3.6800868514647335e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": 110.82559304338353,
+          "outcome": "win",
+          "practical_gain": 110.82559304338353,
+          "tolerance": 1.5066672634634486e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260830,
+            "topology": "star"
+          },
+          "gain": 68.13317197203918,
+          "outcome": "win",
+          "practical_gain": 68.13317197203918,
+          "tolerance": 9.67360338919967e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 8.07675635145192,
+          "outcome": "win",
+          "practical_gain": 8.07675635145192,
+          "tolerance": 3.867168089439765e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "chain"
+          },
+          "gain": 45.23988280471051,
+          "outcome": "win",
+          "practical_gain": 45.23988280471051,
+          "tolerance": 8.597068828387956e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 1.0765961294085855,
+          "outcome": "win",
+          "practical_gain": 1.0765961294085855,
+          "tolerance": 3.539996285153198e-07
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "random"
+          },
+          "gain": 24.28796256273113,
+          "outcome": "win",
+          "practical_gain": 24.28796256273113,
+          "tolerance": 4.5171994347362905e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 3,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 14.531328256294621,
+          "outcome": "win",
+          "practical_gain": 14.531328256294621,
+          "tolerance": 4.584841811879997e-08
+        },
+        {
+          "cell": {
+            "mode": "conforming",
+            "overlap_budget": 6,
+            "seed": 20260831,
+            "topology": "star"
+          },
+          "gain": 4.8214690302836445,
+          "outcome": "win",
+          "practical_gain": 4.8214690302836445,
+          "tolerance": 4.9544385268631824e-08
+        }
+      ],
+      "ties": 0,
+      "win_or_tie_rate": 1.0,
+      "wins": 18
+    }
+  },
+  "proposal_neighborhood_vs_full_context": {
+    "count": 36,
+    "losses": 4,
+    "median_gain": 0.0,
+    "median_practical_gain": 0.0,
+    "records": [
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": -3.5726647226496198,
+        "outcome": "loss",
+        "practical_gain": -3.5726647226496198,
+        "tolerance": 3.655408459642947e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": 1.1368683772161603e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 8.235685216669182e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 2.2737367544323206e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 6.654585353051812e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 1.3857318169080078e-06
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": -1.1368683772161603e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 2.8691336199069893e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": 1.1368683772161603e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.6937191518004023e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": 1.3500311979441904e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 5.8242101173693525e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 4.5543709724745216e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 8.697191482416067e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 4.896796212960908e-08,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 2.107427868749763e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.155480976314365e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": 3.546481649706159,
+        "outcome": "win",
+        "practical_gain": 3.546481649706159,
+        "tolerance": 6.209595484894706e-08
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": 5.684341886080802e-14,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 1.4410676074113094e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": -2.2737367544323206e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 9.539931641989478e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": -7.565131493963065,
+        "outcome": "loss",
+        "practical_gain": -7.565131493963065,
+        "tolerance": 3.5724530128614854e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": 1.3460176659068566,
+        "outcome": "win",
+        "practical_gain": 1.3460176659068566,
+        "tolerance": 3.6440233613128546e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": -1.6638970808082547,
+        "outcome": "loss",
+        "practical_gain": -1.6638970808082547,
+        "tolerance": 1.7108637643952067e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": -0.7076137867552461,
+        "outcome": "loss",
+        "practical_gain": -0.7076137867552461,
+        "tolerance": 5.855638173392684e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": 9.4153762120186e-08,
+        "outcome": "win",
+        "practical_gain": 9.4153762120186e-08,
+        "tolerance": 6.66912638854078e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": -1.4210854715202004e-14,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 5.309497655949131e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.3212350806898973e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": 5.684341886080802e-14,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.475553510981726e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.984113330296133e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 2.8602861919957528e-08
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 9.023043203306131e-08
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 2.598185790078152e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 4.363443432633956e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.7597250650073224e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 2.842170943040401e-14,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 8.089880288471309e-08
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 2.2737367544323206e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 8.338717105659443e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 2.1316282072803006e-14,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.059492454294575e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 1.0658141036401503e-13,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 4.0730805479169155e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.5292303238591123e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 0.0,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 2.0884031784631766e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 1.0658141036401503e-14,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 3.131708986250536e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 2.0899285857467476e-08,
+        "outcome": "tie",
+        "practical_gain": 0.0,
+        "tolerance": 4.4722916259247466e-08
+      }
+    ],
+    "ties": 29,
+    "win_or_tie_rate": 0.8888888888888888,
+    "wins": 3
+  },
+  "proposal_neighborhood_vs_proposal_only": {
+    "count": 36,
+    "losses": 0,
+    "median_gain": 37.95139733288521,
+    "median_practical_gain": 37.95139733288521,
+    "records": [
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": 191.11830206033943,
+        "outcome": "win",
+        "practical_gain": 191.11830206033943,
+        "tolerance": 5.566591480246341e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": 23.501622927518497,
+        "outcome": "win",
+        "practical_gain": 23.501622927518497,
+        "tolerance": 8.470701445944366e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 72.30404709106256,
+        "outcome": "win",
+        "practical_gain": 72.30404709106256,
+        "tolerance": 7.377625823962436e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 0.0011080495796704781,
+        "outcome": "win",
+        "practical_gain": 0.0011080495796704781,
+        "tolerance": 1.3857329249575874e-06
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": 15.465405615998122,
+        "outcome": "win",
+        "practical_gain": 15.465405615998122,
+        "tolerance": 3.0237876760669705e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": 57.270537276779805,
+        "outcome": "win",
+        "practical_gain": 57.270537276779805,
+        "tolerance": 4.266424524568199e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": 67.9544350849872,
+        "outcome": "win",
+        "practical_gain": 67.9544350849872,
+        "tolerance": 1.261965362586806e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "chain"
+        },
+        "gain": 170.3184849820251,
+        "outcome": "win",
+        "practical_gain": 170.3184849820251,
+        "tolerance": 2.1586219470677032e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 31.370098233763045,
+        "outcome": "win",
+        "practical_gain": 31.370098233763045,
+        "tolerance": 1.1834201305792372e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "random"
+        },
+        "gain": 63.17492563644984,
+        "outcome": "win",
+        "practical_gain": 63.17492563644984,
+        "tolerance": 2.739177124624582e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": 125.4502884915257,
+        "outcome": "win",
+        "practical_gain": 125.4502884915257,
+        "tolerance": 1.5700509825466936e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260829,
+          "topology": "star"
+        },
+        "gain": 158.1125515226438,
+        "outcome": "win",
+        "practical_gain": 158.1125515226438,
+        "tolerance": 2.1666202472188472e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": 37.40205853882284,
+        "outcome": "win",
+        "practical_gain": 37.40205853882284,
+        "tolerance": 1.8150881927995373e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": 0.00046792816931429115,
+        "outcome": "win",
+        "practical_gain": 0.00046792816931429115,
+        "tolerance": 9.53993632127117e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": 38.50073612694757,
+        "outcome": "win",
+        "practical_gain": 38.50073612694757,
+        "tolerance": 3.957460374130961e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": 17.365077741889536,
+        "outcome": "win",
+        "practical_gain": 17.365077741889536,
+        "tolerance": 3.8042139620726816e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": 132.60420435876887,
+        "outcome": "win",
+        "practical_gain": 132.60420435876887,
+        "tolerance": 3.0369058079828956e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": 3.51642772175353,
+        "outcome": "win",
+        "practical_gain": 3.51642772175353,
+        "tolerance": 5.89080245061022e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": 148.30034210626818,
+        "outcome": "win",
+        "practical_gain": 148.30034210626818,
+        "tolerance": 2.1499160589752222e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "chain"
+        },
+        "gain": 85.11977045542915,
+        "outcome": "win",
+        "practical_gain": 85.11977045542915,
+        "tolerance": 1.3821474701492046e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": 43.6610959509116,
+        "outcome": "win",
+        "practical_gain": 43.6610959509116,
+        "tolerance": 3.757846040199013e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "random"
+        },
+        "gain": 20.453334048300803,
+        "outcome": "win",
+        "practical_gain": 20.453334048300803,
+        "tolerance": 3.6800868514647335e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": 110.82559304338353,
+        "outcome": "win",
+        "practical_gain": 110.82559304338353,
+        "tolerance": 1.5066672634634486e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260830,
+          "topology": "star"
+        },
+        "gain": 68.13317197203918,
+        "outcome": "win",
+        "practical_gain": 68.13317197203918,
+        "tolerance": 9.67360338919967e-08
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 0.5825106016333024,
+        "outcome": "win",
+        "practical_gain": 0.5825106016333024,
+        "tolerance": 9.081294263469461e-08
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 39.05716953262305,
+        "outcome": "win",
+        "practical_gain": 39.05716953262305,
+        "tolerance": 2.988757485404383e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 3.0838175307673055,
+        "outcome": "win",
+        "practical_gain": 3.0838175307673055,
+        "tolerance": 4.394281607941629e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 40.70901714407938,
+        "outcome": "win",
+        "practical_gain": 40.70901714407938,
+        "tolerance": 4.1668152364481163e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 31.002365276416242,
+        "outcome": "win",
+        "practical_gain": 31.002365276416242,
+        "tolerance": 1.1190116816112931e-07
+      },
+      {
+        "cell": {
+          "mode": "conflicting",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 5.9870367163985065,
+        "outcome": "win",
+        "practical_gain": 5.9870367163985065,
+        "tolerance": 8.398587472823425e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 8.07675635145192,
+        "outcome": "win",
+        "practical_gain": 8.07675635145192,
+        "tolerance": 3.867168089439765e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "chain"
+        },
+        "gain": 45.23988280471051,
+        "outcome": "win",
+        "practical_gain": 45.23988280471051,
+        "tolerance": 8.597068828387956e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 1.0765961294085855,
+        "outcome": "win",
+        "practical_gain": 1.0765961294085855,
+        "tolerance": 3.539996285153198e-07
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "random"
+        },
+        "gain": 24.28796256273113,
+        "outcome": "win",
+        "practical_gain": 24.28796256273113,
+        "tolerance": 4.5171994347362905e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 3,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 14.531328256294621,
+        "outcome": "win",
+        "practical_gain": 14.531328256294621,
+        "tolerance": 4.584841811879997e-08
+      },
+      {
+        "cell": {
+          "mode": "conforming",
+          "overlap_budget": 6,
+          "seed": 20260831,
+          "topology": "star"
+        },
+        "gain": 4.8214690302836445,
+        "outcome": "win",
+        "practical_gain": 4.8214690302836445,
+        "tolerance": 4.9544385268631824e-08
+      }
+    ],
+    "ties": 0,
+    "win_or_tie_rate": 1.0,
+    "wins": 36
+  },
+  "protocol": {
+    "atol": 1e-09,
+    "cell_count": 36,
+    "rtol": 1e-09,
+    "seeds": [
+      20260829,
+      20260830,
+      20260831
+    ]
+  },
+  "schema_version": "arac-overlap-gate30-multiseed-v1"
+}

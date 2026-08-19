@@ -1,0 +1,64 @@
+{
+  "schema_version": "arac-independent-action-semantic-parity-protocol-v3",
+  "status": "frozen_design_not_run",
+  "purpose": "screen independent action mechanism semantics from per-session live state traces before any selector evaluation",
+  "historical_reference_policy": "result_and_action_json_semantic_contract",
+  "production_hcc_dependency_allowed": false,
+  "selector_execution_allowed": false,
+  "common_anchor": {
+    "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "phase1_protocol": "arac-identity-blind-evidence-v9",
+    "checkpoint_seed": 117,
+    "screen_step_fes": 120000,
+    "native_threads": 1,
+    "max_workers": 4,
+    "checkpoint_identity_visible_to_runtime": false,
+    "new_output_root": "artifacts/independent_action_semantic_parity_pilot_v3"
+  },
+  "lanes": [
+    {
+      "action": "aor",
+      "case_id_audit_metadata": "A1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/A1/seed_117/checkpoint.json",
+      "reference_contract": "results/exp_057_a_series_aor_25seed/a1-a6-25seed-v1/runs/A1/seed_117/run_summary.json",
+      "reference_mechanism": "fresh zero-mean full-space Sep-CMA, sigma 0.5, population 24, no restart"
+    },
+    {
+      "action": "smp",
+      "case_id_audit_metadata": "E1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+      "reference_contract": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+      "reference_mechanism": "persistent per-block CMA state with incumbent-slice mean and a three-visit stagnation restart"
+    },
+    {
+      "action": "gcb",
+      "case_id_audit_metadata": "R1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/R1/seed_117/checkpoint.json",
+      "reference_contract": "results/exp_059_gcb_stable_all_case_25seed/validation/runs/R1/seed_117/exp_059_gcb_stable_all_case_25seed-r1-seed117/rastrigin/gcb_action.json",
+      "reference_mechanism": "native block state, one phase-boundary full-space burst, then native state resume"
+    },
+    {
+      "action": "ctp",
+      "case_id_audit_metadata": "S1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/S1/seed_117/checkpoint.json",
+      "reference_contract": "results/exp_058_ctp_stable_v2_25seed/validation/runs/S1/seed_117/exp_058_ctp_stable_v2_25seed-s1-seed117/schwefel/ctp_stable_action.json",
+      "reference_mechanism": "four coverage sweeps followed by unbounded strict-improvement group polish"
+    }
+  ],
+  "arms": [
+    "current_production",
+    "historical_semantic_port"
+  ],
+  "acceptance_gates": {
+    "same_checkpoint_hash": true,
+    "exact_screen_step_fes": true,
+    "no_selector_call": true,
+    "no_hcc_runtime_import": true,
+    "per_session_state_trace_required": true,
+    "optimizer_identity_continuity_required": true,
+    "native_thread_limit_verified": true,
+    "terminal_performance_comparison": false,
+    "selector_promotion": false
+  },
+  "promotion_rule": "Only after all four live mechanism traces pass may a separate fixed-budget terminal parity run be designed; no selector or ARAC-Core E2E is authorized by this pilot."
+}

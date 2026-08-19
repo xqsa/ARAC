@@ -1,0 +1,1191 @@
+{
+  "gate_passed": true,
+  "kernel_reproduction_layer": {
+    "all_match_gate40": true,
+    "checked_cells": 12
+  },
+  "protocol": {
+    "fresh_seed": 20260833,
+    "gate40_cell_source": "artifacts\\overlap_family_gate40\\cells",
+    "kernel_dispatch_config": {
+      "complex_hub_degree": 3,
+      "complex_hub_ratio": 0.9,
+      "cooldown_cycles": 1,
+      "escalation_streak": 6,
+      "hub_mode": "relative",
+      "persistent_streak": 2,
+      "stall_cap": 2
+    },
+    "neighborhood_fes": 32,
+    "phase1_kwargs": {
+      "anchor_count": 5,
+      "bucket_size": 16,
+      "max_candidate_pairs": 128,
+      "rounds": 12,
+      "step": 0.25
+    },
+    "refresh_cycles": 16,
+    "repro_seed": 20260832,
+    "unified_config": {
+      "calibration_status": "partial-v1-uncalibrated",
+      "complex_hub_degree": 3,
+      "complex_hub_ratio": 0.9,
+      "config_version": "arac-oc-coordinator-config-v1",
+      "cooldown_cycles": 1,
+      "ema_alpha": 0.3,
+      "escalation_streak": 6,
+      "gain_floor": 1e-12,
+      "gamma_down": 0.5,
+      "gamma_up": 1.5,
+      "hub_mode": "relative",
+      "k_enter": 3,
+      "k_exit": 3,
+      "k_window": 4,
+      "persistent_streak": 2,
+      "probe_budget_share": 0.25,
+      "pulse_max_fes": 32,
+      "pulse_min_fes": 8,
+      "smp_trust_floor": 0.5,
+      "stall_cap": 2,
+      "tau_enter": 0.5,
+      "tau_exit": 0.2
+    }
+  },
+  "protocol_checks": {
+    "adapter_ready_all": true,
+    "cell_count_24": true,
+    "kernel_receipts_ok": true,
+    "phase1_exact": true,
+    "strict_best": true,
+    "terminal_exact": true,
+    "unified_receipts_ok": true
+  },
+  "rows": [
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 65.98079017359926,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 65.98079017359927,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "427cd67cbbb6bd16b4792118bc7ac93a14e740b71318f81e883a2c812632e745",
+      "gate40_frozen": {
+        "coordinator": 65.98079017359926,
+        "persistent_ctp": 65.98079017359926,
+        "proposal_neighborhood": 65.98079017359925
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 4,
+        "none": 12
+      },
+      "unified_budget_flow": {
+        "arbitration": 14,
+        "operator": 0,
+        "probe": 24,
+        "sense": 704816,
+        "tail": 2115146
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 116.69391797382862,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 114.72050689707905,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "cbc31c3aa79fb9ba8f70b931bcce598ecba038e45ea9b833df35539f96cf6d02",
+      "gate40_frozen": {
+        "coordinator": 116.69391797382862,
+        "persistent_ctp": 116.69391797382862,
+        "proposal_neighborhood": 116.6939179738286
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 4,
+        "none": 12
+      },
+      "unified_budget_flow": {
+        "arbitration": 14,
+        "operator": 0,
+        "probe": 48,
+        "sense": 704816,
+        "tail": 2115122
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 65.15283968216734,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 65.15283968216734,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "d0672bece677812edd6a1f26f7e9442460443c2555ba3a3a2f3cc9c5ae15af91",
+      "gate40_frozen": {
+        "coordinator": 65.15283968216734,
+        "persistent_ctp": 65.15283968216734,
+        "proposal_neighborhood": 65.15283968216734
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 11,
+        "operator": 0,
+        "probe": 18,
+        "sense": 528612,
+        "tail": 2291359
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 112.90923914995867,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 110.26946472005056,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "bbc26980df4e75d5be87bb50c27d0c52a237f2b114d86e027335ed59578b8870",
+      "gate40_frozen": {
+        "coordinator": 112.90923914995867,
+        "persistent_ctp": 112.90923914995867,
+        "proposal_neighborhood": 112.90923914995867
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 12,
+        "operator": 0,
+        "probe": 36,
+        "sense": 528612,
+        "tail": 2291340
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 26445192.95958261,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 26445104.592747126,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "cb3dad8ed0ce09ef777ea42fd909b297d364c50253c11803e74bd33dede07eeb",
+      "gate40_frozen": {
+        "coordinator": 26445192.95958261,
+        "persistent_ctp": 26445192.95958261,
+        "proposal_neighborhood": 26445192.95958261
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 8389,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 4,
+        "none": 12
+      },
+      "unified_budget_flow": {
+        "arbitration": 12,
+        "operator": 0,
+        "probe": 24,
+        "sense": 704676,
+        "tail": 2115288
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 4607879.009397579,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 4607769.67381869,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "82f87c1d558160765b25ad15bf8dbb66e6a7d725e0895563cd762c496f613931",
+      "gate40_frozen": {
+        "coordinator": 4607879.009397579,
+        "persistent_ctp": 4607879.009397579,
+        "proposal_neighborhood": 4607879.009397579
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 9787,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 4,
+        "none": 12
+      },
+      "unified_budget_flow": {
+        "arbitration": 12,
+        "operator": 0,
+        "probe": 48,
+        "sense": 704664,
+        "tail": 2115276
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 134064.3249357528,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 133971.87483835235,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "d248559578232bbc1cc44623b5e93ad14365bede34bfb2e8036a460ccec68d59",
+      "gate40_frozen": {
+        "coordinator": 134064.3249357528,
+        "persistent_ctp": 134064.3249357528,
+        "proposal_neighborhood": 134064.3249357528
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 8389,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 4,
+        "none": 12
+      },
+      "unified_budget_flow": {
+        "arbitration": 12,
+        "operator": 0,
+        "probe": 24,
+        "sense": 704676,
+        "tail": 2115288
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 821918.1463182636,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 821835.4857037114,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "db6544a7f7fdbcdb2ee95d76e28481dcf0d0618c2721e472fd51f3585def6518",
+      "gate40_frozen": {
+        "coordinator": 821918.1463182636,
+        "persistent_ctp": 821918.1463182636,
+        "proposal_neighborhood": 821918.1463182636
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 9787,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 10,
+        "operator": 0,
+        "probe": 36,
+        "sense": 528498,
+        "tail": 2291456
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 130.51357763358962,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 128.91765245854455,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "4801a44046737fba79e39c72ef61e61fca0fbffd4d9f3f73f3762a7e7e84de3f",
+      "gate40_frozen": {
+        "coordinator": 130.51357763358962,
+        "persistent_ctp": 130.51357763358962,
+        "proposal_neighborhood": 130.51357763358962
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 30,
+        "operator": 0,
+        "probe": 48,
+        "sense": 1409632,
+        "tail": 1410290
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 186.60423465964894,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 184.8573693121617,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "ced40820b2b4839d588504cc9fefd053487579e80de2b37db1a789e010d8a96c",
+      "gate40_frozen": {
+        "coordinator": 186.60423465964894,
+        "persistent_ctp": 186.604234659649,
+        "proposal_neighborhood": 186.60423465964894
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 32,
+        "operator": 0,
+        "probe": 96,
+        "sense": 1409632,
+        "tail": 1410240
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 103.64100892376982,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 101.93817161890131,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "ece54e4d5a4766afbcf97409dc11cb0e3c10b2335d2c5678f52ff10981b20aad",
+      "gate40_frozen": {
+        "coordinator": 103.64100892376982,
+        "persistent_ctp": 103.64100892376982,
+        "proposal_neighborhood": 103.64100892376983
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 31,
+        "operator": 0,
+        "probe": 48,
+        "sense": 1409632,
+        "tail": 1410289
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 208.40928985686628,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 206.60138084550124,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260832,
+        "topology": "star"
+      },
+      "checkpoint_hash": "711ba26b7f89b14e984124a91b5678d07cddafca28bbf40ba014c678de94e341",
+      "gate40_frozen": {
+        "coordinator": 208.40928985686628,
+        "persistent_ctp": 208.4092898568663,
+        "proposal_neighborhood": 208.40928985686628
+      },
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "kernel_reproduces_gate40": true,
+      "layer": "repro",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 32,
+        "operator": 0,
+        "probe": 96,
+        "sense": 1409632,
+        "tail": 1410240
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 74.5498762301294,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 71.47143868638618,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 74.54987623012941,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260833,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "ab0348a0cced0c3eab3fe29b90366040404634b484ff56d92122c4d5f2261568",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 4,
+        "none": 12
+      },
+      "unified_budget_flow": {
+        "arbitration": 16,
+        "operator": 0,
+        "probe": 24,
+        "sense": 704816,
+        "tail": 2115144
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 113.4886509609708,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 111.06279544499208,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 113.4886509609708,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260833,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "1dcac7962499a09e6665e19cbf8debf16c2157dc590d2fc68141d8e90854194a",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 5,
+        "none": 11
+      },
+      "unified_budget_flow": {
+        "arbitration": 17,
+        "operator": 0,
+        "probe": 60,
+        "sense": 881020,
+        "tail": 1938903
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 94.19149323081865,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 91.51698567455273,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 94.19149323081864,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 3,
+        "seed": 20260833,
+        "topology": "star"
+      },
+      "checkpoint_hash": "02f0d3dbb9b20757b565da68c993bc02d6b5bc036dc3a48e83040ba5685063e0",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 5,
+        "none": 11
+      },
+      "unified_budget_flow": {
+        "arbitration": 19,
+        "operator": 0,
+        "probe": 30,
+        "sense": 881020,
+        "tail": 1938931
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 134.87121801683062,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 130.93595760445257,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 134.87121801683062,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "ackley",
+        "overlap_budget": 6,
+        "seed": 20260833,
+        "topology": "star"
+      },
+      "checkpoint_hash": "ec8b7877cfbc9c7bd9aea8993a59f82ec3902394aed05019d9cadd8db01a816f",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 11,
+        "operator": 0,
+        "probe": 36,
+        "sense": 528612,
+        "tail": 2291341
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 1366387.4198190395,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 1366301.7440270057,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 1366387.4198190395,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260833,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "66e8d46fd800a9b74b7be96087aee242e44359fb31a62182f4acaa538bfd25d9",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 8389,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 9,
+        "operator": 0,
+        "probe": 18,
+        "sense": 528507,
+        "tail": 2291466
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 10844601.698709702,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 10844510.617938092,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 10844601.698709702,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260833,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "1d9aa5cdf1414c09e72c3586d81f465e85affe8c067a8c7cfb88b1e7cfcd0940",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 9787,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 10,
+        "operator": 0,
+        "probe": 36,
+        "sense": 528498,
+        "tail": 2291456
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 8685770.736097649,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 8685679.138843033,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 8685770.736097649,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 3,
+        "seed": 20260833,
+        "topology": "star"
+      },
+      "checkpoint_hash": "44a8f313703733c648d7293ab5b496892523b45c46c6196ce9fe41817e58d351",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 8389,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 10,
+        "operator": 0,
+        "probe": 18,
+        "sense": 528507,
+        "tail": 2291465
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 14690811.940449335,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 14690728.061436476,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 14690811.940449335,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "elliptic",
+        "overlap_budget": 6,
+        "seed": 20260833,
+        "topology": "star"
+      },
+      "checkpoint_hash": "0f536a5a004cb6e7d92dcab871d32553942fb0fbd5845a45552d291a1697d6c3",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 9787,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 3,
+        "none": 13
+      },
+      "unified_budget_flow": {
+        "arbitration": 10,
+        "operator": 0,
+        "probe": 36,
+        "sense": 528498,
+        "tail": 2291456
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 125.78686167070973,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 123.70513398636976,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 125.78686167070971,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260833,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "fd133ce790e7b7360bfa4f0c6a5e9c474442c50a701890dc65a1d4fe3f9ede9e",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 31,
+        "operator": 0,
+        "probe": 48,
+        "sense": 1409632,
+        "tail": 1410289
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 173.17891282516166,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 170.81836926749708,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 173.1789128251344,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260833,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "860f537354b14e342f3a17e3153e7b3d0f29f5d505c8aa87671cf4e594f73f42",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 32,
+        "operator": 0,
+        "probe": 96,
+        "sense": 1409632,
+        "tail": 1410240
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 185.10429663854072,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 183.3136957002067,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 185.1042966385407,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 3,
+        "seed": 20260833,
+        "topology": "star"
+      },
+      "checkpoint_hash": "f7ea21521fcf05b840225fcc2db90e838f22a110d70a9f648dae95def85fca73",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 3,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 30,
+        "operator": 0,
+        "probe": 48,
+        "sense": 1409632,
+        "tail": 1410290
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    },
+    {
+      "adapter_ready": true,
+      "arms": {
+        "coordinator": {
+          "final_error": 385.87339397070133,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "oc_unified": {
+          "final_error": 382.6810163077337,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        },
+        "proposal_neighborhood": {
+          "final_error": 385.8733939707013,
+          "strict_best": true,
+          "terminal_fes": 3000000
+        }
+      },
+      "cell": {
+        "base_function": "schwefel",
+        "overlap_budget": 6,
+        "seed": 20260833,
+        "topology": "star"
+      },
+      "checkpoint_hash": "1d7848ce5d5e416992690424812b96f512e707927f45bdb8dd4cf310c4d67fff",
+      "kernel_envelope_no_encroachment": true,
+      "kernel_receipt_parity": true,
+      "layer": "fresh",
+      "phase1_fes": 180000,
+      "sense_budget_fes": 44051,
+      "truth_shared_count": 6,
+      "unified_action_counts": {
+        "arbitration_only": 8,
+        "none": 8
+      },
+      "unified_budget_flow": {
+        "arbitration": 31,
+        "operator": 0,
+        "probe": 96,
+        "sense": 1409632,
+        "tail": 1410241
+      },
+      "unified_receipt_parity": true,
+      "unified_state_hash_chain": true
+    }
+  ],
+  "schema_version": "arac-oc-unified-gate46-v1",
+  "screening_checks": {
+    "not_worse_than_kernel_all": true,
+    "star_no_regression_vs_proposal": true
+  },
+  "summary": {
+    "instance_count": 24,
+    "mean_operator_share": 0.0,
+    "unified_wins_vs_kernel": 22
+  }
+}

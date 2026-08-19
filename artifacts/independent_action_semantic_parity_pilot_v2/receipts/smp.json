@@ -1,0 +1,121 @@
+{
+  "action": "smp",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23988_probes_40_coverage_2250_cold_rescue_visits_1_persistent_rescue_visits_1_global_polish_0"
+      },
+      "final_error": 750901567.5040535,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": false,
+      "reference_mechanism_match": null,
+      "result_hash": "dd8f23367b77ba02eb97b52678809f255088c22ac3a3be77d43911411945ca79",
+      "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23988_probes_40_coverage_2250_cold_rescue_visits_1_persistent_rescue_visits_1_global_polish_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "full_sweeps": 358,
+        "reference_status": "five_seed_mechanism_only",
+        "restart_count": 2380,
+        "session_count": 20,
+        "session_restart_counts": [
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119
+        ],
+        "stale_window": 3,
+        "state_fields": [
+          "covariance",
+          "mean",
+          "path_sigma",
+          "rng_state",
+          "sigma"
+        ],
+        "state_persistence": true,
+        "tail_fes": 70,
+        "visits_per_session": [
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358
+        ]
+      },
+      "final_error": 1103778236.567564,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": true,
+      "reference_mechanism_match": true,
+      "result_hash": "5ba22f0d821c7772dc4166bea99f440b44fa16cf7056a6cad6a19812eb113c44",
+      "route": "historical_stateful_sessions_20_sweeps_358_stale_restarts_2380_tail_70",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "E1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "native_thread_limit_verified": true,
+  "receipt_hash": "e3e38410f3f45a1058c3630e9f8bcd2e4ba7ca60af9454a2e8879655d8efa202",
+  "reference_contract": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+  "reference_contract_sha256": "ddbb8e7cbc341556ae88e0e3eea777a69802e8e1e11b474bffadadb1e217728f",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v2",
+  "screen_checkpoint_hash": "582f5cbdf2fd795d549222d80bddfa838d14da92a39160e081e39d82cbe38350",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "source_phase1_fes": 180000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    }
+  ]
+}

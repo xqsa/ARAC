@@ -1,0 +1,13 @@
+{
+  "action": "ctp",
+  "case_id": "E3",
+  "checkpoint_hash": "f00e18942a80c61c2dbf679d23aae2311c7e2e1e207b10bea40bd8affdda9af2",
+  "dispatch_features": {
+    "structural_relation_density": 0.13450292397660818,
+    "tail_log10_gain": 0.7535859247354305
+  },
+  "final_error": 4676939.790176943,
+  "run_seed": 117,
+  "source": "four_arm_reuse",
+  "terminal_fes": 3000000
+}

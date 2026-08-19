@@ -1,0 +1,35 @@
+{
+  "direct_ctp": {
+    "first_conflict_streak": 1,
+    "first_ctp_triggered": false,
+    "ledger_fes": 17,
+    "second_conflict_streak": 2,
+    "second_ctp_fes": 8,
+    "second_ctp_triggered": true,
+    "strict_best": true
+  },
+  "integration": {
+    "checkpoint_hash": "29345a06d38eb3ccc2d10186d506f2827f94c1fb40903fd86425921fb471bf73",
+    "ctp_fes": [
+      0,
+      0,
+      0
+    ],
+    "ctp_triggered_components": [
+      0,
+      0,
+      0
+    ],
+    "final_error": 0.42551354299863053,
+    "max_conflict_streak": [
+      0,
+      0,
+      0
+    ],
+    "phase1_fes": 240,
+    "phase2_consumed_fes": 1760,
+    "strict_best": true,
+    "terminal_fes": 2000
+  },
+  "schema_version": "arac-overlap-persistent-ctp-gate31-v1"
+}

@@ -1,0 +1,9 @@
+{
+  "historical_terminal_parity_evaluated": false,
+  "mechanism_gate_passed": true,
+  "receipt_hash": "e58f72a15c88d7b94bc92cbfd31123bcd921188f244300a655fad64eb3158dff",
+  "schema_version": "arac-independent-smp-schedule-trace-summary-v2",
+  "selector_evaluation_authorized": false,
+  "summary_hash": "68d5d8007fa45708f6b7ec9f9970cb5620579081a61c1e19f4d92ce22f4a8c05",
+  "terminal_run_authorized": true
+}

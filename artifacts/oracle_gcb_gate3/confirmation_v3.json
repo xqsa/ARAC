@@ -1,0 +1,1311 @@
+{
+  "dispatch_budget_fes": 32,
+  "schema_version": "arac-oracle-gcb-gate3-v1",
+  "seeds": [
+    2026081801,
+    2026081802,
+    2026081803,
+    2026081804,
+    2026081805,
+    2026081806,
+    2026081807,
+    2026081808,
+    2026081809,
+    2026081810,
+    2026081811,
+    2026081812,
+    2026081813,
+    2026081814,
+    2026081815,
+    2026081816,
+    2026081817,
+    2026081818,
+    2026081819,
+    2026081820,
+    2026081821,
+    2026081822,
+    2026081823,
+    2026081824,
+    2026081825
+  ],
+  "summary": {
+    "gate_checks": {
+      "all_archives_nonworsening": true,
+      "all_budgets_exact": true,
+      "all_topologies_have_90pct_gcb_wins_or_ties": false
+    },
+    "gate_passed": false,
+    "pair_hub": {
+      "archive_nonworsening": true,
+      "exact_budget": true,
+      "gcb_losses": 0,
+      "gcb_ties": 25,
+      "gcb_wins": 0,
+      "median_gain": 0.0,
+      "runs": 25,
+      "selection_accuracy": 0.0
+    },
+    "pair_pair": {
+      "archive_nonworsening": true,
+      "exact_budget": true,
+      "gcb_losses": 6,
+      "gcb_ties": 15,
+      "gcb_wins": 4,
+      "median_gain": 0.0,
+      "runs": 25,
+      "selection_accuracy": 0.4
+    }
+  },
+  "trials": [
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3355738037086954,
+      "canonical_priority": 820.3138322668108,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3355738037086954,
+      "gcb_gain": 0.0,
+      "seed": 2026081801,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 820.3138322668108,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.38838259919802853,
+      "canonical_priority": 3578.1797540411862,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.38838259919802853,
+      "gcb_gain": 0.0,
+      "seed": 2026081801,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3578.1797540411862,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.30839136443283555,
+      "canonical_priority": 809.9568397464677,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.30839136443283555,
+      "gcb_gain": 0.0,
+      "seed": 2026081802,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 809.9568397464677,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4027914011323734,
+      "canonical_priority": 3541.7826714974412,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4027914011323734,
+      "gcb_gain": 0.0,
+      "seed": 2026081802,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3541.7826714974412,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3102990718601212,
+      "canonical_priority": 794.3048202966584,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.34040014087223275,
+      "gcb_gain": -0.03010106901211157,
+      "seed": 2026081803,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 807.9369282476518,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.40675950568076924,
+      "canonical_priority": 3490.252863972609,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.40675950568076924,
+      "gcb_gain": 0.0,
+      "seed": 2026081803,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3490.252863972609,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3272503224028098,
+      "canonical_priority": 812.1318020615149,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3272503224028098,
+      "gcb_gain": 0.0,
+      "seed": 2026081804,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 812.1318020615149,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3793159482093772,
+      "canonical_priority": 3522.1669533870017,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3793159482093772,
+      "gcb_gain": 0.0,
+      "seed": 2026081804,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3522.1669533870017,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3132130737292789,
+      "canonical_priority": 793.7862742003894,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3132130737292789,
+      "gcb_gain": 0.0,
+      "seed": 2026081805,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 793.7862742003894,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3895559091410899,
+      "canonical_priority": 3591.185106890168,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3895559091410899,
+      "gcb_gain": 0.0,
+      "seed": 2026081805,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3591.185106890168,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.30074972167472525,
+      "canonical_priority": 762.7525798145398,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3134229776558774,
+      "gcb_gain": -0.012673255981152154,
+      "seed": 2026081806,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 806.9677076502842,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.38367047140376587,
+      "canonical_priority": 3472.4524479842867,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.38367047140376587,
+      "gcb_gain": 0.0,
+      "seed": 2026081806,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3472.4524479842867,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3342118480448686,
+      "canonical_priority": 783.4957340219182,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3342118480448686,
+      "gcb_gain": 0.0,
+      "seed": 2026081807,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 783.4957340219182,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.7543361067048785,
+      "canonical_priority": 3423.318073979583,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.7543361067048785,
+      "gcb_gain": 0.0,
+      "seed": 2026081807,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3423.318073979583,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3305115415231251,
+      "canonical_priority": 826.2493836011203,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3305115415231251,
+      "gcb_gain": 0.0,
+      "seed": 2026081808,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 826.2493836011203,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3719285979665389,
+      "canonical_priority": 3647.6648576761254,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3719285979665389,
+      "gcb_gain": 0.0,
+      "seed": 2026081808,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3647.6648576761254,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31992017648418836,
+      "canonical_priority": 814.0783730141818,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31992017648418836,
+      "gcb_gain": 0.0,
+      "seed": 2026081809,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 814.0783730141818,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.39077412124813826,
+      "canonical_priority": 3570.37913121716,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.39077412124813826,
+      "gcb_gain": 0.0,
+      "seed": 2026081809,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3570.37913121716,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3146409236725459,
+      "canonical_priority": 738.618198414571,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31592081302085856,
+      "gcb_gain": -0.001279889348312635,
+      "seed": 2026081810,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 770.0856846718782,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.43092403974674726,
+      "canonical_priority": 3325.7648769281896,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.43092403974674726,
+      "gcb_gain": 0.0,
+      "seed": 2026081810,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3325.7648769281896,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3671203718449573,
+      "canonical_priority": 794.2800272054908,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3671203718449573,
+      "gcb_gain": 0.0,
+      "seed": 2026081811,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 794.2800272054908,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.38656047120068543,
+      "canonical_priority": 3489.7829186964286,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.38656047120068543,
+      "gcb_gain": 0.0,
+      "seed": 2026081811,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3489.7829186964286,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.33936020306709846,
+      "canonical_priority": 833.2309747431102,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.33936020306709846,
+      "gcb_gain": 0.0,
+      "seed": 2026081812,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 833.2309747431102,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.36526635256685447,
+      "canonical_priority": 3600.0534320113597,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.36526635256685447,
+      "gcb_gain": 0.0,
+      "seed": 2026081812,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3600.0534320113597,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.30696913993817426,
+      "canonical_priority": 794.2366398659748,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.30696913993817426,
+      "gcb_gain": 0.0,
+      "seed": 2026081813,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 794.2366398659748,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.39517630658364605,
+      "canonical_priority": 3524.449670114337,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.39517630658364605,
+      "gcb_gain": 0.0,
+      "seed": 2026081813,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3524.449670114337,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.30686579468578745,
+      "canonical_priority": 830.3311068752147,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.30686579468578745,
+      "gcb_gain": 0.0,
+      "seed": 2026081814,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 830.3311068752147,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.427577793787774,
+      "canonical_priority": 3685.2414406766648,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.427577793787774,
+      "gcb_gain": 0.0,
+      "seed": 2026081814,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3685.2414406766648,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.32095178207022007,
+      "canonical_priority": 767.7007732862378,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3162079777267006,
+      "gcb_gain": 0.004743804343519453,
+      "seed": 2026081815,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 807.482507836466,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.40018371069653974,
+      "canonical_priority": 3424.248105545773,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.40018371069653974,
+      "gcb_gain": 0.0,
+      "seed": 2026081815,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3424.248105545773,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3154151020515144,
+      "canonical_priority": 781.7690191286857,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3098102137583555,
+      "gcb_gain": 0.005604888293158916,
+      "seed": 2026081816,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 810.3395201084936,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.37584631272402963,
+      "canonical_priority": 3529.2955007145124,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.37584631272402963,
+      "gcb_gain": 0.0,
+      "seed": 2026081816,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3529.2955007145124,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3105115386493586,
+      "canonical_priority": 790.3362484226275,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.31964396089627267,
+      "gcb_gain": -0.009132422246914074,
+      "seed": 2026081817,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 790.6798983643596,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.36761112058733025,
+      "canonical_priority": 3522.285568363859,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.36761112058733025,
+      "gcb_gain": 0.0,
+      "seed": 2026081817,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3522.285568363859,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.31052348265564955,
+      "canonical_priority": 789.573542239167,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.33630282940634587,
+      "gcb_gain": -0.02577934675069632,
+      "seed": 2026081818,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 834.6674591407847,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3696219735571204,
+      "canonical_priority": 3509.877622864804,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3696219735571204,
+      "gcb_gain": 0.0,
+      "seed": 2026081818,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3509.877622864804,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3368996150476098,
+      "canonical_priority": 783.6278455117656,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3206609446139915,
+      "gcb_gain": 0.016238670433618263,
+      "seed": 2026081819,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 797.6626545765696,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.732186810018759,
+      "canonical_priority": 3420.375901884041,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.732186810018759,
+      "gcb_gain": 0.0,
+      "seed": 2026081819,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3420.375901884041,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.32052886418750953,
+      "canonical_priority": 776.2046626623506,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3009323755769992,
+      "gcb_gain": 0.019596488610510332,
+      "seed": 2026081820,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 806.2854175833472,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.5056954128591893,
+      "canonical_priority": 3521.0209790272324,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.5056954128591893,
+      "gcb_gain": 0.0,
+      "seed": 2026081820,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3521.0209790272324,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3073841708866778,
+      "canonical_priority": 772.3436840227353,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3073841708866778,
+      "gcb_gain": 0.0,
+      "seed": 2026081821,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 772.3436840227353,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4009894988819046,
+      "canonical_priority": 3407.145186994693,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4009894988819046,
+      "gcb_gain": 0.0,
+      "seed": 2026081821,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3407.145186994693,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.33327855448286775,
+      "canonical_priority": 822.0006693947605,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.33327855448286775,
+      "gcb_gain": 0.0,
+      "seed": 2026081822,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 822.0006693947605,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4037110285114207,
+      "canonical_priority": 3523.090897994891,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4037110285114207,
+      "gcb_gain": 0.0,
+      "seed": 2026081822,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3523.090897994891,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.3416386963084713,
+      "canonical_priority": 799.4206180694289,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3416386963084713,
+      "gcb_gain": 0.0,
+      "seed": 2026081823,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 799.4206180694289,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4099417083870474,
+      "canonical_priority": 3569.7912324048884,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4099417083870474,
+      "gcb_gain": 0.0,
+      "seed": 2026081823,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3569.7912324048884,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.310070208288111,
+      "canonical_priority": 756.7654377820096,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.3252388889378627,
+      "gcb_gain": -0.015168680649751687,
+      "seed": 2026081824,
+      "selected_component": [
+        2,
+        3
+      ],
+      "selected_priority": 769.1093656102997,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4133582065471094,
+      "canonical_priority": 3383.231087745324,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4133582065471094,
+      "gcb_gain": 0.0,
+      "seed": 2026081824,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3383.231087745324,
+      "topology": "pair_hub"
+    },
+    {
+      "canonical_component": [
+        0,
+        1
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.30437298052245465,
+      "canonical_priority": 815.1623578966511,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.30437298052245465,
+      "gcb_gain": 0.0,
+      "seed": 2026081825,
+      "selected_component": [
+        0,
+        1
+      ],
+      "selected_priority": 815.1623578966511,
+      "topology": "pair_pair"
+    },
+    {
+      "canonical_component": [
+        0,
+        1,
+        2
+      ],
+      "canonical_consumed_fes": 32,
+      "canonical_error": 0.4096719625773486,
+      "canonical_priority": 3636.3313983312614,
+      "conflict_levels": [
+        "high",
+        "high"
+      ],
+      "gcb_archive_nonworsening": true,
+      "gcb_consumed_fes": 32,
+      "gcb_error": 0.4096719625773486,
+      "gcb_gain": 0.0,
+      "seed": 2026081825,
+      "selected_component": [
+        0,
+        1,
+        2
+      ],
+      "selected_priority": 3636.3313983312614,
+      "topology": "pair_hub"
+    }
+  ]
+}

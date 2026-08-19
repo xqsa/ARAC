@@ -1,0 +1,59 @@
+{
+  "all_exact_screen_fes": true,
+  "all_runtime_warnings_empty": true,
+  "all_same_screen_checkpoint": true,
+  "all_same_source_checkpoint": true,
+  "native_restart_on_off_identical": true,
+  "native_thread_limit_verified": true,
+  "production_smp_integration_authorized": false,
+  "receipts": [
+    {
+      "consumed_fes": 120000,
+      "final_error": 750901567.5040535,
+      "receipt_hash": "9394a383eb81c7792cd107dd5b27fed85b7e9f01fdb8902fc152e90eab3119d8",
+      "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23988_probes_40_coverage_2250_cold_rescue_visits_1_persistent_rescue_visits_1_global_polish_0",
+      "variant": "current_complete_smp"
+    },
+    {
+      "consumed_fes": 120000,
+      "final_error": 713239809.4987801,
+      "receipt_hash": "cc6cf90fccd9e3d9770152aa18b36fcde68bc60cb393d35bfa6b2add05c0bd12",
+      "route": "diagnostic_schedule_only",
+      "variant": "schedule_only"
+    },
+    {
+      "consumed_fes": 120000,
+      "final_error": 726821281.279799,
+      "receipt_hash": "f1e7f8f39dd23c3536fbafef6c33411dda0156332f2d2d1b7484c7465ccb4b74",
+      "route": "diagnostic_stateful_119989_visits_58_restarts_1_rescue_0_noop_11",
+      "variant": "stateful_native_restart_on"
+    },
+    {
+      "consumed_fes": 120000,
+      "final_error": 726821281.279799,
+      "receipt_hash": "e4926afcdca52ca385cc5171c93dd1d989cd571236435d3f09485e348a9a3645",
+      "route": "diagnostic_stateful_119989_visits_58_restarts_1_rescue_0_noop_11",
+      "variant": "stateful_only"
+    },
+    {
+      "consumed_fes": 120000,
+      "final_error": 750901567.5040535,
+      "receipt_hash": "f7551c9c48a8c6508b0fa9054407f8b4663b3ed575a404f7586f21c27f6f91d8",
+      "route": "diagnostic_stateful_95991_visits_44_restarts_1_rescue_23988_noop_0",
+      "variant": "stateful_plus_rescue"
+    },
+    {
+      "consumed_fes": 120000,
+      "final_error": 809438490.3198969,
+      "receipt_hash": "24c96128f4cfba5d27dcfb64c5b5720ff2ac82381162bf078ff1f01f966e68c7",
+      "route": "diagnostic_stateful_95991_visits_44_restarts_1_rescue_0_noop_24009",
+      "variant": "stateful_prefix_no_rescue"
+    }
+  ],
+  "rescue_final_error_delta_no_rescue_minus_rescue": 58536922.81584346,
+  "schema_version": "arac-smp-semantic-parity-diagnostic-summary-v1",
+  "selector_evaluation_authorized": false,
+  "summary_hash": "541e828ffbf63d921c38f84da8c03e8e85b1f45c2ab67203beb7960852fb7b29",
+  "terminal_parity_evaluated": false,
+  "variant_count": 6
+}

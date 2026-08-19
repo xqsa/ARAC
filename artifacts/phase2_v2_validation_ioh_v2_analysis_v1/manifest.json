@@ -1,0 +1,9 @@
+{
+  "analysis_manifest_sha256": "a911bb9a7cbb2ae8e3ec05723842d66acf5a3fdbf9ab5a0d249b47f367d583f2",
+  "analysis_source_sha256": "2ce77fd34d9175102c5bfe531f866859d14e34d78ca498668353cf37ed6388f3",
+  "comparison_metric": "log10((probe_error + 1) / (mechanism_error + 1))",
+  "input_manifest_sha256": "29ae0964098c4ff2737b72c97db1fcf150b69c4a36384fe55d76937a07369dbc",
+  "input_summary_sha256": "f22fa43ddfd5a14241e2fd3244fe9690174a3b9a06f2d13b22fa49fb2858d922",
+  "receipt_set_sha256": "5f0f63fb29d74f88eb7d2a37b66df01b6e62ee6aaa5d23c52a018223239b6845",
+  "schema_version": "arac-phase2-v2-validation-analysis-manifest-v1"
+}

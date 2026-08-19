@@ -1,0 +1,76 @@
+{
+  "action": "ctp",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "coverage_24000_then_sequential_block_polish_96000"
+      },
+      "final_error": 12414432.545725117,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": false,
+      "reference_mechanism_match": null,
+      "result_hash": "0737f30a691aa96c4d1d090fe37003b384f9bd5b6dcb5ff95d6d81039ccc242b",
+      "route": "coverage_24000_then_sequential_block_polish_96000",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "coverage_fes": 960,
+        "coverage_session_count": 20,
+        "coverage_sweep_fes": [
+          240,
+          240,
+          240,
+          240
+        ],
+        "coverage_sweeps": 4,
+        "polish_fes": 119040,
+        "polish_mode": "unbounded_group_polish",
+        "polished_blocks": 20,
+        "tail_fes": 0
+      },
+      "final_error": 8743694.043145528,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": true,
+      "reference_mechanism_match": true,
+      "result_hash": "635f2a3a9b6ae6f9fdcc4c2450b1f23eabec67e58d0cdf5e1c6b802895f0797d",
+      "route": "historical_coverage_sweeps_4_fes_960_unbounded_group_polish_119040_tail_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "S1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "native_thread_limit_verified": true,
+  "receipt_hash": "7d4861ca76c25286866970942e2d84aac98600649ba5ec9fce76e1fe18d7aa77",
+  "reference_contract": "results/exp_058_ctp_stable_v2_25seed/validation/runs/S1/seed_117/exp_058_ctp_stable_v2_25seed-s1-seed117/schwefel/ctp_stable_action.json",
+  "reference_contract_sha256": "99684aabba2394334da03e89bac7ea9425f21317a02dd553164c2a3c7c4ede25",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v3",
+  "screen_checkpoint_hash": "a2894d7f5a643c6569d3165126f89fab20e1de0a56747d721288fc60314e68f4",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+  "source_phase1_fes": 180000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    }
+  ]
+}

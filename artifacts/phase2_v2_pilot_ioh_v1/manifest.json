@@ -1,0 +1,20 @@
+{
+  "aob_vendor_tree": {
+    "file_count": 67,
+    "tree_sha256": "63919da2d9a501ae43496ddf3fba170ea648237854af4b14febee02f6eb9a612"
+  },
+  "config_sha256": "6f656b8d0a1801ee144e56fa9a6b3969f9e54e6c346f0b98903b3f688e1ee4d8",
+  "ioh_version": "0.3.22",
+  "manifest_sha256": "21bcd057ddb5b39615d461a3829993e69ed773bea143867166280d748d7e94f2",
+  "schema_version": "arac-phase2-v2-pilot-manifest-v1",
+  "source_hashes": {
+    "src/arac/actions/phase2_v2.py": "f4dd779b926ae51ff93b09aefb7cff3e6ebd2a9ee57c0a3876ba3361bb954350",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/benchmarks/ioh_bbob.py": "69c96f577c3e4156aeaa5d2f5654f2037b481f29279c29fe03525ae5aacfff9f",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/evidence/structural.py": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2",
+    "src/arac/runtime/branches.py": "ad670644bcc87a60bd25cfc005244f62da15f514f14ec6ac15226757ae5c8c2a",
+    "src/arac/runtime/optimizers.py": "22eb07bd83429cb75d184e19c9576dc02ad431a0cd31e79c6dc8eed7f956042d",
+    "src/arac/runtime/probe_policy.py": "106ba525ac6167257a9778bce0336f890cee6656d6ab829a7a370d6465b73607"
+  }
+}

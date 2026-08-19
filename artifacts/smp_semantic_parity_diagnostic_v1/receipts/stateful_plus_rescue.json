@@ -1,0 +1,52 @@
+{
+  "case_id": "E1",
+  "native_thread_limit_verified": true,
+  "production_hcc_runtime_imports": [],
+  "receipt_hash": "f7551c9c48a8c6508b0fa9054407f8b4663b3ed575a404f7586f21c27f6f91d8",
+  "result": {
+    "consumed_fes": 120000,
+    "events": {
+      "cold_rescue_visits": 1,
+      "coverage_fes": 2250,
+      "manual_session_loop": true,
+      "noop_fes": 0,
+      "persistent_rescue_visits": 1,
+      "probe_fes": 40,
+      "requested_fes": 120000,
+      "rescue_budget": 24000,
+      "rescue_fes": 23988,
+      "stagnation_restart_count": 1,
+      "stateful_fes": 95991,
+      "terminal_polish_fes": 21,
+      "visit_count": 44
+    },
+    "final_error": 750901567.5040535,
+    "optimizer_package": "pypop7",
+    "optimizer_version": "0.0.82",
+    "result_hash": "759ead4df3dc943fc138c3e218ff1cb45310cbea9a62fbb9e6023d678be8b07a",
+    "route": "diagnostic_stateful_95991_visits_44_restarts_1_rescue_23988_noop_0",
+    "terminal_fes": 300000
+  },
+  "run_seed": 117,
+  "runtime_warnings": [],
+  "schema_version": "arac-smp-semantic-parity-diagnostic-receipt-v1",
+  "screen_checkpoint_hash": "582f5cbdf2fd795d549222d80bddfa838d14da92a39160e081e39d82cbe38350",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "source_phase1_fes": 180000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    }
+  ],
+  "variant": "stateful_plus_rescue"
+}

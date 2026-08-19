@@ -1,0 +1,63 @@
+{
+  "actions": [
+    {
+      "action": "ctp",
+      "bit_identical": true,
+      "one_shot_final_error": 9.116478193103038e-27,
+      "segmented_final_error": 9.116478193103038e-27,
+      "segments": 22,
+      "snapshot_restores": 21
+    },
+    {
+      "action": "smp",
+      "bit_identical": true,
+      "one_shot_final_error": 9.376158532260373e-27,
+      "segmented_final_error": 9.376158532260373e-27,
+      "segments": 22,
+      "snapshot_restores": 21
+    },
+    {
+      "action": "gcb",
+      "bit_identical": true,
+      "one_shot_final_error": 1.2217054648606235e-20,
+      "segmented_final_error": 1.2217054648606235e-20,
+      "segments": 22,
+      "snapshot_restores": 21
+    },
+    {
+      "action": "aor",
+      "bit_identical": true,
+      "one_shot_final_error": 8.983934639087894e-27,
+      "segmented_final_error": 8.983934639087894e-27,
+      "segments": 22,
+      "snapshot_restores": 21
+    }
+  ],
+  "checks": {
+    "aor_segment_equivalence": true,
+    "ctp_segment_equivalence": true,
+    "gcb_segment_equivalence": true,
+    "smp_segment_equivalence": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "action_seed": 20260850,
+    "block_size": 50,
+    "chunk_pattern": [
+      37,
+      9991,
+      111,
+      50003,
+      7,
+      123457,
+      999,
+      13,
+      61003,
+      2003
+    ],
+    "dimension": 1000,
+    "phase1_fes": 100000,
+    "total_fes": 600000
+  },
+  "schema_version": "arac-oc-gate50a-equivalence-v1"
+}

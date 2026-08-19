@@ -1,0 +1,29 @@
+{
+  "generated_at_utc": "2026-07-31T09:12:18.846402+00:00",
+  "holdout_label_counts": {
+    "aor": 8,
+    "ctp": 6,
+    "gcb": 3,
+    "smp": 7
+  },
+  "holdout_records": 24,
+  "max_fes": 3000000,
+  "schema_version": "arac-selector-calibration-summary-v1",
+  "selector": {
+    "evaluation_path": "E:\\ARAC\\artifacts\\selectors\\outcome_v1\\outcome_selector_evaluation.json",
+    "holdout_accuracy": 0.75,
+    "holdout_passed": true,
+    "metadata_path": "E:\\ARAC\\artifacts\\selectors\\outcome_v1\\outcome_selector.json",
+    "model_path": "E:\\ARAC\\artifacts\\selectors\\outcome_v1\\outcome_selector.joblib",
+    "model_sha256": "861252e120f7cc3eadf81b352b7a05a8ca67604ec139541445b227538bc265e9",
+    "training_accuracy": 1.0,
+    "training_seed_cv_accuracy": 0.7083333333333334
+  },
+  "training_label_counts": {
+    "aor": 15,
+    "ctp": 21,
+    "gcb": 16,
+    "smp": 20
+  },
+  "training_records": 72
+}

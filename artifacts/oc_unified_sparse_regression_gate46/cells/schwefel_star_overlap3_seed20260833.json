@@ -1,0 +1,49 @@
+{
+  "result": {
+    "adapter_ready": true,
+    "arms": {
+      "coordinator": {
+        "final_error": 185.10429663854072,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "oc_unified": {
+        "final_error": 183.3136957002067,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "proposal_neighborhood": {
+        "final_error": 185.1042966385407,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    "cell": {
+      "base_function": "schwefel",
+      "overlap_budget": 3,
+      "seed": 20260833,
+      "topology": "star"
+    },
+    "checkpoint_hash": "f7ea21521fcf05b840225fcc2db90e838f22a110d70a9f648dae95def85fca73",
+    "kernel_envelope_no_encroachment": true,
+    "kernel_receipt_parity": true,
+    "layer": "fresh",
+    "phase1_fes": 180000,
+    "sense_budget_fes": 44051,
+    "truth_shared_count": 3,
+    "unified_action_counts": {
+      "arbitration_only": 8,
+      "none": 8
+    },
+    "unified_budget_flow": {
+      "arbitration": 30,
+      "operator": 0,
+      "probe": 48,
+      "sense": 1409632,
+      "tail": 1410290
+    },
+    "unified_receipt_parity": true,
+    "unified_state_hash_chain": true
+  },
+  "schema_version": "arac-oc-unified-gate46-cell-v1"
+}

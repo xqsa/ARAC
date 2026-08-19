@@ -1,0 +1,50 @@
+{
+  "schema_version": "arac-phase2-v2-pilot-config-v2",
+  "ioh_version": "0.3.22",
+  "global_max_fes": 4096,
+  "branch_probe_fes": 64,
+  "decision_horizon_fes": 32,
+  "exploration_floor_fes": 64,
+  "min_relative_margin": 0.05,
+  "min_leader_stability": 0.2,
+  "runs": [
+    {
+      "suite": "aob",
+      "case": "A1",
+      "run_seed": 20261101
+    },
+    {
+      "suite": "aob",
+      "case": "S1",
+      "run_seed": 20261102
+    },
+    {
+      "suite": "ioh_bbob",
+      "function_id": 1,
+      "instance": 11,
+      "dimension": 40,
+      "run_seed": 20261103
+    },
+    {
+      "suite": "ioh_bbob",
+      "function_id": 8,
+      "instance": 11,
+      "dimension": 40,
+      "run_seed": 20261104
+    },
+    {
+      "suite": "ioh_bbob",
+      "function_id": 15,
+      "instance": 11,
+      "dimension": 40,
+      "run_seed": 20261105
+    },
+    {
+      "suite": "ioh_bbob",
+      "function_id": 21,
+      "instance": 11,
+      "dimension": 40,
+      "run_seed": 20261106
+    }
+  ]
+}

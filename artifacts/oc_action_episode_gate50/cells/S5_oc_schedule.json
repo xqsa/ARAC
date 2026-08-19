@@ -1,0 +1,107 @@
+{
+  "result": {
+    "arm": "oc_schedule",
+    "case_id": "S5",
+    "checkpoint_hash": "5671ee7b1fa2a8046ec381fe7657f2bfdd44226d0eeaed738bdf542f0649ba59",
+    "incumbent_error": 159723190.18357623,
+    "result": {
+      "final_error": 13244.72686263674,
+      "funded_fes": {
+        "aor": 0,
+        "ctp": 2820000,
+        "gcb": 0,
+        "smp": 0
+      },
+      "receipts_valid": true,
+      "schedule_hash": "b6da29a02b0f74a9b603af8c3ef0d3f38eae4ec5331869e3d93fb7325ac463b5",
+      "segments": [
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 1.4672253539195073,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 2.0764435432620147,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 1.5444900830475756,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 1.5411803690621206,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 0.6956684450849413,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 0.602995464409418,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 0.5678620548503667,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 0.4455201028283794,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 300000,
+          "episode": "ctp",
+          "log_gain": 0.34969293285807307,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        },
+        {
+          "consumed_fes": 120000,
+          "episode": "ctp",
+          "log_gain": 0.10651968466752718,
+          "material": true,
+          "next_episode": "ctp",
+          "switched": false
+        }
+      ],
+      "switches": 0,
+      "terminal_fes": 3000000
+    },
+    "structure": {
+      "cached": true
+    }
+  },
+  "schema_version": "arac-oc-gate50-cell-v1"
+}

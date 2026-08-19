@@ -1,0 +1,1164 @@
+{
+  "sample_fes_per_group": 512,
+  "schema_version": "arac-oracle-overlap-gate1-v1",
+  "seeds": [
+    2026081301,
+    2026081302,
+    2026081303,
+    2026081304,
+    2026081305,
+    2026081306,
+    2026081307,
+    2026081308,
+    2026081309,
+    2026081310,
+    2026081311,
+    2026081312,
+    2026081313,
+    2026081314,
+    2026081315,
+    2026081316,
+    2026081317,
+    2026081318,
+    2026081319,
+    2026081320,
+    2026081321,
+    2026081322,
+    2026081323,
+    2026081324,
+    2026081325
+  ],
+  "summary": {
+    "conflicting": {
+      "coordination_losses": 0,
+      "coordination_ties": 0,
+      "coordination_wins": 25,
+      "high_rate": 1.0,
+      "low_rate": 0.0,
+      "median_conflict_score": 4.503487869655556,
+      "median_coordination_gain": 1.8093285548793931,
+      "runs": 25,
+      "strict_best_monotone": true
+    },
+    "conforming": {
+      "coordination_losses": 0,
+      "coordination_ties": 0,
+      "coordination_wins": 25,
+      "high_rate": 0.0,
+      "low_rate": 1.0,
+      "median_conflict_score": 0.011780197559680034,
+      "median_coordination_gain": 0.840093514832355,
+      "runs": 25,
+      "strict_best_monotone": true
+    },
+    "gate_checks": {
+      "conflicting_coordination_win_rate_at_least_0_6": true,
+      "conflicting_high_rate_at_least_0_8": true,
+      "conforming_low_rate_at_least_0_8": true,
+      "strict_best_monotone_in_all_runs": true
+    },
+    "gate_passed": true
+  },
+  "trials": [
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.001589092107725364,
+      "coordinated_error": 0.3336812181214769,
+      "coordination_gain": 1.0483760237306061,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.41261683412758304,
+        0.5772269842941752
+      ],
+      "proposal_values": [
+        1.516269479727712,
+        1.5557280410843042
+      ],
+      "seed": 2026081301,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.382057241852083
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 6.6405939466332145,
+      "coordinated_error": 2.4901859556781814,
+      "coordination_gain": 1.5216660951146546,
+      "owner_error": 4.505408272191951,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5344157088341234,
+        0.2876781835124126
+      ],
+      "proposal_values": [
+        -1.199249759830765,
+        0.91925395246726
+      ],
+      "seed": 2026081301,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.011852050792836
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.01749157261973272,
+      "coordinated_error": 0.4679293370679104,
+      "coordination_gain": 0.876962443772049,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4885196919894544,
+        0.4560162883587467
+      ],
+      "proposal_values": [
+        1.7223142744457576,
+        1.5973936219659368
+      ],
+      "seed": 2026081302,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3448917808399594
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 3.4182750256796046,
+      "coordinated_error": 2.0435206490096305,
+      "coordination_gain": 2.0006505191182673,
+      "owner_error": 4.094411820691693,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5196351513766931,
+        0.5456566837613193
+      ],
+      "proposal_values": [
+        -0.8154147992398952,
+        1.1541589663796552
+      ],
+      "seed": 2026081302,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.044171168127898
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.00014424431330206967,
+      "coordinated_error": 0.4699866643593799,
+      "coordination_gain": 0.8706822874616615,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4152710408399009,
+        0.4489408367152391
+      ],
+      "proposal_values": [
+        1.6521570625935613,
+        1.6417777074326967
+      ],
+      "seed": 2026081303,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3406689518210415
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.015920511784835,
+      "coordinated_error": 1.6599348630331097,
+      "coordination_gain": 1.7958526900489904,
+      "owner_error": 3.4557875530821,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.528874712244011,
+        0.4640466386885333
+      ],
+      "proposal_values": [
+        -0.9414348588851467,
+        1.0483738798493452
+      ],
+      "seed": 2026081303,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.4557875530821
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.0002233765233302808,
+      "coordinated_error": 0.6016232278717294,
+      "coordination_gain": 0.7581836758603889,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4661402759715647,
+        0.38113086811916014
+      ],
+      "proposal_values": [
+        1.7088695749228293,
+        1.7215327381733996
+      ],
+      "seed": 2026081304,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3598069037321183
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 6.473595036934545,
+      "coordinated_error": 1.9975959368331524,
+      "coordination_gain": 2.0550347471897896,
+      "owner_error": 4.7730693723807995,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.48908335733722186,
+        0.437610992124224
+      ],
+      "proposal_values": [
+        -1.240987230116368,
+        1.1168362729184267
+      ],
+      "seed": 2026081304,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.052630684022942
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.11044569067384154,
+      "coordinated_error": 0.7180468519869703,
+      "coordination_gain": 0.6894161590385044,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.48156865835955054,
+        0.5101017836386065
+      ],
+      "proposal_values": [
+        1.4752064208878783,
+        1.8047764997584368
+      ],
+      "seed": 2026081305,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.4074630110254747
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 3.846289137487433,
+      "coordinated_error": 1.7294099802951064,
+      "coordination_gain": 1.5703563104115665,
+      "owner_error": 3.299766290706673,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5340696446240522,
+        0.5086571295768532
+      ],
+      "proposal_values": [
+        -1.0011459034659267,
+        1.0438952020539762
+      ],
+      "seed": 2026081305,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.299766290706673
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.011780197559680034,
+      "coordinated_error": 0.49626700020056796,
+      "coordination_gain": 0.8422438848841594,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.40225516810041106,
+        0.4295981414979499
+      ],
+      "proposal_values": [
+        1.7253392264341407,
+        1.6350524950548166
+      ],
+      "seed": 2026081306,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3385108850847274
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 2.9288555219439663,
+      "coordinated_error": 1.6613731358973511,
+      "coordination_gain": 1.645578106389569,
+      "owner_error": 3.30695124228692,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4924357893660457,
+        0.5542294263397606
+      ],
+      "proposal_values": [
+        -0.9159392744355443,
+        0.8753136380087954
+      ],
+      "seed": 2026081306,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.30695124228692
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.0007188339375662776,
+      "coordinated_error": 0.6538652661630964,
+      "coordination_gain": 0.6913930203218723,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.39212973297471304,
+        0.4662050946570079
+      ],
+      "proposal_values": [
+        1.7438132188146795,
+        1.7668262951662381
+      ],
+      "seed": 2026081307,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3452582864849687
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.24404684713097,
+      "coordinated_error": 2.079619158564299,
+      "coordination_gain": 1.939537930147099,
+      "owner_error": 4.06805842050143,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.44329115325935325,
+        0.40626961499345166
+      ],
+      "proposal_values": [
+        -0.8394128524204989,
+        0.9108073486859487
+      ],
+      "seed": 2026081307,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.019157088711398
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.010824744511231749,
+      "coordinated_error": 0.506049077667918,
+      "coordination_gain": 0.8360905312892765,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5231193239695716,
+        0.49563675362892157
+      ],
+      "proposal_values": [
+        1.7431764414512028,
+        1.6371828033446851
+      ],
+      "seed": 2026081308,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3421396089571944
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 5.7367759017524484,
+      "coordinated_error": 1.6476718431199109,
+      "coordination_gain": 1.9102473348604094,
+      "owner_error": 3.5579191779803203,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.46025703765389325,
+        0.40399838533335697
+      ],
+      "proposal_values": [
+        -1.012633670672671,
+        1.0574133016772027
+      ],
+      "seed": 2026081308,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.5579191779803203
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.00797666587753919,
+      "coordinated_error": 0.5316297956065799,
+      "coordination_gain": 0.8275940585886492,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5582647075637256,
+        0.4166281721426703
+      ],
+      "proposal_values": [
+        1.7587093178839117,
+        1.6716395038487075
+      ],
+      "seed": 2026081309,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.359223854195229
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 6.739848993169075,
+      "coordinated_error": 2.164990800629089,
+      "coordination_gain": 1.869595082309686,
+      "owner_error": 4.764281316317547,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.3616872871443128,
+        0.40941544240718863
+      ],
+      "proposal_values": [
+        -1.059756801637957,
+        0.9421204802736058
+      ],
+      "seed": 2026081309,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.034585882938775
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.015169378132656937,
+      "coordinated_error": 0.3112808071017647,
+      "coordination_gain": 1.030394104732047,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.444453689348605,
+        0.5204289135560721
+      ],
+      "proposal_values": [
+        1.6051348882046783,
+        1.4862957608232596
+      ],
+      "seed": 2026081310,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3416749118338118
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 5.13784153835849,
+      "coordinated_error": 1.941299417008638,
+      "coordination_gain": 1.8093285548793931,
+      "owner_error": 3.750627971888031,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.45640848076932916,
+        0.3673653277016854
+      ],
+      "proposal_values": [
+        -0.8725114795215325,
+        0.9947234655855093
+      ],
+      "seed": 2026081310,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.750627971888031
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.006283504713977176,
+      "coordinated_error": 0.6456832602215528,
+      "coordination_gain": 0.7089066240745046,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.559616574520015,
+        0.5221141132729626
+      ],
+      "proposal_values": [
+        1.7455267726134176,
+        1.8312740518188333
+      ],
+      "seed": 2026081311,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3545898842960573
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.051537354680298,
+      "coordinated_error": 1.6778170247798714,
+      "coordination_gain": 2.004388147911663,
+      "owner_error": 3.682205172691534,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4564786466699434,
+        0.5182345037510351
+      ],
+      "proposal_values": [
+        -0.8158560320975146,
+        1.14610979633862
+      ],
+      "seed": 2026081311,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.682205172691534
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.025236448683271556,
+      "coordinated_error": 0.5263992940522086,
+      "coordination_gain": 0.8091469021062949,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4857371546422081,
+        0.47539684023920536
+      ],
+      "proposal_values": [
+        1.7923607206041972,
+        1.6396749908631172
+      ],
+      "seed": 2026081312,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3355461961585036
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 5.3911852265041045,
+      "coordinated_error": 1.8029091958529826,
+      "coordination_gain": 2.2158797617873125,
+      "owner_error": 4.023283717645168,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4778869601661631,
+        0.36203191112058214
+      ],
+      "proposal_values": [
+        -1.0767347712295803,
+        0.873466787250865
+      ],
+      "seed": 2026081312,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.018788957640295
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.024541992432493887,
+      "coordinated_error": 0.40438959363728144,
+      "coordination_gain": 0.9313060247983422,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.46485571813463183,
+        0.4266475800491535
+      ],
+      "proposal_values": [
+        1.7062636591369165,
+        1.5666017389584503
+      ],
+      "seed": 2026081313,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3356956184356237
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 6.764926603045024,
+      "coordinated_error": 2.281338675769436,
+      "coordination_gain": 1.726205859256365,
+      "owner_error": 4.506185548835157,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.3737390157372337,
+        0.44794721202465126
+      ],
+      "proposal_values": [
+        -1.0590834075715008,
+        1.0780791655757218
+      ],
+      "seed": 2026081313,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.007544535025801
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.013652447805603036,
+      "coordinated_error": 0.3680204619486011,
+      "coordination_gain": 0.9654587304032907,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4480815214298177,
+        0.5319413636596925
+      ],
+      "proposal_values": [
+        1.657978365335575,
+        1.5434687733665644
+      ],
+      "seed": 2026081314,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3334791923518918
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 3.6317874607684155,
+      "coordinated_error": 1.7275349174872994,
+      "coordination_gain": 1.5065449286548374,
+      "owner_error": 3.2340798461421367,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4986317106543496,
+        0.5091342327975723
+      ],
+      "proposal_values": [
+        -0.9952110040189357,
+        0.9253168595675021
+      ],
+      "seed": 2026081314,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.2340798461421367
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.006913273433596044,
+      "coordinated_error": 0.37339593000857074,
+      "coordination_gain": 0.9754058302817148,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5204457117429026,
+        0.47308749638627595
+      ],
+      "proposal_values": [
+        1.6407723148986024,
+        1.5581639021985216
+      ],
+      "seed": 2026081315,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3488017602902855
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.503487869655556,
+      "coordinated_error": 1.7383132633866365,
+      "coordination_gain": 1.7353060222188634,
+      "owner_error": 3.4736192856055,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.42605829337226714,
+        0.4558460931407487
+      ],
+      "proposal_values": [
+        -1.0109842283265547,
+        0.8605512520822671
+      ],
+      "seed": 2026081315,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.4736192856055
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.009674309079061997,
+      "coordinated_error": 0.4156610489098325,
+      "coordination_gain": 0.9387616757063844,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5286286825192753,
+        0.47007940739101106
+      ],
+      "proposal_values": [
+        1.5545482527902328,
+        1.652779404238096
+      ],
+      "seed": 2026081316,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3544227246162168
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.664308444634118,
+      "coordinated_error": 2.00769112467419,
+      "coordination_gain": 1.7825154750393524,
+      "owner_error": 3.7902065997135423,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.37455072868993056,
+        0.5368503185513792
+      ],
+      "proposal_values": [
+        -0.9890135765865322,
+        0.9793401880046835
+      ],
+      "seed": 2026081316,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.7902065997135423
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.032952224511910454,
+      "coordinated_error": 0.49747070164560236,
+      "coordination_gain": 0.840093514832355,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5016498024281575,
+        0.3912859685200258
+      ],
+      "proposal_values": [
+        1.781993551423236,
+        1.6199004459773167
+      ],
+      "seed": 2026081317,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3375642164779573
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 5.45561879289157,
+      "coordinated_error": 2.7237917005151386,
+      "coordination_gain": 1.3087933794707736,
+      "owner_error": 5.673216309977359,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4709390865079403,
+        0.5008693847061119
+      ],
+      "proposal_values": [
+        -1.1473784712222543,
+        1.1225105489451979
+      ],
+      "seed": 2026081317,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.032585079985912
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.0005694089335581584,
+      "coordinated_error": 0.5924857802841227,
+      "coordination_gain": 0.7550648723531691,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.3739212113732078,
+        0.3560815828990165
+      ],
+      "proposal_values": [
+        1.7782700103119033,
+        1.7608504706926622
+      ],
+      "seed": 2026081318,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3475506526372918
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 2.9873639283460767,
+      "coordinated_error": 1.5174608352502685,
+      "coordination_gain": 1.2286588890041916,
+      "owner_error": 2.74611972425446,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4832647058235805,
+        0.5385037740275632
+      ],
+      "proposal_values": [
+        -0.9002143838662757,
+        0.8658209676668513
+      ],
+      "seed": 2026081318,
+      "total_fes": 1029,
+      "uncoordinated_error": 2.74611972425446
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.00016244161485389296,
+      "coordinated_error": 0.4196306082590984,
+      "coordination_gain": 0.9207836111489212,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4714647346413198,
+        0.42317971224246465
+      ],
+      "proposal_values": [
+        1.6342221754300734,
+        1.6228196962453199
+      ],
+      "seed": 2026081319,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3404142194080195
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 5.55119910293085,
+      "coordinated_error": 2.5691156712707746,
+      "coordination_gain": 1.4499183051607551,
+      "owner_error": 4.640613641321283,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.45972417843130614,
+        0.4546446974072861
+      ],
+      "proposal_values": [
+        -1.1738872500696544,
+        0.9804636881189017
+      ],
+      "seed": 2026081319,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.01903397643153
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.048675771486830666,
+      "coordinated_error": 0.5615223212015694,
+      "coordination_gain": 0.7734189170349766,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.54327927063426,
+        0.3612651598514608
+      ],
+      "proposal_values": [
+        1.8689743410834199,
+        1.6694071108815223
+      ],
+      "seed": 2026081320,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.334941238236546
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 3.965975416738902,
+      "coordinated_error": 2.0668757897761036,
+      "coordination_gain": 1.9505519176816541,
+      "owner_error": 4.096446434210275,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5571858904153516,
+        0.4307912216398135
+      ],
+      "proposal_values": [
+        -0.9094783946945304,
+        1.0580540057183745
+      ],
+      "seed": 2026081320,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.017427707457758
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.06557771373896264,
+      "coordinated_error": 0.46933128495558957,
+      "coordination_gain": 0.8919234008527941,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4225915591672702,
+        0.514450110066089
+      ],
+      "proposal_values": [
+        1.5320814210160956,
+        1.7720404267587435
+      ],
+      "seed": 2026081321,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3612546858083836
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.137066440878721,
+      "coordinated_error": 1.906856521010956,
+      "coordination_gain": 1.8965153838532842,
+      "owner_error": 3.8033719048642403,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.46204095135571804,
+        0.4733566331922947
+      ],
+      "proposal_values": [
+        -1.0294175638064178,
+        0.8731631200799699
+      ],
+      "seed": 2026081321,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.8033719048642403
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.014224671705683742,
+      "coordinated_error": 0.6555038012741514,
+      "coordination_gain": 0.7162913045830268,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4706903162204542,
+        0.4997490395074256
+      ],
+      "proposal_values": [
+        1.8274447200999777,
+        1.7117031070709219
+      ],
+      "seed": 2026081322,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.3717951058571782
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 3.516416867181946,
+      "coordinated_error": 1.9356765594483254,
+      "coordination_gain": 2.0995992021796197,
+      "owner_error": 4.1787439148633645,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.5751136710638266,
+        0.4658917762083291
+      ],
+      "proposal_values": [
+        -0.8095149087072309,
+        1.1425919804411144
+      ],
+      "seed": 2026081322,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.035275761627945
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.025821457380631605,
+      "coordinated_error": 0.6733673668385584,
+      "coordination_gain": 0.6684036077294507,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.38539912162970735,
+        0.4373675356513371
+      ],
+      "proposal_values": [
+        1.8338850500907835,
+        1.701673224467136
+      ],
+      "seed": 2026081323,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.341770974568009
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 3.495840953681848,
+      "coordinated_error": 2.131568133396645,
+      "coordination_gain": 1.817271094150135,
+      "owner_error": 3.94883922754678,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.47682880350460294,
+        0.4484541590956384
+      ],
+      "proposal_values": [
+        -0.8035067072473736,
+        0.9265533892547948
+      ],
+      "seed": 2026081323,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.94883922754678
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.0005796107960081752,
+      "coordinated_error": 0.2750748879010615,
+      "coordination_gain": 1.1289608584253514,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.41969690432458095,
+        0.43355555195368894
+      ],
+      "proposal_values": [
+        1.4726943610741472,
+        1.4932365057716783
+      ],
+      "seed": 2026081324,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.4040357463264128
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.5720513010713955,
+      "coordinated_error": 2.028773871239588,
+      "coordination_gain": 1.9247871717703058,
+      "owner_error": 3.953561043009894,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.526952223326064,
+        0.5652031706661765
+      ],
+      "proposal_values": [
+        -1.1768364575139114,
+        1.158589620052469
+      ],
+      "seed": 2026081324,
+      "total_fes": 1029,
+      "uncoordinated_error": 3.953561043009894
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 2,
+      "case": "conforming",
+      "conflict_level": "low",
+      "conflict_score": 0.05492804343104618,
+      "coordinated_error": 0.5707296297687124,
+      "coordination_gain": 0.7755772212471935,
+      "owner_error": Infinity,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.4932788204244809,
+        0.37258448613464756
+      ],
+      "proposal_values": [
+        1.5470078916711838,
+        1.7499399885177596
+      ],
+      "seed": 2026081325,
+      "total_fes": 1027,
+      "uncoordinated_error": 1.346306851015906
+    },
+    {
+      "accepted_candidate": "weighted_mean",
+      "arbitration_fes": 4,
+      "case": "conflicting",
+      "conflict_level": "high",
+      "conflict_score": 4.93080291837287,
+      "coordinated_error": 2.51994788746399,
+      "coordination_gain": 1.5028092256966663,
+      "owner_error": 4.9439332713793895,
+      "proposal_fes": 1025,
+      "proposal_uncertainties": [
+        0.47249451306984236,
+        0.47024490084518467
+      ],
+      "proposal_values": [
+        -1.099538435912437,
+        0.9938534425781178
+      ],
+      "seed": 2026081325,
+      "total_fes": 1029,
+      "uncoordinated_error": 4.022757113160656
+    }
+  ]
+}

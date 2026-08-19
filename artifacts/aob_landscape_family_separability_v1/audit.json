@@ -1,0 +1,4201 @@
+{
+  "audit_sha256": "9bb40b6132418a3fb4dd1055f4078d5a7c6223733a11c374fbd6d005a0387bdd",
+  "chance_balanced_accuracy": 0.25,
+  "cross_validation": {
+    "fold_count": 6,
+    "strategy": "leave-one-variant-index-out",
+    "test_contexts_per_fold": 100,
+    "training_contexts_per_fold": 500
+  },
+  "excluded_identity_and_outcome_fields": [
+    "case_id",
+    "family",
+    "final_error",
+    "run_seed",
+    "selected_action",
+    "variant_index"
+  ],
+  "feature_groups": {
+    "all_40": {
+      "accuracy": 0.978333333333,
+      "analysis_role": "primary",
+      "balanced_accuracy": 0.978333333333,
+      "coefficient_stability": {
+        "mean_pairwise_importance_correlation": 0.989830469359,
+        "minimum_pairwise_importance_correlation": 0.980214145405
+      },
+      "confusion_matrix": [
+        [
+          150,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          141,
+          0,
+          9
+        ],
+        [
+          0,
+          0,
+          147,
+          3
+        ],
+        [
+          0,
+          0,
+          1,
+          149
+        ]
+      ],
+      "excluded_features": [],
+      "family_recall": {
+        "A": 1.0,
+        "E": 0.94,
+        "R": 0.98,
+        "S": 0.993333333333
+      },
+      "feature_count": 40,
+      "feature_importance": [
+        {
+          "feature": "tail_log10_gain",
+          "mean_abs_standardized_coefficient": 1.586515100839,
+          "std_abs_standardized_coefficient": 0.033800982244
+        },
+        {
+          "feature": "log10_best_probe_error",
+          "mean_abs_standardized_coefficient": 1.058868963395,
+          "std_abs_standardized_coefficient": 0.041310576525
+        },
+        {
+          "feature": "log10_center_error",
+          "mean_abs_standardized_coefficient": 1.05709206528,
+          "std_abs_standardized_coefficient": 0.04130120644
+        },
+        {
+          "feature": "warmup_log10_gain",
+          "mean_abs_standardized_coefficient": 0.631674821026,
+          "std_abs_standardized_coefficient": 0.035897713373
+        },
+        {
+          "feature": "phase1_log10_improvement",
+          "mean_abs_standardized_coefficient": 0.61903962667,
+          "std_abs_standardized_coefficient": 0.022303251087
+        },
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 0.568709228965,
+          "std_abs_standardized_coefficient": 0.036487196005
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 0.44287885226,
+          "std_abs_standardized_coefficient": 0.014116095768
+        },
+        {
+          "feature": "late_gain_fraction",
+          "mean_abs_standardized_coefficient": 0.368378812356,
+          "std_abs_standardized_coefficient": 0.019566731155
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.354224201523,
+          "std_abs_standardized_coefficient": 0.014103184145
+        },
+        {
+          "feature": "structural_relation_density",
+          "mean_abs_standardized_coefficient": 0.326881733031,
+          "std_abs_standardized_coefficient": 0.125501594085
+        },
+        {
+          "feature": "line_high_frequency_fraction_std",
+          "mean_abs_standardized_coefficient": 0.242321492198,
+          "std_abs_standardized_coefficient": 0.025437949568
+        },
+        {
+          "feature": "structural_probe_fraction",
+          "mean_abs_standardized_coefficient": 0.216569043292,
+          "std_abs_standardized_coefficient": 0.050431431599
+        },
+        {
+          "feature": "structure_log10_gain",
+          "mean_abs_standardized_coefficient": 0.17895860464,
+          "std_abs_standardized_coefficient": 0.026274262508
+        },
+        {
+          "feature": "line_residual_std_minimum",
+          "mean_abs_standardized_coefficient": 0.153449740641,
+          "std_abs_standardized_coefficient": 0.002038944745
+        },
+        {
+          "feature": "block_asymmetry_median",
+          "mean_abs_standardized_coefficient": 0.151201032473,
+          "std_abs_standardized_coefficient": 0.030631017476
+        },
+        {
+          "feature": "line_residual_max_minimum",
+          "mean_abs_standardized_coefficient": 0.148593318651,
+          "std_abs_standardized_coefficient": 0.00170244332
+        },
+        {
+          "feature": "line_second_difference_total_minimum",
+          "mean_abs_standardized_coefficient": 0.148572676803,
+          "std_abs_standardized_coefficient": 0.002606408961
+        },
+        {
+          "feature": "line_third_difference_std_minimum",
+          "mean_abs_standardized_coefficient": 0.147836656046,
+          "std_abs_standardized_coefficient": 0.002612556552
+        },
+        {
+          "feature": "line_residual_max_median",
+          "mean_abs_standardized_coefficient": 0.14778690183,
+          "std_abs_standardized_coefficient": 0.001826315103
+        },
+        {
+          "feature": "line_residual_std_median",
+          "mean_abs_standardized_coefficient": 0.147554233544,
+          "std_abs_standardized_coefficient": 0.002078638389
+        },
+        {
+          "feature": "line_residual_max_std",
+          "mean_abs_standardized_coefficient": 0.144796212656,
+          "std_abs_standardized_coefficient": 0.024755096415
+        },
+        {
+          "feature": "line_residual_std_maximum",
+          "mean_abs_standardized_coefficient": 0.144183390432,
+          "std_abs_standardized_coefficient": 0.002499196475
+        },
+        {
+          "feature": "line_second_difference_total_median",
+          "mean_abs_standardized_coefficient": 0.143214093737,
+          "std_abs_standardized_coefficient": 0.001930346964
+        },
+        {
+          "feature": "block_response_median",
+          "mean_abs_standardized_coefficient": 0.142935488802,
+          "std_abs_standardized_coefficient": 0.03334603789
+        },
+        {
+          "feature": "line_residual_max_maximum",
+          "mean_abs_standardized_coefficient": 0.142268227947,
+          "std_abs_standardized_coefficient": 0.003188308311
+        },
+        {
+          "feature": "line_third_difference_std_median",
+          "mean_abs_standardized_coefficient": 0.141709506653,
+          "std_abs_standardized_coefficient": 0.002206586097
+        },
+        {
+          "feature": "line_second_difference_total_maximum",
+          "mean_abs_standardized_coefficient": 0.136771976302,
+          "std_abs_standardized_coefficient": 0.002162220093
+        },
+        {
+          "feature": "line_third_difference_std_maximum",
+          "mean_abs_standardized_coefficient": 0.13615654513,
+          "std_abs_standardized_coefficient": 0.002019917791
+        },
+        {
+          "feature": "probe_log_relative_std",
+          "mean_abs_standardized_coefficient": 0.132117153122,
+          "std_abs_standardized_coefficient": 0.017915598545
+        },
+        {
+          "feature": "line_residual_std_std",
+          "mean_abs_standardized_coefficient": 0.123104248776,
+          "std_abs_standardized_coefficient": 0.015461586811
+        },
+        {
+          "feature": "line_third_difference_std_std",
+          "mean_abs_standardized_coefficient": 0.107389201459,
+          "std_abs_standardized_coefficient": 0.003799642092
+        },
+        {
+          "feature": "line_second_difference_total_std",
+          "mean_abs_standardized_coefficient": 0.105391713841,
+          "std_abs_standardized_coefficient": 0.00384174147
+        },
+        {
+          "feature": "structural_block_count_normalized",
+          "mean_abs_standardized_coefficient": 0.104709866804,
+          "std_abs_standardized_coefficient": 0.026065924729
+        },
+        {
+          "feature": "probe_log_relative_iqr",
+          "mean_abs_standardized_coefficient": 0.104012747862,
+          "std_abs_standardized_coefficient": 0.048422755229
+        },
+        {
+          "feature": "relation_strength_maximum",
+          "mean_abs_standardized_coefficient": 0.100826764811,
+          "std_abs_standardized_coefficient": 0.013567990782
+        },
+        {
+          "feature": "block_response_cv",
+          "mean_abs_standardized_coefficient": 0.084260664833,
+          "std_abs_standardized_coefficient": 0.039362091085
+        },
+        {
+          "feature": "significant_relation_fraction",
+          "mean_abs_standardized_coefficient": 0.073182445254,
+          "std_abs_standardized_coefficient": 0.036312746127
+        },
+        {
+          "feature": "relation_strength_median",
+          "mean_abs_standardized_coefficient": 0.065717557386,
+          "std_abs_standardized_coefficient": 0.024162452937
+        },
+        {
+          "feature": "structural_largest_block_fraction",
+          "mean_abs_standardized_coefficient": 0.052441210432,
+          "std_abs_standardized_coefficient": 0.009455072835
+        },
+        {
+          "feature": "structural_inference_complete",
+          "mean_abs_standardized_coefficient": 0.0,
+          "std_abs_standardized_coefficient": 0.0
+        }
+      ],
+      "feature_names": [
+        "log10_center_error",
+        "log10_best_probe_error",
+        "probe_log_relative_std",
+        "probe_log_relative_iqr",
+        "block_response_median",
+        "block_response_cv",
+        "block_asymmetry_median",
+        "relation_strength_median",
+        "relation_strength_maximum",
+        "significant_relation_fraction",
+        "line_residual_std_median",
+        "line_residual_std_std",
+        "line_residual_std_minimum",
+        "line_residual_std_maximum",
+        "line_high_frequency_fraction_median",
+        "line_high_frequency_fraction_std",
+        "line_high_frequency_fraction_minimum",
+        "line_high_frequency_fraction_maximum",
+        "line_second_difference_total_median",
+        "line_second_difference_total_std",
+        "line_second_difference_total_minimum",
+        "line_second_difference_total_maximum",
+        "line_residual_max_median",
+        "line_residual_max_std",
+        "line_residual_max_minimum",
+        "line_residual_max_maximum",
+        "line_third_difference_std_median",
+        "line_third_difference_std_std",
+        "line_third_difference_std_minimum",
+        "line_third_difference_std_maximum",
+        "structural_block_count_normalized",
+        "structural_largest_block_fraction",
+        "structural_relation_density",
+        "structural_probe_fraction",
+        "structural_inference_complete",
+        "phase1_log10_improvement",
+        "warmup_log10_gain",
+        "structure_log10_gain",
+        "tail_log10_gain",
+        "late_gain_fraction"
+      ],
+      "folds": [
+        {
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 1,
+          "test_cases": [
+            "A1",
+            "E1",
+            "R1",
+            "S1"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.91,
+          "balanced_accuracy": 0.91,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              18,
+              0,
+              7
+            ],
+            [
+              0,
+              0,
+              23,
+              2
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.72,
+            "R": 0.92,
+            "S": 1.0
+          },
+          "held_out_variant_index": 2,
+          "test_cases": [
+            "A2",
+            "E2",
+            "R2",
+            "S2"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 3,
+          "test_cases": [
+            "A3",
+            "E3",
+            "R3",
+            "S3"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.99,
+          "balanced_accuracy": 0.99,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              24,
+              1
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 0.96,
+            "S": 1.0
+          },
+          "held_out_variant_index": 4,
+          "test_cases": [
+            "A4",
+            "E4",
+            "R4",
+            "S4"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.99,
+          "balanced_accuracy": 0.99,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              24
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 0.96
+          },
+          "held_out_variant_index": 5,
+          "test_cases": [
+            "A5",
+            "E5",
+            "R5",
+            "S5"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.98,
+          "balanced_accuracy": 0.98,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              23,
+              0,
+              2
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.92,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 6,
+          "test_cases": [
+            "A6",
+            "E6",
+            "R6",
+            "S6"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        }
+      ],
+      "per_case": [
+        {
+          "accuracy": 1.0,
+          "case_id": "A1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.72,
+          "case_id": "E2",
+          "context_count": 25,
+          "correct_count": 18,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.92,
+          "case_id": "E6",
+          "context_count": 25,
+          "correct_count": 23,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.92,
+          "case_id": "R2",
+          "context_count": 25,
+          "correct_count": 23,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "R4",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "S5",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        }
+      ],
+      "top_features": [
+        {
+          "feature": "tail_log10_gain",
+          "mean_abs_standardized_coefficient": 1.586515100839,
+          "std_abs_standardized_coefficient": 0.033800982244
+        },
+        {
+          "feature": "log10_best_probe_error",
+          "mean_abs_standardized_coefficient": 1.058868963395,
+          "std_abs_standardized_coefficient": 0.041310576525
+        },
+        {
+          "feature": "log10_center_error",
+          "mean_abs_standardized_coefficient": 1.05709206528,
+          "std_abs_standardized_coefficient": 0.04130120644
+        },
+        {
+          "feature": "warmup_log10_gain",
+          "mean_abs_standardized_coefficient": 0.631674821026,
+          "std_abs_standardized_coefficient": 0.035897713373
+        },
+        {
+          "feature": "phase1_log10_improvement",
+          "mean_abs_standardized_coefficient": 0.61903962667,
+          "std_abs_standardized_coefficient": 0.022303251087
+        },
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 0.568709228965,
+          "std_abs_standardized_coefficient": 0.036487196005
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 0.44287885226,
+          "std_abs_standardized_coefficient": 0.014116095768
+        },
+        {
+          "feature": "late_gain_fraction",
+          "mean_abs_standardized_coefficient": 0.368378812356,
+          "std_abs_standardized_coefficient": 0.019566731155
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.354224201523,
+          "std_abs_standardized_coefficient": 0.014103184145
+        },
+        {
+          "feature": "structural_relation_density",
+          "mean_abs_standardized_coefficient": 0.326881733031,
+          "std_abs_standardized_coefficient": 0.125501594085
+        }
+      ]
+    },
+    "all_without_level_38": {
+      "accuracy": 0.928333333333,
+      "analysis_role": "post_hoc_scale_sensitivity",
+      "balanced_accuracy": 0.928333333333,
+      "coefficient_stability": {
+        "mean_pairwise_importance_correlation": 0.988242633863,
+        "minimum_pairwise_importance_correlation": 0.977568263949
+      },
+      "confusion_matrix": [
+        [
+          150,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          121,
+          0,
+          29
+        ],
+        [
+          0,
+          0,
+          146,
+          4
+        ],
+        [
+          0,
+          10,
+          0,
+          140
+        ]
+      ],
+      "excluded_features": [
+        "log10_best_probe_error",
+        "log10_center_error"
+      ],
+      "family_recall": {
+        "A": 1.0,
+        "E": 0.806666666667,
+        "R": 0.973333333333,
+        "S": 0.933333333333
+      },
+      "feature_count": 38,
+      "feature_importance": [
+        {
+          "feature": "tail_log10_gain",
+          "mean_abs_standardized_coefficient": 1.748254825937,
+          "std_abs_standardized_coefficient": 0.041673031926
+        },
+        {
+          "feature": "phase1_log10_improvement",
+          "mean_abs_standardized_coefficient": 1.220736853081,
+          "std_abs_standardized_coefficient": 0.03697047191
+        },
+        {
+          "feature": "warmup_log10_gain",
+          "mean_abs_standardized_coefficient": 1.189394694982,
+          "std_abs_standardized_coefficient": 0.036424649043
+        },
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 0.746957736511,
+          "std_abs_standardized_coefficient": 0.060576342683
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 0.452210499241,
+          "std_abs_standardized_coefficient": 0.011983038009
+        },
+        {
+          "feature": "structural_relation_density",
+          "mean_abs_standardized_coefficient": 0.391343362121,
+          "std_abs_standardized_coefficient": 0.145758861532
+        },
+        {
+          "feature": "late_gain_fraction",
+          "mean_abs_standardized_coefficient": 0.38893919787,
+          "std_abs_standardized_coefficient": 0.022036783713
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.366152183747,
+          "std_abs_standardized_coefficient": 0.018011844498
+        },
+        {
+          "feature": "line_high_frequency_fraction_std",
+          "mean_abs_standardized_coefficient": 0.254223162928,
+          "std_abs_standardized_coefficient": 0.025720184787
+        },
+        {
+          "feature": "structural_probe_fraction",
+          "mean_abs_standardized_coefficient": 0.226773930855,
+          "std_abs_standardized_coefficient": 0.065447937729
+        },
+        {
+          "feature": "structure_log10_gain",
+          "mean_abs_standardized_coefficient": 0.204844080981,
+          "std_abs_standardized_coefficient": 0.035869072998
+        },
+        {
+          "feature": "line_residual_max_std",
+          "mean_abs_standardized_coefficient": 0.168506688567,
+          "std_abs_standardized_coefficient": 0.029510906739
+        },
+        {
+          "feature": "line_residual_std_minimum",
+          "mean_abs_standardized_coefficient": 0.15947972515,
+          "std_abs_standardized_coefficient": 0.002577433926
+        },
+        {
+          "feature": "block_asymmetry_median",
+          "mean_abs_standardized_coefficient": 0.155412217742,
+          "std_abs_standardized_coefficient": 0.040932060656
+        },
+        {
+          "feature": "probe_log_relative_std",
+          "mean_abs_standardized_coefficient": 0.154259128056,
+          "std_abs_standardized_coefficient": 0.022039625875
+        },
+        {
+          "feature": "line_residual_max_minimum",
+          "mean_abs_standardized_coefficient": 0.154136910178,
+          "std_abs_standardized_coefficient": 0.002225125964
+        },
+        {
+          "feature": "line_residual_max_median",
+          "mean_abs_standardized_coefficient": 0.153726277357,
+          "std_abs_standardized_coefficient": 0.002633221442
+        },
+        {
+          "feature": "line_residual_std_median",
+          "mean_abs_standardized_coefficient": 0.15371705512,
+          "std_abs_standardized_coefficient": 0.002839828482
+        },
+        {
+          "feature": "line_second_difference_total_minimum",
+          "mean_abs_standardized_coefficient": 0.15305050375,
+          "std_abs_standardized_coefficient": 0.002858750901
+        },
+        {
+          "feature": "line_third_difference_std_minimum",
+          "mean_abs_standardized_coefficient": 0.152418622201,
+          "std_abs_standardized_coefficient": 0.002959671683
+        },
+        {
+          "feature": "line_residual_std_maximum",
+          "mean_abs_standardized_coefficient": 0.149927166234,
+          "std_abs_standardized_coefficient": 0.003328410761
+        },
+        {
+          "feature": "line_residual_std_std",
+          "mean_abs_standardized_coefficient": 0.149614377072,
+          "std_abs_standardized_coefficient": 0.022859415891
+        },
+        {
+          "feature": "line_second_difference_total_median",
+          "mean_abs_standardized_coefficient": 0.147848711952,
+          "std_abs_standardized_coefficient": 0.002574414357
+        },
+        {
+          "feature": "block_response_median",
+          "mean_abs_standardized_coefficient": 0.1470748177,
+          "std_abs_standardized_coefficient": 0.04442005646
+        },
+        {
+          "feature": "line_residual_max_maximum",
+          "mean_abs_standardized_coefficient": 0.146796390321,
+          "std_abs_standardized_coefficient": 0.004111129524
+        },
+        {
+          "feature": "line_third_difference_std_median",
+          "mean_abs_standardized_coefficient": 0.146329989423,
+          "std_abs_standardized_coefficient": 0.002850027808
+        },
+        {
+          "feature": "line_second_difference_total_maximum",
+          "mean_abs_standardized_coefficient": 0.141240919864,
+          "std_abs_standardized_coefficient": 0.002723233374
+        },
+        {
+          "feature": "line_third_difference_std_maximum",
+          "mean_abs_standardized_coefficient": 0.140589312893,
+          "std_abs_standardized_coefficient": 0.002605739076
+        },
+        {
+          "feature": "probe_log_relative_iqr",
+          "mean_abs_standardized_coefficient": 0.125370982431,
+          "std_abs_standardized_coefficient": 0.057669563408
+        },
+        {
+          "feature": "line_third_difference_std_std",
+          "mean_abs_standardized_coefficient": 0.11120760814,
+          "std_abs_standardized_coefficient": 0.004679699031
+        },
+        {
+          "feature": "line_second_difference_total_std",
+          "mean_abs_standardized_coefficient": 0.10941060445,
+          "std_abs_standardized_coefficient": 0.004618048663
+        },
+        {
+          "feature": "relation_strength_maximum",
+          "mean_abs_standardized_coefficient": 0.104159389355,
+          "std_abs_standardized_coefficient": 0.02056633658
+        },
+        {
+          "feature": "structural_block_count_normalized",
+          "mean_abs_standardized_coefficient": 0.102222784571,
+          "std_abs_standardized_coefficient": 0.033320585327
+        },
+        {
+          "feature": "block_response_cv",
+          "mean_abs_standardized_coefficient": 0.093635669484,
+          "std_abs_standardized_coefficient": 0.042177480887
+        },
+        {
+          "feature": "relation_strength_median",
+          "mean_abs_standardized_coefficient": 0.082156328767,
+          "std_abs_standardized_coefficient": 0.042431221321
+        },
+        {
+          "feature": "significant_relation_fraction",
+          "mean_abs_standardized_coefficient": 0.075446054178,
+          "std_abs_standardized_coefficient": 0.038418960226
+        },
+        {
+          "feature": "structural_largest_block_fraction",
+          "mean_abs_standardized_coefficient": 0.0564849175,
+          "std_abs_standardized_coefficient": 0.008307803341
+        },
+        {
+          "feature": "structural_inference_complete",
+          "mean_abs_standardized_coefficient": 0.0,
+          "std_abs_standardized_coefficient": 0.0
+        }
+      ],
+      "feature_names": [
+        "probe_log_relative_std",
+        "probe_log_relative_iqr",
+        "block_response_median",
+        "block_response_cv",
+        "block_asymmetry_median",
+        "relation_strength_median",
+        "relation_strength_maximum",
+        "significant_relation_fraction",
+        "line_residual_std_median",
+        "line_residual_std_std",
+        "line_residual_std_minimum",
+        "line_residual_std_maximum",
+        "line_high_frequency_fraction_median",
+        "line_high_frequency_fraction_std",
+        "line_high_frequency_fraction_minimum",
+        "line_high_frequency_fraction_maximum",
+        "line_second_difference_total_median",
+        "line_second_difference_total_std",
+        "line_second_difference_total_minimum",
+        "line_second_difference_total_maximum",
+        "line_residual_max_median",
+        "line_residual_max_std",
+        "line_residual_max_minimum",
+        "line_residual_max_maximum",
+        "line_third_difference_std_median",
+        "line_third_difference_std_std",
+        "line_third_difference_std_minimum",
+        "line_third_difference_std_maximum",
+        "structural_block_count_normalized",
+        "structural_largest_block_fraction",
+        "structural_relation_density",
+        "structural_probe_fraction",
+        "structural_inference_complete",
+        "phase1_log10_improvement",
+        "warmup_log10_gain",
+        "structure_log10_gain",
+        "tail_log10_gain",
+        "late_gain_fraction"
+      ],
+      "folds": [
+        {
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 1,
+          "test_cases": [
+            "A1",
+            "E1",
+            "R1",
+            "S1"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.79,
+          "balanced_accuracy": 0.79,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              7,
+              0,
+              18
+            ],
+            [
+              0,
+              0,
+              22,
+              3
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.28,
+            "R": 0.88,
+            "S": 1.0
+          },
+          "held_out_variant_index": 2,
+          "test_cases": [
+            "A2",
+            "E2",
+            "R2",
+            "S2"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.99,
+          "balanced_accuracy": 0.99,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              1,
+              0,
+              24
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 0.96
+          },
+          "held_out_variant_index": 3,
+          "test_cases": [
+            "A3",
+            "E3",
+            "R3",
+            "S3"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.99,
+          "balanced_accuracy": 0.99,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              24,
+              1
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 0.96,
+            "S": 1.0
+          },
+          "held_out_variant_index": 4,
+          "test_cases": [
+            "A4",
+            "E4",
+            "R4",
+            "S4"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.91,
+          "balanced_accuracy": 0.91,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              9,
+              0,
+              16
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 0.64
+          },
+          "held_out_variant_index": 5,
+          "test_cases": [
+            "A5",
+            "E5",
+            "R5",
+            "S5"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.89,
+          "balanced_accuracy": 0.89,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              14,
+              0,
+              11
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.56,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 6,
+          "test_cases": [
+            "A6",
+            "E6",
+            "R6",
+            "S6"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        }
+      ],
+      "per_case": [
+        {
+          "accuracy": 1.0,
+          "case_id": "A1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.28,
+          "case_id": "E2",
+          "context_count": 25,
+          "correct_count": 7,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.56,
+          "case_id": "E6",
+          "context_count": 25,
+          "correct_count": 14,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.88,
+          "case_id": "R2",
+          "context_count": 25,
+          "correct_count": 22,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "R4",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "S3",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.64,
+          "case_id": "S5",
+          "context_count": 25,
+          "correct_count": 16,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        }
+      ],
+      "top_features": [
+        {
+          "feature": "tail_log10_gain",
+          "mean_abs_standardized_coefficient": 1.748254825937,
+          "std_abs_standardized_coefficient": 0.041673031926
+        },
+        {
+          "feature": "phase1_log10_improvement",
+          "mean_abs_standardized_coefficient": 1.220736853081,
+          "std_abs_standardized_coefficient": 0.03697047191
+        },
+        {
+          "feature": "warmup_log10_gain",
+          "mean_abs_standardized_coefficient": 1.189394694982,
+          "std_abs_standardized_coefficient": 0.036424649043
+        },
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 0.746957736511,
+          "std_abs_standardized_coefficient": 0.060576342683
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 0.452210499241,
+          "std_abs_standardized_coefficient": 0.011983038009
+        },
+        {
+          "feature": "structural_relation_density",
+          "mean_abs_standardized_coefficient": 0.391343362121,
+          "std_abs_standardized_coefficient": 0.145758861532
+        },
+        {
+          "feature": "late_gain_fraction",
+          "mean_abs_standardized_coefficient": 0.38893919787,
+          "std_abs_standardized_coefficient": 0.022036783713
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.366152183747,
+          "std_abs_standardized_coefficient": 0.018011844498
+        },
+        {
+          "feature": "line_high_frequency_fraction_std",
+          "mean_abs_standardized_coefficient": 0.254223162928,
+          "std_abs_standardized_coefficient": 0.025720184787
+        },
+        {
+          "feature": "structural_probe_fraction",
+          "mean_abs_standardized_coefficient": 0.226773930855,
+          "std_abs_standardized_coefficient": 0.065447937729
+        }
+      ]
+    },
+    "landscape_probe_30": {
+      "accuracy": 0.956666666667,
+      "analysis_role": "fixed_ablation",
+      "balanced_accuracy": 0.956666666667,
+      "coefficient_stability": {
+        "mean_pairwise_importance_correlation": 0.995181452053,
+        "minimum_pairwise_importance_correlation": 0.991016696059
+      },
+      "confusion_matrix": [
+        [
+          150,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          150,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          136,
+          14
+        ],
+        [
+          0,
+          1,
+          11,
+          138
+        ]
+      ],
+      "excluded_features": [],
+      "family_recall": {
+        "A": 1.0,
+        "E": 1.0,
+        "R": 0.906666666667,
+        "S": 0.92
+      },
+      "feature_count": 30,
+      "feature_importance": [
+        {
+          "feature": "log10_best_probe_error",
+          "mean_abs_standardized_coefficient": 1.731670475463,
+          "std_abs_standardized_coefficient": 0.029224624143
+        },
+        {
+          "feature": "log10_center_error",
+          "mean_abs_standardized_coefficient": 1.728927280952,
+          "std_abs_standardized_coefficient": 0.029183174941
+        },
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 0.979096151881,
+          "std_abs_standardized_coefficient": 0.06944894359
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 0.850840742915,
+          "std_abs_standardized_coefficient": 0.044733362588
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.578939804874,
+          "std_abs_standardized_coefficient": 0.026643771948
+        },
+        {
+          "feature": "line_high_frequency_fraction_std",
+          "mean_abs_standardized_coefficient": 0.324976694074,
+          "std_abs_standardized_coefficient": 0.044032288174
+        },
+        {
+          "feature": "relation_strength_median",
+          "mean_abs_standardized_coefficient": 0.238315027633,
+          "std_abs_standardized_coefficient": 0.056609835841
+        },
+        {
+          "feature": "line_second_difference_total_minimum",
+          "mean_abs_standardized_coefficient": 0.206167065552,
+          "std_abs_standardized_coefficient": 0.006532600398
+        },
+        {
+          "feature": "line_third_difference_std_minimum",
+          "mean_abs_standardized_coefficient": 0.203408059626,
+          "std_abs_standardized_coefficient": 0.006656062493
+        },
+        {
+          "feature": "line_residual_std_minimum",
+          "mean_abs_standardized_coefficient": 0.19912007855,
+          "std_abs_standardized_coefficient": 0.003892991371
+        },
+        {
+          "feature": "probe_log_relative_iqr",
+          "mean_abs_standardized_coefficient": 0.198991674765,
+          "std_abs_standardized_coefficient": 0.04704192862
+        },
+        {
+          "feature": "line_residual_std_maximum",
+          "mean_abs_standardized_coefficient": 0.190004179528,
+          "std_abs_standardized_coefficient": 0.006276838349
+        },
+        {
+          "feature": "line_residual_max_median",
+          "mean_abs_standardized_coefficient": 0.189367592086,
+          "std_abs_standardized_coefficient": 0.00327230873
+        },
+        {
+          "feature": "line_second_difference_total_median",
+          "mean_abs_standardized_coefficient": 0.189152477176,
+          "std_abs_standardized_coefficient": 0.005216535846
+        },
+        {
+          "feature": "line_residual_max_maximum",
+          "mean_abs_standardized_coefficient": 0.189109425966,
+          "std_abs_standardized_coefficient": 0.004748025426
+        },
+        {
+          "feature": "line_third_difference_std_median",
+          "mean_abs_standardized_coefficient": 0.187924277633,
+          "std_abs_standardized_coefficient": 0.004887407388
+        },
+        {
+          "feature": "line_residual_max_minimum",
+          "mean_abs_standardized_coefficient": 0.18754899006,
+          "std_abs_standardized_coefficient": 0.004074194944
+        },
+        {
+          "feature": "line_residual_std_median",
+          "mean_abs_standardized_coefficient": 0.185589543145,
+          "std_abs_standardized_coefficient": 0.003362195536
+        },
+        {
+          "feature": "line_third_difference_std_maximum",
+          "mean_abs_standardized_coefficient": 0.179871462383,
+          "std_abs_standardized_coefficient": 0.005273743336
+        },
+        {
+          "feature": "line_second_difference_total_maximum",
+          "mean_abs_standardized_coefficient": 0.179671117756,
+          "std_abs_standardized_coefficient": 0.005644005626
+        },
+        {
+          "feature": "block_asymmetry_median",
+          "mean_abs_standardized_coefficient": 0.179610923742,
+          "std_abs_standardized_coefficient": 0.009732576779
+        },
+        {
+          "feature": "block_response_median",
+          "mean_abs_standardized_coefficient": 0.164276871597,
+          "std_abs_standardized_coefficient": 0.009451839081
+        },
+        {
+          "feature": "probe_log_relative_std",
+          "mean_abs_standardized_coefficient": 0.160279165548,
+          "std_abs_standardized_coefficient": 0.009159070203
+        },
+        {
+          "feature": "line_residual_max_std",
+          "mean_abs_standardized_coefficient": 0.15673394522,
+          "std_abs_standardized_coefficient": 0.019106399602
+        },
+        {
+          "feature": "line_residual_std_std",
+          "mean_abs_standardized_coefficient": 0.153092567831,
+          "std_abs_standardized_coefficient": 0.020555627582
+        },
+        {
+          "feature": "relation_strength_maximum",
+          "mean_abs_standardized_coefficient": 0.140586703478,
+          "std_abs_standardized_coefficient": 0.044756979326
+        },
+        {
+          "feature": "line_third_difference_std_std",
+          "mean_abs_standardized_coefficient": 0.130782260587,
+          "std_abs_standardized_coefficient": 0.008549273579
+        },
+        {
+          "feature": "line_second_difference_total_std",
+          "mean_abs_standardized_coefficient": 0.124010033316,
+          "std_abs_standardized_coefficient": 0.007928752336
+        },
+        {
+          "feature": "significant_relation_fraction",
+          "mean_abs_standardized_coefficient": 0.108312043226,
+          "std_abs_standardized_coefficient": 0.05438045269
+        },
+        {
+          "feature": "block_response_cv",
+          "mean_abs_standardized_coefficient": 0.100527351495,
+          "std_abs_standardized_coefficient": 0.037212338718
+        }
+      ],
+      "feature_names": [
+        "log10_center_error",
+        "log10_best_probe_error",
+        "probe_log_relative_std",
+        "probe_log_relative_iqr",
+        "block_response_median",
+        "block_response_cv",
+        "block_asymmetry_median",
+        "relation_strength_median",
+        "relation_strength_maximum",
+        "significant_relation_fraction",
+        "line_residual_std_median",
+        "line_residual_std_std",
+        "line_residual_std_minimum",
+        "line_residual_std_maximum",
+        "line_high_frequency_fraction_median",
+        "line_high_frequency_fraction_std",
+        "line_high_frequency_fraction_minimum",
+        "line_high_frequency_fraction_maximum",
+        "line_second_difference_total_median",
+        "line_second_difference_total_std",
+        "line_second_difference_total_minimum",
+        "line_second_difference_total_maximum",
+        "line_residual_max_median",
+        "line_residual_max_std",
+        "line_residual_max_minimum",
+        "line_residual_max_maximum",
+        "line_third_difference_std_median",
+        "line_third_difference_std_std",
+        "line_third_difference_std_minimum",
+        "line_third_difference_std_maximum"
+      ],
+      "folds": [
+        {
+          "accuracy": 0.94,
+          "balanced_accuracy": 0.94,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              1,
+              5,
+              19
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 0.76
+          },
+          "held_out_variant_index": 1,
+          "test_cases": [
+            "A1",
+            "E1",
+            "R1",
+            "S1"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.95,
+          "balanced_accuracy": 0.95,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              21,
+              4
+            ],
+            [
+              0,
+              0,
+              1,
+              24
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 0.84,
+            "S": 0.96
+          },
+          "held_out_variant_index": 2,
+          "test_cases": [
+            "A2",
+            "E2",
+            "R2",
+            "S2"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.93,
+          "balanced_accuracy": 0.93,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              18,
+              7
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 0.72,
+            "S": 1.0
+          },
+          "held_out_variant_index": 3,
+          "test_cases": [
+            "A3",
+            "E3",
+            "R3",
+            "S3"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.98,
+          "balanced_accuracy": 0.98,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              24,
+              1
+            ],
+            [
+              0,
+              0,
+              1,
+              24
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 0.96,
+            "S": 0.96
+          },
+          "held_out_variant_index": 4,
+          "test_cases": [
+            "A4",
+            "E4",
+            "R4",
+            "S4"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.98,
+          "balanced_accuracy": 0.98,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              24,
+              1
+            ],
+            [
+              0,
+              0,
+              1,
+              24
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 0.96,
+            "S": 0.96
+          },
+          "held_out_variant_index": 5,
+          "test_cases": [
+            "A5",
+            "E5",
+            "R5",
+            "S5"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.96,
+          "balanced_accuracy": 0.96,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              24,
+              1
+            ],
+            [
+              0,
+              0,
+              3,
+              22
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 0.96,
+            "S": 0.88
+          },
+          "held_out_variant_index": 6,
+          "test_cases": [
+            "A6",
+            "E6",
+            "R6",
+            "S6"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        }
+      ],
+      "per_case": [
+        {
+          "accuracy": 1.0,
+          "case_id": "A1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.84,
+          "case_id": "R2",
+          "context_count": 25,
+          "correct_count": 21,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.72,
+          "case_id": "R3",
+          "context_count": 25,
+          "correct_count": 18,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "R4",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "R5",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "R6",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.76,
+          "case_id": "S1",
+          "context_count": 25,
+          "correct_count": 19,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "S2",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "S4",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "S5",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.88,
+          "case_id": "S6",
+          "context_count": 25,
+          "correct_count": 22,
+          "family": "S"
+        }
+      ],
+      "top_features": [
+        {
+          "feature": "log10_best_probe_error",
+          "mean_abs_standardized_coefficient": 1.731670475463,
+          "std_abs_standardized_coefficient": 0.029224624143
+        },
+        {
+          "feature": "log10_center_error",
+          "mean_abs_standardized_coefficient": 1.728927280952,
+          "std_abs_standardized_coefficient": 0.029183174941
+        },
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 0.979096151881,
+          "std_abs_standardized_coefficient": 0.06944894359
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 0.850840742915,
+          "std_abs_standardized_coefficient": 0.044733362588
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.578939804874,
+          "std_abs_standardized_coefficient": 0.026643771948
+        },
+        {
+          "feature": "line_high_frequency_fraction_std",
+          "mean_abs_standardized_coefficient": 0.324976694074,
+          "std_abs_standardized_coefficient": 0.044032288174
+        },
+        {
+          "feature": "relation_strength_median",
+          "mean_abs_standardized_coefficient": 0.238315027633,
+          "std_abs_standardized_coefficient": 0.056609835841
+        },
+        {
+          "feature": "line_second_difference_total_minimum",
+          "mean_abs_standardized_coefficient": 0.206167065552,
+          "std_abs_standardized_coefficient": 0.006532600398
+        },
+        {
+          "feature": "line_third_difference_std_minimum",
+          "mean_abs_standardized_coefficient": 0.203408059626,
+          "std_abs_standardized_coefficient": 0.006656062493
+        },
+        {
+          "feature": "line_residual_std_minimum",
+          "mean_abs_standardized_coefficient": 0.19912007855,
+          "std_abs_standardized_coefficient": 0.003892991371
+        }
+      ]
+    },
+    "landscape_shape_28": {
+      "accuracy": 0.755,
+      "analysis_role": "post_hoc_scale_sensitivity",
+      "balanced_accuracy": 0.755,
+      "coefficient_stability": {
+        "mean_pairwise_importance_correlation": 0.994262061762,
+        "minimum_pairwise_importance_correlation": 0.990907987859
+      },
+      "confusion_matrix": [
+        [
+          150,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          86,
+          8,
+          56
+        ],
+        [
+          0,
+          29,
+          114,
+          7
+        ],
+        [
+          0,
+          42,
+          5,
+          103
+        ]
+      ],
+      "excluded_features": [
+        "log10_best_probe_error",
+        "log10_center_error"
+      ],
+      "family_recall": {
+        "A": 1.0,
+        "E": 0.573333333333,
+        "R": 0.76,
+        "S": 0.686666666667
+      },
+      "feature_count": 28,
+      "feature_importance": [
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 1.910128993889,
+          "std_abs_standardized_coefficient": 0.107603048733
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 1.00572236806,
+          "std_abs_standardized_coefficient": 0.056558513853
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.823615823395,
+          "std_abs_standardized_coefficient": 0.040752209905
+        },
+        {
+          "feature": "line_high_frequency_fraction_std",
+          "mean_abs_standardized_coefficient": 0.299135255751,
+          "std_abs_standardized_coefficient": 0.029327381313
+        },
+        {
+          "feature": "probe_log_relative_iqr",
+          "mean_abs_standardized_coefficient": 0.217005608645,
+          "std_abs_standardized_coefficient": 0.048638632386
+        },
+        {
+          "feature": "line_residual_std_std",
+          "mean_abs_standardized_coefficient": 0.205502928786,
+          "std_abs_standardized_coefficient": 0.040735477584
+        },
+        {
+          "feature": "line_third_difference_std_minimum",
+          "mean_abs_standardized_coefficient": 0.196048933285,
+          "std_abs_standardized_coefficient": 0.005920625933
+        },
+        {
+          "feature": "line_second_difference_total_minimum",
+          "mean_abs_standardized_coefficient": 0.195694681997,
+          "std_abs_standardized_coefficient": 0.00591721375
+        },
+        {
+          "feature": "line_second_difference_total_maximum",
+          "mean_abs_standardized_coefficient": 0.193473152687,
+          "std_abs_standardized_coefficient": 0.004602057051
+        },
+        {
+          "feature": "line_residual_std_maximum",
+          "mean_abs_standardized_coefficient": 0.192938312051,
+          "std_abs_standardized_coefficient": 0.010752093301
+        },
+        {
+          "feature": "line_third_difference_std_maximum",
+          "mean_abs_standardized_coefficient": 0.1929346466,
+          "std_abs_standardized_coefficient": 0.00443389413
+        },
+        {
+          "feature": "line_residual_std_minimum",
+          "mean_abs_standardized_coefficient": 0.181174397907,
+          "std_abs_standardized_coefficient": 0.003926650861
+        },
+        {
+          "feature": "line_second_difference_total_median",
+          "mean_abs_standardized_coefficient": 0.179487874748,
+          "std_abs_standardized_coefficient": 0.004468841012
+        },
+        {
+          "feature": "line_third_difference_std_median",
+          "mean_abs_standardized_coefficient": 0.178425539108,
+          "std_abs_standardized_coefficient": 0.00448111504
+        },
+        {
+          "feature": "line_second_difference_total_std",
+          "mean_abs_standardized_coefficient": 0.175256847068,
+          "std_abs_standardized_coefficient": 0.010881534755
+        },
+        {
+          "feature": "line_third_difference_std_std",
+          "mean_abs_standardized_coefficient": 0.1752153651,
+          "std_abs_standardized_coefficient": 0.012652318718
+        },
+        {
+          "feature": "line_residual_max_minimum",
+          "mean_abs_standardized_coefficient": 0.173894065544,
+          "std_abs_standardized_coefficient": 0.002949111778
+        },
+        {
+          "feature": "line_residual_max_median",
+          "mean_abs_standardized_coefficient": 0.171974249088,
+          "std_abs_standardized_coefficient": 0.003006857024
+        },
+        {
+          "feature": "line_residual_std_median",
+          "mean_abs_standardized_coefficient": 0.16924646821,
+          "std_abs_standardized_coefficient": 0.002817559228
+        },
+        {
+          "feature": "relation_strength_maximum",
+          "mean_abs_standardized_coefficient": 0.159413494043,
+          "std_abs_standardized_coefficient": 0.048129059454
+        },
+        {
+          "feature": "line_residual_max_maximum",
+          "mean_abs_standardized_coefficient": 0.159266788244,
+          "std_abs_standardized_coefficient": 0.002531090905
+        },
+        {
+          "feature": "relation_strength_median",
+          "mean_abs_standardized_coefficient": 0.141914345927,
+          "std_abs_standardized_coefficient": 0.030699812635
+        },
+        {
+          "feature": "line_residual_max_std",
+          "mean_abs_standardized_coefficient": 0.129447861163,
+          "std_abs_standardized_coefficient": 0.018945787236
+        },
+        {
+          "feature": "block_asymmetry_median",
+          "mean_abs_standardized_coefficient": 0.121901834999,
+          "std_abs_standardized_coefficient": 0.013732190414
+        },
+        {
+          "feature": "block_response_median",
+          "mean_abs_standardized_coefficient": 0.121027747909,
+          "std_abs_standardized_coefficient": 0.020701795436
+        },
+        {
+          "feature": "significant_relation_fraction",
+          "mean_abs_standardized_coefficient": 0.103354059181,
+          "std_abs_standardized_coefficient": 0.038305004623
+        },
+        {
+          "feature": "probe_log_relative_std",
+          "mean_abs_standardized_coefficient": 0.101013934036,
+          "std_abs_standardized_coefficient": 0.021642503779
+        },
+        {
+          "feature": "block_response_cv",
+          "mean_abs_standardized_coefficient": 0.07773083496,
+          "std_abs_standardized_coefficient": 0.022582770349
+        }
+      ],
+      "feature_names": [
+        "probe_log_relative_std",
+        "probe_log_relative_iqr",
+        "block_response_median",
+        "block_response_cv",
+        "block_asymmetry_median",
+        "relation_strength_median",
+        "relation_strength_maximum",
+        "significant_relation_fraction",
+        "line_residual_std_median",
+        "line_residual_std_std",
+        "line_residual_std_minimum",
+        "line_residual_std_maximum",
+        "line_high_frequency_fraction_median",
+        "line_high_frequency_fraction_std",
+        "line_high_frequency_fraction_minimum",
+        "line_high_frequency_fraction_maximum",
+        "line_second_difference_total_median",
+        "line_second_difference_total_std",
+        "line_second_difference_total_minimum",
+        "line_second_difference_total_maximum",
+        "line_residual_max_median",
+        "line_residual_max_std",
+        "line_residual_max_minimum",
+        "line_residual_max_maximum",
+        "line_third_difference_std_median",
+        "line_third_difference_std_std",
+        "line_third_difference_std_minimum",
+        "line_third_difference_std_maximum"
+      ],
+      "folds": [
+        {
+          "accuracy": 0.67,
+          "balanced_accuracy": 0.67,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              22,
+              3,
+              0
+            ],
+            [
+              0,
+              10,
+              15,
+              0
+            ],
+            [
+              0,
+              19,
+              1,
+              5
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.88,
+            "R": 0.6,
+            "S": 0.2
+          },
+          "held_out_variant_index": 1,
+          "test_cases": [
+            "A1",
+            "E1",
+            "R1",
+            "S1"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.71,
+          "balanced_accuracy": 0.71,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              2,
+              0,
+              23
+            ],
+            [
+              0,
+              0,
+              21,
+              4
+            ],
+            [
+              0,
+              1,
+              1,
+              23
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.08,
+            "R": 0.84,
+            "S": 0.92
+          },
+          "held_out_variant_index": 2,
+          "test_cases": [
+            "A2",
+            "E2",
+            "R2",
+            "S2"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.83,
+          "balanced_accuracy": 0.83,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              22,
+              1,
+              2
+            ],
+            [
+              0,
+              12,
+              13,
+              0
+            ],
+            [
+              0,
+              2,
+              0,
+              23
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.88,
+            "R": 0.52,
+            "S": 0.92
+          },
+          "held_out_variant_index": 3,
+          "test_cases": [
+            "A3",
+            "E3",
+            "R3",
+            "S3"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.9,
+          "balanced_accuracy": 0.9,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              19,
+              1,
+              5
+            ],
+            [
+              0,
+              1,
+              23,
+              1
+            ],
+            [
+              0,
+              0,
+              2,
+              23
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.76,
+            "R": 0.92,
+            "S": 0.92
+          },
+          "held_out_variant_index": 4,
+          "test_cases": [
+            "A4",
+            "E4",
+            "R4",
+            "S4"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.72,
+          "balanced_accuracy": 0.72,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              21,
+              1,
+              3
+            ],
+            [
+              0,
+              6,
+              18,
+              1
+            ],
+            [
+              0,
+              17,
+              0,
+              8
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.84,
+            "R": 0.72,
+            "S": 0.32
+          },
+          "held_out_variant_index": 5,
+          "test_cases": [
+            "A5",
+            "E5",
+            "R5",
+            "S5"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.7,
+          "balanced_accuracy": 0.7,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              2,
+              23
+            ],
+            [
+              0,
+              0,
+              24,
+              1
+            ],
+            [
+              0,
+              3,
+              1,
+              21
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.0,
+            "R": 0.96,
+            "S": 0.84
+          },
+          "held_out_variant_index": 6,
+          "test_cases": [
+            "A6",
+            "E6",
+            "R6",
+            "S6"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        }
+      ],
+      "per_case": [
+        {
+          "accuracy": 1.0,
+          "case_id": "A1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 0.88,
+          "case_id": "E1",
+          "context_count": 25,
+          "correct_count": 22,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.08,
+          "case_id": "E2",
+          "context_count": 25,
+          "correct_count": 2,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.88,
+          "case_id": "E3",
+          "context_count": 25,
+          "correct_count": 22,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.76,
+          "case_id": "E4",
+          "context_count": 25,
+          "correct_count": 19,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.84,
+          "case_id": "E5",
+          "context_count": 25,
+          "correct_count": 21,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.0,
+          "case_id": "E6",
+          "context_count": 25,
+          "correct_count": 0,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.6,
+          "case_id": "R1",
+          "context_count": 25,
+          "correct_count": 15,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.84,
+          "case_id": "R2",
+          "context_count": 25,
+          "correct_count": 21,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.52,
+          "case_id": "R3",
+          "context_count": 25,
+          "correct_count": 13,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.92,
+          "case_id": "R4",
+          "context_count": 25,
+          "correct_count": 23,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.72,
+          "case_id": "R5",
+          "context_count": 25,
+          "correct_count": 18,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "R6",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.2,
+          "case_id": "S1",
+          "context_count": 25,
+          "correct_count": 5,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.92,
+          "case_id": "S2",
+          "context_count": 25,
+          "correct_count": 23,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.92,
+          "case_id": "S3",
+          "context_count": 25,
+          "correct_count": 23,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.92,
+          "case_id": "S4",
+          "context_count": 25,
+          "correct_count": 23,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.32,
+          "case_id": "S5",
+          "context_count": 25,
+          "correct_count": 8,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.84,
+          "case_id": "S6",
+          "context_count": 25,
+          "correct_count": 21,
+          "family": "S"
+        }
+      ],
+      "top_features": [
+        {
+          "feature": "line_high_frequency_fraction_minimum",
+          "mean_abs_standardized_coefficient": 1.910128993889,
+          "std_abs_standardized_coefficient": 0.107603048733
+        },
+        {
+          "feature": "line_high_frequency_fraction_median",
+          "mean_abs_standardized_coefficient": 1.00572236806,
+          "std_abs_standardized_coefficient": 0.056558513853
+        },
+        {
+          "feature": "line_high_frequency_fraction_maximum",
+          "mean_abs_standardized_coefficient": 0.823615823395,
+          "std_abs_standardized_coefficient": 0.040752209905
+        },
+        {
+          "feature": "line_high_frequency_fraction_std",
+          "mean_abs_standardized_coefficient": 0.299135255751,
+          "std_abs_standardized_coefficient": 0.029327381313
+        },
+        {
+          "feature": "probe_log_relative_iqr",
+          "mean_abs_standardized_coefficient": 0.217005608645,
+          "std_abs_standardized_coefficient": 0.048638632386
+        },
+        {
+          "feature": "line_residual_std_std",
+          "mean_abs_standardized_coefficient": 0.205502928786,
+          "std_abs_standardized_coefficient": 0.040735477584
+        },
+        {
+          "feature": "line_third_difference_std_minimum",
+          "mean_abs_standardized_coefficient": 0.196048933285,
+          "std_abs_standardized_coefficient": 0.005920625933
+        },
+        {
+          "feature": "line_second_difference_total_minimum",
+          "mean_abs_standardized_coefficient": 0.195694681997,
+          "std_abs_standardized_coefficient": 0.00591721375
+        },
+        {
+          "feature": "line_second_difference_total_maximum",
+          "mean_abs_standardized_coefficient": 0.193473152687,
+          "std_abs_standardized_coefficient": 0.004602057051
+        },
+        {
+          "feature": "line_residual_std_maximum",
+          "mean_abs_standardized_coefficient": 0.192938312051,
+          "std_abs_standardized_coefficient": 0.010752093301
+        }
+      ]
+    },
+    "progress_5": {
+      "accuracy": 0.953333333333,
+      "analysis_role": "fixed_ablation",
+      "balanced_accuracy": 0.953333333333,
+      "coefficient_stability": {
+        "mean_pairwise_importance_correlation": 0.997628954806,
+        "minimum_pairwise_importance_correlation": 0.993306744852
+      },
+      "confusion_matrix": [
+        [
+          150,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          145,
+          0,
+          5
+        ],
+        [
+          0,
+          0,
+          150,
+          0
+        ],
+        [
+          0,
+          21,
+          2,
+          127
+        ]
+      ],
+      "excluded_features": [],
+      "family_recall": {
+        "A": 1.0,
+        "E": 0.966666666667,
+        "R": 1.0,
+        "S": 0.846666666667
+      },
+      "feature_count": 5,
+      "feature_importance": [
+        {
+          "feature": "tail_log10_gain",
+          "mean_abs_standardized_coefficient": 2.768842712149,
+          "std_abs_standardized_coefficient": 0.035275474034
+        },
+        {
+          "feature": "warmup_log10_gain",
+          "mean_abs_standardized_coefficient": 1.585762332826,
+          "std_abs_standardized_coefficient": 0.069045648953
+        },
+        {
+          "feature": "phase1_log10_improvement",
+          "mean_abs_standardized_coefficient": 1.488333083252,
+          "std_abs_standardized_coefficient": 0.061244163023
+        },
+        {
+          "feature": "structure_log10_gain",
+          "mean_abs_standardized_coefficient": 0.717706396553,
+          "std_abs_standardized_coefficient": 0.03523476574
+        },
+        {
+          "feature": "late_gain_fraction",
+          "mean_abs_standardized_coefficient": 0.558596771253,
+          "std_abs_standardized_coefficient": 0.017469334624
+        }
+      ],
+      "feature_names": [
+        "phase1_log10_improvement",
+        "warmup_log10_gain",
+        "structure_log10_gain",
+        "tail_log10_gain",
+        "late_gain_fraction"
+      ],
+      "folds": [
+        {
+          "accuracy": 0.79,
+          "balanced_accuracy": 0.79,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              21,
+              0,
+              4
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 0.16
+          },
+          "held_out_variant_index": 1,
+          "test_cases": [
+            "A1",
+            "E1",
+            "R1",
+            "S1"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.94,
+          "balanced_accuracy": 0.94,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              20,
+              0,
+              5
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              24
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.8,
+            "R": 1.0,
+            "S": 0.96
+          },
+          "held_out_variant_index": 2,
+          "test_cases": [
+            "A2",
+            "E2",
+            "R2",
+            "S2"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 3,
+          "test_cases": [
+            "A3",
+            "E3",
+            "R3",
+            "S3"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 4,
+          "test_cases": [
+            "A4",
+            "E4",
+            "R4",
+            "S4"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 1.0,
+          "balanced_accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              25
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 1.0
+          },
+          "held_out_variant_index": 5,
+          "test_cases": [
+            "A5",
+            "E5",
+            "R5",
+            "S5"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.99,
+          "balanced_accuracy": 0.99,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              25,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              1,
+              24
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 1.0,
+            "R": 1.0,
+            "S": 0.96
+          },
+          "held_out_variant_index": 6,
+          "test_cases": [
+            "A6",
+            "E6",
+            "R6",
+            "S6"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        }
+      ],
+      "per_case": [
+        {
+          "accuracy": 1.0,
+          "case_id": "A1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.8,
+          "case_id": "E2",
+          "context_count": 25,
+          "correct_count": 20,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "E6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.16,
+          "case_id": "S1",
+          "context_count": 25,
+          "correct_count": 4,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "S2",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "S5",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "S6",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "S"
+        }
+      ],
+      "top_features": [
+        {
+          "feature": "tail_log10_gain",
+          "mean_abs_standardized_coefficient": 2.768842712149,
+          "std_abs_standardized_coefficient": 0.035275474034
+        },
+        {
+          "feature": "warmup_log10_gain",
+          "mean_abs_standardized_coefficient": 1.585762332826,
+          "std_abs_standardized_coefficient": 0.069045648953
+        },
+        {
+          "feature": "phase1_log10_improvement",
+          "mean_abs_standardized_coefficient": 1.488333083252,
+          "std_abs_standardized_coefficient": 0.061244163023
+        },
+        {
+          "feature": "structure_log10_gain",
+          "mean_abs_standardized_coefficient": 0.717706396553,
+          "std_abs_standardized_coefficient": 0.03523476574
+        },
+        {
+          "feature": "late_gain_fraction",
+          "mean_abs_standardized_coefficient": 0.558596771253,
+          "std_abs_standardized_coefficient": 0.017469334624
+        }
+      ]
+    },
+    "structure_5": {
+      "accuracy": 0.411666666667,
+      "analysis_role": "fixed_ablation",
+      "balanced_accuracy": 0.411666666667,
+      "coefficient_stability": {
+        "mean_pairwise_importance_correlation": 0.760024015819,
+        "minimum_pairwise_importance_correlation": 0.112074524862
+      },
+      "confusion_matrix": [
+        [
+          118,
+          1,
+          28,
+          3
+        ],
+        [
+          20,
+          25,
+          67,
+          38
+        ],
+        [
+          20,
+          25,
+          67,
+          38
+        ],
+        [
+          21,
+          25,
+          67,
+          37
+        ]
+      ],
+      "excluded_features": [],
+      "family_recall": {
+        "A": 0.786666666667,
+        "E": 0.166666666667,
+        "R": 0.446666666667,
+        "S": 0.246666666667
+      },
+      "feature_count": 5,
+      "feature_importance": [
+        {
+          "feature": "structural_block_count_normalized",
+          "mean_abs_standardized_coefficient": 0.952936577526,
+          "std_abs_standardized_coefficient": 0.307408455718
+        },
+        {
+          "feature": "structural_probe_fraction",
+          "mean_abs_standardized_coefficient": 0.626741623251,
+          "std_abs_standardized_coefficient": 0.185905708155
+        },
+        {
+          "feature": "structural_relation_density",
+          "mean_abs_standardized_coefficient": 0.22402828731,
+          "std_abs_standardized_coefficient": 0.370755393919
+        },
+        {
+          "feature": "structural_largest_block_fraction",
+          "mean_abs_standardized_coefficient": 0.07361914546,
+          "std_abs_standardized_coefficient": 0.091743361703
+        },
+        {
+          "feature": "structural_inference_complete",
+          "mean_abs_standardized_coefficient": 0.0,
+          "std_abs_standardized_coefficient": 0.0
+        }
+      ],
+      "feature_names": [
+        "structural_block_count_normalized",
+        "structural_largest_block_fraction",
+        "structural_relation_density",
+        "structural_probe_fraction",
+        "structural_inference_complete"
+      ],
+      "folds": [
+        {
+          "accuracy": 0.25,
+          "balanced_accuracy": 0.25,
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ]
+          ],
+          "family_recall": {
+            "A": 0.0,
+            "E": 0.0,
+            "R": 1.0,
+            "S": 0.0
+          },
+          "held_out_variant_index": 1,
+          "test_cases": [
+            "A1",
+            "E1",
+            "R1",
+            "S1"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.44,
+          "balanced_accuracy": 0.44,
+          "confusion_matrix": [
+            [
+              19,
+              0,
+              3,
+              3
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ],
+            [
+              0,
+              0,
+              25,
+              0
+            ]
+          ],
+          "family_recall": {
+            "A": 0.76,
+            "E": 0.0,
+            "R": 1.0,
+            "S": 0.0
+          },
+          "held_out_variant_index": 2,
+          "test_cases": [
+            "A2",
+            "E2",
+            "R2",
+            "S2"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.49,
+          "balanced_accuracy": 0.49,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              1,
+              0,
+              4,
+              20
+            ],
+            [
+              1,
+              0,
+              4,
+              20
+            ],
+            [
+              1,
+              0,
+              4,
+              20
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.0,
+            "R": 0.16,
+            "S": 0.8
+          },
+          "held_out_variant_index": 3,
+          "test_cases": [
+            "A3",
+            "E3",
+            "R3",
+            "S3"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.46,
+          "balanced_accuracy": 0.46,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              3,
+              8,
+              3,
+              11
+            ],
+            [
+              3,
+              8,
+              3,
+              11
+            ],
+            [
+              4,
+              8,
+              3,
+              10
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.32,
+            "R": 0.12,
+            "S": 0.4
+          },
+          "held_out_variant_index": 4,
+          "test_cases": [
+            "A4",
+            "E4",
+            "R4",
+            "S4"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.42,
+          "balanced_accuracy": 0.42,
+          "confusion_matrix": [
+            [
+              24,
+              1,
+              0,
+              0
+            ],
+            [
+              7,
+              8,
+              5,
+              5
+            ],
+            [
+              7,
+              8,
+              5,
+              5
+            ],
+            [
+              7,
+              8,
+              5,
+              5
+            ]
+          ],
+          "family_recall": {
+            "A": 0.96,
+            "E": 0.32,
+            "R": 0.2,
+            "S": 0.2
+          },
+          "held_out_variant_index": 5,
+          "test_cases": [
+            "A5",
+            "E5",
+            "R5",
+            "S5"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        },
+        {
+          "accuracy": 0.41,
+          "balanced_accuracy": 0.41,
+          "confusion_matrix": [
+            [
+              25,
+              0,
+              0,
+              0
+            ],
+            [
+              9,
+              9,
+              5,
+              2
+            ],
+            [
+              9,
+              9,
+              5,
+              2
+            ],
+            [
+              9,
+              9,
+              5,
+              2
+            ]
+          ],
+          "family_recall": {
+            "A": 1.0,
+            "E": 0.36,
+            "R": 0.2,
+            "S": 0.08
+          },
+          "held_out_variant_index": 6,
+          "test_cases": [
+            "A6",
+            "E6",
+            "R6",
+            "S6"
+          ],
+          "test_context_count": 100,
+          "training_context_count": 500
+        }
+      ],
+      "per_case": [
+        {
+          "accuracy": 0.0,
+          "case_id": "A1",
+          "context_count": 25,
+          "correct_count": 0,
+          "family": "A"
+        },
+        {
+          "accuracy": 0.76,
+          "case_id": "A2",
+          "context_count": 25,
+          "correct_count": 19,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A3",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A4",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 0.96,
+          "case_id": "A5",
+          "context_count": 25,
+          "correct_count": 24,
+          "family": "A"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "A6",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "A"
+        },
+        {
+          "accuracy": 0.0,
+          "case_id": "E1",
+          "context_count": 25,
+          "correct_count": 0,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.0,
+          "case_id": "E2",
+          "context_count": 25,
+          "correct_count": 0,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.0,
+          "case_id": "E3",
+          "context_count": 25,
+          "correct_count": 0,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.32,
+          "case_id": "E4",
+          "context_count": 25,
+          "correct_count": 8,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.32,
+          "case_id": "E5",
+          "context_count": 25,
+          "correct_count": 8,
+          "family": "E"
+        },
+        {
+          "accuracy": 0.36,
+          "case_id": "E6",
+          "context_count": 25,
+          "correct_count": 9,
+          "family": "E"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R1",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 1.0,
+          "case_id": "R2",
+          "context_count": 25,
+          "correct_count": 25,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.16,
+          "case_id": "R3",
+          "context_count": 25,
+          "correct_count": 4,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.12,
+          "case_id": "R4",
+          "context_count": 25,
+          "correct_count": 3,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.2,
+          "case_id": "R5",
+          "context_count": 25,
+          "correct_count": 5,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.2,
+          "case_id": "R6",
+          "context_count": 25,
+          "correct_count": 5,
+          "family": "R"
+        },
+        {
+          "accuracy": 0.0,
+          "case_id": "S1",
+          "context_count": 25,
+          "correct_count": 0,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.0,
+          "case_id": "S2",
+          "context_count": 25,
+          "correct_count": 0,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.8,
+          "case_id": "S3",
+          "context_count": 25,
+          "correct_count": 20,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.4,
+          "case_id": "S4",
+          "context_count": 25,
+          "correct_count": 10,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.2,
+          "case_id": "S5",
+          "context_count": 25,
+          "correct_count": 5,
+          "family": "S"
+        },
+        {
+          "accuracy": 0.08,
+          "case_id": "S6",
+          "context_count": 25,
+          "correct_count": 2,
+          "family": "S"
+        }
+      ],
+      "top_features": [
+        {
+          "feature": "structural_block_count_normalized",
+          "mean_abs_standardized_coefficient": 0.952936577526,
+          "std_abs_standardized_coefficient": 0.307408455718
+        },
+        {
+          "feature": "structural_probe_fraction",
+          "mean_abs_standardized_coefficient": 0.626741623251,
+          "std_abs_standardized_coefficient": 0.185905708155
+        },
+        {
+          "feature": "structural_relation_density",
+          "mean_abs_standardized_coefficient": 0.22402828731,
+          "std_abs_standardized_coefficient": 0.370755393919
+        },
+        {
+          "feature": "structural_largest_block_fraction",
+          "mean_abs_standardized_coefficient": 0.07361914546,
+          "std_abs_standardized_coefficient": 0.091743361703
+        },
+        {
+          "feature": "structural_inference_complete",
+          "mean_abs_standardized_coefficient": 0.0,
+          "std_abs_standardized_coefficient": 0.0
+        }
+      ]
+    }
+  },
+  "input_audit": {
+    "all_feature_values_finite": true,
+    "case_count": 24,
+    "checkpoint_hash_valid_count": 600,
+    "context_count": 600,
+    "current_e2e_binding_count": 600,
+    "dataset_binding_sha256": "603b47315833aaf43e1569e5999211e6bf1a02acaee5813529a7266135b7d60b",
+    "feature_count": 40,
+    "optimizer_or_objective_evaluations_executed": false,
+    "phase1_fes": 180000,
+    "seed_count_per_case": 25
+  },
+  "mapped_action_label_selection": {
+    "accuracy": 0.978333333333,
+    "case_count": 24,
+    "case_majority_correct_count": 24,
+    "context_count": 600,
+    "correct_context_count": 587,
+    "family_action_mapping": {
+      "A": "aor",
+      "E": "smp",
+      "R": "gcb",
+      "S": "ctp"
+    },
+    "label_semantics": "Agreement with the predefined family-to-action mapping, not terminal oracle action optimality."
+  },
+  "model": {
+    "C": 1.0,
+    "l1_ratio": 0.0,
+    "max_iter": 5000,
+    "pipeline": [
+      "StandardScaler",
+      "LogisticRegression"
+    ],
+    "random_state": 0,
+    "solver": "lbfgs",
+    "tol": 1e-08
+  },
+  "model_input_fields": [
+    "log10_center_error",
+    "log10_best_probe_error",
+    "probe_log_relative_std",
+    "probe_log_relative_iqr",
+    "block_response_median",
+    "block_response_cv",
+    "block_asymmetry_median",
+    "relation_strength_median",
+    "relation_strength_maximum",
+    "significant_relation_fraction",
+    "line_residual_std_median",
+    "line_residual_std_std",
+    "line_residual_std_minimum",
+    "line_residual_std_maximum",
+    "line_high_frequency_fraction_median",
+    "line_high_frequency_fraction_std",
+    "line_high_frequency_fraction_minimum",
+    "line_high_frequency_fraction_maximum",
+    "line_second_difference_total_median",
+    "line_second_difference_total_std",
+    "line_second_difference_total_minimum",
+    "line_second_difference_total_maximum",
+    "line_residual_max_median",
+    "line_residual_max_std",
+    "line_residual_max_minimum",
+    "line_residual_max_maximum",
+    "line_third_difference_std_median",
+    "line_third_difference_std_std",
+    "line_third_difference_std_minimum",
+    "line_third_difference_std_maximum",
+    "structural_block_count_normalized",
+    "structural_largest_block_fraction",
+    "structural_relation_density",
+    "structural_probe_fraction",
+    "structural_inference_complete",
+    "phase1_log10_improvement",
+    "warmup_log10_gain",
+    "structure_log10_gain",
+    "tail_log10_gain",
+    "late_gain_fraction"
+  ],
+  "primary_feature_group": "all_40",
+  "protocol_sha256": "a4fd9581ffc69f444f19280d40f1951ef848a2ae28cdfda2446910f8266cf1b6",
+  "schema_version": "arac-aob-landscape-family-separability-audit-v1",
+  "scientific_boundaries": [
+    "Tests four known AOB base-function families on held-out variant indices only.",
+    "Does not establish generalization to unseen base-function families or external suites.",
+    "Mapped-action label accuracy means agreement with A-to-AOR, E-to-SMP, R-to-GCB, and S-to-CTP; it is not an oracle terminal-performance label.",
+    "Does not establish that the historical family-to-action mapping is optimal at the current 180000-FE checkpoint.",
+    "Does not modify or validate the production ARAC-Core action selector."
+  ],
+  "separability_gate": {
+    "checks": {
+      "all_family_recalls": true,
+      "all_fold_balanced_accuracies": true,
+      "balanced_accuracy": true
+    },
+    "passed": true,
+    "thresholds": {
+      "minimum_balanced_accuracy": 0.7,
+      "minimum_family_recall": 0.6,
+      "minimum_fold_balanced_accuracy": 0.5
+    }
+  }
+}

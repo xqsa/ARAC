@@ -1,0 +1,35 @@
+{
+  "acceptance_gates": {
+    "exact_screen_step_fes": true,
+    "native_thread_limit_verified": true,
+    "production_source_unchanged": true,
+    "runtime_warnings_empty": true,
+    "same_screen_checkpoint": true,
+    "same_source_checkpoint": true,
+    "selector_evaluation": false,
+    "terminal_parity": false
+  },
+  "case_id": "E1",
+  "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+  "historical_action": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+  "max_workers": 3,
+  "native_threads": 1,
+  "output_root": "artifacts/smp_semantic_parity_diagnostic_v1",
+  "phase1_fes": 180000,
+  "production_hcc_dependency_allowed": false,
+  "purpose": "decompose current SMP semantics against EXP-052 evidence on one common checkpoint",
+  "restart_note": "native restart on is a diagnostic adapter option only; the current manual session loop does not call CMAES.optimize restart_reinitialize",
+  "run_seed": 117,
+  "schema_version": "arac-smp-semantic-parity-diagnostic-protocol-v1",
+  "screen_step_fes": 120000,
+  "selector_execution_allowed": false,
+  "status": "frozen_short_prefix",
+  "variants": [
+    "schedule_only",
+    "stateful_only",
+    "stateful_prefix_no_rescue",
+    "stateful_plus_rescue",
+    "current_complete_smp",
+    "stateful_native_restart_on"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "git_source_evidence": {
+    "git_object": "ba5f5fa3:scripts/hcc_smoke_runner.py",
+    "markers_verified": [
+      "sub_fes = math.ceil(max(0, cc_budget_limit_fes - current_fes) / sub_num)",
+      "\"max_function_evaluations\": optimizer_budget",
+      "persistence_initial_state = previous_distribution_state",
+      "persistent_group_state_lifecycle.record_visit(",
+      "requested_fes=optimizer_budget",
+      "actual_fes=primary_cc_fe",
+      "cmaes_restart: bool = True",
+      "\"is_restart\": config.cmaes_restart,"
+    ],
+    "source_sha256": "0b01ac7346b03679941205adcaa75bb42ebada79f9ffdcd7756f793be2aa6b6e"
+  },
+  "historical_distribution_hashes": {
+    "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/run_summary.json": "afea40838190a78c70cd312a860b57396cd00170de921c5c99d26b0cf9769ea1",
+    "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_118/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed118/elliptic/run_summary.json": "ab159c61268ec0b3de334e5f7c735c51e14690647c187ac36d75e0e3225a7817",
+    "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_119/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed119/elliptic/run_summary.json": "bb9e981d4112ec71665698535578a95037c4ab118946e83b0a61e2058725255d",
+    "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_120/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed120/elliptic/run_summary.json": "59157d652d491e1c8287e108494cb0a0bcbea378bf6a3f99336c26b91e4c0aee",
+    "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_121/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed121/elliptic/run_summary.json": "351229cdcd3b6eea1592c0dc94023bca28cfe50eb52eebaff5668441224709d1"
+  },
+  "historical_exact_runner_source_available": false,
+  "historical_runner_sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+  "kind": "terminal",
+  "manifest_sha256": "e7552b22e9bec9849b06f49f4905a716c25287a93722108a24548caeaae75a0d",
+  "production_hcc_runtime_imports": [],
+  "production_smp_modification_allowed": false,
+  "protocol_sha256": "bedb37d5d71b4364bb9f43b97f7d94040a9e2a9be9b62c4f0e7068371baa4a37",
+  "schema_version": "arac-independent-smp-schedule-terminal-manifest-v2",
+  "selector_execution_allowed": false,
+  "source_hashes": {
+    "experiments/historical_recovery/independent_semantic_parity_pilot.py": "b0a019b69ec2c14525911d708304aa3635745ff0c1e550113b59d3842817877b",
+    "experiments/historical_recovery/independent_smp_schedule_recovery.py": "12cc3ff1985886174f4851f685ba9c4a3bd4ddd38feb3cb6c4e01b0876fd81ac",
+    "experiments/historical_recovery/independent_smp_schedule_recovery_protocol_v2.json": "bedb37d5d71b4364bb9f43b97f7d94040a9e2a9be9b62c4f0e7068371baa4a37",
+    "src/arac/actions/_execution.py": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/runtime/contracts.py": "b9011c7f0e283714ddd1f1065351d574bd6a07f1c5d2857ecbdbcd285de090a6",
+    "src/arac/runtime/ledger.py": "d2cbc0d3536c3a7d1f4ff0eafb88e0e643e5081e0687e8483624333e5cffa513"
+  }
+}

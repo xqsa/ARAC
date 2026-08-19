@@ -1,0 +1,24 @@
+{
+  "action": "smp",
+  "case": "E1",
+  "checkpoint_hash": "ac27f86cfb9302c4122fc52885b18ef0a013e43bf7411095b460181e5de6a83c",
+  "exact_result_match": false,
+  "expected_final_error": 3387152.2200136315,
+  "expected_result_hash": "dd5259a4ce3720e1ef56365a1b16a8dfbbc6fe31aef01c7dc879fdc58bf92550",
+  "expected_terminal_fes": 3000000,
+  "final_error": 41462929.593102485,
+  "final_error_match": false,
+  "receipt_hash": "492d16c7c71689a49dde99f486c6c1e04e4fe40c6761ef991b019aeb2b55aeda",
+  "replay_passed": false,
+  "result_hash": "c0f1be453c71dafb0e912a19e8d16d3af87c0d376d55cb2a07786ec24a614cc9",
+  "runtime_warnings": [
+    {
+      "category": "RuntimeWarning",
+      "message": "overflow encountered in scalar multiply"
+    }
+  ],
+  "schema_version": "arac-current-action-replay-receipt-v1",
+  "seed": 20260901,
+  "terminal_fes": 3000000,
+  "terminal_fes_match": true
+}

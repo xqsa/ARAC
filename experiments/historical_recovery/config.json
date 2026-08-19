@@ -1,0 +1,102 @@
+{
+  "schema_version": "arac-historical-recovery-v1",
+  "historical_reference": {
+    "table_csv": "output/pdf/aob_arac_method_comparison_corrected.csv",
+    "table_tex": "output/pdf/aob_arac_method_comparison_corrected.tex",
+    "table_image": "output/pdf/aob_arac_method_comparison_corrected.png",
+    "target_column": "ARAC Mean +/- Std",
+    "aggregate_precision": ".2E",
+    "source_metadata_limit": "The table contains aggregate values but no seed or budget metadata."
+  },
+  "candidate_protocol": {
+    "binding_status": "inferred_from_18_of_18_exact_rounded_A_S_R_matches",
+    "benchmark": "AOB",
+    "benchmark_adapter": "src/arac/benchmarks/aob.py",
+    "dimension": 1000,
+    "optimum": 0.0,
+    "lower_bound": -100.0,
+    "upper_bound": 100.0,
+    "max_fes": 3000000,
+    "seeds": [
+      117, 118, 119, 120, 121, 122, 123, 124, 125,
+      126, 127, 128, 129, 130, 131, 132, 133, 134,
+      135, 136, 137, 138, 139, 140, 141
+    ],
+    "summary": "mean_and_sample_standard_deviation",
+    "error": "best_objective_minus_known_optimum"
+  },
+  "expert_mapping": {
+    "A": "aor",
+    "E": "smp",
+    "S": "ctp",
+    "R": "gcb"
+  },
+  "evidence": {
+    "aor": {
+      "cases": ["A1", "A2", "A3", "A4", "A5", "A6"],
+      "results_csv": "results/exp_057_a_series_aor_25seed/a1-a6-25seed-v1/final_optimization_values.csv",
+      "manifest": "results/exp_057_a_series_aor_25seed/a1-a6-25seed-v1/manifest.json"
+    },
+    "ctp": {
+      "cases": ["S1", "S2", "S3", "S4", "S5", "S6"],
+      "results_csv": "results/exp_058_ctp_stable_v2_25seed/validation/final_optimization_values.csv",
+      "manifest": "results/exp_058_ctp_stable_v2_25seed/validation/run_summary.json"
+    },
+    "gcb": {
+      "cases": ["R1", "R2", "R3", "R4", "R5", "R6"],
+      "results_csv": "results/exp_059_gcb_stable_all_case_25seed/validation/final_optimization_values.csv",
+      "manifest": "results/exp_059_gcb_stable_all_case_25seed/validation/run_summary.json"
+    },
+    "smp": {
+      "cases": ["E1", "E2", "E3", "E4", "E5", "E6"],
+      "results_csv": null,
+      "frozen_candidate_manifest": "artifacts/frozen_actions/smp_v26/manifest.json",
+      "partial_e1_summary": "artifacts/frozen_actions/smp_v26/evidence/v26_summary.json",
+      "partial_e1_e3_summary": "results/exp_052_e_series_smp_paired_gate/validation/run_summary.json"
+    }
+  },
+  "current_fixed_expert": {
+    "results_csv": "artifacts/historical_recovery_fixed_expert_v1/results.csv",
+    "summary": "artifacts/historical_recovery_fixed_expert_v1/summary.json",
+    "campaign_manifest": "artifacts/historical_recovery_fixed_expert_v1/campaign_manifest.json"
+  },
+  "frozen_independent_matrix": {
+    "root": "artifacts/outcome_calibration_v5/train",
+    "manifest": "artifacts/outcome_calibration_v5/train/campaign_manifest.json",
+    "outcomes": "artifacts/outcome_calibration_v5/train/outcomes.jsonl",
+    "source_files": {
+      "action_execution": "src/arac/actions/_execution.py",
+      "action_registry": "src/arac/actions/registry.py",
+      "aor": "src/arac/actions/aor.py",
+      "benchmark": "src/arac/benchmarks/aob.py",
+      "contracts": "src/arac/runtime/contracts.py",
+      "ctp": "src/arac/actions/ctp.py",
+      "gcb": "src/arac/actions/gcb.py",
+      "ledger": "src/arac/runtime/ledger.py",
+      "optimizers": "src/arac/runtime/optimizers.py",
+      "phase1": "src/arac/evidence/phase1.py",
+      "smp": "src/arac/actions/smp.py",
+      "structural_evidence": "src/arac/evidence/structural.py"
+    }
+  },
+  "current_replay": {
+    "config": "experiments/historical_recovery/current_replay_config.json",
+    "root": "artifacts/historical_recovery_current_replay_v2",
+    "summary": "artifacts/historical_recovery_current_replay_v2/summary.json",
+    "receipts": "artifacts/historical_recovery_current_replay_v2/receipts",
+    "supersedes_failed_replay": "artifacts/historical_recovery_current_replay_v1"
+  },
+  "frozen_source_control": {
+    "receipts": "artifacts/historical_recovery_frozen_control_v3/receipts",
+    "source_manifest": "artifacts/frozen_actions/smp_v26/manifest.json",
+    "source_root": "artifacts/frozen_actions/smp_v26/sources",
+    "execution_method": "python -S with the frozen src directory first on sys.path and the manifest-bound vendor/aob tree passed explicitly"
+  },
+  "gate": {
+    "required_case_count": 24,
+    "required_seed_count_per_case": 25,
+    "require_exact_terminal_fes": true,
+    "recovered_when": "computed mean and sample standard deviation equal the reference after .2E formatting",
+    "missing_when": "the required 25-seed evidence file is absent or incomplete"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "action": "smp",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23990_probes_80_coverage_2250_cold_rescue_visits_2_persistent_rescue_visits_1_global_polish_0"
+      },
+      "final_error": 771635812.8683519,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_match": true,
+      "result_hash": "626f89512d71745976e41f37633c1193a82ef601e0b2c5a0e0443387d994da83",
+      "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23990_probes_80_coverage_2250_cold_rescue_visits_2_persistent_rescue_visits_1_global_polish_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "reference_status": "five_seed_mechanism_only",
+        "stale_window": 3,
+        "state_fields": [
+          "covariance",
+          "eigenvectors",
+          "eigenvalues",
+          "path_covariance",
+          "path_sigma",
+          "sigma",
+          "mean",
+          "generation",
+          "rng_state"
+        ],
+        "state_persistence": true
+      },
+      "final_error": 771635812.8683519,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_match": true,
+      "result_hash": "626f89512d71745976e41f37633c1193a82ef601e0b2c5a0e0443387d994da83",
+      "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23990_probes_80_coverage_2250_cold_rescue_visits_2_persistent_rescue_visits_1_global_polish_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "E1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "receipt_hash": "dccce817fa23eed6c77b405d9755319e46b9305804112e4d92b07e2a6a1c37ad",
+  "reference_contract": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+  "reference_contract_sha256": "ddbb8e7cbc341556ae88e0e3eea777a69802e8e1e11b474bffadadb1e217728f",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v1",
+  "screen_checkpoint_hash": "582f5cbdf2fd795d549222d80bddfa838d14da92a39160e081e39d82cbe38350",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "source_phase1_fes": 180000
+}

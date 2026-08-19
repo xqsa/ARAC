@@ -1,0 +1,37 @@
+{
+  "schema_version": "arac-current-selector-fresh-e2e-protocol-v1",
+  "cases": [
+    "A1", "A2", "A3", "A4", "A5", "A6",
+    "E1", "E2", "E3", "E4", "E5", "E6",
+    "R1", "R2", "R3", "R4", "R5", "R6",
+    "S1", "S2", "S3", "S4", "S5", "S6"
+  ],
+  "fresh_seeds": [
+    20270101, 20270102, 20270103, 20270104, 20270105,
+    20270106, 20270107, 20270108, 20270109, 20270110,
+    20270111, 20270112, 20270113, 20270114, 20270115,
+    20270116, 20270117, 20270118, 20270119, 20270120,
+    20270121, 20270122, 20270123, 20270124, 20270125
+  ],
+  "training_seeds": [
+    117, 118, 119, 120, 121, 122, 123, 124, 125,
+    126, 127, 128, 129, 130, 131, 132, 133, 134,
+    135, 136, 137, 138, 139, 140, 141
+  ],
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "selector_directory": "artifacts/current_grouped_selector_v1",
+  "historical_reference_table": "artifacts/historical_recovery_fixed_expert_v1/frozen_protocol/historical_targets.csv",
+  "historical_reference_column": "ARAC Mean +/- Std",
+  "output_root": "artifacts/current_selector_fresh_e2e_v1",
+  "registry": "RecoveredActionRegistry",
+  "allow_out_of_bounds": true,
+  "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+  "max_workers": 24,
+  "native_threads": 1,
+  "selector_fallback_allowed": false,
+  "probe_execution_allowed": false,
+  "racing_execution_allowed": false,
+  "gate_rule": "For every AOB case, the arithmetic mean final error across all 25 fresh seeds must be less than or equal to the frozen displayed ARAC mean."
+}

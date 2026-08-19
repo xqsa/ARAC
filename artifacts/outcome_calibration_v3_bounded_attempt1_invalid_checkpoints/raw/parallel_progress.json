@@ -1,0 +1,20 @@
+{
+  "completed": 0,
+  "failed": 10,
+  "failures": {
+    "E1:seed-117:ctp": "ValueError: candidate escaped the problem bounds",
+    "E1:seed-117:gcb": "ValueError: candidate escaped the problem bounds",
+    "E1:seed-117:smp": "ValueError: candidate escaped the problem bounds",
+    "E2:seed-117:ctp": "ValueError: candidate escaped the problem bounds",
+    "E2:seed-117:gcb": "ValueError: candidate escaped the problem bounds",
+    "E2:seed-117:smp": "ValueError: candidate escaped the problem bounds",
+    "E3:seed-117:ctp": "ValueError: candidate escaped the problem bounds",
+    "E3:seed-117:gcb": "ValueError: candidate escaped the problem bounds",
+    "E3:seed-117:smp": "ValueError: candidate escaped the problem bounds",
+    "E4:seed-117:ctp": "ValueError: candidate escaped the problem bounds"
+  },
+  "max_workers": 28,
+  "pending": 374,
+  "planned": 384,
+  "updated_at_utc": "2026-08-01T01:51:10.777807+00:00"
+}

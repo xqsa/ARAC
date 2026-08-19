@@ -1,0 +1,16 @@
+{
+  "all_checkpoint_bindings_exact": true,
+  "all_final_errors_finite": true,
+  "all_terminal_fes_exact": true,
+  "arm_count": 16,
+  "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+  "context_count": 4,
+  "label_counts": {
+    "ctp": 1,
+    "gcb": 1,
+    "smp": 2
+  },
+  "runtime_warning_counts": [],
+  "schema_version": "arac-current-recovered-four-arm-summary-v1",
+  "summary_hash": "e87eadfb0ce5a0c0653a068b9413a2eff366fde6e6997d77cceec8d59e66680e"
+}

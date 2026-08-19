@@ -1,0 +1,298 @@
+{
+  "checks": {
+    "every_case_within_1_10x_of_historical": true,
+    "geometric_mean_ratio_le_1_0": true,
+    "hcc_win_count_ge_18": true,
+    "per_seed_rule_matches_oracle_ge_0_95": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "four_arm_source": "artifacts\\current_recovered_four_arm_matrix_v2\\arms",
+    "reference_source": "output\\pdf\\aob_arac_method_comparison_corrected.csv",
+    "rule": {
+      "features": [
+        "tail_log10_gain",
+        "structural_relation_density"
+      ],
+      "tau_aor_gain": 0.1,
+      "tau_ctp_gain": 0.5,
+      "tau_no_relation": 0.05
+    },
+    "seed_count": 7
+  },
+  "rows": [
+    {
+      "better_than_hcc": false,
+      "case": "A1",
+      "chosen_action": "aor",
+      "hcc_mean": 77600.0,
+      "historical_arac_mean": 78000.0,
+      "oracle_action": "aor",
+      "oracle_mean": 78032.00293218895,
+      "ratio_vs_historical": 1.0004102940024224,
+      "realized_mean": 78032.00293218895
+    },
+    {
+      "better_than_hcc": true,
+      "case": "A2",
+      "chosen_action": "aor",
+      "hcc_mean": 78100.0,
+      "historical_arac_mean": 78000.0,
+      "oracle_action": "aor",
+      "oracle_mean": 78002.48633850676,
+      "ratio_vs_historical": 1.000031876134702,
+      "realized_mean": 78002.48633850676
+    },
+    {
+      "better_than_hcc": true,
+      "case": "A3",
+      "chosen_action": "aor",
+      "hcc_mean": 78600.0,
+      "historical_arac_mean": 78100.0,
+      "oracle_action": "aor",
+      "oracle_mean": 78090.5290590814,
+      "ratio_vs_historical": 0.9998787331508502,
+      "realized_mean": 78090.5290590814
+    },
+    {
+      "better_than_hcc": true,
+      "case": "A4",
+      "chosen_action": "aor",
+      "hcc_mean": 78300.0,
+      "historical_arac_mean": 78200.0,
+      "oracle_action": "aor",
+      "oracle_mean": 78201.71846368634,
+      "ratio_vs_historical": 1.0000219752389556,
+      "realized_mean": 78201.71846368634
+    },
+    {
+      "better_than_hcc": true,
+      "case": "A5",
+      "chosen_action": "aor",
+      "hcc_mean": 78500.0,
+      "historical_arac_mean": 78400.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 78399.52909522351,
+      "ratio_vs_historical": 1.0008953695447294,
+      "realized_mean": 78470.19697230679
+    },
+    {
+      "better_than_hcc": false,
+      "case": "A6",
+      "chosen_action": "aor",
+      "hcc_mean": 78000.0,
+      "historical_arac_mean": 78000.0,
+      "oracle_action": "aor",
+      "oracle_mean": 78054.58680959015,
+      "ratio_vs_historical": 1.0006998308921815,
+      "realized_mean": 78054.58680959015
+    },
+    {
+      "better_than_hcc": true,
+      "case": "E1",
+      "chosen_action": "smp",
+      "hcc_mean": 2840000.0,
+      "historical_arac_mean": 569000.0,
+      "oracle_action": "smp",
+      "oracle_mean": 8.097080164795096e-06,
+      "ratio_vs_historical": 1.4230369358163612e-11,
+      "realized_mean": 8.097080164795096e-06
+    },
+    {
+      "better_than_hcc": true,
+      "case": "E2",
+      "chosen_action": "ctp",
+      "hcc_mean": 6870000.0,
+      "historical_arac_mean": 5620000.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 3684811.0605870946,
+      "ratio_vs_historical": 0.6556603310653193,
+      "realized_mean": 3684811.0605870946
+    },
+    {
+      "better_than_hcc": true,
+      "case": "E3",
+      "chosen_action": "ctp",
+      "hcc_mean": 16000000.0,
+      "historical_arac_mean": 13400000.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 5301212.343170598,
+      "ratio_vs_historical": 0.39561286143064167,
+      "realized_mean": 5301212.343170598
+    },
+    {
+      "better_than_hcc": true,
+      "case": "E4",
+      "chosen_action": "ctp",
+      "hcc_mean": 22600000.0,
+      "historical_arac_mean": 26100000.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 8828503.006637506,
+      "ratio_vs_historical": 0.3382568201776822,
+      "realized_mean": 8828503.006637506
+    },
+    {
+      "better_than_hcc": false,
+      "case": "E5",
+      "chosen_action": "ctp",
+      "hcc_mean": 7760000.0,
+      "historical_arac_mean": 29800000.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 8779676.533076268,
+      "ratio_vs_historical": 0.29462001788846537,
+      "realized_mean": 8779676.533076268
+    },
+    {
+      "better_than_hcc": true,
+      "case": "E6",
+      "chosen_action": "ctp",
+      "hcc_mean": 43200000.0,
+      "historical_arac_mean": 31900000.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 14769337.635498866,
+      "ratio_vs_historical": 0.4629886406112497,
+      "realized_mean": 14769337.635498866
+    },
+    {
+      "better_than_hcc": true,
+      "case": "R1",
+      "chosen_action": "gcb",
+      "hcc_mean": 174000.0,
+      "historical_arac_mean": 156000.0,
+      "oracle_action": "gcb",
+      "oracle_mean": 156817.77924930345,
+      "ratio_vs_historical": 1.0052421746750222,
+      "realized_mean": 156817.77924930345
+    },
+    {
+      "better_than_hcc": true,
+      "case": "R2",
+      "chosen_action": "gcb",
+      "hcc_mean": 372000.0,
+      "historical_arac_mean": 224000.0,
+      "oracle_action": "gcb",
+      "oracle_mean": 197851.79057393348,
+      "ratio_vs_historical": 0.8832669222050602,
+      "realized_mean": 197851.79057393348
+    },
+    {
+      "better_than_hcc": true,
+      "case": "R3",
+      "chosen_action": "gcb",
+      "hcc_mean": 506000.0,
+      "historical_arac_mean": 269000.0,
+      "oracle_action": "gcb",
+      "oracle_mean": 256335.07899961775,
+      "ratio_vs_historical": 0.9529185092922593,
+      "realized_mean": 256335.07899961775
+    },
+    {
+      "better_than_hcc": true,
+      "case": "R4",
+      "chosen_action": "gcb",
+      "hcc_mean": 559000.0,
+      "historical_arac_mean": 315000.0,
+      "oracle_action": "gcb",
+      "oracle_mean": 308300.6558395857,
+      "ratio_vs_historical": 0.9787322407605895,
+      "realized_mean": 308300.6558395857
+    },
+    {
+      "better_than_hcc": true,
+      "case": "R5",
+      "chosen_action": "gcb",
+      "hcc_mean": 684000.0,
+      "historical_arac_mean": 334000.0,
+      "oracle_action": "gcb",
+      "oracle_mean": 328663.1201602622,
+      "ratio_vs_historical": 0.9840213178450965,
+      "realized_mean": 328663.1201602622
+    },
+    {
+      "better_than_hcc": true,
+      "case": "R6",
+      "chosen_action": "gcb",
+      "hcc_mean": 815000.0,
+      "historical_arac_mean": 361000.0,
+      "oracle_action": "gcb",
+      "oracle_mean": 361223.65340499894,
+      "ratio_vs_historical": 1.0006195385180026,
+      "realized_mean": 361223.65340499894
+    },
+    {
+      "better_than_hcc": true,
+      "case": "S1",
+      "chosen_action": "smp",
+      "hcc_mean": 0.00192,
+      "historical_arac_mean": 1.04,
+      "oracle_action": "smp",
+      "oracle_mean": 8.87709364653439e-14,
+      "ratio_vs_historical": 8.535666967821529e-14,
+      "realized_mean": 8.87709364653439e-14
+    },
+    {
+      "better_than_hcc": true,
+      "case": "S2",
+      "chosen_action": "ctp",
+      "hcc_mean": 5580.0,
+      "historical_arac_mean": 812.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 266.12675400457226,
+      "ratio_vs_historical": 0.32774230788740427,
+      "realized_mean": 266.12675400457226
+    },
+    {
+      "better_than_hcc": true,
+      "case": "S3",
+      "chosen_action": "ctp",
+      "hcc_mean": 9720.0,
+      "historical_arac_mean": 2460.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 336.5671759798259,
+      "ratio_vs_historical": 0.13681592519505117,
+      "realized_mean": 336.5671759798259
+    },
+    {
+      "better_than_hcc": true,
+      "case": "S4",
+      "chosen_action": "ctp",
+      "hcc_mean": 1240.0,
+      "historical_arac_mean": 5110.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 1079.1632230947928,
+      "ratio_vs_historical": 0.21118654072305143,
+      "realized_mean": 1079.1632230947928
+    },
+    {
+      "better_than_hcc": true,
+      "case": "S5",
+      "chosen_action": "ctp",
+      "hcc_mean": 9230.0,
+      "historical_arac_mean": 8380.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 2192.12558084783,
+      "ratio_vs_historical": 0.26159016477897734,
+      "realized_mean": 2192.12558084783
+    },
+    {
+      "better_than_hcc": true,
+      "case": "S6",
+      "chosen_action": "ctp",
+      "hcc_mean": 66500.0,
+      "historical_arac_mean": 4180.0,
+      "oracle_action": "ctp",
+      "oracle_mean": 3883.1096650224495,
+      "ratio_vs_historical": 0.9289736040723563,
+      "realized_mean": 3883.1096650224495
+    }
+  ],
+  "schema_version": "arac-overlap-action-dispatch-gate41a-offline-v1",
+  "summary": {
+    "cases_better_than_historical_column": 17,
+    "geometric_mean_ratio_vs_historical": 0.06454460950330537,
+    "hcc_loss_count": 3,
+    "hcc_win_count": 21,
+    "max_ratio_vs_historical": 1.0052421746750222,
+    "seed_rule_match_fraction": 0.9580838323353293
+  }
+}

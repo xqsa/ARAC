@@ -1,0 +1,11 @@
+{
+  "completed": 3,
+  "failed": 1,
+  "failures": {
+    "E2:seed-141:smp": "ValueError: objective must return one finite value per candidate"
+  },
+  "max_workers": 1,
+  "pending": 0,
+  "planned": 4,
+  "updated_at_utc": "2026-08-01T01:44:39.617397+00:00"
+}

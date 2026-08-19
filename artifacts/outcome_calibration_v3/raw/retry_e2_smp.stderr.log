@@ -1,0 +1,19 @@
+E:\ARAC\vendor\aob\AOB\Benchmarks.py:241: RuntimeWarning: overflow encountered in power
+  z[positive_mask] = z[positive_mask] ** (1 + beta * indices[positive_mask] / (z.shape[-1] - 1) * np.sqrt(z[positive_mask]))
+E:\ARAC\vendor\aob\AOB\Benchmarks.py:209: RuntimeWarning: overflow encountered in square
+  return np.sum(10 ** (6 * i / (nx - 1)) * (x ** 2), axis=-1)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "E:\ARAC\experiments\final\run.py", line 962, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "E:\ARAC\experiments\final\run.py", line 930, in main
+    records = run_outcome_campaign(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\experiments\final\run.py", line 815, in run_outcome_campaign
+    rows = _run_parallel(
+           ^^^^^^^^^^^^^^
+  File "E:\ARAC\experiments\final\run.py", line 419, in _run_parallel
+    raise RuntimeError(f"parallel campaign has {len(failures)} failed contexts")
+RuntimeError: parallel campaign has 1 failed contexts

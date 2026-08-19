@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "A3_median_le_1.05": true,
+    "A3_worst_le_1.10": true,
+    "R2_median_le_1.05": false,
+    "R2_worst_le_1.10": false,
+    "R6_median_le_1.05": false,
+    "R6_worst_le_1.10": false,
+    "S5_median_le_1.05": false,
+    "S5_worst_le_1.10": false,
+    "all_cells_complete": true,
+    "protocol_audits_all": true
+  },
+  "failures": [],
+  "gate_passed": false,
+  "implementation_manifest_hash": "sha256:3d3f789205953e4ea3775739c9b51441db7016345910b22a02a914243eadc644",
+  "per_case": {
+    "A3": {
+      "median_ratio": 1.0025718188967894,
+      "on_beats_off_seeds": 1,
+      "on_off": [
+        0.9992468128422267,
+        1.0006510156281923,
+        1.0
+      ],
+      "ratios": [
+        1.0077555939002913,
+        1.0021513481571307,
+        1.0025718188967894
+      ],
+      "strict_win_seeds": 0,
+      "worst_ratio": 1.0077555939002913
+    },
+    "R2": {
+      "median_ratio": 1.2706079039312732,
+      "on_beats_off_seeds": 3,
+      "on_off": [
+        0.6412491279446317,
+        0.8658537117078551,
+        0.7296130204618337
+      ],
+      "ratios": [
+        0.9343971126742513,
+        1.377384833362329,
+        1.2706079039312732
+      ],
+      "strict_win_seeds": 1,
+      "worst_ratio": 1.377384833362329
+    },
+    "R6": {
+      "median_ratio": 1.125806389776876,
+      "on_beats_off_seeds": 2,
+      "on_off": [
+        0.9964140193497959,
+        0.8510734332548566,
+        1.0
+      ],
+      "ratios": [
+        1.125806389776876,
+        1.047267359093249,
+        1.161597268927349
+      ],
+      "strict_win_seeds": 0,
+      "worst_ratio": 1.161597268927349
+    },
+    "S5": {
+      "median_ratio": 4.667243065905748,
+      "on_beats_off_seeds": 0,
+      "on_off": [
+        10.619037170993609,
+        1.0,
+        1.0
+      ],
+      "ratios": [
+        46.63587169020825,
+        3.756269132236715,
+        4.667243065905748
+      ],
+      "strict_win_seeds": 0,
+      "worst_ratio": 46.63587169020825
+    }
+  },
+  "protocol": {
+    "arms": [
+      "ctp",
+      "gcb",
+      "smp",
+      "aor",
+      "on",
+      "off"
+    ],
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "fresh_seeds": [
+      20260901,
+      20260902,
+      20260903
+    ],
+    "noninferior_tol": 1.05,
+    "strict_win_tol": 0.98,
+    "total_fes": 3000000,
+    "worst_seed_tol": 1.1
+  },
+  "schema_version": "arac-oc-gate51c-v1",
+  "strict_win_cases": []
+}

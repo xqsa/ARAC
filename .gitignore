@@ -3,8 +3,12 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .venv/
+.codex-tasks/
 .codex/tmp/
 .autonomous/
+tmp/
+/pytest-*/
+*.bak
 data/raw/*
 data/interim/*
 data/processed/*
@@ -20,3 +24,5 @@ vendor/hcc/result/*
 !vendor/hcc/result/README.md
 vendor/hcc/**/__pycache__/
 *.manifest.tmp
+.codex/
+.zcode/

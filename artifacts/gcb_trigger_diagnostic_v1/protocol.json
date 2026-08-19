@@ -1,0 +1,43 @@
+{
+  "acceptance_gates": {
+    "all_final_errors_finite": true,
+    "all_runtime_warnings_known": true,
+    "candidate_schedule_trace_valid": true,
+    "exact_terminal_fes": true,
+    "maximum_pair_ratio_lte": 10.0,
+    "positive_relation_per_case_geometric_mean_ratio_lt": 1.0,
+    "positive_relation_vs_frozen_current_per_case_geometric_mean_ratio_lt": 1.0,
+    "positive_relation_win_count_gte": 4,
+    "same_checkpoint_as_matched_baseline": true,
+    "zero_relation_bitwise_equivalent": true
+  },
+  "baseline_source_root": "artifacts/gcb_mechanism_diagnostic_v1",
+  "cases": [
+    "R1",
+    "R3",
+    "R6"
+  ],
+  "checkpoint_source_root": "artifacts/gcb_schedule_ablation_v2",
+  "expected_phase1_fes": 180000,
+  "matched_baseline_variants": {
+    "native_order_relation_dispatch": "native_order_historical_seeds"
+  },
+  "max_workers": 9,
+  "native_threads": 1,
+  "output_root": "artifacts/gcb_trigger_diagnostic_v1",
+  "production_hcc_runtime_imports_allowed": false,
+  "purpose": "isolate relation-dispatch timing while preserving source sweeps, block order, stage seeds, and burst budget",
+  "reference_thresholds_used_for_decision": false,
+  "schema_version": "arac-gcb-trigger-diagnostic-protocol-v1",
+  "seeds": [
+    31001,
+    31002,
+    31003
+  ],
+  "selector_execution_allowed": false,
+  "status": "frozen_paired_development_diagnostic",
+  "total_budget_fes": 3000000,
+  "variants": [
+    "native_order_relation_dispatch"
+  ]
+}

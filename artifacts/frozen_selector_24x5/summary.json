@@ -1,0 +1,305 @@
+{
+  "all_terminal_fes_exact": true,
+  "case_summaries": [
+    {
+      "case_id": "A1",
+      "mean_final_error": 77967.85962392887,
+      "mean_final_error_sci": "7.80e+04",
+      "sample_std_final_error": 183.1987383363548,
+      "sample_std_final_error_sci": "1.83e+02",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 2,
+        "ctp": 1,
+        "gcb": 2
+      }
+    },
+    {
+      "case_id": "A2",
+      "mean_final_error": 78112.56925375469,
+      "mean_final_error_sci": "7.81e+04",
+      "sample_std_final_error": 53.179779242255876,
+      "sample_std_final_error_sci": "5.32e+01",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 3,
+        "gcb": 2
+      }
+    },
+    {
+      "case_id": "A3",
+      "mean_final_error": 78171.9237769783,
+      "mean_final_error_sci": "7.82e+04",
+      "sample_std_final_error": 210.42048721586025,
+      "sample_std_final_error_sci": "2.10e+02",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 2,
+        "gcb": 3
+      }
+    },
+    {
+      "case_id": "A4",
+      "mean_final_error": 78168.25143295577,
+      "mean_final_error_sci": "7.82e+04",
+      "sample_std_final_error": 104.37209898170606,
+      "sample_std_final_error_sci": "1.04e+02",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 4,
+        "gcb": 1
+      }
+    },
+    {
+      "case_id": "A5",
+      "mean_final_error": 78531.61543657826,
+      "mean_final_error_sci": "7.85e+04",
+      "sample_std_final_error": 137.81444170055428,
+      "sample_std_final_error_sci": "1.38e+02",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 3,
+        "ctp": 1,
+        "gcb": 1
+      }
+    },
+    {
+      "case_id": "A6",
+      "mean_final_error": 78248.71867826748,
+      "mean_final_error_sci": "7.82e+04",
+      "sample_std_final_error": 86.3353605316104,
+      "sample_std_final_error_sci": "8.63e+01",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 2,
+        "ctp": 2,
+        "gcb": 1
+      }
+    },
+    {
+      "case_id": "E1",
+      "mean_final_error": 118284152.4286747,
+      "mean_final_error_sci": "1.18e+08",
+      "sample_std_final_error": 171368799.03246042,
+      "sample_std_final_error_sci": "1.71e+08",
+      "seed_count": 5,
+      "selection_counts": {
+        "ctp": 1,
+        "gcb": 1,
+        "smp": 3
+      }
+    },
+    {
+      "case_id": "E2",
+      "mean_final_error": 12172031.739492185,
+      "mean_final_error_sci": "1.22e+07",
+      "sample_std_final_error": 809699.2980679795,
+      "sample_std_final_error_sci": "8.10e+05",
+      "seed_count": 5,
+      "selection_counts": {
+        "ctp": 5
+      }
+    },
+    {
+      "case_id": "E3",
+      "mean_final_error": 13020407.373124588,
+      "mean_final_error_sci": "1.30e+07",
+      "sample_std_final_error": 1481352.8219196564,
+      "sample_std_final_error_sci": "1.48e+06",
+      "seed_count": 5,
+      "selection_counts": {
+        "ctp": 5
+      }
+    },
+    {
+      "case_id": "E4",
+      "mean_final_error": 12213649.743183069,
+      "mean_final_error_sci": "1.22e+07",
+      "sample_std_final_error": 2042982.3259717256,
+      "sample_std_final_error_sci": "2.04e+06",
+      "seed_count": 5,
+      "selection_counts": {
+        "ctp": 5
+      }
+    },
+    {
+      "case_id": "E5",
+      "mean_final_error": 14774198.520765135,
+      "mean_final_error_sci": "1.48e+07",
+      "sample_std_final_error": 539511.1174548992,
+      "sample_std_final_error_sci": "5.40e+05",
+      "seed_count": 5,
+      "selection_counts": {
+        "ctp": 5
+      }
+    },
+    {
+      "case_id": "E6",
+      "mean_final_error": 12254434.991854187,
+      "mean_final_error_sci": "1.23e+07",
+      "sample_std_final_error": 2430162.1165060014,
+      "sample_std_final_error_sci": "2.43e+06",
+      "seed_count": 5,
+      "selection_counts": {
+        "ctp": 5
+      }
+    },
+    {
+      "case_id": "R1",
+      "mean_final_error": 280473.8480524324,
+      "mean_final_error_sci": "2.80e+05",
+      "sample_std_final_error": 60753.49531160136,
+      "sample_std_final_error_sci": "6.08e+04",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 1,
+        "ctp": 1,
+        "gcb": 2,
+        "smp": 1
+      }
+    },
+    {
+      "case_id": "R2",
+      "mean_final_error": 690133.5483047704,
+      "mean_final_error_sci": "6.90e+05",
+      "sample_std_final_error": 565723.4188481336,
+      "sample_std_final_error_sci": "5.66e+05",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 1,
+        "gcb": 3,
+        "smp": 1
+      }
+    },
+    {
+      "case_id": "R3",
+      "mean_final_error": 546054.7399622042,
+      "mean_final_error_sci": "5.46e+05",
+      "sample_std_final_error": 499063.2043626865,
+      "sample_std_final_error_sci": "4.99e+05",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 1,
+        "gcb": 3,
+        "smp": 1
+      }
+    },
+    {
+      "case_id": "R4",
+      "mean_final_error": 315609.5911808922,
+      "mean_final_error_sci": "3.16e+05",
+      "sample_std_final_error": 16056.158948953982,
+      "sample_std_final_error_sci": "1.61e+04",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 1,
+        "gcb": 4
+      }
+    },
+    {
+      "case_id": "R5",
+      "mean_final_error": 387254.7825477716,
+      "mean_final_error_sci": "3.87e+05",
+      "sample_std_final_error": 20656.497778805406,
+      "sample_std_final_error_sci": "2.07e+04",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 5
+      }
+    },
+    {
+      "case_id": "R6",
+      "mean_final_error": 402437.04211172776,
+      "mean_final_error_sci": "4.02e+05",
+      "sample_std_final_error": 41152.84346905084,
+      "sample_std_final_error_sci": "4.12e+04",
+      "seed_count": 5,
+      "selection_counts": {
+        "aor": 3,
+        "gcb": 2
+      }
+    },
+    {
+      "case_id": "S1",
+      "mean_final_error": 2519.8527156434748,
+      "mean_final_error_sci": "2.52e+03",
+      "sample_std_final_error": 3689.8040205261095,
+      "sample_std_final_error_sci": "3.69e+03",
+      "seed_count": 5,
+      "selection_counts": {
+        "ctp": 1,
+        "smp": 4
+      }
+    },
+    {
+      "case_id": "S2",
+      "mean_final_error": 9282.254866289872,
+      "mean_final_error_sci": "9.28e+03",
+      "sample_std_final_error": 2306.3187925559414,
+      "sample_std_final_error_sci": "2.31e+03",
+      "seed_count": 5,
+      "selection_counts": {
+        "smp": 5
+      }
+    },
+    {
+      "case_id": "S3",
+      "mean_final_error": 13458.888480887477,
+      "mean_final_error_sci": "1.35e+04",
+      "sample_std_final_error": 7271.9292096452755,
+      "sample_std_final_error_sci": "7.27e+03",
+      "seed_count": 5,
+      "selection_counts": {
+        "smp": 5
+      }
+    },
+    {
+      "case_id": "S4",
+      "mean_final_error": 9843.729004531608,
+      "mean_final_error_sci": "9.84e+03",
+      "sample_std_final_error": 2598.149883595223,
+      "sample_std_final_error_sci": "2.60e+03",
+      "seed_count": 5,
+      "selection_counts": {
+        "smp": 5
+      }
+    },
+    {
+      "case_id": "S5",
+      "mean_final_error": 13578.911299738897,
+      "mean_final_error_sci": "1.36e+04",
+      "sample_std_final_error": 4056.137496041148,
+      "sample_std_final_error_sci": "4.06e+03",
+      "seed_count": 5,
+      "selection_counts": {
+        "smp": 5
+      }
+    },
+    {
+      "case_id": "S6",
+      "mean_final_error": 22841.379512650135,
+      "mean_final_error_sci": "2.28e+04",
+      "sample_std_final_error": 25609.31245357124,
+      "sample_std_final_error_sci": "2.56e+04",
+      "seed_count": 5,
+      "selection_counts": {
+        "gcb": 1,
+        "smp": 4
+      }
+    }
+  ],
+  "completed_context_count": 120,
+  "context_count": 120,
+  "generated_at_utc": "2026-07-31T11:39:12.245900+00:00",
+  "max_workers": 24,
+  "phase1_fes": 180000,
+  "schema_version": "arac-independent-summary-v1",
+  "selected_action_only": true,
+  "selection_counts": {
+    "aor": 28,
+    "ctp": 32,
+    "gcb": 26,
+    "smp": 34
+  },
+  "selector_input_contains_case_or_family_identity": false
+}

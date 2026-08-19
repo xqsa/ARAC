@@ -1,0 +1,30 @@
+{
+  "created_at_utc": "2026-08-11T05:42:31.522369+00:00",
+  "legacy_source_sha256": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d",
+  "manifest_sha256": "418a5d48cf37f3bca868f550dd6c2e1032be7e4b0ff76b4547cdecbdaaf8bab2",
+  "production_hcc_runtime_imports": [],
+  "protocol_sha256": "12e8d0fb200d74647fc8757f6d1d1444a9914571b652eb13913320ea3a82a9f0",
+  "reference_thresholds_used_for_decision": false,
+  "schema_version": "arac-gcb-schedule-ablation-manifest-v1",
+  "selector_execution_allowed": false,
+  "source_sha256": {
+    "experiments/final/run.py": "e1574ded337ff93cd7988c85a0bcb12702a767301b6cd5a66ec2073c36e08711",
+    "experiments/historical_recovery/gcb_schedule_ablation.py": "9b3d1db198e66621f46642d4d3724599785ebbf527447c8d44092941404f188a",
+    "experiments/historical_recovery/gcb_schedule_ablation_protocol.json": "12e8d0fb200d74647fc8757f6d1d1444a9914571b652eb13913320ea3a82a9f0",
+    "src/arac/actions/_execution.py": "f655988c7eed944917a971e46db2be9e6639636eaca9276027ca79a39f46ca40",
+    "src/arac/actions/gcb.py": "c3367840484643d595fc4d2a7d506b8a8bd0c175f32f68b8d344a6c044aa7b28",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/evidence/mechanism_features.py": "a0ed388c36f4be89f8429121b0d389f34ac49244354ca4158b4c686b1506e720",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/evidence/structural.py": "df14e4664c06009d4ddc0fa35046c449c3e8bde2ae8f5434427ea92a014682b2",
+    "src/arac/runtime/contracts.py": "fee9484be85605526b0b73a790311879b0ec922974235ef2c32e6f026631646a",
+    "src/arac/runtime/ledger.py": "072bcd77426d13ce3a10c45182c9d665a0d8f014b1ea748ca51f46835d67b5b5",
+    "src/arac/runtime/optimizers.py": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954"
+  },
+  "vendor_trees": {
+    "vendor/aob": {
+      "file_count": 67,
+      "tree_sha256": "9af372d908f9f6996efc91f0859789bdfdb53f1d904576e8c732c42f3deede31"
+    }
+  }
+}

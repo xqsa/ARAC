@@ -1,0 +1,330 @@
+{
+  "cells": [
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 3,
+        "seed": 20260836,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "33210ef4d31e30bb83265726502d09f84775b6419540167b6f42b42971351533",
+      "phase1_fes": 180000,
+      "truth_shared_count": 3,
+      "unified": {
+        "action_counts": {
+          "aor": 1,
+          "arbitration_only": 1,
+          "ctp_restricted": 3,
+          "none": 10,
+          "smp": 1
+        },
+        "budget_flow": {
+          "arbitration": 24,
+          "operator": 215,
+          "probe": 36,
+          "sense": 1057014,
+          "tail": 1762711
+        },
+        "final_error": 381.845066659349,
+        "final_state_hash": "74d7ff00d5d33147826011605105ae82250321524d1d295eba0da19493a08f6e",
+        "operator_fes": 215,
+        "receipt_count": 6,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260836,
+        "topology": "chain"
+      },
+      "checkpoint_hash": "32308e8527a3cf99c4204981a0e96de105bc0054d2b2fde8926fd062dd315ed5",
+      "phase1_fes": 180000,
+      "truth_shared_count": 6,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 1,
+          "ctp_restricted": 2,
+          "none": 11,
+          "smp": 2
+        },
+        "budget_flow": {
+          "arbitration": 20,
+          "operator": 308,
+          "probe": 60,
+          "sense": 880830,
+          "tail": 1938782
+        },
+        "final_error": 611.3577968839426,
+        "final_state_hash": "912a1c43afcaca28de9743a03f549dd9268b47203841a6acd4ff32ac67ffa59d",
+        "operator_fes": 308,
+        "receipt_count": 5,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    },
+    {
+      "cell": {
+        "mode": "conflicting",
+        "overlap_budget": 6,
+        "seed": 20260836,
+        "topology": "star"
+      },
+      "checkpoint_hash": "3f40e77244a2069c14047f60854d4b2c515bdb49cf4158b9d4a0c17fe72bcf74",
+      "phase1_fes": 180000,
+      "truth_shared_count": 6,
+      "unified": {
+        "action_counts": {
+          "arbitration_only": 1,
+          "ctp_shared_core": 2,
+          "none": 13
+        },
+        "budget_flow": {
+          "arbitration": 12,
+          "operator": 20,
+          "probe": 36,
+          "sense": 528498,
+          "tail": 2291434
+        },
+        "final_error": 950.806934539769,
+        "final_state_hash": "a6a01023b5664a450a1b23acaf6dc5f0e58babe5487284344021ced14e1f2dae",
+        "operator_fes": 20,
+        "receipt_count": 3,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      }
+    }
+  ],
+  "checks": {
+    "aor_reachable": true,
+    "cell_count_3": true,
+    "phase1_exact": true,
+    "probe_amplitude_not_authority": true,
+    "receipt_parity": true,
+    "restricted_ctp_reachable": true,
+    "route_witnesses_fresh": true,
+    "shared_core_ctp_reachable": true,
+    "smp_reachable": true,
+    "state_hash_chain": true,
+    "strict_best": true,
+    "terminal_exact": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "config": {
+      "calibration_status": "gate47r-residual-topology",
+      "complex_hub_degree": 3,
+      "complex_hub_ratio": 0.9,
+      "config_version": "arac-oc-coordinator-config-v1",
+      "cooldown_cycles": 1,
+      "ema_alpha": 0.3,
+      "escalation_streak": 6,
+      "gain_floor": 1e-12,
+      "gamma_down": 0.5,
+      "gamma_up": 1.5,
+      "hub_mode": "relative",
+      "k_enter": 3,
+      "k_exit": 3,
+      "k_window": 4,
+      "persistent_streak": 2,
+      "probe_budget_share": 0.25,
+      "pulse_max_fes": 32,
+      "pulse_min_fes": 8,
+      "smp_trust_floor": 0.5,
+      "stall_cap": 2,
+      "tau_enter": 0.5,
+      "tau_exit": 0.2
+    },
+    "fresh_run_seed": 20260836,
+    "fresh_witness_seeds": [
+      20260836,
+      20260837
+    ],
+    "note": "witness routes are plan-only reachability checks; benchmark action counts are reported separately",
+    "phase1_fes": 180000,
+    "total_budget_fes": 3000000
+  },
+  "route_witnesses": [
+    {
+      "all_expected_routes": true,
+      "cases": [
+        {
+          "action": "ctp_restricted",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "medium",
+          "expected_action": "ctp_restricted",
+          "name": "chain_restricted",
+          "passed": true,
+          "plan_hash": "12e3cd45d2393142dd7a754db803a4ca95781b3d4178fff1c9b0b37643b3cdd2",
+          "reason": "medium_restricted_ctp",
+          "relative_hub": 0.6666666666666666
+        },
+        {
+          "action": "ctp_shared_core",
+          "component": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "conflict_level": "high",
+          "expected_action": "ctp_shared_core",
+          "name": "star_shared_core",
+          "passed": true,
+          "plan_hash": "6b3a128976268804a4b9d2e74f7a4d5f2fefdb3e59828b54662723b53f514787",
+          "reason": "high_shared_core",
+          "relative_hub": 1.0
+        },
+        {
+          "action": "smp",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "high",
+          "expected_action": "smp",
+          "name": "low_qhat_smp",
+          "passed": true,
+          "plan_hash": "ef4c7677d8f1eb96a957bc01c9a500389ace405de71bf215cabc74d6bf79771b",
+          "reason": "high_smp_trust_rebuild",
+          "relative_hub": 0.6666666666666666
+        },
+        {
+          "action": "aor",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "complex",
+          "expected_action": "aor",
+          "name": "persistent_escalation_aor",
+          "passed": true,
+          "plan_hash": "78e7ab0f43b043dd92f5dccbfa93656ab9db1281cc6b851e31524dfeb352c0e3",
+          "reason": "persistent_escalation_aor",
+          "relative_hub": 0.6666666666666666
+        },
+        {
+          "action": "arbitration_only",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "low",
+          "expected_action": "arbitration_only",
+          "name": "probe_amplitude_only_arbitration",
+          "passed": true,
+          "plan_hash": "ca0f81c20b496c0095ab3a8082742370bd56e7d65a2d58240f1bf0eaa9abda3f",
+          "reason": "low_arbitration",
+          "relative_hub": 0.6666666666666666
+        }
+      ],
+      "seed": 20260836
+    },
+    {
+      "all_expected_routes": true,
+      "cases": [
+        {
+          "action": "ctp_restricted",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "medium",
+          "expected_action": "ctp_restricted",
+          "name": "chain_restricted",
+          "passed": true,
+          "plan_hash": "5ebcb221775ccbc70b5495b909a25d944ea63777f3fdbde3f1be2e7de0893baa",
+          "reason": "medium_restricted_ctp",
+          "relative_hub": 0.6666666666666666
+        },
+        {
+          "action": "ctp_shared_core",
+          "component": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "conflict_level": "high",
+          "expected_action": "ctp_shared_core",
+          "name": "star_shared_core",
+          "passed": true,
+          "plan_hash": "33fda43e4e191ae8e1f15dedb4c2a1c800174c29e792702d3bcb55b2de4891ce",
+          "reason": "high_shared_core",
+          "relative_hub": 1.0
+        },
+        {
+          "action": "smp",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "high",
+          "expected_action": "smp",
+          "name": "low_qhat_smp",
+          "passed": true,
+          "plan_hash": "9bd7975bd2fd5aeb870393536fa99037238e974d71a5dc69545379d9da1c112d",
+          "reason": "high_smp_trust_rebuild",
+          "relative_hub": 0.6666666666666666
+        },
+        {
+          "action": "aor",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "complex",
+          "expected_action": "aor",
+          "name": "persistent_escalation_aor",
+          "passed": true,
+          "plan_hash": "37d89ab1e7ac066fa09315a3708b57928d79331e77e043514de0f6a86720bacb",
+          "reason": "persistent_escalation_aor",
+          "relative_hub": 0.6666666666666666
+        },
+        {
+          "action": "arbitration_only",
+          "component": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "conflict_level": "low",
+          "expected_action": "arbitration_only",
+          "name": "probe_amplitude_only_arbitration",
+          "passed": true,
+          "plan_hash": "d7870c45b45a17eb93d2a5752b07b28d2673b384b57bb10bb74e13d04c749cab",
+          "reason": "low_arbitration",
+          "relative_hub": 0.6666666666666666
+        }
+      ],
+      "seed": 20260837
+    }
+  ],
+  "schema_version": "arac-oc-gate47r-v1"
+}

@@ -1,0 +1,115 @@
+{
+  "all_checkpoints_positive_relation": true,
+  "all_final_errors_finite": true,
+  "all_runtime_warnings_known": true,
+  "arm_count": 12,
+  "candidate_reserved_tail_executed": true,
+  "candidate_win_or_tie_count": 6,
+  "case_summaries": [
+    {
+      "candidate_to_baseline_geometric_mean_ratio": 0.13995225948053513,
+      "candidate_win_or_tie_count": 3,
+      "case_id": "S3",
+      "pair_count": 3,
+      "paired_improvement_passed": true
+    },
+    {
+      "candidate_to_baseline_geometric_mean_ratio": 0.28973337775624947,
+      "candidate_win_or_tie_count": 3,
+      "case_id": "S6",
+      "pair_count": 3,
+      "paired_improvement_passed": true
+    }
+  ],
+  "checkpoint_count": 6,
+  "exact_terminal_fes": true,
+  "final_25_seed_recovery_evaluated": false,
+  "generated_at_utc": "2026-08-11T04:29:51.886783+00:00",
+  "maximum_candidate_to_baseline_ratio": 0.8890260805878988,
+  "pair_count": 6,
+  "paired_development_gate_passed": true,
+  "pairs": [
+    {
+      "baseline_final_error": 5774.842191898576,
+      "baseline_tail_fes": 528,
+      "candidate_final_error": 878.7288024125838,
+      "candidate_tail_fes": 564312,
+      "candidate_to_baseline_ratio": 0.15216498965899655,
+      "candidate_won_or_tied": true,
+      "case_id": "S3",
+      "checkpoint_hash": "d84d6d65f6d84e343001e06b73939d0bb072aa5d2051b97d48b233dbc6fb2e06",
+      "run_seed": 31001,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 1637.2792294295848,
+      "baseline_tail_fes": 252,
+      "candidate_final_error": 1455.5839361677588,
+      "candidate_tail_fes": 564192,
+      "candidate_to_baseline_ratio": 0.8890260805878988,
+      "candidate_won_or_tied": true,
+      "case_id": "S3",
+      "checkpoint_hash": "1f914380cccbdf6e614692457439895da6eccb808a7ce04b8f934bf3231b0dcc",
+      "run_seed": 31002,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 10189.279485793319,
+      "baseline_tail_fes": 204,
+      "candidate_final_error": 206.46858219130146,
+      "candidate_tail_fes": 564048,
+      "candidate_to_baseline_ratio": 0.0202633152304023,
+      "candidate_won_or_tied": true,
+      "case_id": "S3",
+      "checkpoint_hash": "eeb484ba82b7920ca6e406168558d6062df701ca96f2bdfc85f24fd2172ef905",
+      "run_seed": 31003,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 24443.365389497845,
+      "baseline_tail_fes": 204,
+      "candidate_final_error": 6438.155920119642,
+      "candidate_tail_fes": 564048,
+      "candidate_to_baseline_ratio": 0.2633907327215185,
+      "candidate_won_or_tied": true,
+      "case_id": "S6",
+      "checkpoint_hash": "ef8b018ff00a18f98db4f7f2b9567427960684422d98a6e9b150e25683359181",
+      "run_seed": 31001,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 17201.79124730078,
+      "baseline_tail_fes": 84,
+      "candidate_final_error": 7968.892371120817,
+      "candidate_tail_fes": 564228,
+      "candidate_to_baseline_ratio": 0.4632594510976441,
+      "candidate_won_or_tied": true,
+      "case_id": "S6",
+      "checkpoint_hash": "5729680629ccf0a589f106427aafa125e84f59a13b4633e03933fda77033fcde",
+      "run_seed": 31002,
+      "same_checkpoint": true
+    },
+    {
+      "baseline_final_error": 28247.5613818361,
+      "baseline_tail_fes": 312,
+      "candidate_final_error": 5630.562335585103,
+      "candidate_tail_fes": 564108,
+      "candidate_to_baseline_ratio": 0.19932914772620683,
+      "candidate_won_or_tied": true,
+      "case_id": "S6",
+      "checkpoint_hash": "9c1ea5d845ce251c8b7a20efb996371b7c023ec32cec8b0b5eeb2b29d6932a7b",
+      "run_seed": 31003,
+      "same_checkpoint": true
+    }
+  ],
+  "phase1_fes": 180000,
+  "runtime_warning_context_count": 0,
+  "runtime_warning_count": 0,
+  "runtime_warning_counts_by_action": {},
+  "same_checkpoint_per_pair": true,
+  "schema_version": "arac-ctp-tail-ablation-summary-v1",
+  "selector_or_routing_authorized": false,
+  "summary_sha256": "97f8ce4f30ff56ab243023f16cb601a087e47f49c5555b5cf214b04110ccb8f8",
+  "terminal_fes": 3000000,
+  "unexpected_runtime_warning_count": 0
+}

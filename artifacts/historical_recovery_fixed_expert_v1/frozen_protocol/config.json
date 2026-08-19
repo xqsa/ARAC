@@ -1,0 +1,26 @@
+{
+  "schema_version": "arac-historical-fixed-expert-config-v1",
+  "cases": [
+    "A1", "A2", "A3", "A4", "A5", "A6",
+    "E1", "E2", "E3", "E4", "E5", "E6",
+    "R1", "R2", "R3", "R4", "R5", "R6",
+    "S1", "S2", "S3", "S4", "S5", "S6"
+  ],
+  "seeds": [
+    117, 118, 119, 120, 121, 122, 123, 124, 125,
+    126, 127, 128, 129, 130, 131, 132, 133, 134,
+    135, 136, 137, 138, 139, 140, 141
+  ],
+  "expert_mapping": {
+    "A": "aor",
+    "E": "smp",
+    "R": "gcb",
+    "S": "ctp"
+  },
+  "max_fes": 3000000,
+  "max_workers": 24,
+  "output_root": "artifacts/historical_recovery_fixed_expert_v1",
+  "historical_table": "output/pdf/aob_arac_method_comparison_corrected.csv",
+  "historical_target_column": "ARAC Mean +/- Std",
+  "aggregate_precision": ".2E"
+}

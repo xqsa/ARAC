@@ -1,0 +1,106 @@
+{
+  "action_name": "smp",
+  "all_terminal_fes_exact": true,
+  "case_id": "E1",
+  "completed": 5,
+  "failed": 0,
+  "max_fes": 3000000,
+  "max_final_error": 2832333.9701259397,
+  "max_final_error_sci": "2.83e+06",
+  "mean_final_error": 1282914.970176869,
+  "mean_final_error_sci": "1.28e+06",
+  "mean_gate_passed": false,
+  "mean_target": 569000.0,
+  "mean_target_sci": "5.69e+05",
+  "median_final_error": 936120.032971865,
+  "median_final_error_sci": "9.36e+05",
+  "output_root": "E:\\ARAC\\artifacts\\outcome_smp_hybrid_v26_e1_5seed",
+  "promotion_gate_passed": false,
+  "sample_std_final_error": 1095772.6403575202,
+  "sample_std_final_error_sci": "1.10e+06",
+  "schema_version": "arac-smp-validation-v26",
+  "seed_results": [
+    {
+      "checkpoint_hash": "8a3eba96690a7a5f38df9ab5cd6f0af606f7ce41589d4b414b6d1e1500d18ca3",
+      "final_error": 72195.19251439234,
+      "final_error_sci": "7.22e+04",
+      "route": "stateful_block_visits_2255991_visits_248_stale_restarts_66_rescue_563986_probes_198_coverage_56300_cold_rescue_visits_47_persistent_rescue_visits_3_global_polish_0",
+      "route_metrics": {
+        "cold_rescue_visits": 47,
+        "coverage_fes": 56300,
+        "persistent_rescue_visits": 3
+      },
+      "run_seed": 117,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "5980d57bc09de0639f80ca3b835cf10c9a6b9edc20e789db124d7b5dd0d0a483",
+      "final_error": 2832333.9701259397,
+      "final_error_sci": "2.83e+06",
+      "route": "stateful_block_visits_2255989_visits_230_stale_restarts_57_rescue_563998_probes_120_coverage_56300_cold_rescue_visits_34_persistent_rescue_visits_1_global_polish_0",
+      "route_metrics": {
+        "cold_rescue_visits": 34,
+        "coverage_fes": 56300,
+        "persistent_rescue_visits": 1
+      },
+      "run_seed": 129,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "caee90e2f5e6bcdbe8212739183dc8df291af3ff4bdcde6125b2b135119a1fd5",
+      "final_error": 648202.4652046427,
+      "final_error_sci": "6.48e+05",
+      "route": "stateful_block_visits_2255985_visits_235_stale_restarts_58_rescue_563990_probes_80_coverage_54856_cold_rescue_visits_26_persistent_rescue_visits_1_global_polish_0",
+      "route_metrics": {
+        "cold_rescue_visits": 26,
+        "coverage_fes": 54856,
+        "persistent_rescue_visits": 1
+      },
+      "run_seed": 141,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "99b3116d91c166ffee07cdeb8c6d56a913188a9d051c38ae7f2b2f8ee4141920",
+      "final_error": 1925723.1900675052,
+      "final_error_sci": "1.93e+06",
+      "route": "stateful_block_visits_2255997_visits_248_stale_restarts_65_rescue_563989_probes_160_coverage_56300_cold_rescue_visits_50_persistent_rescue_visits_2_global_polish_0",
+      "route_metrics": {
+        "cold_rescue_visits": 50,
+        "coverage_fes": 56300,
+        "persistent_rescue_visits": 2
+      },
+      "run_seed": 142,
+      "terminal_fes": 3000000
+    },
+    {
+      "checkpoint_hash": "9ab0e88991f6e5c6cf8983d4fbae793dbe43660c5c63cea9db6aadfc947049a1",
+      "final_error": 936120.032971865,
+      "final_error_sci": "9.36e+05",
+      "route": "stateful_block_visits_2255999_visits_270_stale_restarts_74_rescue_563985_probes_160_coverage_56300_cold_rescue_visits_40_persistent_rescue_visits_2_global_polish_0",
+      "route_metrics": {
+        "cold_rescue_visits": 40,
+        "coverage_fes": 56300,
+        "persistent_rescue_visits": 2
+      },
+      "run_seed": 20260753,
+      "terminal_fes": 3000000
+    }
+  ],
+  "seeds": [
+    117,
+    129,
+    141,
+    142,
+    20260753
+  ],
+  "source_checkpoint_root": "E:\\ARAC\\artifacts\\outcome_smp_balanced_v25_e1_5seed",
+  "source_hashes": {
+    "action_execution": "dff34e9baa63a2769cb85d099fb969b19322a547cf6272ad3abf000b329b0140",
+    "contracts": "2f53adf12c797155e5970733782ca78117e58eba0a1909db30e49d95acf3e012",
+    "optimizers": "d8d98f58d4922c94b4561979901e41f102cda0209f493098c6b3d1e2f0893288",
+    "phase1": "093978aaeddf1541cef428d3b0829274d4be244d40dfad8737defb4e2c5cc1cf",
+    "smp": "deb6d12bbb27b21f026e73bd326d230c2643bae9c4432ee29884499c2650cbfe"
+  },
+  "tail_gate_definition": "sample_std <= mean and max <= 4 * median",
+  "tail_gate_passed": true
+}

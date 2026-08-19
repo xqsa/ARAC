@@ -1,0 +1,46 @@
+{
+  "schema_version": "arac-recovered-actions-core-e2e-protocol-v1",
+  "status": "frozen_before_execution",
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "run_seed": 117,
+  "action_seed": 117,
+  "max_workers": 4,
+  "native_threads": 1,
+  "output_root": "artifacts/recovered_actions_core_e2e_v1",
+  "registry": "RecoveredActionRegistry",
+  "allow_out_of_bounds": true,
+  "selector_execution_allowed": true,
+  "selector_fallback_allowed": false,
+  "fixed_action_summary": "artifacts/recovered_actions_fixed_action_v1/summary.json",
+  "fixed_action_summary_sha256": "4fdf632f080a3fa9f68f12ac608f5f4109c8c7b4f7ac7b189c8e6e0d931bf464",
+  "lanes": [
+    {
+      "case_id_audit_metadata": "A1",
+      "expected_action": "aor",
+      "expected_checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+      "historical_p90": 78098.55697849873
+    },
+    {
+      "case_id_audit_metadata": "E1",
+      "expected_action": "smp",
+      "expected_checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+      "historical_p90": 1.8255606813339802
+    },
+    {
+      "case_id_audit_metadata": "R1",
+      "expected_action": "gcb",
+      "expected_checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+      "historical_p90": 176367.0467002794
+    },
+    {
+      "case_id_audit_metadata": "S1",
+      "expected_action": "ctp",
+      "expected_checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+      "historical_p90": 0.03184487388259503
+    }
+  ],
+  "gate_rule": "Every lane must reproduce its Phase-I checkpoint, select its expected recovered action, consume exactly 3000000 FE, and finish at or below historical_p90.",
+  "default_registry_replacement_allowed": false
+}

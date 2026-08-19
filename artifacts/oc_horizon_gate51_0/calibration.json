@@ -1,0 +1,23 @@
+{
+  "calibration_ref": "gate51-0-20260817",
+  "cold_start_probe_cap": 0.25,
+  "derivation": {
+    "granularity_fes": 150000,
+    "h_measured_fes": 300000,
+    "ladder_cumulative_fes": 525000,
+    "runs": [
+      "R2/aor",
+      "S5/ctp"
+    ],
+    "safety_factor": 1.5,
+    "target_cumulative_coverage_fes": 450000
+  },
+  "escalation_factor": 2,
+  "escalation_grants_k": 3,
+  "exploitation_reserve_ratio": 0.1,
+  "exploration_and_development_cap": 0.55,
+  "maturity_window_fes": 75000,
+  "probe_min_fes": 20000,
+  "revelation_horizon_fes": 450000,
+  "status": "frozen"
+}

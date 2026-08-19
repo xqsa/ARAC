@@ -1,0 +1,33 @@
+{
+  "action": "ctp",
+  "action_seed": 117,
+  "allow_out_of_bounds": true,
+  "case_id_audit_metadata": "S1",
+  "checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+  "consumed_fes": 2820000,
+  "final_error": 5.168148355100764e-07,
+  "historical_level_passed": true,
+  "historical_p90": 0.03184487388259503,
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "receipt_hash": "02c207ca25e931b479e16d5268954fde3705ad38eae3494d425cf9fbcd9fa2f0",
+  "result_hash": "7febadc47cac60713dfc652b6bb4179ef384d60adc1a4469c5bc3d599e9e5e6d",
+  "route": "coverage_564000_then_sequential_block_polish_2256000",
+  "run_seed": 117,
+  "runtime_warnings": [],
+  "schema_version": "arac-recovered-fixed-action-receipt-v1",
+  "selector_execution_authorized": false,
+  "terminal_fes": 3000000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas"
+    }
+  ]
+}

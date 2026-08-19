@@ -1,0 +1,15 @@
+{
+  "all_exact_global_fes": true,
+  "completed": 6,
+  "failed": 0,
+  "manifest_sha256": "21bcd057ddb5b39615d461a3829993e69ed773bea143867166280d748d7e94f2",
+  "quality_claim": "none_protocol_pilot_only",
+  "run_count": 6,
+  "schema_version": "arac-phase2-v2-pilot-summary-v1",
+  "selected_action_counts": {
+    "aor": 5,
+    "ctp": 0,
+    "gcb": 1,
+    "smp": 0
+  }
+}

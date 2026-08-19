@@ -1,0 +1,315 @@
+{
+  "all_expected_packages_match": true,
+  "all_pinned_packages_match": true,
+  "decision": "session_provenance_complete_receipt_binding_missing_manual_authorization_required",
+  "environment": {
+    "available": true,
+    "captured_at_utc": "2026-08-10T13:57:46.868087+00:00",
+    "executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "executable_sha256": "137c474a645a9471ab3a369084e7cd573cd8b7ff8f81cb85363fffdf5904106c",
+    "manifest_sha256": "36442053a09cc9b45a6a5daa0f8db3990b8f24e748d92b87290a8f3b9579c27f",
+    "packages": {
+      "PyYAML": "6.0.3",
+      "cma": "4.4.4",
+      "llvmlite": "0.48.0",
+      "numba": "0.66.0",
+      "numpy": "2.3.5",
+      "pypop7": "0.0.82",
+      "scipy": "1.18.0"
+    },
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python_implementation": "CPython",
+    "python_version": "3.12.7",
+    "pyvenv_cfg_sha256": "b50d0ad188159ca4bc31307040ac02131005cdb51cefb26f897a6b59ec26c2f4"
+  },
+  "environment_binding_complete": false,
+  "formal_session_dependency_mutation_scan": {
+    "end_line": 2627,
+    "events": [],
+    "scan_complete": true,
+    "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\26\\rollout-2026-07-26T17-04-21-019f9dab-0f42-70f2-8f45-5cf51411e668.jsonl",
+    "start_line": 529
+  },
+  "historical_pyproject_sha256": "d79600e659b06ef146d86a91937706d77a344fbd97727248ba5bfecf65a7329a",
+  "historical_ref": "c7505d91",
+  "historical_requirements": {
+    "PyYAML": "6.0.3",
+    "cma": "4.4.4",
+    "llvmlite": "0.48.0",
+    "numba": "0.66.0",
+    "numpy": "2.3.5",
+    "pypop7": "0.0.82",
+    "scipy": "1.18.0"
+  },
+  "optional_only_mismatches": [],
+  "package_match": {
+    "PyYAML": true,
+    "cma": true,
+    "llvmlite": true,
+    "numba": true,
+    "numpy": true,
+    "pypop7": true,
+    "scipy": true
+  },
+  "receipt": {
+    "environment_keys_present": [],
+    "present": true,
+    "runner_sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac"
+  },
+  "receipt_environment_binding": false,
+  "replay_authorized": false,
+  "runtime_package_match": {
+    "PyYAML": true,
+    "numpy": true,
+    "scipy": true
+  },
+  "schema_version": "arac-exp052-environment-audit-v2",
+  "session_environment_manifest_sha256": "ab7409f61b63e267413360094eaf8ae7c8867a16a5c9d7f03148aae734f9f128",
+  "session_evidence": [
+    {
+      "expected": [
+        ".venv\\Scripts\\python.exe",
+        "Cannot find path"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "venv_absent_before_creation",
+      "kind": "precondition",
+      "line": 113,
+      "observed": true,
+      "payload_text_sha256": "e96d6604f98e30042070bb63d36317fb091ebf41ef3a04f26fbd5677523be692",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\18\\rollout-2026-07-18T21-51-16-019f757e-ca50-7513-af12-dd6c4227fff0.jsonl",
+      "text_excerpt": "custom_tool_call_output\nctco_019f7588-36db-7c83-aa67-5be35a4c12b6\ncall_JE7imvC5yklKqpXTdjrKOKQ6\ninput_text\nScript completed\nWall time 2.6 seconds\nOutput:\n\ninput_text\n--- python (exit 1) ---\nGet-Item: \r\nLine |\r\n   2 |  Get-Item '.venv\\Scripts\\python.exe' -ErrorAction Stop | Select-Object \u2026\r\n     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Cannot find path 'E:\\ARAC\\.venv\\Scripts\\python.exe' because it does not exist.\r\n\ninput_text\n--- config (exit 0) ---\n{\n  \"protocol_version\": \"rddsm-evidence-overlay-pilot-v1\",\n  \"config_schema_version\": 1,\n  \"status\": \"frozen_before_new_optimizer_fe\",\n  \"preregistration_date\": \"2026-07-17\",\n  \"executor\": \"Codex\",\n  \"positioning\": \"observer_only_active_evidence_overlay_not_a_grouping_algorithm\",\n  \"execution\": {\n    \"source_mode\": \"fresh_runtime_probe\",\n    \"baseline_action\": \"arac_evidence_action_controller_v37\",\n    \"relation_policy\": \"controller_v31\",\n    \"relation_dispatch\": true,\n    \"budget_accounting\": \"strict\",\n    \"cmaes_restart\": true,\n    \"mmes_restart\": true,\n    \"search_state_backend\": \"phase_i_mmes\",\n    \"cma_sampling_mode\": \"iid\",\n    \"skip_plots\": true,\n    \"runtime_authorized\": false\n  },\n  \"lanes\": [\n    {\n     ",
+      "timestamp": "2026-07-18T14:01:29.051Z"
+    },
+    {
+      "expected": [
+        "py -3.12 -m venv",
+        ".venv"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "venv_created",
+      "kind": "command",
+      "line": 160,
+      "observed": true,
+      "payload_text_sha256": "9837c3fa102e9590c2125407b72795a22da3441382760abf896d88ee6472df8e",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\18\\rollout-2026-07-18T21-51-16-019f757e-ca50-7513-af12-dd6c4227fff0.jsonl",
+      "text_excerpt": "custom_tool_call\nctc_048cd1b727f899aa016a5b87a3ac80819ab8f340a499e4d5fb\ncompleted\ncall_OCVQOwhwWb1iqQ39v07spTgk\nexec\nconst r = await tools.exec_command({\"cmd\":\"py -3.12 -m venv '.venv'\",\"workdir\":\"E:\\ARAC\",\"yield_time_ms\":30000,\"max_output_tokens\":4000});\ntext(JSON.stringify(r));\n\n019f7587-9e99-7932-ad82-5a12740f9252",
+      "timestamp": "2026-07-18T14:03:15.656Z"
+    },
+    {
+      "expected": [
+        "\"exit_code\":0"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "venv_creation_succeeded",
+      "kind": "output",
+      "line": 165,
+      "observed": true,
+      "payload_text_sha256": "d8ad075ea2a6f8a05993ac27e2380840523ead12db866cfc78f7d203cfc86112",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\18\\rollout-2026-07-18T21-51-16-019f757e-ca50-7513-af12-dd6c4227fff0.jsonl",
+      "text_excerpt": "function_call_output\nfco_019f758a-1c21-76d1-9803-b8a86517cdb4\ncall_80IuCTsxmBZRlUVuldzXTgy1\ninput_text\nScript completed\nWall time 2.3 seconds\nOutput:\n\ninput_text\n{\"chunk_id\":\"675a5f\",\"wall_time_seconds\":17.1429924,\"exit_code\":0,\"original_token_count\":0,\"output\":\"\"}\n019f7587-9e99-7932-ad82-5a12740f9252",
+      "timestamp": "2026-07-18T14:03:33.281Z"
+    },
+    {
+      "expected": [
+        "Successfully installed",
+        "cma-4.4.4",
+        "numpy-2.3.5",
+        "PyYAML-6.0.3",
+        "scipy-1.18.0"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "hcc_pins_installed",
+      "kind": "output",
+      "line": 197,
+      "observed": true,
+      "payload_text_sha256": "94f35d2fbd628a0fad286f632fe1179b4377f0648af50248cb65a014e0b4c704",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\18\\rollout-2026-07-18T21-51-16-019f757e-ca50-7513-af12-dd6c4227fff0.jsonl",
+      "text_excerpt": "function_call_output\nfco_019f758b-8050-7431-817b-e9851c783409\ncall_u5CClDTf84YcZFSSzJaP09i5\ninput_text\nScript completed\nWall time 9.9 seconds\nOutput:\n\ninput_text\n{\"chunk_id\":\"0e1b22\",\"wall_time_seconds\":23.9136904,\"exit_code\":0,\"original_token_count\":81,\"output\":\"Successfully installed PyYAML-6.0.3 arac-0.1.0 cma-4.4.4 colorama-0.4.6 iniconfig-2.3.0 numpy-2.3.5 packaging-26.2 pluggy-1.6.0 pygments-2.20.0 pytest-9.1.1 scipy-1.18.0\\r\\n\\r\\n[notice] A new release of pip is available: 24.2 -> 26.1.2\\r\\n[notice] To update, run: E:\\ARAC\\.venv\\Scripts\\python.exe -m pip install --upgrade pip\\r\\n\"}\n019f7587-9e99-7932-ad82-5a12740f9252",
+      "timestamp": "2026-07-18T14:05:04.464Z"
+    },
+    {
+      "expected": [
+        "4.4.4 2.3.5 1.18.0 6.0.3",
+        "E:\\ARAC\\.venv"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "hcc_versions_imported",
+      "kind": "output",
+      "line": 206,
+      "observed": true,
+      "payload_text_sha256": "980210242d9d1f9cc93872512cf9468829a22bfb5e30aeb01725d78e28f629f1",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\18\\rollout-2026-07-18T21-51-16-019f757e-ca50-7513-af12-dd6c4227fff0.jsonl",
+      "text_excerpt": "function_call_output\nfco_019f758c-2821-7240-9e00-d39a25ee53d4\ncall_CANDoNJHkJjt6LI8vODecWfe\ninput_text\nScript completed\nWall time 10.5 seconds\nOutput:\n\ninput_text\n--- focused-tests (exit undefined, session 17971) ---\n........................\ninput_text\n--- versions (exit 0, session undefined) ---\nE:\\ARAC\\.venv\\Lib\\site-packages\\cma\\s.py:16: UserWarning: Could not import matplotlib.pyplot, therefore ``cma.plot()`` etc. is not available\r\n  _warnings.warn('Could not import matplotlib.pyplot, therefore'\r\n4.4.4 2.3.5 1.18.0 6.0.3 9.1.1\r\n\ninput_text\n--- config-load (exit 0, session undefined) ---\n15 60\r\n\n019f7587-9e99-7932-ad82-5a12740f9252",
+      "timestamp": "2026-07-18T14:05:47.425Z"
+    },
+    {
+      "expected": [
+        ".venv\\Scripts\\python.exe",
+        "pip install",
+        ".[baselines]"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "baselines_installed",
+      "kind": "command",
+      "line": 2153,
+      "observed": true,
+      "payload_text_sha256": "29113ce9d572183b69c13cdfefc5592378c02afb35dd994ed1fea187050b5136",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\21\\rollout-2026-07-21T21-20-29-019f84d5-aa92-7770-a6d2-f9e4ef551b47.jsonl",
+      "text_excerpt": "custom_tool_call\nctc_0716ce638c2a517e016a6184997108819ba1b268b1f6aec940\ncompleted\ncall_zg7hafPfLhDhQeYMmSoqKs8X\nexec\nconst r=await tools.exec_command({cmd:\"& 'E:\\ARAC\\.venv\\Scripts\\python.exe' -m pip install '.[baselines]'\",workdir:\"E:\\ARAC\",yield_time_ms:1000,max_output_tokens:12000}); text(JSON.stringify(r));\n\n019f8ceb-4c9a-7573-bf81-cf390e0733a3",
+      "timestamp": "2026-07-23T03:03:53.823Z"
+    },
+    {
+      "expected": [
+        "llvmlite==0.48.0",
+        "numba==0.66.0",
+        "pypop7==0.0.82",
+        "(2.3.5)",
+        "(1.18.0)"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "baselines_pins_resolved",
+      "kind": "output",
+      "line": 2162,
+      "observed": true,
+      "payload_text_sha256": "984f239eb07b264605d53bd7a24f06f929468da1a54decef447edad311fed8ac",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\21\\rollout-2026-07-21T21-20-29-019f84d5-aa92-7770-a6d2-f9e4ef551b47.jsonl",
+      "text_excerpt": "function_call_output\nfco_019f8cee-921b-7093-adb2-d0c645fa2123\ncall_9bWo8R1GjO3OImrOxf22oiL1\ninput_text\nScript completed\nWall time 14.4 seconds\nOutput:\n\ninput_text\n{\"chunk_id\":\"589739\",\"wall_time_seconds\":30.0078622,\"session_id\":35825,\"original_token_count\":1185,\"output\":\"Processing e:\\arac\\r\\n  Installing build dependencies: started\\r\\n  Installing build dependencies: finished with status 'done'\\r\\n  Getting requirements to build wheel: started\\r\\n  Getting requirements to build wheel: finished with status 'done'\\r\\n  Preparing metadata (pyproject.toml): started\\r\\n  Preparing metadata (pyproject.toml): finished with status 'done'\\r\\nCollecting llvmlite==0.48.0 (from arac==0.1.0)\\r\\n  Using cached llvmlite-0.48.0-cp312-cp312-win_amd64.whl.metadata (5.2 kB)\\r\\nCollecting numba==0.66.0 (from arac==0.1.0)\\r\\n  Using cached numba-0.66.0-cp312-cp312-win_amd64.whl.metadata (2.8 kB)\\r\\nCollecting pypop7==0.0.82 (from arac==0.1.0)\\r\\n  Using cached pypop7-0.0.82-py3-none-any.whl.metadata (109 kB)\\r\\nRequirement already satisfied: numpy<2.5,>=1.22 in e:\\arac\\.venv\\lib\\site-packages (from numba==0.66.0->arac==0.1.0) (2.3.5)\\r\\nRequirement already satisfied: scipy in e:\\arac\\.venv\\lib\\site-pa",
+      "timestamp": "2026-07-23T03:04:33.051Z"
+    },
+    {
+      "expected": [
+        "pypop7",
+        "0.0.82",
+        "E:\\ARAC\\.venv\\Lib\\site-packages"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "pypop7_installed_location",
+      "kind": "output",
+      "line": 2252,
+      "observed": true,
+      "payload_text_sha256": "a8533182300eb7a9245adb2b2fac482542f289dc41826480cbf8097de11865c2",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\21\\rollout-2026-07-21T21-20-29-019f84d5-aa92-7770-a6d2-f9e4ef551b47.jsonl",
+      "text_excerpt": "custom_tool_call_output\nctco_019f8cf3-75f7-7fe0-8e04-666ecceb25d5\ncall_bousQyCNj5so7rpiHC9DrTFh\ninput_text\nScript completed\nWall time 2.8 seconds\nOutput:\n\ninput_text\n---RESULT 1---\nwarning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it\n\ninput_text\n---RESULT 2---\nwarning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it\ndiff --git a/pyproject.toml b/pyproject.toml\nindex 4c1e1f1..f42faab 100644\n--- a/pyproject.toml\n+++ b/pyproject.toml\n@@ -16,6 +16,11 @@ analysis = [\n     \"pandas==3.0.3\",\n     \"scikit-learn==1.9.0\",\n ]\n+baselines = [\n+    \"llvmlite==0.48.0\",\n+    \"numba==0.66.0\",\n+    \"pypop7==0.0.82\",\n+]\n \n [tool.pytest.ini_options]\n pythonpath = [\"src\"]\n\ninput_text\n---RESULT 3---\n M AGENTS.md\n M docs/design/action-library-literature-review.md\n M experiments/pilots/exp_019_conflict_resolution_pilot/benchmark.py\n M experiments/pilots/exp_019_conflict_resolution_pilot/diagnostic.py\n M experiments/pilots/exp_019_conflict_resolution_pilot/diagnostic_config.json\n M experiments/pilots/exp_019_conflict_resolution_pilot/evidence_predictability.py\n M experiments/pilots/exp_026_arac_vs_hcc_pai",
+      "timestamp": "2026-07-23T03:09:53.527Z"
+    },
+    {
+      "expected": [
+        "Python 3.12.7",
+        "pypop7==0.0.82",
+        "llvmlite==0.48.0",
+        "numba==0.66.0"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "python_version_observed",
+      "kind": "output",
+      "line": 3320,
+      "observed": true,
+      "payload_text_sha256": "2fa55ddfcb9ab9bc910b25cc856f62176093bd982fe58020d6e342842656e186",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\21\\rollout-2026-07-21T21-20-29-019f84d5-aa92-7770-a6d2-f9e4ef551b47.jsonl",
+      "text_excerpt": "custom_tool_call_output\nctco_019f94bd-33b0-7483-9154-417672d5e210\ncall_ejHJGrX53kDxK9jvNUs4KHLf\ninput_text\nScript completed\nWall time 1.0 seconds\nOutput:\n\ninput_text\nGet-Command: \r\nLine |\r\n   2 |  Get-Command python | Select-Object Source; if (Test-Path '.venv\\Scrip \u2026\r\n     |  ~~~~~~~~~~~~~~~~~~\r\n     | The term 'python' is not recognized as a name of a cmdlet, function, script file, or executable program.\r\nCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\r\nPython 3.12.7\r\n[project]\r\nname = \"arac\"\r\nversion = \"0.1.0\"\r\ndescription = \"Reference-blind RDDSM evidence overlay for two-phase cooperative coevolution.\"\nrequires-python = \">=3.11\"\r\ndependencies = []\r\n\r\n[project.optional-dependencies]\nhcc = [\n    \"cma==4.4.4\",\n    \"numpy==2.3.5\",\n    \"PyYAML==6.0.3\",\n    \"scipy==1.18.0\",\n]\nanalysis = [\n    \"pandas==3.0.3\",\n    \"scikit-learn==1.9.0\",\n]\nbaselines = [\n    \"llvmlite==0.48.0\",\n    \"numba==0.66.0\",\n    \"pypop7==0.0.82\",\n]\n\n[tool.pytest.ini_options]\npythonpath = [\"src\"]\r\ntestpaths = [\"tests\"]\r\nmarkers = [\r\n    \"integration: tests that run the HCC subprocess smoke runner\",\r\n]\r\n\r\n[tool.ruff]\r\nline-length = 100\r\ntarget-version = \"py3",
+      "timestamp": "2026-07-24T15:27:35.344Z"
+    },
+    {
+      "expected": [
+        "OpenBLAS 0.3.30",
+        "USE64BITINT",
+        "DYNAMIC_ARCH"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "blas_backend_observed",
+      "kind": "output",
+      "line": 18775,
+      "observed": true,
+      "payload_text_sha256": "f17d9204ddd96c743fe956f4cc46a8ba73b269f7cb35a13c834b76e1b2d5b059",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\21\\rollout-2026-07-21T19-16-44-019f8464-6384-7c70-ad66-99e5d3cc6d3f.jsonl",
+      "text_excerpt": "custom_tool_call_output\nctco_019f82e5-bb1f-7f53-9b6c-084869e87933\ncall_XhVoTy3tbtubdJD4wwfnHy7y\ninput_text\nScript completed\nWall time 1.9 seconds\nOutput:\n\ninput_text\nBuild Dependencies:\r\n  blas:\r\n    detection method: pkgconfig\r\n    found: true\r\n    include directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-q7k2ejt3/cp312-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/include\r\n    lib directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-q7k2ejt3/cp312-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/lib\r\n    name: scipy-openblas\r\n    openblas configuration: OpenBLAS 0.3.30  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\r\n      Haswell MAX_THREADS=24\r\n    pc file directory: D:/a/numpy-release/numpy-release/.openblas\r\n    version: 0.3.30\r\n  lapack:\r\n    detection method: pkgconfig\r\n    found: true\r\n    include directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-q7k2ejt3/cp312-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/include\r\n    lib directory: C:/Users/runneradmin/AppData/Local/Temp/cibw-run-q7k2ejt3/cp312-win_amd64/build/venv/Lib/site-packages/scipy_openblas64/lib\r\n    name: scipy-openblas\r\n    openblas configuration: OpenBLAS 0.3.30  USE",
+      "timestamp": "2026-07-21T11:16:48.795Z"
+    },
+    {
+      "expected": [
+        "E:\\ARAC\\.venv\\Scripts\\python.exe",
+        "2.3.5 6.0.3"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "same_venv_rechecked_before_formal_start",
+      "kind": "output",
+      "line": 17001,
+      "observed": true,
+      "payload_text_sha256": "bcddbcda2e7a970fca5ee01f62578a60d9d0567f65a4e811944ab0f283c85902",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\23\\rollout-2026-07-23T11-11-42-019f8cf5-0c8b-7c30-b530-157a28a664db.jsonl",
+      "text_excerpt": "custom_tool_call_output\nctco_019f9dbf-affd-7f41-b417-055b63570eb3\ncall_LtDbsWgmd3MjeRsg3kokeIYY\ninput_text\nScript completed\nWall time 2.6 seconds\nOutput:\n\ninput_text\n\r\nE:\\ARAC\\.venv\\Scripts\\python.exe\r\n2.3.5 6.0.3 9.1.1\r\nFullName                          Length\r\n--------                          ------\r\nE:\\ARAC\\.venv\\Scripts\\python.exe  270104\r\nE:\\ARAC\\.venv\\Scripts\\pythonw.exe 258840\r\n\r\n\n019f9dad-277c-7731-a7ef-5b07692a9f1e",
+      "timestamp": "2026-07-26T09:26:53.181Z"
+    },
+    {
+      "expected": [
+        "1.18.0",
+        "True"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "scipy_rechecked_before_formal_start",
+      "kind": "output",
+      "line": 17401,
+      "observed": true,
+      "payload_text_sha256": "88256f03a99faded0f81fd2dd99ddf6fb4e2e6b5ca4ef042f157131de8902c6c",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\23\\rollout-2026-07-23T11-11-42-019f8cf5-0c8b-7c30-b530-157a28a664db.jsonl",
+      "text_excerpt": "custom_tool_call_output\nctco_019f9ddd-969e-7c51-b43f-47d2fed971c8\ncall_pG5wPKYvcRF3Q17fjvyPXAVv\ninput_text\nScript completed\nWall time 5.5 seconds\nOutput:\n\ninput_text\nCMD: & '.\\.venv\\Scripts\\python.exe' -c \"import json,pathlib,collections,statistics as s; d=json.loads(pathlib.Path(r'results/exp_047_a_series_curvature_consensus_gate/a4-curvature-consensus-gate-v1/manifest.json').read_text()); b=collections.defaultdict(list); [b[x['dimension']].append(x) for r in d['results'] for x in r['consensus_diagnostics']];\nfor k,v in sorted(b.items()): print(k,'align',s.fmean(x['mean_direction_max_cosine'] for x in v),'offdiag',s.fmean(x['mean_off_diagonal_ratio'] for x in v),'maxcos',s.fmean(x['max_direction_cosine'] for x in v))\"\n30 align 0.43056863608660273 offdiag 0.5222236613797936 maxcos 0.5603997196612225\r\n50 align 0.3910904873565279 offdiag 1.0604421662123801e-15 maxcos 0.7043655430333301\r\n55 align 0.3542373109678381 offdiag 0.4638212733026025 maxcos 0.5470137086602403\r\n105 align 0.2837133987862964 offdiag 0.46176994575400326 maxcos 0.43892627715734917\r\n\ninput_text\nCMD: & '.\\.venv\\Scripts\\python.exe' -c \"import scipy; from scipy import linalg; print(scipy.__version__, hasattr(linalg,'ei",
+      "timestamp": "2026-07-26T09:59:32.766Z"
+    },
+    {
+      "expected": [
+        "Installing collected packages: arac",
+        "Successfully installed arac-0.1.0"
+      ],
+      "forbidden": [
+        "cma",
+        "numpy",
+        "PyYAML",
+        "scipy",
+        "pypop7",
+        "llvmlite",
+        "numba"
+      ],
+      "forbidden_absent": true,
+      "id": "last_editable_install_only_arac",
+      "kind": "output",
+      "line": 528,
+      "observed": true,
+      "payload_text_sha256": "52e30c0f464546906ac9b6ceadb95615b3b2c9241b2560cef4dbcd8b52069c0c",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\26\\rollout-2026-07-26T17-04-21-019f9dab-0f42-70f2-8f45-5cf51411e668.jsonl",
+      "text_excerpt": "function_call_output\nfco_019f9dd0-c8a3-7c30-8b05-643f55571828\ncall_CCW7jbrrU89Se6w0GRUmuFEB\ninput_text\nScript completed\nWall time 0.0 seconds\nOutput:\n\ninput_text\nObtaining file:///E:/ARAC\r\n  Installing build dependencies: started\r\n  Installing build dependencies: finished with status 'done'\r\n  Checking if build backend supports build_editable: started\r\n  Checking if build backend supports build_editable: finished with status 'done'\r\n  Getting requirements to build editable: started\r\n  Getting requirements to build editable: finished with status 'done'\r\n  Preparing editable metadata (pyproject.toml): started\r\n  Preparing editable metadata (pyproject.toml): finished with status 'done'\r\nBuilding wheels for collected packages: arac\r\n  Building editable for arac (pyproject.toml): started\r\n  Building editable for arac (pyproject.toml): finished with status 'done'\r\n  Created wheel for arac: filename=arac-0.1.0-0.editable-py3-none-any.whl size=1353 sha256=ef24499f140f493a4ff4bf5648c744db99484d7b0c2bb2031399afa05e3610d3\r\n  Stored in directory: C:\\Users\\83718\\AppData\\Local\\Temp\\pip-ephem-wheel-cache-lx_dy1hv\\wheels\\a8\\ef\\60\\c4ea45f910913ffab02d3cfa69f53034fdfdfe036c5dba3b5c\r\nSuccessfully bui",
+      "timestamp": "2026-07-26T09:45:33.603Z"
+    },
+    {
+      "expected": [
+        ".venv\\Scripts\\python.exe",
+        "exp_052_e_series_smp_paired_gate.run",
+        "--jobs 10"
+      ],
+      "forbidden": [],
+      "forbidden_absent": true,
+      "id": "formal_exp052_start",
+      "kind": "command",
+      "line": 2628,
+      "observed": true,
+      "payload_text_sha256": "e88b710e8bb58fa4ca74a4f007070ac1f4b17858dd6b6b01aa65894d1de781f8",
+      "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\26\\rollout-2026-07-26T17-04-21-019f9dab-0f42-70f2-8f45-5cf51411e668.jsonl",
+      "text_excerpt": "custom_tool_call\nctc_0588cd4639397b31016a660036e0b88199afb672fae5b65f6d\ncompleted\ncall_DwXCFJrEs2ys0046bkSjEhzo\nexec\nconst r = await tools.exec_command({\n  cmd: \".venv\\Scripts\\python.exe -m experiments.pilots.exp_052_e_series_smp_paired_gate.run --jobs 10\",\n  workdir: \"E:\\ARAC\",\n  yield_time_ms: 30000,\n  max_output_tokens: 20000\n});\ntext(r.output);\nif (r.session_id) text(`SESSION_ID=${r.session_id}`);\n\n019f9db7-7a22-7860-b229-159e508935ba",
+      "timestamp": "2026-07-26T12:40:23.355Z"
+    }
+  ],
+  "session_evidence_complete": true,
+  "session_observed_environment_binding": true
+}

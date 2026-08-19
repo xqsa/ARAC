@@ -1,0 +1,268 @@
+{
+  "action": "smp",
+  "arms": {
+    "current_production": {
+      "consumed_fes": 120000,
+      "events": {
+        "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23988_probes_40_coverage_2250_cold_rescue_visits_1_persistent_rescue_visits_1_global_polish_0"
+      },
+      "final_error": 750901567.5040535,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": false,
+      "reference_mechanism_match": null,
+      "result_hash": "dd8f23367b77ba02eb97b52678809f255088c22ac3a3be77d43911411945ca79",
+      "route": "stateful_block_visits_95991_visits_44_stale_restarts_1_rescue_23988_probes_40_coverage_2250_cold_rescue_visits_1_persistent_rescue_visits_1_global_polish_0",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    },
+    "historical_semantic_port": {
+      "consumed_fes": 120000,
+      "events": {
+        "cross_visit_boundary_checks": 7140,
+        "cross_visit_state_digest_matches": 7140,
+        "full_sweeps": 358,
+        "optimizer_identity_preserved_visits": 7160,
+        "reference_status": "five_seed_mechanism_only",
+        "restart_count": 2380,
+        "restart_identity_change_count": 2380,
+        "session_count": 20,
+        "session_restart_counts": [
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119,
+          119
+        ],
+        "stale_window": 3,
+        "state_fields": [
+          "covariance",
+          "mean",
+          "path_sigma",
+          "rng_state",
+          "sigma"
+        ],
+        "state_persistence": true,
+        "state_trace": [
+          {
+            "block_index": 0,
+            "final_state": "524d86d38966bdd49fccd976d0f4648003fce7d98a08b0fe6e8f8cc7b0d60ffe",
+            "first_recorded_state": "ac904b03a7886fb00d589072adcc7675f8042c01a3af8d3289325624134cc63b",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 1,
+            "final_state": "fa0e8d341845cc804bb3e9ca3531ed297700e4e88e893031a7587e3f440d9732",
+            "first_recorded_state": "578ef0296a4213b7a50319f858246c168a79359c72b917027935ab12bd7cc001",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 2,
+            "final_state": "7ce328fa825031a57b839e0d1145962c1a72c91144f273ec0c825b384801251b",
+            "first_recorded_state": "4ffdad839354f5d1a00b659ac4dc5d615b675d8522884a1b61702c25891ddaea",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 3,
+            "final_state": "af0a793430ba2514a3d4ef253fc9cb3f07995a02105af0000f942291e046f8a0",
+            "first_recorded_state": "dcaf37ac2298f91f1fb67d59b3cc6dc0ab4517c77ee9948756497fbd12608eb0",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 4,
+            "final_state": "341b24c6f09f81f707ccfd072bb33d49110e4517c7ba18fed20cdc4c23c608d0",
+            "first_recorded_state": "f4d11fb1eee79cfa8d815c11718c621a87276e36fc9546c1f0298523c99096ba",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 5,
+            "final_state": "a05194771c9a6b81ff383ad0bc284aa2fe94f0096daa91ccf823cdf3b03999d0",
+            "first_recorded_state": "03f2a04303b95e27744d82c4dbe6c20b39b4fe0987d19de5e38041db3c2a3ca9",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 6,
+            "final_state": "9222bedd2e8be227b3d140d77d57a997f337fa4f576274051643e72d25364066",
+            "first_recorded_state": "4fc6abb3e94b74a9699c5282691c04556bc0576a9058c44626e3984bffa4b679",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 7,
+            "final_state": "fbd04ce376901d88b06ef2efe4f84e456064921fa3307571beed14d514f126c3",
+            "first_recorded_state": "2a6b350e483d3a72c8660efcb9d70f2e5344041e9faa4882a142d91a50b6d286",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 8,
+            "final_state": "f1a163bf5fd95f1ab63ce24f23e054eb627532d30d5d41b92c213b453cc4cd34",
+            "first_recorded_state": "0b413fb1deb52a00bc0b78f3e56be5266b833a566ffe5d0d4b0d5a592d7021f9",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 9,
+            "final_state": "848234be25dd4d23363030bb930fe423cab709c98ec93c3263a9d38f377e3a66",
+            "first_recorded_state": "2aae09ce9781ace5125b493470b5fadc2f741021a8d816410ecc264e1106772a",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 10,
+            "final_state": "4497fd7af4586f27ba58c8d3b2ea34b3525584b558921aff4104499bd317f798",
+            "first_recorded_state": "e6a86c1b753e1938be70784b5e80b978f27c66ed77b7a66280f681255bdf19ec",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 11,
+            "final_state": "667293ce5bf71bd98da9b61c787187e31358ff192b8b30b72859850c138dfee8",
+            "first_recorded_state": "ae8c2a858c8c4750e6378069d53e13aff4793b7d2762974779dc64f611922469",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 12,
+            "final_state": "a84d019a2660585b61b6beefefaa62e357b22ef4f4f87e38f4f0ecbe84cf235d",
+            "first_recorded_state": "0496f5f6714991421acf7a1a3a7de0064fca5c8b21c08cde46dcfa66aca9329e",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 13,
+            "final_state": "4513ca697a05b7af6d28d4135de5bf1d14fbf593d0279ed962eba1439664ca54",
+            "first_recorded_state": "64bc4fbf0c48ee5e2f6d6596f4cb8a9af7c11b03f9369130c9caf538b694208d",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 14,
+            "final_state": "02b8d41af4551c68a65be691a249949409386b9e1e98fa806968cc6a45a448f3",
+            "first_recorded_state": "66e3ed1ba15b08049773c32d6f208aa1cc5064cf2a233e613aacc382af39361c",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 15,
+            "final_state": "e0f4853887130e68881faa49a1b6b6205ecca0fd59b9390538bc723d208706f4",
+            "first_recorded_state": "d99663618a088d10ba0a6aac157537cb0fc2f0cc417d5d2a67ae88058cca615b",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 16,
+            "final_state": "e2e3285f6cc659d1da2145cdc8f4dbf8c55326864321181c190f0aececb4a24b",
+            "first_recorded_state": "103b645536a6c249d03b4b52b845094c9d361d4938929fb486bdaccc0c2de68f",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 17,
+            "final_state": "cb5aa04abd0006af040036b9346da3e5d360cd71fbaa8e3f90df594ee9f7aad9",
+            "first_recorded_state": "422814e21633b211d012e928606b7926f5cc7ef226e1eac6facefe6d9181b202",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 18,
+            "final_state": "e2f541561c7dd268df6be4c52121969e737faa5643bbf0eefdb885c841136ff0",
+            "first_recorded_state": "c8a7b96908ea79920bfbb6e63a650fe59ee1f709b182fa250b7066437aaf49d7",
+            "restart_count": 119,
+            "visit_count": 358
+          },
+          {
+            "block_index": 19,
+            "final_state": "ecb8901af489611bbf3e07503d1e676bca6d12c52256f2367ec0485cfaf4f844",
+            "first_recorded_state": "020efecccde27a1da57422f9056d9a6d1096e7f1da2e2b24336bb138f8370ffc",
+            "restart_count": 119,
+            "visit_count": 358
+          }
+        ],
+        "state_update_count": 7160,
+        "tail_fes": 70,
+        "visits_per_session": [
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358,
+          358
+        ]
+      },
+      "final_error": 1103778236.567564,
+      "optimizer_package": "pypop7",
+      "optimizer_version": "0.0.82",
+      "reference_mechanism_evaluated": true,
+      "reference_mechanism_match": true,
+      "result_hash": "5ba22f0d821c7772dc4166bea99f440b44fa16cf7056a6cad6a19812eb113c44",
+      "route": "historical_stateful_sessions_20_sweeps_358_stale_restarts_2380_tail_70",
+      "runtime_warnings": [],
+      "terminal_fes": 300000
+    }
+  },
+  "candidate_mechanism_passed": true,
+  "case_id_audit_metadata": "E1",
+  "exact_screen_fes": true,
+  "historical_terminal_parity_evaluated": false,
+  "native_thread_limit_verified": true,
+  "receipt_hash": "75c9fd9d77166a80a1171876b5acc1fd8ee64b853fd527d3d673ba83fedf6437",
+  "reference_contract": "results/exp_052_e_series_smp_paired_gate/validation/runs/E1/candidate_smp/seed_117/exp_052_e_series_smp_paired_gate-e1-candidate_smp-seed117/elliptic/smp_action.json",
+  "reference_contract_sha256": "ddbb8e7cbc341556ae88e0e3eea777a69802e8e1e11b474bffadadb1e217728f",
+  "run_seed": 117,
+  "same_screen_checkpoint": true,
+  "schema_version": "arac-independent-semantic-parity-pilot-receipt-v3",
+  "screen_checkpoint_hash": "582f5cbdf2fd795d549222d80bddfa838d14da92a39160e081e39d82cbe38350",
+  "screen_step_fes": 120000,
+  "source_checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+  "source_phase1_fes": 180000,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    }
+  ]
+}

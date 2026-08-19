@@ -1,0 +1,55 @@
+{
+  "action_checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+  "action_result_hash": "471396992efcfa8bf22609c3770f7ec7df9aa24a9ad7f85f298aad019ef5bb7a",
+  "action_seed": 31002,
+  "case_id": "R6",
+  "checkpoint_hash": "ea328bb87e6ff8108e13b051a1c4b850235e880e3978c589a84b92b147073634",
+  "final_error": 356781.16265379183,
+  "manifest_sha256": "b39f6a3026b106c9568aff0701768e6360e72a4318fd8071cc5f6435a10f36d2",
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "phase1_relation_count": 17,
+  "phase2_consumed_fes": 2820000,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "a96d48a2fab04783aa602f9a105a5a4fddb86c33252da19859480662ccc137a3",
+  "reference_thresholds_used_for_decision": false,
+  "route": "positive_relation_graph_cold_warmup_854238_sweeps_3_coordination_284999_cold_continuation_1680755_sweeps_10_tail_8",
+  "run_seed": 31002,
+  "runtime_warnings": [
+    {
+      "category": "RuntimeWarning",
+      "count": 1,
+      "known": true,
+      "line": 228,
+      "message": "overflow encountered in scalar multiply",
+      "source": ".venv/Lib/site-packages/pypop7/optimizers/es/cmaes.py"
+    }
+  ],
+  "schedule_trace": [],
+  "schedule_trace_summary": null,
+  "schema_version": "arac-gcb-schedule-ablation-receipt-v2",
+  "selector_execution_allowed": false,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "vcomp",
+      "user_api": "openmp"
+    }
+  ],
+  "variant": "gcb_frozen_current"
+}

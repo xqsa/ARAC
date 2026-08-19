@@ -1,0 +1,51 @@
+{
+  "schema_version": "arac-recovered-actions-fixed-action-protocol-v1",
+  "status": "frozen_before_execution",
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "run_seed": 117,
+  "action_seed": 117,
+  "max_workers": 4,
+  "native_threads": 1,
+  "output_root": "artifacts/recovered_actions_fixed_action_v1",
+  "selector_execution_allowed": false,
+  "registry": "RecoveredActionRegistry",
+  "allow_out_of_bounds": true,
+  "lanes": [
+    {
+      "action": "aor",
+      "case_id_audit_metadata": "A1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/A1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "32979485799abf472ff3180a9e90c97b00d76febe3122495fbe59278519d3bc2",
+      "checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+      "historical_p90": 78098.55697849873
+    },
+    {
+      "action": "smp",
+      "case_id_audit_metadata": "E1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/E1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "3ef0d6f2e3123070a64d271e928cab61bae8e6139d4250cae39417458b4f5932",
+      "checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+      "historical_p90": 1.8255606813339802
+    },
+    {
+      "action": "gcb",
+      "case_id_audit_metadata": "R1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/R1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "3114dcb8c89f693fc7751a9d61de3d2fcc9f03516094b3be513bf99c5d7139c8",
+      "checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+      "historical_p90": 176367.0467002794
+    },
+    {
+      "action": "ctp",
+      "case_id_audit_metadata": "S1",
+      "checkpoint": "artifacts/historical_recovery_fixed_expert_v1/checkpoints/S1/seed_117/checkpoint.json",
+      "checkpoint_file_sha256": "1fee12ccc093fe10610bf98339199cbc5096999cb6206879ffb2b6378c68798c",
+      "checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+      "historical_p90": 0.03184487388259503
+    }
+  ],
+  "promotion_rule": "All four lanes must complete at exact 3000000 FE and final_error <= historical_p90.",
+  "default_registry_replacement_allowed": false
+}

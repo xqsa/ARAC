@@ -1,0 +1,25 @@
+{
+  "aob_vendor_tree": {
+    "file_count": 67,
+    "tree_sha256": "63919da2d9a501ae43496ddf3fba170ea648237854af4b14febee02f6eb9a612"
+  },
+  "config_sha256": "fb91dae411e5f8e4a3ca4fbb19eca1cffb5b119f86db579c88b297fcd41ac84f",
+  "context_count": 8,
+  "manifest_sha256": "924da5365b2c5f806700a722d7aa4a2abacd4e5715f85bae109f649ed6191404",
+  "matched_total_fes": 2868928,
+  "method_count": 3,
+  "schema_version": "arac-phase2-v2-aob-restored-pilot-manifest-v1",
+  "source_hashes": {
+    "experiments/phase2_v2_aob_restored_pilot.py": "3768a812998c02036a32aa18782953f921aa7aa09f39418f4146f0138361f0ea",
+    "experiments/phase2_v2_pilot.py": "e51b5da0e9b21cc6ced2bcf97580a9ece8d568d0b1d0214684fe7941271b49a3",
+    "experiments/phase2_v2_validation.py": "9da393f924e6dda2c21223e99bda0679348b4e79efe6129ddb155725dc5aa5ec",
+    "src/arac/actions/phase2_v2.py": "7ca074607a005ae012aae40be94a151ad895c6713dd9ca11aa271b143b1d24e0",
+    "src/arac/actions/registry.py": "aec04994b287d0c419b893e8189ec12e4fafc0be9fcee9b56c23cb47d5118c06",
+    "src/arac/analysis/mechanism_policy.py": "7b7a3ab0e5eabe4f25b6ba745b0ee91671b5f2cb2ca80a700ea8708f73b9e326",
+    "src/arac/benchmarks/aob.py": "aa5bcef544612bbd98c61a6143143fe29a7dbd40a0f38da89b24f3b2d67259c0",
+    "src/arac/evidence/phase1.py": "eee0fc6167d9999e69c517f7885a62ad3acaa5759f107330e891f7d73fc1ad65",
+    "src/arac/runtime/branches.py": "ad670644bcc87a60bd25cfc005244f62da15f514f14ec6ac15226757ae5c8c2a",
+    "src/arac/runtime/optimizers.py": "431eee91bf903b4bdba508471aaac1788336fabcf88d10ab32bbd2d9c9426954",
+    "src/arac/runtime/probe_policy.py": "911c5ce7dc9ca8bf1aafee2684afd773236f1732063b8445ea0095de2731d00c"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "action_checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+  "action_result_hash": "493bdba1786408a7fe37207556f23eeadf0308becf4876e15d60e54c3e831a6d",
+  "action_seed": 31003,
+  "case_id": "R3",
+  "checkpoint_hash": "75419fb1179fddbfeabb7ea15de60c1bbb8015dbf555f0d355048479de446258",
+  "final_error": 246830.70073614758,
+  "manifest_sha256": "418a5d48cf37f3bca868f550dd6c2e1032be7e4b0ff76b4547cdecbdaaf8bab2",
+  "native_thread_limit_verified": true,
+  "phase1_fes": 180000,
+  "phase1_relation_count": 24,
+  "phase2_consumed_fes": 2820000,
+  "production_hcc_runtime_imports": [],
+  "receipt_sha256": "7b15ca5d25f8e146897cac8ad424145714526431c05f1a99b9b7fb66eae99ad5",
+  "reference_thresholds_used_for_decision": false,
+  "route": "positive_relation_graph_cold_warmup_724084_sweeps_3_coordination_229802_cold_continuation_1866112_sweeps_15_tail_2",
+  "run_seed": 31003,
+  "runtime_warnings": [
+    {
+      "category": "RuntimeWarning",
+      "count": 1,
+      "known": false,
+      "line": 163,
+      "message": "overflow encountered in multiply",
+      "source": "src/arac/actions/_execution.py"
+    }
+  ],
+  "schedule_trace": [],
+  "schedule_trace_summary": null,
+  "schema_version": "arac-gcb-schedule-ablation-receipt-v1",
+  "selector_execution_allowed": false,
+  "terminal_fes": 3000000,
+  "terminal_state_finite": true,
+  "threadpools": [
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openblas",
+      "num_threads": 1,
+      "prefix": "libscipy_openblas",
+      "user_api": "blas"
+    },
+    {
+      "internal_api": "openmp",
+      "num_threads": 1,
+      "prefix": "vcomp",
+      "user_api": "openmp"
+    }
+  ],
+  "variant": "gcb_frozen_current"
+}

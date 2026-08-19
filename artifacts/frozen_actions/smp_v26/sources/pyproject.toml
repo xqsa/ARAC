@@ -1,0 +1,26 @@
+[project]
+name = "arac"
+version = "0.1.0"
+description = "Evidence-driven selection among four Phase-II optimization actions."
+requires-python = ">=3.11"
+dependencies = [
+    "joblib==1.5.3",
+    "numpy==2.3.5",
+    "pypop7==0.0.82",
+    "scikit-learn==1.9.0",
+    "scipy==1.18.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.15.22",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

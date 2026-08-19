@@ -1,0 +1,71 @@
+{
+  "result": {
+    "case_id": "S5",
+    "checkpoint_hash": "4190dd15a306fee8c01553058646be577ac55a9c605ba3b0ea09dcdb2473ba23",
+    "components": [
+      [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ]
+    ],
+    "control": {
+      "checkpoint_hash": "4190dd15a306fee8c01553058646be577ac55a9c605ba3b0ea09dcdb2473ba23",
+      "best_error_before": 159723190.18357623,
+      "final_error": 14836.41659474603,
+      "phase2_fes": 2820000,
+      "terminal_fes": 3000000
+    },
+    "discovery_fes": 107039,
+    "paired_final_delta_control_minus_unified": -32909.36150192877,
+    "phase1_fes": 180000,
+    "phase1_incumbent_error": 159723190.18357623,
+    "sense_budget_fes_per_group": 4406,
+    "sense_budget_share": 0.45,
+    "shared_precision": 1.0,
+    "shared_recall": 0.8947368421052632,
+    "structure_groups": 18,
+    "structure_shared": 119,
+    "truth_group_count": 20,
+    "truth_shared_count": 133,
+    "unified": {
+      "checkpoint_hash": "4190dd15a306fee8c01553058646be577ac55a9c605ba3b0ea09dcdb2473ba23",
+      "action_counts": {
+        "arbitration_only": 2,
+        "ctp_restricted": 1,
+        "none": 13
+      },
+      "budget_flow": {
+        "arbitration": 12,
+        "operator": 8,
+        "probe": 714,
+        "sense": 1268928,
+        "smp_writeback": 1088,
+        "tail": 1549250
+      },
+      "final_error": 47745.778096674796,
+      "final_state_hash": "8f760194327c4ff8fade335895950b30f3adff8a211522a899e58044340463c3",
+      "operator_fired": true,
+      "receipt_parity": true,
+      "state_hash_chain": true,
+      "strict_best": true,
+      "terminal_fes": 3000000
+    }
+  },
+  "schema_version": "arac-oc-gate48b-cell-v1"
+}

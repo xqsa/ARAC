@@ -1,0 +1,19 @@
+{
+  "action": "aor",
+  "case": "A1",
+  "checkpoint_hash": "be49c03af8526b2f2c88e0fc4a1e2a53b921fa1845fa9c140be5812702509197",
+  "exact_result_match": false,
+  "expected_final_error": 78216.10675551635,
+  "expected_result_hash": "f2900a699e7cbd9941f6fee86bd1a8bbdd8abdfd856c7b177555ad32fb645a7b",
+  "expected_terminal_fes": 3000000,
+  "final_error": 78406.36818189296,
+  "final_error_match": false,
+  "receipt_hash": "a9d1b4f6caf0f718f880f075e3863173af9554a832ffb82380f92ec94194f37d",
+  "replay_passed": false,
+  "result_hash": "fa28db8d45e7c3a5fb7fd6686e3d8fb4c5d25632d947ef823187abda78a1cf1a",
+  "runtime_warnings": [],
+  "schema_version": "arac-current-action-replay-receipt-v1",
+  "seed": 20260901,
+  "terminal_fes": 3000000,
+  "terminal_fes_match": true
+}

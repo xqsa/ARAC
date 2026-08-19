@@ -1,0 +1,23 @@
+{
+  "cells": {
+    "R2_ctp": {
+      "current_tree": 573695.9122300792,
+      "gate50": 573262.6776139046
+    },
+    "R2_gcb": {
+      "current_tree": 295662.8082010315,
+      "gate50": 345712.8374443744
+    },
+    "R6_ctp": {
+      "current_tree": 1387733.0631064237,
+      "gate50": 1394576.0
+    },
+    "R6_gcb": {
+      "current_tree": 432592.1516055041,
+      "gate50": 433899.0
+    }
+  },
+  "date": "2026-08-18",
+  "provenance": "Gate 50 receipts for these four cells predate the sigma-safety ceiling in optimizers.py (added 2026-08-16 night, after Gate 50 ran); their trajectories pass through the sigma-overflow regime and are not bitwise-reproducible under the safety-fixed tree. These references are the current tree deterministic full-budget values (reproduced identically in the v4.2 and v4.3 gate runs). Three of four are better than the Gate 50 values; R2_ctp is 0.08% worse.  The current-tree values are the only reproducible baseline and are used for the bitwise check; Gate 50 values are retained for the historical record.",
+  "schema_version": "arac-oc-gate51b-overflow-reference-v1"
+}

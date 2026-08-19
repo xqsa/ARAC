@@ -1,0 +1,294 @@
+{
+  "applicability_checks": {
+    "receipts_valid_all": true,
+    "strict_best_all": true,
+    "terminal_exact_all": true,
+    "wiring_succeeds_4_4": true
+  },
+  "pilot_passed": true,
+  "protocol": {
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "loop_config": {
+      "arbitration_value_ratio": 0.01,
+      "calibration_status": "partial-v3-uncalibrated",
+      "complex_hub_degree": 3,
+      "complex_hub_ratio": 0.9,
+      "config_version": "arac-oc-coordinator-config-v3",
+      "cooldown_cycles": 1,
+      "ema_alpha": 0.3,
+      "escalation_streak": 6,
+      "gain_floor": 1e-12,
+      "gamma_down": 0.5,
+      "gamma_up": 1.5,
+      "hub_mode": "relative",
+      "k_enter": 3,
+      "k_exit": 3,
+      "k_window": 4,
+      "operator_value_ratio": 0.01,
+      "persistent_streak": 2,
+      "probe_budget_share": 0.25,
+      "pulse_max_fes": 32,
+      "pulse_min_fes": 8,
+      "smp_trust_floor": 0.5,
+      "stall_cap": 2,
+      "tau_enter": 0.5,
+      "tau_exit": 0.2
+    },
+    "phase1_fes": 180000,
+    "pilot_seed": 20260845,
+    "reference": "artifacts\\overlap_action_dispatch_gate41_online\\confirmation.json",
+    "total_fes": 3000000
+  },
+  "rows": [
+    {
+      "case_id": "A3",
+      "checkpoint_hash": "74d9618ba6d6822c28d2470ea0fae8991fb13bba9e5a423c10152d5b99f2a74c",
+      "components": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ]
+      ],
+      "discovery_blocks": 19,
+      "discovery_fes": 111514,
+      "gate41b_case_mean": 78065.04156919967,
+      "loop": {
+        "action_counts": {
+          "arbitration_only": 3,
+          "none": 12
+        },
+        "budget_flow": {
+          "arbitration": 59,
+          "operator": 0,
+          "probe": 1620,
+          "sense": 2642520,
+          "smp_writeback": 1050,
+          "tail": 174751
+        },
+        "final_error": 78509.82743630165,
+        "final_state_hash": "b02f847616ce0b8e560d28e34002ee2138047cea7ec9031a47ccd429105d150f",
+        "operator_value_gated_cycles": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000,
+      "ratio_vs_gate41b": 1.0056976318485362,
+      "sense_budget_fes": 9272,
+      "shared_precision": 1.0,
+      "shared_recall": 0.9473684210526315,
+      "structure_groups": 44,
+      "structure_shared": 54,
+      "truth_group_count": 20,
+      "truth_shared_count": 57
+    },
+    {
+      "case_id": "R2",
+      "checkpoint_hash": "f0089e9ee154d90622bdcf42946c54e74ade5a88acc0ad1e9abb27c7cb909d77",
+      "components": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          25,
+          26,
+          29,
+          30
+        ]
+      ],
+      "discovery_blocks": 22,
+      "discovery_fes": 105404,
+      "gate41b_case_mean": 217457.64338249565,
+      "loop": {
+        "action_counts": {
+          "arbitration_only": 1,
+          "none": 14
+        },
+        "budget_flow": {
+          "arbitration": 60,
+          "operator": 0,
+          "probe": 570,
+          "sense": 2642250,
+          "smp_writeback": 1260,
+          "tail": 175860
+        },
+        "final_error": 409934.99878230336,
+        "final_state_hash": "a6f03c709ff12005052a0422c0d837f739242c9351b3c2b6e22d9ec71ba49a34",
+        "operator_value_gated_cycles": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000,
+      "ratio_vs_gate41b": 1.8851257302611846,
+      "sense_budget_fes": 6775,
+      "shared_precision": 1.0,
+      "shared_recall": 1.0,
+      "structure_groups": 36,
+      "structure_shared": 19,
+      "truth_group_count": 20,
+      "truth_shared_count": 19
+    },
+    {
+      "case_id": "R6",
+      "checkpoint_hash": "2dbff3b78a52da8f029c4e14103bb44b0b7c71f45106c9198c4a82081d647122",
+      "components": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ]
+      ],
+      "discovery_blocks": 17,
+      "discovery_fes": 112806,
+      "gate41b_case_mean": 382319.3460513248,
+      "loop": {
+        "action_counts": {
+          "arbitration_only": 1,
+          "none": 14
+        },
+        "budget_flow": {
+          "arbitration": 60,
+          "operator": 0,
+          "probe": 4500,
+          "sense": 2642565,
+          "smp_writeback": 990,
+          "tail": 171885
+        },
+        "final_error": 496235.86555732146,
+        "final_state_hash": "3b8ebacd6892206473d3442d14e1f33b8f422efa4b3bc6ba2962343507a296be",
+        "operator_value_gated_cycles": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000,
+      "ratio_vs_gate41b": 1.2979616927119975,
+      "sense_budget_fes": 10363,
+      "shared_precision": 1.0,
+      "shared_recall": 0.7894736842105263,
+      "structure_groups": 18,
+      "structure_shared": 150,
+      "truth_group_count": 20,
+      "truth_shared_count": 190
+    },
+    {
+      "case_id": "S5",
+      "checkpoint_hash": "1dfa6a84997f0c2deb080f46a1dd11c7708434ba05e6f5a3ea953aa3302a4f2f",
+      "components": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ]
+      ],
+      "discovery_blocks": 18,
+      "discovery_fes": 107039,
+      "gate41b_case_mean": 3998.487817020498,
+      "loop": {
+        "action_counts": {
+          "arbitration_only": 1,
+          "none": 14
+        },
+        "budget_flow": {
+          "arbitration": 60,
+          "operator": 0,
+          "probe": 3570,
+          "sense": 2642490,
+          "smp_writeback": 1020,
+          "tail": 172860
+        },
+        "final_error": 1137397.642872804,
+        "final_state_hash": "6a883bb4c6dd645774ce608f7b5f5e73aabd3896fa4a1cfaf23838029c3f3555",
+        "operator_value_gated_cycles": 0,
+        "receipt_parity": true,
+        "state_hash_chain": true,
+        "strict_best": true,
+        "terminal_fes": 3000000
+      },
+      "phase1_fes": 180000,
+      "ratio_vs_gate41b": 284.45694845716554,
+      "sense_budget_fes": 9787,
+      "shared_precision": 1.0,
+      "shared_recall": 0.8947368421052632,
+      "structure_groups": 18,
+      "structure_shared": 119,
+      "truth_group_count": 20,
+      "truth_shared_count": 133
+    }
+  ],
+  "schema_version": "arac-oc-gate48a-pilot-v1"
+}

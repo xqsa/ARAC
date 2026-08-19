@@ -1,0 +1,40 @@
+{
+  "schema_version": "arac-ctp-tail-ablation-protocol-v1",
+  "status": "frozen_paired_development_gate",
+  "purpose": "measure the causal effect of reserving a positive-relation full-space MMES tail from one shared Phase-I checkpoint",
+  "cases": [
+    "S3",
+    "S6"
+  ],
+  "seeds": [
+    31001,
+    31002,
+    31003
+  ],
+  "variants": [
+    "ctp_no_reserved_tail",
+    "ctp_mmes_tail_20pct"
+  ],
+  "total_budget_fes": 3000000,
+  "expected_phase1_fes": 180000,
+  "positive_relation_tail_fraction": 0.2,
+  "native_threads": 1,
+  "max_workers": 12,
+  "output_root": "artifacts/ctp_tail_ablation_v1",
+  "legacy_source": "artifacts/historical_recovery_fixed_expert_v1/frozen_protocol/sources/ctp.py",
+  "legacy_source_sha256": "a10847d65f39a564b5b16c1d592e14a6f2837c1adc537cce9154e5f059a7f3a4",
+  "production_hcc_runtime_imports_allowed": false,
+  "selector_execution_allowed": false,
+  "reference_thresholds_used_for_decision": false,
+  "acceptance_gates": {
+    "all_checkpoints_positive_relation": true,
+    "same_checkpoint_per_pair": true,
+    "exact_terminal_fes": true,
+    "all_final_errors_finite": true,
+    "candidate_reserved_tail_executed": true,
+    "per_case_geometric_mean_ratio_lt": 1.0,
+    "overall_candidate_win_count_gte": 4,
+    "maximum_pair_ratio_lte": 10.0,
+    "all_runtime_warnings_known": true
+  }
+}

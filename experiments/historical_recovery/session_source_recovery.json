@@ -1,0 +1,451 @@
+{
+  "all_exact_sources_recovered": true,
+  "all_exp052_optimizer_sources_recovered": true,
+  "decision": "exact_runner_sources_recovered_hold_performance_experiments",
+  "exact_sources": {
+    "AOR": {
+      "bytes": 7276,
+      "characters": 7276,
+      "output_path": "exact-content/2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165/experiments/pilots/exp_057_a_series_aor_25seed/_worker.py",
+      "sha256": "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    "CTP": {
+      "boundary_event": {
+        "call_id": "exec-14085a7e-fcf2-4a3c-bf2b-7437d27e4f29",
+        "session_line": 4592,
+        "timestamp": "2026-07-27T06:38:40.643Z"
+      },
+      "bytes": 316117,
+      "characters": 316109,
+      "lines": 7458,
+      "output_path": "exact-runner/9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594/scripts/hcc_smoke_runner.py",
+      "reversed_patch_count_from_anchor": 88,
+      "sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+      "state": "immediately_before_recorded_update"
+    },
+    "GCB": {
+      "boundary_event": {
+        "call_id": "exec-14085a7e-fcf2-4a3c-bf2b-7437d27e4f29",
+        "session_line": 4592,
+        "timestamp": "2026-07-27T06:38:40.643Z"
+      },
+      "bytes": 316117,
+      "characters": 316109,
+      "lines": 7458,
+      "output_path": "exact-runner/9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594/scripts/hcc_smoke_runner.py",
+      "reversed_patch_count_from_anchor": 88,
+      "sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+      "state": "immediately_before_recorded_update"
+    },
+    "SMP": {
+      "boundary_event": {
+        "call_id": "exec-ea441cb1-a2ea-4c2b-b608-c0e16b133b82",
+        "session_line": 3440,
+        "timestamp": "2026-07-27T01:52:48.632Z"
+      },
+      "bytes": 311758,
+      "characters": 311750,
+      "lines": 7374,
+      "output_path": "exact-runner/b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac/scripts/hcc_smoke_runner.py",
+      "reversed_patch_count_from_anchor": 90,
+      "sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+      "state": "immediately_before_recorded_update"
+    }
+  },
+  "exp052_optimizer_sources": [
+    {
+      "boundary_session_line": 2628,
+      "bytes": 33780,
+      "content_anchor_session_line": 29681,
+      "output_path": "exp052-formal-start-optimizer-sources/128a208adfee4f7ec548b5db6415280fa323693726bab7caca9f22be9447e5c1/vendor/hcc/HCC/OPT/CMAES/cmaes.py",
+      "path": "vendor/hcc/HCC/OPT/CMAES/cmaes.py",
+      "receipt_hash_bound": false,
+      "recovered": true,
+      "reversed_patch_count": 0,
+      "sha256": "128a208adfee4f7ec548b5db6415280fa323693726bab7caca9f22be9447e5c1"
+    },
+    {
+      "boundary_session_line": 2628,
+      "bytes": 16109,
+      "content_anchor_session_line": 29681,
+      "output_path": "exp052-formal-start-optimizer-sources/6c771ec1099ec54af337720664c2c32c728123c89aef462bcb78e9da671e0d13/vendor/hcc/HCC/OPT/CMAES/es.py",
+      "path": "vendor/hcc/HCC/OPT/CMAES/es.py",
+      "receipt_hash_bound": false,
+      "recovered": true,
+      "reversed_patch_count": 0,
+      "sha256": "6c771ec1099ec54af337720664c2c32c728123c89aef462bcb78e9da671e0d13"
+    },
+    {
+      "boundary_session_line": 2628,
+      "bytes": 9184,
+      "content_anchor_session_line": 29681,
+      "output_path": "exp052-formal-start-optimizer-sources/14f586c12b8860575abc4538d4d01bc021362177a9da6abd8275cbf2889603fd/vendor/hcc/HCC/OPT/CMAES/optimizer.py",
+      "path": "vendor/hcc/HCC/OPT/CMAES/optimizer.py",
+      "receipt_hash_bound": false,
+      "recovered": true,
+      "reversed_patch_count": 0,
+      "sha256": "14f586c12b8860575abc4538d4d01bc021362177a9da6abd8275cbf2889603fd"
+    },
+    {
+      "boundary_session_line": 2628,
+      "bytes": 16020,
+      "content_anchor_session_line": 29681,
+      "output_path": "exp052-formal-start-optimizer-sources/98f0682c30123db7323be536113ba753315e22fc8d017ef2b8ad773a142173d1/vendor/hcc/HCC/NDAs/MMES/es.py",
+      "path": "vendor/hcc/HCC/NDAs/MMES/es.py",
+      "receipt_hash_bound": false,
+      "recovered": true,
+      "reversed_patch_count": 0,
+      "sha256": "98f0682c30123db7323be536113ba753315e22fc8d017ef2b8ad773a142173d1"
+    },
+    {
+      "boundary_session_line": 2628,
+      "bytes": 25370,
+      "content_anchor_session_line": 29681,
+      "output_path": "exp052-formal-start-optimizer-sources/25487615d60bb0dfc85a968a64f46ce5b14e7759baed4adbfe34a3648a1dafdd/vendor/hcc/HCC/NDAs/MMES/mmes.py",
+      "path": "vendor/hcc/HCC/NDAs/MMES/mmes.py",
+      "receipt_hash_bound": false,
+      "recovered": true,
+      "reversed_patch_count": 0,
+      "sha256": "25487615d60bb0dfc85a968a64f46ce5b14e7759baed4adbfe34a3648a1dafdd"
+    },
+    {
+      "boundary_session_line": 2628,
+      "bytes": 8773,
+      "content_anchor_session_line": 29681,
+      "output_path": "exp052-formal-start-optimizer-sources/83b562ad82195b68df68b1564232b4e6bb78cbd430b578567edd319679bb0f8f/vendor/hcc/HCC/NDAs/MMES/optimizer.py",
+      "path": "vendor/hcc/HCC/NDAs/MMES/optimizer.py",
+      "receipt_hash_bound": false,
+      "recovered": true,
+      "reversed_patch_count": 0,
+      "sha256": "83b562ad82195b68df68b1564232b4e6bb78cbd430b578567edd319679bb0f8f"
+    },
+    {
+      "boundary_session_line": 2628,
+      "bytes": 10747,
+      "content_anchor_session_line": 29681,
+      "output_path": "exp052-formal-start-optimizer-sources/b258f7060f29f2acc2be1ae43cb1d7146b36cc7009b630f5d187ae1be5f6cba2/vendor/hcc/HCC/NDAs/MMES/state.py",
+      "path": "vendor/hcc/HCC/NDAs/MMES/state.py",
+      "receipt_hash_bound": false,
+      "recovered": true,
+      "reversed_patch_count": 0,
+      "sha256": "b258f7060f29f2acc2be1ae43cb1d7146b36cc7009b630f5d187ae1be5f6cba2"
+    }
+  ],
+  "patch_event_count": 965,
+  "remaining_blocker": "historical_optimizer_dependency_closure_and_environment_binding_not_recovered",
+  "replay_authorized": false,
+  "retained_campaign_sources": [
+    {
+      "bytes": 780,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_052_e_series_smp_paired_gate/README.md",
+      "path": "experiments/pilots/exp_052_e_series_smp_paired_gate/README.md",
+      "sha256": "02ffd932bb9b6e390714a77b67fbc0ea9d82301538a2121ce5daadcb2e40fc28",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 64,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_052_e_series_smp_paired_gate/__init__.py",
+      "path": "experiments/pilots/exp_052_e_series_smp_paired_gate/__init__.py",
+      "sha256": "a61d3ab037bed384a3c3c16d4e9ba98e9a63c779d6c1ee5c6866258cab228c73",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 784,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_052_e_series_smp_paired_gate/config.json",
+      "path": "experiments/pilots/exp_052_e_series_smp_paired_gate/config.json",
+      "sha256": "a0dd60d6441cc8166b79f2e90a2f045bca0cc876b8eeb02a715b55660210a5de",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 24656,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_052_e_series_smp_paired_gate/run.py",
+      "path": "experiments/pilots/exp_052_e_series_smp_paired_gate/run.py",
+      "sha256": "2451690c0618fb049d4e780e87886751b2f083437963779f748e489810f020ed",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 1020,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_057_a_series_aor_25seed/README.md",
+      "path": "experiments/pilots/exp_057_a_series_aor_25seed/README.md",
+      "sha256": "16e5276f0e9f4ccbba91486b81470776fe054276a28fb3ce3fbd754af5e98141",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 48,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_057_a_series_aor_25seed/__init__.py",
+      "path": "experiments/pilots/exp_057_a_series_aor_25seed/__init__.py",
+      "sha256": "b98c399e1e3649052cf83bd2b6f145a258e09e915e5ed0f9dae20faf0f3f5e60",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 7276,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_057_a_series_aor_25seed/_worker.py",
+      "path": "experiments/pilots/exp_057_a_series_aor_25seed/_worker.py",
+      "sha256": "2d870d14fa536dee488d45a69abea19e50e86dc20748b026d5fc4a16afcb4165",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 1383,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_057_a_series_aor_25seed/config.json",
+      "path": "experiments/pilots/exp_057_a_series_aor_25seed/config.json",
+      "sha256": "3d24b66d14a081fbf71212ff144519a033f1d6e9e0d7b06f6ecc098e4516c78c",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 19699,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_057_a_series_aor_25seed/run.py",
+      "path": "experiments/pilots/exp_057_a_series_aor_25seed/run.py",
+      "sha256": "3b6fd1845bd6a13a344e56057dc9ba9223a6f63a044f122b25a2d976080bd2d6",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 569,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_058_ctp_stable_v2_25seed/README.md",
+      "path": "experiments/pilots/exp_058_ctp_stable_v2_25seed/README.md",
+      "sha256": "eaed38c57a326b3d5c334242a158fb55711d161e8c974ba56e287c2f31f9d927",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 55,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_058_ctp_stable_v2_25seed/__init__.py",
+      "path": "experiments/pilots/exp_058_ctp_stable_v2_25seed/__init__.py",
+      "sha256": "9175ba1fc5be363c760bf726fab3e99d7ec2076067d4d5709e18a36086ead80a",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 947,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_058_ctp_stable_v2_25seed/config.json",
+      "path": "experiments/pilots/exp_058_ctp_stable_v2_25seed/config.json",
+      "sha256": "cd43e3c09195033bebf74bdb4c823c33a2c56038ab02f2d79571f2b89dee7297",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 12414,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_058_ctp_stable_v2_25seed/run.py",
+      "path": "experiments/pilots/exp_058_ctp_stable_v2_25seed/run.py",
+      "sha256": "c45313003e50a9e2db9359adc2f83066887a90fc86d9b358de5e170f822bec26",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 828,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_059_gcb_stable_all_case_25seed/README.md",
+      "path": "experiments/pilots/exp_059_gcb_stable_all_case_25seed/README.md",
+      "sha256": "5b1d147254717155fe3d95b16586d455402aac6c98f5f2fbdae43b5783008def",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 58,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_059_gcb_stable_all_case_25seed/__init__.py",
+      "path": "experiments/pilots/exp_059_gcb_stable_all_case_25seed/__init__.py",
+      "sha256": "b87591f9561f9822c20b4bbdeb86afa099129aa882caa347a8e599c8d95ff019",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 1222,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_059_gcb_stable_all_case_25seed/config.json",
+      "path": "experiments/pilots/exp_059_gcb_stable_all_case_25seed/config.json",
+      "sha256": "5af7dc2390c296fb25ba89bd3ca6814f65fdfbbd956c768a0d70d7c8f117cbba",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 24571,
+      "output_path": "retained-campaign-sources/experiments/pilots/exp_059_gcb_stable_all_case_25seed/run.py",
+      "path": "experiments/pilots/exp_059_gcb_stable_all_case_25seed/run.py",
+      "sha256": "66d872b85b7eb9a0ed08b0e33fdc0a883be303daeed65d7baab9b9b99da267ae",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 3985,
+      "output_path": "retained-campaign-sources/tests/test_exp_052_e_series_smp_paired_gate.py",
+      "path": "tests/test_exp_052_e_series_smp_paired_gate.py",
+      "sha256": "022c9d4b827003771c1d19acf25f952eaf0eb78b5fa98c9c919b0b5c948c007e",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 3639,
+      "output_path": "retained-campaign-sources/tests/test_exp_057_a_series_aor_25seed.py",
+      "path": "tests/test_exp_057_a_series_aor_25seed.py",
+      "sha256": "fed14f5e4091b080e8323bf7ded796418ce2dae55a7bf33d86699d668a664d39",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 2793,
+      "output_path": "retained-campaign-sources/tests/test_exp_058_ctp_stable_v2_25seed.py",
+      "path": "tests/test_exp_058_ctp_stable_v2_25seed.py",
+      "sha256": "f099be13b3b60d4de0c2ff99038db68f97d45826b12a7004500b8c9262c3ab56",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    },
+    {
+      "bytes": 4153,
+      "output_path": "retained-campaign-sources/tests/test_exp_059_gcb_stable_all_case_25seed.py",
+      "path": "tests/test_exp_059_gcb_stable_all_case_25seed.py",
+      "sha256": "cffe8ad617ef1ab9aee56b71c34fb1816439f9a54ccc109a47299d4f875f9c65",
+      "source_event": {
+        "call_id": "exec-6373832d-a0e0-4a57-9b7f-5a6663d44de4",
+        "change_type": "delete",
+        "session_line": 20015,
+        "timestamp": "2026-07-29T14:04:49.355Z"
+      }
+    }
+  ],
+  "runner_deletion_anchor": {
+    "bytes": 136571,
+    "call_id": "exec-e5c92e42-e541-4687-bf06-b741af9a986a",
+    "session_line": 29681,
+    "sha256": "6920a2c3b54f5861f6375dc42095d9218a19f5493e7e12cadcffec664ad1bf2b",
+    "timestamp": "2026-07-31T10:02:01.106Z"
+  },
+  "runner_versions": {
+    "CTP/GCB": {
+      "boundary_event": {
+        "call_id": "exec-14085a7e-fcf2-4a3c-bf2b-7437d27e4f29",
+        "session_line": 4592,
+        "timestamp": "2026-07-27T06:38:40.643Z"
+      },
+      "bytes": 316117,
+      "characters": 316109,
+      "lines": 7458,
+      "output_path": "exact-runner/9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594/scripts/hcc_smoke_runner.py",
+      "reversed_patch_count_from_anchor": 88,
+      "sha256": "9fe50c891534a80c2d95c8f340f5a5e6dabdf8429e46fdc74d6d38389845d594",
+      "state": "immediately_before_recorded_update"
+    },
+    "SMP": {
+      "boundary_event": {
+        "call_id": "exec-ea441cb1-a2ea-4c2b-b608-c0e16b133b82",
+        "session_line": 3440,
+        "timestamp": "2026-07-27T01:52:48.632Z"
+      },
+      "bytes": 311758,
+      "characters": 311750,
+      "lines": 7374,
+      "output_path": "exact-runner/b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac/scripts/hcc_smoke_runner.py",
+      "reversed_patch_count_from_anchor": 90,
+      "sha256": "b17021e8ffe1de76fea48b52ed3c00a62b4cc93bf4c2c759604064d14ebc68ac",
+      "state": "immediately_before_recorded_update"
+    }
+  },
+  "schema_version": "arac-session-source-recovery-v1",
+  "session_path": "C:\\Users\\83718\\.codex\\sessions\\2026\\07\\26\\rollout-2026-07-26T17-04-21-019f9dab-0f42-70f2-8f45-5cf51411e668.jsonl",
+  "source_policy": "session_patch_reconstruction_isolated_from_production",
+  "supporting_sources": {
+    "SMP action module": {
+      "bytes": 13843,
+      "characters": 13843,
+      "output_path": "exact-content/5130b18a39c8f76e0713a30026fd9a997d34e982c7d7f8287b6d1047161efc16/src/arac/actions/smp.py",
+      "sha256": "5130b18a39c8f76e0713a30026fd9a997d34e982c7d7f8287b6d1047161efc16",
+      "source_event": {
+        "call_id": "exec-85715849-7ad4-4c85-9864-1292bd14ae9e",
+        "change_type": "add",
+        "session_line": 2347,
+        "timestamp": "2026-07-26T12:16:25.251Z"
+      }
+    }
+  }
+}
