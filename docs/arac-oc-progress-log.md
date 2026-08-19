@@ -1634,3 +1634,37 @@ plateau"时没有释放——**plateau 释放（v5.2 预注册杠杆）正是此
 **结论**：v5.1 未通过 51c 冻结。但两个 v5.2 杠杆（plateau 释放 +
 R2 梯档）现在有了明确的 fresh-seed 收据证据支撑。A3 非劣是
 稳健的。下一步等用户裁决 v5.2。
+
+## v5.2 版本提升落地：版本隔离 + 旧入口退役 + 51c v5_2 复判入口（2026-08-19 午）
+
+按预注册纪律完成 v5.2 升版（用户已实现的杠杆 1 = w1 有界验证窗随本版本定名）：
+
+- **常量与校验**（episodes.py）：新增 `DEFAULT_SCHEDULER_VERSION_V5_2="v5.2"` +
+  policy/schema 字符串；v4 入口处校验——仅 v4.4（冻结位级路径）与 v5.2 可产出，
+  手工构造的 v5.0/v5.1 标签或"v5 特性 + 非 v5.2 版本"响亮报错；policy/schema
+  映射改为按版本字符串判定；
+- **旧入口退役**：`run_oc_episode_schedule_v5/v5_1` 保留签名、调用即
+  RuntimeError 指向 v5_2（防止新行为被贴旧标签；v5.0/v5.1 行为已不在树中，
+  冻结 cell 以其记录的 manifest 保持溯源）；
+- **生产入口跟进**（overlap_core）：`ARAC_OC_SCHEDULER_MODES` 增 `v5_2`，
+  新增 `run_arac_oc_v5_2` 命名入口并导出包级；`v5_1` 模式保留（调用经退役
+  入口自然报错）；
+- **Gate 51c v5_2 复判入口**（`experiments/oc_phase_aware_gate51c_v5_2.py`）：
+  OC 臂（on/off × 12）在版本隔离目录 `oc_phase_aware_gate51c_v5_2` 重跑；
+  standalone 48 cell 与 Phase-I 12 checkpoint **复用冻结 v5.1 产物**——锚定 =
+  v5.1 confirmation 的 implementation manifest + checkpoint_hash + 结构完整性，
+  冻结 cell 早于 anytime 层，其 anytime 轨迹从自带 segments 确定性重算
+  （与冻结 anytime_auc.json 12/12 逐位一致），只写入 v5_2 副本、冻结源不动；
+  判定数学从 v5.1 入口原样导入，两次判定可构造性可比；
+- **测试**：v5_1 契约测试迁至 `test_oc_episode_schedule_v5_2.py`（4 个机制
+  测试 + 5 个新纪律测试：双退役入口报错、版本标签不可产出）；v5 HPR 机制
+  测试改走 v4 入口显式 v5.2 标签；unified_loop 生产入口测试切 v5_2 模式 +
+  v5_1 响亮退役断言。调度器/入口定向 44 过；全量 592 过 / 4 败（stash 对照
+  验证 4 败全部预存隔离类，零新回归）；ruff 全绿；
+- **版本控制**：快照提交 40d3f29（整条 ARAC-OC 工作线首次入库，13,769 文件
+  含 410MB artifacts 证据链；agent 会话目录入 .gitignore）。
+
+**待用户裁决**：杠杆 2（R2 horizon 顶档 300k→450k，诊断表已证三 seed AOR
+运行时恰停在 450k 穿越线）是否并入 v5.2 再跑 51c 复判，还是 v5.2 按当前
+内容（仅杠杆 1）出判。复判命令：
+`.venv\Scripts\python.exe -m experiments.oc_phase_aware_gate51c_v5_2 --workers 8 --pin-p-cores`（OC 24 cell，约 2 小时）。

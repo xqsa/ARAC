@@ -314,7 +314,7 @@ def test_canonical_arac_oc_entrypoint_uses_unified_loop() -> None:
     assert result.terminal_fes == 2_000
 
 
-def test_canonical_arac_oc_entrypoint_has_explicit_v5_1_mode() -> None:
+def test_canonical_arac_oc_entrypoint_has_explicit_v5_2_mode() -> None:
     config = PhaseAwareSchedulerConfig(
         maturity_window_fes=200,
         revelation_horizon_fes=800,
@@ -329,11 +329,11 @@ def test_canonical_arac_oc_entrypoint_has_explicit_v5_1_mode() -> None:
         _overlap_problem(),
         total_budget_fes=2_000,
         run_seed=101,
-        scheduler_mode="v5_1",
+        scheduler_mode="v5_2",
         scheduler_config=config,
         phase1_kwargs=_PHASE1_KWARGS,
     )
-    assert result.scheduler_version == "v5.1"
+    assert result.scheduler_version == "v5.2"
     assert result.coordinator_name == "GCB coordinator"
     assert result.episode_names["gcb"] == "gss"
     assert result.terminal_fes == 2_000
@@ -356,3 +356,25 @@ def test_unified_loop_enters_tail_when_current_sense_window_is_unaffordable() ->
     assert result.cycles == ()
     assert result.tail_fes == 760
     assert result.terminal_fes == 1_000
+
+
+def test_canonical_arac_oc_entrypoint_retires_v5_1_mode_loudly() -> None:
+    config = PhaseAwareSchedulerConfig(
+        maturity_window_fes=200,
+        revelation_horizon_fes=800,
+        exploration_and_development_cap=0.8,
+        exploitation_reserve_ratio=0.05,
+        cold_start_probe_cap=0.25,
+        probe_min_fes=100,
+        segment_fes=400,
+        calibration_ref="unit",
+    )
+    with pytest.raises(RuntimeError, match="run_oc_episode_schedule_v5_1 is retired"):
+        run_arac_oc(
+            _overlap_problem(),
+            total_budget_fes=2_000,
+            run_seed=101,
+            scheduler_mode="v5_1",
+            scheduler_config=config,
+            phase1_kwargs=_PHASE1_KWARGS,
+        )

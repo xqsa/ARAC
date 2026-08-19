@@ -706,6 +706,15 @@ DEFAULT_SCHEDULER_VERSION_V5 = "v5.0"
 OC_EPISODE_SCHEMA_V5_1 = "arac-oc-episode-schedule-v5.1"
 SCHEDULER_POLICY_V5_1 = "adaptive_hpr_gcb_v5_1"
 DEFAULT_SCHEDULER_VERSION_V5_1 = "v5.1"
+# v5.2 supersedes the whole v5 line (Gate 51c post-mortem): the post-lock
+# verification window and the material-leader continuation are bounded by
+# one calibrated maturity window, so a plateau releases the runway after
+# w1 FE instead of a full segment, and the released state is part of the
+# receipt/audit chain.  v5.0/v5.1 behaviour no longer exists in this tree;
+# their frozen cells keep provenance via their recorded manifests.
+OC_EPISODE_SCHEMA_V5_2 = "arac-oc-episode-schedule-v5.2"
+SCHEDULER_POLICY_V5_2 = "adaptive_hpr_gcb_v5_2"
+DEFAULT_SCHEDULER_VERSION_V5_2 = "v5.2"
 GRANT_KINDS = ("probe", "ticket", "exploit", "challenger", "escalation")
 PRIVATE_CREDIT_MODES = ("extreme", "rate")
 
@@ -738,10 +747,12 @@ class PhaseAwareSchedulerConfig:
     # The horizon and action-native boundaries are supplied by the existing
     # Gate 51-0 calibration and EpisodeProgress contract.
     horizon_protected: bool = False
-    # v5.1 is separately opt-in. A material, completed maturity ticket may
-    # verify its value with one exploit segment before the remaining P1
-    # tickets run. The existing HPR release and reserve rules bound a wrong
-    # early choice.
+    # The v5 line (v5.2) is separately opt-in. A material, completed
+    # maturity ticket may verify its value with one exploit segment before
+    # the remaining P1 tickets run; the verification window and every
+    # continuation are bounded by one maturity window, so a plateau
+    # releases the runway after w1 FE. The HPR release and reserve rules
+    # bound a wrong early choice.
     adaptive_exploration: bool = False
 
     def __post_init__(self) -> None:
@@ -1123,6 +1134,27 @@ def run_oc_episode_schedule_v4(
         raise TypeError("checkpoint must be PhaseCheckpoint")
     if not isinstance(config, PhaseAwareSchedulerConfig):
         raise TypeError("config must be PhaseAwareSchedulerConfig")
+    # Version isolation (pre-registered discipline): only v4.4 (frozen
+    # bitwise path) and v5.2 (current v5 line) are producible.  A v5.0/v5.1
+    # label would misreport v5.2 behaviour -- their runway was bounded in
+    # v5.2 -- so hand-built legacy configs fail loudly here.
+    if config.scheduler_version not in (
+        DEFAULT_SCHEDULER_VERSION_V4,
+        DEFAULT_SCHEDULER_VERSION_V5_2,
+    ):
+        raise ValueError(
+            "scheduler_version "
+            f"{config.scheduler_version!r} cannot be produced by this tree; "
+            f"use {DEFAULT_SCHEDULER_VERSION_V5_2!r} for the v5 line or "
+            f"{DEFAULT_SCHEDULER_VERSION_V4!r} for the frozen v4 path"
+        )
+    if (config.horizon_protected or config.adaptive_exploration) and (
+        config.scheduler_version != DEFAULT_SCHEDULER_VERSION_V5_2
+    ):
+        raise ValueError(
+            "horizon/adaptive features require scheduler_version "
+            f"{DEFAULT_SCHEDULER_VERSION_V5_2!r}"
+        )
 
     global_ledger = EvaluationLedger.from_checkpoint(
         problem,
@@ -2333,12 +2365,9 @@ def run_oc_episode_schedule_v4(
         failed = [name for name, ok in audit.items() if not ok]
         raise RuntimeError(f"v4 schedule audit failed: {failed}")
     magnitude_repairs = {episode: ledgers[episode].magnitude_repairs for episode in EPISODES}
-    if adaptive_mode:
-        scheduler_policy = SCHEDULER_POLICY_V5_1
-        scheduler_schema = OC_EPISODE_SCHEMA_V5_1
-    elif hpr_mode:
-        scheduler_policy = SCHEDULER_POLICY_V5
-        scheduler_schema = OC_EPISODE_SCHEMA_V5
+    if config.scheduler_version == DEFAULT_SCHEDULER_VERSION_V5_2:
+        scheduler_policy = SCHEDULER_POLICY_V5_2
+        scheduler_schema = OC_EPISODE_SCHEMA_V5_2
     else:
         scheduler_policy = SCHEDULER_POLICY_V4
         scheduler_schema = OC_EPISODE_SCHEMA_V4
@@ -2422,26 +2451,18 @@ def run_oc_episode_schedule_v5(
     config: PhaseAwareSchedulerConfig,
     structure: OverlapStructure | None = None,
 ) -> V4ScheduleResult:
-    """Run the opt-in HPR-GCB scheduler.
+    """Retired v5.0 entry: raises instead of producing a mislabelled run.
 
-    The implementation shares the audited episode execution machinery with
-    v4.4, but forces the explicit v5 policy bit so a caller cannot silently
-    obtain a v4 result under a v5 experiment directory.
+    v5.0 HPR semantics changed when v5.2 bounded the protected runway by
+    one maturity window; this tree can no longer produce a schedule that
+    matches the frozen Gate 51b v5.0 cells.  Use
+    :func:`run_oc_episode_schedule_v5_2`.
     """
 
-    if not isinstance(config, PhaseAwareSchedulerConfig):
-        raise TypeError("config must be PhaseAwareSchedulerConfig")
-    v5_config = dataclasses.replace(
-        config,
-        scheduler_version=DEFAULT_SCHEDULER_VERSION_V5,
-        horizon_protected=True,
-    )
-    return run_oc_episode_schedule_v4(
-        problem,
-        checkpoint,
-        action_seed=action_seed,
-        config=v5_config,
-        structure=structure,
+    raise RuntimeError(
+        "run_oc_episode_schedule_v5 is retired: v5.0 HPR semantics were "
+        "superseded by the w1-bounded protected runway in v5.2; use "
+        "run_oc_episode_schedule_v5_2 (version-isolated artifacts)."
     )
 
 
@@ -2453,13 +2474,44 @@ def run_oc_episode_schedule_v5_1(
     config: PhaseAwareSchedulerConfig,
     structure: OverlapStructure | None = None,
 ) -> V4ScheduleResult:
-    """Run v5.1 with material-ticket verification before remaining P1 work."""
+    """Retired v5.1 entry: raises instead of producing a mislabelled run.
+
+    v5.1 behaviour (full-segment protected runway; release only at segment
+    end) was the S5 disaster-seed mechanism dissected in Gate 51c and is
+    superseded by v5.2's bounded verification window.  Frozen v5.1 cells
+    keep their provenance via their recorded manifests.
+    """
+
+    raise RuntimeError(
+        "run_oc_episode_schedule_v5_1 is retired: the protected runway is "
+        "bounded by one maturity window in v5.2 (plateau release after w1 "
+        "FE, released state in the receipt/audit chain); use "
+        "run_oc_episode_schedule_v5_2 (version-isolated artifacts)."
+    )
+
+
+def run_oc_episode_schedule_v5_2(
+    problem: OptimizationProblem,
+    checkpoint: PhaseCheckpoint,
+    *,
+    action_seed: int,
+    config: PhaseAwareSchedulerConfig,
+    structure: OverlapStructure | None = None,
+) -> V4ScheduleResult:
+    """Run v5.2: adaptive HPR-GCB with the bounded protected runway.
+
+    Identical flag surface to v5.1 (horizon protection plus adaptive
+    material-ticket verification), but the post-lock verification window
+    and every material-leader continuation are bounded by one calibrated
+    maturity window, a zero-gain window releases the runway immediately,
+    and ``released``/``plateau_release`` are receipt/audit fields.
+    """
 
     if not isinstance(config, PhaseAwareSchedulerConfig):
         raise TypeError("config must be PhaseAwareSchedulerConfig")
-    v5_1_config = dataclasses.replace(
+    v5_2_config = dataclasses.replace(
         config,
-        scheduler_version=DEFAULT_SCHEDULER_VERSION_V5_1,
+        scheduler_version=DEFAULT_SCHEDULER_VERSION_V5_2,
         horizon_protected=True,
         adaptive_exploration=True,
     )
@@ -2467,7 +2519,7 @@ def run_oc_episode_schedule_v5_1(
         problem,
         checkpoint,
         action_seed=action_seed,
-        config=v5_1_config,
+        config=v5_2_config,
         structure=structure,
     )
 
@@ -2487,9 +2539,11 @@ __all__ = [
     "OC_EPISODE_SCHEMA_V4",
     "OC_EPISODE_SCHEMA_V5",
     "OC_EPISODE_SCHEMA_V5_1",
+    "OC_EPISODE_SCHEMA_V5_2",
     "DEFAULT_SCHEDULER_VERSION_V4",
     "DEFAULT_SCHEDULER_VERSION_V5",
     "DEFAULT_SCHEDULER_VERSION_V5_1",
+    "DEFAULT_SCHEDULER_VERSION_V5_2",
     "GRANT_KINDS",
     "PhaseAwareSchedulerConfig",
     "PRIVATE_CREDIT_MODES",
@@ -2497,6 +2551,7 @@ __all__ = [
     "SCHEDULER_POLICY_V4",
     "SCHEDULER_POLICY_V5",
     "SCHEDULER_POLICY_V5_1",
+    "SCHEDULER_POLICY_V5_2",
     "V4ProbeReceipt",
     "V4ScheduleResult",
     "V4SegmentReceipt",
@@ -2505,4 +2560,5 @@ __all__ = [
     "run_oc_episode_schedule_v4",
     "run_oc_episode_schedule_v5",
     "run_oc_episode_schedule_v5_1",
+    "run_oc_episode_schedule_v5_2",
 ]

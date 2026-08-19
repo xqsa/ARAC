@@ -21,6 +21,7 @@ from arac.coordination.episodes import (
     PhaseAwareSchedulerConfig,
     V4ScheduleResult,
     run_oc_episode_schedule_v5_1,
+    run_oc_episode_schedule_v5_2,
 )
 from arac.coordination.loop import OcLoopResult, run_oc_unified
 from arac.evidence import Phase1OverlapPilotResult, run_phase1_overlap_pilot
@@ -43,7 +44,7 @@ _SUPPORTED_COORDINATION_MODES = COORDINATION_MODES + (
     PERSISTENT_CTP_MODE,
     GCB_COORDINATED_MODE,
 )
-ARAC_OC_SCHEDULER_MODES = ("legacy_unified", "v5_1")
+ARAC_OC_SCHEDULER_MODES = ("legacy_unified", "v5_1", "v5_2")
 
 
 @dataclass(frozen=True)
@@ -238,7 +239,7 @@ def run_arac_oc(
     sense_budget_fes: int = DEFAULT_NEIGHBORHOOD_FES,
     phase1_kwargs: dict[str, object] | None = None,
     config=None,
-    scheduler_mode: Literal["legacy_unified", "v5_1"] = "legacy_unified",
+    scheduler_mode: Literal["legacy_unified", "v5_1", "v5_2"] = "legacy_unified",
     scheduler_config: PhaseAwareSchedulerConfig | None = None,
 ) -> OcLoopResult | V4ScheduleResult:
     """Run the canonical ARAC-OC Phase-I -> coordinator pipeline.
@@ -256,18 +257,20 @@ def run_arac_oc(
             f"unsupported scheduler_mode: {scheduler_mode}; "
             f"expected one of {ARAC_OC_SCHEDULER_MODES}"
         )
-    if scheduler_mode == "v5_1":
+    if scheduler_mode in ("v5_1", "v5_2"):
         if scheduler_config is None and isinstance(config, PhaseAwareSchedulerConfig):
             scheduler_config = config
         if scheduler_config is None:
             raise ValueError(
-                "scheduler_config is required for scheduler_mode='v5_1'; "
+                f"scheduler_config is required for scheduler_mode={scheduler_mode!r}; "
                 "pass the frozen PhaseAwareSchedulerConfig explicitly"
             )
         if not isinstance(scheduler_config, PhaseAwareSchedulerConfig):
             raise TypeError("scheduler_config must be PhaseAwareSchedulerConfig")
     elif scheduler_config is not None:
-        raise ValueError("scheduler_config is only valid with scheduler_mode='v5_1'")
+        raise ValueError(
+            "scheduler_config is only valid with scheduler_mode='v5_1' or 'v5_2'"
+        )
 
     pilot = run_phase1_overlap_pilot(
         problem,
@@ -276,8 +279,19 @@ def run_arac_oc(
         **({} if phase1_kwargs is None else phase1_kwargs),
     )
     if scheduler_mode == "v5_1":
+        # The retired scheduler entry raises here: a v5.1-labelled schedule
+        # can no longer be produced (runway bounded in v5.2).
         structure = pilot.adaptation.structure
         return run_oc_episode_schedule_v5_1(
+            problem,
+            pilot.checkpoint,
+            action_seed=run_seed,
+            config=scheduler_config,
+            structure=structure,
+        )
+    if scheduler_mode == "v5_2":
+        structure = pilot.adaptation.structure
+        return run_oc_episode_schedule_v5_2(
             problem,
             pilot.checkpoint,
             action_seed=run_seed,
@@ -291,6 +305,29 @@ def run_arac_oc(
         sense_budget_fes=sense_budget_fes,
         config=config,
     )
+
+
+def run_arac_oc_v5_2(
+    problem: OptimizationProblem,
+    *,
+    total_budget_fes: int,
+    run_seed: int,
+    scheduler_config: PhaseAwareSchedulerConfig,
+    phase1_kwargs: dict[str, object] | None = None,
+) -> V4ScheduleResult:
+    """Named production entry point for the audited v5.2 episode scheduler."""
+
+    result = run_arac_oc(
+        problem,
+        total_budget_fes=total_budget_fes,
+        run_seed=run_seed,
+        phase1_kwargs=phase1_kwargs,
+        scheduler_mode="v5_2",
+        scheduler_config=scheduler_config,
+    )
+    if not isinstance(result, V4ScheduleResult):
+        raise RuntimeError("v5.2 production entry point returned a legacy result")
+    return result
 
 
 def run_arac_oc_v5_1(

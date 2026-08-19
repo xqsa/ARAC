@@ -6,9 +6,10 @@ import numpy as np
 
 from arac.benchmarks import OptimizationProblem
 from arac.coordination.episodes import (
-    DEFAULT_SCHEDULER_VERSION_V5,
-    SCHEDULER_POLICY_V5,
-    run_oc_episode_schedule_v5,
+    DEFAULT_SCHEDULER_VERSION_V5_2,
+    OC_EPISODE_SCHEMA_V5_2,
+    SCHEDULER_POLICY_V5_2,
+    run_oc_episode_schedule_v4,
     PhaseAwareSchedulerConfig,
 )
 from arac.runtime.contracts import PhaseCheckpoint
@@ -100,12 +101,20 @@ def _config(**overrides) -> PhaseAwareSchedulerConfig:
 
 
 def test_v5_policy_and_receipt_surface() -> None:
-    result = run_oc_episode_schedule_v5(
-        _problem(), _checkpoint(), action_seed=20260845, config=_config()
+    # HPR-only v5.2 (adaptive off): the retired v5.0 entry's machinery,
+    # driven through the audited v4 entry with an explicit v5.2 label.
+    result = run_oc_episode_schedule_v4(
+        _problem(),
+        _checkpoint(),
+        action_seed=20260845,
+        config=_config(
+            scheduler_version=DEFAULT_SCHEDULER_VERSION_V5_2,
+            horizon_protected=True,
+        ),
     )
-    assert result.scheduler_version == DEFAULT_SCHEDULER_VERSION_V5
-    assert result.scheduler_policy == SCHEDULER_POLICY_V5
-    assert result.schema_version == "arac-oc-episode-schedule-v5"
+    assert result.scheduler_version == DEFAULT_SCHEDULER_VERSION_V5_2
+    assert result.scheduler_policy == SCHEDULER_POLICY_V5_2
+    assert result.schema_version == OC_EPISODE_SCHEMA_V5_2
     assert result.terminal_fes == 20_000
     assert all(result.audit.values()), result.audit
     assert all(hasattr(receipt, "reservation_kind") for receipt in result.receipts)
@@ -113,11 +122,15 @@ def test_v5_policy_and_receipt_surface() -> None:
 
 
 def test_v5_emits_horizon_reservation_after_a_non_material_exploit() -> None:
-    result = run_oc_episode_schedule_v5(
+    result = run_oc_episode_schedule_v4(
         _flat_problem(),
         _flat_checkpoint(),
         action_seed=20260845,
-        config=_config(revelation_horizon_fes=2_500),
+        config=_config(
+            scheduler_version=DEFAULT_SCHEDULER_VERSION_V5_2,
+            horizon_protected=True,
+            revelation_horizon_fes=2_500,
+        ),
     )
     reservations = [r for r in result.receipts if r.reservation_kind == "horizon"]
     assert reservations, [r.__dict__ for r in result.receipts]
@@ -126,8 +139,14 @@ def test_v5_emits_horizon_reservation_after_a_non_material_exploit() -> None:
 
 
 def test_v5_marks_plateau_release_on_zero_gain_exploit() -> None:
-    result = run_oc_episode_schedule_v5(
-        _flat_problem(), _flat_checkpoint(), action_seed=20260845, config=_config()
+    result = run_oc_episode_schedule_v4(
+        _flat_problem(),
+        _flat_checkpoint(),
+        action_seed=20260845,
+        config=_config(
+            scheduler_version=DEFAULT_SCHEDULER_VERSION_V5_2,
+            horizon_protected=True,
+        ),
     )
     releases = [r for r in result.receipts if r.plateau_release]
     assert releases, [r.__dict__ for r in result.receipts]

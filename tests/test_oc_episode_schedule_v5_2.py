@@ -1,13 +1,17 @@
-"""Targeted contracts for adaptive material-ticket exploration."""
+"""Targeted contracts for adaptive material-ticket exploration (v5.2)."""
 
 from __future__ import annotations
 
 import pytest
 
 from arac.coordination.episodes import (
-    DEFAULT_SCHEDULER_VERSION_V5_1,
-    SCHEDULER_POLICY_V5_1,
+    DEFAULT_SCHEDULER_VERSION_V5_2,
+    OC_EPISODE_SCHEMA_V5_2,
+    SCHEDULER_POLICY_V5_2,
+    run_oc_episode_schedule_v4,
+    run_oc_episode_schedule_v5,
     run_oc_episode_schedule_v5_1,
+    run_oc_episode_schedule_v5_2,
     PhaseAwareSchedulerConfig,
 )
 from test_oc_episode_schedule_v5 import (
@@ -19,8 +23,8 @@ from test_oc_episode_schedule_v5 import (
 )
 
 
-def test_v5_1_earns_lock_from_a_material_maturity_ticket() -> None:
-    result = run_oc_episode_schedule_v5_1(
+def test_v5_2_earns_lock_from_a_material_maturity_ticket() -> None:
+    result = run_oc_episode_schedule_v5_2(
         _problem(), _checkpoint(), action_seed=20260845, config=_config()
     )
 
@@ -29,9 +33,9 @@ def test_v5_1_earns_lock_from_a_material_maturity_ticket() -> None:
         for receipt in result.receipts
         if receipt.reservation_kind == "adaptive_lock"
     ]
-    assert result.scheduler_version == DEFAULT_SCHEDULER_VERSION_V5_1
-    assert result.scheduler_policy == SCHEDULER_POLICY_V5_1
-    assert result.schema_version == "arac-oc-episode-schedule-v5.1"
+    assert result.scheduler_version == DEFAULT_SCHEDULER_VERSION_V5_2
+    assert result.scheduler_policy == SCHEDULER_POLICY_V5_2
+    assert result.schema_version == OC_EPISODE_SCHEMA_V5_2
     assert locks
     for lock in locks:
         previous = result.receipts[lock.segment_index - 1]
@@ -48,8 +52,8 @@ def test_v5_1_earns_lock_from_a_material_maturity_ticket() -> None:
     assert all(result.audit.values()), result.audit
 
 
-def test_v5_1_protected_runway_is_bounded_after_adaptive_lock() -> None:
-    result = run_oc_episode_schedule_v5_1(
+def test_v5_2_protected_runway_is_bounded_after_adaptive_lock() -> None:
+    result = run_oc_episode_schedule_v5_2(
         _problem(), _checkpoint(), action_seed=20260845, config=_config()
     )
     locks = [
@@ -64,8 +68,8 @@ def test_v5_1_protected_runway_is_bounded_after_adaptive_lock() -> None:
             assert following.window_fes <= _config().maturity_window_fes
 
 
-def test_v5_1_plateau_release_is_visible_in_receipt() -> None:
-    result = run_oc_episode_schedule_v5_1(
+def test_v5_2_plateau_release_is_visible_in_receipt() -> None:
+    result = run_oc_episode_schedule_v5_2(
         _flat_problem(), _flat_checkpoint(), action_seed=20260845, config=_config()
     )
     releases = [receipt for receipt in result.receipts if receipt.plateau_release]
@@ -73,8 +77,8 @@ def test_v5_1_plateau_release_is_visible_in_receipt() -> None:
     assert all(receipt.released for receipt in releases)
 
 
-def test_v5_1_flat_landscape_releases_without_earned_lock() -> None:
-    result = run_oc_episode_schedule_v5_1(
+def test_v5_2_flat_landscape_releases_without_earned_lock() -> None:
+    result = run_oc_episode_schedule_v5_2(
         _flat_problem(), _flat_checkpoint(), action_seed=20260845, config=_config()
     )
 
@@ -96,4 +100,38 @@ def test_adaptive_exploration_requires_horizon_protection() -> None:
             exploitation_reserve_ratio=0.05,
             adaptive_exploration=True,
             horizon_protected=False,
+        )
+
+
+def test_retired_v5_entry_raises_instead_of_mislabelling() -> None:
+    with pytest.raises(RuntimeError, match="run_oc_episode_schedule_v5 is retired"):
+        run_oc_episode_schedule_v5(
+            _problem(), _checkpoint(), action_seed=20260845, config=_config()
+        )
+
+
+def test_retired_v5_1_entry_raises_instead_of_mislabelling() -> None:
+    with pytest.raises(RuntimeError, match="run_oc_episode_schedule_v5_1 is retired"):
+        run_oc_episode_schedule_v5_1(
+            _problem(), _checkpoint(), action_seed=20260845, config=_config()
+        )
+
+
+def test_v5_features_require_the_v5_2_version_label() -> None:
+    with pytest.raises(ValueError, match="require scheduler_version"):
+        run_oc_episode_schedule_v4(
+            _flat_problem(),
+            _flat_checkpoint(),
+            action_seed=20260845,
+            config=_config(horizon_protected=True),
+        )
+
+
+def test_legacy_version_labels_are_not_producible() -> None:
+    with pytest.raises(ValueError, match="cannot be produced by this tree"):
+        run_oc_episode_schedule_v4(
+            _flat_problem(),
+            _flat_checkpoint(),
+            action_seed=20260845,
+            config=_config(scheduler_version="v5.1"),
         )

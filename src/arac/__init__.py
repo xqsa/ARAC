@@ -16,6 +16,7 @@ from arac.overlap_core import (
     OverlapCycleResult,
     run_arac_oc,
     run_arac_oc_v5_1,
+    run_arac_oc_v5_2,
     run_overlap_arac,
     run_overlap_from_pilot,
 )
@@ -34,6 +35,7 @@ __all__ = [
     "ARAC_OC_SCHEDULER_MODES",
     "run_arac_oc",
     "run_arac_oc_v5_1",
+    "run_arac_oc_v5_2",
     "run_overlap_arac",
     "run_overlap_from_pilot",
 ]
