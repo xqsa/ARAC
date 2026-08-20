@@ -1732,3 +1732,44 @@ lock 烧 300k）。候选下一步（晨报 docs/morning-report-2026-08-20.md）
 夜间运行事故与处置：宿主环境 22:39 前静默终止首实例（9 cell 无损）→ OS 脱离式
 重启续跑 → 01:06 齐全。看护自动化（30 分钟周期）已自删；事件见
 artifacts/oc_phase_aware_gate51c_v5_2/.watchdog_log.md。
+
+## v5.3 实现：几何验证阶梯 + 收养宽免（2026-08-20 午）
+
+用户裁决采纳升级方案（docs/arac-oc-v5_3-design.md，评审修正①-④后冻结：
+平坦暴露上界 375k/任职期取代错误的 525k 累计口径、伪代码补 grace 清除行、
+lock 玩具场景 + 预注册决策规则、R6 风险行 + 可证伪预测）。
+
+**实现**（episodes.py，v5.3 语义、hpr 门控、无新配置旗标）：
+- 阶梯：per-episode `rung`，w(rung)=min(w1·2^rung, segment)；lock 起始
+  rung 0（修 F2：R2 平坦 lock 暴露 300k→75k）、promotion 固定 rung 1
+  （=v5.2 语义）、runway 用 w(rung[e])；窗口不再向 min_step 扩张，
+  不可执行即让位后续车道；
+- 转移：material → rung+1 封顶 + released=False + **grace 清除**；
+  flat + grace 武装 → 消费宽免不释放不降档；flat 无 grace → 释放 +
+  rung 归 0。收养（adopted=True）→ rung 归 0 + grace 武装（修 F1：
+  重锚暖机窗不再被误杀）；
+- 影子字段：verification_rung / grace_consumed / would_release_v5_2
+  （精确口径：仅宽免消费或 runway 窗 > w1 的 flat 窗打标——promotion/
+  lock 与 v5.2 同径释放不打标）/ gain_rate；
+- 审计四条（收据表面确定性重放阶梯/宽免状态机）：rung 单调、平坦暴露
+  ≤ w1+segment=375k/任职期、宽免每次收养至多一次且须武装才可消费、
+  反事实双条件一致；adaptive_verification_window_bounded 更新为
+  w(1)=2w1（material lock 升档后首窗）；
+- 版本纪律：v5.2 入口退役（保签名报错）、v5_3 常量/校验/policy/
+  run_oc_episode_schedule_v5_3；overlap_core 增 v5_3 模式 +
+  run_arac_oc_v5_3 并导出。
+
+**测试**：v5_2 契约文件迁移为 test_oc_episode_schedule_v5_3.py（9 测）：
+improving 玩具验证 lock@800→material→runway@1500 升档链；翻转玩具
+（30k 预算）确定性复现宽免（smp/ctp flat 窗消费宽免不释放 + cf52 打标）、
+平坦 lock 底档速释、promotion 有界；**lock@rung-0 脆弱性判定：三种翻转
+位置（16600/17000/17300）脉冲值均被票据通道捕获、终值全 0.5、审计绿
+——按预注册决策规则 lock 维持 rung 0**。unified_loop 切 v5_3 模式 +
+v5_2 退役断言；17/17。定向测试全绿；全量回归待出。
+
+**Gate 51c v5_3 入口**（experiments/oc_phase_aware_gate51c_v5_3.py）：
+standalone/Phase-I 复用锚不变（v5.1 confirmation，48/48 冒烟验证）；
+DO 入档发现结构性事实——soft-RDDSM 划分 disjoint、HCC 式共享变量 DO
+恒 0，故补 relation_coupling（相关块覆盖变量比/关系数/强度）作为
+v5.4 实际设计输入（A3 0.728/110、R2 0.676/56、R6 0.454/208、
+S5 0.657/200 @20260901）。预注册预测见设计文档 §4-5。

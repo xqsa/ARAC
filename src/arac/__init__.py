@@ -17,6 +17,7 @@ from arac.overlap_core import (
     run_arac_oc,
     run_arac_oc_v5_1,
     run_arac_oc_v5_2,
+    run_arac_oc_v5_3,
     run_overlap_arac,
     run_overlap_from_pilot,
 )
@@ -36,6 +37,7 @@ __all__ = [
     "run_arac_oc",
     "run_arac_oc_v5_1",
     "run_arac_oc_v5_2",
+    "run_arac_oc_v5_3",
     "run_overlap_arac",
     "run_overlap_from_pilot",
 ]

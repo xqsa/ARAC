@@ -715,6 +715,15 @@ DEFAULT_SCHEDULER_VERSION_V5_1 = "v5.1"
 OC_EPISODE_SCHEMA_V5_2 = "arac-oc-episode-schedule-v5.2"
 SCHEDULER_POLICY_V5_2 = "adaptive_hpr_gcb_v5_2"
 DEFAULT_SCHEDULER_VERSION_V5_2 = "v5.2"
+# v5.3 supersedes the v5 line (docs/arac-oc-v5_3-design.md): all exploit-class
+# verification windows follow a per-episode geometric ladder
+# (75k -> 150k -> 300k; material promotes, flat at the bottom rung releases),
+# and an adopted re-anchor arms a one-shot release grace for the known
+# warm-up window.  Receipts carry the ladder rung, grace consumption, the
+# deterministic v5.2 counterfactual flag, and the shadow gain rate.
+OC_EPISODE_SCHEMA_V5_3 = "arac-oc-episode-schedule-v5.3"
+SCHEDULER_POLICY_V5_3 = "adaptive_hpr_gcb_v5_3"
+DEFAULT_SCHEDULER_VERSION_V5_3 = "v5.3"
 GRANT_KINDS = ("probe", "ticket", "exploit", "challenger", "escalation")
 PRIVATE_CREDIT_MODES = ("extreme", "rate")
 
@@ -844,6 +853,14 @@ class V4SegmentReceipt:
     plateau_release: bool = False
     handoff_penalty: int = 0
     released: bool = False
+    # v5.3 verification-ladder surface (docs/arac-oc-v5_3-design.md section 2):
+    # the rung that sized this window, the adoption grace that absorbed a
+    # warm-up flat window, the deterministic v5.2 counterfactual, and the
+    # window-size-normalised shadow rate for offline CBCC3 replay.
+    verification_rung: int = -1
+    grace_consumed: bool = False
+    would_release_v5_2: bool = False
+    gain_rate: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -1135,25 +1152,26 @@ def run_oc_episode_schedule_v4(
     if not isinstance(config, PhaseAwareSchedulerConfig):
         raise TypeError("config must be PhaseAwareSchedulerConfig")
     # Version isolation (pre-registered discipline): only v4.4 (frozen
-    # bitwise path) and v5.2 (current v5 line) are producible.  A v5.0/v5.1
-    # label would misreport v5.2 behaviour -- their runway was bounded in
-    # v5.2 -- so hand-built legacy configs fail loudly here.
+    # bitwise path) and v5.3 (current v5 line) are producible.  A v5.0/v5.1/
+    # v5.2 label would misreport v5.3 behaviour -- their verification
+    # windows were laddered in v5.3 -- so hand-built legacy configs fail
+    # loudly here.
     if config.scheduler_version not in (
         DEFAULT_SCHEDULER_VERSION_V4,
-        DEFAULT_SCHEDULER_VERSION_V5_2,
+        DEFAULT_SCHEDULER_VERSION_V5_3,
     ):
         raise ValueError(
             "scheduler_version "
             f"{config.scheduler_version!r} cannot be produced by this tree; "
-            f"use {DEFAULT_SCHEDULER_VERSION_V5_2!r} for the v5 line or "
+            f"use {DEFAULT_SCHEDULER_VERSION_V5_3!r} for the v5 line or "
             f"{DEFAULT_SCHEDULER_VERSION_V4!r} for the frozen v4 path"
         )
     if (config.horizon_protected or config.adaptive_exploration) and (
-        config.scheduler_version != DEFAULT_SCHEDULER_VERSION_V5_2
+        config.scheduler_version != DEFAULT_SCHEDULER_VERSION_V5_3
     ):
         raise ValueError(
             "horizon/adaptive features require scheduler_version "
-            f"{DEFAULT_SCHEDULER_VERSION_V5_2!r}"
+            f"{DEFAULT_SCHEDULER_VERSION_V5_3!r}"
         )
 
     global_ledger = EvaluationLedger.from_checkpoint(
@@ -1262,6 +1280,12 @@ def run_oc_episode_schedule_v4(
             # the gain stranded in the development lane).
             "horizon_material_pending": False,
             "horizon_promotion_used": False,
+            # v5.3 verification ladder (docs/arac-oc-v5_3-design.md): the
+            # earned rung sizes exploit windows; an adopted re-anchor arms a
+            # one-shot grace that absorbs the known warm-up flat window and
+            # resets the rung (the adopted state must re-prove itself).
+            "rung": 0,
+            "grace_armed": False,
         }
         for episode in EPISODES
     }
@@ -1321,6 +1345,15 @@ def run_oc_episode_schedule_v4(
             # slow" evidence entirely (Gate 51b S5: CTP's 2.21 ticket
             # credit went to 0).  Halve instead of zeroing.
             book[episode]["private_credit"] *= 0.5
+            if hpr_mode:
+                # v5.3 adoption grace: the adopted state no longer matches
+                # the rung that earned it, and the first post-adoption
+                # window is a known warm-up artifact (Gate 51c v5.2 S5:
+                # the adopted CTP's flat 75k window released a polishing
+                # chain one window before its payoff).  Reset the rung and
+                # arm a one-shot release grace.
+                book[episode]["rung"] = 0
+                book[episode]["grace_armed"] = True
         elif hpr_mode and refusal in {"oob_incumbent", "not_better"}:
             # A failed baton transfer is a real switching cost.  It does not
             # consume FE by itself, but repeated invalid re-anchors must not
@@ -1484,6 +1517,10 @@ def run_oc_episode_schedule_v4(
         reservation_kind: str = "",
         plateau_release: bool = False,
         released: bool = False,
+        verification_rung: int = -1,
+        grace_consumed: bool = False,
+        would_release_v5_2: bool = False,
+        gain_rate: float = 0.0,
     ) -> None:
         nonlocal segment_index
         g_gain = _log_gain(g_before, g_after)
@@ -1542,6 +1579,10 @@ def run_oc_episode_schedule_v4(
                 plateau_release=plateau_release,
                 handoff_penalty=int(book[episode]["handoff_penalty"]),
                 released=released,
+                verification_rung=verification_rung,
+                grace_consumed=grace_consumed,
+                would_release_v5_2=would_release_v5_2,
+                gain_rate=gain_rate,
             )
         )
         segment_index += 1
@@ -1584,6 +1625,22 @@ def run_oc_episode_schedule_v4(
         """Minimum runtime contract for one delayed-feedback reservation."""
 
         return max(_ticket_target(episode), config.revelation_horizon_fes)
+
+    # v5.3 geometric verification ladder (docs/arac-oc-v5_3-design.md 2.1):
+    # w(rung) = min(w1 * 2^rung, segment_fes); RUNG_MAX is the smallest
+    # rung whose window already saturates the segment, so every rung is a
+    # distinct window up to the v5.1-equivalent top.
+    rung_max = 0
+    while (
+        config.maturity_window_fes * (2 ** rung_max) < config.segment_fes
+    ):
+        rung_max += 1
+
+    def _rung_window(rung: int) -> int:
+        return min(
+            config.maturity_window_fes * (2 ** max(int(rung), 0)),
+            config.segment_fes,
+        )
 
     def _hpr_reservation(episode: str) -> tuple[int, str]:
         """Return one executable horizon reservation, never a soft ticket.
@@ -1648,11 +1705,11 @@ def run_oc_episode_schedule_v4(
 
         A challenger-lane discovery cannot enter leadership (exploit-only
         evidence), so a material horizon reservation immediately earns one
-        2*w1 verification exploit.  A material window writes the episode's
-        exploit-rate sample and it competes for the runway by the normal
-        ranking; a flat window leaves released=True -- the loss is bounded
-        at 2*w1.  One shot per episode per run (v5.2 lever 2,
-        pre-registered).
+        verification exploit at ladder rung 1 (2*w1): a material window
+        writes the episode's exploit-rate sample and it competes for the
+        runway by the normal ranking; a flat window leaves released=True --
+        the loss is bounded at 2*w1.  One shot per episode per run (v5.2
+        lever 2, kept unchanged by v5.3).
         """
 
         if not hpr_mode:
@@ -1664,7 +1721,7 @@ def run_oc_episode_schedule_v4(
                 continue
             if book[episode]["horizon_promotion_used"]:
                 continue
-            window = min(2 * config.maturity_window_fes, segment_window)
+            window = min(_rung_window(1), segment_window)
             if window < max(_progress(episode).min_step_fes, min_window_needed[episode]):
                 continue
             book[episode]["horizon_promotion_used"] = True
@@ -1702,22 +1759,17 @@ def run_oc_episode_schedule_v4(
             # One early verification is allowed, but its continuation cannot
             # consume the challenger reserve: all remaining minimum tickets
             # must be paid before protected runway resumes.
-            if (
-                leader_material
-                and not pending_tickets
-                and _executable(leader, segment_window)
-            ):
-                # Adaptive lock verification is deliberately one calibrated
-                # maturity window.  A full segment here charged 300k FE on
-                # S5 before the plateau signal could release the runway.
-                verification_window = min(
-                    segment_window,
-                    max(config.maturity_window_fes, _progress(leader).min_step_fes),
-                )
-                return leader, "exploit", verification_window, {
-                    "ledger_class": "exploitation",
-                    "reservation_kind": "protected_runway",
-                }
+            if leader_material and not pending_tickets:
+                # v5.3 ladder: the leader's earned rung sizes the window
+                # (w1 -> 2*w1 -> segment); the window never expands past
+                # the rung -- an unexecutable rung leaves the grant to the
+                # later lanes instead of inflating the exposure.
+                runway_window = min(_rung_window(book[leader]["rung"]), segment_window)
+                if _executable(leader, runway_window):
+                    return leader, "exploit", runway_window, {
+                        "ledger_class": "exploitation",
+                        "reservation_kind": "protected_runway",
+                    }
 
             # P1 normally matures all four episodes before P2 can run. v5.1
             # inserts one real verification segment immediately after a
@@ -1737,8 +1789,12 @@ def run_oc_episode_schedule_v4(
                         for receipt in receipts
                     )
                 )
-                if earned_lock and _executable(candidate, segment_window):
-                    return candidate, "exploit", segment_window, {
+                # v5.3: the lock verification starts at the bottom rung
+                # (F2: a full-segment lock charged 300k on R2 before the
+                # flat signal could release it).
+                lock_window = min(_rung_window(0), segment_window)
+                if earned_lock and _executable(candidate, lock_window):
+                    return candidate, "exploit", lock_window, {
                         "ledger_class": "exploitation",
                         "reservation_kind": "adaptive_lock",
                     }
@@ -1811,17 +1867,16 @@ def run_oc_episode_schedule_v4(
             # A material leader owns the current action-native continuation
             # block.  This is the protected runway: reservations accrue but
             # do not interrupt a live material segment (S5 protection).
-            if leader_material and segment_window >= max(
-                _progress(leader).min_step_fes, min_window_needed[leader]
-            ):
-                runway_window = min(
-                    segment_window,
-                    max(config.maturity_window_fes, _progress(leader).min_step_fes),
-                )
-                return leader, "exploit", runway_window, {
-                    "ledger_class": "exploitation",
-                    "reservation_kind": "protected_runway",
-                }
+            # v5.3 ladder: the leader's earned rung sizes the window.
+            if leader_material:
+                runway_window = min(_rung_window(book[leader]["rung"]), segment_window)
+                if runway_window >= max(
+                    _progress(leader).min_step_fes, min_window_needed[leader]
+                ):
+                    return leader, "exploit", runway_window, {
+                        "ledger_class": "exploitation",
+                        "reservation_kind": "protected_runway",
+                    }
             # v5.2 lever 2 (hpr path): the material-horizon verification
             # takes precedence over granting further horizon reservations.
             promotion = _horizon_promotion_grant(segment_window)
@@ -2116,14 +2171,31 @@ def run_oc_episode_schedule_v4(
             # promotion grant executes (a material leader's runway is not
             # interrupted, so the trigger must survive interleaving).
             book[episode]["horizon_material_pending"] = True
+        grace_consumed = False
+        rung_at_grant = book[episode]["rung"]
         if grant_kind == "exploit":
             exploit_since_event += consumed
             book[episode]["exploit_history"].append((g_gain, consumed))
             if hpr_mode:
-                # A zero-gain exploit releases the leader until a complete
-                # delayed reservation is paid.  A material block keeps the
-                # leader protected for its next native continuation block.
-                book[episode]["released"] = not material
+                # v5.3 geometric verification ladder (design section 2.1):
+                # material promotes the rung (earned patience for bursty
+                # producers) and clears the adoption grace; a flat window
+                # releases at the bottom rung unless the one-shot adoption
+                # grace absorbs the known warm-up artifact (Gate 51c v5.2
+                # S5: the adopted CTP's flat 75k window killed a polishing
+                # chain one window before its payoff).
+                if material:
+                    book[episode]["rung"] = min(
+                        book[episode]["rung"] + 1, rung_max
+                    )
+                    book[episode]["released"] = False
+                    book[episode]["grace_armed"] = False
+                elif book[episode]["grace_armed"]:
+                    book[episode]["grace_armed"] = False
+                    grace_consumed = True
+                else:
+                    book[episode]["released"] = True
+                    book[episode]["rung"] = 0
         else:
             exploit_since_event = 0
         funded[episode] += consumed
@@ -2193,8 +2265,28 @@ def run_oc_episode_schedule_v4(
             switched=switched,
             leader=leader_at_grant,
             reservation_kind=reservation_kind,
-            plateau_release=bool(hpr_mode and grant_kind == "exploit" and not material),
+            plateau_release=bool(
+                hpr_mode
+                and grant_kind == "exploit"
+                and not material
+                and book[episode]["released"]
+            ),
             released=bool(hpr_mode and book[episode]["released"]),
+            verification_rung=rung_at_grant if hpr_mode else -1,
+            grace_consumed=grace_consumed,
+            would_release_v5_2=bool(
+                hpr_mode
+                and grant_kind == "exploit"
+                and not material
+                and (
+                    grace_consumed
+                    or (
+                        reservation_kind == "protected_runway"
+                        and window > config.maturity_window_fes
+                    )
+                )
+            ),
+            gain_rate=(g_gain / consumed) if grant_kind == "exploit" else 0.0,
         )
         # One avoidance segment for the departed episode: decrement every
         # outstanding cooldown first, then arm the freshly departed one so
@@ -2402,6 +2494,70 @@ def run_oc_episode_schedule_v4(
             len({receipt.episode for receipt in horizon_promotions})
             == len(horizon_promotions)
         )
+        # v5.3 verification-ladder audits (docs/arac-oc-v5_3-design.md 2.5):
+        # a deterministic replay of the rung/grace machine from the receipt
+        # surface alone -- rung monotonicity, bounded flat exposure per
+        # tenure (w1 + segment_fes; material accumulation is unbounded by
+        # design), one-shot grace per adoption, and the v5.2
+        # counterfactual flag.
+        ladder_monotone = True
+        flat_exposure_bounded = True
+        grace_one_shot = True
+        counterfactual_ok = True
+        for episode in EPISODES:
+            expected_rung = 0
+            armed = False
+            prev_epoch = 0
+            adoptions = 0
+            graces = 0
+            flat_cum = 0
+            for receipt in receipts:
+                if receipt.episode != episode:
+                    continue
+                if receipt.handoff_epoch > prev_epoch:
+                    prev_epoch = receipt.handoff_epoch
+                    adoptions += 1
+                    expected_rung = 0
+                    armed = True
+                if receipt.grant_kind != "exploit":
+                    continue
+                if receipt.verification_rung != expected_rung:
+                    ladder_monotone = False
+                counterfactual = (
+                    not receipt.material
+                    and (
+                        receipt.grace_consumed
+                        or (
+                            receipt.reservation_kind == "protected_runway"
+                            and receipt.window_fes > config.maturity_window_fes
+                        )
+                    )
+                )
+                if receipt.would_release_v5_2 != counterfactual:
+                    counterfactual_ok = False
+                if receipt.material:
+                    expected_rung = min(expected_rung + 1, rung_max)
+                    armed = False
+                elif receipt.grace_consumed:
+                    if not armed:
+                        grace_one_shot = False
+                    armed = False
+                    graces += 1
+                    flat_cum += receipt.consumed_fes
+                else:
+                    expected_rung = 0
+                    flat_cum += receipt.consumed_fes
+                    if flat_cum > config.maturity_window_fes + config.segment_fes:
+                        flat_exposure_bounded = False
+                    flat_cum = 0
+            if graces > adoptions:
+                grace_one_shot = False
+            if flat_cum > config.maturity_window_fes + config.segment_fes:
+                flat_exposure_bounded = False
+        audit["ladder_rung_monotone"] = ladder_monotone
+        audit["ladder_flat_exposure_bounded"] = flat_exposure_bounded
+        audit["grace_consumption_is_one_shot_per_adoption"] = grace_one_shot
+        audit["would_release_v5_2_counterfactual_consistent"] = counterfactual_ok
     if adaptive_mode:
         adaptive_locks = [
             receipt for receipt in receipts
@@ -2447,8 +2603,17 @@ def run_oc_episode_schedule_v4(
             if receipt.reservation_kind == "adaptive_lock"
         ]
         audit["adaptive_verification_window_bounded"] = all(
+            # v5.3: a material lock promotes the episode to rung 1, so the
+            # first post-lock runway window is bounded by w(1) = 2*w1
+            # instead of v5.2's w1 (design section 2.1 table).
             receipts[index + 1].window_fes
-            <= max(config.maturity_window_fes, _progress(receipts[index + 1].episode).min_step_fes)
+            <= max(
+                min(
+                    2 * config.maturity_window_fes,
+                    config.segment_fes,
+                ),
+                _progress(receipts[index + 1].episode).min_step_fes,
+            )
             for index in adaptive_lock_indices
             if index + 1 < len(receipts)
             and receipts[index + 1].reservation_kind == "protected_runway"
@@ -2457,9 +2622,9 @@ def run_oc_episode_schedule_v4(
         failed = [name for name, ok in audit.items() if not ok]
         raise RuntimeError(f"v4 schedule audit failed: {failed}")
     magnitude_repairs = {episode: ledgers[episode].magnitude_repairs for episode in EPISODES}
-    if config.scheduler_version == DEFAULT_SCHEDULER_VERSION_V5_2:
-        scheduler_policy = SCHEDULER_POLICY_V5_2
-        scheduler_schema = OC_EPISODE_SCHEMA_V5_2
+    if config.scheduler_version == DEFAULT_SCHEDULER_VERSION_V5_3:
+        scheduler_policy = SCHEDULER_POLICY_V5_3
+        scheduler_schema = OC_EPISODE_SCHEMA_V5_3
     else:
         scheduler_policy = SCHEDULER_POLICY_V4
         scheduler_schema = OC_EPISODE_SCHEMA_V4
@@ -2590,24 +2755,47 @@ def run_oc_episode_schedule_v5_2(
     config: PhaseAwareSchedulerConfig,
     structure: OverlapStructure | None = None,
 ) -> V4ScheduleResult:
-    """Run v5.2: adaptive HPR-GCB with the bounded protected runway.
+    """Retired v5.2 entry: raises instead of producing a mislabelled run.
 
-    Identical flag surface to v5.1 (horizon protection plus adaptive
-    material-ticket verification), with the two pre-registered v5.2
-    levers: the post-lock verification window and every material-leader
-    continuation are bounded by one calibrated maturity window (a
-    zero-gain window releases the runway immediately, and
-    ``released``/``plateau_release`` are receipt/audit fields), and a
-    material horizon reservation earns one 2*w1 post-revelation
-    verification exploit (``horizon_promotion``) so challenger-lane
-    discoveries can enter the exploit-only leadership ranking.
+    v5.2 behaviour (single bounded verification window; release on any flat
+    window) was the S5 re-anchor warm-up failure dissected in Gate 51c and
+    is superseded by v5.3's geometric ladder plus adoption grace.  Frozen
+    v5.2 cells keep their provenance via their recorded manifests.
+    """
+
+    raise RuntimeError(
+        "run_oc_episode_schedule_v5_2 is retired: verification windows "
+        "follow the geometric ladder with adoption grace in v5.3; use "
+        "run_oc_episode_schedule_v5_3 (version-isolated artifacts)."
+    )
+
+
+def run_oc_episode_schedule_v5_3(
+    problem: OptimizationProblem,
+    checkpoint: PhaseCheckpoint,
+    *,
+    action_seed: int,
+    config: PhaseAwareSchedulerConfig,
+    structure: OverlapStructure | None = None,
+) -> V4ScheduleResult:
+    """Run v5.3: the v5 line on a geometric verification ladder.
+
+    Identical flag surface to v5.2 (horizon protection plus adaptive
+    material-ticket verification and material horizon promotion), with the
+    pre-registered v5.3 levers (docs/arac-oc-v5_3-design.md): every
+    exploit-class verification window is sized by the episode's earned rung
+    (w1 * 2^rung, capped at segment_fes) -- material promotes the rung, a
+    flat window at the bottom releases it, and an adopted re-anchor arms a
+    one-shot grace that absorbs the warm-up flat window.  Receipts carry
+    the rung, grace consumption, the deterministic would-release-v5.2
+    counterfactual, and the shadow gain rate.
     """
 
     if not isinstance(config, PhaseAwareSchedulerConfig):
         raise TypeError("config must be PhaseAwareSchedulerConfig")
-    v5_2_config = dataclasses.replace(
+    v5_3_config = dataclasses.replace(
         config,
-        scheduler_version=DEFAULT_SCHEDULER_VERSION_V5_2,
+        scheduler_version=DEFAULT_SCHEDULER_VERSION_V5_3,
         horizon_protected=True,
         adaptive_exploration=True,
     )
@@ -2615,7 +2803,7 @@ def run_oc_episode_schedule_v5_2(
         problem,
         checkpoint,
         action_seed=action_seed,
-        config=v5_2_config,
+        config=v5_3_config,
         structure=structure,
     )
 
@@ -2636,10 +2824,12 @@ __all__ = [
     "OC_EPISODE_SCHEMA_V5",
     "OC_EPISODE_SCHEMA_V5_1",
     "OC_EPISODE_SCHEMA_V5_2",
+    "OC_EPISODE_SCHEMA_V5_3",
     "DEFAULT_SCHEDULER_VERSION_V4",
     "DEFAULT_SCHEDULER_VERSION_V5",
     "DEFAULT_SCHEDULER_VERSION_V5_1",
     "DEFAULT_SCHEDULER_VERSION_V5_2",
+    "DEFAULT_SCHEDULER_VERSION_V5_3",
     "GRANT_KINDS",
     "PhaseAwareSchedulerConfig",
     "PRIVATE_CREDIT_MODES",
@@ -2648,6 +2838,7 @@ __all__ = [
     "SCHEDULER_POLICY_V5",
     "SCHEDULER_POLICY_V5_1",
     "SCHEDULER_POLICY_V5_2",
+    "SCHEDULER_POLICY_V5_3",
     "V4ProbeReceipt",
     "V4ScheduleResult",
     "V4SegmentReceipt",
@@ -2657,4 +2848,5 @@ __all__ = [
     "run_oc_episode_schedule_v5",
     "run_oc_episode_schedule_v5_1",
     "run_oc_episode_schedule_v5_2",
+    "run_oc_episode_schedule_v5_3",
 ]
