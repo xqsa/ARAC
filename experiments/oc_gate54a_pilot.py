@@ -101,8 +101,6 @@ def run_pilot() -> dict[str, object]:
             )
     conforming_cross = [r["disagreement"] for r in rows if r["mode"] == "conforming"]
     conflicting_cross = [r["disagreement"] for r in rows if r["mode"] == "conflicting"]
-    conforming_bias = [0.0]
-    conflicting_bias = [0.0]
     payload = {
         "rows": rows,
         "summary": {
