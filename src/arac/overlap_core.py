@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
 
 from arac.benchmarks.aob import OptimizationProblem
 from arac.coordination import (
@@ -16,13 +15,6 @@ from arac.coordination import (
     OverlapCoordinator,
     OverlapStructure,
     produce_local_proposal,
-)
-from arac.coordination.episodes import (
-    PhaseAwareSchedulerConfig,
-    V4ScheduleResult,
-    run_oc_episode_schedule_v5_1,
-    run_oc_episode_schedule_v5_2,
-    run_oc_episode_schedule_v5_3,
 )
 from arac.coordination.loop import OcLoopResult, run_oc_unified
 from arac.evidence import Phase1OverlapPilotResult, run_phase1_overlap_pilot
@@ -45,9 +37,6 @@ _SUPPORTED_COORDINATION_MODES = COORDINATION_MODES + (
     PERSISTENT_CTP_MODE,
     GCB_COORDINATED_MODE,
 )
-ARAC_OC_SCHEDULER_MODES = ("legacy_unified", "v5_1", "v5_2", "v5_3")
-
-
 @dataclass(frozen=True)
 class OverlapCycleResult:
     cycle_index: int
@@ -240,38 +229,15 @@ def run_arac_oc(
     sense_budget_fes: int = DEFAULT_NEIGHBORHOOD_FES,
     phase1_kwargs: dict[str, object] | None = None,
     config=None,
-    scheduler_mode: Literal["legacy_unified", "v5_1", "v5_2", "v5_3"] = "legacy_unified",
-    scheduler_config: PhaseAwareSchedulerConfig | None = None,
-) -> OcLoopResult | V4ScheduleResult:
-    """Run the canonical ARAC-OC Phase-I -> coordinator pipeline.
+) -> OcLoopResult:
+    """Run the canonical ARAC-OC Phase-I -> unified coordinator pipeline.
 
     ``run_overlap_arac`` and ``run_overlap_from_pilot`` remain explicit
-    historical/control arms for frozen comparisons.  ``scheduler_mode`` is
-    deliberately explicit: ``legacy_unified`` preserves the original
-    coordinator contract, while ``v5_1`` enters the four-episode production
-    scheduler and returns its audited schedule receipt.  The explicit switch
-    prevents a cached legacy result from being mistaken for a v5.1 result.
+    historical/control arms for frozen comparisons.  The v4-v5.3 episode
+    scheduler line was retired to tag ``v5.3-prealation`` after the
+    evidence-closure program (see docs/arac-oc-completion-plan.md and
+    .codex-tasks/arac-oc-evidence-closure/CONCLUSION.md).
     """
-
-    if scheduler_mode not in ARAC_OC_SCHEDULER_MODES:
-        raise ValueError(
-            f"unsupported scheduler_mode: {scheduler_mode}; "
-            f"expected one of {ARAC_OC_SCHEDULER_MODES}"
-        )
-    if scheduler_mode in ("v5_1", "v5_2", "v5_3"):
-        if scheduler_config is None and isinstance(config, PhaseAwareSchedulerConfig):
-            scheduler_config = config
-        if scheduler_config is None:
-            raise ValueError(
-                f"scheduler_config is required for scheduler_mode={scheduler_mode!r}; "
-                "pass the frozen PhaseAwareSchedulerConfig explicitly"
-            )
-        if not isinstance(scheduler_config, PhaseAwareSchedulerConfig):
-            raise TypeError("scheduler_config must be PhaseAwareSchedulerConfig")
-    elif scheduler_config is not None:
-        raise ValueError(
-            "scheduler_config is only valid with a v5 scheduler_mode"
-        )
 
     pilot = run_phase1_overlap_pilot(
         problem,
@@ -279,37 +245,6 @@ def run_arac_oc(
         run_seed=run_seed,
         **({} if phase1_kwargs is None else phase1_kwargs),
     )
-    if scheduler_mode == "v5_1":
-        # The retired scheduler entry raises here: a v5.1-labelled schedule
-        # can no longer be produced (runway bounded in v5.2).
-        structure = pilot.adaptation.structure
-        return run_oc_episode_schedule_v5_1(
-            problem,
-            pilot.checkpoint,
-            action_seed=run_seed,
-            config=scheduler_config,
-            structure=structure,
-        )
-    if scheduler_mode == "v5_2":
-        # The retired scheduler entry raises here: a v5.2-labelled schedule
-        # can no longer be produced (verification windows laddered in v5.3).
-        structure = pilot.adaptation.structure
-        return run_oc_episode_schedule_v5_2(
-            problem,
-            pilot.checkpoint,
-            action_seed=run_seed,
-            config=scheduler_config,
-            structure=structure,
-        )
-    if scheduler_mode == "v5_3":
-        structure = pilot.adaptation.structure
-        return run_oc_episode_schedule_v5_3(
-            problem,
-            pilot.checkpoint,
-            action_seed=run_seed,
-            config=scheduler_config,
-            structure=structure,
-        )
     return run_oc_unified(
         problem,
         pilot,
@@ -317,75 +252,6 @@ def run_arac_oc(
         sense_budget_fes=sense_budget_fes,
         config=config,
     )
-
-
-def run_arac_oc_v5_3(
-    problem: OptimizationProblem,
-    *,
-    total_budget_fes: int,
-    run_seed: int,
-    scheduler_config: PhaseAwareSchedulerConfig,
-    phase1_kwargs: dict[str, object] | None = None,
-) -> V4ScheduleResult:
-    """Named production entry point for the audited v5.3 episode scheduler."""
-
-    result = run_arac_oc(
-        problem,
-        total_budget_fes=total_budget_fes,
-        run_seed=run_seed,
-        phase1_kwargs=phase1_kwargs,
-        scheduler_mode="v5_3",
-        scheduler_config=scheduler_config,
-    )
-    if not isinstance(result, V4ScheduleResult):
-        raise RuntimeError("v5.3 production entry point returned a legacy result")
-    return result
-
-
-def run_arac_oc_v5_2(
-    problem: OptimizationProblem,
-    *,
-    total_budget_fes: int,
-    run_seed: int,
-    scheduler_config: PhaseAwareSchedulerConfig,
-    phase1_kwargs: dict[str, object] | None = None,
-) -> V4ScheduleResult:
-    """Named production entry point for the audited v5.2 episode scheduler."""
-
-    result = run_arac_oc(
-        problem,
-        total_budget_fes=total_budget_fes,
-        run_seed=run_seed,
-        phase1_kwargs=phase1_kwargs,
-        scheduler_mode="v5_2",
-        scheduler_config=scheduler_config,
-    )
-    if not isinstance(result, V4ScheduleResult):
-        raise RuntimeError("v5.2 production entry point returned a legacy result")
-    return result
-
-
-def run_arac_oc_v5_1(
-    problem: OptimizationProblem,
-    *,
-    total_budget_fes: int,
-    run_seed: int,
-    scheduler_config: PhaseAwareSchedulerConfig,
-    phase1_kwargs: dict[str, object] | None = None,
-) -> V4ScheduleResult:
-    """Named production entry point for the audited v5.1 episode scheduler."""
-
-    result = run_arac_oc(
-        problem,
-        total_budget_fes=total_budget_fes,
-        run_seed=run_seed,
-        phase1_kwargs=phase1_kwargs,
-        scheduler_mode="v5_1",
-        scheduler_config=scheduler_config,
-    )
-    if not isinstance(result, V4ScheduleResult):
-        raise RuntimeError("v5.1 production entry point returned a legacy result")
-    return result
 
 
 def run_overlap_from_pilot(

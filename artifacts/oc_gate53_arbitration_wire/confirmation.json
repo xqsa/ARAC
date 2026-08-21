@@ -1,0 +1,173 @@
+{
+  "core_curve": {
+    "median_log_ratios": [
+      0.0,
+      0.002204106594735896,
+      0.002844670112950102,
+      0.004481270868889872,
+      0.0,
+      0.001296969653966138
+    ],
+    "overlap_degrees": [
+      0.0,
+      1.0,
+      3.0,
+      5.0,
+      7.0,
+      10.0
+    ],
+    "permutation_p_one_sided": 0.463,
+    "spearman": 0.14285714285714288
+  },
+  "gate_checks": {
+    "all_cells_complete": true,
+    "core_curve_monotone": false,
+    "global_noninferior": true,
+    "high_overlap_strictly_better": false,
+    "s1_no_tax": true,
+    "terminal_exact": true
+  },
+  "gate_passed": false,
+  "per_case": {
+    "S1": {
+      "arbitration_fes_total": 0,
+      "geometric_mean_ratio_b_over_a": 1.0,
+      "median_log_ratio": 0.0,
+      "overlap_degree": 0,
+      "ratios": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "seeds": 4,
+      "shared_variable_counts": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "S2": {
+      "arbitration_fes_total": 216,
+      "geometric_mean_ratio_b_over_a": 1.0027364094061615,
+      "median_log_ratio": 0.002204106594735896,
+      "overlap_degree": 1,
+      "ratios": [
+        1.006526866006565,
+        1.0159681157827554,
+        0.9907238011295055,
+        0.9979047530435377
+      ],
+      "seeds": 4,
+      "shared_variable_counts": [
+        18,
+        18,
+        18,
+        18
+      ]
+    },
+    "S3": {
+      "arbitration_fes_total": 216,
+      "geometric_mean_ratio_b_over_a": 1.0032282122334248,
+      "median_log_ratio": 0.002844670112950102,
+      "overlap_degree": 3,
+      "ratios": [
+        1.0,
+        1.0,
+        1.007228712659134,
+        1.0057055552583638
+      ],
+      "seeds": 4,
+      "shared_variable_counts": [
+        51,
+        51,
+        51,
+        51
+      ]
+    },
+    "S4": {
+      "arbitration_fes_total": 216,
+      "geometric_mean_ratio_b_over_a": 1.0043346863041367,
+      "median_log_ratio": 0.004481270868889872,
+      "overlap_degree": 5,
+      "ratios": [
+        1.0,
+        1.0078688758144507,
+        1.0011250965143594,
+        1.008373596783345
+      ],
+      "seeds": 4,
+      "shared_variable_counts": [
+        80,
+        80,
+        80,
+        80
+      ]
+    },
+    "S5": {
+      "arbitration_fes_total": 216,
+      "geometric_mean_ratio_b_over_a": 1.0020496228243112,
+      "median_log_ratio": 0.0,
+      "overlap_degree": 7,
+      "ratios": [
+        1.0,
+        1.0,
+        1.0082237314787066,
+        1.0
+      ],
+      "seeds": 4,
+      "shared_variable_counts": [
+        119,
+        119,
+        119,
+        119
+      ]
+    },
+    "S6": {
+      "arbitration_fes_total": 216,
+      "geometric_mean_ratio_b_over_a": 1.00177333877436,
+      "median_log_ratio": 0.001296969653966138,
+      "overlap_degree": 10,
+      "ratios": [
+        1.000662702213982,
+        1.001933323047836,
+        1.0,
+        1.0045032430149279
+      ],
+      "seeds": 4,
+      "shared_variable_counts": [
+        130,
+        130,
+        130,
+        130
+      ]
+    }
+  },
+  "protocol": {
+    "cases": [
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "S5",
+      "S6"
+    ],
+    "cycle_fes": 150000,
+    "permutation_draws": 10000,
+    "permutation_seed": 20260822,
+    "phase1_fes": 180000,
+    "pre_registration": "docs/arac-oc-gate53-protocol.md + v2 amendment",
+    "production_selector_modified": false,
+    "proposal_sigma_fraction": 0.05,
+    "seeds": [
+      117,
+      118,
+      119,
+      120
+    ],
+    "total_fes": 3000000,
+    "wiring": "phase-boundary composition (v2); see PROGRESS amendment"
+  },
+  "schema_version": "arac-oc-gate53-arbitration-wire-v2"
+}

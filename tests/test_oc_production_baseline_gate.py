@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from experiments.oc_lagged_coupling_shadow import ARMS
 from experiments.oc_production_baseline_gate import (

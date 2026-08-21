@@ -1,0 +1,29 @@
+{
+  "action": "smp",
+  "arm_a": {
+    "arbitration_fes": 0,
+    "arbitration_receipts": [],
+    "final_error": 5783.665299342124,
+    "route": "recovered_stateful_visits_2820000_visits_1452_stale_resets_457_noop_0",
+    "terminal_fes": 3000000
+  },
+  "arm_b": {
+    "arbitration_fes": 0,
+    "arbitration_note": "non_ctp_identity_no_lane",
+    "arbitration_receipts": [],
+    "final_error": 5783.665299342124,
+    "route": "recovered_stateful_visits_2820000_visits_1452_stale_resets_457_noop_0",
+    "terminal_fes": 3000000
+  },
+  "case_id": "S1",
+  "checkpoint_incumbent_error": 120047151.54508784,
+  "dispatch_features": {
+    "structural_relation_density": 0.0,
+    "tail_log10_gain": 0.775005716596599
+  },
+  "group_count": 121,
+  "historical_final_error": 1.4874133295649035e-17,
+  "schema_version": "arac-oc-gate53-cell-v2",
+  "seed": 119,
+  "shared_variable_count": 0
+}

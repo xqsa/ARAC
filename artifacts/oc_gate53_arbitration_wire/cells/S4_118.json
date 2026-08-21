@@ -1,0 +1,263 @@
+{
+  "action": "ctp",
+  "arm_a": {
+    "arbitration_fes": 0,
+    "arbitration_receipts": [],
+    "final_error": 3164516.1150372387,
+    "route": "coverage_563760_then_sequential_block_polish_2255904",
+    "terminal_fes": 3000000
+  },
+  "arm_b": {
+    "arbitration_fes": 54,
+    "arbitration_receipts": [
+      {
+        "accepted": false,
+        "best_error_after": 83864047.06511962,
+        "best_error_before": 83864047.06511962,
+        "candidate_errors": [
+          236163914.5641146,
+          122046317.08399124,
+          199914238.70766145
+        ],
+        "cycle": 1,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 83864047.06511962,
+        "best_error_before": 83864047.06511962,
+        "candidate_errors": [
+          199956889.28379282,
+          124297571.60353582,
+          92209627.5532018
+        ],
+        "cycle": 2,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 83864047.06511962,
+        "best_error_before": 83864047.06511962,
+        "candidate_errors": [
+          186521041.51917863,
+          94538721.7059277,
+          121013605.3360936
+        ],
+        "cycle": 3,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          315819321.86230314,
+          36277072.5460176,
+          113287989.41166048
+        ],
+        "cycle": 4,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          57976800.36990861,
+          9376743.320112158,
+          17668909.043799456
+        ],
+        "cycle": 5,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          250136234.31233665,
+          20448230.039710548,
+          55453716.889829785
+        ],
+        "cycle": 6,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          75468814.82167056,
+          15451256.264689809,
+          20400498.130307514
+        ],
+        "cycle": 7,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          46747744.713904805,
+          10463873.720943514,
+          43704738.92182081
+        ],
+        "cycle": 8,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          120813496.12595326,
+          20686277.95005009,
+          124206264.25930613
+        ],
+        "cycle": 9,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          53064155.59576831,
+          7399761.611966525,
+          26313829.892130844
+        ],
+        "cycle": 10,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          125817787.3117326,
+          15487032.881753279,
+          89361472.05719185
+        ],
+        "cycle": 11,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          405626334.59139025,
+          35765187.19767145,
+          164247356.93448377
+        ],
+        "cycle": 12,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          142459366.81255028,
+          26835512.23793343,
+          87952075.19741635
+        ],
+        "cycle": 13,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          120105293.01008758,
+          25902621.144778274,
+          5024016.30912852
+        ],
+        "cycle": 14,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          80198706.95723845,
+          16418787.176246472,
+          72239612.65331067
+        ],
+        "cycle": 15,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          27031127.10099599,
+          6646221.50316878,
+          15798995.75537587
+        ],
+        "cycle": 16,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          132066137.96048185,
+          15221979.865312936,
+          24452393.70675175
+        ],
+        "cycle": 17,
+        "fes": 3,
+        "status": "executed"
+      },
+      {
+        "accepted": false,
+        "best_error_after": 3187199.804900813,
+        "best_error_before": 3187199.804900813,
+        "candidate_errors": [
+          206193063.00315285,
+          34476065.66407021,
+          119350405.40200613
+        ],
+        "cycle": 18,
+        "fes": 3,
+        "status": "executed"
+      }
+    ],
+    "final_error": 3164516.1150372387,
+    "route": "coverage_563760_then_sequential_block_polish_2255904_arb_54_tail_282",
+    "terminal_fes": 3000000
+  },
+  "case_id": "S4",
+  "checkpoint_incumbent_error": 142385092.71070963,
+  "dispatch_features": {
+    "structural_relation_density": 0.13450292397660818,
+    "tail_log10_gain": 0.7410061990128131
+  },
+  "group_count": 36,
+  "historical_final_error": 517.2928097162024,
+  "schema_version": "arac-oc-gate53-cell-v2",
+  "seed": 118,
+  "shared_variable_count": 80
+}
