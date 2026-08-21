@@ -1,0 +1,212 @@
+
+####################################################################################################
+# FILE: Two-Phase CC.pdf  (pages: 9, chars: 52070)
+####################################################################################################
+
+[sent 0] A Novel Two-Phase Cooperative Co-evolution Framework for Large-Scale Global Optimization with Complex Overlapping Wenjie Qiu wukongqwj@gmail.com South China University of Technology Guangzhou, Guangdong, China Hongshu Guo guohongshu369@gmail.com South China University of Technology Guangzhou, Guangdong, China Zeyuan Ma scut.crazynicolas@gmail.com South China University of Technology Guangzhou, Guangdong, China Yue-Jiao Gong∗ gongyuejiao@gmail.com South China University of Technology Guangzhou, Guangdong, China Abstract Cooperative Co-evolution, through the decomposition of the prob- lem space, is a primary approach for solving large-scale global optimization problems. Typically, when the sub
+
+[sent 3] However, the presence of overlapping variables complicates the decomposition process and adversely affects the performance of cooperative co- evolution. In this study, we propose a novel two-phase cooperative co-evolution framework to address large-scale global optimization problems with complex overlapping. An effective method for de- composing overlapping problems, grounded in their mathematical properties, is embedded within the framework.
+
+[sent 7] Extensive experiments demonstrate that the algorithm instantiated within our framework significantly outperforms existing algorithms. The results reveal the characteristics of overlapping problems and high- light the differing strengths of cooperative co-evolution and non- decomposition algorithms. Our work is open-source and accessible at: https://github.com/GMC-DRL/HCC.
+
+[sent 27] However, problems involving interactions among different sub- spaces are prevalent in real-world applications [44], such as multi- silo problems [ 12] in supply chain optimization and large-scale virtual network embedding problems [37]. Variables that belong to two or more subspaces are referred to as overlapping variables, and the corresponding problem are called overlapping problem [16]. The overlapping problem adds extra complexity to LSGO.
+
+[sent 32] [1, 9, 19, 21, 22, 36]. How can the optimization performance of CC be further enhanced when dealing with complex overlapping problems? The complexity of overlapping problems for CC arises from both decomposition and optimization aspects.
+
+[sent 39] Can CC leverages the advantages of NDAs to enhance its performance? To answer these questions and effectively improve CC’s performance, it is essential to conduct a detailed investigation into the impact of overlap on arXiv:2503.21797v1 [cs.NE] 23 Mar 2025 Qiu et al. both NDAs and CC.
+
+[sent 42] However, the limited number of overlapping problems in existing benchmarks adds a difficulty to analyzing and addressing these questions [45]. Therefore, we make the following main contributions in this study: • A novel benchmark for overlapping problems called the Auto Overlapping Benchmark (AOB) is proposed to extend existing benchmarks. AOB allows researchers to easily de- fine and automatically generate the required overlapping problems for analysis.
+
+[sent 45] • A novel two-phase CC framework, called the Hybrid Co- operative Co-evolution Framework (HCC), is proposed to solve complex overlapping problems. This framework is de- veloped based on an analysis of the optimization behavior of NDAs and CC on both non-overlapping and overlapping problems. • A novel decomposition strategy, called Recursive Decom- position of Design Structure Matrix (RDDSM), is proposed and embedded within HCC.
+
+[sent 49] • Extensive experiments demonstrate that the algorithm in- stantiated within HCC significantly outperforms existing algorithms. The results also highlight the differing strengths of NDAs and CC on overlapping problems, shedding light on the characteristics of overlapping problems and provid- ing insights to address the aforementioned questions. The rest of this paper proceeds as follows.
+
+[sent 55] Section 5 concludes with a summary and outlook. 2 Background In this section, we briefly describe the variable interaction and overlapping variable. Let Ω𝑖, Ω 𝑗 be two disjoint subspaces.
+
+[sent 60] Naturally, when Ω𝑖 and Ω 𝑗 are one- dimension spaces, this interaction degenerates into an interaction between two variables 𝑥𝑖 and 𝑥 𝑗 , which is denoted by 𝑥𝑖 ↔ 𝑥 𝑗 . For equation 1, ideal decomposition is equivalent to: ∀Ω𝑖, Ω 𝑗 , Ω𝑖 ↮ Ω 𝑗 (3) ∀Ω𝑖, ∀𝑥𝑝, 𝑥𝑞 ∈ Ω𝑖, 𝑥𝑝 ↔ 𝑥𝑞 (4) That is, the subspaces are non-overlapping, but within each sub- space, all variables are pairwise interacting. Although the problem structure is unknown, many decomposi- tion strategies can identify interactions between variables.
+
+[sent 69] Figure 1 illustrates a specific example of this equivalence. The overlapping variables, such as 𝑥4, 𝑥5, interact with variables in two or more subspaces. This natu- rally breaks the condition that Ω𝑖, Ω 𝑗 are two disjoint subspaces, making it impossible to achieve equation 3.
+
+[sent 72] Therefore, for overlap- ping problems, the ideal decomposition is achieved by satisfying equation 4 while ensuring that interactions caused by overlapping variables are excluded, ultimately satisfying equation 3. Many stud- ies have extended this idea to address the overlapping problem, such as RDG3, DOV [29]. However, the decompositions obtained are often tailored to specific problems, and there is a lack of mathe- matical proof for the decomposition to achieve ideal decomposition.
+
+[sent 76] The benchmark for the CEC’2013 Special Session and Competi- tion on Large-Scale Global Optimization (CEC2013LSGO) is one of the most commonly used in LSGO [18]. CEC2013LSGO consists of 15 problems, but only two of them involve overlapping variables. The analysis of overlapping problems is constrained by the lim- ited availability of such problems in existing benchmarks.
+
+[sent 79] In an LSGO benchmark, several components are key to constructing a problem 𝐹: 1) Base function 𝑓 2) The list of subspaces size S𝑠𝑖𝑧𝑒 3) The random permutation of the dimension indices P 4) The shift vector x𝑜𝑝𝑡 5) The list of subspaces weight 𝑤 6) The list of subspaces orthogonal rotation matrix of R 7) The list of number of overlapping variable in each subspace Γ. They are also fixed and researchers cannot customize these components to control various factors, adding more unknown factors that influence the analysis of overlap. Therefore, we propose AOB to extend CEC2013LSGO, enabling researchers to easily define components and automati- cally generate the required overlapping problems for a
+
+[sent 84] 3 Hybrid Cooperate Co-evolution Framework 3.1 The Analysis of NDAs and CC Performance on CEC2013LSGO F11 and F13 are two problems in CEC2013LSGO that both use Schwefel [35] as the base function. The main difference is that F11 is non-overlapping, while F13 is overlapping. Therefore, we con- duct a simple comparison of NDAs and CC on these two problems to analyze their optimization performance and characteristics on non-overlapping and overlapping problems.
+
+[sent 96] In terms of optimization performance, CC significantly outperforms NDAs on F11, but the opposite is true for F13. This demonstrates that overlap does indeed impact the effectiveness of CC. The potential reason for this impact stems from the optimization of the same variable across multiple subspaces, Figure 3: The Accuracy of Decomposition strategies and the Time Cost of Algorithms leading to different values.
+
+[sent 113] However, since CMAES is not specifically designed for LSGO, it cannot handle the "curse of dimensionality, " resulting in significant time cost. This is be- cause DG2 uses depth-first search to process the design structure matrix, and once it encounters overlapping problems, the decompo- sition fails. Excluding DG2’s performance on F13, it can be observed Qiu et al.
+
+[sent 116] Figure 4: The Evaluation Curves for Different Algorithms that the more accurate the decomposition, the better the optimiza- tion performance. This holds true for both overlapping and non- overlapping problems. Therefore, achieving ideal decomposition is equally important for overlapping problems.
+
+[sent 120] It is evident that CC exhibits significantly higher variabil- ity compared to NDAs, which is also reflected in the best-so-far curves. This may be due to two reasons: The primary reason is the coupling issue of the optimized values of overlapping variables. This is because directly altering the values of overlapping variables in one subspace can significantly affect other subspaces, rendering their optimization ineffective.
+
+[sent 123] This can be demonstrated in Figure 4, where the differences in CC’s performance during the early stages on F11 and F13 are evident. F11 is non-overlapping, as evidenced by the minimal fluctuations observed in the early stage (before 5E5). The second reason is that when optimization stagnates, CC opti- mizes sequentially within smaller subspaces, leading to stronger exploratory behavior.
+
+[sent 128] Based on the above analysis, the questions in Section 1 can be rephrased as the following: (1) How can ideal decomposition be achieved reliably and stably? (2) How can the coupling issue of the optimized values of overlapping variables be effectively addressed? (3) How can the exploitation strength of NDAs and the exploration strength of CC be balanced to overcome the slow objective value decline in the early stages of CC and the convergence in the later stages of NDAs?
+
+[sent 133] Subsequently, many other strategies have utilized statistics-based or heuristic methods to decompose the design structure matrix [ 14, 29, 31, 42, 44, 47]. However, these methods face one major challenge: they are de- signed for specific scenarios, which often makes it difficult to con- sistently achieve ideal decomposition when faced with different overlapping situations [32, 33]. The above issues arise from not considering the inherent charac- teristics of the design structure matrix.
+
+[sent 155] Therefore, Θ has an upper bound for decomposition information. A Novel Two-Phase Cooperative Co-evolution Framework for Large-Scale Global Optimization with Complex Overlapping Algorithm 1 RDDSM Input: Design structure matrix Θ Output: The list of Subspaces S 1: Initialize S to be an empty list 2: S ← DDSM(Θ, S) 3: S ← Set(S) 4: return S Function: DDSM (Θ, S) 1: The length of matrix L ← Θ 2: while 𝑖 <= L do 3: Get 𝑀𝑖 from Θ 4: if 𝑀𝑖 is an all-1 Matrix then 5: Add the list of variables in 𝑀𝑖 to S 6: else 7: S′ ← DDSM (𝑀𝑖, S) 8: S ← S ∪ S ′ 9: end if 10: end while 11: return S Considering that such overlapping situations can be very complex and varied, we uniformly assume that an all-1 matrix 
+
+[sent 170] It should be noted that overlap is relative to the space. For example, in 𝑓 = 𝑥0𝑥3𝑥4 + 𝑥2𝑥4𝑥5 + 𝑥1𝑥5, 𝑥4 is is considered an overlap variable with respect to the entire space. However, for the subspace corresponding to 𝑥0𝑥3𝑥4, 𝑥4 is non- overlapping.
+
+####################################################################################################
+# FILE: Investigating Overlapped Strategies to Solve Overlapping Problems in a Cooperative Co-evolutionary Framework.pdf  (pages: 13, chars: 34076)
+####################################################################################################
+
+[sent 9] The proposed algorithm performs a new decomposition based on diﬀerential grouping to detect overlapping variables. A new coop- eration strategy is also introduced to manage variables shared among several components. The performance of the new overlapped framework is assessed on large-scale overlapping benchmark problems derived from the CEC’2013 benchmark suite and compared with a state-of-the-art non-overlapped framework designed to tackle overlapping problems.
+
+[sent 21] their performance deteriorates when increas- ing the number of variables [1]. In this context, new approaches relying on the ”divide-and-conquer strategy” have been proposed. They divide the initial LSGO problem into smaller ones which focus on smaller groups of variables.
+
+[sent 26] They designed a cooperative co- evolutionary (CC) approach to optimize LGSO problems by means of a genetic algorithm. Following this promising approach, the CC strategy have been embed- ded in many other metaheuristics such as evolutionary programming [6], particle swarm optimization [2] and diﬀerential evolution [11]. In any case, the eﬃciency of this approach is highly dependent on the per- formed decomposition.
+
+[sent 35] The main challenge is thus to identify these components. It can be done by using the diﬀerential grouping strategy [8,16]. However, separable and partially separable problems are not representative of most LSGO problems arising in real-world optimization applications.
+
+[sent 40] Such intercon- nected problems are often referred as overlapping problems [17] because they are composed of parts that overlap others. In other words, each component involves multiple variables and some of them are shared with one or several other compo- nents. This kind of function is very challenging and standard CC algorithms fail to optimize them eﬃciently.
+
+[sent 48] Two exceptions are the decomposition based on spectral clustering introduced in [5] and the decomposition specially designed for over- lapping problems introduced in [ 15]. The latter breaks the linkage at shared variables between components in order to reduce the problem dimensionality, even for overlapping problems. It will be further discussed in Sect.2.2.
+
+[sent 53] In [14], non separable problems are decomposed into overlapping subproblems on the basis of a sta- tistical variable interdependence learning scheme. The exchange of information is ensured by a periodically updated global solution (built on the basis of sub- problem cores) used as shared memory. In [ 13], an overlapping decomposition covering the set of variables is predetermined.
+
+[sent 61] Nevertheless, to the best of the authors’ knowledge, there are no research studies in that way. This paper introduces such a strategy and compare it with the non-overlapped approach specially designed for overlapping problems in [15]. The paper is organized as follows: Sect.2 brieﬂy describes the CC framework and the recursive diﬀerential grouping.
+
+[sent 68] 5. 2 Related Work 2.1 Cooperative Co-evolutionary Algorithms The ﬁrst attempt to optimize a LSGO problem with an evolutionary algo- rithm by means of a divide-and-conquer strategy was presented in 1994 [ 9]. Since then, this new approach, called cooperative co-evolution, has been widely studied [7].
+
+[sent 72] Decomposition: Split the n-dimensional decision vector into some smaller dis- joint subcomponents; Overlapped Strategies to Solve Overlapping Problems in a CC Framework 257 2. Optimization: Optimize each subcomponent with a standard evolutionary algorithm for a ﬁxed number of iterations in a round-robin strategy; 3. Combination: Merge the solutions from each subcomponent to build the n- dimensional solution.
+
+[sent 79] 2.2 Recursive Diﬀerential Grouping In a CC framework, the decomposition should ideally be performed in such a way that there is no interaction between variables from diﬀerent subcompo- nents. For additively separable problems, it can be uncovered with the Diﬀer- ential Grouping (DG) strategy [ 8,16]. In particular, the Recursive Diﬀerential Grouping (RDG) that beneﬁts, as stated by its name, from recursive interaction detections between subsets of variables, relies on the following result [15,16]: Theorem 1.
+
+[sent 93] Blanchard et al. In brief, the complete RDG algorithm can be presented as follows: (1) deter- mine all the variables that interact with a selected variable xi using the above recursive strategy and put them in a set X1; (2) identify variables that interact with X1 and add them toX1, repeat the process until no more variable is added to X1; (3) select another variable that is yet to be classiﬁed and return to step (1). Note that this approach would set all the variables of an overlapping problem into a single group.
+
+[sent 100] The ﬁrst one is to perform an accurate decomposition that detects overlapping variables eﬃciently and share them among several subcomponents. It can be achieved by using the modi- ﬁed approach of the RDG strategy presented in Sect. 3.1.
+
+[sent 104] It will be discussed in Sect.3.2. 3.1 Overlapped Recursive Diﬀerential Grouping The main idea of the newly proposed decomposition strategy is to relax the grouping by identifying variables that make the link between several compo- nents in interconnected problems and share them among these components. For example, in the interaction graph presented in Fig.
+
+[sent 109] ∀ i, j(i ̸= j), k,l (k ̸= l)such that xi ∈ Sk\Sl and xj ∈ Sl\Sk,x i does not interact with xj. Using the RDG3 strategy to decompose such a problem will break the linkage at shared variables and will lead to the decomposition illustrated in Fig.1a. The latter might not be the optimal one sincex3 and x4 (resp.
+
+[sent 113] x8 and x9) while they are strongly connected. The new strategy, called Overlapped RDG (ORDG), is aimed to allow some overlapping between subcomponents to prevent from breaking these important linkages. It will produce the decomposition proposed in Fig.
+
+[sent 131] If X1 contains only one variable, this is the one responsible of the interaction. In this case, the algorithm moves on to the next iteration while making the same update that for the RDG3 strategy (lines 13-14). Otherwise (i.e.
+
+[sent 138] For this purpose, the decomposition step performs the ORDG algorithm presented in the previous section. The optimization still consists in iteratively evolving each subcomponent in a round-robin strategy. However, in this step, the cooperation between subprob- lems through the sharing of best solutions in the context vector needs to be revised.
+
+[sent 141] Since subcomponents overlap, a variable xi belonging to one compo- nent Sk may also appear in another component Sl. This introduces the issue of which value ofxi has to be shared in the context vector. In a standard framework (i.e.
+
+[sent 170] For the RDG3, two dif- ferent threshold values ϵ n =5 0a n d ϵn = 0 are tested. The ﬁrst value is the one used to study optimization results in [ 15] while the second value aims to identify as many components as possible and systematically cut the overlapping at shared variables. The number of components generated ( k), the sum of the number of variables in each group ( r) and the number of function evaluations computed (FEs) are reported in Table1.
+
+[sent 207] Furthermore, the closed results between the CC-RDG3 withϵn =0 and the CC-ORDG may be surprising. By analyzing the convergence behavior of the overlapping variables in the CC-ORDG in details, it can be seen that most of the time, the variables shared among two subcomponents converge to the same value at the same rate in the two subcomponents. In this context, the overlapped decomposition does not signiﬁcantly contribute to a better cooper- ation between subcomponents in comparison with the cooperation through the sharing of the context vector performed in a standard CC framework.
+
+[sent 222] The solid line depicts the median value while the light-colored area represents the interval between the best and the worst value over the 51 runs. although results in Table2 might indicate that the CC-ORDG provides slightly better results, we can not deﬁnitely claim that a strategy is better than the other. Overlapped Strategies to Solve Overlapping Problems in a CC Framework 265 5 Discussion The new CC framework introduced in this paper is designed to opti- mize overlapping LSGO problems with an overlapped decomposition strategy.
+
+[sent 235] In any way, there is scope for even better progress to further develop the CC concept to deal with overlapping problems. We think that the new strategy that introduces overlapped subcom- ponents may be a promising way to achieve such an improvement. References 1.
+
+####################################################################################################
+# FILE: Contribution-Based_Cooperative_Co-Evolution_for_Nonseparable_Large-Scale_Problems_With_Overlapping_Subcomponents.pdf  (pages: 14, chars: 76208)
+####################################################################################################
+
+[sent 2] 52, NO. 6, JUNE 2022 Contribution-Based Cooperative Co-Evolution for Nonseparable Large-Scale Problems With Overlapping Subcomponents Ya-Hui Jia , Member, IEEE,Y iM e i , Senior Member, IEEE, and Mengjie Zhang , Fellow, IEEE Abstract—Cooperative co-evolutionary algorithms have addressed many large-scale problems successfully, but the non- separable large-scale problems with overlapping subcomponents are still a serious difﬁculty that has not been conquered yet. First, the existence of shared variables makes the problem hard to be decomposed.
+
+[sent 5] Second, existing cooperative co-evolutionary frameworks usually cannot maintain the two crucial factors: high cooperation frequency and effective computing resource allocation, simultaneously when optimizing the overlapping subcomponents. Aiming at these two issues, this article proposes a new contribution-based cooperative co-evolutionary algorithm to decompose and optimize nonseparable large-scale problems with overlapping subcomponents effectively and efﬁciently: 1) a contribution-based decomposition method is proposed to assign the shared variables. Among all the subcomponents containing a shared variable, the one that contributes the most to the entire problem will include the shared va
+
+[sent 8] Experimental studies show that the proposed algorithm performs signiﬁcantly better than the state-of-the-art algorithms due to the effective grouping structure generated by the proposed decomposition method and the fast optimizing speed provided by the new optimization framework. Index Terms —Cooperative co-evolution (CC), contribution- based optimization (CBO), evolution strategy, large-scale global optimization (LSGO), overlapping problem. I.
+
+[sent 43] Restrictions apply. JIA et al.: CONTRIBUTION-BASED COOPERATIVE CO-EVOLUTION FOR NONSEPARABLE LARGE-SCALE PROBLEMS 4247 search or breadth-ﬁrst search method on the graph of vari- able interdependence to decompose problems. DG and RDG use a greedy decomposition scheme to assign the shared vari- ables randomly to one of the subcomponents that interact with them.
+
+[sent 46] Although an overlapping problem can be decom- posed into subcomponents in this way, the generated partition may not be the most effective one for the optimization pro- cess. Some parallel CC methods duplicate the shared variables in related subcomponents and select their values through competition, such as distributed CC [40], factored evolu- tionary algorithm (FEA) [41], and competitive–cooperative co-evolution [42], [43]. However, their performance is usually not as competitive as the serial CC methods under limited computing resources [19], [40].
+
+[sent 51] Omidvar et al. [44]–[46] proposed three contribution-based CC frameworks: 1) CBCC1; 2) CBCC2; and 3) CBCC3. Inspired by CBCC1, Trunﬁo [47] proposed a CCEA called CCAOI.
+
+[sent 57] These new CC frameworks perform well on separable problems. However, on overlap- ping problems, they may be defeated by traditional CC [36] since the contribution of a subcomponent may be affected by other subcomponents due to the existence of shared variables. Zhang et al.
+
+[sent 64] Goal: To address these two drawbacks, in this arti- cle, we propose a new cooperative co-evolution algorithm called CBCCO to solve the large-scale overlapping problem. Corresponding to addressing the two drawbacks, the main contributions of CBCCO are shown in two aspects. 1) From the perspective of decomposition of CBCCO, a contribution-based decomposition (CBD) method for overlapping problems is proposed.
+
+[sent 67] By designing a graphic decomposition method and setting a shared vari- able allocation stage, CBD assigns the shared variables to the subcomponents that have larger contributions. 2) From the perspective of an optimization of CBCCO, a new contribution-based optimization (CBO) framework is proposed for the overlapping problems. By designing a new awarding scheme that awards a group subcom- ponents each time, CBD can allocate the computing resources effectively and maintain high cooperation frequency among the optimizers.
+
+[sent 114] Explicit interactions are dense within a community. Between communities, there will be a few shared variables that provide bridges for implicit interactions. Generally, the number of nonshared variables is larger than the number of shared variables in a community.
+
+[sent 132] Each time it selects a variable xi and gathers the variables that interact with xi into a group, and then removes them from the interdependence graph. RDG reduces the complexity of the interdependence detecting algo- rithm by using recursive detection, but the shared variables are still grouped randomly even in its latest version RDG3 [36]. GDG and DG2 use a depth-ﬁrst search or a breadth-ﬁrst search algorithm to decompose the problem.
+
+[sent 136] Consequently, DG and RDG3 can decompose an overlapping problem into subcomponents, but GDG and DG2 cannot decompose the overlapping problems. Since the selection of the start variable in greedy decomposition is essentially a random process and shared variables are grouped with the earlier selected vari- able that interacts with them, actually, each shared variable is just randomly grouped into an interactive subcomponent. Although the greedy decomposition method can decompose an overlapping problem, randomly assigning the shared vari- ables to interactive subcomponents may not generate the most effective grouping structure for optimization.
+
+[sent 152] Restrictions apply. JIA et al.: CONTRIBUTION-BASED COOPERATIVE CO-EVOLUTION FOR NONSEPARABLE LARGE-SCALE PROBLEMS 4249 In CBCC1 [44], besides the RR optimization process, the subcomponent that has the largest contribution in each gen- eration, denoted as /Theta1 l, is selected to be awarded another generation. The contribution of a subcomponent accumulates in each generation ηg+1 i = ηg i + ( f g − f g+1 ) , i ∈{ 1, 2,..., M} (11) where g represents the number of generation.
+
+[sent 156] Based on the analysis in [45], CBCC1 is more robust than CBCC2. However, accumulating the contribution of each subcom- ponent may give the subcomponents that have larger histor- ical contributions awards rather than the subcomponents that have larger present contributions. Considering this drawback, two different frameworks, CBCC3 [46] and CCFR [48], are proposed.
+
+[sent 160] 2(c). In CBCC3, the contribution of a subcomponent is con- sidered as the decline of the objective value in recent γ generations η g+γ i = f g − f g+γ, i ∈{ 1, 2,..., M}. (12) Information on historical contribution is abandoned in CBCC3.
+
+[sent 163] Regarding the subcomponent selection strategy, at ﬁrst, an exploration phase is set that each subcomponent is given γ generations to be optimized. Then, /Theta1l is chosen to be opti- mized until its contribution is no longer the largest. There will be a very small probability to go back to the exploration phase.
+
+[sent 166] Otherwise, a new /Theta1 l will be selected. In CCFR, the contribution is calculated as ηg+γ i = ηg i + ( f g − f g+γ) 2 , i ∈{ 1, 2,..., M}. (13) After the exploration phase, CCFR also continuously chooses /Theta1l to optimize.
+
+[sent 169] When all subcomponents have the same contri- bution, it returns to the exploration phase. Besides, whenever an optimizer is stagnant, the contribution of its corresponding subcomponent will be set to 0. Due to the stagnancy detect- ing technique, usually, when all subcomponents have the same contribution, the optimizers are all stagnant.
+
+[sent 173] First, the random grouping method is applied to optimize the problem and the contribu- tion of each variable accumulates for γ 1 generations. In the second stage, ranked by contribution, each time the top N1 variables and the variables interacting with them are chosen to be optimized for γ2 generations. Comparing these CC frameworks, CBCC1 is the most mod- erate one that is built on the RR structure and each time only one subcomponent is awarded only one extra genera- tion.
+
+[sent 188] RR [46]. As to the contribution calculation methods, aban- doning the historical information in CBCC3 may also cause problems since most EAs are probabilistic algorithms that their performance in a short period is not very stable. DCC uses a different strategy that chooses variables rather than subcom- ponents during optimization.
+
+[sent 192] III. C ONTRIBUTION -BASED COOPERATIVE CO-EVOLUTION FOR OVERLAPPING PROBLEMS Considering the defects of the greedy decomposition and the aforementioned CC frameworks, we propose a new CCEA called CBCCO with a new contribution-based decomposition method and a new contribution-based optimization framework to speciﬁcally solve the large-scale overlapping problems. The overall process of CBCCO is shown in Fig.
+
+[sent 196] It consists of two main stages: 1) a CBD stage and 2) a CBO stage. The CBD stage can be further divided into two substages: 1) the nonshared variable allocation stage and 2) the shared variable allocation stage. In the nonshared variable alloca- tion stage, the problem is ﬁrst decomposed into two sets.
+
+[sent 203] 52, NO. 6, JUNE 2022 Algorithm 1 Nonshared Variable Allocation Input: problem f(x), variable set /Theta1={ x1,..., xn}, accept- able overlapping rate ζ. Output: set of subcomponents consisting of non-shared vari- ables GS, set of shared variables OS.
+
+[sent 207] Here, a graphic decomposi- tion method is designed based on the decomposition method proposed in [40]. The shared variable allocation stage will optimize each subcomponent for N generations to set the initial contribution and to assign the shared variables to the existing subcomponents GS. Moreover, since the nonshared variables are already optimized in this stage, not only the context vector x ∗ and the contribution vector η but also the information of the optimizers will be saved so that in the ﬁnal optimization stage, the optimizers will not start from scratch.
+
+[sent 211] A. Contribution-Based Decomposition 1) Nonshared Variable Allocation: Based on our previous work [40], a graphic decomposition method that generates a subcomponent set of nonshared variables GS and overlap set of shared variables OS is devised. This stage consists of four parts as shown in Algorithm 1.
+
+####################################################################################################
+# FILE: Overlapping Cooperative Co-Evolution for Overlapping Large-Scale Global Optimization Problems.pdf  (pages: 9, chars: 47254)
+####################################################################################################
+
+[sent 6] Thus, the existence of the perfect decomposition of such problems allows of the optimization of in- dependent components. However, for overlapping problems, the perfect, unique decomposition does not exist due to the existence of shared variables. Despite this, each variable is usually assigned to a single component, and the assignment does not change dur- ing a whole framework run.
+
+[sent 9] In this paper, we propose a new CC framework that allows multiple assignments of shared variables. Allocating computational resources to each of its components is influenced by other components that share variables with it. Ac- cording to experimental results, our proposed method outperforms the state-of-the-art LSGO-dedicated optimization methods, includ- ing other CC frameworks, when overlapping LSGO problems are considered.
+
+[sent 38] OCC like most CC frameworks, tries to update the best solution found so far after the component optimization. Due to shared variables, it may be unsuccessful in many attempts. To not neglect some components, we propose a new mechanism to allocate computational resources to components based on the successful attempts of other components that share variables with them.
+
+[sent 70] Then, groups of in- teracting variables are connected components of VIG [22]. In case of overlapping problems, i.e., some of their variables are shared among several subproblems, finding the connected components often leads to grouping all variables into one group despite the existence of pairs of variables that do not interact with each other. Nevertheless, joining variables into smaller groups may be beneficial for overlap- ping problems with conforming subproblems [11, 26].
+
+[sent 81] In CC, components are usually disjoint, and the variable as- signments usually do not change during a CC run. When a CC framework uses groups of variables provided by a decomposition strategy, decisions on the assignment of each shared variable (to one of its related components) are actually made by the decomposition strategy. However, a CC framework can analyze the interaction ma- trix provided by a decomposition strategy on its own.
+
+[sent 86] During this phase, an accumu- lated contribution of each component is calculated based on global fitness improvements. Shared variables are then assigned to the best related component, i.e., a related component that has achieved the highest value of an accumulated contribution. When all vari- ables are already assigned, CBCOO still optimizes components one after another and calculates accumulated contributions.
+
+[sent 99] SHADE-ILS also detects when it should be restarted due to the low improvement ratio. 3 PROPOSED COOPERATIVE CO-EVOLUTION FRAMEWORK When a considered optimization problem consists of overlapping subproblems, CC frameworks either optimize all overlapping sub- problems within one component or assign shared variables to one of their related components. Optimizing one large component does not reduce the problem size.
+
+[sent 102] On the other hand, the assignment of shared variables only to one component affects the optimization process of the other related components. Moreover, a CC frame- work may be trapped in a local optimum in case of inappropriate assignments. Therefore, we propose an Overlapping Cooperative Co-Evolution (OCC) framework.
+
+[sent 105] Due to multiple assignments of the same variable and a new allocation computational resources mechanism, OCC can effectively solve overlapping LSGO problems. 3.1 Computational resource allocation Allowing of multiple assignments of shared variables results in some difficulties. In typical CC frameworks, components are dis- joint.
+
+[sent 109] In case of overlapping components, better component solutions in comparison to pre- vious iterations may not fit into the best solution found so far because the component share variables can be outdated. Latest improvements of the best solution found so far made by related components can significantly increase the distance between val- ues of the component shared variables when we compare the best solution found so far with the previous best solution found by the component. Let us consider the following example.
+
+[sent 115] Then, 𝑋1 = {𝑥1, 𝑥2, 𝑥3, 𝑥4}, 𝑋2 = {𝑥4, 𝑥5, 𝑥6, 𝑥7}, and 𝑋3 = {𝑥7, 𝑥8, 𝑥9, 𝑥10}. Shared variables are variables that belong to more than one subproblem, e.g.,𝑥4 is a mem- ber of 𝑋1 and 𝑋2. Let ˜𝑥𝑖𝑛𝑖𝑡 = [𝑎1, 𝑎2, 𝑎3, 𝑎4, 𝑎5, 𝑎6, 𝑎7, 𝑎8, 𝑎9, 𝑎10] be an initial solution and CC components reflect subproblems ex- actly, e.g., the first component consists of four variables: 𝑥1, 𝑥2, 𝑥3, and 𝑥4.
+
+[sent 121] The component optimizer remem- bers that it internal best solution found so far is [𝑥4, 𝑥5, 𝑥6, 𝑥7] = [𝑏4, 𝑏5, 𝑏6, 𝑏7]. Note that the values of 𝑥4 and 𝑥7 (they are shared variables) are different when compared with values from the best solution found so far by the CC framework, i.e.,𝑥4 = 𝑐4 and 𝑥7 = 𝑑7. If values of 𝑥4 and 𝑥7 influence the fitness of ˜𝑓1 and ˜𝑓3 the most and the contribution of these two subproblems to the fitness of the considered problem is significant, the component optimizer may not be able to find the new best solution until values of the shared 𝑥1 𝑥2 𝑥3 𝑥4 𝑥5 𝑥6 𝑥7 𝑥8 𝑥9 𝑥10 ˜𝑓1 ˜𝑓2 ˜𝑓3 Figure 1: VIG of the exemplary problem that consists of three subproblems.
+
+[sent 124] variables approach values from the best solution found so far by the CC framework. Moreover, even if subproblem ˜𝑓2 influences the fitness of the considered problem the least, injecting values of its non-shared variables (𝑥5 and 𝑥6) into the best solution found so far by the CC framework may be required to prevent premature con- vergence of the optimization processes of the other subproblems. Our proposition does not suffer from such a drawback.
+
+[sent 129] Furthermore, components that already found the best solution de- crease the number of iterations of their component optimizers in the next OCC cycle. Such a mechanism should increase the proba- bility that values of shared variables approach values from the best solution found so far or more promising search region is found be- fore repeated finding the new best solution by related components. Note that it is a general mechanism of allocating computational re- sources to components that is suitable for any optimizer.
+
+[sent 140] The common operations of both parts are presented in Pseudocode 2 and Pseu- docode 3. At first, we optimize components for the number of iterations that stem from the computational resource allocation 667 GECCO ’24, July 14–18, 2024, Melbourne, VIC, Australia M.M. Komarnicki et al.
+
+[sent 158] In the next OCC cycle during its first part, we run the component optimizer for the number of iterations equals this value or the size of the component (Pseudocode 1: line 10). When the component optimizer converges it should not waste too much computational resources. 668 Overlapping Cooperative Co-Evolution for Overlapping Large-Scale Global Optimization Problems GECCO ’24, July 14–18, 2024, Melbourne, VIC, Australia (a) Before the optimization of the second component (b) After the successful optimization of the second component Figure 2: The exemplary application of the new computa- tional resource allocation mechanism.
+
+[sent 171] There was one main objective of our research. We would like to verify whether a CC framework after introducing overlapping com- ponents and the new computational resource allocation mechanism can solve overlapping LSGO problems more effectively. To check the effectiveness of our proposition, we compare OCC with CBCCO [ 7], CBCCOR, CC-RDG3 [26], and SHADE-ILS [17].
+
+[sent 185] The sum of the number of variables of 20 subfunctions equals 1000. Due to the existence of shared variables, the number of variables of a function whose adjacent subfunctions share 𝑚 variables is 𝑛 = 1000 − 19𝑚. 𝑓13 is an overlapping function with conforming subfunctions whereas 𝑓14 contains conflicting subfunc- tions [7, 11, 13, 26].
+
+[sent 188] When two adjacent subfunctions are conform- ing, the optimal values of their shared variables are the same for both. In the case of two conflicting subfunctions, the optimal values of their shared variables may differ. Let us denote the conforming functions as 𝑓𝑜,𝑚 and the conflicting functions as 𝑓𝑙,𝑚 [26], where 𝑚 ∈ { 1, ..., 10}.
+
+[sent 211] We adopt parameter values for CBCOO, CC-RDG3, and SHADE- ILS from papers in which they were proposed. The number of iterations of the shared variable allocation stage of CBCOO (𝑁 ) for 𝑓𝑜,𝑚 and 𝑓𝑙,𝑚, where 𝑚 ∈ { 1, ..., 10}, is set to 100 [ 7]. For 𝑓12, we set 𝑁 = 10.
+
+[sent 228] Consequently, all of the interacting variables of such subproblems are optimized si- multaneously. Due to conforming subfunctions, the optimal value of each shared variable is the same for all of its related subfunc- tions. Thus, forcing finding the new best solution alternately by adjacent components is beneficial because the optimization of any part of the global solution is not neglected.
+
+[sent 237] Components that influence the global fitness more, domi- nate their less influential adjacent components. The optimization of such dominated components focuses on adjusting the dominat- ing components (including shared variables) instead of searching for regions that are promising for them. For 𝑓12, OCC is the worst proposition.
+
+[sent 243] The results presented in Table 1 show also that the order of components to optimize in CBCCO is important for 𝑓𝑜,1–𝑓𝑜,10. OCC introduces the new computational resource allocation mech- anism for overlapping components and adopts rewarding the best components from CBCOO [ 7]. To verify how they affect the ef- fectiveness of OCC, we conducted experiments for three different OCC variants.
+
+[sent 248] The signifi- cance of the results have been confirmed by unpaired Wilcoxon test with the Holm-Bonferroni correction method at the significance level of 5%. The quality of results mainly increased after enabling the new computational resource allocation mechanism (compare OCC3 and OCC1 or OCC and OCC2). However, OCC is significantly better than OCC3 for the overlapping functions with conforming subfunctions (𝑓𝑜,1–𝑓𝑜,10) due to rewarding the best components.
+
+[sent 259] It differs from other CC frameworks proposed so far because OCC creates overlapping components instead of disjoint ones. Its overlap- ping components can be effectively optimized by utilizing the new computational resource allocation mechanism. In our experiments, OCC outperforms CBCOO, CBCOOR, CC-RDG3, and SHADE-ILS for the overlapping functions with conforming subfunctions.

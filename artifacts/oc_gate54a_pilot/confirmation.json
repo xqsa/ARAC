@@ -1,0 +1,325 @@
+{
+  "rows": [
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        68.36012854047041,
+        68.36012854047041
+      ],
+      "seed": 7101,
+      "truth": "conforming",
+      "variable": 2
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        21.87093998658227,
+        21.87093998658227
+      ],
+      "seed": 7101,
+      "truth": "conforming",
+      "variable": 12
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        -54.39909653137192,
+        -54.39909653137192
+      ],
+      "seed": 7101,
+      "truth": "conforming",
+      "variable": 16
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        -44.292898931010235,
+        -44.292898931010235
+      ],
+      "seed": 7101,
+      "truth": "conforming",
+      "variable": 34
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        -51.7247976108017,
+        -51.7247976108017
+      ],
+      "seed": 7101,
+      "truth": "conforming",
+      "variable": 173
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        -2.048276736334909,
+        -2.048276736334909
+      ],
+      "seed": 7101,
+      "truth": "conforming",
+      "variable": 180
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        4.714130444569993,
+        4.714130444569993
+      ],
+      "seed": 7102,
+      "truth": "conforming",
+      "variable": 12
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        -77.15674842762704,
+        -77.15674842762704
+      ],
+      "seed": 7102,
+      "truth": "conforming",
+      "variable": 46
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        -13.183135053494349,
+        -13.183135053494349
+      ],
+      "seed": 7102,
+      "truth": "conforming",
+      "variable": 58
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        55.78961985225797,
+        55.78961985225797
+      ],
+      "seed": 7102,
+      "truth": "conforming",
+      "variable": 179
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        36.81801670494251,
+        36.81801670494251
+      ],
+      "seed": 7102,
+      "truth": "conforming",
+      "variable": 187
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": true,
+      "mode": "conforming",
+      "owner_values": [
+        73.45911141817406,
+        73.45911141817406
+      ],
+      "seed": 7102,
+      "truth": "conforming",
+      "variable": 189
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        49.74407865874641,
+        49.74407865874641
+      ],
+      "seed": 7101,
+      "truth": "conflicting",
+      "variable": 2
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        10.911358304221887,
+        10.911358304221887
+      ],
+      "seed": 7101,
+      "truth": "conflicting",
+      "variable": 12
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        -37.32076597773772,
+        -37.32076597773772
+      ],
+      "seed": 7101,
+      "truth": "conflicting",
+      "variable": 16
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        -10.408300976996648,
+        -10.408300976996648
+      ],
+      "seed": 7101,
+      "truth": "conflicting",
+      "variable": 34
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        63.91048995529918,
+        63.91048995529918
+      ],
+      "seed": 7101,
+      "truth": "conflicting",
+      "variable": 173
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        -4.780397935603933,
+        -4.780397935603933
+      ],
+      "seed": 7101,
+      "truth": "conflicting",
+      "variable": 180
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        5.8334065187112705,
+        5.8334065187112705
+      ],
+      "seed": 7102,
+      "truth": "conflicting",
+      "variable": 12
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        -57.24885974661304,
+        -57.24885974661304
+      ],
+      "seed": 7102,
+      "truth": "conflicting",
+      "variable": 46
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        -5.227937097299783,
+        -5.227937097299783
+      ],
+      "seed": 7102,
+      "truth": "conflicting",
+      "variable": 58
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        0.5738132427299425,
+        0.5738132427299425
+      ],
+      "seed": 7102,
+      "truth": "conflicting",
+      "variable": 179
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        24.039926858632754,
+        24.039926858632754
+      ],
+      "seed": 7102,
+      "truth": "conflicting",
+      "variable": 187
+    },
+    {
+      "disagreement": 0.0,
+      "label": "conforming",
+      "match": false,
+      "mode": "conflicting",
+      "owner_values": [
+        -6.189801679575793,
+        -6.189801679575793
+      ],
+      "seed": 7102,
+      "truth": "conflicting",
+      "variable": 189
+    }
+  ],
+  "summary": {
+    "instability_conflicting_median": 0.0,
+    "instability_conforming_median": 0.0,
+    "match_rate_conflicting": 0.0,
+    "match_rate_conforming": 1.0,
+    "n_conflicting": 12,
+    "n_conforming": 12,
+    "separation_instability": 0.0
+  }
+}
