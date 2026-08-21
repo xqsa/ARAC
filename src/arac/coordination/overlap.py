@@ -295,6 +295,36 @@ class FullContextWritebackResult:
 
 
 @dataclass(frozen=True)
+class SharedCompetitionRound:
+    """One complete-context tournament between owner-conditioned proposals."""
+
+    round_index: int
+    representatives: tuple[int, ...]
+    candidate_errors: tuple[float, ...]
+    shared_signatures: tuple[tuple[float, ...], ...]
+    best_error_before: float
+    best_error_after: float
+    winning_group: int | None
+    accepted: bool
+    perturbation_norms: tuple[float, ...] = ()
+
+
+@dataclass(frozen=True)
+class SharedCompetitionResult:
+    """Auditable result of duplicated shared-variable competition."""
+
+    component: tuple[int, ...]
+    active_scope: tuple[int, ...]
+    rounds: tuple[SharedCompetitionRound, ...]
+    consumed_fes: int
+    best_error_before: float
+    best_error_after: float
+    representative_groups: tuple[int, ...]
+    candidate_diversity: tuple[int, ...]
+    mutation_scale: float = 0.0
+
+
+@dataclass(frozen=True)
 class ProposalNeighborhoodRound:
     """One proposal-conditioned local-neighborhood evaluation."""
 
@@ -427,6 +457,479 @@ class OverlapCoordinator:
             consumed_fes=consumed,
             best_error_before=before_all,
             best_error_after=float(self.ledger.best_error),
+        )
+
+    def duplicated_shared_competition(
+        self,
+        component: tuple[int, ...],
+        proposals: Iterable[LocalProposal],
+        *,
+        budget_fes: int,
+        scope: tuple[int, ...] | None = None,
+        seed: int = 0,
+        mutation_scale: float = 0.0,
+    ) -> SharedCompetitionResult:
+        """Compete owner-specific shared representatives in full contexts.
+
+        Each candidate uses owner-specific values for every active shared
+        coordinate, while unique coordinates in the selected component are
+        filled from their sole owner.  When a representative does not cover a
+        coordinate, its highest-improvement owner supplies that coordinate;
+        no weighted mean or median is created.  Two representatives are
+        evaluated per round, so the ledger archive is the only acceptance
+        authority and the FE cost is exactly ``budget_fes``.
+        """
+
+        if isinstance(budget_fes, bool) or not isinstance(budget_fes, int) or budget_fes <= 0:
+            raise ValueError("budget_fes must be a positive integer")
+        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+            raise ValueError("seed must be a non-negative integer")
+        if (
+            isinstance(mutation_scale, bool)
+            or not isinstance(mutation_scale, (int, float))
+            or not math.isfinite(float(mutation_scale))
+            or mutation_scale < 0.0
+        ):
+            raise ValueError("mutation_scale must be a finite non-negative number")
+        mutation_scale = float(mutation_scale)
+        component = tuple(component)
+        shared_variables = self._component_variables(component)
+        if not shared_variables:
+            raise ValueError("shared competition requires a component with shared variables")
+        proposal_list = tuple(proposals)
+        by_group = {proposal.group: proposal for proposal in proposal_list}
+        if len(by_group) != len(proposal_list) or set(by_group) != set(component):
+            raise ValueError("proposals must cover exactly one overlap component")
+        for group in component:
+            proposal_variables = {variable for variable, _ in by_group[group].values}
+            if proposal_variables != set(self.structure.groups[group]):
+                raise ValueError(f"proposal {group} must cover exactly its group variables")
+
+        active_shared = set(self._repair_scope(component, scope)) if scope is not None else set(
+            shared_variables
+        )
+        patch_variables = tuple(
+            sorted({variable for group in component for variable in self.structure.groups[group]})
+        )
+        representatives = tuple(
+            sorted(component, key=lambda group: (-by_group[group].improvement, group))
+        )
+        if len(representatives) < 2:
+            raise ValueError("shared competition requires at least two owner groups")
+
+        residuals = (
+            compute_proposal_residuals(
+                self.structure,
+                proposal_list,
+                variables=tuple(sorted(active_shared)),
+                epsilon=self.epsilon,
+            )
+            if mutation_scale > 0.0
+            else {}
+        )
+        patch_indices = np.asarray(patch_variables, dtype=int)
+        scales = np.zeros(self.structure.dimension, dtype=float)
+        if mutation_scale > 0.0:
+            for variable in patch_variables:
+                owners = self.structure.owners(variable)
+                if len(owners) == 1:
+                    owner = owners[0]
+                    scales[variable] = max(self.epsilon, by_group[owner].sigma(variable))
+                elif variable in active_shared:
+                    residual = residuals[variable]
+                    disagreement = max(
+                        abs(by_group[group].value(variable) - residual.weighted_mean)
+                        for group in owners
+                    )
+                    uncertainty = max(by_group[group].sigma(variable) for group in owners)
+                    scales[variable] = max(self.epsilon, disagreement, uncertainty)
+            scales *= mutation_scale
+        rng = np.random.default_rng(seed) if mutation_scale > 0.0 else None
+
+        def assemble(
+            representative: int,
+            base: np.ndarray,
+            perturbation: np.ndarray | None = None,
+        ) -> np.ndarray:
+            candidate = np.asarray(base, dtype=float).copy()
+            for variable in patch_variables:
+                owners = self.structure.owners(variable)
+                if len(owners) == 1:
+                    candidate[variable] = by_group[owners[0]].value(variable)
+                elif variable in active_shared:
+                    # Keep an owner copy. This is the essential difference
+                    # from consensus repair: values are never averaged.
+                    owner = (
+                        representative
+                        if representative in owners
+                        else min(
+                            owners,
+                            key=lambda group: (-by_group[group].improvement, group),
+                        )
+                    )
+                    candidate[variable] = by_group[owner].value(variable)
+                if perturbation is not None and (
+                    len(owners) == 1 or variable in active_shared
+                ):
+                    candidate[variable] += perturbation[variable]
+            np.clip(
+                candidate,
+                self.ledger.problem.lower_array,
+                self.ledger.problem.upper_array,
+                out=candidate,
+            )
+            return candidate
+
+        before_all = float(self.ledger.best_error)
+        start_fes = self.ledger.count
+        rounds: list[SharedCompetitionRound] = []
+        diversity: list[int] = []
+        representatives_seen: list[int] = []
+        pair_index = 0
+        round_index = 0
+        while pair_index < budget_fes:
+            batch_groups = (
+                representatives[(2 * round_index) % len(representatives)],
+                representatives[(2 * round_index + 1) % len(representatives)],
+            )
+            batch_groups = batch_groups if pair_index + 1 < budget_fes else batch_groups[:1]
+            base = self.ledger.best_x
+            if rng is None:
+                perturbations = tuple(
+                    np.zeros(self.structure.dimension, dtype=float) for _ in batch_groups
+                )
+            else:
+                noise = rng.normal(0.0, scales)
+                perturbations = (noise, -noise)[: len(batch_groups)]
+            batch = np.asarray(
+                [assemble(group, base, perturbation) for group, perturbation in zip(
+                    batch_groups, perturbations, strict=True
+                )],
+                dtype=float,
+            )
+            signatures = tuple(
+                tuple(float(vector[variable]) for variable in sorted(active_shared))
+                for vector in batch
+            )
+            perturbation_norms = (
+                tuple(float(np.linalg.norm(item[patch_indices])) for item in perturbations)
+                if mutation_scale > 0.0
+                else ()
+            )
+            before = float(self.ledger.best_error)
+            errors = tuple(
+                float(value) for value in np.asarray(self.ledger.evaluate(batch), dtype=float)
+            )
+            after = float(self.ledger.best_error)
+            best_index = min(range(len(errors)), key=lambda index: errors[index])
+            winning_group = batch_groups[best_index] if after < before else None
+            rounds.append(
+                SharedCompetitionRound(
+                    round_index=round_index,
+                    representatives=tuple(batch_groups),
+                    candidate_errors=errors,
+                    shared_signatures=signatures,
+                    best_error_before=before,
+                    best_error_after=after,
+                    winning_group=winning_group,
+                    accepted=after < before,
+                    perturbation_norms=perturbation_norms,
+                )
+            )
+            representatives_seen.extend(batch_groups)
+            diversity.append(len(set(signatures)))
+            pair_index += len(batch_groups)
+            round_index += 1
+
+        consumed = self.ledger.count - start_fes
+        if consumed != budget_fes:
+            raise RuntimeError("duplicated shared competition FE accounting drifted")
+        return SharedCompetitionResult(
+            component=component,
+            active_scope=tuple(sorted(active_shared)),
+            rounds=tuple(rounds),
+            consumed_fes=consumed,
+            best_error_before=before_all,
+            best_error_after=float(self.ledger.best_error),
+            representative_groups=tuple(dict.fromkeys(representatives_seen)),
+            candidate_diversity=tuple(diversity),
+            mutation_scale=mutation_scale,
+        )
+
+    def duplicated_shared_local_competition(
+        self,
+        component: tuple[int, ...],
+        proposals: Iterable[LocalProposal],
+        *,
+        budget_fes: int,
+        seed: int,
+        mutation_scale: float = 1.0,
+        scope: tuple[int, ...] | None = None,
+    ) -> SharedCompetitionResult:
+        """Run owner-conditioned competition with seeded local perturbations."""
+
+        if (
+            isinstance(mutation_scale, bool)
+            or not isinstance(mutation_scale, (int, float))
+            or not math.isfinite(float(mutation_scale))
+            or mutation_scale <= 0.0
+        ):
+            raise ValueError("local competition requires a positive finite mutation_scale")
+        return self.duplicated_shared_competition(
+            component,
+            proposals,
+            budget_fes=budget_fes,
+            scope=scope,
+            seed=seed,
+            mutation_scale=mutation_scale,
+        )
+
+    def duplicated_shared_local_competition_v3(
+        self,
+        component: tuple[int, ...],
+        proposals: Iterable[LocalProposal],
+        *,
+        budget_fes: int,
+        seed: int,
+        mutation_scale: float = 1.0,
+        scope: tuple[int, ...] | None = None,
+        strategy_trace: list[dict[str, object]] | None = None,
+    ) -> SharedCompetitionResult:
+        """Kernel v3: rotate three candidate-generation strategies per round.
+
+        Strategies per two-candidate round (exact ``budget_fes`` accounting,
+        strict-best ledger arbitration unchanged):
+
+        ``owner_disagreement``  antisymmetric step along the top-2 owners'
+        shared-value difference, self-normalized to the residual scale
+        (targets the conflict axis instead of isotropic noise);
+        ``owner_noise``         the v2 behaviour (antisymmetric gaussian at
+        residual scales);
+        ``owner_blend``         shared coordinates are convex mixtures of the
+        top-2 owners' values with rotating weights -- the "never average"
+        rule of v2 is deliberately tested as an additional candidate
+        family, never as a replacement.
+
+        No online adaptation: the rotation order is fixed, so the comparison
+        against v2 is attributable and free of tuning knobs.  ``strategy_trace``
+        (optional out-param) receives one record per round for gate receipts;
+        the frozen ``SharedCompetitionResult`` contract is unchanged.
+        """
+
+        if (
+            isinstance(mutation_scale, bool)
+            or not isinstance(mutation_scale, (int, float))
+            or not math.isfinite(float(mutation_scale))
+            or mutation_scale <= 0.0
+        ):
+            raise ValueError("kernel v3 requires a positive finite mutation_scale")
+        if isinstance(budget_fes, bool) or not isinstance(budget_fes, int) or budget_fes <= 0:
+            raise ValueError("budget_fes must be a positive integer")
+        if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+            raise ValueError("seed must be a non-negative integer")
+        component = tuple(component)
+        shared_variables = self._component_variables(component)
+        if not shared_variables:
+            raise ValueError("kernel v3 requires a component with shared variables")
+        proposal_list = tuple(proposals)
+        by_group = {proposal.group: proposal for proposal in proposal_list}
+        if len(by_group) != len(proposal_list) or set(by_group) != set(component):
+            raise ValueError("proposals must cover exactly one overlap component")
+        for group in component:
+            proposal_variables = {variable for variable, _ in by_group[group].values}
+            if proposal_variables != set(self.structure.groups[group]):
+                raise ValueError(f"proposal {group} must cover exactly its group variables")
+        active_shared = set(self._repair_scope(component, scope)) if scope is not None else set(
+            shared_variables
+        )
+        patch_variables = tuple(
+            sorted({variable for group in component for variable in self.structure.groups[group]})
+        )
+        representatives = tuple(
+            sorted(component, key=lambda group: (-by_group[group].improvement, group))
+        )
+        if len(representatives) < 2:
+            raise ValueError("kernel v3 requires at least two owner groups")
+        residuals = compute_proposal_residuals(
+            self.structure,
+            proposal_list,
+            variables=tuple(sorted(active_shared)),
+            epsilon=self.epsilon,
+        )
+        patch_indices = np.asarray(patch_variables, dtype=int)
+        scales = np.zeros(self.structure.dimension, dtype=float)
+        disagreement_direction = np.zeros(self.structure.dimension, dtype=float)
+        for variable in patch_variables:
+            owners = self.structure.owners(variable)
+            if len(owners) == 1:
+                owner = owners[0]
+                scales[variable] = max(self.epsilon, by_group[owner].sigma(variable))
+            elif variable in active_shared:
+                residual = residuals[variable]
+                disagreement = max(
+                    abs(by_group[group].value(variable) - residual.weighted_mean)
+                    for group in owners
+                )
+                uncertainty = max(by_group[group].sigma(variable) for group in owners)
+                scales[variable] = max(self.epsilon, disagreement, uncertainty)
+                ranked = sorted(
+                    owners, key=lambda group: (-by_group[group].improvement, group)
+                )
+                disagreement_direction[variable] = float(
+                    by_group[ranked[0]].value(variable) - by_group[ranked[1]].value(variable)
+                )
+        scales *= mutation_scale
+        shared_scale_norm = float(np.linalg.norm(scales[list(active_shared)])) if active_shared else 0.0
+        direction_norm = float(np.linalg.norm(disagreement_direction[list(active_shared)])) if active_shared else 0.0
+        blend_weight_pairs = ((0.25, 0.75), (0.4, 0.6), (0.1, 0.9))
+        rng = np.random.default_rng(seed)
+        strategies = ("owner_disagreement", "owner_noise", "owner_blend")
+
+        def assemble(
+            representative: int,
+            base: np.ndarray,
+            perturbation: np.ndarray | None,
+            blend_weight: float | None,
+        ) -> np.ndarray:
+            candidate = np.asarray(base, dtype=float).copy()
+            for variable in patch_variables:
+                owners = self.structure.owners(variable)
+                if len(owners) == 1:
+                    candidate[variable] = by_group[owners[0]].value(variable)
+                elif variable in active_shared:
+                    if blend_weight is not None:
+                        ranked = sorted(
+                            owners, key=lambda group: (-by_group[group].improvement, group)
+                        )
+                        first, second = ranked[0], ranked[1]
+                        candidate[variable] = (
+                            blend_weight * by_group[first].value(variable)
+                            + (1.0 - blend_weight) * by_group[second].value(variable)
+                        )
+                    else:
+                        owner = (
+                            representative
+                            if representative in owners
+                            else min(
+                                owners,
+                                key=lambda group: (-by_group[group].improvement, group),
+                            )
+                        )
+                        candidate[variable] = by_group[owner].value(variable)
+                if perturbation is not None and (
+                    len(owners) == 1 or variable in active_shared
+                ):
+                    candidate[variable] += perturbation[variable]
+            np.clip(
+                candidate,
+                self.ledger.problem.lower_array,
+                self.ledger.problem.upper_array,
+                out=candidate,
+            )
+            return candidate
+
+        before_all = float(self.ledger.best_error)
+        start_fes = self.ledger.count
+        rounds: list[SharedCompetitionRound] = []
+        diversity: list[int] = []
+        representatives_seen: list[int] = []
+        pair_index = 0
+        round_index = 0
+        while pair_index < budget_fes:
+            strategy = strategies[round_index % len(strategies)]
+            batch_groups = (
+                representatives[(2 * round_index) % len(representatives)],
+                representatives[(2 * round_index + 1) % len(representatives)],
+            )
+            batch_groups = batch_groups if pair_index + 1 < budget_fes else batch_groups[:1]
+            base = self.ledger.best_x
+            if strategy == "owner_blend":
+                weights = blend_weight_pairs[(round_index // len(strategies)) % len(blend_weight_pairs)]
+                batch = np.asarray(
+                    [
+                        assemble(group, base, None, weight)
+                        for group, weight in zip(batch_groups, weights, strict=False)
+                    ],
+                    dtype=float,
+                )
+                perturbation_norms: tuple[float, ...] = ()
+            elif strategy == "owner_disagreement" and direction_norm > 0.0:
+                step = disagreement_direction * (shared_scale_norm / direction_norm)
+                perturbations = (step, -step)[: len(batch_groups)]
+                batch = np.asarray(
+                    [
+                        assemble(group, base, perturbation, None)
+                        for group, perturbation in zip(batch_groups, perturbations, strict=True)
+                    ],
+                    dtype=float,
+                )
+                perturbation_norms = tuple(
+                    float(np.linalg.norm(item[patch_indices])) for item in perturbations
+                )
+            else:
+                noise = rng.normal(0.0, scales)
+                perturbations = (noise, -noise)[: len(batch_groups)]
+                batch = np.asarray(
+                    [
+                        assemble(group, base, perturbation, None)
+                        for group, perturbation in zip(batch_groups, perturbations, strict=True)
+                    ],
+                    dtype=float,
+                )
+                perturbation_norms = tuple(
+                    float(np.linalg.norm(item[patch_indices])) for item in perturbations
+                )
+            signatures = tuple(
+                tuple(float(vector[variable]) for variable in sorted(active_shared))
+                for vector in batch
+            )
+            before = float(self.ledger.best_error)
+            errors = tuple(
+                float(value) for value in np.asarray(self.ledger.evaluate(batch), dtype=float)
+            )
+            after = float(self.ledger.best_error)
+            best_index = min(range(len(errors)), key=lambda index: errors[index])
+            winning_group = batch_groups[best_index] if after < before else None
+            rounds.append(
+                SharedCompetitionRound(
+                    round_index=round_index,
+                    representatives=tuple(batch_groups),
+                    candidate_errors=errors,
+                    shared_signatures=signatures,
+                    best_error_before=before,
+                    best_error_after=after,
+                    winning_group=winning_group,
+                    accepted=after < before,
+                    perturbation_norms=perturbation_norms,
+                )
+            )
+            if strategy_trace is not None:
+                strategy_trace.append(
+                    {
+                        "round_index": round_index,
+                        "strategy": strategy,
+                        "accepted": bool(after < before),
+                        "candidate_errors": list(errors),
+                    }
+                )
+            representatives_seen.extend(batch_groups)
+            diversity.append(len(set(signatures)))
+            pair_index += len(batch_groups)
+            round_index += 1
+
+        consumed = self.ledger.count - start_fes
+        if consumed != budget_fes:
+            raise RuntimeError("kernel v3 FE accounting drifted")
+        return SharedCompetitionResult(
+            component=component,
+            active_scope=tuple(sorted(active_shared)),
+            rounds=tuple(rounds),
+            consumed_fes=consumed,
+            best_error_before=before_all,
+            best_error_after=float(self.ledger.best_error),
+            representative_groups=tuple(dict.fromkeys(representatives_seen)),
+            candidate_diversity=tuple(diversity),
+            mutation_scale=mutation_scale,
         )
 
     def proposal_neighborhood_writeback(
@@ -657,12 +1160,19 @@ class OverlapCoordinator:
         ctp_seed: int = 0,
         ctp_strategy: str = "random",
         search_base: np.ndarray | None = None,
+        reuse_incumbent: bool = False,
     ) -> CoordinationResult:
         """Arbitrate proposals and optionally repair a persistent high-conflict core.
 
         CTP is intentionally opt-in through an explicit budget.  The first high
         residual establishes a conflict; only a second consecutive high residual
         for the same group component is persistent enough to trigger repair.
+
+        ``reuse_incumbent`` is opt-in so the historical oracle contract remains
+        unchanged by default. The v6 unified production loop sets it to
+        ``True``: the incumbent
+        error is already owned by the archive, so only newly assembled
+        candidates are charged to the ledger.
         """
 
         if isinstance(ctp_budget_fes, bool) or not isinstance(ctp_budget_fes, int) or ctp_budget_fes < 0:
@@ -675,8 +1185,12 @@ class OverlapCoordinator:
             "sequential_joint_patch",
             "sequential_shared_patch",
             "sequential_coordinate_patch",
+            "duplicated_shared_competition",
+            "duplicated_shared_local_competition",
         }:
             raise ValueError(f"unsupported ctp_strategy: {ctp_strategy}")
+        if not isinstance(reuse_incumbent, bool):
+            raise TypeError("reuse_incumbent must be a bool")
 
         proposal_list = tuple(proposals)
         base = self.ledger.best_x if search_base is None else np.asarray(search_base, dtype=float)
@@ -706,9 +1220,29 @@ class OverlapCoordinator:
             streak = 0
         self._conflict_streaks[component_key] = streak
         before = float(self.ledger.best_error)
-        errors = np.asarray(self.ledger.evaluate(np.asarray([item.vector for item in candidates])), dtype=float)
+        reuse_archive = reuse_incumbent and np.array_equal(base, self.ledger.best_x)
+        charge_candidates = (
+            candidates
+            if not reuse_archive
+            else tuple(candidate for candidate in candidates if candidate.name != "incumbent")
+        )
+        if charge_candidates:
+            errors = np.asarray(
+                self.ledger.evaluate(np.asarray([item.vector for item in charge_candidates])),
+                dtype=float,
+            )
+        else:
+            errors = np.empty(0, dtype=float)
+        charged_errors = {
+            candidate.name: float(error)
+            for candidate, error in zip(charge_candidates, errors, strict=True)
+        }
+        if reuse_archive:
+            charged_errors["incumbent"] = before
+        candidate_errors = tuple(
+            (candidate.name, charged_errors[candidate.name]) for candidate in candidates
+        )
         after = float(self.ledger.best_error)
-        candidate_errors = tuple((candidate.name, float(error)) for candidate, error in zip(candidates, errors, strict=True))
         improving = [(name, error) for name, error in candidate_errors if error < before]
         accepted_name = min(improving, key=lambda item: item[1])[0] if improving else None
         ctp_triggered = level is ConflictLevel.HIGH and streak >= 2 and ctp_budget_fes > 0
@@ -749,6 +1283,27 @@ class OverlapCoordinator:
                     seed=ctp_seed,
                     base=self.ledger.best_x,
                 )
+            elif ctp_strategy == "duplicated_shared_competition":
+                if repair_budget > 0:
+                    competition = self.duplicated_shared_competition(
+                        component,
+                        proposal_list,
+                        budget_fes=repair_budget,
+                    )
+                    ctp_consumed = competition.consumed_fes
+                else:
+                    ctp_consumed = 0
+            elif ctp_strategy == "duplicated_shared_local_competition":
+                if repair_budget > 0:
+                    competition = self.duplicated_shared_local_competition(
+                        component,
+                        proposal_list,
+                        budget_fes=repair_budget,
+                        seed=ctp_seed,
+                    )
+                    ctp_consumed = competition.consumed_fes
+                else:
+                    ctp_consumed = 0
             else:
                 ctp_consumed = self._repair_shared_core(
                     component,
@@ -763,7 +1318,15 @@ class OverlapCoordinator:
                 accepted_name is None
                 or ctp_error < min(error for _, error in candidate_errors)
             ):
-                accepted_name = "ctp_shared_core"
+                accepted_name = (
+                    "ctp_shared_competition"
+                    if ctp_strategy
+                    in {
+                        "duplicated_shared_competition",
+                        "duplicated_shared_local_competition",
+                    }
+                    else "ctp_shared_core"
+                )
                 candidate_errors = (*candidate_errors, (accepted_name, ctp_error))
         return CoordinationResult(
             component=tuple(component),
@@ -807,6 +1370,8 @@ class OverlapCoordinator:
             "sequential_joint_patch",
             "sequential_shared_patch",
             "sequential_coordinate_patch",
+            "duplicated_shared_competition",
+            "duplicated_shared_local_competition",
         }:
             raise ValueError(f"unsupported dispatch strategy: {strategy}")
         if budget_fes > self.ledger.remaining:
@@ -841,6 +1406,21 @@ class OverlapCoordinator:
                 base=self.ledger.best_x,
                 scope=scope,
             )
+        if strategy == "duplicated_shared_competition":
+            return self.duplicated_shared_competition(
+                component,
+                proposal_list,
+                budget_fes=budget_fes,
+                scope=scope,
+            ).consumed_fes
+        if strategy == "duplicated_shared_local_competition":
+            return self.duplicated_shared_local_competition(
+                component,
+                proposal_list,
+                budget_fes=budget_fes,
+                seed=seed,
+                scope=scope,
+            ).consumed_fes
         return self._repair_sequential_coordinate_patch(
             component,
             proposal_list,
@@ -1352,6 +1932,8 @@ __all__ = [
     "CoordinationResult",
     "FullContextWritebackResult",
     "FullContextWritebackRound",
+    "SharedCompetitionResult",
+    "SharedCompetitionRound",
     "ProposalNeighborhoodResult",
     "ProposalNeighborhoodRound",
     "LocalProposal",

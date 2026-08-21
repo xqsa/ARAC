@@ -112,6 +112,24 @@ def test_low_conflict_uses_only_the_cheap_consensus_path() -> None:
     assert ledger.count == 4
 
 
+def test_v6_production_arbitration_reuses_incumbent_without_recounting() -> None:
+    ledger = _ledger()
+    result = OverlapCoordinator(_structure(), ledger).coordinate(
+        (0, 1),
+        (_proposal(0, -2.0, 0.05), _proposal(1, 2.0, 0.05)),
+        reuse_incumbent=True,
+    )
+
+    assert ledger.count == 4  # initial FE + owner/mean/median only
+    assert dict(result.candidate_errors)["incumbent"] == pytest.approx(12.0)
+    assert set(dict(result.candidate_errors)) == {
+        "incumbent",
+        "owner",
+        "weighted_mean",
+        "weighted_median",
+    }
+
+
 def test_owner_candidate_uses_largest_improvement_not_largest_residual_weight() -> None:
     coordinator = OverlapCoordinator(_structure(), _ledger())
     candidates = coordinator.candidates(

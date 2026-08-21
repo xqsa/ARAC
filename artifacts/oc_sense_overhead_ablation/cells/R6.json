@@ -1,0 +1,50 @@
+{
+  "row": {
+    "case_id": "R6",
+    "checkpoint_hash": "ba5abe728662d5326efe2b24df1c53ffb4b46e81271c233f751b28ae62218027",
+    "checkpoints_match_within_pair": true,
+    "dispatch_counts": {
+      "arbitration_only": 4,
+      "ctp_restricted": 1,
+      "none": 11
+    },
+    "final_error": 911852.0352020487,
+    "flow": {
+      "arbitration": 20,
+      "operator": 8,
+      "probe": 1500,
+      "sense": 845920,
+      "smp_writeback": 1056,
+      "tail": 1971496
+    },
+    "flow_share": {
+      "arbitration": 7.092198581560284e-06,
+      "operator": 2.8368794326241136e-06,
+      "probe": 0.0005319148936170213,
+      "sense": 0.29997163120567377,
+      "smp_writeback": 0.00037446808510638297,
+      "tail": 0.6991120567375887
+    },
+    "frozen_45_final_error_context": 603612.5462487085,
+    "frozen_control_final_error_context": 1319885.7541630403,
+    "net_gain_per_phase2_fe": 5.219737370130256,
+    "operator_fes": 8,
+    "operator_fired": true,
+    "phase2_gain": 14719659.383767322,
+    "reference_final_error_45": 609614.4398110826,
+    "reference_flow_45": {
+      "arbitration": 20,
+      "operator": 8,
+      "probe": 1500,
+      "sense": 1268880,
+      "smp_writeback": 1056,
+      "tail": 1548536
+    },
+    "reference_operator_share_45": 2.8368794326241136e-06,
+    "reference_sense_budget_fes_per_group_45": 4665,
+    "relative_change_vs_45": 0.49578483653475885,
+    "sense_budget_fes_per_group": 3110,
+    "sense_budget_share": 0.3
+  },
+  "schema_version": "arac-oc-sense-overhead-ablation-v1"
+}

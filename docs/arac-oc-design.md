@@ -150,7 +150,116 @@ Gate 47 证明 C_j 幅值在 chain/star 拓扑之间不存在可用的阈值间�
 状态静默降级为 LOW 或升级到 CTP/AOR。
 
 低冲突时的 weighted-mean、owner、median 和 incumbent 仍放入同一候选仲裁；
-weighted-mean 永远不能自动提交。
+weighted-mean 永远不能自动提交。生产 unified loop 复用 strict-best archive
+中 incumbent 的既有目标值，不为它重复支付 FE；因此每个冲突事件最多评价
+三个新增完整候选。历史 oracle/对照入口保留旧的四候选计费口径，避免改变已冻结
+实验的预算定义。
+
+v6.0-a 还为仲裁胜出的完整候选登记一个冻结反事实收据：将选定 shared scope
+恢复为仲裁前 incumbent、保留候选的私有坐标，再支付 1 次完整目标评价。定义
+
+```text
+G_full     = f(x_before) - f(x_candidate)
+G_frozen   = f(x_before) - f(x_candidate with shared scope frozen)
+G_coupled  = G_full - G_frozen
+```
+
+该评价只用于 shadow diagnosis，不改变 strict-best archive、不扩大四个 episode
+的调度臂空间；收据包含 component、scope、候选名、三种 gain、FE 数和 archive
+保持标志，可由 hash 复核。
+
+### v6.0-a coupling diagnostic gate
+
+在转入 scope 级调度前，先用固定 oracle gate 验证这个信号是否具有可解释性。
+Gate 覆盖 chain/star 两种重叠拓扑，以及 `none`、`synergy`、`conflict`、
+`neutral` 四种预注册 regime；每个 cell 使用独立 ledger、固定 incumbent、
+固定 proposal，并另外运行相同 FE 的 sequential joint patch 对照。首轮 16-cell
+结果（2026-08-20）为：
+
+```text
+median G_coupled: none=0, neutral=0, synergy=0.578125, conflict=-1.734375
+correlation with joint-patch gain: Pearson=0.2582, Spearman=0.2294
+```
+
+所有 counterfactual 均恰好消耗 1 FE、保持 archive，仲裁和 patch 均保持
+strict-best 单调且预算精确。该结果只证明 `G_coupled` 能在受控 regime 中区分
+共享作用方向；相关性仍属中等偏弱，因此 v6.0-a 继续把它保留为 shadow receipt，
+不直接扩大调度臂或改变 scope 优先级。
+
+随后执行了独立的 200-cell fresh gate（2 topology × 4 regime × 25 seed，固定
+bootstrap 2,000 次）。方向性结果仍稳定：synergy 的 `G_coupled` 95% CI 为
+`[0.5111, 0.7355]`，conflict 为 `[-2.2065, -1.5333]`，none/neutral 的 CI
+均包含 0，且 chain/star 分层方向一致。
+
+但它与 8-FE sequential joint-patch gain 的预测关系不稳定：Spearman 中位数为
+`0.0457`，95% bootstrap CI 为 `[-0.1168, 0.1612]`；预注册 authority threshold
+为 `0.30`，因此 `promotion_recommended=false`。当前结论是：`G_coupled` 可以
+作为“共享作用方向”的可审计证据，但不能作为“是否值得调度修复”的可靠代理。
+v6.0-b 的 component-level EMA、scope priority 和 ticket 升级在此 gate 下保持
+冻结，避免把诊断相关性误写成调度因果性。
+
+### Two-baseline interaction diagnostic
+
+为排除 shared-only 主效应，新增 v2 收据并行记录 private-only 与 shared-only
+两个基线，定义纯交互收益：
+
+```text
+G_int = G_full - G_private - G_shared
+```
+
+该收据额外消耗 2 FE，评价后恢复 archive，但仍不进入 unified loop。对同一
+200-cell fresh 协议的 paired gate 显示，方向性更清晰：synergy 的 `G_int` 95%
+CI 为 `[1.0222, 1.4396]`，conflict 为 `[-1.4710, -1.0256]`，none/neutral
+均为 0。然而 `abs(G_int)` 与 joint-patch gain 的 Spearman 中位数为 `-0.1109`，
+95% CI 为 `[-0.2491, 0.0188]`，仍未达到 `0.30` authority threshold。
+
+因此 v2 估计量解决了归因解释问题，但没有解决调度预测问题。当前协议冻结
+v1/v2 收据为 shadow diagnostics，不实现任何 v6.0-b 的 EMA、scope priority
+或 ticket 接管。
+
+### Direct action-value gate
+
+为避免继续堆叠耦合公式，新增一个匹配预算的端到端诊断：在相同
+checkpoint、proposal、probe、component 和 seed 下，比较 `owner_control`、
+`shared_sequential` 与 `shared_joint` 三个动作；每个动作支付 32 FE，随后三臂
+都执行相同的 32-FE `full_context_writeback` handoff checkpoint。该 gate 的目的
+是直接检验真实动作收益能否预测下一 checkpoint 的全局改善，仍不修改生产 GCB。
+
+2026-08-20 的 60-context fresh matrix 完整性全部通过（proposal/probe/FE
+parity、strict-best 和 handoff trace 均通过）。shared 动作相对 owner 的最佳
+端到端 excess gain 中位数为 `258.7041`，win-or-tie 为 `0.6833`，说明共享动作
+本身有组合价值；但即时 action excess 对 handoff 后续增益的 Spearman 为
+`-0.8524`，95% bootstrap CI 为 `[-0.7249, -0.4524]`，即时收益对端到端收益的
+Spearman CI 为 `[0.1905, 0.5547]`，动作收益选出的 arm 命中端到端 oracle 的比例
+仅为 `0.55`。这表明即时收益会受到“先获得收益后剩余改进空间变小”的反作用，
+不能直接充当未来 ticket/scope/action 的价值估计。
+
+因此 direct action value 与 `G_coupled/G_int` 一样暂存为离线证据，但原因更具体：
+共享动作可以保留在组合协议中，单窗口 material gain 不得直接升级为未来收益预测
+或调度权威。只有重新注册带 maturity/revelation horizon 的多窗口证据并达到
+`0.30` authority threshold，才可考虑接管调度；当前 v6.0-b 仍冻结。
+
+### Multi-window maturity/revelation horizon gate
+
+随后将同一 paired protocol 扩展为 3 个连续窗口。每个窗口固定支付
+`4-FE arbitration + 32-FE action + 32-FE full-context handoff`，窗口间只接力
+strict-best archive；owner、shared-sequential、shared-joint 仍复用同一 proposal，
+不重置状态，也不读取未来窗口结果。rung-1/rung-2 信号分别表示前 1/2 个窗口
+累计的 shared-vs-owner excess，future signal 表示其后窗口的 excess。
+
+2026-08-20 的 60-context fresh matrix 完整性全部通过，但没有形成可授权的
+maturity-aware value：rung-1 对后续收益的 Spearman 95% CI 为
+`[-0.5369, -0.1686]`，rung-2 的 CI 为 `[-0.3710, 0.0277]`，均未达到 `0.30`
+authority threshold。rung-2 的最终 horizon 选择命中率为 `0.70`，但这不抵消
+shared action 相对 owner 的 horizon win-or-tie 仅 `0.2667`、median excess
+`-499.8302` 的结果。
+
+该 gate 的边界是受控的：它只说明在“固定 proposal、重复共享修复、archive 接力”
+协议下，给动作更多窗口并不会自动揭示隐藏价值，甚至可能让 shared repair 落后
+owner control；它不宣称所有可更新 proposal 的多窗口策略都失败。当前不得把
+rung-1/rung-2 直接接入 maturity ticket、revelation horizon、scope priority 或
+action selector。后续若继续，必须先注册带新 proposal sensing/状态更新的协议，
+并区分动作成熟度与重复同一修复 kernel 的收益递减。
 
 ## 6. 固定阈值与分级策略
 
@@ -199,9 +308,11 @@ HIGH      -> shared-core CTP 联合优化
 COMPLEX   -> 预留预算内的一次 AOR 全局校正
 ```
 
-候选组装在每个等级都执行：`incumbent + owner + consensus + median` 中每个
-候选恰好消耗 1 FE，统一进入 strict-best 仲裁，不得无条件写回。`LOW` 是
-唯一不额外 dispatch 算子的等级，其收益完全来自这套候选仲裁。
+候选组装在每个等级都执行：`incumbent + owner + consensus + median` 统一进入
+strict-best 仲裁，不得无条件写回；生产 unified loop 中 incumbent 复用 archive
+值，owner/consensus/median 等新增候选各消耗 1 FE，随后最多支付 1 FE 生成冻结
+反事实收据。`LOW` 是唯一不额外 dispatch 算子的等级，其收益完全来自这套
+候选仲裁。
 
 ## 7. 防振荡反馈回路
 

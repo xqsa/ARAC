@@ -37,6 +37,10 @@ from arac.coordination.contract import (
     receipt_from_plan,
 )
 from arac.coordination.counted_probe import counted_probe
+from arac.coordination.counterfactual import (
+    CounterfactualCouplingReceipt,
+    evaluate_frozen_private_counterfactual,
+)
 from arac.coordination.operators import (
     AorOperator,
     CtpRestrictedOperator,
@@ -54,12 +58,34 @@ from arac.runtime.optimizers import PypopOptimizerPort
 
 OC_UNIFIED_MODE = "oc_unified"
 OC_LOOP_SCHEMA = "arac-oc-unified-loop-v1"
+# Three newly assembled candidates plus one frozen private counterfactual.
+# The incumbent is already represented by the strict-best archive and is not
+# charged again in the v6 production path.
 _ARBITRATION_WINDOW_FES = 4
 _SMP_WRITEBACK_FES = 32
 
 
 def _smp_writeback_budget(component: tuple[int, ...]) -> int:
     return 2 * len(component) + _SMP_WRITEBACK_FES
+
+
+def _counterfactual_candidate(arbitration):
+    """Choose one evaluated complete candidate for the shadow receipt."""
+
+    errors = dict(arbitration.candidate_errors)
+    candidates = {candidate.name: candidate for candidate in arbitration.candidates}
+    candidates.pop("incumbent", None)
+    if not candidates:
+        raise RuntimeError("arbitration produced no newly assembled candidates")
+    preferred = arbitration.accepted_candidate
+    if preferred in candidates and preferred in errors:
+        name = preferred
+    else:
+        available = [(name, error) for name, error in errors.items() if name in candidates]
+        if not available:
+            raise RuntimeError("arbitration candidate errors have no matching vectors")
+        name = min(available, key=lambda item: (item[1], item[0]))[0]
+    return name, candidates[name], float(errors[name])
 
 
 class OperatorFailure(RuntimeError):
@@ -99,6 +125,8 @@ class OcCycleTrace:
     arbitration_value_ratio: float = 0.0
     operator_value_ratio: float = 0.0
     operator_value_gated: bool = False
+    counterfactual: CounterfactualCouplingReceipt | None = None
+    counterfactual_unavailable: bool = False
 
 
 @dataclass(frozen=True)
@@ -265,6 +293,8 @@ def _run_oc_unified_core(
         arbitration_value_ratio = 0.0
         operator_value_ratio = 0.0
         operator_value_gated = False
+        counterfactual: CounterfactualCouplingReceipt | None = None
+        counterfactual_unavailable = False
 
         # --- sense: the owner-local proposal lane persists through dispatch
         # stall/cooldown; those controls only gate a new operator plan. ---
@@ -309,7 +339,11 @@ def _run_oc_unified_core(
 
             # --- scope selection under probe affordability ---
             probe_budget = int(ledger.remaining * config.probe_budget_share)
-            scope = planner.select_scope(component, state.ema_c, probe_budget_fes=probe_budget)
+            # select_scope returns EMA-priority order; every downstream
+            # consumer (probe, plan, writeback, counterfactual receipt) is
+            # order-insensitive and the frozen-private counterfactual
+            # validates sortedness, so canonicalize once here.
+            scope = tuple(sorted(planner.select_scope(component, state.ema_c, probe_budget_fes=probe_budget)))
             if not scope:
                 probe_unavailable = True
             else:
@@ -321,10 +355,29 @@ def _run_oc_unified_core(
                     component, scope, {r.variable: r.conflict_score for r in probe_results}
                 )
 
-                # --- arbitration: incumbent/owner/consensus/median, 1 FE each ---
+                # --- arbitration: archive incumbent + up to three new candidates ---
+                arbitration_incumbent = coordinator.ledger.best_x
                 arbitration = coordinator.coordinate(
-                    component, component_proposals, ctp_budget_fes=0, ctp_strategy="random"
+                    component,
+                    component_proposals,
+                    ctp_budget_fes=0,
+                    ctp_strategy="random",
+                    reuse_incumbent=True,
                 )
+                if ledger.remaining > 0:
+                    candidate_name, candidate, candidate_error = _counterfactual_candidate(arbitration)
+                    counterfactual = evaluate_frozen_private_counterfactual(
+                        ledger,
+                        component=component,
+                        scope=scope,
+                        incumbent=arbitration_incumbent,
+                        best_error_before=arbitration.best_error_before,
+                        candidate_name=candidate_name,
+                        candidate=candidate.vector,
+                        full_candidate_error=candidate_error,
+                    )
+                else:
+                    counterfactual_unavailable = True
                 # SMP writeback is its own budget lane; do not charge those
                 # evaluations to arbitration a second time.
                 arbitration_fes_used = (
@@ -513,6 +566,8 @@ def _run_oc_unified_core(
                 arbitration_value_ratio=arbitration_value_ratio,
                 operator_value_ratio=operator_value_ratio,
                 operator_value_gated=operator_value_gated,
+                counterfactual=counterfactual,
+                counterfactual_unavailable=counterfactual_unavailable,
             )
         )
         if probe_unavailable:

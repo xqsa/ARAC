@@ -1,0 +1,3567 @@
+{
+  "gate_checks": {
+    "context_count_60": true,
+    "fe_parity": true,
+    "production_selector_unchanged": true,
+    "v2_parity_vs_frozen_artifact": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "action_fes": 32,
+    "bootstrap_draws": 2000,
+    "bootstrap_seed": 20260825,
+    "coupling_fes": 1,
+    "handoff_fes": 32,
+    "input_artifact": "artifacts\\oc_action_semantic_gate_v3\\confirmation_fresh.json",
+    "input_schema": "arac-oc-action-semantic-gate-v3",
+    "kernel_arms": [
+      "kernel_v2",
+      "kernel_v3"
+    ],
+    "kernel_version": "v3-strategy-rotation (disagreement/noise/blend)",
+    "production_selector_modified": false,
+    "win_rule": "paired end-to-end gain (v3 - v2) bootstrap CI lower bound > 0"
+  },
+  "rows": [
+    {
+      "checkpoint_error": 37117.92215788706,
+      "component": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 9327.888197750139,
+        "action_gain": 1891.6701158424148,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 2232.3914294008664,
+        "end_to_end_gain": 28724.24001781034,
+        "handoff_error": 8393.682140076715,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 9931.906056932741,
+        "action_gain": 1287.6522566598123,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 1628.373570218264,
+        "end_to_end_gain": 27933.42407887891,
+        "handoff_error": 9184.498079008148,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 2
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31501,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 57199.700932201646,
+      "component": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 0,
+        "action_error": 33714.06164982295,
+        "action_gain": 0.0,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 0.0,
+        "end_to_end_gain": 23579.966001285677,
+        "handoff_error": 33619.73493091597,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 33327.16175786281,
+        "action_gain": 386.8998919601436,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": -522.2619840041953,
+        "end_to_end_gain": 24230.67095289092,
+        "handoff_error": 32969.029979310726,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31501,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 19231.68447926419,
+      "component": [
+        7,
+        8,
+        10
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 4745.499740343775,
+        "action_gain": 70.97972822511383,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -261.46152581942533,
+        "end_to_end_gain": 14592.053825274728,
+        "handoff_error": 4639.630653989461,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 4671.062325073664,
+        "action_gain": 145.41714349522408,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": -183.94148149816283,
+        "end_to_end_gain": 14659.40834617412,
+        "handoff_error": 4572.27613309007,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31502,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 31737.19567635669,
+      "component": [
+        7,
+        8,
+        10
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 16052.250399031467,
+        "action_gain": 1864.2558515846886,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 1705.9733831037283,
+        "end_to_end_gain": 15684.945277325221,
+        "handoff_error": 16052.250399031467,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 16310.051447510763,
+        "action_gain": 1606.4548031053928,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 666.7966648503716,
+        "end_to_end_gain": 16096.776835774663,
+        "handoff_error": 15640.418840582026,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31502,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 39573.258361140404,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 7065.207605526182,
+        "action_gain": 2430.056731625631,
+        "arm": "kernel_v2",
+        "consumed_fes": 87,
+        "coupled_gain": 1070.9673050330366,
+        "end_to_end_gain": 33552.96001224658,
+        "handoff_error": 6020.298348893829,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 8161.129686961123,
+        "action_gain": 1334.13465019069,
+        "arm": "kernel_v3",
+        "consumed_fes": 87,
+        "coupled_gain": 628.3348218409101,
+        "end_to_end_gain": 33118.0298938425,
+        "handoff_error": 6455.228467297908,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 2
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31503,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 61648.854681561614,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 23714.020656426474,
+        "action_gain": 579.3659900108541,
+        "arm": "kernel_v2",
+        "consumed_fes": 87,
+        "coupled_gain": 420.27562091144137,
+        "end_to_end_gain": 38838.16035782083,
+        "handoff_error": 22810.694323740783,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 22565.109387863355,
+        "action_gain": 1728.277258573973,
+        "arm": "kernel_v3",
+        "consumed_fes": 87,
+        "coupled_gain": 1728.277258573973,
+        "end_to_end_gain": 39150.09755728035,
+        "handoff_error": 22498.757124281263,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 2,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31503,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 33764.756150078254,
+      "component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 12171.325377589015,
+        "action_gain": 3585.718630054387,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 3449.3061325097406,
+        "end_to_end_gain": 24583.36714314825,
+        "handoff_error": 9181.389006930003,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 11168.879225843559,
+        "action_gain": 4588.164781799844,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 4588.164781799844,
+        "end_to_end_gain": 23022.6010518641,
+        "handoff_error": 10742.155098214153,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 2,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31504,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 33115.82316464849,
+      "component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 0,
+        "action_error": 13965.728262470275,
+        "action_gain": 0.0,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 0.0,
+        "end_to_end_gain": 20804.74793601659,
+        "handoff_error": 12311.075228631906,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 13025.311577924114,
+        "action_gain": 940.4166845461605,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 940.4166845461605,
+        "end_to_end_gain": 20555.08916618559,
+        "handoff_error": 12560.733998462903,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 2,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31504,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 17958.04176639553,
+      "component": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 6061.332996209509,
+        "action_gain": 729.4657227333282,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -1.1460359287957544,
+        "end_to_end_gain": 11896.708770186022,
+        "handoff_error": 6061.332996209509,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 0,
+        "action_error": 6790.798718942837,
+        "action_gain": 0.0,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 0.0,
+        "end_to_end_gain": 11825.462728954351,
+        "handoff_error": 6132.579037441179,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31505,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 42390.02225829144,
+      "component": [
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 24950.449994331284,
+        "action_gain": 2892.6362874587867,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 803.9620755317083,
+        "end_to_end_gain": 18344.696118652857,
+        "handoff_error": 24045.326139638586,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 26206.081097386443,
+        "action_gain": 1637.005184403628,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": -340.76982641382347,
+        "end_to_end_gain": 18527.12136088394,
+        "handoff_error": 23862.900897407504,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        6,
+        31505,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 108509.86690197773,
+      "component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 50011.96674902854,
+        "action_gain": 960.8584455424425,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 855.4919589728452,
+        "end_to_end_gain": 62256.44839683883,
+        "handoff_error": 46253.4185051389,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 46855.31948142732,
+        "action_gain": 4117.505713143662,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 4117.505713143662,
+        "end_to_end_gain": 62539.76831760897,
+        "handoff_error": 45970.09858436876,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 3,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31501,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 84812.61856541655,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 37741.33456752591,
+        "action_gain": 1506.7398495713787,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -107.01786961916514,
+        "end_to_end_gain": 51378.2302462555,
+        "handoff_error": 33434.388319161044,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 37025.27760855376,
+        "action_gain": 2222.7968085435277,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 3761.313666921589,
+        "end_to_end_gain": 48744.64969552698,
+        "handoff_error": 36067.96886988956,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31501,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 65968.72005085544,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 27537.587333769185,
+        "action_gain": 5426.305032912653,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 4472.710095053542,
+        "end_to_end_gain": 40847.20321303302,
+        "handoff_error": 25121.516837822423,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 27537.587333769185,
+        "action_gain": 5426.305032912653,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 4472.710095053542,
+        "end_to_end_gain": 40847.20321303302,
+        "handoff_error": 25121.516837822423,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 2
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31502,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 80675.4856261987,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 5,
+        "action_error": 44618.55777398932,
+        "action_gain": 9084.696120373395,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 8181.234322151766,
+        "end_to_end_gain": 41836.96151644581,
+        "handoff_error": 38838.52410975289,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 4,
+        "action_error": 42817.70736335957,
+        "action_gain": 10885.546531003143,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 6384.687235804231,
+        "end_to_end_gain": 47640.16117503443,
+        "handoff_error": 33035.32445116427,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 0,
+            "owner_noise": 3
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31502,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 117239.95478297946,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 29108.205149681453,
+        "action_gain": 12773.309040839173,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 11525.949031828131,
+        "end_to_end_gain": 94236.19413424713,
+        "handoff_error": 23003.760648732336,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 39341.80383434044,
+        "action_gain": 2539.710356180185,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 596.8482105497969,
+        "end_to_end_gain": 97870.2388276072,
+        "handoff_error": 19369.715955372256,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31503,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 102153.55568035401,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 42917.88836943633,
+        "action_gain": 6925.949368181049,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 5898.590610232117,
+        "end_to_end_gain": 64816.01860873259,
+        "handoff_error": 37337.53707162142,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 38722.674649899316,
+        "action_gain": 11121.163087718065,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 11121.163087718065,
+        "end_to_end_gain": 64968.958435698965,
+        "handoff_error": 37184.597244655044,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31503,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 78777.16522705171,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 29255.671469548102,
+        "action_gain": 8818.640837146846,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 8893.160608091803,
+        "end_to_end_gain": 53414.09202796575,
+        "handoff_error": 25363.073199085957,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 28978.541961319057,
+        "action_gain": 9095.770345375891,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 9467.920400541228,
+        "end_to_end_gain": 55614.10779922173,
+        "handoff_error": 23163.05742782998,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31504,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 55100.309092543204,
+      "component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 34235.746244336,
+        "action_gain": 414.1845168896907,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 314.54269492207095,
+        "end_to_end_gain": 21298.325562107333,
+        "handoff_error": 33801.98353043587,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 34252.34906150764,
+        "action_gain": 397.5816997180518,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 397.5816997180518,
+        "end_to_end_gain": 21120.04412746052,
+        "handoff_error": 33980.264965082686,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 2,
+            "owner_disagreement": 0,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31504,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 79286.96134296304,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 19012.291812241063,
+        "action_gain": 9622.816165098302,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 9349.235308696294,
+        "end_to_end_gain": 62108.73242438192,
+        "handoff_error": 17178.228918581128,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 21818.287096945747,
+        "action_gain": 6816.820880393618,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 6816.820880393618,
+        "end_to_end_gain": 57807.98378925715,
+        "handoff_error": 21478.977553705885,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31505,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 114814.6728034698,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 60381.95824430317,
+        "action_gain": 6303.879716735799,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 968.2275748359389,
+        "end_to_end_gain": 72084.47581225648,
+        "handoff_error": 42730.19699121333,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 46391.092997326494,
+        "action_gain": 20294.744963712474,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 20294.744963712474,
+        "end_to_end_gain": 68531.05931157547,
+        "handoff_error": 46283.61349189433,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "random",
+        12,
+        31505,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 37229.55258400805,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 6157.666207089149,
+        "action_gain": 663.6548405839258,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 306.81965529945774,
+        "end_to_end_gain": 31742.40268691321,
+        "handoff_error": 5487.149897094841,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 6189.895525478825,
+        "action_gain": 631.4255221942494,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 561.7225389423038,
+        "end_to_end_gain": 31188.686091218042,
+        "handoff_error": 6040.86649279001,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31501,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 57333.23002403367,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 22584.00550380574,
+        "action_gain": 785.5074424792147,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -386.08591709057146,
+        "end_to_end_gain": 36117.982842729434,
+        "handoff_error": 21215.247181304236,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 22684.718973555828,
+        "action_gain": 684.7939727291268,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": -300.34621364141276,
+        "end_to_end_gain": 35528.837944630955,
+        "handoff_error": 21804.39207940271,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31501,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 27424.044927695028,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 5876.684738195205,
+        "action_gain": 1021.5152058755566,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 3361.2468026689694,
+        "end_to_end_gain": 22834.771447024665,
+        "handoff_error": 4589.273480670363,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 5999.324162130571,
+        "action_gain": 898.8757819401908,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 1059.9027135046126,
+        "end_to_end_gain": 21500.799854261237,
+        "handoff_error": 5923.245073433791,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31502,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 35734.15909133627,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 9073.004538647721,
+        "action_gain": 604.4716867632615,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 32.317105548972904,
+        "end_to_end_gain": 27208.108310623255,
+        "handoff_error": 8526.050780713013,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 9073.004538647721,
+        "action_gain": 604.4716867632615,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 32.317105548972904,
+        "end_to_end_gain": 27208.108310623255,
+        "handoff_error": 8526.050780713013,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31502,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 80494.17085369969,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 11076.043051928122,
+        "action_gain": 2449.2976086411836,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 3603.659861685286,
+        "end_to_end_gain": 71338.0389135809,
+        "handoff_error": 9156.131940118796,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 9364.003147393854,
+        "action_gain": 4161.337513175451,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 5211.25612416424,
+        "end_to_end_gain": 71439.46108016836,
+        "handoff_error": 9054.709773531325,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31503,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 65385.89307274769,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 27683.48356179219,
+        "action_gain": 2990.1994149356324,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -19.51292275099331,
+        "end_to_end_gain": 41816.96160384407,
+        "handoff_error": 23568.931468903622,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 28062.885425391305,
+        "action_gain": 2610.7975513365163,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 2793.554880469317,
+        "end_to_end_gain": 38525.13115811443,
+        "handoff_error": 26860.761914633258,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31503,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 47782.72756737842,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 7004.483912388135,
+        "action_gain": 2406.3065476724287,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 2041.9050951160543,
+        "end_to_end_gain": 42121.6412177903,
+        "handoff_error": 5661.08634958812,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 7484.28046797354,
+        "action_gain": 1926.5099920870234,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 2772.969494132207,
+        "end_to_end_gain": 42073.94986723924,
+        "handoff_error": 5708.777700139181,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31504,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 41193.87943425819,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 12977.297492426587,
+        "action_gain": 247.204139791731,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 601.0028858811602,
+        "end_to_end_gain": 28903.799480770955,
+        "handoff_error": 12290.079953487235,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 12519.896196271231,
+        "action_gain": 704.6054359470872,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 704.6054359470872,
+        "end_to_end_gain": 29287.473076146696,
+        "handoff_error": 11906.406358111493,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31504,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 21793.02811154692,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 4126.674111389997,
+        "action_gain": 421.4719869693472,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 106.0372675467097,
+        "end_to_end_gain": 17717.120770237412,
+        "handoff_error": 4075.9073413095057,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 4513.159339110457,
+        "action_gain": 34.98675924888721,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 34.98675924888721,
+        "end_to_end_gain": 17479.061060676548,
+        "handoff_error": 4313.967050870371,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 0,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31505,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 42728.86091378288,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 12664.628498752736,
+        "action_gain": 318.0637932706504,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -371.1810482525816,
+        "end_to_end_gain": 31471.714754921777,
+        "handoff_error": 11257.146158861106,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 12664.628498752736,
+        "action_gain": 318.0637932706504,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": -371.1810482525816,
+        "end_to_end_gain": 31471.714754921777,
+        "handoff_error": 11257.146158861106,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 0,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        6,
+        31505,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 86573.07858366435,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 6,
+        "action_error": 30247.224948896397,
+        "action_gain": 4833.294525291418,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 6133.974980479823,
+        "end_to_end_gain": 58499.16335804975,
+        "handoff_error": 28073.915225614597,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 32714.535024626002,
+        "action_gain": 2365.9844495618127,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 2365.9844495618127,
+        "end_to_end_gain": 54187.86592395724,
+        "handoff_error": 32385.21265970711,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31501,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 84885.635929015,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 41330.22387289986,
+        "action_gain": 71.26487245425233,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -1490.8159721261618,
+        "end_to_end_gain": 46414.953929905125,
+        "handoff_error": 38470.681999109875,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 0,
+        "action_error": 41401.488745354116,
+        "action_gain": 0.0,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 0.0,
+        "end_to_end_gain": 45548.90123099643,
+        "handoff_error": 39336.73469801857,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 0,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31501,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 69762.62574764233,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 21634.65059767088,
+        "action_gain": 1661.8233043709624,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 812.6646316748447,
+        "end_to_end_gain": 52688.53044911132,
+        "handoff_error": 17074.095298531018,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 18109.85797464016,
+        "action_gain": 5186.615927401683,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 5186.615927401683,
+        "end_to_end_gain": 53150.11248728982,
+        "handoff_error": 16612.513260352516,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31502,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 86406.9143216585,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 28274.430387059278,
+        "action_gain": 9064.458380491786,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 9591.168950591935,
+        "end_to_end_gain": 63235.8371540133,
+        "handoff_error": 23171.077167645206,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 26794.50692363143,
+        "action_gain": 10544.381843919633,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 10544.381843919633,
+        "end_to_end_gain": 62864.46095509453,
+        "handoff_error": 23542.453366563976,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31502,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 149053.62066149333,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 45143.07282224142,
+        "action_gain": 7254.665868637487,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 7979.586025650802,
+        "end_to_end_gain": 108449.2920921252,
+        "handoff_error": 40604.32856936814,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 43553.64227162764,
+        "action_gain": 8844.096419251262,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 8844.096419251262,
+        "end_to_end_gain": 108649.47972898047,
+        "handoff_error": 40404.14093251286,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31503,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 128337.22223624177,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 57377.9950758024,
+        "action_gain": 8836.009839630635,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 4713.192406753558,
+        "end_to_end_gain": 75921.24282744527,
+        "handoff_error": 52415.979408796506,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 57767.29863280349,
+        "action_gain": 8446.706282629544,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 6678.610749098159,
+        "end_to_end_gain": 71462.56621207375,
+        "handoff_error": 56874.65602416802,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31503,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 77321.76239202233,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 14404.53631946334,
+        "action_gain": 5134.219339213047,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 6136.223606332318,
+        "end_to_end_gain": 66815.40833221567,
+        "handoff_error": 10506.354059806665,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 15852.143965618445,
+        "action_gain": 3686.611693057941,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 3686.611693057941,
+        "end_to_end_gain": 63833.01187827042,
+        "handoff_error": 13488.7505137519,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31504,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 60913.80805185441,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 21040.40762946781,
+        "action_gain": 2387.6879939682694,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 1315.8147223508495,
+        "end_to_end_gain": 41200.33792553244,
+        "handoff_error": 19713.47012632197,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 4,
+        "action_error": 21040.40762946781,
+        "action_gain": 2387.6879939682694,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 1315.8147223508495,
+        "end_to_end_gain": 41200.33792553244,
+        "handoff_error": 19713.47012632197,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 2,
+            "owner_disagreement": 1,
+            "owner_noise": 1
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31504,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 67254.38314263854,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 16832.69370889588,
+        "action_gain": 1865.3063194260794,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 1059.0583545864938,
+        "end_to_end_gain": 55728.98572321006,
+        "handoff_error": 11525.397419428486,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 18100.62418952991,
+        "action_gain": 597.3758387920498,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 597.3758387920498,
+        "end_to_end_gain": 49745.57450517928,
+        "handoff_error": 17508.808637459268,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31505,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 90679.7060618671,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 47387.505621520715,
+        "action_gain": 1115.034234715713,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -1603.4332231811131,
+        "end_to_end_gain": 46757.5637467561,
+        "handoff_error": 43922.14231511099,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 45922.83230617869,
+        "action_gain": 2579.707550057741,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 2579.707550057741,
+        "end_to_end_gain": 45155.23142133387,
+        "handoff_error": 45524.474640533226,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "chain",
+        12,
+        31505,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 35615.55586673421,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 7715.547720816552,
+        "action_gain": 2086.319952032274,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 1428.5047833931912,
+        "end_to_end_gain": 28837.327029804477,
+        "handoff_error": 6778.228836929736,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 7811.656917219956,
+        "action_gain": 1990.2107556288702,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 1990.2107556288702,
+        "end_to_end_gain": 28011.886545248773,
+        "handoff_error": 7603.669321485438,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31501,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 57475.91025950658,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 27949.34070859236,
+        "action_gain": 1310.7551054277064,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": -534.0349012468032,
+        "end_to_end_gain": 30678.481968199994,
+        "handoff_error": 26797.428291306584,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 2,
+        "action_error": 28599.03228082315,
+        "action_gain": 661.063533196917,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 661.063533196917,
+        "end_to_end_gain": 29088.2641387882,
+        "handoff_error": 28387.64612071838,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 2,
+            "owner_disagreement": 0,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31501,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 19542.41080304004,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 4,
+        "action_error": 5794.214086776051,
+        "action_gain": 726.5630418326164,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 660.2093903519872,
+        "end_to_end_gain": 16115.416598235366,
+        "handoff_error": 3426.994204804673,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 3511.8103336979475,
+        "action_gain": 3008.9667949107197,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 3008.9667949107197,
+        "end_to_end_gain": 16309.09742869731,
+        "handoff_error": 3233.313374342729,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31502,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 41606.489156451134,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 11496.999115113453,
+        "action_gain": 5738.6232490905495,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 5089.954592550181,
+        "end_to_end_gain": 31839.871511862613,
+        "handoff_error": 9766.617644588523,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 10539.074840661518,
+        "action_gain": 6696.547523542484,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 6696.547523542484,
+        "end_to_end_gain": 31358.298406642043,
+        "handoff_error": 10248.190749809091,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 2,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31502,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 42742.27921415388,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 10186.54867471214,
+        "action_gain": 9273.655780251556,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 12813.457286641373,
+        "end_to_end_gain": 34325.50524872986,
+        "handoff_error": 8416.77396542402,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 7888.729737000922,
+        "action_gain": 11571.474717962774,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 11571.474717962774,
+        "end_to_end_gain": 35731.19061768322,
+        "handoff_error": 7011.088596470663,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31503,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 63761.361796643316,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 27682.71193181458,
+        "action_gain": 2645.3944338914844,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 1265.0474337854175,
+        "end_to_end_gain": 36168.97111227809,
+        "handoff_error": 27592.390684365226,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 28551.245467426532,
+        "action_gain": 1776.860898279534,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 1776.860898279534,
+        "end_to_end_gain": 35294.008763765996,
+        "handoff_error": 28467.35303287732,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31503,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 31784.69079425105,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 6959.045061713155,
+        "action_gain": 2858.107031607039,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 2735.234827491605,
+        "end_to_end_gain": 25456.816010337607,
+        "handoff_error": 6327.874783913444,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 6994.220252246445,
+        "action_gain": 2822.9318410737487,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 2822.9318410737487,
+        "end_to_end_gain": 24824.19356287538,
+        "handoff_error": 6960.49723137567,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31504,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 35938.00859988229,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 0,
+        "action_error": 13437.630726118356,
+        "action_gain": 0.0,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 0.0,
+        "end_to_end_gain": 23651.258710374885,
+        "handoff_error": 12286.749889507406,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 12343.548827626008,
+        "action_gain": 1094.081898492348,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 1094.081898492348,
+        "end_to_end_gain": 23844.202884421527,
+        "handoff_error": 12093.805715460763,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31504,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 24432.622072048813,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 5992.505004792687,
+        "action_gain": 2842.4554603266133,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 4093.772179439682,
+        "end_to_end_gain": 19162.83480929613,
+        "handoff_error": 5269.787262752681,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 5818.5018286886925,
+        "action_gain": 3016.458636430608,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 3365.5651533394075,
+        "end_to_end_gain": 18875.149242141357,
+        "handoff_error": 5557.472829907454,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 2
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31505,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 32087.07439637128,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 12576.866982243202,
+        "action_gain": 392.34345089108865,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 65.18625224205061,
+        "end_to_end_gain": 20569.302576890517,
+        "handoff_error": 11517.771819480764,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 12020.666046357228,
+        "action_gain": 948.5443867770628,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 948.5443867770628,
+        "end_to_end_gain": 20169.305943667117,
+        "handoff_error": 11917.768452704164,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        6,
+        31505,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 108923.83489022552,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 35594.986202977176,
+        "action_gain": 5484.309463416961,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 8180.592889394138,
+        "end_to_end_gain": 83757.55560568425,
+        "handoff_error": 25166.279284541273,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 25907.569324851655,
+        "action_gain": 15171.726341542482,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 15171.726341542482,
+        "end_to_end_gain": 84707.57068988157,
+        "handoff_error": 24216.26420034395,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31501,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 119624.83225074578,
+      "component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 0,
+        "action_error": 53247.46423740129,
+        "action_gain": 0.0,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 0.0,
+        "end_to_end_gain": 68614.63074936037,
+        "handoff_error": 51010.20150138542,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 51511.1472670877,
+        "action_gain": 1736.3169703135936,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 1736.3169703135936,
+        "end_to_end_gain": 68600.30566145139,
+        "handoff_error": 51024.52658929439,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 0,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31501,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 77589.98155476942,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 30415.01347018445,
+        "action_gain": 1790.4872593055698,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 1991.7592030937703,
+        "end_to_end_gain": 50872.42217594723,
+        "handoff_error": 26717.559378822192,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 27196.51951499271,
+        "action_gain": 5008.981214497311,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 5008.981214497311,
+        "end_to_end_gain": 50671.47813953737,
+        "handoff_error": 26918.50341523204,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 2,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31502,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 108913.1606064812,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 69087.26328908867,
+        "action_gain": 2486.3665072877775,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 983.161279375694,
+        "end_to_end_gain": 43099.08060289126,
+        "handoff_error": 65814.08000358993,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 65575.30295443369,
+        "action_gain": 5998.326841942762,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 5998.326841942762,
+        "end_to_end_gain": 44161.40343966352,
+        "handoff_error": 64751.757166817675,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31502,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 143426.6881788241,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 1,
+        "action_error": 48232.913180663505,
+        "action_gain": 26534.95444223431,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 26103.29776130188,
+        "end_to_end_gain": 123022.81545197155,
+        "handoff_error": 20403.872726852547,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 33256.148525972065,
+        "action_gain": 41511.71909692575,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 41511.71909692575,
+        "end_to_end_gain": 123134.60736749208,
+        "handoff_error": 20292.080811332016,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31503,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 168182.15887623624,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 79331.44407637056,
+        "action_gain": 14917.89514750769,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 15153.6617386312,
+        "end_to_end_gain": 114721.70385352377,
+        "handoff_error": 53460.45502271248,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 52822.26936149369,
+        "action_gain": 41427.06986238457,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 41427.06986238457,
+        "end_to_end_gain": 117966.12264981151,
+        "handoff_error": 50216.03622642472,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31503,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 69597.68451773938,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 24276.75862345624,
+        "action_gain": 3951.5956016359196,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 4591.167234222587,
+        "end_to_end_gain": 51491.548199670506,
+        "handoff_error": 18106.136318068875,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 19946.437254556502,
+        "action_gain": 8281.916970535658,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 8281.916970535658,
+        "end_to_end_gain": 54028.63523391333,
+        "handoff_error": 15569.049283826058,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31504,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 63292.71632047552,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 3,
+        "action_error": 32055.05611217848,
+        "action_gain": 2678.674686316055,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 2778.9412953244428,
+        "end_to_end_gain": 33896.56232034185,
+        "handoff_error": 29396.15400013367,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 28995.023318125102,
+        "action_gain": 5738.707480369434,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 5738.707480369434,
+        "end_to_end_gain": 34417.792488562634,
+        "handoff_error": 28874.923831912885,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31504,
+        "conflicting"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 50740.27466481267,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 0,
+        "action_error": 15008.720786882961,
+        "action_gain": 0.0,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 0.0,
+        "end_to_end_gain": 41951.20491973432,
+        "handoff_error": 8789.06974507835,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 1,
+        "action_error": 9138.064387103615,
+        "action_gain": 5870.6563997793455,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 5870.6563997793455,
+        "end_to_end_gain": 42170.77202313705,
+        "handoff_error": 8569.502641675623,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 0,
+            "owner_disagreement": 1,
+            "owner_noise": 0
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31505,
+        "conforming"
+      ],
+      "parity_ok": true
+    },
+    {
+      "checkpoint_error": 98490.84575313979,
+      "component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "kernel_v2": {
+        "accepted_rounds": 2,
+        "action_error": 40330.02854172466,
+        "action_gain": 9655.476753110794,
+        "arm": "kernel_v2",
+        "consumed_fes": 81,
+        "coupled_gain": 6528.8145535749645,
+        "end_to_end_gain": 59095.02342982777,
+        "handoff_error": 39395.822323312015,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "owner_blend": 0,
+          "owner_disagreement": 0,
+          "owner_noise": 16
+        }
+      },
+      "kernel_v3": {
+        "accepted_rounds": 3,
+        "action_error": 47429.569633481646,
+        "action_gain": 2555.935661353811,
+        "arm": "kernel_v3",
+        "consumed_fes": 81,
+        "coupled_gain": 2753.118158966201,
+        "end_to_end_gain": 61911.672490805875,
+        "handoff_error": 36579.17326233391,
+        "mean_diversity": 2.0,
+        "rounds": 16,
+        "strategy_summary": {
+          "accepted": {
+            "owner_blend": 1,
+            "owner_disagreement": 0,
+            "owner_noise": 2
+          },
+          "rounds": {
+            "owner_blend": 5,
+            "owner_disagreement": 6,
+            "owner_noise": 5
+          }
+        }
+      },
+      "key": [
+        "star",
+        12,
+        31505,
+        "conflicting"
+      ],
+      "parity_ok": true
+    }
+  ],
+  "schema_version": "arac-oc-shared-kernel-v3-gate-v1",
+  "summary": {
+    "kernel_v3_wins": false,
+    "outcome": "TIE",
+    "paired_action_gain": 1421.4823174088963,
+    "paired_action_gain_ci95": [
+      291.14772781746046,
+      2756.787375555496
+    ],
+    "paired_end_to_end_gain": -293.51896673573543,
+    "paired_end_to_end_gain_ci95": [
+      -823.0293874646424,
+      200.53948756737958
+    ],
+    "v2_accepted_rounds_mean": 1.8166666666666667,
+    "v2_end_to_end_wins": 31,
+    "v2_mean_diversity": 2.0,
+    "v3_accepted_rounds_mean": 1.6,
+    "v3_end_to_end_wins": 25,
+    "v3_mean_diversity": 2.0
+  }
+}

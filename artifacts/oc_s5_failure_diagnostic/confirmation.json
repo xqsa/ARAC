@@ -1,0 +1,457 @@
+{
+  "evidence": [
+    {
+      "case": "A3",
+      "off_present": true,
+      "on_present": false,
+      "seed": 20260901,
+      "status": "cells_missing"
+    },
+    {
+      "case": "A3",
+      "off_present": true,
+      "on_present": false,
+      "seed": 20260902,
+      "status": "cells_missing"
+    },
+    {
+      "case": "A3",
+      "off_present": true,
+      "on_present": false,
+      "seed": 20260903,
+      "status": "cells_missing"
+    },
+    {
+      "audit_ok": true,
+      "best_episode_off": "ctp",
+      "best_episode_rate_off": 2.7993176194602605e-09,
+      "best_episode_rate_on": 2.7993176194602605e-09,
+      "case": "R2",
+      "dev_expl_off": [
+        1312005,
+        906007
+      ],
+      "dev_expl_on": [
+        1294005,
+        924001
+      ],
+      "final_off": 437430.9694633141,
+      "final_on": 392098.3740477376,
+      "funded_off": {
+        "aor": 531024,
+        "ctp": 450000,
+        "gcb": 1089000,
+        "smp": 749976
+      },
+      "funded_on": {
+        "aor": 450000,
+        "ctp": 732000,
+        "gcb": 1038002,
+        "smp": 599998
+      },
+      "gain_rate_off": {
+        "aor": 0.0,
+        "ctp": 2.7993176194602605e-09,
+        "gcb": 8.802496384304585e-08,
+        "smp": 3.663862903238425e-08
+      },
+      "gain_rate_on": {
+        "aor": 0.0,
+        "ctp": 2.7993176194602605e-09,
+        "gcb": 1.0924456928751359e-07,
+        "smp": 1.3198115138584348e-10
+      },
+      "handoffs_off": 13,
+      "handoffs_on": 12,
+      "on_better": true,
+      "preliminary_cause": null,
+      "relation_coupling": {
+        "coupled_vars_ratio": 0.676,
+        "mean_strength": 1.1091236802316739e-07,
+        "relations": 56.0
+      },
+      "release_events_on": {
+        "grace_consumed": 1,
+        "plateau_release": 3,
+        "released": 3,
+        "switched": 12
+      },
+      "seed": 20260901,
+      "starvation": 1.6266666666666667,
+      "status": "ok"
+    },
+    {
+      "audit_ok": true,
+      "best_episode_off": "ctp",
+      "best_episode_rate_off": 9.286801199824707e-09,
+      "best_episode_rate_on": 9.286801199824707e-09,
+      "case": "R2",
+      "dev_expl_off": [
+        1411012,
+        806990
+      ],
+      "dev_expl_on": [
+        1294014,
+        924001
+      ],
+      "final_off": 397724.74409216957,
+      "final_on": 343727.2587733551,
+      "funded_off": {
+        "aor": 450000,
+        "ctp": 732000,
+        "gcb": 738013,
+        "smp": 899987
+      },
+      "funded_on": {
+        "aor": 450000,
+        "ctp": 781501,
+        "gcb": 963764,
+        "smp": 624735
+      },
+      "gain_rate_off": {
+        "aor": 0.0,
+        "ctp": 9.286801199824707e-09,
+        "gcb": 0.0,
+        "smp": 1.1537340440564529e-08
+      },
+      "gain_rate_on": {
+        "aor": 0.0,
+        "ctp": 9.286801199824707e-09,
+        "gcb": 5.632164490493856e-09,
+        "smp": 1.3335599082576153e-09
+      },
+      "handoffs_off": 14,
+      "handoffs_on": 15,
+      "on_better": true,
+      "preliminary_cause": null,
+      "relation_coupling": {
+        "coupled_vars_ratio": 0.701,
+        "mean_strength": 3.2274224007389416e-07,
+        "relations": 58.0
+      },
+      "release_events_on": {
+        "grace_consumed": 4,
+        "plateau_release": 1,
+        "released": 1,
+        "switched": 15
+      },
+      "seed": 20260902,
+      "starvation": 1.0676243169398907,
+      "status": "ok"
+    },
+    {
+      "case": "R2",
+      "off_present": true,
+      "on_present": false,
+      "seed": 20260903,
+      "status": "cells_missing"
+    },
+    {
+      "audit_ok": true,
+      "best_episode_off": "ctp",
+      "best_episode_rate_off": 1.007236391678325e-07,
+      "best_episode_rate_on": 8.255054516288216e-08,
+      "case": "R6",
+      "dev_expl_off": [
+        1294004,
+        924009
+      ],
+      "dev_expl_on": [
+        993994,
+        1224011
+      ],
+      "final_off": 480257.7910964574,
+      "final_on": 323043.7910454982,
+      "funded_off": {
+        "aor": 1050000,
+        "ctp": 582000,
+        "gcb": 738009,
+        "smp": 449991
+      },
+      "funded_on": {
+        "aor": 249061,
+        "ctp": 582000,
+        "gcb": 639000,
+        "smp": 1349939
+      },
+      "gain_rate_off": {
+        "aor": 1.1358881632331261e-07,
+        "ctp": 1.007236391678325e-07,
+        "gcb": 0.0,
+        "smp": 0.0
+      },
+      "gain_rate_on": {
+        "aor": 0.0,
+        "ctp": 8.255054516288216e-08,
+        "gcb": 0.0,
+        "smp": 5.136957839245709e-07
+      },
+      "handoffs_off": 12,
+      "handoffs_on": 11,
+      "on_better": true,
+      "preliminary_cause": null,
+      "relation_coupling": {
+        "coupled_vars_ratio": 0.454,
+        "mean_strength": 1.4939229577166015e-07,
+        "relations": 208.0
+      },
+      "release_events_on": {
+        "grace_consumed": 1,
+        "plateau_release": 1,
+        "released": 1,
+        "switched": 11
+      },
+      "seed": 20260901,
+      "starvation": 1.0,
+      "status": "ok"
+    },
+    {
+      "case": "R6",
+      "off_present": true,
+      "on_present": false,
+      "seed": 20260902,
+      "status": "cells_missing"
+    },
+    {
+      "audit_ok": true,
+      "best_episode_off": "ctp",
+      "best_episode_rate_off": 1.848260171319646e-08,
+      "best_episode_rate_on": 1.3337352165438841e-08,
+      "case": "R6",
+      "dev_expl_off": [
+        1294005,
+        924000
+      ],
+      "dev_expl_on": [
+        1311996,
+        906005
+      ],
+      "final_off": 390571.4367410645,
+      "final_on": 383399.2753320028,
+      "funded_off": {
+        "aor": 1299000,
+        "ctp": 432000,
+        "gcb": 639000,
+        "smp": 450000
+      },
+      "funded_on": {
+        "aor": 681027,
+        "ctp": 450000,
+        "gcb": 939000,
+        "smp": 749973
+      },
+      "gain_rate_off": {
+        "aor": 1.276293780746073e-07,
+        "ctp": 1.848260171319646e-08,
+        "gcb": 0.0,
+        "smp": 0.0
+      },
+      "gain_rate_on": {
+        "aor": 0.0,
+        "ctp": 1.3337352165438841e-08,
+        "gcb": 0.0,
+        "smp": 3.7723530701602563e-07
+      },
+      "handoffs_off": 10,
+      "handoffs_on": 13,
+      "on_better": true,
+      "preliminary_cause": null,
+      "relation_coupling": {
+        "coupled_vars_ratio": 0.624,
+        "mean_strength": 3.1825364723412915e-08,
+        "relations": 262.0
+      },
+      "release_events_on": {
+        "grace_consumed": 3,
+        "plateau_release": 1,
+        "released": 1,
+        "switched": 13
+      },
+      "seed": 20260903,
+      "starvation": 1.0416666666666667,
+      "status": "ok"
+    },
+    {
+      "audit_ok": true,
+      "best_episode_off": "ctp",
+      "best_episode_rate_off": 3.3720255025359635e-06,
+      "best_episode_rate_on": 1.958935458395542e-06,
+      "case": "S5",
+      "dev_expl_off": [
+        700663,
+        1517343
+      ],
+      "dev_expl_on": [
+        1293997,
+        924009
+      ],
+      "final_off": 59339.9198921806,
+      "final_on": 1153594.197859596,
+      "funded_off": {
+        "aor": 150000,
+        "ctp": 1874343,
+        "gcb": 639000,
+        "smp": 156657
+      },
+      "funded_on": {
+        "aor": 549037,
+        "ctp": 582000,
+        "gcb": 939000,
+        "smp": 749963
+      },
+      "gain_rate_off": {
+        "aor": 0.0,
+        "ctp": 3.3720255025359635e-06,
+        "gcb": 0.0,
+        "smp": 0.0
+      },
+      "gain_rate_on": {
+        "aor": 0.0,
+        "ctp": 1.958935458395542e-06,
+        "gcb": 2.6806040357550813e-07,
+        "smp": 3.5995810603975847e-07
+      },
+      "handoffs_off": 9,
+      "handoffs_on": 13,
+      "on_better": false,
+      "preliminary_cause": "BUDGET_TRIGGER_FAILURE",
+      "relation_coupling": {
+        "coupled_vars_ratio": 0.657,
+        "mean_strength": 1.8899544846621593e-06,
+        "relations": 200.0
+      },
+      "release_events_on": {
+        "grace_consumed": 2,
+        "plateau_release": 0,
+        "released": 0,
+        "switched": 13
+      },
+      "seed": 20260901,
+      "starvation": 0.31050880228432043,
+      "status": "ok"
+    },
+    {
+      "audit_ok": true,
+      "best_episode_off": "ctp",
+      "best_episode_rate_off": 2.9849749481154637e-06,
+      "best_episode_rate_on": 1.4153463708688662e-06,
+      "case": "S5",
+      "dev_expl_off": [
+        700663,
+        1517343
+      ],
+      "dev_expl_on": [
+        1293998,
+        924008
+      ],
+      "final_off": 49481.501222196355,
+      "final_on": 806578.1198733147,
+      "funded_off": {
+        "aor": 150000,
+        "ctp": 1874343,
+        "gcb": 639000,
+        "smp": 156657
+      },
+      "funded_on": {
+        "aor": 699010,
+        "ctp": 582000,
+        "gcb": 939000,
+        "smp": 599990
+      },
+      "gain_rate_off": {
+        "aor": 0.0,
+        "ctp": 2.9849749481154637e-06,
+        "gcb": 0.0,
+        "smp": 0.0
+      },
+      "gain_rate_on": {
+        "aor": 0.0,
+        "ctp": 1.4153463708688662e-06,
+        "gcb": 5.534778719466778e-07,
+        "smp": 2.1850756068213254e-08
+      },
+      "handoffs_off": 9,
+      "handoffs_on": 13,
+      "on_better": false,
+      "preliminary_cause": "BUDGET_TRIGGER_FAILURE",
+      "relation_coupling": {
+        "coupled_vars_ratio": 0.55,
+        "mean_strength": 9.893127675467715e-07,
+        "relations": 176.0
+      },
+      "release_events_on": {
+        "grace_consumed": 2,
+        "plateau_release": 0,
+        "released": 0,
+        "switched": 13
+      },
+      "seed": 20260902,
+      "starvation": 0.31050880228432043,
+      "status": "ok"
+    },
+    {
+      "case": "S5",
+      "off_present": true,
+      "on_present": false,
+      "seed": 20260903,
+      "status": "cells_missing"
+    }
+  ],
+  "gate_checks": {
+    "at_least_one_s5_seed_complete": true,
+    "offline_analysis_only": true,
+    "production_selector_unchanged": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "cases": [
+      "A3",
+      "R2",
+      "R6",
+      "S5"
+    ],
+    "decision_rules": "first-match: BUDGET_TRIGGER_FAILURE, EPISODE_INEFFECTIVE, then GEOMETRY/REPAIR",
+    "geometry_margin": 0.25,
+    "production_selector_modified": false,
+    "seeds": [
+      20260901,
+      20260902,
+      20260903
+    ],
+    "source": "artifacts/oc_phase_aware_gate51c_v5_3/cells (offline)",
+    "starvation_threshold": 0.5
+  },
+  "schema_version": "arac-oc-s5-failure-diagnostic-v1",
+  "summary": {
+    "complete_rows": 6,
+    "coupling_by_case": {
+      "R2": 0.6885,
+      "R6": 0.539,
+      "S5": 0.6035
+    },
+    "geometry_dominant": false,
+    "on_better_by_case": {
+      "A3": {
+        "total": 0,
+        "wins": 0
+      },
+      "R2": {
+        "total": 2,
+        "wins": 2
+      },
+      "R6": {
+        "total": 2,
+        "wins": 2
+      },
+      "S5": {
+        "total": 2,
+        "wins": 0
+      }
+    },
+    "s5_causes": [
+      "BUDGET_TRIGGER_FAILURE",
+      "BUDGET_TRIGGER_FAILURE"
+    ],
+    "s5_primary_cause": "BUDGET_TRIGGER_FAILURE"
+  }
+}

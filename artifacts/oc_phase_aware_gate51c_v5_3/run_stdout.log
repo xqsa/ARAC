@@ -1,0 +1,17 @@
+affinity pinned to P-cores
+R6/20260901/on: final=323044
+S5/20260901/on: final=1.15359e+06
+R2/20260901/off: final=437431
+R2/20260901/on: final=392098
+R6/20260901/off: final=480258
+('A3', 20260901, 'on'): FAILED RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']
+S5/20260901/off: final=59339.9
+A3/20260901/off: final=78644.5
+R2/20260902/on: final=343727
+R2/20260902/off: final=397725
+('R6', 20260902, 'on'): FAILED RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']
+S5/20260902/on: final=806578
+A3/20260902/off: final=78548
+('A3', 20260902, 'on'): FAILED RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']
+S5/20260902/off: final=49481.5
+R6/20260902/off: final=278592

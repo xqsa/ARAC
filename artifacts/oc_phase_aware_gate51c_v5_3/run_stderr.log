@@ -1,0 +1,91 @@
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "D:\python\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\experiments\oc_phase_aware_gate51c_v5_3.py", line 221, in run_oc_cell
+    schedule = run_oc_episode_schedule_v5_3(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\src\arac\coordination\episodes.py", line 2802, in run_oc_episode_schedule_v5_3
+    return run_oc_episode_schedule_v4(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\src\arac\coordination\episodes.py", line 2623, in run_oc_episode_schedule_v4
+    raise RuntimeError(f"v4 schedule audit failed: {failed}")
+RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\ARAC\experiments\oc_phase_aware_gate51c_v5_3.py", line 364, in main
+    row = future.result()
+          ^^^^^^^^^^^^^^^
+  File "D:\python\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\python\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']
+E:\ARAC\.venv\Lib\site-packages\pypop7\optimizers\es\cmaes.py:228: RuntimeWarning: overflow encountered in exp
+  self.sigma *= np.exp(self.c_s/self.d_sigma*(np.linalg.norm(p_s)/self._e_chi - 1.0))
+E:\ARAC\.venv\Lib\site-packages\pypop7\optimizers\es\cmaes.py:228: RuntimeWarning: overflow encountered in exp
+  self.sigma *= np.exp(self.c_s/self.d_sigma*(np.linalg.norm(p_s)/self._e_chi - 1.0))
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "D:\python\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\experiments\oc_phase_aware_gate51c_v5_3.py", line 221, in run_oc_cell
+    schedule = run_oc_episode_schedule_v5_3(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\src\arac\coordination\episodes.py", line 2802, in run_oc_episode_schedule_v5_3
+    return run_oc_episode_schedule_v4(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\src\arac\coordination\episodes.py", line 2623, in run_oc_episode_schedule_v4
+    raise RuntimeError(f"v4 schedule audit failed: {failed}")
+RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\ARAC\experiments\oc_phase_aware_gate51c_v5_3.py", line 364, in main
+    row = future.result()
+          ^^^^^^^^^^^^^^^
+  File "D:\python\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\python\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "D:\python\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\experiments\oc_phase_aware_gate51c_v5_3.py", line 221, in run_oc_cell
+    schedule = run_oc_episode_schedule_v5_3(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\src\arac\coordination\episodes.py", line 2802, in run_oc_episode_schedule_v5_3
+    return run_oc_episode_schedule_v4(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ARAC\src\arac\coordination\episodes.py", line 2623, in run_oc_episode_schedule_v4
+    raise RuntimeError(f"v4 schedule audit failed: {failed}")
+RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\ARAC\experiments\oc_phase_aware_gate51c_v5_3.py", line 364, in main
+    row = future.result()
+          ^^^^^^^^^^^^^^^
+  File "D:\python\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\python\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']

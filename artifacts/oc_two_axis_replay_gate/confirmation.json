@@ -1,0 +1,286 @@
+{
+  "gate_checks": {
+    "cells_available_for_all_predictions": true,
+    "offline_replay_only": true,
+    "production_selector_unchanged": true
+  },
+  "gate_passed": true,
+  "missing_cells": {
+    "A3_on": [
+      "20260901",
+      "20260902",
+      "20260903"
+    ],
+    "R2_on": [
+      "20260903"
+    ],
+    "R6_on": [
+      "20260902"
+    ],
+    "S5_on": [
+      "20260903"
+    ]
+  },
+  "predictions": {
+    "P1_s5_ctp_protect_cell": {
+      "detail": [
+        {
+          "ctp_contribution_rank": 1.0,
+          "ctp_difficulty_rank": 0.6666666666666666,
+          "ctp_quadrant": "difficult/contributing",
+          "hit": true,
+          "seed": 20260901
+        },
+        {
+          "ctp_contribution_rank": 1.0,
+          "ctp_difficulty_rank": 0.6666666666666666,
+          "ctp_quadrant": "difficult/contributing",
+          "hit": true,
+          "seed": 20260902
+        },
+        {
+          "ctp_contribution_rank": 1.0,
+          "ctp_difficulty_rank": 0.6666666666666666,
+          "ctp_quadrant": "difficult/contributing",
+          "hit": true,
+          "seed": 20260903
+        }
+      ],
+      "hits": 3,
+      "passed": true
+    },
+    "P2_r2_fast_release_cell": {
+      "detail": [
+        {
+          "hit": false,
+          "seed": 20260901,
+          "zero_gain_episodes": {
+            "aor": "difficult/flat"
+          }
+        },
+        {
+          "hit": false,
+          "seed": 20260902,
+          "zero_gain_episodes": {
+            "aor": "difficult/flat"
+          }
+        },
+        {
+          "hit": true,
+          "seed": 20260903,
+          "zero_gain_episodes": {
+            "aor": "easy/flat",
+            "gcb": "difficult/contributing"
+          }
+        }
+      ],
+      "hits": 1,
+      "passed": false
+    },
+    "P3_allocation_direction": {
+      "detail": [
+        {
+          "actual_ctp_share": 0.6646606382978724,
+          "hit": true,
+          "seed": 20260901,
+          "simulated_ctp_share": 0.5714285714285714,
+          "weights": {
+            "aor": 0.25,
+            "ctp": 3.0,
+            "gcb": 1.0,
+            "smp": 1.0
+          }
+        },
+        {
+          "actual_ctp_share": 0.6646606382978724,
+          "hit": true,
+          "seed": 20260902,
+          "simulated_ctp_share": 0.5714285714285714,
+          "weights": {
+            "aor": 0.25,
+            "ctp": 3.0,
+            "gcb": 1.0,
+            "smp": 1.0
+          }
+        },
+        {
+          "actual_ctp_share": 0.6936120567375886,
+          "hit": true,
+          "seed": 20260903,
+          "simulated_ctp_share": 0.5714285714285714,
+          "weights": {
+            "aor": 0.25,
+            "ctp": 3.0,
+            "gcb": 1.0,
+            "smp": 1.0
+          }
+        }
+      ],
+      "hits": 3,
+      "passed": true
+    },
+    "P3b_on_arm_directional": [
+      {
+        "actual_ctp_share": 0.20638297872340425,
+        "seed": 20260901,
+        "simulated_ctp_share": 0.25,
+        "weights": {
+          "aor": 1.0,
+          "ctp": 1.0,
+          "gcb": 1.0,
+          "smp": 1.0
+        }
+      },
+      {
+        "actual_ctp_share": 0.20638297872340425,
+        "seed": 20260902,
+        "simulated_ctp_share": 0.3076923076923077,
+        "weights": {
+          "aor": 1.0,
+          "ctp": 1.0,
+          "gcb": 1.0,
+          "smp": 0.25
+        }
+      }
+    ]
+  },
+  "protocol": {
+    "ctp_share_prediction": 0.45,
+    "production_selector_modified": false,
+    "protect_bonus": 2.0,
+    "recent_fraction": 0.5,
+    "release_penalty": 0.75,
+    "seeds_required": 2,
+    "source": "artifacts/oc_phase_aware_gate51c_v5_3/cells (offline receipts)",
+    "weight_floor": 0.05
+  },
+  "quadrant_matrix": {
+    "A3_off": {
+      "20260901": {
+        "aor": "difficult/flat",
+        "ctp": "easy/flat",
+        "gcb": "difficult/contributing",
+        "smp": "easy/contributing"
+      },
+      "20260902": {
+        "aor": "easy/contributing",
+        "ctp": "easy/flat",
+        "gcb": "difficult/flat",
+        "smp": "difficult/contributing"
+      },
+      "20260903": {
+        "aor": "difficult/contributing",
+        "ctp": "easy/flat",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      }
+    },
+    "R2_off": {
+      "20260901": {
+        "aor": "difficult/flat",
+        "ctp": "easy/flat",
+        "gcb": "difficult/contributing",
+        "smp": "easy/contributing"
+      },
+      "20260902": {
+        "aor": "difficult/flat",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      },
+      "20260903": {
+        "aor": "easy/flat",
+        "ctp": "difficult/flat",
+        "gcb": "difficult/contributing",
+        "smp": "easy/contributing"
+      }
+    },
+    "R2_on": {
+      "20260901": {
+        "aor": "difficult/flat",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/contributing",
+        "smp": "easy/flat"
+      },
+      "20260902": {
+        "aor": "difficult/flat",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/contributing",
+        "smp": "easy/flat"
+      }
+    },
+    "R6_off": {
+      "20260901": {
+        "aor": "easy/contributing",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/flat",
+        "smp": "difficult/flat"
+      },
+      "20260902": {
+        "aor": "easy/contributing",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/flat",
+        "smp": "difficult/flat"
+      },
+      "20260903": {
+        "aor": "easy/contributing",
+        "ctp": "difficult/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/flat"
+      }
+    },
+    "R6_on": {
+      "20260901": {
+        "aor": "difficult/flat",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      },
+      "20260903": {
+        "aor": "difficult/flat",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      }
+    },
+    "S5_off": {
+      "20260901": {
+        "aor": "easy/flat",
+        "ctp": "difficult/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      },
+      "20260902": {
+        "aor": "easy/flat",
+        "ctp": "difficult/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      },
+      "20260903": {
+        "aor": "easy/flat",
+        "ctp": "difficult/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      }
+    },
+    "S5_on": {
+      "20260901": {
+        "aor": "difficult/flat",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/flat",
+        "smp": "easy/contributing"
+      },
+      "20260902": {
+        "aor": "difficult/flat",
+        "ctp": "easy/contributing",
+        "gcb": "difficult/contributing",
+        "smp": "easy/flat"
+      }
+    }
+  },
+  "schema_version": "arac-oc-two-axis-replay-v1",
+  "summary": {
+    "two_axis_representation_supported": false,
+    "verdict": "two-axis representation insufficient as specified"
+  }
+}

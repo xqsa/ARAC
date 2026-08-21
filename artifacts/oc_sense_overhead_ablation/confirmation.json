@@ -1,0 +1,223 @@
+{
+  "gate_checks": {
+    "all_four_cases": true,
+    "budgets_differ_as_parametrized": true,
+    "checkpoints_match_within_pair": true,
+    "production_selector_unchanged": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "adaptive_policies": "phase 2, registered, not run here",
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "degradation_tolerance": 0.05,
+    "production_selector_modified": false,
+    "reference": "artifacts\\oc_aob_paired_gate48b\\pilot.json",
+    "retention_rule": "retain 30% iff no case degrades >5% and operator share never drops",
+    "treatment_share": 0.3
+  },
+  "rows": [
+    {
+      "case_id": "A3",
+      "checkpoint_hash": "e56baa13e7386f9d714697048398b1fc35c2d7a737ce900cb14552286ab7cd46",
+      "checkpoints_match_within_pair": true,
+      "dispatch_counts": {
+        "arbitration_only": 2,
+        "ctp_restricted": 1,
+        "none": 13
+      },
+      "final_error": 78402.07694113889,
+      "flow": {
+        "arbitration": 12,
+        "operator": 8,
+        "probe": 324,
+        "sense": 845728,
+        "smp_writeback": 1120,
+        "tail": 1972808
+      },
+      "flow_share": {
+        "arbitration": 4.255319148936171e-06,
+        "operator": 2.8368794326241136e-06,
+        "probe": 0.0001148936170212766,
+        "sense": 0.29990354609929076,
+        "smp_writeback": 0.00039716312056737587,
+        "tail": 0.699577304964539
+      },
+      "frozen_45_final_error_context": 78530.75776449667,
+      "frozen_control_final_error_context": 78334.58831745967,
+      "net_gain_per_phase2_fe": 0.00029181272984962357,
+      "operator_fes": 8,
+      "operator_fired": true,
+      "phase2_gain": 822.9118981759384,
+      "reference_final_error_45": 78655.73557437988,
+      "reference_flow_45": {
+        "arbitration": 12,
+        "operator": 8,
+        "probe": 324,
+        "sense": 1268896,
+        "smp_writeback": 1120,
+        "tail": 1549640
+      },
+      "reference_operator_share_45": 2.8368794326241136e-06,
+      "reference_sense_budget_fes_per_group_45": 4174,
+      "relative_change_vs_45": -0.003224922269033058,
+      "sense_budget_fes_per_group": 2782,
+      "sense_budget_share": 0.3
+    },
+    {
+      "case_id": "R2",
+      "checkpoint_hash": "bd7a4d64a561690e8fda028c5072df04c4e946a3e51133e91cb24d7b1d4e2668",
+      "checkpoints_match_within_pair": true,
+      "dispatch_counts": {
+        "aor": 1,
+        "arbitration_only": 4,
+        "ctp_restricted": 1,
+        "none": 10
+      },
+      "final_error": 453366.3899298311,
+      "flow": {
+        "arbitration": 24,
+        "operator": 16,
+        "probe": 228,
+        "sense": 845728,
+        "smp_writeback": 1344,
+        "tail": 1972660
+      },
+      "flow_share": {
+        "arbitration": 8.510638297872341e-06,
+        "operator": 5.673758865248227e-06,
+        "probe": 8.085106382978723e-05,
+        "sense": 0.29990354609929076,
+        "smp_writeback": 0.00047659574468085107,
+        "tail": 0.6995248226950355
+      },
+      "frozen_45_final_error_context": 555439.074764457,
+      "frozen_control_final_error_context": 2135830.6914641103,
+      "net_gain_per_phase2_fe": 4.08735555423102,
+      "operator_fes": 16,
+      "operator_fired": true,
+      "phase2_gain": 11526342.662931476,
+      "reference_final_error_45": 458842.0096290127,
+      "reference_flow_45": {
+        "arbitration": 28,
+        "operator": 8,
+        "probe": 266,
+        "sense": 1268800,
+        "smp_writeback": 1344,
+        "tail": 1549554
+      },
+      "reference_operator_share_45": 2.8368794326241136e-06,
+      "reference_sense_budget_fes_per_group_45": 3050,
+      "relative_change_vs_45": -0.01193356228129338,
+      "sense_budget_fes_per_group": 2033,
+      "sense_budget_share": 0.3
+    },
+    {
+      "case_id": "R6",
+      "checkpoint_hash": "ba5abe728662d5326efe2b24df1c53ffb4b46e81271c233f751b28ae62218027",
+      "checkpoints_match_within_pair": true,
+      "dispatch_counts": {
+        "arbitration_only": 4,
+        "ctp_restricted": 1,
+        "none": 11
+      },
+      "final_error": 911852.0352020487,
+      "flow": {
+        "arbitration": 20,
+        "operator": 8,
+        "probe": 1500,
+        "sense": 845920,
+        "smp_writeback": 1056,
+        "tail": 1971496
+      },
+      "flow_share": {
+        "arbitration": 7.092198581560284e-06,
+        "operator": 2.8368794326241136e-06,
+        "probe": 0.0005319148936170213,
+        "sense": 0.29997163120567377,
+        "smp_writeback": 0.00037446808510638297,
+        "tail": 0.6991120567375887
+      },
+      "frozen_45_final_error_context": 603612.5462487085,
+      "frozen_control_final_error_context": 1319885.7541630403,
+      "net_gain_per_phase2_fe": 5.219737370130256,
+      "operator_fes": 8,
+      "operator_fired": true,
+      "phase2_gain": 14719659.383767322,
+      "reference_final_error_45": 609614.4398110826,
+      "reference_flow_45": {
+        "arbitration": 20,
+        "operator": 8,
+        "probe": 1500,
+        "sense": 1268880,
+        "smp_writeback": 1056,
+        "tail": 1548536
+      },
+      "reference_operator_share_45": 2.8368794326241136e-06,
+      "reference_sense_budget_fes_per_group_45": 4665,
+      "relative_change_vs_45": 0.49578483653475885,
+      "sense_budget_fes_per_group": 3110,
+      "sense_budget_share": 0.3
+    },
+    {
+      "case_id": "S5",
+      "checkpoint_hash": "e5004886f4f6a68d860d3c101310e73c2a6662467d118a38a896fe4f9fe1415b",
+      "checkpoints_match_within_pair": true,
+      "dispatch_counts": {
+        "arbitration_only": 2,
+        "ctp_restricted": 1,
+        "none": 13
+      },
+      "final_error": 27376.045652120996,
+      "flow": {
+        "arbitration": 12,
+        "operator": 8,
+        "probe": 714,
+        "sense": 845856,
+        "smp_writeback": 1088,
+        "tail": 1972322
+      },
+      "flow_share": {
+        "arbitration": 4.255319148936171e-06,
+        "operator": 2.8368794326241136e-06,
+        "probe": 0.00025319148936170214,
+        "sense": 0.2999489361702128,
+        "smp_writeback": 0.00038581560283687945,
+        "tail": 0.6994049645390071
+      },
+      "frozen_45_final_error_context": 47745.778096674796,
+      "frozen_control_final_error_context": 14836.41659474603,
+      "net_gain_per_phase2_fe": 56.62972132550956,
+      "operator_fes": 8,
+      "operator_fired": true,
+      "phase2_gain": 159695814.13793695,
+      "reference_final_error_45": 47350.694004222896,
+      "reference_flow_45": {
+        "arbitration": 12,
+        "operator": 8,
+        "probe": 714,
+        "sense": 1268928,
+        "smp_writeback": 1088,
+        "tail": 1549250
+      },
+      "reference_operator_share_45": 2.8368794326241136e-06,
+      "reference_sense_budget_fes_per_group_45": 4406,
+      "relative_change_vs_45": -0.42184489102357176,
+      "sense_budget_fes_per_group": 2937,
+      "sense_budget_share": 0.3
+    }
+  ],
+  "schema_version": "arac-oc-sense-overhead-ablation-v1",
+  "summary": {
+    "degraded_cases": [
+      "R6"
+    ],
+    "median_relative_change_vs_45": -0.003224922269033058,
+    "operator_share_dropped_cases": [],
+    "treatment_retained": false
+  }
+}

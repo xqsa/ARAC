@@ -1,0 +1,102 @@
+{
+  "gate_checks": {
+    "context_count_60": true,
+    "ema_values_finite": true,
+    "input_contracts_valid": true,
+    "one_fe_receipts_preserved": true,
+    "prior_only_prediction_and_update": true,
+    "production_selector_unchanged": true,
+    "raw_reproduces_v1_shadow": true,
+    "replay_deterministic": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "bootstrap_draws": 2000,
+    "bootstrap_seed": 20260820,
+    "chance_hit_rate": 0.2,
+    "ema_alpha": 0.5,
+    "input_artifact": "artifacts\\oc_action_semantic_gate_v3\\confirmation_fresh.json",
+    "input_schema": "arac-oc-action-semantic-gate-v3",
+    "min_eligible_rows": 10,
+    "ordering": "scope, seed, conforming-before-conflicting, mode, source index",
+    "primary_endpoint": "end_to_end_ticket_hit_rate",
+    "primary_variant": "error_normalized",
+    "production_selector_modified": false,
+    "revoke_rule": "primary variant end-to-end hit-rate bootstrap 95% CI lower bound > 0.20",
+    "scope_key": "topology|overlap_budget|selected_component",
+    "v1_reference_artifact": "artifacts\\oc_lagged_coupling_shadow\\confirmation.json",
+    "variants": [
+      "raw",
+      "error_normalized",
+      "rank"
+    ]
+  },
+  "schema_version": "arac-oc-lagged-coupling-normalized-v1",
+  "summary": {
+    "eligible_enough": true,
+    "interpretation": "primary variant (error-normalized) end-to-end CI lower bound 0.1395 vs chance 0.20; original negative conclusion CONFIRMED after scale normalization",
+    "lagged_negative_confirmed": true,
+    "primary_endpoint_ci95": [
+      0.13953488372093023,
+      0.4186046511627907
+    ],
+    "primary_endpoint_value": 0.27906976744186046,
+    "scale_confound_revoke": false
+  },
+  "variant_metrics": {
+    "error_normalized": {
+      "action_cohens_kappa": -0.14497041420118348,
+      "action_hit_rate_ci95": [
+        0.06976744186046512,
+        0.27906976744186046
+      ],
+      "action_mean_regret": 1850.301452930628,
+      "action_ticket_hit_rate": 0.16279069767441862,
+      "cold_start_rows": 17,
+      "eligible_rows": 43,
+      "end_to_end_cohens_kappa": 0.05393896380411636,
+      "end_to_end_hit_rate_ci95": [
+        0.13953488372093023,
+        0.4186046511627907
+      ],
+      "end_to_end_mean_regret": 985.9142594509834,
+      "end_to_end_ticket_hit_rate": 0.27906976744186046
+    },
+    "rank": {
+      "action_cohens_kappa": -0.12818590704647673,
+      "action_hit_rate_ci95": [
+        0.09244186046511631,
+        0.3023255813953488
+      ],
+      "action_mean_regret": 1899.6832602176617,
+      "action_ticket_hit_rate": 0.18604651162790697,
+      "cold_start_rows": 17,
+      "eligible_rows": 43,
+      "end_to_end_cohens_kappa": 0.01854493580599145,
+      "end_to_end_hit_rate_ci95": [
+        0.13953488372093023,
+        0.3953488372093023
+      ],
+      "end_to_end_mean_regret": 1027.0431811166293,
+      "end_to_end_ticket_hit_rate": 0.2558139534883721
+    },
+    "raw": {
+      "action_cohens_kappa": -0.2139673105497772,
+      "action_hit_rate_ci95": [
+        0.023255813953488372,
+        0.20930232558139536
+      ],
+      "action_mean_regret": 1891.0803884133709,
+      "action_ticket_hit_rate": 0.11627906976744186,
+      "cold_start_rows": 17,
+      "eligible_rows": 43,
+      "end_to_end_cohens_kappa": 0.05259417199715706,
+      "end_to_end_hit_rate_ci95": [
+        0.13953488372093023,
+        0.4186046511627907
+      ],
+      "end_to_end_mean_regret": 943.1974792257867,
+      "end_to_end_ticket_hit_rate": 0.27906976744186046
+    }
+  }
+}

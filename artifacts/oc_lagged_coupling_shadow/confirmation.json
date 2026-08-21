@@ -1,0 +1,5808 @@
+{
+  "gate_checks": {
+    "context_count_60": true,
+    "ema_values_finite": true,
+    "input_contracts_valid": true,
+    "one_fe_receipts_preserved": true,
+    "prior_only_prediction_and_update": true,
+    "production_selector_unchanged": true,
+    "replay_deterministic": true,
+    "replay_rows_complete": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "arms": [
+      "owner_control",
+      "shared_core",
+      "expanded_shared_private",
+      "duplicated_shared_competition",
+      "duplicated_shared_local_competition"
+    ],
+    "authority_threshold": 0.3,
+    "contexts": 60,
+    "coupling_fes_already_charged_per_arm": 1,
+    "ema_alpha": 0.5,
+    "input_artifact": "artifacts\\oc_action_semantic_gate_v3\\confirmation_fresh.json",
+    "input_schema": "arac-oc-action-semantic-gate-v3",
+    "min_eligible_rows": 10,
+    "ordering": "scope, seed, conforming-before-conflicting, mode, source index",
+    "production_selector_modified": false,
+    "scope_key": "topology|overlap_budget|selected_component",
+    "ticket_fes": 32
+  },
+  "replay_digest": "26eba9ea85816f25496190069131d01bf4a4621cbe7a7dbdedb80c0d528f238a",
+  "rows": [
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 1,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          277.0024075788697
+        ],
+        [
+          "shared_core",
+          295.7397850145808
+        ],
+        [
+          "expanded_shared_private",
+          226.46813573193685
+        ],
+        [
+          "duplicated_shared_competition",
+          286.6401921017605
+        ],
+        [
+          "duplicated_shared_local_competition",
+          306.81965529945774
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 663.6548405839258,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 31742.40268691321,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=6|component=0,1,2,3,4,5",
+      "seed": 31501,
+      "source_order": 0,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          277.0024075788697
+        ],
+        [
+          "shared_core",
+          295.7397850145808
+        ],
+        [
+          "expanded_shared_private",
+          226.46813573193685
+        ],
+        [
+          "duplicated_shared_competition",
+          286.6401921017605
+        ],
+        [
+          "duplicated_shared_local_competition",
+          306.81965529945774
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 215.08930396654614,
+      "context_index": 2,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 623.2963336029388,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          -72.18224316671876
+        ],
+        [
+          "shared_core",
+          819.5609907298076
+        ],
+        [
+          "expanded_shared_private",
+          870.1437789197262
+        ],
+        [
+          "duplicated_shared_competition",
+          102.58758724973268
+        ],
+        [
+          "duplicated_shared_local_competition",
+          32.317105548972904
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 819.5609907298076,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 27831.404644226193,
+      "overlap_budget": 6,
+      "predicted_action_gain": 604.4716867632615,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 27208.108310623255,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          277.0024075788697
+        ],
+        [
+          "shared_core",
+          295.7397850145808
+        ],
+        [
+          "expanded_shared_private",
+          226.46813573193685
+        ],
+        [
+          "duplicated_shared_competition",
+          286.6401921017605
+        ],
+        [
+          "duplicated_shared_local_competition",
+          306.81965529945774
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=6|component=0,1,2,3,4,5",
+      "seed": 31502,
+      "source_order": 1,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          102.41008220607546
+        ],
+        [
+          "shared_core",
+          557.6503878721942
+        ],
+        [
+          "expanded_shared_private",
+          548.3059573258315
+        ],
+        [
+          "duplicated_shared_competition",
+          194.61388967574658
+        ],
+        [
+          "duplicated_shared_local_competition",
+          169.56838042421532
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 3335.6705124296386,
+      "context_index": 5,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 774.3587289559946,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2379.0132123537533
+        ],
+        [
+          "shared_core",
+          934.6506944613739
+        ],
+        [
+          "expanded_shared_private",
+          3168.032374849068
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3603.659861685286
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 4270.3212068910125,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 73749.44091486638,
+      "overlap_budget": 6,
+      "predicted_action_gain": 934.6506944613739,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 72975.08218591039,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          102.41008220607546
+        ],
+        [
+          "shared_core",
+          557.6503878721942
+        ],
+        [
+          "expanded_shared_private",
+          548.3059573258315
+        ],
+        [
+          "duplicated_shared_competition",
+          194.61388967574658
+        ],
+        [
+          "duplicated_shared_local_competition",
+          169.56838042421532
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=6|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 2,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          1240.7116472799144
+        ],
+        [
+          "shared_core",
+          746.150541166784
+        ],
+        [
+          "expanded_shared_private",
+          1858.1691660874499
+        ],
+        [
+          "duplicated_shared_competition",
+          97.30694483787329
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1886.6141210547507
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1497.8226679622821,
+      "context_index": 4,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2855.6817030634847
+        ],
+        [
+          "shared_core",
+          2834.789117879809
+        ],
+        [
+          "expanded_shared_private",
+          2718.114608065018
+        ],
+        [
+          "duplicated_shared_competition",
+          931.6905072427326
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -19.51292275099331
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 4488.0220828979145,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 41816.96160384407,
+      "overlap_budget": 6,
+      "predicted_action_gain": 2990.1994149356324,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 41816.96160384407,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          1240.7116472799144
+        ],
+        [
+          "shared_core",
+          746.150541166784
+        ],
+        [
+          "expanded_shared_private",
+          1858.1691660874499
+        ],
+        [
+          "duplicated_shared_competition",
+          97.30694483787329
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1886.6141210547507
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=6|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 3,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          2048.1966751716996
+        ],
+        [
+          "shared_core",
+          1790.4698295232965
+        ],
+        [
+          "expanded_shared_private",
+          2288.1418870762336
+        ],
+        [
+          "duplicated_shared_competition",
+          514.4987260403029
+        ],
+        [
+          "duplicated_shared_local_competition",
+          933.5505991518787
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 825.1043189072616,
+      "context_index": 7,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2181.37051398502
+        ],
+        [
+          "shared_core",
+          904.3022298522683
+        ],
+        [
+          "expanded_shared_private",
+          422.0210344565812
+        ],
+        [
+          "duplicated_shared_competition",
+          498.4115438341232
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2041.9050951160543
+        ]
+      ],
+      "oracle_action_arm": "owner_control",
+      "oracle_action_gain": 2552.169039274392,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 42528.880749140284,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1727.0647203671306,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 42528.880749140284,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2048.1966751716996
+        ],
+        [
+          "shared_core",
+          1790.4698295232965
+        ],
+        [
+          "expanded_shared_private",
+          2288.1418870762336
+        ],
+        [
+          "duplicated_shared_competition",
+          514.4987260403029
+        ],
+        [
+          "duplicated_shared_local_competition",
+          933.5505991518787
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=6|component=0,1,2,3,4,5",
+      "seed": 31504,
+      "source_order": 4,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          2114.78359457836
+        ],
+        [
+          "shared_core",
+          1347.3860296877824
+        ],
+        [
+          "expanded_shared_private",
+          1355.0814607664074
+        ],
+        [
+          "duplicated_shared_competition",
+          506.4551349372131
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1487.7278471339664
+        ]
+      ]
+    },
+    {
+      "action_hit": true,
+      "action_regret": 0.0,
+      "context_index": 8,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 778.976658862739,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          491.2955385177138
+        ],
+        [
+          "shared_core",
+          583.8440726399476
+        ],
+        [
+          "expanded_shared_private",
+          483.86435550328315
+        ],
+        [
+          "duplicated_shared_competition",
+          58.98647676408109
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -371.1810482525816
+        ]
+      ],
+      "oracle_action_arm": "owner_control",
+      "oracle_action_gain": 591.3466054416203,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 31471.714754921777,
+      "overlap_budget": 6,
+      "predicted_action_gain": 591.3466054416203,
+      "predicted_arm": "owner_control",
+      "predicted_end_to_end_gain": 30692.738096059038,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2114.78359457836
+        ],
+        [
+          "shared_core",
+          1347.3860296877824
+        ],
+        [
+          "expanded_shared_private",
+          1355.0814607664074
+        ],
+        [
+          "duplicated_shared_competition",
+          506.4551349372131
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1487.7278471339664
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=6|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 5,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          1303.0395665480369
+        ],
+        [
+          "shared_core",
+          965.615051163865
+        ],
+        [
+          "expanded_shared_private",
+          919.4729081348453
+        ],
+        [
+          "duplicated_shared_competition",
+          282.7208058506471
+        ],
+        [
+          "duplicated_shared_local_competition",
+          558.2733994406924
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 0,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          28.373232518268196
+        ],
+        [
+          "shared_core",
+          370.045638514639
+        ],
+        [
+          "expanded_shared_private",
+          285.241655622267
+        ],
+        [
+          "duplicated_shared_competition",
+          20.383614392336312
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -386.08591709057146
+        ]
+      ],
+      "oracle_action_arm": "owner_control",
+      "oracle_action_gain": 1001.4663976401753,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 36117.982842729434,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=6|component=6,7,8,9,10,11",
+      "seed": 31501,
+      "source_order": 6,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          28.373232518268196
+        ],
+        [
+          "shared_core",
+          370.045638514639
+        ],
+        [
+          "expanded_shared_private",
+          285.241655622267
+        ],
+        [
+          "duplicated_shared_competition",
+          20.383614392336312
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -386.08591709057146
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 333.5571162329052,
+      "context_index": 3,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 245.6590491639363,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1639.442901962142
+        ],
+        [
+          "shared_core",
+          1620.9798539106123
+        ],
+        [
+          "expanded_shared_private",
+          2462.699390033964
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3361.2468026689694
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 1954.5369701435175,
+      "oracle_end_to_end_arm": "duplicated_shared_competition",
+      "oracle_end_to_end_gain": 23223.070831630277,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1620.9798539106123,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 22977.41178246634,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          28.373232518268196
+        ],
+        [
+          "shared_core",
+          370.045638514639
+        ],
+        [
+          "expanded_shared_private",
+          285.241655622267
+        ],
+        [
+          "duplicated_shared_competition",
+          20.383614392336312
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -386.08591709057146
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=6|component=6,7,8,9,10,11",
+      "seed": 31502,
+      "source_order": 7,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          833.9080672402051
+        ],
+        [
+          "shared_core",
+          995.5127462126256
+        ],
+        [
+          "expanded_shared_private",
+          1373.9705228281155
+        ],
+        [
+          "duplicated_shared_competition",
+          10.191807196168156
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1487.580442789199
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1031.5795398157861,
+      "context_index": 6,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 657.5780287903981,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          842.3969637728151
+        ],
+        [
+          "shared_core",
+          1278.7836796075171
+        ],
+        [
+          "expanded_shared_private",
+          65.52750349559028
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          601.0028858811602
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 1278.7836796075171,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 29561.377509561353,
+      "overlap_budget": 6,
+      "predicted_action_gain": 247.204139791731,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 28903.799480770955,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          833.9080672402051
+        ],
+        [
+          "shared_core",
+          995.5127462126256
+        ],
+        [
+          "expanded_shared_private",
+          1373.9705228281155
+        ],
+        [
+          "duplicated_shared_competition",
+          10.191807196168156
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1487.580442789199
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=6|component=6,7,8,9,10,11",
+      "seed": 31504,
+      "source_order": 8,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          838.1525155065101
+        ],
+        [
+          "shared_core",
+          1137.1482129100714
+        ],
+        [
+          "expanded_shared_private",
+          719.7490131618529
+        ],
+        [
+          "duplicated_shared_competition",
+          5.095903598084078
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1044.2916643351796
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 255.67155779564746,
+      "context_index": 9,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 247.32620076501553,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          162.8710312139874
+        ],
+        [
+          "shared_core",
+          165.80042917369974
+        ],
+        [
+          "expanded_shared_private",
+          209.4776086403872
+        ],
+        [
+          "duplicated_shared_competition",
+          22.53218127151922
+        ],
+        [
+          "duplicated_shared_local_competition",
+          106.0372675467097
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 421.4719869693472,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 17717.120770237412,
+      "overlap_budget": 6,
+      "predicted_action_gain": 165.80042917369974,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 17469.794569472397,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          838.1525155065101
+        ],
+        [
+          "shared_core",
+          1137.1482129100714
+        ],
+        [
+          "expanded_shared_private",
+          719.7490131618529
+        ],
+        [
+          "duplicated_shared_competition",
+          5.095903598084078
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1044.2916643351796
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=6|component=6,7,8,9,10,11",
+      "seed": 31505,
+      "source_order": 9,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          500.51177336024875
+        ],
+        [
+          "shared_core",
+          651.4743210418856
+        ],
+        [
+          "expanded_shared_private",
+          464.61331090112003
+        ],
+        [
+          "duplicated_shared_competition",
+          13.81404243480165
+        ],
+        [
+          "duplicated_shared_local_competition",
+          575.1644659409446
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 13,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2173.42073294305
+        ],
+        [
+          "shared_core",
+          6013.533730030344
+        ],
+        [
+          "expanded_shared_private",
+          7342.273056544491
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          812.6646316748447
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 6013.533730030344,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 53163.54282531131,
+      "overlap_budget": 12,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=12|component=0,1,2,3,4,5",
+      "seed": 31502,
+      "source_order": 10,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          2173.42073294305
+        ],
+        [
+          "shared_core",
+          6013.533730030344
+        ],
+        [
+          "expanded_shared_private",
+          7342.273056544491
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          812.6646316748447
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 460.0348453367551,
+      "context_index": 12,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 5547.881275024796,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          4295.366725386179
+        ],
+        [
+          "shared_core",
+          6440.177293587098
+        ],
+        [
+          "expanded_shared_private",
+          9415.337942626691
+        ],
+        [
+          "duplicated_shared_competition",
+          986.6182172417393
+        ],
+        [
+          "duplicated_shared_local_competition",
+          9591.168950591935
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 9064.458380491786,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 64997.706835393605,
+      "overlap_budget": 12,
+      "predicted_action_gain": 8604.42353515503,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 59449.82556036881,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2173.42073294305
+        ],
+        [
+          "shared_core",
+          6013.533730030344
+        ],
+        [
+          "expanded_shared_private",
+          7342.273056544491
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          812.6646316748447
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=12|component=0,1,2,3,4,5",
+      "seed": 31502,
+      "source_order": 11,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          3234.3937291646143
+        ],
+        [
+          "shared_core",
+          6226.855511808721
+        ],
+        [
+          "expanded_shared_private",
+          8378.805499585591
+        ],
+        [
+          "duplicated_shared_competition",
+          493.30910862086967
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5201.91679113339
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1511.2612109283436,
+      "context_index": 14,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 3755.4154863610165,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          5149.101651007186
+        ],
+        [
+          "shared_core",
+          2955.3989808963233
+        ],
+        [
+          "expanded_shared_private",
+          3620.3533234845163
+        ],
+        [
+          "duplicated_shared_competition",
+          1950.063533444496
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4713.192406753558
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 8836.009839630635,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 75921.24282744527,
+      "overlap_budget": 12,
+      "predicted_action_gain": 7324.748628702291,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 72165.82734108425,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          3234.3937291646143
+        ],
+        [
+          "shared_core",
+          6226.855511808721
+        ],
+        [
+          "expanded_shared_private",
+          8378.805499585591
+        ],
+        [
+          "duplicated_shared_competition",
+          493.30910862086967
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5201.91679113339
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=12|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 12,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          4191.7476900859
+        ],
+        [
+          "shared_core",
+          4591.127246352522
+        ],
+        [
+          "expanded_shared_private",
+          5999.579411535054
+        ],
+        [
+          "duplicated_shared_competition",
+          1221.6863210326828
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4957.554598943474
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 3481.9973068474137,
+      "context_index": 17,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 1418.9940663501184,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          3257.2094155047816
+        ],
+        [
+          "shared_core",
+          2217.320009686362
+        ],
+        [
+          "expanded_shared_private",
+          965.8418565497304
+        ],
+        [
+          "duplicated_shared_competition",
+          1187.1097680304629
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6136.223606332318
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 5134.219339213047,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 66815.40833221567,
+      "overlap_budget": 12,
+      "predicted_action_gain": 1652.222032365633,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 65396.41426586555,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          4191.7476900859
+        ],
+        [
+          "shared_core",
+          4591.127246352522
+        ],
+        [
+          "expanded_shared_private",
+          5999.579411535054
+        ],
+        [
+          "duplicated_shared_competition",
+          1221.6863210326828
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4957.554598943474
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=12|component=0,1,2,3,4,5",
+      "seed": 31504,
+      "source_order": 13,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          3724.478552795341
+        ],
+        [
+          "shared_core",
+          3404.223628019442
+        ],
+        [
+          "expanded_shared_private",
+          3482.710634042392
+        ],
+        [
+          "duplicated_shared_competition",
+          1204.3980445315729
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5546.889102637896
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 576.6630715531355,
+      "context_index": 19,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2289.7725863255437
+        ],
+        [
+          "shared_core",
+          2353.4035998463405
+        ],
+        [
+          "expanded_shared_private",
+          3305.128851170597
+        ],
+        [
+          "duplicated_shared_competition",
+          710.3945727788996
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1059.0583545864938
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 2441.969390979215,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 55728.98572321006,
+      "overlap_budget": 12,
+      "predicted_action_gain": 1865.3063194260794,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 55728.98572321006,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          3724.478552795341
+        ],
+        [
+          "shared_core",
+          3404.223628019442
+        ],
+        [
+          "expanded_shared_private",
+          3482.710634042392
+        ],
+        [
+          "duplicated_shared_competition",
+          1204.3980445315729
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5546.889102637896
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "chain|budget=12|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 14,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          3007.1255695604423
+        ],
+        [
+          "shared_core",
+          2878.8136139328913
+        ],
+        [
+          "expanded_shared_private",
+          3393.9197426064948
+        ],
+        [
+          "duplicated_shared_competition",
+          957.3963086552362
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3302.973728612195
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 11,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          4280.68580616757
+        ],
+        [
+          "shared_core",
+          4051.480330226863
+        ],
+        [
+          "expanded_shared_private",
+          3058.246310585131
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6133.974980479823
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 4833.294525291418,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 58499.16335804975,
+      "overlap_budget": 12,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=12|component=6,7,8,9,10,11",
+      "seed": 31501,
+      "source_order": 15,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          4280.68580616757
+        ],
+        [
+          "shared_core",
+          4051.480330226863
+        ],
+        [
+          "expanded_shared_private",
+          3058.246310585131
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6133.974980479823
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1080.7326837352375,
+      "context_index": 10,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          271.8655364803053
+        ],
+        [
+          "shared_core",
+          964.3088537414878
+        ],
+        [
+          "expanded_shared_private",
+          582.9113037266579
+        ],
+        [
+          "duplicated_shared_competition",
+          1094.4217180926862
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -1490.8159721261618
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 1151.9975561894898,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 46414.953929905125,
+      "overlap_budget": 12,
+      "predicted_action_gain": 71.26487245425233,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 46414.953929905125,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          4280.68580616757
+        ],
+        [
+          "shared_core",
+          4051.480330226863
+        ],
+        [
+          "expanded_shared_private",
+          3058.246310585131
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6133.974980479823
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=12|component=6,7,8,9,10,11",
+      "seed": 31501,
+      "source_order": 16,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          2276.275671323938
+        ],
+        [
+          "shared_core",
+          2507.8945919841753
+        ],
+        [
+          "expanded_shared_private",
+          1820.5788071558945
+        ],
+        [
+          "duplicated_shared_competition",
+          547.2108590463431
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2321.5795041768306
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 2757.776121957264,
+      "context_index": 15,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 306.4354528164258,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          4110.77889541992
+        ],
+        [
+          "shared_core",
+          4496.889746680223
+        ],
+        [
+          "expanded_shared_private",
+          4927.348038403179
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          7979.586025650802
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 7254.665868637487,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 109340.38396656248,
+      "overlap_budget": 12,
+      "predicted_action_gain": 4496.889746680223,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 109033.94851374606,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2276.275671323938
+        ],
+        [
+          "shared_core",
+          2507.8945919841753
+        ],
+        [
+          "expanded_shared_private",
+          1820.5788071558945
+        ],
+        [
+          "duplicated_shared_competition",
+          547.2108590463431
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2321.5795041768306
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=12|component=6,7,8,9,10,11",
+      "seed": 31503,
+      "source_order": 17,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          3193.527283371929
+        ],
+        [
+          "shared_core",
+          3502.392169332199
+        ],
+        [
+          "expanded_shared_private",
+          3373.963422779537
+        ],
+        [
+          "duplicated_shared_competition",
+          273.60542952317155
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5150.582764913816
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 213.4862339350002,
+      "context_index": 16,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1363.8776649558167
+        ],
+        [
+          "shared_core",
+          429.5376903384822
+        ],
+        [
+          "expanded_shared_private",
+          1952.9714647434666
+        ],
+        [
+          "duplicated_shared_competition",
+          413.4582005604243
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1315.8147223508495
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 2601.1742279032696,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 41200.33792553244,
+      "overlap_budget": 12,
+      "predicted_action_gain": 2387.6879939682694,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 41200.33792553244,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          3193.527283371929
+        ],
+        [
+          "shared_core",
+          3502.392169332199
+        ],
+        [
+          "expanded_shared_private",
+          3373.963422779537
+        ],
+        [
+          "duplicated_shared_competition",
+          273.60542952317155
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5150.582764913816
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=12|component=6,7,8,9,10,11",
+      "seed": 31504,
+      "source_order": 18,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          2278.702474163873
+        ],
+        [
+          "shared_core",
+          1965.9649298353406
+        ],
+        [
+          "expanded_shared_private",
+          2663.4674437615017
+        ],
+        [
+          "duplicated_shared_competition",
+          343.5318150417979
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3233.198743632333
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 2276.5485001160196,
+      "context_index": 18,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 1406.789188417155,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          154.2156860240866
+        ],
+        [
+          "shared_core",
+          3391.5827348317325
+        ],
+        [
+          "expanded_shared_private",
+          2770.9070218297857
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -1603.4332231811131
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 3391.5827348317325,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 48164.35293517326,
+      "overlap_budget": 12,
+      "predicted_action_gain": 1115.034234715713,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 46757.5637467561,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2278.702474163873
+        ],
+        [
+          "shared_core",
+          1965.9649298353406
+        ],
+        [
+          "expanded_shared_private",
+          2663.4674437615017
+        ],
+        [
+          "duplicated_shared_competition",
+          343.5318150417979
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3233.198743632333
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "chain|budget=12|component=6,7,8,9,10,11",
+      "seed": 31505,
+      "source_order": 19,
+      "ticket_fes": 32,
+      "topology": "chain",
+      "updated_ema": [
+        [
+          "owner_control",
+          1216.4590800939798
+        ],
+        [
+          "shared_core",
+          2678.7738323335366
+        ],
+        [
+          "expanded_shared_private",
+          2717.1872327956435
+        ],
+        [
+          "duplicated_shared_competition",
+          171.76590752089896
+        ],
+        [
+          "duplicated_shared_local_competition",
+          814.8827602256099
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 25,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2196.6009202149517
+        ],
+        [
+          "shared_core",
+          3152.332416936011
+        ],
+        [
+          "expanded_shared_private",
+          2793.97853548738
+        ],
+        [
+          "duplicated_shared_competition",
+          2783.5189970194197
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1070.9673050330366
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 3278.9672602537594,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 33794.32588067951,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "scope_stream": "random|budget=6|component=0,1,2,3,4",
+      "seed": 31503,
+      "source_order": 20,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          2196.6009202149517
+        ],
+        [
+          "shared_core",
+          3152.332416936011
+        ],
+        [
+          "expanded_shared_private",
+          2793.97853548738
+        ],
+        [
+          "duplicated_shared_competition",
+          2783.5189970194197
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1070.9673050330366
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 539.5010048463882,
+      "context_index": 24,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 2264.8018958893153,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          -251.69557254861866
+        ],
+        [
+          "shared_core",
+          1424.7791605525927
+        ],
+        [
+          "expanded_shared_private",
+          1599.3791293434842
+        ],
+        [
+          "duplicated_shared_competition",
+          813.3173388084397
+        ],
+        [
+          "duplicated_shared_local_competition",
+          420.27562091144137
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 1964.280165398981,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 41632.688955693084,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1424.7791605525927,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 39367.88705980377,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2196.6009202149517
+        ],
+        [
+          "shared_core",
+          3152.332416936011
+        ],
+        [
+          "expanded_shared_private",
+          2793.97853548738
+        ],
+        [
+          "duplicated_shared_competition",
+          2783.5189970194197
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1070.9673050330366
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "scope_stream": "random|budget=6|component=0,1,2,3,4",
+      "seed": 31503,
+      "source_order": 21,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          972.4526738331665
+        ],
+        [
+          "shared_core",
+          2288.555788744302
+        ],
+        [
+          "expanded_shared_private",
+          2196.678832415432
+        ],
+        [
+          "duplicated_shared_competition",
+          1798.4181679139297
+        ],
+        [
+          "duplicated_shared_local_competition",
+          745.621462972239
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 29,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          147.39986875647992
+        ],
+        [
+          "shared_core",
+          794.9852796341565
+        ],
+        [
+          "expanded_shared_private",
+          493.61143955674834
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -1.1460359287957544
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 794.9852796341565,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 12211.487915177553,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=6|component=1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 22,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          147.39986875647992
+        ],
+        [
+          "shared_core",
+          794.9852796341565
+        ],
+        [
+          "expanded_shared_private",
+          493.61143955674834
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -1.1460359287957544
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 21,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1893.4563396642297
+        ],
+        [
+          "shared_core",
+          3122.0407537796864
+        ],
+        [
+          "expanded_shared_private",
+          2492.478781704038
+        ],
+        [
+          "duplicated_shared_competition",
+          1844.316963455216
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2232.3914294008664
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 3122.0407537796864,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 29143.882920531396,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "scope_stream": "random|budget=6|component=1,2,3,5",
+      "seed": 31501,
+      "source_order": 23,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          1893.4563396642297
+        ],
+        [
+          "shared_core",
+          3122.0407537796864
+        ],
+        [
+          "expanded_shared_private",
+          2492.478781704038
+        ],
+        [
+          "duplicated_shared_competition",
+          1844.316963455216
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2232.3914294008664
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1647.9693841694025,
+      "context_index": 20,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 2196.923529426742,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          369.60753534338437
+        ],
+        [
+          "shared_core",
+          161.76911337622005
+        ],
+        [
+          "expanded_shared_private",
+          192.1880527927642
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          0.0
+        ]
+      ],
+      "oracle_action_arm": "owner_control",
+      "oracle_action_gain": 1809.7384975456225,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 25847.452158142783,
+      "overlap_budget": 6,
+      "predicted_action_gain": 161.76911337622005,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 23650.52862871604,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          1893.4563396642297
+        ],
+        [
+          "shared_core",
+          3122.0407537796864
+        ],
+        [
+          "expanded_shared_private",
+          2492.478781704038
+        ],
+        [
+          "duplicated_shared_competition",
+          1844.316963455216
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2232.3914294008664
+        ]
+      ],
+      "scope": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "scope_stream": "random|budget=6|component=1,2,3,5",
+      "seed": 31501,
+      "source_order": 24,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          1131.531937503807
+        ],
+        [
+          "shared_core",
+          1641.9049335779532
+        ],
+        [
+          "expanded_shared_private",
+          1342.333417248401
+        ],
+        [
+          "duplicated_shared_competition",
+          922.158481727608
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1116.1957147004332
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 27,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          3875.0744292003037
+        ],
+        [
+          "shared_core",
+          5913.04031825088
+        ],
+        [
+          "expanded_shared_private",
+          6867.037745717964
+        ],
+        [
+          "duplicated_shared_competition",
+          1080.8575619351868
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3449.3061325097406
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 5913.04031825088,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 25831.06764083509,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "random|budget=6|component=6,7,9,10,11",
+      "seed": 31504,
+      "source_order": 25,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          3875.0744292003037
+        ],
+        [
+          "shared_core",
+          5913.04031825088
+        ],
+        [
+          "expanded_shared_private",
+          6867.037745717964
+        ],
+        [
+          "duplicated_shared_competition",
+          1080.8575619351868
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3449.3061325097406
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 549.0719609572261,
+      "context_index": 26,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 560.0173444881657,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1018.6999163798682
+        ],
+        [
+          "shared_core",
+          1697.4231609346389
+        ],
+        [
+          "expanded_shared_private",
+          1506.024588445016
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          0.0
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 1697.4231609346389,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 21054.47867001997,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1148.3511999774128,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 20494.461325531804,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          3875.0744292003037
+        ],
+        [
+          "shared_core",
+          5913.04031825088
+        ],
+        [
+          "expanded_shared_private",
+          6867.037745717964
+        ],
+        [
+          "duplicated_shared_competition",
+          1080.8575619351868
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3449.3061325097406
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "random|budget=6|component=6,7,9,10,11",
+      "seed": 31504,
+      "source_order": 26,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          2446.887172790086
+        ],
+        [
+          "shared_core",
+          3805.2317395927594
+        ],
+        [
+          "expanded_shared_private",
+          4186.53116708149
+        ],
+        [
+          "duplicated_shared_competition",
+          540.4287809675934
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1724.6530662548703
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 23,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          68.31799727057205
+        ],
+        [
+          "shared_core",
+          131.53930755030524
+        ],
+        [
+          "expanded_shared_private",
+          102.5251379472038
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -261.46152581942533
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 239.12805089769063,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 14654.333061592992,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        7,
+        8,
+        10
+      ],
+      "scope_stream": "random|budget=6|component=7,8,10",
+      "seed": 31502,
+      "source_order": 27,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          68.31799727057205
+        ],
+        [
+          "shared_core",
+          131.53930755030524
+        ],
+        [
+          "expanded_shared_private",
+          102.5251379472038
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -261.46152581942533
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 628.4604416024431,
+      "context_index": 22,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 1382.9171651690503,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          -24.586569688091913
+        ],
+        [
+          "shared_core",
+          1235.7954099822455
+        ],
+        [
+          "expanded_shared_private",
+          1371.9858797390552
+        ],
+        [
+          "duplicated_shared_competition",
+          907.0344545013068
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1705.9733831037283
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 1864.2558515846886,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 17120.266851465494,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1235.7954099822455,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 15737.349686296444,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          68.31799727057205
+        ],
+        [
+          "shared_core",
+          131.53930755030524
+        ],
+        [
+          "expanded_shared_private",
+          102.5251379472038
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -261.46152581942533
+        ]
+      ],
+      "scope": [
+        7,
+        8,
+        10
+      ],
+      "scope_stream": "random|budget=6|component=7,8,10",
+      "seed": 31502,
+      "source_order": 28,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          21.86571379124007
+        ],
+        [
+          "shared_core",
+          683.6673587662754
+        ],
+        [
+          "expanded_shared_private",
+          737.2555088431295
+        ],
+        [
+          "duplicated_shared_competition",
+          453.5172272506534
+        ],
+        [
+          "duplicated_shared_local_competition",
+          722.2559286421515
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 28,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          -244.75277063463727
+        ],
+        [
+          "shared_core",
+          400.84488069461804
+        ],
+        [
+          "expanded_shared_private",
+          1139.625142874087
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          803.9620755317083
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 2892.6362874587867,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 18344.696118652857,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "random|budget=6|component=9,10,11",
+      "seed": 31505,
+      "source_order": 29,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          -244.75277063463727
+        ],
+        [
+          "shared_core",
+          400.84488069461804
+        ],
+        [
+          "expanded_shared_private",
+          1139.625142874087
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          803.9620755317083
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 30,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2136.561425880085
+        ],
+        [
+          "shared_core",
+          2366.148524532109
+        ],
+        [
+          "expanded_shared_private",
+          6787.775539905953
+        ],
+        [
+          "duplicated_shared_competition",
+          1789.5587770009297
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -107.01786961916514
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 6159.949290039673,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 55726.29707001882,
+      "overlap_budget": 12,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=12|component=0,1,2,3,4,5",
+      "seed": 31501,
+      "source_order": 30,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          2136.561425880085
+        ],
+        [
+          "shared_core",
+          2366.148524532109
+        ],
+        [
+          "expanded_shared_private",
+          6787.775539905953
+        ],
+        [
+          "duplicated_shared_competition",
+          1789.5587770009297
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -107.01786961916514
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 4544.9590465064975,
+      "context_index": 32,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 5068.773134090079,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          10115.845539409114
+        ],
+        [
+          "shared_core",
+          6243.237503119657
+        ],
+        [
+          "expanded_shared_private",
+          6158.272436721498
+        ],
+        [
+          "duplicated_shared_competition",
+          5027.915825782358
+        ],
+        [
+          "duplicated_shared_local_competition",
+          8181.234322151766
+        ]
+      ],
+      "oracle_action_arm": "owner_control",
+      "oracle_action_gain": 11034.706791854114,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 45659.44724078383,
+      "overlap_budget": 12,
+      "predicted_action_gain": 6489.747745347617,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 40590.674106693754,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2136.561425880085
+        ],
+        [
+          "shared_core",
+          2366.148524532109
+        ],
+        [
+          "expanded_shared_private",
+          6787.775539905953
+        ],
+        [
+          "duplicated_shared_competition",
+          1789.5587770009297
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -107.01786961916514
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=12|component=0,1,2,3,4,5",
+      "seed": 31502,
+      "source_order": 31,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          6126.2034826446
+        ],
+        [
+          "shared_core",
+          4304.693013825883
+        ],
+        [
+          "expanded_shared_private",
+          6473.023988313726
+        ],
+        [
+          "duplicated_shared_competition",
+          3408.737301391644
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4037.1082262663003
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 932.8097793747802,
+      "context_index": 35,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 188.18176213273546,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          8045.933093230829
+        ],
+        [
+          "shared_core",
+          23107.587054163425
+        ],
+        [
+          "expanded_shared_private",
+          23305.005523983546
+        ],
+        [
+          "duplicated_shared_competition",
+          1408.1086313864944
+        ],
+        [
+          "duplicated_shared_local_competition",
+          11525.949031828131
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 23107.587054163425,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 98513.06312933259,
+      "overlap_budget": 12,
+      "predicted_action_gain": 22174.777274788645,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 98324.88136719985,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          6126.2034826446
+        ],
+        [
+          "shared_core",
+          4304.693013825883
+        ],
+        [
+          "expanded_shared_private",
+          6473.023988313726
+        ],
+        [
+          "duplicated_shared_competition",
+          3408.737301391644
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4037.1082262663003
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=12|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 32,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          7086.068287937715
+        ],
+        [
+          "shared_core",
+          13706.140033994654
+        ],
+        [
+          "expanded_shared_private",
+          14889.014756148636
+        ],
+        [
+          "duplicated_shared_competition",
+          2408.422966389069
+        ],
+        [
+          "duplicated_shared_local_competition",
+          7781.528629047216
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1402.5575479783147,
+      "context_index": 34,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 884.4971377107286,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          5320.734670567734
+        ],
+        [
+          "shared_core",
+          10573.376084205978
+        ],
+        [
+          "expanded_shared_private",
+          9552.71217020115
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5898.590610232117
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 10573.376084205978,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 64816.01860873259,
+      "overlap_budget": 12,
+      "predicted_action_gain": 9170.818536227664,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 63931.521471021864,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          7086.068287937715
+        ],
+        [
+          "shared_core",
+          13706.140033994654
+        ],
+        [
+          "expanded_shared_private",
+          14889.014756148636
+        ],
+        [
+          "duplicated_shared_competition",
+          2408.422966389069
+        ],
+        [
+          "duplicated_shared_local_competition",
+          7781.528629047216
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=12|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 33,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          6203.401479252724
+        ],
+        [
+          "shared_core",
+          12139.758059100317
+        ],
+        [
+          "expanded_shared_private",
+          12220.863463174894
+        ],
+        [
+          "duplicated_shared_competition",
+          1204.2114831945346
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6840.059619639666
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 291.73699794755885,
+      "context_index": 37,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 2429.7721195009144,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          4553.25001842231
+        ],
+        [
+          "shared_core",
+          8355.52911503375
+        ],
+        [
+          "expanded_shared_private",
+          9247.232926328266
+        ],
+        [
+          "duplicated_shared_competition",
+          3052.557603934314
+        ],
+        [
+          "duplicated_shared_local_competition",
+          8893.160608091803
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 8818.640837146846,
+      "oracle_end_to_end_arm": "duplicated_shared_competition",
+      "oracle_end_to_end_gain": 54804.482119666995,
+      "overlap_budget": 12,
+      "predicted_action_gain": 8526.903839199287,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 52374.71000016608,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          6203.401479252724
+        ],
+        [
+          "shared_core",
+          12139.758059100317
+        ],
+        [
+          "expanded_shared_private",
+          12220.863463174894
+        ],
+        [
+          "duplicated_shared_competition",
+          1204.2114831945346
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6840.059619639666
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=12|component=0,1,2,3,4,5",
+      "seed": 31504,
+      "source_order": 34,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          5378.325748837517
+        ],
+        [
+          "shared_core",
+          10247.643587067034
+        ],
+        [
+          "expanded_shared_private",
+          10734.04819475158
+        ],
+        [
+          "duplicated_shared_competition",
+          2128.3845435644243
+        ],
+        [
+          "duplicated_shared_local_competition",
+          7866.610113865734
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 3721.7385795753435,
+      "context_index": 39,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 1431.7810062839126,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          4050.9110293420163
+        ],
+        [
+          "shared_core",
+          5265.704259431372
+        ],
+        [
+          "expanded_shared_private",
+          4520.861061069503
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          9349.235308696294
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 9622.816165098302,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 62108.73242438192,
+      "overlap_budget": 12,
+      "predicted_action_gain": 5901.0775855229585,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 60676.951418098004,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          5378.325748837517
+        ],
+        [
+          "shared_core",
+          10247.643587067034
+        ],
+        [
+          "expanded_shared_private",
+          10734.04819475158
+        ],
+        [
+          "duplicated_shared_competition",
+          2128.3845435644243
+        ],
+        [
+          "duplicated_shared_local_competition",
+          7866.610113865734
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=12|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 35,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          4714.618389089766
+        ],
+        [
+          "shared_core",
+          7756.673923249203
+        ],
+        [
+          "expanded_shared_private",
+          7627.454627910542
+        ],
+        [
+          "duplicated_shared_competition",
+          1064.1922717822122
+        ],
+        [
+          "duplicated_shared_local_competition",
+          8607.922711281015
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 9083.696792129667,
+      "context_index": 38,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          8619.22576035955
+        ],
+        [
+          "shared_core",
+          15387.576508865466
+        ],
+        [
+          "expanded_shared_private",
+          17602.368016836423
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          968.2275748359389
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 15387.576508865466,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 72084.47581225648,
+      "overlap_budget": 12,
+      "predicted_action_gain": 6303.879716735799,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 72084.47581225648,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          4714.618389089766
+        ],
+        [
+          "shared_core",
+          7756.673923249203
+        ],
+        [
+          "expanded_shared_private",
+          7627.454627910542
+        ],
+        [
+          "duplicated_shared_competition",
+          1064.1922717822122
+        ],
+        [
+          "duplicated_shared_local_competition",
+          8607.922711281015
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "random|budget=12|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 36,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          6666.922074724658
+        ],
+        [
+          "shared_core",
+          11572.125216057335
+        ],
+        [
+          "expanded_shared_private",
+          12614.911322373482
+        ],
+        [
+          "duplicated_shared_competition",
+          532.0961358911061
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4788.075143058477
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 33,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          4441.637173753636
+        ],
+        [
+          "shared_core",
+          4774.311464742605
+        ],
+        [
+          "expanded_shared_private",
+          6893.126623164495
+        ],
+        [
+          "duplicated_shared_competition",
+          2994.59731736064
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4472.710095053542
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 5426.305032912653,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 40847.20321303302,
+      "overlap_budget": 12,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
+      "scope_stream": "random|budget=12|component=6,7,8,9,11",
+      "seed": 31502,
+      "source_order": 37,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          4441.637173753636
+        ],
+        [
+          "shared_core",
+          4774.311464742605
+        ],
+        [
+          "expanded_shared_private",
+          6893.126623164495
+        ],
+        [
+          "duplicated_shared_competition",
+          2994.59731736064
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4472.710095053542
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 31,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2689.308264978783
+        ],
+        [
+          "shared_core",
+          3748.135149238282
+        ],
+        [
+          "expanded_shared_private",
+          4754.942312500301
+        ],
+        [
+          "duplicated_shared_competition",
+          298.72790647934744
+        ],
+        [
+          "duplicated_shared_local_competition",
+          855.4919589728452
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 4706.079077856026,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 63773.66075705075,
+      "overlap_budget": 12,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "random|budget=12|component=7,8,9,10,11",
+      "seed": 31501,
+      "source_order": 38,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          2689.308264978783
+        ],
+        [
+          "shared_core",
+          3748.135149238282
+        ],
+        [
+          "expanded_shared_private",
+          4754.942312500301
+        ],
+        [
+          "duplicated_shared_competition",
+          298.72790647934744
+        ],
+        [
+          "duplicated_shared_local_competition",
+          855.4919589728452
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 338.6635157522396,
+      "context_index": 36,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 1301.1482119724715,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          86.80856447458063
+        ],
+        [
+          "shared_core",
+          1198.1494763274386
+        ],
+        [
+          "expanded_shared_private",
+          1109.5478971995617
+        ],
+        [
+          "duplicated_shared_competition",
+          768.9454555055781
+        ],
+        [
+          "duplicated_shared_local_competition",
+          314.54269492207095
+        ]
+      ],
+      "oracle_action_arm": "owner_control",
+      "oracle_action_gain": 1285.7335519744156,
+      "oracle_end_to_end_arm": "owner_control",
+      "oracle_end_to_end_gain": 22699.58499531508,
+      "overlap_budget": 12,
+      "predicted_action_gain": 947.070036222176,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 21398.436783342608,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2689.308264978783
+        ],
+        [
+          "shared_core",
+          3748.135149238282
+        ],
+        [
+          "expanded_shared_private",
+          4754.942312500301
+        ],
+        [
+          "duplicated_shared_competition",
+          298.72790647934744
+        ],
+        [
+          "duplicated_shared_local_competition",
+          855.4919589728452
+        ]
+      ],
+      "scope": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "random|budget=12|component=7,8,9,10,11",
+      "seed": 31504,
+      "source_order": 39,
+      "ticket_fes": 32,
+      "topology": "random",
+      "updated_ema": [
+        [
+          "owner_control",
+          1388.0584147266818
+        ],
+        [
+          "shared_core",
+          2473.1423127828602
+        ],
+        [
+          "expanded_shared_private",
+          2932.2451048499315
+        ],
+        [
+          "duplicated_shared_competition",
+          533.8366809924628
+        ],
+        [
+          "duplicated_shared_local_competition",
+          585.0173269474581
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 41,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1412.6925095743654
+        ],
+        [
+          "shared_core",
+          1152.7464362873652
+        ],
+        [
+          "expanded_shared_private",
+          1189.8604632364968
+        ],
+        [
+          "duplicated_shared_competition",
+          500.4792665763034
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1428.5047833931912
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 2086.319952032274,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 28837.327029804477,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=6|component=0,1,2,3,4,5",
+      "seed": 31501,
+      "source_order": 40,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          1412.6925095743654
+        ],
+        [
+          "shared_core",
+          1152.7464362873652
+        ],
+        [
+          "expanded_shared_private",
+          1189.8604632364968
+        ],
+        [
+          "duplicated_shared_competition",
+          500.4792665763034
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1428.5047833931912
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 4150.452591269532,
+      "context_index": 45,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 3545.9966203276344,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          5799.6542578188655
+        ],
+        [
+          "shared_core",
+          13424.108371521088
+        ],
+        [
+          "expanded_shared_private",
+          12653.486039456668
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          12813.457286641373
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 13424.108371521088,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 37871.501869057494,
+      "overlap_budget": 6,
+      "predicted_action_gain": 9273.655780251556,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 34325.50524872986,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          1412.6925095743654
+        ],
+        [
+          "shared_core",
+          1152.7464362873652
+        ],
+        [
+          "expanded_shared_private",
+          1189.8604632364968
+        ],
+        [
+          "duplicated_shared_competition",
+          500.4792665763034
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1428.5047833931912
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=6|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 41,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          3606.1733836966155
+        ],
+        [
+          "shared_core",
+          7288.427403904227
+        ],
+        [
+          "expanded_shared_private",
+          6921.673251346582
+        ],
+        [
+          "duplicated_shared_competition",
+          250.2396332881517
+        ],
+        [
+          "duplicated_shared_local_competition",
+          7120.981035017282
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1205.0683411614036,
+      "context_index": 47,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1571.2287467869319
+        ],
+        [
+          "shared_core",
+          1653.0386904456354
+        ],
+        [
+          "expanded_shared_private",
+          1867.3985672301096
+        ],
+        [
+          "duplicated_shared_competition",
+          452.9348353080841
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2735.234827491605
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 2858.107031607039,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 25909.373487726578,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1653.0386904456354,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 25909.373487726578,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          3606.1733836966155
+        ],
+        [
+          "shared_core",
+          7288.427403904227
+        ],
+        [
+          "expanded_shared_private",
+          6921.673251346582
+        ],
+        [
+          "duplicated_shared_competition",
+          250.2396332881517
+        ],
+        [
+          "duplicated_shared_local_competition",
+          7120.981035017282
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=6|component=0,1,2,3,4,5",
+      "seed": 31504,
+      "source_order": 42,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          2588.701065241774
+        ],
+        [
+          "shared_core",
+          4470.733047174931
+        ],
+        [
+          "expanded_shared_private",
+          4394.535909288346
+        ],
+        [
+          "duplicated_shared_competition",
+          351.5872342981179
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4928.107931254443
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 379.6339123112175,
+      "context_index": 49,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 437.50426361795326,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2171.3213080659716
+        ],
+        [
+          "shared_core",
+          2834.611887939889
+        ],
+        [
+          "expanded_shared_private",
+          3225.8270265522515
+        ],
+        [
+          "duplicated_shared_competition",
+          1230.2925207612288
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4093.772179439682
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 3222.089372637831,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 19600.339072914085,
+      "overlap_budget": 6,
+      "predicted_action_gain": 2842.4554603266133,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 19162.83480929613,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2588.701065241774
+        ],
+        [
+          "shared_core",
+          4470.733047174931
+        ],
+        [
+          "expanded_shared_private",
+          4394.535909288346
+        ],
+        [
+          "duplicated_shared_competition",
+          351.5872342981179
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4928.107931254443
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=6|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 43,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          2380.0111866538728
+        ],
+        [
+          "shared_core",
+          3652.67246755741
+        ],
+        [
+          "expanded_shared_private",
+          3810.181467920299
+        ],
+        [
+          "duplicated_shared_competition",
+          790.9398775296734
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4510.940055347062
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1006.9515983744404,
+      "context_index": 48,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 387.5657238307358,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          656.582467110682
+        ],
+        [
+          "shared_core",
+          1399.295049265529
+        ],
+        [
+          "expanded_shared_private",
+          265.33272664079595
+        ],
+        [
+          "duplicated_shared_competition",
+          444.14592330243795
+        ],
+        [
+          "duplicated_shared_local_competition",
+          65.18625224205061
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 1399.295049265529,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 20956.868300721253,
+      "overlap_budget": 6,
+      "predicted_action_gain": 392.34345089108865,
+      "predicted_arm": "duplicated_shared_local_competition",
+      "predicted_end_to_end_gain": 20569.302576890517,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2380.0111866538728
+        ],
+        [
+          "shared_core",
+          3652.67246755741
+        ],
+        [
+          "expanded_shared_private",
+          3810.181467920299
+        ],
+        [
+          "duplicated_shared_competition",
+          790.9398775296734
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4510.940055347062
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=6|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 44,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          1518.2968268822774
+        ],
+        [
+          "shared_core",
+          2525.9837584114694
+        ],
+        [
+          "expanded_shared_private",
+          2037.7570972805474
+        ],
+        [
+          "duplicated_shared_competition",
+          617.5429004160557
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2288.0631537945565
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 40,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1112.257364830155
+        ],
+        [
+          "shared_core",
+          1266.461955286606
+        ],
+        [
+          "expanded_shared_private",
+          1479.1664338350129
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -534.0349012468032
+        ]
+      ],
+      "oracle_action_arm": "owner_control",
+      "oracle_action_gain": 1580.8606141259515,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 30678.481968199994,
+      "overlap_budget": 6,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "star|budget=6|component=6,7,8,9,10,11",
+      "seed": 31501,
+      "source_order": 45,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          1112.257364830155
+        ],
+        [
+          "shared_core",
+          1266.461955286606
+        ],
+        [
+          "expanded_shared_private",
+          1479.1664338350129
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -534.0349012468032
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1.5413486365937388,
+      "context_index": 43,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2574.877413809407
+        ],
+        [
+          "shared_core",
+          2699.7915101085127
+        ],
+        [
+          "expanded_shared_private",
+          2698.906267805382
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          660.2093903519872
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 2699.7915101085127,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 16424.382138014964,
+      "overlap_budget": 6,
+      "predicted_action_gain": 2698.250161471919,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 16424.382138014964,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          1112.257364830155
+        ],
+        [
+          "shared_core",
+          1266.461955286606
+        ],
+        [
+          "expanded_shared_private",
+          1479.1664338350129
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          -534.0349012468032
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "star|budget=6|component=6,7,8,9,10,11",
+      "seed": 31502,
+      "source_order": 46,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          1843.567389319781
+        ],
+        [
+          "shared_core",
+          1983.1267326975594
+        ],
+        [
+          "expanded_shared_private",
+          2089.036350820197
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          63.08724455259198
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 803.5594531184579,
+      "context_index": 42,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 527.9690824068712,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2975.519054974824
+        ],
+        [
+          "shared_core",
+          5675.640757000565
+        ],
+        [
+          "expanded_shared_private",
+          5304.006005121719
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          5089.954592550181
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 5738.6232490905495,
+      "oracle_end_to_end_arm": "duplicated_shared_local_competition",
+      "oracle_end_to_end_gain": 31839.871511862613,
+      "overlap_budget": 6,
+      "predicted_action_gain": 4935.063795972092,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 31311.902429455742,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          1843.567389319781
+        ],
+        [
+          "shared_core",
+          1983.1267326975594
+        ],
+        [
+          "expanded_shared_private",
+          2089.036350820197
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          63.08724455259198
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "star|budget=6|component=6,7,8,9,10,11",
+      "seed": 31502,
+      "source_order": 47,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          2409.5432221473025
+        ],
+        [
+          "shared_core",
+          3829.383744849062
+        ],
+        [
+          "expanded_shared_private",
+          3696.521177970958
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2576.5209185513863
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1027.8251299988624,
+      "context_index": 44,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 331.6297615875883,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          870.5282069799796
+        ],
+        [
+          "shared_core",
+          1617.569303892622
+        ],
+        [
+          "expanded_shared_private",
+          1451.2314304110478
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1265.0474337854175
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 2645.3944338914844,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 36257.99885115017,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1617.569303892622,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 35926.369089562584,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          2409.5432221473025
+        ],
+        [
+          "shared_core",
+          3829.383744849062
+        ],
+        [
+          "expanded_shared_private",
+          3696.521177970958
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2576.5209185513863
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "star|budget=6|component=6,7,8,9,10,11",
+      "seed": 31503,
+      "source_order": 48,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          1640.035714563641
+        ],
+        [
+          "shared_core",
+          2723.476524370842
+        ],
+        [
+          "expanded_shared_private",
+          2573.876304191003
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1920.784176168402
+        ]
+      ]
+    },
+    {
+      "action_hit": true,
+      "action_regret": 0.0,
+      "context_index": 46,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 606.6944948726887,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          699.6905904093965
+        ],
+        [
+          "shared_core",
+          1348.5528688154172
+        ],
+        [
+          "expanded_shared_private",
+          700.127613300825
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          0.0
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 1348.5528688154172,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 24540.076497682632,
+      "overlap_budget": 6,
+      "predicted_action_gain": 1348.5528688154172,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 23933.382002809944,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          1640.035714563641
+        ],
+        [
+          "shared_core",
+          2723.476524370842
+        ],
+        [
+          "expanded_shared_private",
+          2573.876304191003
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1920.784176168402
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "star|budget=6|component=6,7,8,9,10,11",
+      "seed": 31504,
+      "source_order": 49,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          1169.8631524865186
+        ],
+        [
+          "shared_core",
+          2036.0146965931297
+        ],
+        [
+          "expanded_shared_private",
+          1637.001958745914
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          960.392088084201
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 53,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          3343.69565369247
+        ],
+        [
+          "shared_core",
+          5399.514825822043
+        ],
+        [
+          "expanded_shared_private",
+          6499.517998417039
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1991.7592030937703
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 5399.514825822043,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 50872.78210676697,
+      "overlap_budget": 12,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31502,
+      "source_order": 50,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          3343.69565369247
+        ],
+        [
+          "shared_core",
+          5399.514825822043
+        ],
+        [
+          "expanded_shared_private",
+          6499.517998417039
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1991.7592030937703
+        ]
+      ]
+    },
+    {
+      "action_hit": true,
+      "action_regret": 0.0,
+      "context_index": 52,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2689.7098626810475
+        ],
+        [
+          "shared_core",
+          7051.448205451568
+        ],
+        [
+          "expanded_shared_private",
+          8029.458186139716
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          983.161279375694
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 7549.997861616925,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 47925.05581572539,
+      "overlap_budget": 12,
+      "predicted_action_gain": 7549.997861616925,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 47925.05581572539,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          3343.69565369247
+        ],
+        [
+          "shared_core",
+          5399.514825822043
+        ],
+        [
+          "expanded_shared_private",
+          6499.517998417039
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1991.7592030937703
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31502,
+      "source_order": 51,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          3016.7027581867587
+        ],
+        [
+          "shared_core",
+          6225.481515636806
+        ],
+        [
+          "expanded_shared_private",
+          7264.488092278378
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1487.4602412347322
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 15242.694090466517,
+      "context_index": 55,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          26883.421975844118
+        ],
+        [
+          "shared_core",
+          12147.608362839906
+        ],
+        [
+          "expanded_shared_private",
+          11617.839618417216
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          26103.29776130188
+        ]
+      ],
+      "oracle_action_arm": "duplicated_shared_local_competition",
+      "oracle_action_gain": 26534.95444223431,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 124437.14226951674,
+      "overlap_budget": 12,
+      "predicted_action_gain": 11292.260351767793,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 124437.14226951674,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          3016.7027581867587
+        ],
+        [
+          "shared_core",
+          6225.481515636806
+        ],
+        [
+          "expanded_shared_private",
+          7264.488092278378
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          1487.4602412347322
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 52,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          14950.062367015438
+        ],
+        [
+          "shared_core",
+          9186.544939238356
+        ],
+        [
+          "expanded_shared_private",
+          9441.163855347797
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          13795.379001268306
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 1384.3581798891973,
+      "context_index": 54,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 256.04242978613183,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          28508.165755178678
+        ],
+        [
+          "shared_core",
+          29895.28902123045
+        ],
+        [
+          "expanded_shared_private",
+          28098.539881789795
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          15153.6617386312
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 29895.28902123045,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 122113.52945777372,
+      "overlap_budget": 12,
+      "predicted_action_gain": 28510.93084134125,
+      "predicted_arm": "owner_control",
+      "predicted_end_to_end_gain": 121857.48702798759,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          14950.062367015438
+        ],
+        [
+          "shared_core",
+          9186.544939238356
+        ],
+        [
+          "expanded_shared_private",
+          9441.163855347797
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          13795.379001268306
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31503,
+      "source_order": 53,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          21729.114061097058
+        ],
+        [
+          "shared_core",
+          19540.916980234404
+        ],
+        [
+          "expanded_shared_private",
+          18769.851868568796
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          14474.520369949752
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 9935.827644876641,
+      "context_index": 57,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 74.80732199343765,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2536.93074973645
+        ],
+        [
+          "shared_core",
+          12995.441425317957
+        ],
+        [
+          "expanded_shared_private",
+          16623.168114317526
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4591.167234222587
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 12995.441425317957,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 55009.17190460014,
+      "overlap_budget": 12,
+      "predicted_action_gain": 3059.6137804413156,
+      "predicted_arm": "owner_control",
+      "predicted_end_to_end_gain": 54934.3645826067,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          21729.114061097058
+        ],
+        [
+          "shared_core",
+          19540.916980234404
+        ],
+        [
+          "expanded_shared_private",
+          18769.851868568796
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          14474.520369949752
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31504,
+      "source_order": 54,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          12133.022405416754
+        ],
+        [
+          "shared_core",
+          16268.17920277618
+        ],
+        [
+          "expanded_shared_private",
+          17696.509991443163
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          9532.843802086169
+        ]
+      ]
+    },
+    {
+      "action_hit": true,
+      "action_regret": 0.0,
+      "context_index": 56,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          3145.0783960040317
+        ],
+        [
+          "shared_core",
+          4257.871059215846
+        ],
+        [
+          "expanded_shared_private",
+          4163.412498428905
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          2778.9412953244428
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 4471.488549347345,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 34753.1904875656,
+      "overlap_budget": 12,
+      "predicted_action_gain": 4471.488549347345,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 34753.1904875656,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          12133.022405416754
+        ],
+        [
+          "shared_core",
+          16268.17920277618
+        ],
+        [
+          "expanded_shared_private",
+          17696.509991443163
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          9532.843802086169
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31504,
+      "source_order": 55,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          7639.050400710393
+        ],
+        [
+          "shared_core",
+          10263.025130996013
+        ],
+        [
+          "expanded_shared_private",
+          10929.961244936034
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6155.892548705306
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 303.3781354191051,
+      "context_index": 59,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 399.7091935020071,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          2905.709811655968
+        ],
+        [
+          "shared_core",
+          4485.955539793955
+        ],
+        [
+          "expanded_shared_private",
+          4922.417808085142
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          0.0
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 4485.955539793955,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 43128.818841573,
+      "overlap_budget": 12,
+      "predicted_action_gain": 4182.57740437485,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 42729.10964807099,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          7639.050400710393
+        ],
+        [
+          "shared_core",
+          10263.025130996013
+        ],
+        [
+          "expanded_shared_private",
+          10929.961244936034
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6155.892548705306
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 56,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          5272.38010618318
+        ],
+        [
+          "shared_core",
+          7374.490335394984
+        ],
+        [
+          "expanded_shared_private",
+          7926.189526510588
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3077.946274352653
+        ]
+      ]
+    },
+    {
+      "action_hit": false,
+      "action_regret": 2341.006233893888,
+      "context_index": 58,
+      "end_to_end_hit": false,
+      "end_to_end_regret": 518.0489390091243,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          5429.802188783018
+        ],
+        [
+          "shared_core",
+          13071.829593481496
+        ],
+        [
+          "expanded_shared_private",
+          9014.303227825243
+        ],
+        [
+          "duplicated_shared_competition",
+          3994.145158944186
+        ],
+        [
+          "duplicated_shared_local_competition",
+          6528.8145535749645
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 13071.829593481496,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 61886.37220641829,
+      "overlap_budget": 12,
+      "predicted_action_gain": 10730.823359587608,
+      "predicted_arm": "expanded_shared_private",
+      "predicted_end_to_end_gain": 61368.32326740916,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          5272.38010618318
+        ],
+        [
+          "shared_core",
+          7374.490335394984
+        ],
+        [
+          "expanded_shared_private",
+          7926.189526510588
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          3077.946274352653
+        ]
+      ],
+      "scope": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scope_stream": "star|budget=12|component=0,1,2,3,4,5",
+      "seed": 31505,
+      "source_order": 57,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          5351.091147483099
+        ],
+        [
+          "shared_core",
+          10223.15996443824
+        ],
+        [
+          "expanded_shared_private",
+          8470.246377167916
+        ],
+        [
+          "duplicated_shared_competition",
+          1997.072579472093
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4803.380413963809
+        ]
+      ]
+    },
+    {
+      "action_hit": null,
+      "action_regret": null,
+      "context_index": 51,
+      "end_to_end_hit": null,
+      "end_to_end_regret": null,
+      "mode": "conforming",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          10691.023523803782
+        ],
+        [
+          "shared_core",
+          12018.090491478419
+        ],
+        [
+          "expanded_shared_private",
+          10687.575513697157
+        ],
+        [
+          "duplicated_shared_competition",
+          2830.2793345786777
+        ],
+        [
+          "duplicated_shared_local_competition",
+          8180.592889394138
+        ]
+      ],
+      "oracle_action_arm": "expanded_shared_private",
+      "oracle_action_gain": 12506.499895101799,
+      "oracle_end_to_end_arm": "expanded_shared_private",
+      "oracle_end_to_end_gain": 85166.5806678714,
+      "overlap_budget": 12,
+      "predicted_action_gain": null,
+      "predicted_arm": null,
+      "predicted_end_to_end_gain": null,
+      "prediction_source": "cold_start",
+      "prior_ema": [
+        [
+          "owner_control",
+          null
+        ],
+        [
+          "shared_core",
+          null
+        ],
+        [
+          "expanded_shared_private",
+          null
+        ],
+        [
+          "duplicated_shared_competition",
+          null
+        ],
+        [
+          "duplicated_shared_local_competition",
+          null
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "star|budget=12|component=6,7,8,9,10,11",
+      "seed": 31501,
+      "source_order": 58,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          10691.023523803782
+        ],
+        [
+          "shared_core",
+          12018.090491478419
+        ],
+        [
+          "expanded_shared_private",
+          10687.575513697157
+        ],
+        [
+          "duplicated_shared_competition",
+          2830.2793345786777
+        ],
+        [
+          "duplicated_shared_local_competition",
+          8180.592889394138
+        ]
+      ]
+    },
+    {
+      "action_hit": true,
+      "action_regret": 0.0,
+      "context_index": 50,
+      "end_to_end_hit": true,
+      "end_to_end_regret": 0.0,
+      "mode": "conflicting",
+      "observed_coupled_gain": [
+        [
+          "owner_control",
+          1403.0482838680764
+        ],
+        [
+          "shared_core",
+          3153.138694896006
+        ],
+        [
+          "expanded_shared_private",
+          2669.8070811539583
+        ],
+        [
+          "duplicated_shared_competition",
+          0.0
+        ],
+        [
+          "duplicated_shared_local_competition",
+          0.0
+        ]
+      ],
+      "oracle_action_arm": "shared_core",
+      "oracle_action_gain": 3153.138694896006,
+      "oracle_end_to_end_arm": "shared_core",
+      "oracle_end_to_end_gain": 70263.753017992,
+      "overlap_budget": 12,
+      "predicted_action_gain": 3153.138694896006,
+      "predicted_arm": "shared_core",
+      "predicted_end_to_end_gain": 70263.753017992,
+      "prediction_source": "prior_ema",
+      "prior_ema": [
+        [
+          "owner_control",
+          10691.023523803782
+        ],
+        [
+          "shared_core",
+          12018.090491478419
+        ],
+        [
+          "expanded_shared_private",
+          10687.575513697157
+        ],
+        [
+          "duplicated_shared_competition",
+          2830.2793345786777
+        ],
+        [
+          "duplicated_shared_local_competition",
+          8180.592889394138
+        ]
+      ],
+      "scope": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "scope_stream": "star|budget=12|component=6,7,8,9,10,11",
+      "seed": 31501,
+      "source_order": 59,
+      "ticket_fes": 32,
+      "topology": "star",
+      "updated_ema": [
+        [
+          "owner_control",
+          6047.035903835929
+        ],
+        [
+          "shared_core",
+          7585.614593187212
+        ],
+        [
+          "expanded_shared_private",
+          6678.691297425557
+        ],
+        [
+          "duplicated_shared_competition",
+          1415.1396672893388
+        ],
+        [
+          "duplicated_shared_local_competition",
+          4090.296444697069
+        ]
+      ]
+    }
+  ],
+  "schema_version": "arac-oc-lagged-coupling-shadow-v1",
+  "summary": {
+    "action_mean_regret": 1891.0803884133709,
+    "action_ticket_hit_rate": 0.11627906976744186,
+    "chance_hit_rate": 0.2,
+    "cold_start_rows": 17,
+    "context_rows": 60,
+    "eligible_rows": 43,
+    "end_to_end_mean_regret": 943.1974792257867,
+    "end_to_end_ticket_hit_rate": 0.27906976744186046,
+    "interpretation": "lagged shadow only; prior EMA selects an offline one-ticket arm, then current G_coupled updates state; production selector unchanged",
+    "promotion_recommended": false,
+    "scope_stream_count": 17,
+    "scope_stream_counts": {
+      "chain|budget=12|component=0,1,2,3,4,5": 5,
+      "chain|budget=12|component=6,7,8,9,10,11": 5,
+      "chain|budget=6|component=0,1,2,3,4,5": 6,
+      "chain|budget=6|component=6,7,8,9,10,11": 4,
+      "random|budget=12|component=0,1,2,3,4,5": 7,
+      "random|budget=12|component=6,7,8,9,11": 1,
+      "random|budget=12|component=7,8,9,10,11": 2,
+      "random|budget=6|component=0,1,2,3,4": 2,
+      "random|budget=6|component=1,2,3,4,5": 1,
+      "random|budget=6|component=1,2,3,5": 2,
+      "random|budget=6|component=6,7,9,10,11": 2,
+      "random|budget=6|component=7,8,10": 2,
+      "random|budget=6|component=9,10,11": 1,
+      "star|budget=12|component=0,1,2,3,4,5": 8,
+      "star|budget=12|component=6,7,8,9,10,11": 2,
+      "star|budget=6|component=0,1,2,3,4,5": 5,
+      "star|budget=6|component=6,7,8,9,10,11": 5
+    }
+  }
+}

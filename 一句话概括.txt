@@ -1,0 +1,383 @@
+## 一句话概括
+
+升级后的 ARAC-OC 不再是“从 CTP、GSS、SMP、AOR 中选择一个最好动作”，而是：
+
+> **根据重叠结构和共享变量冲突证据，在线选择处理区域、协调方式、预算和搜索 episode，并通过全局 strict-best archive 和状态接力持续调度。**
+
+因此，重叠问题不再只是实验标签，而是进入了：
+
+- 共享变量建模；
+- owner 冲突分析；
+- scope 选择；
+- 联合候选构造；
+- 完整目标函数仲裁；
+- 局部修复与全局校正；
+- 运行状态反馈。
+
+当前设计契约位于：[arac-oc-design.md](E:/ARAC/docs/arac-oc-design.md)。
+
+---
+
+## 一、升级后的完整框架
+
+```text
+Phase-I 重叠结构发现
+        ↓
+OverlapCheckpoint
+(S_g, M(j), q_jg, incumbent, checkpoint hash)
+        ↓
+SMP sense 产生各 owner proposal
+        ↓
+GCB 选择 active component 和 shared scope
+        ↓
+逐变量 counted probe
+计算 B_j / W_j / C_j
+        ↓
+完整候选仲裁
+incumbent + owner + consensus + median
+        ↓
+GCB 判断当前调度计划
+SMP / restricted CTP / shared-core CTP / AOR
+        ↓
+执行一个 operator episode
+        ↓
+strict-best 全局 archive 接受或拒绝
+        ↓
+SMP proposal-neighborhood writeback
+        ↓
+更新 qhat、EMA、residual streak、cooldown、pulse、stall
+        ↓
+下一轮在线调度
+```
+
+### 1. Phase-I 结构发现
+
+Phase-I 输出不可修改的 `OverlapCheckpoint`，包括：
+
+- 每个 group 的变量集合 `S_g`；
+- 变量的 owner 集合 `M(j)`；
+- 成员置信度 `q_jg`；
+- Phase-I incumbent；
+- checkpoint FE 和 hash。
+
+由此明确哪些变量是共享变量，哪些 group 构成同一个 overlap component。
+
+### 2. SMP 不只是搜索动作
+
+SMP 被拆为两个接口：
+
+- `sense()`：生成 owner-local proposal；
+- `execute()`：只有被 GCB 选中时才执行搜索。
+
+proposal 用于：
+
+- 构造候选值；
+- 判断各 owner 对共享变量的分歧；
+- 生成残差；
+- 确定需要探测的 scope。
+
+proposal 本身不直接决定冲突等级。
+
+### 3. B/W/C 证据
+
+对选定 scope 做 counted probe，得到：
+
+- `B_j`：方向性偏差；
+- `W_j`：局部响应宽度；
+- `C_j`：归一化冲突强度。
+
+目前的关键结论是：
+
+> `C_j` 可以用于 scope 排序和诊断，但不能直接作为动作升级阈值。
+
+因为 Gate 47 证明 chain/star 拓扑之间不存在稳定的 `C_j` 阈值间隙。
+
+当前动作调度真正依赖：
+
+- proposal residual persistence；
+- relative hub；
+- qhat 信任；
+- cooldown；
+- stall；
+- budget pulse。
+
+### 4. GCB 协调器
+
+GCB 不是第五个搜索动作，而是调度器。它决定：
+
+- 处理哪个 component；
+- 处理该 component 的哪些 shared variables；
+- 是否收缩 scope；
+- 使用多少 FE；
+- 调用哪个 episode；
+- 是否升级到 AOR；
+- 是否因为本轮仲裁已经有足够收益而跳过 operator pulse。
+
+当前映射大致为：
+
+```text
+LOW       -> owner / consensus / median 候选仲裁
+MEDIUM    -> restricted CTP
+HIGH      -> shared-core CTP
+COMPLEX   -> AOR 全局校正
+```
+
+AOR 是预注册的正常升级动作，不是动作失败后的 fallback。
+
+### 5. 完整目标函数仲裁
+
+候选不再简单平均写回，而是统一构造：
+
+```text
+incumbent
+owner candidate
+weighted consensus
+weighted median
+```
+
+然后使用真实完整目标函数进行 tournament，只有 strict-best 才能进入全局 archive。
+
+这一步是目前最明确的重叠专门机制之一，因为它允许多个 owner 对共享变量提出不同值，再由完整目标函数判断组合效果。
+
+### 6. 四个 episode 的组合
+
+四个 episode 的职责不同：
+
+- **CTP**：局部结构修复和共享变量协调；
+- **GSS**：结构引导搜索，历史 receipt 中仍记录为 `gcb`；
+- **SMP**：保留 owner-local 搜索记忆，并持续产生 proposal；
+- **AOR**：独立全局校正，避免所有动作陷入共同局部搜索惯性。
+
+目标不是提前猜出“唯一最佳动作”，而是在不同 checkpoint 形成：
+
+```text
+结构发现
+→ 共享变量仲裁
+→ 局部持续优化
+→ 必要时全局校正
+```
+
+### 7. 状态接力与反馈
+
+所有正常 episode 都从最新全局 strict-best incumbent 继续。
+
+状态包括：
+
+- `qhat_jg`；
+- `C_j` 的 EMA；
+- proposal residual streak；
+- cooldown；
+- stall count；
+- budget pulse；
+- dispatch receipt；
+- state hash。
+
+SMP 的 proposal-neighborhood writeback 具有独立的固定预算 lane，不会隐式挤占 operator 预算。
+
+### 8. 严格预算和失败语义
+
+当前协议强调：
+
+- 每个 operator 必须消耗预留 FE；
+- 不允许隐式挤占 sense/probe/neighborhood 预算；
+- counterfactual 评价后恢复 archive；
+- no-gain 不是异常，而是显式反馈；
+- operator exception 必须 fail-closed；
+- 不允许异常后偷偷切换到 AOR；
+- 成功运行必须精确到达总 FE。
+
+---
+
+## 二、现在遇到的核心问题
+
+### 问题 1：重叠结构已经进入控制流程，但还没有形成稳定的“可调度价值信号”
+
+目前可以测量共享变量冲突，也可以构造联合候选，但还不能可靠回答：
+
+> “这个 component 现在是否值得花更多预算修复？”
+
+`C_j` 的幅值不能承担这个任务，`G_coupled` 和 `G_int` 也还不能承担这个任务。
+
+### 问题 2：即时收益不等于未来收益
+
+一个动作在当前窗口马上取得较大 improvement，不代表它在 handoff 后仍然有更高的全局收益。
+
+Direct action-value gate 中：
+
+- shared action 相对 owner 的端到端 win-or-tie：`0.6833`；
+- 说明共享动作确实可能有组合价值；
+- 但即时 action gain 与后续 continuation gain 的 Spearman 为 `-0.8524`；
+- 即时收益越高，后续剩余空间反而可能越小。
+
+这是典型的“先吃掉收益，后续可获得空间减少”的反作用。
+
+### 问题 3：共享修复算子本身的搜索域仍然有限
+
+早期 static duplicated competition 反复产生相同的 owner signatures：
+
+- 即时胜出：`0/60`；
+- handoff 后胜出：`5/60`。
+
+加入 owner-conditioned local perturbation 后：
+
+- 即时胜出：`17/60`；
+- handoff 胜出：`19/60`。
+
+说明问题不只是调度器，也在于共享变量修复 kernel 的候选生成能力。
+
+### 问题 4：预算容易被 sensing 吃掉
+
+Gate 48a 中：
+
+- sense 约占 Phase-II 预算的 `93.7%`；
+- operator FE 几乎为 `0`。
+
+修正为 sense 固定约 `45%` 后，operator 能实际触发，但只有最小 `8 FE` pulse。预算问题被修复，但还没有证明整体调度性能优越。
+
+### 问题 5：耦合信号能解释方向，但不能预测调度收益
+
+冻结私有反事实定义：
+
+```text
+G_full   = f(x_before) - f(x_candidate)
+G_frozen = f(x_before) - f(shared scope frozen candidate)
+G_coupled = G_full - G_frozen
+```
+
+二基线版本进一步定义：
+
+```text
+G_int = G_full - G_private - G_shared
+```
+
+两者都能识别：
+
+- synergy：正；
+- conflict：负；
+- none/neutral：接近 0。
+
+但它们与真正的 joint-patch gain 关系很弱，不能作为 ticket 或 scope priority 的 authority。
+
+### 问题 6：当前证据还不能支持“全面优于所有 standalone”
+
+目前已经证明协调有价值，但还没有证明：
+
+```text
+ARAC-OC > CTP
+ARAC-OC > GSS
+ARAC-OC > SMP
+ARAC-OC > AOR
+```
+
+尤其 S5 仍然是明显瓶颈。A3、R2、R6 的 v5.1 结果较好，但 S5 的 episode 搜索方向和基线仍未解决。
+
+---
+
+## 三、已经做过哪些尝试
+
+| 阶段 | 尝试 | 结果 |
+|---|---|---|
+| Gate 10 机制诊断 | 分析 residual 与 CTP 收益不稳定原因 | raw disagreement 无法区分 conforming/conflicting，CTP conflicting gain 中位数为负 |
+| Gate 47/47-R | 用 residual persistence、relative hub、qhat 替代 `C_j` 阈值 | 调度路径、receipt、state hash 通过；不再用 `C_j` 直接开火 |
+| Gate 48a/b | 修复 sense 预算吞噬 operator 的问题 | sense 从约 93.7% 降到约 45%，operator 能触发；但整体优越性未证明 |
+| v5.1 自适应探索 | 加入 ticket、challenger、escalation、adaptive lock、protected runway | A3/R2/R6 达到或接近 HCC；S5 仍然较弱 |
+| v6.0-a 实现 | 加入 scope、完整候选仲裁、strict-best、冻结反事实和共享修复 | overlap coordination 闭环实现，定向测试和 exact FE 通过 |
+| Static shared competition | owner-specific shared candidates | `0/60` 即时胜出，`5/60` handoff 胜出 |
+| Local competition v2 | 加入 owner-conditioned local perturbation | `17/60` 即时胜出，`19/60` handoff 胜出；改善静态版本但未升级 |
+| Direct action-value gate | 直接比较 owner、shared sequential、shared joint | shared action 有组合价值，但即时收益不能预测未来收益 |
+| Multi-window horizon gate | 连续三窗口验证 maturity/revelation horizon | rung-1、rung-2 与未来收益相关性未达阈值；shared horizon 仍落后 owner |
+| `G_coupled` 16-cell gate | 验证方向解释性 | synergy/conflict 方向正确，Spearman `0.2294`，偏弱 |
+| `G_coupled` fresh 200-cell gate | 25 seeds、两拓扑、四种 regime | 方向性稳定，但预测 Spearman `0.0457`，95% CI `[-0.1168, 0.1612]` |
+| `G_int` two-baseline gate | 去掉 shared-only 主效应 | 方向更清晰，但 Spearman `-0.1109`，仍不能调度 |
+| Action-conditioned v3 | 在五臂 matched gate 后记录 coupling receipt | local action Spearman `0.864`，但这是事后解释，不是事前选择依据 |
+| Lagged EMA shadow | 用上一周期 coupling 更新 component-level EMA | action 命中率 `0.1163`，端到端命中率 `0.2791`，均未达 authority |
+
+---
+
+## 四、最终得到的结果
+
+### 已经成立的部分
+
+1. **重叠结构已经成为真实控制变量**
+
+它参与了 component 构造、shared scope 选择、owner 冲突处理、联合候选构造和局部修复，不再只是 benchmark 标签。
+
+2. **完整候选仲裁是有效的机制方向**
+
+共享变量提案必须通过完整目标函数和 strict-best archive 过滤，不能简单平均或无条件写回。
+
+3. **共享变量协调相对 proposal-only 有真实收益**
+
+Gate 29/30 的 36 个 paired cells 中：
+
+- proposal-neighborhood 相对 proposal-only：`36/36` 获胜；
+- median gain：`37.9514`；
+- 相对 full-context：总体为 non-inferior，但没有支持普遍 superiority。
+
+因此可以谨慎地说：
+
+> ARAC-OC 的重叠协调确实比“只使用 proposal、不做完整上下文协调”更有效。
+
+但不能说它已经全面超过最强 full-context baseline。
+
+4. **工程协议已经比较完整**
+
+目前已验证：
+
+- strict-best 单调性；
+- exact FE；
+- archive 恢复；
+- proposal/probe/action/handoff parity；
+- receipt hash；
+- state hash chain；
+- fail-closed；
+- scope 预算可行性；
+- production selector 未被 shadow 实验偷偷修改。
+
+### 尚未成立的部分
+
+以下结论目前都不能宣称：
+
+- `G_coupled` 可以直接驱动 ticket；
+- `G_int` 可以直接驱动 scope priority；
+- 即时 action gain 可以预测未来 handoff value；
+- maturity/revelation horizon 已经解决慢热动作问题；
+- local competition 已经是生产最佳动作；
+- ARAC-OC 已经稳定优于四个 standalone；
+- ARAC-OC 已经在所有拓扑、regime 和 benchmark 上优越。
+
+---
+
+## 五、当前最终定位
+
+现在最准确的论文级表述是：
+
+> **ARAC-OC 已经形成了一个面向重叠大规模优化的、结构感知、证据驱动、阶段感知、带 strict-best 状态接力的在线组合协调框架。它已经证明共享变量协调相对 proposal-only 具有实际价值，但尚未证明任何单一耦合收益信号能够可靠接管在线调度，也尚未证明整体性能普遍优于所有 standalone。**
+
+换句话说：
+
+- **方法创新已经成形；**
+- **重叠因果控制链已经实现；**
+- **工程契约和审计证据较完整；**
+- **但调度信号的预测有效性和最终性能优越性仍未通过 gate。**
+
+当前生产状态应保持：
+
+```text
+GCB production scheduler:
+    residual persistence + topology hub + qhat + cooldown + pulse
+
+G_coupled:
+    shadow diagnostic only
+
+G_int:
+    shadow diagnostic only
+
+lagged EMA:
+    shadow replay only
+
+production selector:
+    unchanged
+```
+
+最新回放结果记录在：[oc_lagged_coupling_shadow/PROGRESS.md](E:/ARAC/.codex-tasks/arac-oc-lagged-coupling-shadow/PROGRESS.md)。

@@ -1,0 +1,56 @@
+{
+  "gate_checks": {
+    "context_count_60": true,
+    "folds_cover_all_contexts": true,
+    "no_seed_leakage": true,
+    "production_baseline_present": true,
+    "production_selector_unchanged": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "context_features": [
+      "topology_one_hot[chain]",
+      "topology_one_hot[random]",
+      "topology_one_hot[star]",
+      "budget/12",
+      "mode_conforming",
+      "scope_size/12"
+    ],
+    "cv": "leave-one-seed-out over the fresh seeds",
+    "gd_iters": 500,
+    "input_artifact": "artifacts\\oc_action_semantic_gate_v3\\confirmation_fresh.json",
+    "input_schema": "arac-oc-action-semantic-gate-v3",
+    "l2_penalty": 0.001,
+    "model": "pairwise logistic ranker, linear in arm bias + arm x context features",
+    "pass_rule": "paired held-out end-gain vs production CI low > 0 AND hit rate > 0.20",
+    "production_baseline_artifact": "artifacts\\oc_production_baseline_gate\\confirmation.json",
+    "production_scenario": "persistent",
+    "production_selector_modified": false,
+    "tie_policy": "exact-tie pairs excluded from training and counted"
+  },
+  "schema_version": "arac-oc-pairwise-ranking-shadow-v1",
+  "summary": {
+    "beats_best_fixed_arm": true,
+    "beats_chance": true,
+    "beats_production_baseline": true,
+    "chance_hit_rate": 0.2,
+    "cohens_kappa_vs_oracle": 0.17716827279466277,
+    "held_out_rows": 60,
+    "mean_regret": 684.9486202686874,
+    "paired_gain_vs_best_fixed": 414.3177323875729,
+    "paired_gain_vs_best_fixed_ci95_low": 32.08151408713747,
+    "paired_gain_vs_production": 757.453536645528,
+    "paired_gain_vs_production_ci95_low": 288.0250335384283,
+    "pairwise_tie_count_total": 8,
+    "predicted_arm_distribution": {
+      "duplicated_shared_competition": 0,
+      "duplicated_shared_local_competition": 21,
+      "expanded_shared_private": 10,
+      "owner_control": 12,
+      "shared_core": 17
+    },
+    "prediction": "ex-ante context features support arm ranking",
+    "supports_arm_ranking": true,
+    "top1_hit_rate": 0.38333333333333336
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "gate_checks": {
+    "context_count_60": true,
+    "folds_cover_all_contexts": true,
+    "g8_pass_confirmed": true,
+    "production_selector_unchanged": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "cv": "leave-one-seed-out",
+    "deployment_rule": "challenger lane only; production selector unchanged",
+    "g8_artifact": "artifacts\\oc_pairwise_ranking_shadow\\confirmation.json",
+    "input_artifact": "artifacts\\oc_action_semantic_gate_v3\\confirmation_fresh.json",
+    "input_schema": "arac-oc-action-semantic-gate-v3",
+    "model": "ridge regression (L2=1.0), arm one-hot + arm x context interactions",
+    "production_selector_modified": false,
+    "target": "end_to_end_gain / checkpoint_error"
+  },
+  "schema_version": "arac-oc-contextual-value-model-v1",
+  "summary": {
+    "beats_best_fixed_arm": true,
+    "beats_production_baseline": true,
+    "challenger_lane_recommended": true,
+    "chance_hit_rate": 0.2,
+    "cohens_kappa_vs_oracle": -0.03752759381898453,
+    "g8_reference": {
+      "mean_regret": 684.9486202686874,
+      "paired_gain_vs_production": 757.453536645528,
+      "top1_hit_rate": 0.38333333333333336
+    },
+    "held_out_rows": 60,
+    "mean_regret": 604.5536351795824,
+    "paired_gain_vs_best_fixed": 494.7127174766777,
+    "paired_gain_vs_best_fixed_ci95_low": 135.92659175883094,
+    "paired_gain_vs_production": 837.8485217346326,
+    "paired_gain_vs_production_ci95_low": 373.73601336154456,
+    "predicted_arm_distribution": {
+      "duplicated_shared_competition": 0,
+      "duplicated_shared_local_competition": 20,
+      "expanded_shared_private": 9,
+      "owner_control": 18,
+      "shared_core": 13
+    },
+    "top1_hit_rate": 0.43333333333333335
+  }
+}

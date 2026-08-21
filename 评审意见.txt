@@ -1,0 +1,184 @@
+总体上，我认为这个思路是对的，而且比继续迭代 `G_coupled` 的解析公式更有价值。但需要做一个技术修正：
+
+> `0.864` 不是“耦合信号对最终收益的预测相关性”，而是 local competition 子集里，action 后的 `G_coupled` 与同一窗口 action gain 的相关性；它与 end-to-end gain 的 Spearman 只有 `0.503`，fresh-seed 预测性更只有 `0.0457`。
+
+所以，“信息存在但解析公式提取不出来”是合理假设，但目前还不能当成事实。
+
+## 我最赞同的部分
+
+### 1. 先验证 `-0.8524` 是否是可利用的“局部耗尽信号”
+
+这个建议非常重要。当前把负相关简单归类为“即时收益不能预测未来收益”还不够。
+
+应先做 gap 控制：
+
+```text
+normalized_action_gain
+    = action_gain / max(pre_action_error - lower_bound, epsilon)
+
+normalized_continuation_gain
+    = continuation_gain / max(action_error - lower_bound, epsilon)
+```
+
+如果没有可靠的理论下界，可以使用 best-known 或固定参考下界，并进行：
+
+- 控制 pre-action gap 后的 partial Spearman；
+- 按 topology、regime、scope size 分层；
+- bootstrap confidence interval；
+- permutation test。
+
+如果控制后仍保持显著负相关，它就不是失败信号，而是一个很有价值的状态转换信号：
+
+```text
+即时局部收益很大
+        ↓
+局部可利用空间可能正在耗尽
+        ↓
+降低 CTP/SMP 优先级
+        ↓
+提高 AOR 或全局校正概率
+```
+
+注意：它更适合做“何时换尺度”的信号，不适合直接预测“下一个哪个动作最好”。
+
+### 2. 优先增强 shared repair kernel
+
+这一点我完全赞同，而且优先级可能高于学习价值函数。
+
+当前结果已经显示：
+
+```text
+static competition       0/60 immediate wins
+local perturbation       17/60 immediate wins
+```
+
+说明候选生成能力确实是瓶颈。调度器即使判断正确，如果 shared scope 只能产生很弱的候选，也无法获得收益。
+
+下一版可以只增强候选生成，不改调度器：
+
+- owner-specific shared representatives；
+- consensus、median、midpoint；
+- 围绕 owner-conditioned anchor 的局部扰动；
+- CTP 风格的联合 scope 修复；
+- 小型 surrogate 只用于生成候选，不直接决定接受。
+
+所有候选仍然经过完整目标函数和 strict-best archive。这样可以清楚区分：
+
+```text
+调度器没有找到正确动作
+```
+
+和：
+
+```text
+正确的共享动作存在，但候选生成器没有找到它
+```
+
+这是目前最应该优先拆开的实验因素。
+
+### 3. 把 sense 开销当成研究变量
+
+sense 占约 45% 预算，不只是工程浪费，也是 ARAC-OC 的方法成本。
+
+建议注册一个预算消融：
+
+```text
+固定 45% sense
+固定 30% sense
+residual 变化才触发 probe
+跨窗口缓存 probe
+周期性 full probe + 中间增量更新
+```
+
+评价指标不能只看最终误差，还要同时报告：
+
+- coordination overhead；
+- operator FE；
+- net gain per FE；
+- 每个 component 的有效调度次数；
+- probe 误判率。
+
+如果减少 sense 后性能略降但单位 FE 收益显著提高，这本身也可能成为 ARAC-OC 的贡献。
+
+### 4. S5 应该单独做根因诊断
+
+这一点也很关键。现在 A3/R2/R6 与 S5 明显分裂，不能继续把 S5 归因于“参数还没调好”。
+
+S5 需要拆成至少四类因素：
+
+1. overlap graph topology；
+2. component size 和 shared-variable degree；
+3. proposal residual 是否失真；
+4. operator 是否真正获得足够 FE；
+5. action gain 与 handoff continuation 的分解；
+6. owner proposal 是否已经陷入相同方向；
+7. AOR 是否被过早或过晚触发。
+
+建议做一个 S5-specific matched diagnostic，而不是马上修改调度规则。
+
+## 关于“学习价值函数”
+
+方向值得做，但不建议直接上 RL，也不建议现在训练复杂模型。
+
+目前已有：
+
+- 60-context × 多臂 matched outcomes；
+- 200-cell coupling diagnostic；
+- receipt、scope、topology、qhat、residual、handoff 等结构化字段。
+
+但这些数据的有效独立样本量仍然有限，尤其 matched arms 之间高度相关。更稳妥的第一步是：
+
+> 做一个离线、交叉拟合的 contextual value model，而不是在线 RL。
+
+预测目标应该是：
+
+```text
+端到端 normalized gain per FE
+```
+
+而不是单窗口 action gain。
+
+输入可以包括：
+
+- topology descriptors；
+- component size；
+- scope size；
+- shared-variable degree；
+- residual persistence；
+- qhat；
+- cooldown/stall；
+- pre-action gap；
+- remaining budget；
+- candidate generation type；
+- action type。
+
+训练和验证必须：
+
+- 按 seed 或 context 分组切分；
+- 禁止把同一 context 的其他 arm 泄漏到训练特征；
+- 使用 fresh seeds 做 holdout；
+- 与当前规则、随机策略、oracle upper bound 比较；
+- 先 shadow replay，不能直接接管 production selector。
+
+只有当模型在独立 holdout 上降低 regret，才考虑进入 GCB 的 challenger lane。
+
+## 我建议的下一步顺序
+
+1. **Gap-normalized negative-correlation gate**  
+   判断 `-0.8524` 是机械空间压缩，还是可用的局部耗尽信号。
+
+2. **S5 failure diagnostic**  
+   先解释最明显的失败 regime。
+
+3. **Shared repair kernel v3**  
+   只增强候选生成，保持调度器和预算协议不变。
+
+4. **Sense-overhead ablation**  
+   测量探测成本和净收益的关系。
+
+5. **小规模 offline contextual value model**  
+   只作为 shadow challenger，不改 production selector。
+
+最终判断是：
+
+> 框架本身已经过了“机制设计是否成立”的阶段，现在进入“共享候选质量、状态转换信号和调度价值预测”的阶段。下一步重点应从继续发明新的耦合公式，转向验证局部耗尽信号、增强 shared kernel，并用严格 holdout 判断学习价值模型是否真正比现有规则更好。

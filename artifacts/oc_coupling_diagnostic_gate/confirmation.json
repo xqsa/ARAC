@@ -1,0 +1,1055 @@
+{
+  "gate_checks": {
+    "arbitration_strict_best": true,
+    "archive_preserved": true,
+    "cell_count_16": true,
+    "conflict_negative": true,
+    "counterfactual_one_fe": true,
+    "coupling_repair_correlations_finite": true,
+    "neutral_near_zero": true,
+    "none_near_zero": true,
+    "repair_exact_budget": true,
+    "repair_strict_best": true,
+    "synergy_positive": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "note": "offline diagnostic only; does not alter production scheduling",
+    "patch_budget_fes": 8,
+    "regimes": [
+      "none",
+      "synergy",
+      "conflict",
+      "neutral"
+    ],
+    "seeds": [
+      2026082001,
+      2026082002
+    ],
+    "topologies": [
+      "chain",
+      "star"
+    ]
+  },
+  "results": [
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 5.5125
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.05,
+        1.05,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "none",
+        "seed": 2026082001,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.5125,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.5125,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 5.5125,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 6.050000000000001
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.1,
+        1.1,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "none",
+        "seed": 2026082002,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.050000000000001,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.050000000000001,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 6.050000000000001,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 5.5125
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.05,
+        1.05,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082001,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5512500000000005,
+        "frozen_candidate_error": 0.55125,
+        "frozen_gain": 4.96125,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.5125,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.5408000000000001,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 4.9717,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 6.050000000000001
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.1,
+        1.1,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082002,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6050000000000004,
+        "frozen_candidate_error": 0.6050000000000001,
+        "frozen_gain": 5.445,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.050000000000001,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.5940500000000001,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 5.4559500000000005,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 2.205,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 2.205,
+          "weighted_mean": 2.205
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 3.3075
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.05,
+        1.05,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082001,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.6537499999999996,
+        "frozen_candidate_error": 0.55125,
+        "frozen_gain": 4.96125,
+        "full_candidate_error": 2.205,
+        "full_gain": 3.3075,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.5618000000000001,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 4.9507,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 2.4200000000000004,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 2.4200000000000004,
+          "weighted_mean": 2.4200000000000004
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 3.6300000000000003
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.1,
+        1.1,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082002,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.815,
+        "frozen_candidate_error": 0.6050000000000001,
+        "frozen_gain": 5.445,
+        "full_candidate_error": 2.4200000000000004,
+        "full_gain": 3.6300000000000003,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.6160500000000001,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 5.43395,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 5.5125
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.05,
+        0.0,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082001,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.5125,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.5125,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 5.5125,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 6.050000000000001
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.1,
+        0.0,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082002,
+        "topology": "chain"
+      },
+      "component": [
+        0,
+        1
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.050000000000001,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.050000000000001,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 6.050000000000001,
+        "strict_best": true
+      },
+      "scope": [
+        1
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 5.5125
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.05,
+        1.05,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "none",
+        "seed": 2026082001,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.5125,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.5125,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 5.5125,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 6.050000000000001
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.1,
+        1.1,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "none",
+        "seed": 2026082002,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.050000000000001,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.050000000000001,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 6.050000000000001,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 0.0,
+          "weighted_mean": 2.465190328815662e-32
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 5.5125
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.05,
+        1.05,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082001,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5512500000000005,
+        "frozen_candidate_error": 0.55125,
+        "frozen_gain": 4.96125,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.5125,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.5408000000000001,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 4.9717,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 6.050000000000001
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.1,
+        1.1,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082002,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6050000000000004,
+        "frozen_candidate_error": 0.6050000000000001,
+        "frozen_gain": 5.445,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.050000000000001,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.5940500000000001,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 5.4559500000000005,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 2.204999999999999,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 2.205,
+          "weighted_mean": 2.204999999999999
+        },
+        "candidate_name": "weighted_mean",
+        "consumed_fes": 3,
+        "gain": 3.307500000000001
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.05,
+        1.05,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082001,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "weighted_mean",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.6537499999999987,
+        "frozen_candidate_error": 0.55125,
+        "frozen_gain": 4.96125,
+        "full_candidate_error": 2.204999999999999,
+        "full_gain": 3.307500000000001,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.5618000000000001,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 4.9507,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 2.4200000000000004,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 2.4200000000000004,
+          "weighted_mean": 2.4200000000000004
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 3.6300000000000003
+      },
+      "archive_preserved": true,
+      "candidate": [
+        1.1,
+        1.1,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082002,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.815,
+        "frozen_candidate_error": 0.6050000000000001,
+        "frozen_gain": 5.445,
+        "full_candidate_error": 2.4200000000000004,
+        "full_gain": 3.6300000000000003,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.6160500000000001,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 5.43395,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "candidate_errors": {
+          "incumbent": 5.5125,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 5.5125
+      },
+      "archive_preserved": true,
+      "candidate": [
+        0.0,
+        1.05,
+        1.05,
+        1.05
+      ],
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082001,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.5125,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.5125,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.5125,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 5.5125,
+        "consumed_fes": 8,
+        "gain": 5.5125,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.05,
+      "terminal_fes": 4
+    },
+    {
+      "arbitration": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "candidate_errors": {
+          "incumbent": 6.050000000000001,
+          "owner": 0.0,
+          "weighted_mean": 0.0
+        },
+        "candidate_name": "owner",
+        "consumed_fes": 3,
+        "gain": 6.050000000000001
+      },
+      "archive_preserved": true,
+      "candidate": [
+        0.0,
+        1.1,
+        1.1,
+        1.1
+      ],
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082002,
+        "topology": "star"
+      },
+      "component": [
+        0,
+        1,
+        2
+      ],
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.050000000000001,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.050000000000001,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.050000000000001,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "repair": {
+        "best_error_after": 0.0,
+        "best_error_before": 6.050000000000001,
+        "consumed_fes": 8,
+        "gain": 6.050000000000001,
+        "strict_best": true
+      },
+      "scope": [
+        0
+      ],
+      "strict_best": true,
+      "target": 1.1,
+      "terminal_fes": 4
+    }
+  ],
+  "schema_version": "arac-oc-coupling-diagnostic-gate-v1",
+  "summary": {
+    "coupled_gain_repair_gain_pearson": 0.25821212088172335,
+    "coupled_gain_repair_gain_spearman": 0.22941176470588234,
+    "median_coupled_gain_by_regime": {
+      "conflict": -1.7343749999999998,
+      "neutral": 0.0,
+      "none": 0.0,
+      "synergy": 0.5781250000000004
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "result": {
+    "case_id": "R6",
+    "checkpoint_error": 14929188.98652301,
+    "config": "v4_all_off",
+    "manifest_hash": "sha256:cc18a05ad7052dd3b4c3fe34ffec786490d87b299856ab9c18380ae37a6e524c",
+    "result": {
+      "anytime": {
+        "1000000": 14929188.98652301,
+        "2000000": 14929188.98652301,
+        "3000000": 14929188.98652301,
+        "600000": 14929188.98652301
+      },
+      "anytime_points": [
+        {
+          "error": 14929188.98652301,
+          "total_fes": 180000.0
+        }
+      ],
+      "audit": {
+        "cold_start_cap_respected": true,
+        "development_cap_respected": true,
+        "development_reserve_preserved": true,
+        "escalation_ladder_geometric": true,
+        "escalation_rotation_fair": true,
+        "exploit_stagnation_yields": true,
+        "fe_reconcile": true,
+        "funded_reconcile": true,
+        "global_error_monotone": true,
+        "no_post_ticket_starvation": true,
+        "phase2_grants_positive": true,
+        "probes_precede_exploitation": true,
+        "receipt_chain_continuous": true,
+        "rotation_no_monopoly": true,
+        "segment_indices_contiguous": true,
+        "ticket_targets_nonnegative": true,
+        "unaffordable_tickets_not_circumvented": true
+      },
+      "development_fes": 1036005,
+      "exploitation_fes": 1182000,
+      "final_error": 515092.1836718459,
+      "funded_fes": {
+        "aor": 225000,
+        "ctp": 1074004,
+        "gcb": 1221000,
+        "smp": 299996
+      },
+      "log_error_auc": 7.174036215746151,
+      "scheduler_version": "v4.4",
+      "terminal_fes": 3000000
+    },
+    "seed": 20260901
+  },
+  "schema_version": "arac-oc-mechanism-ablation-screening-v1"
+}

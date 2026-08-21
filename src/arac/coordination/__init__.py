@@ -1,6 +1,14 @@
 """Phase-II overlap coordination primitives."""
 
 from arac.coordination.counted_probe import CountedProbeResult, counted_probe
+from arac.coordination.counterfactual import (
+    COUNTERFACTUAL_SCHEMA,
+    CounterfactualCouplingReceipt,
+    TWO_BASELINE_COUNTERFACTUAL_SCHEMA,
+    TwoBaselineCouplingReceipt,
+    evaluate_frozen_private_counterfactual,
+    evaluate_two_baseline_counterfactual,
+)
 from arac.coordination.gcb import (
     DISPATCH_ACTIONS,
     DISPATCH_COORDINATE_CTP,
@@ -31,6 +39,8 @@ from arac.coordination.overlap import (
     ProposalResidual,
     ProposalNeighborhoodResult,
     ProposalNeighborhoodRound,
+    SharedCompetitionResult,
+    SharedCompetitionRound,
     compute_proposal_residuals,
 )
 from arac.coordination.proposals import LocalProposalRun, produce_local_proposal
@@ -47,6 +57,12 @@ from arac.coordination.region import (
 __all__ = [
     "CountedProbeResult",
     "counted_probe",
+    "COUNTERFACTUAL_SCHEMA",
+    "CounterfactualCouplingReceipt",
+    "TWO_BASELINE_COUNTERFACTUAL_SCHEMA",
+    "TwoBaselineCouplingReceipt",
+    "evaluate_frozen_private_counterfactual",
+    "evaluate_two_baseline_counterfactual",
     "DISPATCH_ACTIONS",
     "DISPATCH_COORDINATE_CTP",
     "DISPATCH_JOINT_CMAES",
@@ -74,6 +90,8 @@ __all__ = [
     "ProposalResidual",
     "ProposalNeighborhoodResult",
     "ProposalNeighborhoodRound",
+    "SharedCompetitionResult",
+    "SharedCompetitionRound",
     "compute_proposal_residuals",
     "LocalProposalRun",
     "produce_local_proposal",

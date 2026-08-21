@@ -1,0 +1,2378 @@
+{
+  "gate_checks": {
+    "arm_gains_finite": true,
+    "context_count_60": true,
+    "decisions_complete": true,
+    "mapped_arms_valid": true,
+    "production_selector_unchanged": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "action_arm_map": {
+      "aor": null,
+      "arbitration_only": "owner_control",
+      "ctp_restricted": "shared_core",
+      "ctp_shared_core": "expanded_shared_private",
+      "smp": "owner_control"
+    },
+    "available_fes": 32,
+    "best_fixed_arm": "duplicated_shared_local_competition",
+    "config": "default OcCoordinatorConfig (persistent_streak=2, escalation_streak=6, hub_mode=relative)",
+    "ema_comparison_variant": "error_normalized",
+    "input_artifact": "artifacts\\oc_action_semantic_gate_v3\\confirmation_fresh.json",
+    "input_schema": "arac-oc-action-semantic-gate-v3",
+    "production_selector_modified": false,
+    "scenarios": {
+      "escalated": 6,
+      "fresh": 0,
+      "persistent": 2
+    }
+  },
+  "rows": [
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 28307.828806003483,
+        "duplicated_shared_local_competition": 28724.24001781034,
+        "expanded_shared_private": 29143.882920531396,
+        "owner_control": 28468.002053472374,
+        "shared_core": 29087.94707462597
+      },
+      "best_fixed_gain": 28724.24001781034,
+      "checkpoint_error": 37117.92215788706,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31501,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 29143.882920531396,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        1,
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 23579.966001285677,
+        "duplicated_shared_local_competition": 23579.966001285677,
+        "expanded_shared_private": 23643.650802104865,
+        "owner_control": 25847.452158142783,
+        "shared_core": 23650.52862871604
+      },
+      "best_fixed_gain": 23579.966001285677,
+      "checkpoint_error": 57199.700932201646,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31501,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 25847.452158142783,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        1,
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 14415.205010695301,
+        "duplicated_shared_local_competition": 14592.053825274728,
+        "expanded_shared_private": 14654.333061592992,
+        "owner_control": 14555.689441510021,
+        "shared_core": 14546.744318245606
+      },
+      "best_fixed_gain": 14592.053825274728,
+      "checkpoint_error": 19231.68447926419,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31502,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 14654.333061592992,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        7,
+        8,
+        10
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 15365.893078841122,
+        "duplicated_shared_local_competition": 15684.945277325221,
+        "expanded_shared_private": 15005.493826725626,
+        "owner_control": 17120.266851465494,
+        "shared_core": 15737.349686296444
+      },
+      "best_fixed_gain": 15684.945277325221,
+      "checkpoint_error": 31737.19567635669,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31502,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 17120.266851465494,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        7,
+        8,
+        10
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 33175.26858444954,
+        "duplicated_shared_local_competition": 33552.96001224658,
+        "expanded_shared_private": 33794.32588067951,
+        "owner_control": 33175.26858444954,
+        "shared_core": 33519.358686097316
+      },
+      "best_fixed_gain": 33552.96001224658,
+      "checkpoint_error": 39573.258361140404,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31503,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 33794.32588067951,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 38495.53877291769,
+        "duplicated_shared_local_competition": 38838.16035782083,
+        "expanded_shared_private": 40900.6257839078,
+        "owner_control": 41632.688955693084,
+        "shared_core": 39367.88705980377
+      },
+      "best_fixed_gain": 38838.16035782083,
+      "checkpoint_error": 61648.854681561614,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31503,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 41632.688955693084,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 23253.24728812126,
+        "duplicated_shared_local_competition": 24583.36714314825,
+        "expanded_shared_private": 23283.843748639814,
+        "owner_control": 25831.06764083509,
+        "shared_core": 24156.06828024127
+      },
+      "best_fixed_gain": 24583.36714314825,
+      "checkpoint_error": 33764.756150078254,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31504,
+        "conforming"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 25831.06764083509,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 20804.74793601659,
+        "duplicated_shared_local_competition": 20804.74793601659,
+        "expanded_shared_private": 20494.461325531804,
+        "owner_control": 21054.47867001997,
+        "shared_core": 20854.115372611726
+      },
+      "best_fixed_gain": 20804.74793601659,
+      "checkpoint_error": 33115.82316464849,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31504,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 21054.47867001997,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 11825.462728954351,
+        "duplicated_shared_local_competition": 11896.708770186022,
+        "expanded_shared_private": 11960.044222762483,
+        "owner_control": 11950.122056530765,
+        "shared_core": 12211.487915177553
+      },
+      "best_fixed_gain": 11896.708770186022,
+      "checkpoint_error": 17958.04176639553,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31505,
+        "conforming"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 12211.487915177553,
+      "persistent_action": "ctp_shared_core",
+      "persistent_mapped_arm": "expanded_shared_private",
+      "persistent_reason": "high_shared_core",
+      "selected_component": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 14546.935976501372,
+        "duplicated_shared_local_competition": 18344.696118652857,
+        "expanded_shared_private": 15503.527443883806,
+        "owner_control": 16856.19514590739,
+        "shared_core": 14947.78085719599
+      },
+      "best_fixed_gain": 18344.696118652857,
+      "checkpoint_error": 42390.02225829144,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        6,
+        31505,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 18344.696118652857,
+      "persistent_action": "ctp_shared_core",
+      "persistent_mapped_arm": "expanded_shared_private",
+      "persistent_reason": "high_shared_core",
+      "selected_component": [
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 61670.01725367775,
+        "duplicated_shared_local_competition": 62256.44839683883,
+        "expanded_shared_private": 63674.28103087931,
+        "owner_control": 62441.112504289646,
+        "shared_core": 63773.66075705075
+      },
+      "best_fixed_gain": 62256.44839683883,
+      "checkpoint_error": 108509.86690197773,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31501,
+        "conforming"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 63773.66075705075,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 51549.4818510931,
+        "duplicated_shared_local_competition": 51378.2302462555,
+        "expanded_shared_private": 55726.29707001882,
+        "owner_control": 52892.876381626695,
+        "shared_core": 50539.05209892629
+      },
+      "best_fixed_gain": 51378.2302462555,
+      "checkpoint_error": 84812.61856541655,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31501,
+        "conflicting"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 55726.29707001882,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 36798.09328470123,
+        "duplicated_shared_local_competition": 40847.20321303302,
+        "expanded_shared_private": 38528.46398484953,
+        "owner_control": 37672.36797834383,
+        "shared_core": 40329.191102253346
+      },
+      "best_fixed_gain": 40847.20321303302,
+      "checkpoint_error": 65968.72005085544,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31502,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 40847.20321303302,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 45545.832303120565,
+        "duplicated_shared_local_competition": 41836.96151644581,
+        "expanded_shared_private": 40590.674106693754,
+        "owner_control": 45530.63085099489,
+        "shared_core": 45659.44724078383
+      },
+      "best_fixed_gain": 41836.96151644581,
+      "checkpoint_error": 80675.4856261987,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31502,
+        "conflicting"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 45659.44724078383,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 92706.34213859952,
+        "duplicated_shared_local_competition": 94236.19413424713,
+        "expanded_shared_private": 98324.88136719985,
+        "owner_control": 96420.73186111452,
+        "shared_core": 98513.06312933259
+      },
+      "best_fixed_gain": 94236.19413424713,
+      "checkpoint_error": 117239.95478297946,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31503,
+        "conforming"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 98513.06312933259,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 63143.63915240389,
+        "duplicated_shared_local_competition": 64816.01860873259,
+        "expanded_shared_private": 63931.521471021864,
+        "owner_control": 64155.04379712713,
+        "shared_core": 64670.14493834572
+      },
+      "best_fixed_gain": 64816.01860873259,
+      "checkpoint_error": 102153.55568035401,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31503,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 64816.01860873259,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 54804.482119666995,
+        "duplicated_shared_local_competition": 53414.09202796575,
+        "expanded_shared_private": 52374.71000016608,
+        "owner_control": 53943.93159776079,
+        "shared_core": 52431.50317318486
+      },
+      "best_fixed_gain": 53414.09202796575,
+      "checkpoint_error": 78777.16522705171,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31504,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_competition",
+      "oracle_gain": 54804.482119666995,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 21219.323786823094,
+        "duplicated_shared_local_competition": 21298.325562107333,
+        "expanded_shared_private": 21398.436783342608,
+        "owner_control": 22699.58499531508,
+        "shared_core": 21651.943797295513
+      },
+      "best_fixed_gain": 21298.325562107333,
+      "checkpoint_error": 55100.309092543204,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31504,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 22699.58499531508,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 58608.36847563135,
+        "duplicated_shared_local_competition": 62108.73242438192,
+        "expanded_shared_private": 60676.951418098004,
+        "owner_control": 61899.46031182673,
+        "shared_core": 59756.26757403315
+      },
+      "best_fixed_gain": 62108.73242438192,
+      "checkpoint_error": 79286.96134296304,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31505,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 62108.73242438192,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 69901.12372955904,
+        "duplicated_shared_local_competition": 72084.47581225648,
+        "expanded_shared_private": 71470.50659766736,
+        "owner_control": 69234.26839871905,
+        "shared_core": 70310.18254049878
+      },
+      "best_fixed_gain": 72084.47581225648,
+      "checkpoint_error": 114814.6728034698,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "random",
+        12,
+        31505,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 72084.47581225648,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 30988.379725406878,
+        "duplicated_shared_local_competition": 31742.40268691321,
+        "expanded_shared_private": 31504.97574266662,
+        "owner_control": 31197.33704894399,
+        "shared_core": 30976.640986693103
+      },
+      "best_fixed_gain": 31742.40268691321,
+      "checkpoint_error": 37229.55258400805,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31501,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 31742.40268691321,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 34248.99392506702,
+        "duplicated_shared_local_competition": 36117.982842729434,
+        "expanded_shared_private": 34773.00800868585,
+        "owner_control": 35212.11123556737,
+        "shared_core": 34351.03561826229
+      },
+      "best_fixed_gain": 36117.982842729434,
+      "checkpoint_error": 57333.23002403367,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31501,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 36117.982842729434,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 23223.070831630277,
+        "duplicated_shared_local_competition": 22834.771447024665,
+        "expanded_shared_private": 22765.013750282364,
+        "owner_control": 22698.252398628018,
+        "shared_core": 22977.41178246634
+      },
+      "best_fixed_gain": 22834.771447024665,
+      "checkpoint_error": 27424.044927695028,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31502,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_competition",
+      "oracle_gain": 23223.070831630277,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 26482.048537541683,
+        "duplicated_shared_local_competition": 27208.108310623255,
+        "expanded_shared_private": 26911.113249362483,
+        "owner_control": 27831.404644226193,
+        "shared_core": 26900.66492554729
+      },
+      "best_fixed_gain": 27208.108310623255,
+      "checkpoint_error": 35734.15909133627,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31502,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 27831.404644226193,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 72370.63144124136,
+        "duplicated_shared_local_competition": 71338.0389135809,
+        "expanded_shared_private": 73749.44091486638,
+        "owner_control": 72823.67689618499,
+        "shared_core": 72975.08218591039
+      },
+      "best_fixed_gain": 71338.0389135809,
+      "checkpoint_error": 80494.17085369969,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31503,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 73749.44091486638,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 38228.27378207987,
+        "duplicated_shared_local_competition": 41816.96160384407,
+        "expanded_shared_private": 39732.81385339559,
+        "owner_control": 38270.7309559764,
+        "shared_core": 38346.90797726643
+      },
+      "best_fixed_gain": 41816.96160384407,
+      "checkpoint_error": 65385.89307274769,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31503,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 41816.96160384407,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 42291.111108286765,
+        "duplicated_shared_local_competition": 42121.6412177903,
+        "expanded_shared_private": 42528.880749140284,
+        "owner_control": 42486.13010389279,
+        "shared_core": 42106.68571438926
+      },
+      "best_fixed_gain": 42121.6412177903,
+      "checkpoint_error": 47782.72756737842,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31504,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 42528.880749140284,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 28956.337297433995,
+        "duplicated_shared_local_competition": 28903.799480770955,
+        "expanded_shared_private": 29287.498422899524,
+        "owner_control": 29094.198338545775,
+        "shared_core": 29561.377509561353
+      },
+      "best_fixed_gain": 28903.799480770955,
+      "checkpoint_error": 41193.87943425819,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31504,
+        "conflicting"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 29561.377509561353,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 17456.790470860495,
+        "duplicated_shared_local_competition": 17717.120770237412,
+        "expanded_shared_private": 17481.20695067175,
+        "owner_control": 17463.824423165497,
+        "shared_core": 17469.794569472397
+      },
+      "best_fixed_gain": 17717.120770237412,
+      "checkpoint_error": 21793.02811154692,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31505,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 17717.120770237412,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 30388.357230481888,
+        "duplicated_shared_local_competition": 31471.714754921777,
+        "expanded_shared_private": 30590.98688190443,
+        "owner_control": 30692.738096059038,
+        "shared_core": 30702.677727352766
+      },
+      "best_fixed_gain": 31471.714754921777,
+      "checkpoint_error": 42728.86091378288,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        6,
+        31505,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 31471.714754921777,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 58141.462944539526,
+        "duplicated_shared_local_competition": 58499.16335804975,
+        "expanded_shared_private": 57572.98957866336,
+        "owner_control": 56937.2755348745,
+        "shared_core": 55544.039439703396
+      },
+      "best_fixed_gain": 58499.16335804975,
+      "checkpoint_error": 86573.07858366435,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31501,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 58499.16335804975,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 45598.88656415726,
+        "duplicated_shared_local_competition": 46414.953929905125,
+        "expanded_shared_private": 44723.53310391223,
+        "owner_control": 45584.70961839495,
+        "shared_core": 45261.11109485428
+      },
+      "best_fixed_gain": 46414.953929905125,
+      "checkpoint_error": 84885.635929015,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31501,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 46414.953929905125,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 52660.214647237386,
+        "duplicated_shared_local_competition": 52688.53044911132,
+        "expanded_shared_private": 51329.260286157965,
+        "owner_control": 53163.54282531131,
+        "shared_core": 52651.00547866393
+      },
+      "best_fixed_gain": 52688.53044911132,
+      "checkpoint_error": 69762.62574764233,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31502,
+        "conforming"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 53163.54282531131,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 61636.318094007554,
+        "duplicated_shared_local_competition": 63235.8371540133,
+        "expanded_shared_private": 59449.82556036881,
+        "owner_control": 64997.706835393605,
+        "shared_core": 61847.95615109359
+      },
+      "best_fixed_gain": 63235.8371540133,
+      "checkpoint_error": 86406.9143216585,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31502,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 64997.706835393605,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 109085.47234528977,
+        "duplicated_shared_local_competition": 108449.2920921252,
+        "expanded_shared_private": 103204.61311025948,
+        "owner_control": 109340.38396656248,
+        "shared_core": 109033.94851374606
+      },
+      "best_fixed_gain": 108449.2920921252,
+      "checkpoint_error": 149053.62066149333,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31503,
+        "conforming"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 109340.38396656248,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 70465.45868017124,
+        "duplicated_shared_local_competition": 75921.24282744527,
+        "expanded_shared_private": 72165.82734108425,
+        "owner_control": 69847.5058285431,
+        "shared_core": 68599.35027227204
+      },
+      "best_fixed_gain": 75921.24282744527,
+      "checkpoint_error": 128337.22223624177,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31503,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 75921.24282744527,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 63857.15278084697,
+        "duplicated_shared_local_competition": 66815.40833221567,
+        "expanded_shared_private": 65396.41426586555,
+        "owner_control": 64839.236074979344,
+        "shared_core": 64722.334259645446
+      },
+      "best_fixed_gain": 66815.40833221567,
+      "checkpoint_error": 77321.76239202233,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31504,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 66815.40833221567,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 39190.303394199436,
+        "duplicated_shared_local_competition": 41200.33792553244,
+        "expanded_shared_private": 40583.23994269709,
+        "owner_control": 39371.14932683472,
+        "shared_core": 39438.8537507086
+      },
+      "best_fixed_gain": 41200.33792553244,
+      "checkpoint_error": 60913.80805185441,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31504,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 41200.33792553244,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 52913.23523216438,
+        "duplicated_shared_local_competition": 55728.98572321006,
+        "expanded_shared_private": 52500.11884699392,
+        "owner_control": 54597.832315889114,
+        "shared_core": 51535.836338499736
+      },
+      "best_fixed_gain": 55728.98572321006,
+      "checkpoint_error": 67254.38314263854,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31505,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 55728.98572321006,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 44609.20228830343,
+        "duplicated_shared_local_competition": 46757.5637467561,
+        "expanded_shared_private": 44939.26715666341,
+        "owner_control": 48164.35293517326,
+        "shared_core": 45568.7489404624
+      },
+      "best_fixed_gain": 46757.5637467561,
+      "checkpoint_error": 90679.7060618671,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "chain",
+        12,
+        31505,
+        "conflicting"
+      ],
+      "oracle_arm": "owner_control",
+      "oracle_gain": 48164.35293517326,
+      "persistent_action": "ctp_restricted",
+      "persistent_mapped_arm": "shared_core",
+      "persistent_reason": "medium_restricted_ctp",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 28683.850388853338,
+        "duplicated_shared_local_competition": 28837.327029804477,
+        "expanded_shared_private": 27404.147204940247,
+        "owner_control": 28576.549664704493,
+        "shared_core": 27729.22206513669
+      },
+      "best_fixed_gain": 28837.327029804477,
+      "checkpoint_error": 35615.55586673421,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31501,
+        "conforming"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 28837.327029804477,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 29573.482854967864,
+        "duplicated_shared_local_competition": 30678.481968199994,
+        "expanded_shared_private": 30520.699758315423,
+        "owner_control": 30572.24167075732,
+        "shared_core": 29727.515516164196
+      },
+      "best_fixed_gain": 30678.481968199994,
+      "checkpoint_error": 57475.91025950658,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31501,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 30678.481968199994,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 16091.482217124525,
+        "duplicated_shared_local_competition": 16115.416598235366,
+        "expanded_shared_private": 16424.382138014964,
+        "owner_control": 16388.901446461423,
+        "shared_core": 16364.06833382637
+      },
+      "best_fixed_gain": 16115.416598235366,
+      "checkpoint_error": 19542.41080304004,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31502,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 16424.382138014964,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 31293.727005656576,
+        "duplicated_shared_local_competition": 31839.871511862613,
+        "expanded_shared_private": 31311.902429455742,
+        "owner_control": 31293.727005656576,
+        "shared_core": 31725.042734200433
+      },
+      "best_fixed_gain": 31839.871511862613,
+      "checkpoint_error": 41606.489156451134,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31502,
+        "conflicting"
+      ],
+      "oracle_arm": "duplicated_shared_local_competition",
+      "oracle_gain": 31839.871511862613,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 37530.10327612021,
+        "duplicated_shared_local_competition": 34325.50524872986,
+        "expanded_shared_private": 37131.593737503994,
+        "owner_control": 35917.40480618304,
+        "shared_core": 37871.501869057494
+      },
+      "best_fixed_gain": 34325.50524872986,
+      "checkpoint_error": 42742.27921415388,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31503,
+        "conforming"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 37871.501869057494,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 35345.150166238585,
+        "duplicated_shared_local_competition": 36168.97111227809,
+        "expanded_shared_private": 36257.99885115017,
+        "owner_control": 35363.858584372996,
+        "shared_core": 35926.369089562584
+      },
+      "best_fixed_gain": 36168.97111227809,
+      "checkpoint_error": 63761.361796643316,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31503,
+        "conflicting"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 36257.99885115017,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 24867.023593061964,
+        "duplicated_shared_local_competition": 25456.816010337607,
+        "expanded_shared_private": 25773.277536783924,
+        "owner_control": 24974.648403251118,
+        "shared_core": 25909.373487726578
+      },
+      "best_fixed_gain": 25456.816010337607,
+      "checkpoint_error": 31784.69079425105,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31504,
+        "conforming"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 25909.373487726578,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 23651.258710374885,
+        "duplicated_shared_local_competition": 23651.258710374885,
+        "expanded_shared_private": 24540.076497682632,
+        "owner_control": 23784.5473010031,
+        "shared_core": 23933.382002809944
+      },
+      "best_fixed_gain": 23651.258710374885,
+      "checkpoint_error": 35938.00859988229,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31504,
+        "conflicting"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 24540.076497682632,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 17906.209575234214,
+        "duplicated_shared_local_competition": 19162.83480929613,
+        "expanded_shared_private": 19600.339072914085,
+        "owner_control": 19206.495897752455,
+        "shared_core": 19236.57480974622
+      },
+      "best_fixed_gain": 19162.83480929613,
+      "checkpoint_error": 24432.622072048813,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31505,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 19600.339072914085,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 20342.589181140855,
+        "duplicated_shared_local_competition": 20569.302576890517,
+        "expanded_shared_private": 20901.626586370137,
+        "owner_control": 20354.731690084667,
+        "shared_core": 20956.868300721253
+      },
+      "best_fixed_gain": 20569.302576890517,
+      "checkpoint_error": 32087.07439637128,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        6,
+        31505,
+        "conflicting"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 20956.868300721253,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 84092.85524406338,
+        "duplicated_shared_local_competition": 83757.55560568425,
+        "expanded_shared_private": 85166.5806678714,
+        "owner_control": 85019.71896445044,
+        "shared_core": 84676.25110260714
+      },
+      "best_fixed_gain": 83757.55560568425,
+      "checkpoint_error": 108923.83489022552,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31501,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 85166.5806678714,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 68614.63074936037,
+        "duplicated_shared_local_competition": 68614.63074936037,
+        "expanded_shared_private": 69459.52719709954,
+        "owner_control": 68902.40193173249,
+        "shared_core": 70263.753017992
+      },
+      "best_fixed_gain": 68614.63074936037,
+      "checkpoint_error": 119624.83225074578,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31501,
+        "conflicting"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 70263.753017992,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 50678.60949024976,
+        "duplicated_shared_local_competition": 50872.42217594723,
+        "expanded_shared_private": 50872.78210676697,
+        "owner_control": 50678.60949024976,
+        "shared_core": 50870.11723255298
+      },
+      "best_fixed_gain": 50872.42217594723,
+      "checkpoint_error": 77589.98155476942,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31502,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 50872.78210676697,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 42567.06205936495,
+        "duplicated_shared_local_competition": 43099.08060289126,
+        "expanded_shared_private": 47925.05581572539,
+        "owner_control": 45603.50483620572,
+        "shared_core": 46436.65347613383
+      },
+      "best_fixed_gain": 43099.08060289126,
+      "checkpoint_error": 108913.1606064812,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31502,
+        "conflicting"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 47925.05581572539,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 124116.71095507997,
+        "duplicated_shared_local_competition": 123022.81545197155,
+        "expanded_shared_private": 124437.14226951674,
+        "owner_control": 112441.91823737827,
+        "shared_core": 124230.66545432998
+      },
+      "best_fixed_gain": 123022.81545197155,
+      "checkpoint_error": 143426.6881788241,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31503,
+        "conforming"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 124437.14226951674,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 113358.89583217495,
+        "duplicated_shared_local_competition": 114721.70385352377,
+        "expanded_shared_private": 119469.57653434697,
+        "owner_control": 121857.48702798759,
+        "shared_core": 122113.52945777372
+      },
+      "best_fixed_gain": 114721.70385352377,
+      "checkpoint_error": 168182.15887623624,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31503,
+        "conflicting"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 122113.52945777372,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 54881.5456017329,
+        "duplicated_shared_local_competition": 51491.548199670506,
+        "expanded_shared_private": 54072.5884557485,
+        "owner_control": 54934.3645826067,
+        "shared_core": 55009.17190460014
+      },
+      "best_fixed_gain": 51491.548199670506,
+      "checkpoint_error": 69597.68451773938,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31504,
+        "conforming"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 55009.17190460014,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 33429.25467655402,
+        "duplicated_shared_local_competition": 33896.56232034185,
+        "expanded_shared_private": 34753.1904875656,
+        "owner_control": 34534.74495330717,
+        "shared_core": 34594.60878057257
+      },
+      "best_fixed_gain": 33896.56232034185,
+      "checkpoint_error": 63292.71632047552,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31504,
+        "conflicting"
+      ],
+      "oracle_arm": "expanded_shared_private",
+      "oracle_gain": 34753.1904875656,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 41951.20491973432,
+        "duplicated_shared_local_competition": 41951.20491973432,
+        "expanded_shared_private": 42729.10964807099,
+        "owner_control": 41763.789950978695,
+        "shared_core": 43128.818841573
+      },
+      "best_fixed_gain": 41951.20491973432,
+      "checkpoint_error": 50740.27466481267,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31505,
+        "conforming"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 43128.818841573,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "arbitration_gain": 0.0,
+      "arm_gains": {
+        "duplicated_shared_competition": 55784.71429385699,
+        "duplicated_shared_local_competition": 59095.02342982777,
+        "expanded_shared_private": 61368.32326740916,
+        "owner_control": 56273.85584806949,
+        "shared_core": 61886.37220641829
+      },
+      "best_fixed_gain": 59095.02342982777,
+      "checkpoint_error": 98490.84575313979,
+      "conflict_level_observed": "high",
+      "escalated_action": "aor",
+      "escalated_mapped_arm": null,
+      "escalated_reason": "persistent_escalation_aor",
+      "fresh_action": "arbitration_only",
+      "fresh_mapped_arm": "owner_control",
+      "fresh_reason": "low_arbitration",
+      "key": [
+        "star",
+        12,
+        31505,
+        "conflicting"
+      ],
+      "oracle_arm": "shared_core",
+      "oracle_gain": 61886.37220641829,
+      "persistent_action": "arbitration_only",
+      "persistent_mapped_arm": "owner_control",
+      "persistent_reason": "shared_core_budget_unavailable",
+      "selected_component": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  ],
+  "scenario_reports": {
+    "escalated": {
+      "action_distribution": {
+        "aor": 60
+      },
+      "aor_unmatched_rows": 60,
+      "beats_best_fixed": false,
+      "beats_ema_selector": false,
+      "ema_comparison_rows": 0,
+      "end_to_end_hit_rate": 0.0,
+      "end_to_end_hit_rate_ci95": [
+        0.0,
+        0.0
+      ],
+      "mean_regret": 0.0,
+      "opportunity_captured": 0.0,
+      "paired_gain_vs_best_fixed": 0.0,
+      "paired_gain_vs_best_fixed_ci95": [
+        0.0,
+        0.0
+      ],
+      "paired_gain_vs_ema_selector": 0.0,
+      "paired_gain_vs_ema_selector_ci95": [
+        0.0,
+        0.0
+      ],
+      "scored_rows": 0
+    },
+    "fresh": {
+      "action_distribution": {
+        "arbitration_only": 60
+      },
+      "aor_unmatched_rows": 0,
+      "beats_best_fixed": false,
+      "beats_ema_selector": false,
+      "ema_comparison_rows": 43,
+      "end_to_end_hit_rate": 0.18333333333333332,
+      "end_to_end_hit_rate_ci95": [
+        0.08333333333333333,
+        0.2833333333333333
+      ],
+      "mean_regret": 1145.1309513614142,
+      "opportunity_captured": 0.9751521837498873,
+      "paired_gain_vs_best_fixed": -45.86459870515397,
+      "paired_gain_vs_best_fixed_ci95": [
+        -703.616348576976,
+        541.6126882127692
+      ],
+      "paired_gain_vs_ema_selector": -281.59102520694324,
+      "paired_gain_vs_ema_selector_ci95": [
+        -1107.8757208920088,
+        386.7424731770939
+      ],
+      "scored_rows": 60
+    },
+    "persistent": {
+      "action_distribution": {
+        "arbitration_only": 34,
+        "ctp_restricted": 24,
+        "ctp_shared_core": 2
+      },
+      "aor_unmatched_rows": 0,
+      "beats_best_fixed": false,
+      "beats_ema_selector": false,
+      "ema_comparison_rows": 43,
+      "end_to_end_hit_rate": 0.13333333333333333,
+      "end_to_end_hit_rate_ci95": [
+        0.05,
+        0.21666666666666667
+      ],
+      "mean_regret": 1442.4021569142153,
+      "opportunity_captured": 0.9687017945754055,
+      "paired_gain_vs_best_fixed": -343.135804257955,
+      "paired_gain_vs_best_fixed_ci95": [
+        -1021.8676220089944,
+        265.51665839618374
+      ],
+      "paired_gain_vs_ema_selector": -595.6836223232629,
+      "paired_gain_vs_ema_selector_ci95": [
+        -1388.2430520554733,
+        66.8037771580497
+      ],
+      "scored_rows": 60
+    }
+  },
+  "schema_version": "arac-oc-production-baseline-v1"
+}

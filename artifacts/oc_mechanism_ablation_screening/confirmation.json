@@ -1,0 +1,171 @@
+{
+  "gate_checks": {
+    "all_jobs_resolved": true,
+    "at_least_one_valid_cell_per_config": true
+  },
+  "gate_passed": true,
+  "implementation_manifest_hash": "sha256:cc18a05ad7052dd3b4c3fe34ffec786490d87b299856ab9c18380ae37a6e524c",
+  "invalid_cells": [
+    {
+      "case": "R6",
+      "classification": "protocol_invalid",
+      "config": "v5_3_full_on",
+      "error": "RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']",
+      "seed": 20260902
+    },
+    {
+      "case": "R2",
+      "classification": "protocol_invalid",
+      "config": "v5_3_full_on",
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "seed": 20260903
+    },
+    {
+      "case": "A3",
+      "classification": "protocol_invalid",
+      "config": "v5_3_full_on",
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "seed": 20260901
+    },
+    {
+      "case": "A3",
+      "classification": "protocol_invalid",
+      "config": "v5_3_full_on",
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "seed": 20260902
+    },
+    {
+      "case": "S5",
+      "classification": "protocol_invalid",
+      "config": "v5_3_full_on",
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "seed": 20260903
+    },
+    {
+      "case": "A3",
+      "classification": "protocol_invalid",
+      "config": "v5_3_full_on",
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "seed": 20260903
+    }
+  ],
+  "per_config": {
+    "v4_all_off": {
+      "A3": {
+        "audit_ok_cells": 3,
+        "ctp_funded_share_off_reference": 0.1595744680851064,
+        "ctp_funded_share_on": 0.20638297872340425,
+        "median_on_off_ratio": 0.9974063754579632,
+        "median_ratio_vs_best_standalone": 1.0012318776598772,
+        "noninferior": true,
+        "status": "ok",
+        "valid_cells": 3,
+        "worst_ratio_vs_best_standalone": 1.005899484833564,
+        "worst_seed_ok": true
+      },
+      "R2": {
+        "audit_ok_cells": 3,
+        "ctp_funded_share_off_reference": 0.1595744680851064,
+        "ctp_funded_share_on": 0.3808517730496454,
+        "median_on_off_ratio": 0.8686360398449202,
+        "median_ratio_vs_best_standalone": 1.283511176054471,
+        "noninferior": false,
+        "status": "ok",
+        "valid_cells": 3,
+        "worst_ratio_vs_best_standalone": 1.373819828119456,
+        "worst_seed_ok": false
+      },
+      "R6": {
+        "audit_ok_cells": 3,
+        "ctp_funded_share_off_reference": 0.20638297872340425,
+        "ctp_funded_share_on": 0.3808524822695035,
+        "median_on_off_ratio": 1.3170484261083883,
+        "median_ratio_vs_best_standalone": 1.3271337074373057,
+        "noninferior": false,
+        "status": "ok",
+        "valid_cells": 3,
+        "worst_ratio_vs_best_standalone": 1.4327347939822719,
+        "worst_seed_ok": false
+      },
+      "S5": {
+        "audit_ok_cells": 3,
+        "ctp_funded_share_off_reference": 0.6646606382978724,
+        "ctp_funded_share_on": 0.5654265957446809,
+        "median_on_off_ratio": 1.7121587387355603,
+        "median_ratio_vs_best_standalone": 5.0072838535389215,
+        "noninferior": false,
+        "status": "ok",
+        "valid_cells": 3,
+        "worst_ratio_vs_best_standalone": 11.793398223405209,
+        "worst_seed_ok": false
+      }
+    },
+    "v5_3_full_on": {
+      "A3": {
+        "status": "no_valid_cells"
+      },
+      "R2": {
+        "audit_ok_cells": 2,
+        "ctp_funded_share_off_reference": 0.25957446808510637,
+        "ctp_funded_share_on": 0.27712801418439714,
+        "median_on_off_ratio": 0.8963662872996961,
+        "median_ratio_vs_best_standalone": 1.2999771659789778,
+        "noninferior": false,
+        "status": "ok",
+        "valid_cells": 2,
+        "worst_ratio_vs_best_standalone": 1.3668576864376591,
+        "worst_seed_ok": false
+      },
+      "R6": {
+        "audit_ok_cells": 2,
+        "ctp_funded_share_off_reference": 0.20638297872340425,
+        "ctp_funded_share_on": 0.20638297872340425,
+        "median_on_off_ratio": 0.9816367487881184,
+        "median_ratio_vs_best_standalone": 0.8362780646234114,
+        "noninferior": true,
+        "status": "ok",
+        "valid_cells": 2,
+        "worst_ratio_vs_best_standalone": 0.9891536195258063,
+        "worst_seed_ok": true
+      },
+      "S5": {
+        "audit_ok_cells": 2,
+        "ctp_funded_share_off_reference": 0.6646606382978724,
+        "ctp_funded_share_on": 0.20638297872340425,
+        "median_on_off_ratio": 19.440440768299865,
+        "median_ratio_vs_best_standalone": 73.30323600320219,
+        "noninferior": false,
+        "status": "ok",
+        "valid_cells": 2,
+        "worst_ratio_vs_best_standalone": 85.37703434620283,
+        "worst_seed_ok": false
+      }
+    }
+  },
+  "protocol": {
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "configs": [
+      "v4_all_off",
+      "v5_3_full_on"
+    ],
+    "invalid_cell_policy": "audit failure or missing cell = protocol_invalid, excluded from means",
+    "predictions_registered": [
+      "S5: v4 funds CTP dominantly and recovers toward off-level error",
+      "A3: v4 completes audit where v5.3-on failed",
+      "R2/R6: gains persist under v4 iff they do not belong to the v5 stratum"
+    ],
+    "references": "frozen gate51c v5.3 standalone + off cells",
+    "seeds": [
+      20260901,
+      20260902,
+      20260903
+    ],
+    "total_fes": 3000000
+  },
+  "schema_version": "arac-oc-mechanism-ablation-screening-v1"
+}

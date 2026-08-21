@@ -1,0 +1,6842 @@
+{
+  "gate_checks": {
+    "cell_contracts": true,
+    "cell_count_200": true,
+    "conflict_ci_negative": true,
+    "correlations_finite": true,
+    "neutral_ci_contains_zero": true,
+    "none_ci_contains_zero": true,
+    "synergy_ci_positive": true,
+    "topology_sign_consistent": true
+  },
+  "gate_passed": true,
+  "protocol": {
+    "authority_threshold": 0.3,
+    "bootstrap_replicates": 2000,
+    "bootstrap_seed": 2026082099,
+    "cell_count": 200,
+    "production_scheduler_modified": false,
+    "regimes": [
+      "none",
+      "synergy",
+      "conflict",
+      "neutral"
+    ],
+    "seeds": [
+      2026082101,
+      2026082102,
+      2026082103,
+      2026082104,
+      2026082105,
+      2026082106,
+      2026082107,
+      2026082108,
+      2026082109,
+      2026082110,
+      2026082111,
+      2026082112,
+      2026082113,
+      2026082114,
+      2026082115,
+      2026082116,
+      2026082117,
+      2026082118,
+      2026082119,
+      2026082120,
+      2026082121,
+      2026082122,
+      2026082123,
+      2026082124,
+      2026082125
+    ],
+    "topologies": [
+      "chain",
+      "star"
+    ]
+  },
+  "results": [
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082101,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308408,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.1281199728589346,
+        "frozen_candidate_error": 0.7093733242863114,
+        "frozen_gain": 6.048804994022097,
+        "full_candidate_error": 2.8374932971452456,
+        "full_gain": 3.9206850211631625,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.0365492749541385,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082102,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.0237155553549173,
+        "frozen_candidate_error": 0.6745718517849725,
+        "frozen_gain": 4.055657778690705,
+        "full_candidate_error": 2.69828740713989,
+        "full_gain": 2.0319422233357876,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.041715655465276,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082103,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.9065315666067075,
+        "frozen_candidate_error": 0.6355105222022357,
+        "frozen_gain": 4.029094020615828,
+        "full_candidate_error": 2.542042088808943,
+        "full_gain": 2.1225624540091204,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.015866674637492,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082104,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.3791597005096308,
+        "frozen_candidate_error": 0.7930532335032102,
+        "frozen_gain": 3.9511632398412218,
+        "full_candidate_error": 3.172212934012841,
+        "full_gain": 1.572003539331591,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.9347966337947606,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082105,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.0445735034306862,
+        "frozen_candidate_error": 0.3481911678102288,
+        "frozen_gain": 3.2158038460850698,
+        "full_candidate_error": 1.3927646712409152,
+        "full_gain": 2.1712303426543835,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.207506702278218,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082106,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -3.4580412195610126,
+        "frozen_candidate_error": 1.1526804065203375,
+        "frozen_gain": 6.5889116519099105,
+        "full_candidate_error": 4.61072162608135,
+        "full_gain": 3.130870432348898,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.570310048269977,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082107,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.4298081056918925,
+        "frozen_candidate_error": 0.4766027018972975,
+        "frozen_gain": 4.738182502530101,
+        "full_candidate_error": 1.90641080758919,
+        "full_gain": 3.3083743968382087,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.728803117148186,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082108,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.5169467198893076,
+        "frozen_candidate_error": 0.5056489066297692,
+        "frozen_gain": 3.6854095260570494,
+        "full_candidate_error": 2.022595626519077,
+        "full_gain": 2.168462806167742,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.6743032732209127,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082109,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.5281802573451513,
+        "frozen_candidate_error": 0.5093934191150504,
+        "frozen_gain": 5.477686802130562,
+        "full_candidate_error": 2.0375736764602017,
+        "full_gain": 3.949506544785411,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.468334022945702,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082110,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.6106079619198121,
+        "frozen_candidate_error": 0.5368693206399374,
+        "frozen_gain": 7.086032396914944,
+        "full_candidate_error": 2.1474772825597497,
+        "full_gain": 5.475424434995132,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.077301104718224,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082111,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.7639842824811698,
+        "frozen_candidate_error": 0.5879947608270566,
+        "frozen_gain": 4.551067268520496,
+        "full_candidate_error": 2.3519790433082264,
+        "full_gain": 2.7870829860393265,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.53941036636836,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082112,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.5632685318426485,
+        "frozen_candidate_error": 0.8544228439475495,
+        "frozen_gain": 4.697146709184457,
+        "full_candidate_error": 3.417691375790198,
+        "full_gain": 2.1338781773418085,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.680852403425033,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082113,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -0.8161071017437385,
+        "frozen_candidate_error": 0.2720357005812462,
+        "frozen_gain": 4.479572468637927,
+        "full_candidate_error": 1.0881428023249848,
+        "full_gain": 3.6634653668941883,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.473962732892545,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082114,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.5384341374093657,
+        "frozen_candidate_error": 0.5128113791364552,
+        "frozen_gain": 3.588695025979107,
+        "full_candidate_error": 2.051245516545821,
+        "full_gain": 2.050260888569741,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.577308482460641,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082115,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.284905701466862,
+        "frozen_candidate_error": 0.7616352338222873,
+        "frozen_gain": 5.782279899334501,
+        "full_candidate_error": 3.046540935289149,
+        "full_gain": 3.497374197867639,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.7689066431100855,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082116,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.918728991863857,
+        "frozen_candidate_error": 0.972909663954619,
+        "frozen_gain": 4.9346810165428785,
+        "full_candidate_error": 3.891638655818476,
+        "full_gain": 2.0159520246790215,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.916697465420079,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082117,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.4911509258446847,
+        "frozen_candidate_error": 0.8303836419482282,
+        "frozen_gain": 5.019671956274528,
+        "full_candidate_error": 3.321534567792913,
+        "full_gain": 2.528521030429843,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.004247257977666,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082118,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.0337706388226064,
+        "frozen_candidate_error": 0.6779235462742023,
+        "frozen_gain": 4.433616288698653,
+        "full_candidate_error": 2.711694185096809,
+        "full_gain": 2.3998456498760468,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.420140251584302,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082119,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -0.9371424703953339,
+        "frozen_candidate_error": 0.3123808234651113,
+        "frozen_gain": 3.1911457015911147,
+        "full_candidate_error": 1.2495232938604452,
+        "full_gain": 2.2540032311957807,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.183637549854116,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082120,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.405025284456906,
+        "frozen_candidate_error": 0.8016750948189686,
+        "frozen_gain": 7.000968083842395,
+        "full_candidate_error": 3.2067003792758744,
+        "full_gain": 4.595942799385488,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.988081811024317,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082121,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.3462630874523112,
+        "frozen_candidate_error": 0.4487543624841036,
+        "frozen_gain": 4.757833376274426,
+        "full_candidate_error": 1.7950174499364144,
+        "full_gain": 3.4115702888221144,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.748995053746655,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082122,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.0765281416817043,
+        "frozen_candidate_error": 0.35884271389390143,
+        "frozen_gain": 6.273323515836548,
+        "full_candidate_error": 1.4353708555756057,
+        "full_gain": 5.196795374154844,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.267064979424931,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082123,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -3.2142945706867447,
+        "frozen_candidate_error": 1.0714315235622482,
+        "frozen_gain": 6.013514048391911,
+        "full_candidate_error": 4.285726094248993,
+        "full_gain": 2.799219477705166,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.995436833012833,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082124,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.332825756274862,
+        "frozen_candidate_error": 0.4442752520916206,
+        "frozen_gain": 4.270299962172838,
+        "full_candidate_error": 1.7771010083664824,
+        "full_gain": 2.937474205897976,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.261102323680838,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082125,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.6423485797030657,
+        "frozen_candidate_error": 0.8807828599010218,
+        "frozen_gain": 5.2212334368875215,
+        "full_candidate_error": 3.523131439604087,
+        "full_gain": 2.578884857184456,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.205215433915683,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082101,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308408,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.758178318308408,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.758178318308408,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.758178318308408,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082102,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.7302296304756775,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.7302296304756775,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.7302296304756775,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082103,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.664604542818063,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.664604542818063,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.664604542818063,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082104,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.744216473344432,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.744216473344432,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.744216473344432,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082105,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.5639950138952985,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.5639950138952985,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.5639950138952985,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082106,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.741592058430248,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.741592058430248,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.741592058430248,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082107,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.214785204427399,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.214785204427399,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.214785204427399,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082108,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.191058432686819,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.191058432686819,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.191058432686819,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082109,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.987080221245613,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.987080221245613,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.987080221245613,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082110,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.622901717554881,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.622901717554881,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.622901717554881,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082111,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.139062029347553,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.139062029347553,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.139062029347553,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082112,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.551569553132007,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.551569553132007,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.551569553132007,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082113,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.751608169219173,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.751608169219173,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.751608169219173,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082114,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.101506405115562,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.101506405115562,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.101506405115562,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082115,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.543915133156788,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.543915133156788,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.543915133156788,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082116,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.907590680497497,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.907590680497497,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.907590680497497,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082117,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.850055598222756,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.850055598222756,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.850055598222756,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082118,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.111539834972856,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.111539834972856,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.111539834972856,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082119,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.503526525056226,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.503526525056226,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.503526525056226,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082120,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.802643178661363,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.802643178661363,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.802643178661363,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082121,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.206587738758529,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.206587738758529,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.206587738758529,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082122,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.63216622973045,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.63216622973045,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.63216622973045,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082123,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.084945571954159,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.084945571954159,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.084945571954159,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082124,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.714575214264459,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.714575214264459,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.714575214264459,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082125,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.102016296788543,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.102016296788543,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.102016296788543,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082101,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308408,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.758178318308408,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.758178318308408,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.758178318308408,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082102,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.7302296304756775,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.7302296304756775,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.7302296304756775,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082103,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.664604542818063,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.664604542818063,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.664604542818063,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082104,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.744216473344432,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.744216473344432,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.744216473344432,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082105,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.5639950138952985,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.5639950138952985,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.5639950138952985,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082106,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.741592058430248,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.741592058430248,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.741592058430248,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082107,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.214785204427399,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.214785204427399,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.214785204427399,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082108,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.191058432686819,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.191058432686819,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.191058432686819,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082109,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.987080221245613,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.987080221245613,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.987080221245613,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082110,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.622901717554881,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.622901717554881,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.622901717554881,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082111,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.139062029347553,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.139062029347553,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.139062029347553,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082112,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.551569553132007,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.551569553132007,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.551569553132007,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082113,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.751608169219173,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.751608169219173,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.751608169219173,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082114,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.101506405115562,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.101506405115562,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.101506405115562,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082115,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.543915133156788,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.543915133156788,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.543915133156788,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082116,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.907590680497497,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.907590680497497,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.907590680497497,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082117,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.850055598222756,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.850055598222756,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.850055598222756,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082118,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.111539834972856,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.111539834972856,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.111539834972856,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082119,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.503526525056226,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.503526525056226,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.503526525056226,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082120,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.802643178661363,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.802643178661363,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.802643178661363,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082121,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.206587738758529,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.206587738758529,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.206587738758529,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082122,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.63216622973045,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.63216622973045,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.63216622973045,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082123,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.084945571954159,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.084945571954159,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.084945571954159,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082124,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.714575214264459,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.714575214264459,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.714575214264459,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082125,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.102016296788543,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.102016296788543,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.102016296788543,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082101,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308408,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.709373324286311,
+        "frozen_candidate_error": 0.7093733242863114,
+        "frozen_gain": 6.048804994022097,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.758178318308408,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.060955747921798,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082102,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6745718517849726,
+        "frozen_candidate_error": 0.6745718517849725,
+        "frozen_gain": 4.055657778690705,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.7302296304756775,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.069457293225968,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082103,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6355105222022353,
+        "frozen_candidate_error": 0.6355105222022357,
+        "frozen_gain": 4.029094020615828,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.664604542818063,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.04218512556529,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082104,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.7930532335032101,
+        "frozen_candidate_error": 0.7930532335032102,
+        "frozen_gain": 3.9511632398412218,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.744216473344432,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.9673626837782052,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082105,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.34819116781022874,
+        "frozen_candidate_error": 0.3481911678102288,
+        "frozen_gain": 3.2158038460850698,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.5639950138952985,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.2240032930190434,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082106,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 1.1526804065203375,
+        "frozen_candidate_error": 1.1526804065203375,
+        "frozen_gain": 6.5889116519099105,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.741592058430248,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.607364361059173,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082107,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.47660270189729737,
+        "frozen_candidate_error": 0.4766027018972975,
+        "frozen_gain": 4.738182502530101,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.214785204427399,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.747470493409038,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082108,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5056489066297694,
+        "frozen_candidate_error": 0.5056489066297692,
+        "frozen_gain": 3.6854095260570494,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.191058432686819,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.696395129440369,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082109,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5093934191150504,
+        "frozen_candidate_error": 0.5093934191150504,
+        "frozen_gain": 5.477686802130562,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.987080221245613,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.48695449920523,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082110,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5368693206399371,
+        "frozen_candidate_error": 0.5368693206399374,
+        "frozen_gain": 7.086032396914944,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.622901717554881,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.094693260639603,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082111,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5879947608270566,
+        "frozen_candidate_error": 0.5879947608270566,
+        "frozen_gain": 4.551067268520496,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.139062029347553,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.562609753925478,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082112,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8544228439475496,
+        "frozen_candidate_error": 0.8544228439475495,
+        "frozen_gain": 4.697146709184457,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.551569553132007,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.713287108407041,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082113,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.27203570058124615,
+        "frozen_candidate_error": 0.2720357005812462,
+        "frozen_gain": 4.479572468637927,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.751608169219173,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.48512495309261,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082114,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5128113791364552,
+        "frozen_candidate_error": 0.5128113791364552,
+        "frozen_gain": 3.588695025979107,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.101506405115562,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.5999565394894524,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082115,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.7616352338222869,
+        "frozen_candidate_error": 0.7616352338222873,
+        "frozen_gain": 5.782279899334501,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.543915133156788,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.795536767247282,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082116,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.9729096639546189,
+        "frozen_candidate_error": 0.972909663954619,
+        "frozen_gain": 4.9346810165428785,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.907590680497497,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.952499879603053,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082117,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8303836419482282,
+        "frozen_candidate_error": 0.8303836419482282,
+        "frozen_gain": 5.019671956274528,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.850055598222756,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.034954709998726,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082118,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6779235462742026,
+        "frozen_candidate_error": 0.6779235462742023,
+        "frozen_gain": 4.433616288698653,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.111539834972856,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.446959699722207,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082119,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.3123808234651113,
+        "frozen_candidate_error": 0.3123808234651113,
+        "frozen_gain": 3.1911457015911147,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.503526525056226,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.1985646915018133,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082120,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8016750948189681,
+        "frozen_candidate_error": 0.8016750948189686,
+        "frozen_gain": 7.000968083842395,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.802643178661363,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.013751612618938,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082121,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.4487543624841033,
+        "frozen_candidate_error": 0.4487543624841036,
+        "frozen_gain": 4.757833376274426,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.206587738758529,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.766585509077754,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082122,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.35884271389390143,
+        "frozen_candidate_error": 0.35884271389390143,
+        "frozen_gain": 6.273323515836548,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.63216622973045,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.279527945836857,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082123,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 1.0714315235622482,
+        "frozen_candidate_error": 1.0714315235622482,
+        "frozen_gain": 6.013514048391911,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.084945571954159,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.031440037270703,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082124,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.44427525209162066,
+        "frozen_candidate_error": 0.4442752520916206,
+        "frozen_gain": 4.270299962172838,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.714575214264459,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.279403366246698,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082125,
+        "topology": "chain"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8807828599010215,
+        "frozen_candidate_error": 0.8807828599010218,
+        "frozen_gain": 5.2212334368875215,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.102016296788543,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          1
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.2371070969377636,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082101,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308406,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.1281199728589346,
+        "frozen_candidate_error": 0.7093733242863114,
+        "frozen_gain": 6.048804994022095,
+        "full_candidate_error": 2.8374932971452456,
+        "full_gain": 3.9206850211631608,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.036549274954137,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082102,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.0237155553549173,
+        "frozen_candidate_error": 0.6745718517849725,
+        "frozen_gain": 4.055657778690705,
+        "full_candidate_error": 2.69828740713989,
+        "full_gain": 2.0319422233357876,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.041715655465276,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082103,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "weighted_mean",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.906531566606707,
+        "frozen_candidate_error": 0.6355105222022356,
+        "frozen_gain": 4.029094020615828,
+        "full_candidate_error": 2.5420420888089423,
+        "full_gain": 2.122562454009121,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.015866674637492,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082104,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.3791597005096308,
+        "frozen_candidate_error": 0.7930532335032102,
+        "frozen_gain": 3.9511632398412218,
+        "full_candidate_error": 3.172212934012841,
+        "full_gain": 1.572003539331591,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.9347966337947606,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082105,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.0445735034306862,
+        "frozen_candidate_error": 0.3481911678102288,
+        "frozen_gain": 3.2158038460850698,
+        "full_candidate_error": 1.3927646712409152,
+        "full_gain": 2.1712303426543835,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.207506702278218,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082106,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -3.4580412195610126,
+        "frozen_candidate_error": 1.1526804065203375,
+        "frozen_gain": 6.5889116519099105,
+        "full_candidate_error": 4.61072162608135,
+        "full_gain": 3.130870432348898,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.570310048269977,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082107,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.4298081056918925,
+        "frozen_candidate_error": 0.4766027018972975,
+        "frozen_gain": 4.738182502530101,
+        "full_candidate_error": 1.90641080758919,
+        "full_gain": 3.3083743968382087,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.728803117148186,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082108,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.5169467198893076,
+        "frozen_candidate_error": 0.5056489066297692,
+        "frozen_gain": 3.6854095260570494,
+        "full_candidate_error": 2.022595626519077,
+        "full_gain": 2.168462806167742,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.6743032732209127,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082109,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.5281802573451513,
+        "frozen_candidate_error": 0.5093934191150504,
+        "frozen_gain": 5.477686802130562,
+        "full_candidate_error": 2.0375736764602017,
+        "full_gain": 3.949506544785411,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.468334022945702,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082110,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.6106079619198121,
+        "frozen_candidate_error": 0.5368693206399374,
+        "frozen_gain": 7.086032396914944,
+        "full_candidate_error": 2.1474772825597497,
+        "full_gain": 5.475424434995132,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.077301104718224,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082111,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.7639842824811698,
+        "frozen_candidate_error": 0.5879947608270566,
+        "frozen_gain": 4.551067268520496,
+        "full_candidate_error": 2.3519790433082264,
+        "full_gain": 2.7870829860393265,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.53941036636836,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082112,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.5632685318426485,
+        "frozen_candidate_error": 0.8544228439475495,
+        "frozen_gain": 4.697146709184457,
+        "full_candidate_error": 3.417691375790198,
+        "full_gain": 2.1338781773418085,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.680852403425033,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082113,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -0.8161071017437385,
+        "frozen_candidate_error": 0.2720357005812462,
+        "frozen_gain": 4.479572468637927,
+        "full_candidate_error": 1.0881428023249848,
+        "full_gain": 3.6634653668941883,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.473962732892545,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082114,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.5384341374093657,
+        "frozen_candidate_error": 0.5128113791364551,
+        "frozen_gain": 3.588695025979107,
+        "full_candidate_error": 2.051245516545821,
+        "full_gain": 2.050260888569741,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.577308482460641,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082115,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.284905701466862,
+        "frozen_candidate_error": 0.7616352338222873,
+        "frozen_gain": 5.782279899334501,
+        "full_candidate_error": 3.046540935289149,
+        "full_gain": 3.497374197867639,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.7689066431100855,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082116,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.918728991863857,
+        "frozen_candidate_error": 0.972909663954619,
+        "frozen_gain": 4.9346810165428785,
+        "full_candidate_error": 3.891638655818476,
+        "full_gain": 2.0159520246790215,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.916697465420079,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082117,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.4911509258446847,
+        "frozen_candidate_error": 0.8303836419482282,
+        "frozen_gain": 5.019671956274528,
+        "full_candidate_error": 3.321534567792913,
+        "full_gain": 2.528521030429843,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.004247257977666,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082118,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.0337706388226064,
+        "frozen_candidate_error": 0.6779235462742023,
+        "frozen_gain": 4.433616288698653,
+        "full_candidate_error": 2.711694185096809,
+        "full_gain": 2.3998456498760468,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.420140251584302,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082119,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -0.9371424703953339,
+        "frozen_candidate_error": 0.3123808234651113,
+        "frozen_gain": 3.1911457015911147,
+        "full_candidate_error": 1.2495232938604452,
+        "full_gain": 2.2540032311957807,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.183637549854116,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082120,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.405025284456906,
+        "frozen_candidate_error": 0.8016750948189686,
+        "frozen_gain": 7.000968083842395,
+        "full_candidate_error": 3.2067003792758744,
+        "full_gain": 4.595942799385488,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.988081811024317,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082121,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.3462630874523112,
+        "frozen_candidate_error": 0.4487543624841036,
+        "frozen_gain": 4.757833376274426,
+        "full_candidate_error": 1.7950174499364144,
+        "full_gain": 3.4115702888221144,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.748995053746655,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082122,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.0765281416817043,
+        "frozen_candidate_error": 0.35884271389390143,
+        "frozen_gain": 6.273323515836548,
+        "full_candidate_error": 1.4353708555756057,
+        "full_gain": 5.196795374154844,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.267064979424931,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082123,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "weighted_mean",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -3.214294570686743,
+        "frozen_candidate_error": 1.0714315235622482,
+        "frozen_gain": 6.013514048391911,
+        "full_candidate_error": 4.285726094248991,
+        "full_gain": 2.7992194777051678,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.995436833012833,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082124,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -1.332825756274862,
+        "frozen_candidate_error": 0.4442752520916206,
+        "frozen_gain": 4.270299962172838,
+        "full_candidate_error": 1.7771010083664824,
+        "full_gain": 2.937474205897976,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.261102323680838,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "conflict",
+        "seed": 2026082125,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": -2.6423485797030657,
+        "frozen_candidate_error": 0.8807828599010218,
+        "frozen_gain": 5.2212334368875215,
+        "full_candidate_error": 3.523131439604087,
+        "full_gain": 2.578884857184456,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.205215433915683,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082101,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308406,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.758178318308406,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.758178318308406,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.758178318308406,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082102,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.7302296304756775,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.7302296304756775,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.7302296304756775,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082103,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.664604542818063,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.664604542818063,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.664604542818063,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082104,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.744216473344432,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.744216473344432,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.744216473344432,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082105,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.5639950138952985,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.5639950138952985,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.5639950138952985,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082106,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.741592058430248,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.741592058430248,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.741592058430248,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082107,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.214785204427399,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.214785204427399,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.214785204427399,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082108,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.191058432686819,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.191058432686819,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.191058432686819,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082109,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.987080221245613,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.987080221245613,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.987080221245613,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082110,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.622901717554881,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.622901717554881,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.622901717554881,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082111,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.139062029347553,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.139062029347553,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.139062029347553,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082112,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.551569553132007,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.551569553132007,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.551569553132007,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082113,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.751608169219173,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.751608169219173,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.751608169219173,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082114,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.101506405115562,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.101506405115562,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.101506405115562,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082115,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.543915133156788,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.543915133156788,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.543915133156788,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082116,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.907590680497497,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.907590680497497,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.907590680497497,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082117,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.850055598222756,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.850055598222756,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.850055598222756,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082118,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.111539834972856,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.111539834972856,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.111539834972856,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082119,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.503526525056226,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.503526525056226,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.503526525056226,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082120,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.802643178661363,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.802643178661363,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.802643178661363,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082121,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.206587738758529,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.206587738758529,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.206587738758529,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082122,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.63216622973045,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.63216622973045,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.63216622973045,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082123,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.084945571954159,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.084945571954159,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.084945571954159,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082124,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.714575214264459,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.714575214264459,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.714575214264459,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "neutral",
+        "seed": 2026082125,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.102016296788543,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.102016296788543,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.102016296788543,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082101,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308406,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.758178318308406,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.758178318308406,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.758178318308406,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082102,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.7302296304756775,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.7302296304756775,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.7302296304756775,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082103,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.664604542818063,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.664604542818063,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.664604542818063,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082104,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.744216473344432,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.744216473344432,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.744216473344432,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082105,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.5639950138952985,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.5639950138952985,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.5639950138952985,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082106,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.741592058430248,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.741592058430248,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.741592058430248,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082107,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.214785204427399,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.214785204427399,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.214785204427399,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082108,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.191058432686819,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.191058432686819,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.191058432686819,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082109,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.987080221245613,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.987080221245613,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.987080221245613,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082110,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.622901717554881,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.622901717554881,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.622901717554881,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082111,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.139062029347553,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.139062029347553,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.139062029347553,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082112,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.551569553132007,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.551569553132007,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.551569553132007,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082113,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.751608169219173,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.751608169219173,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.751608169219173,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082114,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.101506405115562,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.101506405115562,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.101506405115562,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082115,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.543915133156788,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.543915133156788,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.543915133156788,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082116,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.907590680497497,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.907590680497497,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.907590680497497,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082117,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.850055598222756,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.850055598222756,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.850055598222756,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082118,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.111539834972856,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.111539834972856,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.111539834972856,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082119,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 3.503526525056226,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.503526525056226,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.503526525056226,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082120,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.802643178661363,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.802643178661363,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.802643178661363,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082121,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 5.206587738758529,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.206587738758529,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.206587738758529,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082122,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.63216622973045,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.63216622973045,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.63216622973045,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082123,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 7.084945571954159,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.084945571954159,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.084945571954159,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082124,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 4.714575214264459,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.714575214264459,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.714575214264459,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "none",
+        "seed": 2026082125,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.0,
+        "frozen_candidate_error": 0.0,
+        "frozen_gain": 6.102016296788543,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.102016296788543,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.102016296788543,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082101,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.758178318308406,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.709373324286311,
+        "frozen_candidate_error": 0.7093733242863114,
+        "frozen_gain": 6.048804994022095,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.758178318308406,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5248258412807534,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.060955747921796,
+      "strict_best": true,
+      "target": 1.1625986683553708
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082102,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.7302296304756775,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6745718517849726,
+        "frozen_candidate_error": 0.6745718517849725,
+        "frozen_gain": 4.055657778690705,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.7302296304756775,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7130434508283446,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.069457293225968,
+      "strict_best": true,
+      "target": 0.9726489223225077
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082103,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.664604542818063,
+        "candidate_name": "weighted_mean",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6355105222022353,
+        "frozen_candidate_error": 0.6355105222022356,
+        "frozen_gain": 4.029094020615828,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.664604542818063,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6812051443682512,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.04218512556529,
+      "strict_best": true,
+      "target": 0.9658783093970029
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082104,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.744216473344432,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.7930532335032101,
+        "frozen_candidate_error": 0.7930532335032102,
+        "frozen_gain": 3.9511632398412218,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.744216473344432,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8358105473886059,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.9673626837782052,
+      "strict_best": true,
+      "target": 0.9740858764343554
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082105,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.5639950138952985,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.34819116781022874,
+        "frozen_candidate_error": 0.3481911678102288,
+        "frozen_gain": 3.2158038460850698,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.5639950138952985,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4884843643898232,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.2240032930190434,
+      "strict_best": true,
+      "target": 0.8442742461896251
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082106,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.741592058430248,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 1.1526804065203375,
+        "frozen_candidate_error": 1.1526804065203375,
+        "frozen_gain": 6.5889116519099105,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.741592058430248,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7444724533535193,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.607364361059173,
+      "strict_best": true,
+      "target": 1.2443144344119976
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082107,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.214785204427399,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.47660270189729737,
+        "frozen_candidate_error": 0.4766027018972975,
+        "frozen_gain": 4.738182502530101,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.214785204427399,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4569725148915602,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.747470493409038,
+      "strict_best": true,
+      "target": 1.0212526821925512
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082108,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.191058432686819,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5056489066297694,
+        "frozen_candidate_error": 0.5056489066297692,
+        "frozen_gain": 3.6854095260570494,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.191058432686819,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6032472640874229,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.696395129440369,
+      "strict_best": true,
+      "target": 0.9155390142082225
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082109,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.987080221245613,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5093934191150504,
+        "frozen_candidate_error": 0.5093934191150504,
+        "frozen_gain": 5.477686802130562,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.987080221245613,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.42541055096224434,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.48695449920523,
+      "strict_best": true,
+      "target": 1.0942650703778873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082110,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.622901717554881,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5368693206399371,
+        "frozen_candidate_error": 0.5368693206399374,
+        "frozen_gain": 7.086032396914944,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.622901717554881,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.3521423603059016,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.094693260639603,
+      "strict_best": true,
+      "target": 1.234738977886005
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082111,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.139062029347553,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5879947608270566,
+        "frozen_candidate_error": 0.5879947608270566,
+        "frozen_gain": 4.551067268520496,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.139062029347553,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5720837357763002,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.562609753925478,
+      "strict_best": true,
+      "target": 1.0138108333754925
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082112,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.551569553132007,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8544228439475496,
+        "frozen_candidate_error": 0.8544228439475495,
+        "frozen_gain": 4.697146709184457,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.551569553132007,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7695326841987535,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.713287108407041,
+      "strict_best": true,
+      "target": 1.053714340144615
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082113,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.751608169219173,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.27203570058124615,
+        "frozen_candidate_error": 0.2720357005812462,
+        "frozen_gain": 4.479572468637927,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.751608169219173,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.28625645349240736,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.48512495309261,
+      "strict_best": true,
+      "target": 0.9748444151985662
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082114,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.101506405115562,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.5128113791364552,
+        "frozen_candidate_error": 0.5128113791364551,
+        "frozen_gain": 3.588695025979107,
+        "full_candidate_error": 7.705569170738576e-33,
+        "full_gain": 4.101506405115562,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.6251500406007613,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.599956539489453,
+      "strict_best": true,
+      "target": 0.9057048531520147
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082115,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.543915133156788,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.7616352338222869,
+        "frozen_candidate_error": 0.7616352338222873,
+        "frozen_gain": 5.782279899334501,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.543915133156788,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5819415581684615,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.795536767247282,
+      "strict_best": true,
+      "target": 1.1440205534129873
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082116,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.907590680497497,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.9729096639546189,
+        "frozen_candidate_error": 0.972909663954619,
+        "frozen_gain": 4.9346810165428785,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.907590680497497,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.8234403131266764,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.952499879603053,
+      "strict_best": true,
+      "target": 1.0869766032898314
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082117,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.850055598222756,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8303836419482282,
+        "frozen_candidate_error": 0.8303836419482282,
+        "frozen_gain": 5.019671956274528,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.850055598222756,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7097228633181694,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.034954709998726,
+      "strict_best": true,
+      "target": 1.0816705226844963
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082118,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.111539834972856,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.6779235462742026,
+        "frozen_candidate_error": 0.6779235462742023,
+        "frozen_gain": 4.433616288698653,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.111539834972856,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.663130453993422,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.446959699722207,
+      "strict_best": true,
+      "target": 1.0110924621391315
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082119,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 3.503526525056226,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.3123808234651113,
+        "frozen_candidate_error": 0.3123808234651113,
+        "frozen_gain": 3.1911457015911147,
+        "full_candidate_error": 0.0,
+        "full_gain": 3.503526525056226,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4458091315008641,
+      "repair_consumed_fes": 8,
+      "repair_gain": 3.1985646915018133,
+      "strict_best": true,
+      "target": 0.8370814207777193
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082120,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.802643178661363,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8016750948189681,
+        "frozen_candidate_error": 0.8016750948189686,
+        "frozen_gain": 7.000968083842395,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.802643178661363,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.5137202076671828,
+      "repair_consumed_fes": 8,
+      "repair_gain": 7.013751612618938,
+      "strict_best": true,
+      "target": 1.2492112054141495
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082121,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 5.206587738758529,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.4487543624841033,
+        "frozen_candidate_error": 0.4487543624841036,
+        "frozen_gain": 4.757833376274426,
+        "full_candidate_error": 0.0,
+        "full_gain": 5.206587738758529,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.43094862220751284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.766585509077754,
+      "strict_best": true,
+      "target": 1.0204496791864388
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082122,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.63216622973045,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.35884271389390143,
+        "frozen_candidate_error": 0.35884271389390143,
+        "frozen_gain": 6.273323515836548,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.63216622973045,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.2705320565438284,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.279527945836857,
+      "strict_best": true,
+      "target": 1.151708837313533
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082123,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 7.084945571954159,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 1.0714315235622482,
+        "frozen_candidate_error": 1.0714315235622482,
+        "frozen_gain": 6.013514048391911,
+        "full_candidate_error": 0.0,
+        "full_gain": 7.084945571954159,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7561325014291731,
+      "repair_consumed_fes": 8,
+      "repair_gain": 6.031440037270703,
+      "strict_best": true,
+      "target": 1.1903735188548306
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082124,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 4.714575214264459,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.44427525209162066,
+        "frozen_candidate_error": 0.4442752520916206,
+        "frozen_gain": 4.270299962172838,
+        "full_candidate_error": 0.0,
+        "full_gain": 4.714575214264459,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.4711720906980312,
+      "repair_consumed_fes": 8,
+      "repair_gain": 4.279403366246698,
+      "strict_best": true,
+      "target": 0.9710381263641977
+    },
+    {
+      "archive_preserved": true,
+      "cell": {
+        "regime": "synergy",
+        "seed": 2026082125,
+        "topology": "star"
+      },
+      "counterfactual": {
+        "archive_preserved": true,
+        "best_error_before": 6.102016296788543,
+        "candidate_name": "owner",
+        "component": [
+          0,
+          1,
+          2
+        ],
+        "consumed_fes": 1,
+        "coupled_gain": 0.8807828599010215,
+        "frozen_candidate_error": 0.8807828599010218,
+        "frozen_gain": 5.2212334368875215,
+        "full_candidate_error": 0.0,
+        "full_gain": 6.102016296788543,
+        "schema_version": "arac-oc-coupling-counterfactual-v1",
+        "scope": [
+          0
+        ]
+      },
+      "counterfactual_one_fe": true,
+      "interaction_strength": 0.7217146079768526,
+      "repair_consumed_fes": 8,
+      "repair_gain": 5.2371070969377636,
+      "strict_best": true,
+      "target": 1.1047186335704258
+    }
+  ],
+  "schema_version": "arac-oc-coupling-fresh-seed-gate-v1",
+  "summary": {
+    "pearson_ci": [
+      0.045726822674051794,
+      -0.08069891949341519,
+      0.1664237629717499
+    ],
+    "promotion": {
+      "authority_threshold": 0.3,
+      "promotion_recommended": false,
+      "reason": "promote only when the lower 95% Spearman CI clears the preregistered threshold",
+      "spearman_ci_lower": -0.11681778294457362
+    },
+    "regime_coupled_gain_ci": {
+      "conflict": [
+        -1.9065315666067073,
+        -2.206466361353538,
+        -1.5333071973772585
+      ],
+      "neutral": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "none": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "synergy": [
+        0.6355105222022353,
+        0.5111023991257528,
+        0.7355042790542989
+      ]
+    },
+    "spearman_ci": [
+      0.045726822674051794,
+      -0.11681778294457362,
+      0.16123903097577433
+    ],
+    "topology_regime_coupled_gain_ci": {
+      "chain:conflict": [
+        -1.9065315666067075,
+        -2.3791597005096308,
+        -1.5169467198893076
+      ],
+      "chain:neutral": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "chain:none": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "chain:synergy": [
+        0.6355105222022353,
+        0.5056489066297694,
+        0.7624206838143057
+      ],
+      "star:conflict": [
+        -1.906531566606707,
+        -2.3791597005096308,
+        -1.5169467198893076
+      ],
+      "star:neutral": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "star:none": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "star:synergy": [
+        0.6355105222022353,
+        0.5093934191150504,
+        0.7930532335032101
+      ]
+    }
+  }
+}

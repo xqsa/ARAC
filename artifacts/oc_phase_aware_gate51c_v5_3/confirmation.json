@@ -1,0 +1,260 @@
+{
+  "checks": {
+    "R2_median_le_1.05": false,
+    "R2_worst_le_1.10": false,
+    "R6_median_le_1.05": true,
+    "R6_worst_le_1.10": true,
+    "S5_median_le_1.05": false,
+    "S5_worst_le_1.10": false,
+    "all_cells_complete": false,
+    "protocol_audits_all": true
+  },
+  "failures": [
+    {
+      "error": "RuntimeError: v4 schedule audit failed: ['no_post_ticket_starvation']",
+      "job": "R6_20260902_on"
+    },
+    {
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "job": "R2_20260903_on"
+    },
+    {
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "job": "S5_20260903_on"
+    },
+    {
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "job": "A3_20260903_on"
+    },
+    {
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "job": "A3_20260901_on"
+    },
+    {
+      "error": "RuntimeError: v4 schedule audit failed: ['ladder_flat_exposure_bounded']",
+      "job": "A3_20260902_on"
+    }
+  ],
+  "gate_passed": false,
+  "implementation_manifest_hash": "sha256:c796d6ebed474d61ee776a8d6df6a33111351000cf0be2e46b040ece5fcda56f",
+  "overlap_degree": {
+    "A3_20260901": 0.0,
+    "A3_20260902": 0.0,
+    "A3_20260903": 0.0,
+    "R2_20260901": 0.0,
+    "R2_20260902": 0.0,
+    "R2_20260903": 0.0,
+    "R6_20260901": 0.0,
+    "R6_20260902": 0.0,
+    "R6_20260903": 0.0,
+    "S5_20260901": 0.0,
+    "S5_20260902": 0.0,
+    "S5_20260903": 0.0
+  },
+  "per_case": {
+    "R2": {
+      "anytime_ratio_on_vs_best": {
+        "1000000": [
+          1.3217982110132378,
+          1.5710969193086797
+        ],
+        "2000000": [
+          1.0392798776329264,
+          1.1111876944509707
+        ],
+        "3000000": [
+          1.2330966455202963,
+          1.3668576864376591
+        ],
+        "600000": [
+          8.239464628265992,
+          3.12474181344093
+        ]
+      },
+      "log_error_auc_on_vs_best": [
+        1.01752742422408,
+        1.0213800290299275
+      ],
+      "median_ratio": 1.2999771659789778,
+      "on_beats_off_seeds": 2,
+      "on_off": [
+        0.8963662872996961,
+        0.8642340308947412
+      ],
+      "ratios": [
+        1.2330966455202963,
+        1.3668576864376591
+      ],
+      "strict_win_seeds": 0,
+      "worst_ratio": 1.3668576864376591
+    },
+    "R6": {
+      "anytime_ratio_on_vs_best": {
+        "1000000": [
+          1.6950457212089678,
+          2.4410006900887526
+        ],
+        "2000000": [
+          1.4821263061677141,
+          1.384117336040422
+        ],
+        "3000000": [
+          0.6834025097210163,
+          0.9891536195258063
+        ],
+        "600000": [
+          1.8109012330046126,
+          13.81768599711441
+        ]
+      },
+      "log_error_auc_on_vs_best": [
+        0.9978594530589177,
+        1.034133568476224
+      ],
+      "median_ratio": 0.8362780646234114,
+      "on_beats_off_seeds": 2,
+      "on_off": [
+        0.6726466431871304,
+        0.9816367487881184
+      ],
+      "ratios": [
+        0.6834025097210163,
+        0.9891536195258063
+      ],
+      "strict_win_seeds": 1,
+      "worst_ratio": 0.9891536195258063
+    },
+    "S5": {
+      "anytime_ratio_on_vs_best": {
+        "1000000": [
+          3.9323265901524693,
+          4.446422513527271
+        ],
+        "2000000": [
+          35.77130769962173,
+          35.56362097639249
+        ],
+        "3000000": [
+          85.37703434620283,
+          61.229437660201526
+        ],
+        "600000": [
+          2.863576903083242,
+          3.184722499961337
+        ]
+      },
+      "log_error_auc_on_vs_best": [
+        1.19803462728745,
+        1.1914456819574075
+      ],
+      "median_ratio": 73.30323600320219,
+      "on_beats_off_seeds": 0,
+      "on_off": [
+        19.440440768299865,
+        16.30059921285292
+      ],
+      "ratios": [
+        85.37703434620283,
+        61.229437660201526
+      ],
+      "strict_win_seeds": 0,
+      "worst_ratio": 85.37703434620283
+    }
+  },
+  "protocol": {
+    "arms": [
+      "ctp",
+      "gcb",
+      "smp",
+      "aor",
+      "on",
+      "off"
+    ],
+    "cases": [
+      "R2",
+      "A3",
+      "S5",
+      "R6"
+    ],
+    "fresh_seeds": [
+      20260901,
+      20260902,
+      20260903
+    ],
+    "noninferior_tol": 1.05,
+    "strict_win_tol": 0.98,
+    "total_fes": 3000000,
+    "worst_seed_tol": 1.1
+  },
+  "relation_coupling": {
+    "A3_20260901": {
+      "coupled_vars_ratio": 0.728,
+      "mean_strength": 0.00015490112034813265,
+      "relations": 110.0
+    },
+    "A3_20260902": {
+      "coupled_vars_ratio": 0.878,
+      "mean_strength": 0.00022564289616016373,
+      "relations": 129.0
+    },
+    "A3_20260903": {
+      "coupled_vars_ratio": 0.753,
+      "mean_strength": 0.00017491340793915005,
+      "relations": 136.0
+    },
+    "R2_20260901": {
+      "coupled_vars_ratio": 0.676,
+      "mean_strength": 1.1091236802316739e-07,
+      "relations": 56.0
+    },
+    "R2_20260902": {
+      "coupled_vars_ratio": 0.701,
+      "mean_strength": 3.227422400738941e-07,
+      "relations": 58.0
+    },
+    "R2_20260903": {
+      "coupled_vars_ratio": 0.652,
+      "mean_strength": 8.527816395654457e-07,
+      "relations": 69.0
+    },
+    "R6_20260901": {
+      "coupled_vars_ratio": 0.454,
+      "mean_strength": 1.493922957716602e-07,
+      "relations": 208.0
+    },
+    "R6_20260902": {
+      "coupled_vars_ratio": 0.664,
+      "mean_strength": 3.6741032772682104e-08,
+      "relations": 229.0
+    },
+    "R6_20260903": {
+      "coupled_vars_ratio": 0.624,
+      "mean_strength": 3.182536472341293e-08,
+      "relations": 262.0
+    },
+    "S5_20260901": {
+      "coupled_vars_ratio": 0.657,
+      "mean_strength": 1.8899544846621603e-06,
+      "relations": 200.0
+    },
+    "S5_20260902": {
+      "coupled_vars_ratio": 0.55,
+      "mean_strength": 9.893127675467712e-07,
+      "relations": 176.0
+    },
+    "S5_20260903": {
+      "coupled_vars_ratio": 0.657,
+      "mean_strength": 1.424099623760261e-06,
+      "relations": 233.0
+    }
+  },
+  "scheduler_version": "v5.3",
+  "schema_version": "arac-oc-gate51c-v1",
+  "standalone_reuse": {
+    "implementation_manifest_hash": "sha256:3d3f789205953e4ea3775739c9b51441db7016345910b22a02a914243eadc644",
+    "root": "artifacts\\oc_phase_aware_gate51c_v5_1"
+  },
+  "strict_win_cases": [
+    "R6"
+  ]
+}
