@@ -61,3 +61,18 @@
   tag `v5.3-prealation` 保有全部历史）。
 - 可选后续（不阻塞论文）：Gate 53b（信息性提案源仲裁）、v6.0 双轴 + CCFR3
   （Gate 52 预注册已冻结）、G8/G9 challenger lane 晋级 gate。
+
+---
+
+## Shared-Patch 主线素材（2026-08-22 修订版方案，进行中）
+
+- 机制：CTP 内部 Stateful Shared-Patch Kernel（owner/consensus/disagreement
+  候选、改进度加权共识、conforming 静默 base_radius=eps、逐变量局部
+  context hash（写集外坐标，自接受不 reset）、z/u/r 持久状态、u 唯一因果
+  通道 = (-u,-priority,j) scope 排序、固定 8 FE 车道从算子预留划出）。
+- 嵌套消融 A0-A4（A2 强制：隔离候选增量 vs 状态增量 vs 半径增量）。
+- Gate 链：P0（修订版 12/12 契约通过）→ P1（归因，运行中）→ P2/P3
+  （fresh-seed 筛查 + selector 首决策 parity）→ P4（24×25，conforming 层
+  只要求非劣、conflicting 层要求增量，按构造标签分层）。
+- 论文主张顺序按修订方案 §13（1-8）；conforming 自动静默与 conflicting
+  局部 trust-region 增量是核心新主张；失败/回退边界如实报告。

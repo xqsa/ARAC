@@ -1,3 +1,7 @@
+<!-- SUPERSEDED 2026-08-22: 本文件的双重叠升级设计已被 shared-patch 主线取代
+    （docs/arac-oc-shared-patch-completion-plan.md 修订版）。
+     一致性分类路线的失败边界见 docs/arac-oc-gate54a-judgment.md（F1 不可辨识性）。 -->
+
 # ARAC-OC 双重叠升级设计：一致性分类 + 两类支路
 
 日期：2026-08-22
