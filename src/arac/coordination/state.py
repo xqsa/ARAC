@@ -32,7 +32,8 @@ from arac.coordination.overlap import OverlapStructure
 from arac.runtime.contracts import canonical_sha256
 from arac.coordination.planner import ComponentSignal
 
-OC_STATE_SCHEMA = "arac-oc-coordinator-state-v1"
+OC_STATE_SCHEMA = "arac-oc-coordinator-state-v2"
+OC_STATE_SCHEMA_V1 = "arac-oc-coordinator-state-v1"
 
 
 @dataclass(frozen=True)
@@ -74,6 +75,7 @@ class CoordinatorState:
         ):
             raise ValueError("checkpoint_hash must be lowercase hexadecimal")
         self.checkpoint_hash = checkpoint_hash
+        self.shared_patch: dict[str, object] = {}
         self.structure_hash = canonical_sha256(
             {
                 "dimension": structure.dimension,
@@ -295,6 +297,7 @@ class CoordinatorState:
             "stall": sorted([list(k), v] for k, v in self.stall.items()),
             "escalation_used": sorted([list(k), v] for k, v in self.escalation_used.items()),
             "pulse_fes": sorted([list(k), v] for k, v in self.pulse_fes.items()),
+            "shared_patch": self.shared_patch,
         }
 
     def snapshot(self) -> OcStateSnapshot:
@@ -307,7 +310,7 @@ class CoordinatorState:
         if not isinstance(snapshot, OcStateSnapshot):
             raise TypeError("snapshot must be OcStateSnapshot")
         data = json.loads(snapshot.payload.decode("utf-8"))
-        if data.get("schema_version") != OC_STATE_SCHEMA:
+        if data.get("schema_version") not in (OC_STATE_SCHEMA, OC_STATE_SCHEMA_V1):
             raise ValueError("unsupported coordinator state schema")
         if data.get("checkpoint_hash", "") != self.checkpoint_hash:
             raise ValueError("coordinator state checkpoint hash does not match")
@@ -327,7 +330,8 @@ class CoordinatorState:
             "escalation_used",
             "pulse_fes",
         ):
-            setattr(self, name, {tuple(int(g) for g in key): value for key, value in data[name]})
+                setattr(self, name, {tuple(int(g) for g in key): value for key, value in data[name]})
+        self.shared_patch = dict(data.get("shared_patch", {})) or {}
 
 
-__all__ = ["CoordinatorState", "OcStateSnapshot", "OC_STATE_SCHEMA"]
+__all__ = ["CoordinatorState", "OcStateSnapshot", "OC_STATE_SCHEMA", "OC_STATE_SCHEMA_V1"]

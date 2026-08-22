@@ -1,0 +1,495 @@
+# ARAC-OC Shared-Patch 完整落地方案
+
+## 总体裁决
+
+主线冻结为：
+
+```text
+Phase-I evidence
+  -> 原 selector
+  -> 原阶段二动作
+  -> CTP/GSS 内部 Stateful Shared-Patch Kernel
+```
+
+只改 CTP/GSS 的共享变量 patch 内核；SMP/AOR、Phase-I、selector、动作选择规则均保持不变。
+
+Gate 54a/54b 的一致性分类双支路不再作为主线，保留为“聚合黑盒目标上一致性不可辨识”的失败边界和论文负结果。
+
+## 1. 机制实现
+
+### 1.1 Patch 候选
+
+在现有 local competition v2 基础上增加两类候选：
+
+- owner-conditioned candidate：保持 v2 原逻辑；
+- consensus candidate：使用 owner proposal 的加权共识值；
+- disagreement candidate：沿 owner proposal 差异方向生成正、负两个局部候选。
+
+候选方向只能来自当前 episode 的 owner proposal 差异，禁止使用 `u_j` steering。
+
+### 1.2 持久状态
+
+为每个共享变量 `j` 增加：
+
+```text
+z_j              共享变量中心
+u_j              有界、衰减的不一致积分器
+r_j              当前 patch 半径
+base_radius_j    初始半径
+context_hash     当前上下文哈希
+last_update      最近更新周期
+reset_count      上下文重置次数
+```
+
+默认更新规则：
+
+```text
+base_radius_j =
+    clip(max(eps,
+             owner_uncertainty_j,
+             owner_disagreement_j,
+             1e-6 * variable_range_j),
+         eps,
+         variable_range_j)
+
+z_j 初始值 = 当前 strict-best incumbent[j]
+r_j 初始值 = base_radius_j
+
+u_next = min(4.0, 0.80 * u_previous + normalized_disagreement)
+```
+
+若候选严格改善且达到：
+
+```text
+gain >= max(1e-12, 1e-6 * max(abs(error_before), 1))
+```
+
+则：
+
+```text
+z_j <- accepted_candidate[j]
+r_j <- min(4 * base_radius_j, 1.25 * r_j)
+```
+
+否则：
+
+```text
+z_j 保持当前 incumbent
+r_j <- max(eps, 0.5 * r_j)
+```
+
+`u_j` 只用于：
+
+- scope 排序；
+- 诊断；
+- receipt 记录。
+
+`u_j` 不得改变候选方向、动作类型或外层 selector。
+
+### 1.3 Context reset
+
+每次 patch 前计算：
+
+```text
+context_hash =
+SHA256(
+  checkpoint_hash,
+  full incumbent,
+  selector_input_hash,
+  selector_output_hash,
+  current action,
+  handoff hash
+)
+```
+
+发生上下文变化时：
+
+```text
+z_j <- 当前 incumbent[j]
+r_j <- base_radius_j
+u_j <- 0.25 * u_j
+reset_count <- reset_count + 1
+```
+
+重锚后的第一个 patch lane 仍然正常运行；不能因为一次失败就永久停用该变量或组件。
+
+### 1.4 固定 FE lane
+
+每次 CTP/GSS scope 访问预注册：
+
+```text
+k_patch = 8 FE
+```
+
+固定为四轮双候选评价，所有评价必须进入同一个 `EvaluationLedger`。
+
+规则：
+
+- patch lane 从 CTP/GSS 已预留 operator budget 中划出；
+- 不从 sense、probe、tail 或其他组件借预算；
+- 预留不足 8 FE 时，产生显式 `patch_budget_unavailable`；
+- 允许执行原 v2 CTP/GSS 基线，但 receipt 必须明确标记 patch 未执行；
+- 不允许静默 fallback 或静默减少候选数。
+
+## 2. 代码接口与状态契约
+
+### 2.1 新增内核接口
+
+新增 `SharedPatchKernel`，建议放在 `src/arac/coordination/overlap.py` 或独立模块中：
+
+```text
+apply(
+    component,
+    proposals,
+    scope,
+    context_hash,
+    budget_fes=8,
+    seed,
+    mode
+) -> SharedPatchResult
+```
+
+`SharedPatchResult` 至少包含：
+
+```text
+component
+scope
+candidate_trace
+consumed_fes
+best_error_before
+best_error_after
+accepted_candidate
+context_reset
+context_hash_before
+context_hash_after
+state_hash
+radius_trace
+u_trace
+budget_status
+```
+
+### 2.2 状态 schema
+
+将：
+
+```text
+arac-oc-coordinator-state-v1
+```
+
+升级为：
+
+```text
+arac-oc-coordinator-state-v2
+```
+
+在 `CoordinatorState.payload()` 中增加排序稳定的 `shared_patch` 字段。
+
+v1 snapshot 可以恢复到 v2：
+
+- 缺少 patch 状态时初始化为空；
+- 既有 qhat、EMA、stall、cooldown 等字段保持原值；
+- checkpoint hash、structure hash、config hash 不匹配时仍 fail-closed。
+
+### 2.3 Receipt schema
+
+将 operator receipt 升级为 v2，并增加：
+
+```text
+patch_enabled
+patch_lane_fes
+patch_budget_status
+patch_candidate_names
+patch_accepted_candidate
+patch_context_hash_before
+patch_context_hash_after
+patch_context_reset
+patch_state_hash
+patch_reset_count
+patch_radius_min/max
+patch_u_min/max
+```
+
+既有字段继续保持：
+
+- `plan_hash`
+- `state_hash`
+- `reserved_fes`
+- `actual_fes`
+- `best_error_before/after`
+- strict-best
+- exact-FE
+- fail-closed exception 语义。
+
+### 2.4 挂载点
+
+- `CTP`：在 shared-coordinate/block sweep 内调用 patch kernel；
+- `GSS`：在 warmup/coordination 的共享变量 sweep 内调用 patch kernel；
+- full-space continuation 不调用 patch；
+- SMP/AOR 完全保持原实现；
+- 外层 `run_arac_oc`、Phase-I checkpoint、selector 输入输出不改变。
+
+统一循环中，patch 只能作为已选 CTP/GSS 动作的内部实现，不能返回新的动作类型。
+
+## 3. 消融矩阵
+
+所有消融共享：
+
+- 相同 Phase-I checkpoint；
+- 相同 proposal；
+- 相同 selector 输出；
+- 相同 seed；
+- 相同总预算；
+- 相同 CTP/GSS operator reservation；
+- 相同 strict-best ledger。
+
+| 臂 | 候选 | 持久状态 | 半径 | 归因 |
+|---|---|---|---|---|
+| A0 | 原始无 patch | 无 | 不适用 | 原始方法基线 |
+| A1 | local competition v2 | 无 | v2 固定半径 | 现有 v2 基线 |
+| A2 | v2 + consensus/disagreement | 无 | 固定半径 | 必须项，隔离候选增量 |
+| A3 | v2 候选 | `z,u,r` | 固定半径 | 隔离持久状态 |
+| A4 | v2 + consensus/disagreement | `z,u,r` | 自适应 | 完整方法 |
+
+A2 是强制消融，不能用“有 patch/无 patch”替代。
+
+主比较关系：
+
+```text
+A1 - A0       v2 原有增量
+A2 - A1       新候选增量
+A3 - A2       持久状态增量
+A4 - A3       自适应半径与新候选的联合增量
+A4 - A1       相对当前生产基线的总增量
+```
+
+## 4. 分阶段 Gate
+
+### Gate P0：Kernel contract gate
+
+范围：
+
+- toy overlap；
+- CTP/GSS 单动作；
+- state snapshot/restore；
+- context reset；
+- fixed FE lane。
+
+必须全部通过：
+
+- 候选向量始终在变量边界内；
+- exact FE；
+- strict-best 单调；
+- patch lane 只消费预留预算；
+- `patch_budget_unavailable` 显式可见；
+- `u_j` 不进入候选方向；
+- context hash 变化会 reset；
+- radius 成功扩大、失败缩小；
+- state hash 可重复；
+- v1 snapshot 可恢复为 v2；
+- 异常 fail-closed；
+- 重锚后首个 patch 不被错误停用。
+
+P0 不通过则停止，不进入性能实验。
+
+### Gate P1：小型增量归因
+
+使用四个代表性 case：`R2/A3/S5/R6`，每个 case 使用三枚预注册 replay seed：
+
+```text
+20260880, 20260881, 20260882
+```
+
+运行 A0-A4 全部消融。
+
+通过条件：
+
+- 五臂 Phase-I checkpoint、proposal hash、selector hash 完全一致；
+- 五臂总 FE 和各类 FE 账本完全一致；
+- A2 相比 A1 必须出现候选 trace 差异；
+- A3 相比 A2 必须出现 state trace 差异；
+- A4 必须出现 radius update 或 context reset trace；
+- 所有 arm receipt/state hash 审计通过；
+- A4 相比 A2 的 median anytime AUC 不得劣化超过 5%。
+
+P1 主要证明“机制确实接入且可归因”，不作为最终性能结论。
+
+### Gate P2：四 case fresh-seed
+
+使用四枚从未用于 P0/P1、校准或调参的 seed：
+
+```text
+20260890, 20260891, 20260892, 20260893
+```
+
+每个 seed 运行 `R2/A3/S5/R6`，至少比较 A1、A2、A4，并保留 A0、A3 作为分析臂。
+
+通过条件：
+
+1. 全部 arm exact-FE、strict-best、receipt、state-hash 审计通过；
+2. A4 相比 A1 的 aggregate final-error ratio 不超过 `1.05`；
+3. 任一 case 的 A4/A1 ratio 不超过 `1.10`；
+4. A4 相比 A2 的 median anytime AUC 不得劣化超过 `2%`；
+5. 至少两个 case 在 final error 或 handoff gain 上严格改善；
+6. 记录 patch acceptance、reset、radius、`u` 上界和各类 FE。
+
+若 P2 失败，生产默认保持 A1/v2，A4 只能作为研究性结果，不能宣称升级成功。
+
+### Gate P3：Selector parity
+
+在 P2 fresh seed 上执行 patch on/off parity。
+
+必须一致：
+
+```text
+Phase-I checkpoint hash
+Phase-I FE
+Phase-I incumbent
+evidence hash
+proposal hash
+selector input hash
+selector output hash
+selected action
+```
+
+允许不同的内容仅包括：
+
+```text
+patch candidate trace
+patch state hash
+patch acceptance
+inner CTP/GSS result
+final error
+```
+
+若 patch 改变外层 selector 选择，立即回退，不允许通过重新调 selector 修复。
+
+### Gate P4：24 × 25 扩展
+
+通过 P2/P3 后，复用已有 24-case 矩阵，使用 25 枚全新 seed：
+
+```text
+20261001 ... 20261025
+```
+
+主比较为 A4 vs A1，A4 vs A2 为归因比较。
+
+确认性标准：
+
+- 所有 600 个 cell contract 审计通过；
+- A4/A1 geometric mean final-error ratio `<= 0.98`；
+- A4/A1 win-or-tie `>= 0.60`；
+- median anytime AUC 至少改善 `2%`；
+- paired bootstrap 95% CI 或预注册 permutation test 支持至少一个主要改善指标；
+- 不得出现系统性 context-reset、`u_j` 越界或 patch budget 泄漏。
+
+若 P4 未达到 superiority 标准，则结论为：
+
+```text
+patch 机制可运行，但未证明优于 v2；
+生产保留 v2，A4 作为负结果或后续工作。
+```
+
+## 5. 统计与记录协议
+
+每个 cell 记录：
+
+- final error；
+- `log10(error)` anytime AUC；
+- 600k/1M/2M/3M checkpoint；
+- win/tie/loss；
+- immediate gain；
+- handoff gain；
+- patch acceptance rate；
+- context reset count；
+- radius expansion/shrink count；
+- `u_j` 最大值与均值；
+- sense/operator/probe/tail FE；
+- exact-FE、strict-best、receipt parity、state-hash chain。
+
+统计规则：
+
+- 使用 common-random-number 配对；
+- 主比较使用 paired bootstrap 10,000 次；
+- 补充使用 paired permutation 10,000 次；
+- 所有阈值、seed、case、配置在运行前冻结；
+- 不允许根据 final result 调整半径、衰减、scope 或 gate 阈值；
+- 若 seed 与已有 registry 冲突，预检直接失败，不静默替换。
+
+## 6. 文献与创新定位
+
+方案依据及其对应关系：
+
+- Jia et al., CBCCO，DOI `10.1109/TCYB.2020.3025577`：贡献驱动的 shared-variable 处理；
+- Komarnicki et al., OCC，DOI `10.1145/3638529.3654171`：多重 shared assignment 与资源耦合；
+- Sun et al.，overlapping decomposition，DOI `10.1109/CEC.2019.8790204`；
+- Blanchard et al.，overlapping CC，DOI `10.1007/978-3-030-85672-4_19`；
+- Xu et al., DCCC，DOI `10.1109/TEVC.2022.3201691`：difficulty/contribution 双轴；
+- Yang et al., CCFR/CCFR3：贡献反馈与有界衰减；
+- Fasiku & Tang，arXiv `2510.27396`：无导数 trust-region 与 consensus/ADMM；
+- De Falco et al.，surrogate-assisted CC，DOI `10.1016/j.ins.2019.01.009`：FE 友好的响应建模。
+
+论文中应明确：
+
+- 本方案借鉴 consensus、trust-region、贡献排序和衰减反馈；
+- 不宣称非凸黑盒场景下 ADMM 收敛；
+- 不宣称在线 RL 或新 selector；
+- 创新点是把这些思想压缩成固定 FE、可审计、跨 episode 的 shared-patch kernel；
+- surrogate/Ψ-mapping 只列为后续扩展，不进入第一版实现。
+
+## 7. 文档与论文收尾
+
+需要更新：
+
+- `docs/arac-oc-completion-plan.md`：标记旧的一致性分类方案 superseded；
+- `docs/arac-oc-dual-overlap-upgrade.md`：改写为 shared-patch 主线；
+- `docs/arac-oc-operator-contract.md`：补充 patch lane、state v2、receipt v2；
+- 新增 P0-P4 gate protocol、实验配置和结果汇总；
+- `docs/arac-oc-paper-materials.md` 与论文草稿加入：
+  - v2 增量消融；
+  - consensus/disagreement 候选；
+  - persistent `z,u,r`；
+  - context reset；
+  - trust-region radius；
+  - 24×25 fresh-seed 结果；
+  - 失败和回退边界。
+
+论文主张顺序：
+
+1. Phase-I 黑盒重叠发现；
+2. 原 selector 的证据驱动动作选择；
+3. CTP/GSS 内部 shared-patch kernel；
+4. v2 candidate effect 与 state/radius effect 的严格消融；
+5. fresh-seed 与 24×25 结果；
+6. 诚实边界：SMP/AOR 未改、selector 未改、consistency classifier 不可辨识、patch 只适用于块扫掠动作。
+
+保留现有未跟踪文件：
+
+```text
+references/lit-review/phase2_shared_var_new_directions.md
+```
+
+不得删除或覆盖。
+
+## 默认参数冻结
+
+```text
+k_patch                  = 8 FE
+radius_success_scale     = 1.25
+radius_failure_scale     = 0.50
+radius_upper_bound       = 4 * base_radius
+u_decay                  = 0.80
+u_context_decay           = 0.25
+u_upper_bound             = 4.0
+min_relative_gain        = 1e-6
+min_absolute_gain        = 1e-12
+mount_points              = CTP/GSS only
+outer_selector            = unchanged
+SMP/AOR                   = unchanged
+```
+
+最终生产决策：
+
+- P0-P4 全部通过：A4 成为新的 patch-enabled 生产内核；
+- P0-P3 通过、P4 不通过：保留 v2，A4 作为未证实增强；
+- 任一 contract/parity gate 失败：关闭 patch，恢复 A1/v2；
+- 不允许通过改变 Phase-I、selector、SMP/AOR 或预算语义来“挽救” patch 结果。

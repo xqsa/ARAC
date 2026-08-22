@@ -51,6 +51,7 @@ from arac.coordination.operators import (
 )
 from arac.coordination.overlap import OverlapCoordinator, OverlapStructure
 from arac.coordination.planner import OcDispatchPlanner
+from arac.coordination.shared_patch import K_PATCH_FES, PATCH_MODES, SharedPatchKernel
 from arac.coordination.state import CoordinatorState
 from arac.evidence import Phase1OverlapPilotResult
 from arac.runtime.ledger import EvaluationLedger
@@ -159,6 +160,7 @@ def run_oc_unified(
     refresh_cycles: int,
     sense_budget_fes: int,
     config: OcCoordinatorConfig | None = None,
+    patch_config: dict | None = None,
 ) -> OcLoopResult:
     """Run the unified loop from a frozen Phase-I pilot, exact terminal FE."""
 
@@ -179,6 +181,7 @@ def run_oc_unified(
         sense_budget_fes=sense_budget_fes,
         config=config,
         phase1=pilot,
+        patch_config=patch_config,
     )
 
 
@@ -195,6 +198,7 @@ def run_oc_unified_from_structure(
     refresh_cycles: int,
     sense_budget_fes: int,
     config: OcCoordinatorConfig | None = None,
+    patch_config: dict | None = None,
 ) -> OcLoopResult:
     """Run the unified loop from a caller-supplied structure (AOB v3 path).
 
@@ -238,12 +242,17 @@ def _run_oc_unified_core(
     sense_budget_fes: int,
     config: OcCoordinatorConfig | None = None,
     phase1: Phase1OverlapPilotResult | None = None,
+    patch_config: dict | None = None,
 ) -> OcLoopResult:
     if isinstance(refresh_cycles, bool) or not isinstance(refresh_cycles, int) or refresh_cycles <= 0:
         raise ValueError("refresh_cycles must be a positive integer")
     if isinstance(sense_budget_fes, bool) or not isinstance(sense_budget_fes, int) or sense_budget_fes < 8:
         raise ValueError("sense_budget_fes must be an integer of at least 8")
     config = OcCoordinatorConfig() if config is None else config
+    if patch_config is not None:
+        if not isinstance(patch_config, dict) or patch_config.get("mode") not in PATCH_MODES:
+            raise ValueError("patch_config must be None or {'mode': one of PATCH_MODES}")
+    patch_kernel = SharedPatchKernel() if patch_config is not None else None
     components = _overlap_components(structure)
     if not components:
         raise RuntimeError("Phase-I evidence contains no shared-variable component")
@@ -265,6 +274,8 @@ def _run_oc_unified_core(
         config=config,
         checkpoint_hash=checkpoint_hash,
     )
+    if patch_kernel is not None:
+        patch_kernel.load(state.shared_patch)
     sense_operator = SmpSenseOperator()
     operators = {
         OC_ACTION_SMP: SmpOperator(problem),
@@ -282,6 +293,7 @@ def _run_oc_unified_core(
         probe_unavailable = False
         pool_exhausted = False
         plan: OperatorPlan | None = None
+        patch_result = None
         operator_fes = 0
         smp_fes = 0
         probe_fes_used = 0
@@ -447,12 +459,50 @@ def _run_oc_unified_core(
                         exec_start = ledger.count
                         operator_error_before = float(ledger.best_error)
                         operator_archive = ledger.archive_snapshot()
+                        exec_plan = plan
                         try:
+                            if (
+                                patch_kernel is not None
+                                and plan.action
+                                in (OC_ACTION_CTP_RESTRICTED, OC_ACTION_CTP_SHARED_CORE)
+                                and plan.scope
+                                and plan.reserved_fes >= K_PATCH_FES
+                            ):
+                                context_hash = canonical_sha256(
+                                    {
+                                        "checkpoint_hash": checkpoint_hash,
+                                        "incumbent": [float(v) for v in ledger.best_x],
+                                        "plan": {
+                                            "action": plan.action,
+                                            "scope": list(plan.scope),
+                                            "cycle_index": plan.cycle_index,
+                                            "reserved_fes": plan.reserved_fes,
+                                            "seed": plan.seed,
+                                        },
+                                        "state_hash": state.snapshot().state_hash,
+                                    }
+                                )
+                                patch_result = patch_kernel.apply(
+                                    plan.component,
+                                    component_proposals,
+                                    plan.scope,
+                                    context_hash,
+                                    structure=coordinator.structure,
+                                    ledger=ledger,
+                                    budget_fes=K_PATCH_FES,
+                                    seed=plan.seed,
+                                    mode=patch_config["mode"],
+                                )
+                                state.shared_patch = patch_kernel.payload()
+                                if patch_result.budget_status == "executed":
+                                    exec_plan = dataclasses.replace(
+                                        plan, reserved_fes=plan.reserved_fes - K_PATCH_FES
+                                    )
                             if plan.action == OC_ACTION_SMP:
-                                execution = operator.execute_plan(plan, coordinator=coordinator)
+                                execution = operator.execute_plan(exec_plan, coordinator=coordinator)
                             else:
                                 execution = operator.execute_plan(
-                                    plan, coordinator=coordinator, proposals=component_proposals
+                                    exec_plan, coordinator=coordinator, proposals=component_proposals
                                 )
                         except Exception as exc:  # fail closed (design section 2.2)
                             failed = receipt_from_plan(
@@ -463,6 +513,7 @@ def _run_oc_unified_core(
                                 state_hash=state.snapshot().state_hash,
                                 remaining_fes=ledger.remaining,
                                 exception_name=type(exc).__name__,
+                                patch_result=patch_result,
                             )
                             raise OperatorFailure(failed) from exc
                         operator_value_ratio = max(
@@ -497,12 +548,21 @@ def _run_oc_unified_core(
                     receipts.append(
                         receipt_from_plan(
                             plan,
-                            actual_fes=execution.actual_fes,
-                            best_error_before=execution.best_error_before,
+                            actual_fes=(
+                                ledger.count - exec_start
+                                if patch_result is not None
+                                else execution.actual_fes
+                            ),
+                            best_error_before=(
+                                operator_error_before
+                                if patch_result is not None
+                                else execution.best_error_before
+                            ),
                             best_error_after=execution.best_error_after,
                             candidates=execution.candidates,
                             state_hash=snapshot.state_hash,
                             remaining_fes=ledger.remaining,
+                            patch_result=patch_result,
                         )
                     )
         # Preserve the proposal arm's evolving context after arbitration and

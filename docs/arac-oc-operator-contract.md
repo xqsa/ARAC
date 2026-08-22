@@ -97,3 +97,31 @@ operator pool 小于该值，GCB 必须输出 arbitration-only/预算不可行�
 - 每周期收据必须同时携带绝对与相对 hub 信号（Gate 38 §5）。
 - 预算类别互不侵占（sense/probe/算子/邻域各自预留，设计 §7.1）；
   `probe_budget_unavailable` 在 scope 收缩为空时显式开票。
+
+---
+
+## Shared-Patch 车道（v2，2026-08-22）
+
+依据：用户方案"ARAC-OC Shared-Patch 完整落地方案"。
+
+- **内核**：`src/arac/coordination/shared_patch.py::SharedPatchKernel`。
+  `apply(component, proposals, scope, context_hash, *, structure, ledger,
+  budget_fes=8, seed, mode)`；冻结参数见模块 docstring（k_patch=8、
+  半径 1.25/0.5/上限 4×base、u 衰减 0.80/0.25/上界 4.0、增益阈
+  1e-6/1e-12）。`u_j` 仅用于 scope 排序/诊断/收据，禁止进入候选方向。
+- **车道**：patch 从 CTP（restricted/shared-core）算子预留中划出 8 FE；
+  预留不足时显式 `patch_budget_unavailable`（收据可见，算子按原逻辑运行）；
+  禁止静默降级。SMP/AOR/Phase-I/selector 零改动。
+- **状态 v2**：`arac-oc-coordinator-state-v2` 在 payload 增加
+  `shared_patch`（排序稳定）；v1 snapshot 可恢复（缺省为空）；hash
+  不匹配仍 fail-closed。
+- **Receipt v2**：`patch_enabled / patch_lane_fes / patch_budget_status /
+  patch_candidate_names / patch_accepted_candidate /
+  patch_context_hash_{before,after} / patch_context_reset /
+  patch_state_hash / patch_reset_count / patch_radius_{min,max} /
+  patch_u_{min,max}`；既有字段与 exact-FE / strict-best / fail-closed
+  语义不变。
+- **Gate 链**：P0 契约（`docs/arac-oc-gate-p0-protocol.md`，已通过）→
+  P1 归因（`experiments/oc_gate_p1_shared_patch.py`）→ P2 fresh-seed →
+  P3 selector parity → P4 24×25。P4 未达 superiority 则生产保留 v2
+  （local competition）不变。

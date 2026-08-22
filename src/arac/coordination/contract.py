@@ -312,6 +312,20 @@ class OperatorReceipt:
     state_hash: str = ""
     remaining_fes: int = 0
     exception_name: str = ""
+    patch_enabled: bool = False
+    patch_lane_fes: int = 0
+    patch_budget_status: str = ""
+    patch_candidate_names: tuple[str, ...] = ()
+    patch_accepted_candidate: str = ""
+    patch_context_hash_before: str = ""
+    patch_context_hash_after: str = ""
+    patch_context_reset: bool = False
+    patch_state_hash: str = ""
+    patch_reset_count: int = 0
+    patch_radius_min: float = 0.0
+    patch_radius_max: float = 0.0
+    patch_u_min: float = 0.0
+    patch_u_max: float = 0.0
 
     def __post_init__(self) -> None:
         if not isinstance(self.plan_hash, str) or len(self.plan_hash) != 64:
@@ -376,6 +390,7 @@ def receipt_from_plan(
     state_hash: str = "",
     remaining_fes: int = 0,
     exception_name: str = "",
+    patch_result: object | None = None,
 ) -> OperatorReceipt:
     """Build the receipt for one executed plan, enforcing status semantics."""
 
@@ -406,6 +421,30 @@ def receipt_from_plan(
         state_hash=state_hash,
         remaining_fes=remaining_fes,
         exception_name=exception_name,
+        **(
+            {
+                "patch_enabled": True,
+                "patch_lane_fes": int(patch_result.consumed_fes),
+                "patch_budget_status": str(patch_result.budget_status),
+                "patch_candidate_names": tuple(
+                    name
+                    for trace in patch_result.candidate_trace
+                    for name in trace.candidate_names
+                ),
+                "patch_accepted_candidate": str(patch_result.accepted_candidate or ""),
+                "patch_context_hash_before": str(patch_result.context_hash_before),
+                "patch_context_hash_after": str(patch_result.context_hash_after),
+                "patch_context_reset": bool(patch_result.context_reset),
+                "patch_state_hash": str(patch_result.state_hash),
+                "patch_reset_count": int(patch_result.reset_count),
+                "patch_radius_min": float(min(patch_result.radius_trace)) if patch_result.radius_trace else 0.0,
+                "patch_radius_max": float(max(patch_result.radius_trace)) if patch_result.radius_trace else 0.0,
+                "patch_u_min": float(min(patch_result.u_trace)) if patch_result.u_trace else 0.0,
+                "patch_u_max": float(max(patch_result.u_trace)) if patch_result.u_trace else 0.0,
+            }
+            if patch_result is not None
+            else {}
+        ),
     )
 
 
