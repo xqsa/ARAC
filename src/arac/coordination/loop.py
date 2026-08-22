@@ -51,7 +51,12 @@ from arac.coordination.operators import (
 )
 from arac.coordination.overlap import OverlapCoordinator, OverlapStructure
 from arac.coordination.planner import OcDispatchPlanner
-from arac.coordination.shared_patch import K_PATCH_FES, PATCH_MODES, SharedPatchKernel
+from arac.coordination.shared_patch import (
+    K_PATCH_FES,
+    PATCH_MODES,
+    SharedPatchKernel,
+    patch_stable_hash,
+)
 from arac.coordination.state import CoordinatorState
 from arac.evidence import Phase1OverlapPilotResult
 from arac.runtime.ledger import EvaluationLedger
@@ -468,19 +473,10 @@ def _run_oc_unified_core(
                                 and plan.scope
                                 and plan.reserved_fes >= K_PATCH_FES
                             ):
-                                context_hash = canonical_sha256(
-                                    {
-                                        "checkpoint_hash": checkpoint_hash,
-                                        "incumbent": [float(v) for v in ledger.best_x],
-                                        "plan": {
-                                            "action": plan.action,
-                                            "scope": list(plan.scope),
-                                            "cycle_index": plan.cycle_index,
-                                            "reserved_fes": plan.reserved_fes,
-                                            "seed": plan.seed,
-                                        },
-                                        "state_hash": state.snapshot().state_hash,
-                                    }
+                                context_hash = patch_stable_hash(
+                                    checkpoint_hash,
+                                    state.snapshot().state_hash,
+                                    plan.plan_hash,
                                 )
                                 patch_result = patch_kernel.apply(
                                     plan.component,

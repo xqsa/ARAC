@@ -320,6 +320,7 @@ class OperatorReceipt:
     patch_context_hash_before: str = ""
     patch_context_hash_after: str = ""
     patch_context_reset: bool = False
+    context_reset_reason: str = ""
     patch_state_hash: str = ""
     patch_reset_count: int = 0
     patch_radius_min: float = 0.0
@@ -435,6 +436,7 @@ def receipt_from_plan(
                 "patch_context_hash_before": str(patch_result.context_hash_before),
                 "patch_context_hash_after": str(patch_result.context_hash_after),
                 "patch_context_reset": bool(patch_result.context_reset),
+                "context_reset_reason": str(patch_result.context_reset_reason),
                 "patch_state_hash": str(patch_result.state_hash),
                 "patch_reset_count": int(patch_result.reset_count),
                 "patch_radius_min": float(min(patch_result.radius_trace)) if patch_result.radius_trace else 0.0,

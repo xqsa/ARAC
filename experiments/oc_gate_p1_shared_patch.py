@@ -207,6 +207,8 @@ def run_cell(case_id: str, seed: int) -> dict[str, object]:
                 {name for r in patch_receipts for name in r.patch_candidate_names}
             ),
             "patch_state_hashes": [r.patch_state_hash for r in patch_receipts][:32],
+            "first_plan_hash": (result.receipts[0].plan_hash if result.receipts else ""),
+            "radius_pairs": [(r.patch_radius_min, r.patch_radius_max) for r in patch_receipts],
             "budget_unavailable": int(
                 sum(1 for r in patch_receipts if r.patch_budget_status != "executed")
             ),
@@ -264,15 +266,31 @@ def run_gate(workers: int = 6) -> dict[str, object]:
             for row in rows
             if row["arms"]["A2"]["patch_receipt_count"] > 0
         ),
+        "first_selector_decision_parity": all(
+            len({
+                row["arms"][arm]["first_plan_hash"]
+                for arm in ARMS
+                if row["arms"][arm]["first_plan_hash"]
+            })
+            <= 1
+            for row in rows
+        ),
         "a3_state_traces": all(
             len({h for h in row["arms"]["A3"]["patch_state_hashes"] if h}) >= 1
             for row in rows
             if row["arms"]["A3"]["patch_receipt_count"] > 0
         ),
-        "a4_radius_or_reset": all(
-            row["arms"]["A4"]["patch_resets"] > 0 or row["arms"]["A4"]["patch_accepted"] > 0
+        "a4_radius_differs_from_a3": all(
+            (
+                row["arms"]["A4"]["patch_receipt_count"] == 0
+                and row["arms"]["A3"]["patch_receipt_count"] == 0
+            )
+            or (
+                any(rm != rx for rm, rx in row["arms"]["A4"]["radius_pairs"])
+                and all(rm == rx for rm, rx in row["arms"]["A3"]["radius_pairs"])
+            )
+            or row["arms"]["A4"]["patch_resets"] > 0
             for row in rows
-            if row["arms"]["A4"]["patch_receipt_count"] > 0
         ),
     }
     auc_ratios = [
