@@ -1,0 +1,79 @@
+{
+  "arms": {
+    "A0": {
+      "budget_unavailable": 0,
+      "final_error": 432397.1534915881,
+      "first_plan_hash": "f0fb235d3c71806298bb6139924a1d6e267b5d396f733081e02f0055dc0af6c4",
+      "log_auc": 5.715704386248352,
+      "patch_accepted": 0,
+      "patch_candidate_names": [],
+      "patch_lane_fes": 0,
+      "patch_receipt_count": 0,
+      "patch_resets": 0,
+      "patch_state_hashes": [],
+      "radius_pairs": [],
+      "terminal_fes": 3000000
+    },
+    "A1": {
+      "budget_unavailable": 0,
+      "final_error": 432397.1534915881,
+      "first_plan_hash": "f0fb235d3c71806298bb6139924a1d6e267b5d396f733081e02f0055dc0af6c4",
+      "log_auc": 5.715704386248352,
+      "patch_accepted": 0,
+      "patch_candidate_names": [],
+      "patch_lane_fes": 0,
+      "patch_receipt_count": 0,
+      "patch_resets": 0,
+      "patch_state_hashes": [],
+      "radius_pairs": [],
+      "terminal_fes": 3000000
+    },
+    "A2": {
+      "budget_unavailable": 0,
+      "final_error": 432397.1534915881,
+      "first_plan_hash": "f0fb235d3c71806298bb6139924a1d6e267b5d396f733081e02f0055dc0af6c4",
+      "log_auc": 5.715704386248352,
+      "patch_accepted": 0,
+      "patch_candidate_names": [],
+      "patch_lane_fes": 0,
+      "patch_receipt_count": 0,
+      "patch_resets": 0,
+      "patch_state_hashes": [],
+      "radius_pairs": [],
+      "terminal_fes": 3000000
+    },
+    "A3": {
+      "budget_unavailable": 0,
+      "final_error": 432397.1534915881,
+      "first_plan_hash": "f0fb235d3c71806298bb6139924a1d6e267b5d396f733081e02f0055dc0af6c4",
+      "log_auc": 5.715704386248352,
+      "patch_accepted": 0,
+      "patch_candidate_names": [],
+      "patch_lane_fes": 0,
+      "patch_receipt_count": 0,
+      "patch_resets": 0,
+      "patch_state_hashes": [],
+      "radius_pairs": [],
+      "terminal_fes": 3000000
+    },
+    "A4": {
+      "budget_unavailable": 0,
+      "final_error": 432397.1534915881,
+      "first_plan_hash": "f0fb235d3c71806298bb6139924a1d6e267b5d396f733081e02f0055dc0af6c4",
+      "log_auc": 5.715704386248352,
+      "patch_accepted": 0,
+      "patch_candidate_names": [],
+      "patch_lane_fes": 0,
+      "patch_receipt_count": 0,
+      "patch_resets": 0,
+      "patch_state_hashes": [],
+      "radius_pairs": [],
+      "terminal_fes": 3000000
+    }
+  },
+  "case_id": "R2",
+  "checkpoint_hash": "09f533eff2272e050bacde2441eb1a45f68c1a65f1dbd6d3e77690e2c6bd6439",
+  "schema_version": "arac-oc-gate-p1-cell-v1",
+  "seed": 20260882,
+  "shared_count": 19
+}
