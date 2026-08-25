@@ -1,0 +1,32 @@
+{
+  "schema_version": "arac-upgrade-soft-rddsm-structural-router-v1",
+  "candidate_id": "soft_rddsm_structural_router_v1",
+  "phase1_candidate": "arac-soft-rddsm-mainline-v10-candidate-1",
+  "route": {
+    "incomplete": "aor",
+    "complete_disjoint": "smp",
+    "complete_disconnected_overlap": "ctp",
+    "complete_connected_overlap": "gcb"
+  },
+  "smp_compatibility": {
+    "requires_complete_variable_membership_evidence": true,
+    "incomplete": "unavailable",
+    "complete_disjoint": "zero_relation",
+    "complete_with_shared_variables": "overlap_aware",
+    "is_primary_route_exclusive": false
+  },
+  "dispatcher": {
+    "enabled_in_candidate_lane": true,
+    "action_view_preserves_phase1_boundary": true,
+    "aor_requires_incomplete_evidence": true,
+    "smp_requires_zero_shared_variables": true,
+    "ctp_requires_disconnected_owner_graph": true,
+    "gcb_requires_connected_owner_graph": true,
+    "production_default": false
+  },
+  "production_default": false,
+  "uses_outcome_training": false,
+  "uses_benchmark_identity": false,
+  "phase1_budget_fes": 180000,
+  "total_budget_fes": 3000000
+}

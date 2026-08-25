@@ -1,0 +1,15 @@
+{
+  "aggregators": [
+    "median",
+    "mean"
+  ],
+  "candidate_id": "shared_transaction_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "max_coordinates_per_boundary": 4,
+  "max_fe_per_boundary": 8,
+  "mini_dimension": 12,
+  "mini_phase1_fes": 600,
+  "mini_total_fes": 60000,
+  "output_root": "artifacts/upgrade_shared_transaction_v1_t2_v1",
+  "schema_version": "arac-upgrade-shared-transaction-t2-protocol-v1"
+}

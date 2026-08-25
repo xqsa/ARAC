@@ -1,0 +1,41 @@
+{
+  "action_seed": 314159,
+  "audit_hosts": [
+    "ctp",
+    "smp"
+  ],
+  "candidate_id": "shared_transaction_v1",
+  "cells": [
+    "chain4-strong",
+    "pairs3-strong"
+  ],
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "identity_arms": [
+    [
+      "S3",
+      "ctp"
+    ],
+    [
+      "E3",
+      "smp"
+    ]
+  ],
+  "identity_seed": 117,
+  "max_patch_fe_per_boundary": 8,
+  "max_workers": 8,
+  "output_root": "artifacts/upgrade_shared_transaction_v1_t1_v1",
+  "phase1_fes": 180000,
+  "record_only_hosts": [
+    "gcb"
+  ],
+  "schema_version": "arac-upgrade-shared-transaction-t1-protocol-v1",
+  "seeds": [
+    20270501,
+    20270502,
+    20270503,
+    20270504,
+    20270505
+  ],
+  "t0_output_root": "artifacts\\upgrade_shared_transaction_v1_t0_v1",
+  "total_budget_fes": 3000000
+}

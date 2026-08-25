@@ -1,0 +1,29 @@
+{
+  "candidate_id": "shared_patch_v1",
+  "candidate_protocol_sha256": "a12dc4de522f44a396156efd0f72e35b522d00012733f9ab772ef7cc740f47e1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "8af7ff226bf7e44c3d55231da02955c231d326742c278d0ddf9d717d4bbd1acd",
+  "protocol_sha256": "532612cab75ecde2b617afbd440419b8dc5f6b61ab2e9a29e0ea7311caf7e227",
+  "schema_version": "arac-upgrade-u0-manifest-v1",
+  "source_sha256": {
+    "experiments/historical_recovery/recovered_baseline_freeze_protocol_v1.json": "6368ef882210b001620b51ad38e881dfee568eade5e00d33ee3ec32ee84b865a",
+    "experiments/historical_recovery/verify_recovered_baseline_freeze.py": "16fdd2592360ae80729d04640088dd1d7f18897a486300d38492a2b361866729",
+    "experiments/upgrade/shared_patch_v1/protocol.json": "a12dc4de522f44a396156efd0f72e35b522d00012733f9ab772ef7cc740f47e1",
+    "experiments/upgrade/shared_patch_v1/u0_baseline_guard.py": "1a25917df556c3a9b506984a6e93836ac75513408a513235c58e3c664c4a257b",
+    "experiments/upgrade/shared_patch_v1/u0_baseline_guard_protocol_v1.json": "532612cab75ecde2b617afbd440419b8dc5f6b61ab2e9a29e0ea7311caf7e227"
+  },
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

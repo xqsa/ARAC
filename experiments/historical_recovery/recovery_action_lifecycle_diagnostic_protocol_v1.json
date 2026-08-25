@@ -1,0 +1,33 @@
+{
+  "schema_version": "arac-recovery-action-lifecycle-diagnostic-protocol-v1",
+  "status": "frozen_paired_diagnostic",
+  "purpose": "Compare current and historical-compatible SMP/GCB lifecycles on identical retained Phase-I checkpoints.",
+  "cases": [
+    "E2", "E3", "E4", "E5", "E6",
+    "R1", "R2", "R3", "R4", "R5", "R6"
+  ],
+  "seeds": [117, 123, 129, 135, 141],
+  "action_by_case": {
+    "E2": "smp", "E3": "smp", "E4": "smp", "E5": "smp", "E6": "smp",
+    "R1": "gcb", "R2": "gcb", "R3": "gcb", "R4": "gcb", "R5": "gcb", "R6": "gcb"
+  },
+  "variants": ["current", "historical_compatible"],
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "terminal_fes": 3000000,
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "historical_compatible_sources": {
+    "smp": "artifacts/historical_recovery_fixed_expert_v1/frozen_protocol/sources/smp.py",
+    "gcb": "artifacts/historical_recovery_fixed_expert_v1/frozen_protocol/sources/gcb.py"
+  },
+  "output_root": "artifacts/recovery_action_lifecycle_diagnostic_v1",
+  "native_threads": 1,
+  "max_workers": 24,
+  "patch_enabled": false,
+  "soft_routing_enabled": false,
+  "selector_enabled": false,
+  "reference_thresholds_used_for_decision": false,
+  "diagnostic_rule": "paired_same_checkpoint; current_to_historical_ratio_above_one_means_current_variant_has_higher_error; no_historical_superiority_claim"
+}

@@ -1,0 +1,116 @@
+{
+  "action_result_hash": "007e44debac6d9e2bcdcbe1276a7151f7cdeeb4b9c271d4c69556bfa345c7c0a",
+  "arm": "a1",
+  "case_id": null,
+  "cell_id": "pairs-strong",
+  "checkpoint_hash": "b3f2484d1909ab839d1b131471267c5b1f5a182af4b3dd92f4d910a8ad9c6aaf",
+  "elapsed_seconds": 1148.140905,
+  "final_error": 12596577.226937052,
+  "forced_host": true,
+  "ground_truth_hash": "ac3062f06c5c41e7994bb5d79dc46e4afa0e8bc3056f54f777a797aae6742f5d",
+  "host": "gcb",
+  "identity": null,
+  "initial_error": 12635510.565290656,
+  "instrumentation": {
+    "leverage_positive_block_visits": 90,
+    "per_block_visits": {
+      "0": 11,
+      "1": 12,
+      "2": 11,
+      "3": 11,
+      "4": 12,
+      "5": 11,
+      "6": 11,
+      "7": 11
+    },
+    "segment_count": 7,
+    "segment_kinds": {
+      "cold_start_sweeps": 7
+    },
+    "total_block_visits": 90
+  },
+  "leverage": {
+    "block_count": 8,
+    "leverage_per_block": [
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7
+    ],
+    "leverage_positive_blocks": 8,
+    "relation_count": 28
+  },
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "milestones": [
+    {
+      "best_error": 12635510.565290656,
+      "fes": 180000
+    },
+    {
+      "best_error": 12633137.490953058,
+      "fes": 600000
+    },
+    {
+      "best_error": 12605578.098875657,
+      "fes": 1000000
+    },
+    {
+      "best_error": 12601522.115298511,
+      "fes": 2000000
+    },
+    {
+      "best_error": 12596577.226937052,
+      "fes": 3000000
+    }
+  ],
+  "order_records": [
+    {
+      "applied_order": [
+        1,
+        4,
+        6,
+        0,
+        2,
+        5,
+        3,
+        7
+      ],
+      "baseline_order": [
+        1,
+        4,
+        6,
+        0,
+        2,
+        5,
+        3,
+        7
+      ],
+      "block_count": 8,
+      "head_slots": 2,
+      "host": "gcb",
+      "leverage_per_block": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "namespace": "gcb-source",
+      "order_changed": false,
+      "relation_count": 28,
+      "start_sweep_index": 0
+    }
+  ],
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "f9297bc2a12e9d4c3f502c9073268278bfae1166a830a12b1bafee2854be68ec",
+  "route": "positive_relation_graph_source_481840_sweeps_3_coordination_155857_cold_native_2182302_windows_9_tail_1",
+  "run_seed": 135,
+  "schema_version": "arac-upgrade-s1-arm-receipt-v1"
+}

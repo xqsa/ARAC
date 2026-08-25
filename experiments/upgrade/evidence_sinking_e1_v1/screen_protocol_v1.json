@@ -1,0 +1,53 @@
+{
+  "bootstrap_draws": 10000,
+  "bootstrap_seed": 20260824,
+  "candidate_id": "evidence_sinking_e1_v1",
+  "cases": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate": {
+    "s1_bitwise_identical": "final_error, route, action_result_hash equal between arms on every seed",
+    "s2_s5_non_inferior": "95% paired bootstrap CI upper (exp scale) < 1.05 per case",
+    "s6_strict_win": "paired geometric-mean ratio <= 0.98"
+  },
+  "max_workers": 8,
+  "mechanism": {
+    "expected_shares": {
+      "S1": "no tail (zero relations, bitwise identical)",
+      "S2": 0.337,
+      "S3": 0.269,
+      "S4": 0.248,
+      "S5": 0.39,
+      "S6": 0.354
+    },
+    "frozen_tail_fraction": 0.2,
+    "function": "tail = 0.20 * (1 + min(1, mean_relation_strength / 0.08))",
+    "invariants": "session behavior, ordering, zero-relation path untouched; the constant is only read when overlap_relation_count > 0",
+    "kind": "ctp_tail_reserve_evidence_conditioning",
+    "rationale": "evidence-sinking plan v4.0 section E1: the only unspent historical positive gain point (G3 matched-tail mechanism evidence geo 0.2897; v5.0 T0 fresh-seed re-verification S6 R=0.419); lever class = budget ownership conditioned on static structure (meta-law positive side)",
+    "strength_ref_calibration": "0.08 = observed upper end of mean relation strength across the S-family checkpoints (input-space calibration on frozen seed-117 checkpoints; no outcome data used)"
+  },
+  "output_root": "artifacts/upgrade_evidence_sinking_e1_v1",
+  "phase1_fes": 180000,
+  "phase1_protocol": "frozen arac-identity-blind-evidence-v9 (production run_phase1)",
+  "schema_version": "arac-upgrade-evidence-sinking-e1-protocol-v1",
+  "seed_note": "fresh seeds, never used in any prior S-case run",
+  "seeds": [
+    20270601,
+    20270602,
+    20270603,
+    20270604,
+    20270605
+  ],
+  "total_budget_fes": 3000000,
+  "variants": [
+    "a0",
+    "a1"
+  ]
+}

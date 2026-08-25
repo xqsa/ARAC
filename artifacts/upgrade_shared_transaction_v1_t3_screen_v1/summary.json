@@ -1,0 +1,135 @@
+{
+  "candidate_id": "shared_transaction_v1",
+  "checks": {
+    "at_least_one_strict_win": false,
+    "contract_audits_green": true,
+    "no_cell_breaks_non_inferiority": true,
+    "reachability_all_arms": true
+  },
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": false,
+  "groups": [
+    {
+      "breaks_non_inferiority": false,
+      "cell_id": "chain4-strong",
+      "ci95_exp_lower": 1.0,
+      "ci95_exp_upper": 1.0,
+      "geometric_mean_ratio": 1.0,
+      "host": "smp",
+      "pairs": [
+        {
+          "a0_final": 45.6600372986868,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 45.6600372986868,
+          "log_ratio": 0.0,
+          "seed": 20270501
+        },
+        {
+          "a0_final": 44.73199503170326,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 44.73199503170326,
+          "log_ratio": 0.0,
+          "seed": 20270502
+        },
+        {
+          "a0_final": 37.039939142763615,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 37.039939142763615,
+          "log_ratio": 0.0,
+          "seed": 20270503
+        },
+        {
+          "a0_final": 49.7034930260852,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 49.7034930260852,
+          "log_ratio": 0.0,
+          "seed": 20270504
+        },
+        {
+          "a0_final": 24.533165734261274,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 24.533165734261274,
+          "log_ratio": 0.0,
+          "seed": 20270505
+        }
+      ],
+      "reachability_ok": true,
+      "strict_win": false,
+      "total_accepted": 0,
+      "total_consumed_fes": 40,
+      "win_tie_loss": [
+        0,
+        5,
+        0
+      ]
+    },
+    {
+      "breaks_non_inferiority": false,
+      "cell_id": "pairs3-strong",
+      "ci95_exp_lower": 1.0,
+      "ci95_exp_upper": 1.0,
+      "geometric_mean_ratio": 1.0,
+      "host": "smp",
+      "pairs": [
+        {
+          "a0_final": 33.869630130939186,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 33.869630130939186,
+          "log_ratio": 0.0,
+          "seed": 20270501
+        },
+        {
+          "a0_final": 24.031022041104734,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 24.031022041104734,
+          "log_ratio": 0.0,
+          "seed": 20270502
+        },
+        {
+          "a0_final": 29.078267889097333,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 29.078267889097333,
+          "log_ratio": 0.0,
+          "seed": 20270503
+        },
+        {
+          "a0_final": 40.6728226011619,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 40.6728226011619,
+          "log_ratio": 0.0,
+          "seed": 20270504
+        },
+        {
+          "a0_final": 23.102826379821636,
+          "a1_accepted": 0,
+          "a1_consumed": 8,
+          "a1_final": 23.102826379821636,
+          "log_ratio": 0.0,
+          "seed": 20270505
+        }
+      ],
+      "reachability_ok": true,
+      "strict_win": false,
+      "total_accepted": 0,
+      "total_consumed_fes": 40,
+      "win_tie_loss": [
+        0,
+        5,
+        0
+      ]
+    }
+  ],
+  "next_stage_authorized": false,
+  "result_hash": "5e15a67cc16f9fc5241e552a61946c77c7622b987dd1dec07277a6f85609c1ba",
+  "schema_version": "arac-upgrade-shared-transaction-t3-summary-v1",
+  "stage": "screen"
+}

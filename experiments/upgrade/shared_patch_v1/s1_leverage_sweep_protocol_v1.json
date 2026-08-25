@@ -1,0 +1,142 @@
+{
+  "anytime_rule": "anytime score = mean of log10(max(error, eps_ref)) at the four milestone FES; paired per-seed comparison a1 vs a0",
+  "aob_lane": {
+    "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+    "frozen_screen_receipt_root": "artifacts/recovery_first_screen_smp_topology_v3/arms",
+    "identity_fields": [
+      "final_error",
+      "route",
+      "action_result_hash"
+    ],
+    "identity_rule": "a0 arms and every zero-relation a1 arm must reproduce the frozen screen receipt bit-identically; positive-relation a1 arms differ by construction (reordered first sweep) and are compared through the preregistered statistics",
+    "mapped_hosts": {
+      "R1": "gcb",
+      "R2": "gcb",
+      "R3": "gcb",
+      "R4": "gcb",
+      "R5": "gcb",
+      "R6": "gcb",
+      "S1": "ctp",
+      "S2": "ctp",
+      "S3": "ctp",
+      "S4": "ctp",
+      "S5": "ctp",
+      "S6": "ctp"
+    },
+    "structural_rows": {
+      "A1": "aor",
+      "A2": "aor",
+      "A3": "aor",
+      "A4": "aor",
+      "A5": "aor",
+      "A6": "aor",
+      "E1": "smp",
+      "E2": "smp",
+      "E3": "smp",
+      "E4": "smp",
+      "E5": "smp",
+      "E6": "smp"
+    }
+  },
+  "arms": [
+    "a0",
+    "a1"
+  ],
+  "candidate_id": "shared_patch_v1",
+  "eps_reference": {
+    "aob": {
+      "R1": 14264.451064973444,
+      "R2": 19744.954497438688,
+      "R3": 23589.24242860925,
+      "R4": 29251.391598072085,
+      "R5": 27360.861520852475,
+      "R6": 33667.6521729814,
+      "S1": 4.1180877557767616e-08,
+      "S2": 5.402083514015951,
+      "S3": 11.116004292092253,
+      "S4": 143.30651125167844,
+      "S5": 187.5335395025466,
+      "S6": 247.2770118239614
+    },
+    "generator": {
+      "chain-mild": 325205.08050006506,
+      "chain-strong": 1314898.740490631,
+      "hub-mild": 56536.41986186989,
+      "hub-strong": 417930.75503014505,
+      "pairs-mild": 226295.2771625814,
+      "pairs-strong": 1104934.893872172
+    }
+  },
+  "eps_reference_rule": "aob: min positive frozen-screen final error across the five seeds, divided by 10; generator: min positive U1 seed-117 final error across both hosts, divided by 10; frozen before any S1 arm ran",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_rules": {
+    "a0_identity_with_frozen_all": true,
+    "anytime_nontax_per_host": "95% paired bootstrap lower of mean relative anytime diff >= -0.05",
+    "coverage_complete": "240 arms (12 aob mapped hosts x 5 seeds x 2 arms + 6 cells x 5 seeds x 2 hosts x 2 arms)",
+    "final_nontax_per_host": "geometric mean ratio <= 1.05 with 95% paired bootstrap upper <= 1.05",
+    "order_trace_rules": "a0 never reorders; a1 reorders exactly where leverage exists and never where it is zero",
+    "ov0_exact_no_tax": "zero-relation a1 arms bit-identical to their a0 arms",
+    "routes_unchanged_all_pairs": true
+  },
+  "generator_lane": {
+    "cells": [
+      "chain-mild",
+      "chain-strong",
+      "hub-mild",
+      "hub-strong",
+      "pairs-mild",
+      "pairs-strong"
+    ],
+    "generator_protocol": "arac-upgrade-conflicting-generator-v1",
+    "hosts": [
+      "ctp",
+      "gcb"
+    ],
+    "phase1_protocol": "arac-identity-blind-evidence-v9"
+  },
+  "head_fraction": 0.2,
+  "head_slot_rule": "first block sweep puts the top ceil(0.20*n_blocks) scopes by (-leverage, original_rank) into its head slots; every other slot and every later sweep keeps the frozen baseline order; ctp host granularity: the interleaved coverage call is the first sweep; gcb host granularity: the first gcb-source sweep",
+  "leverage_definition": "incident relation count per checkpoint block (U1 protocol preregistration)",
+  "max_workers": 24,
+  "milestone_fes": [
+    600000,
+    1000000,
+    2000000,
+    3000000
+  ],
+  "output_root": "artifacts/upgrade_s1_leverage_sweep_v1",
+  "phase2_fes": 2820000,
+  "pinned_trees": [
+    "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "artifacts/current_arac_aob24_recovery_v1/runs",
+    "artifacts/recovery_first_screen_smp_topology_v3/arms",
+    "artifacts/upgrade_u1_host_reachability_v1"
+  ],
+  "runtime_environment": {
+    "required_blas_prefixes": [
+      "libscipy_openblas"
+    ],
+    "required_interpreter": "E:/ARAC/.venv/Scripts/python.exe"
+  },
+  "schema_version": "arac-upgrade-s1-leverage-sweep-protocol-v1",
+  "screen_seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "sources": [
+    "experiments/upgrade/shared_patch_v1/protocol.json",
+    "experiments/upgrade/shared_patch_v1/conflicting_generator.py",
+    "experiments/upgrade/shared_patch_v1/host_instrumentation.py",
+    "experiments/upgrade/shared_patch_v1/s1_leverage_sweep.py",
+    "experiments/upgrade/shared_patch_v1/s1_leverage_sweep_protocol_v1.json",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability.py",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability_protocol_v1.json"
+  ],
+  "total_budget_fes": 3000000,
+  "u1_annex": "the U1 per-case reachability table is a mandatory annex of this gate; S1 applies only to the hosts it marks reachable",
+  "u1_summary": "artifacts/upgrade_u1_host_reachability_v1/summary.json"
+}

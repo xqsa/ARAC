@@ -1,0 +1,105 @@
+{
+  "action_result_hash": "8174ef2c8499c379ed96689636d81b0d5464d72353f5861a96bbb816bf3164d1",
+  "arm": "a0",
+  "case_id": null,
+  "cell_id": "chain-mild",
+  "checkpoint_hash": "f4ab129ccf30d51dc397feecb15e167d893746f8eff469e24b368b521d95646b",
+  "elapsed_seconds": 4556.23486,
+  "final_error": 1343793.812644843,
+  "forced_host": true,
+  "ground_truth_hash": "8689cbafe5fd05e813917607f0a62540389b60748d8757f5526175c3683e1766",
+  "host": "ctp",
+  "identity": null,
+  "initial_error": 1379657.9669741406,
+  "instrumentation": {
+    "leverage_positive_block_visits": 16,
+    "per_block_visits": {
+      "0": 2,
+      "1": 2,
+      "10": 1,
+      "11": 1,
+      "12": 1,
+      "13": 1,
+      "14": 1,
+      "15": 1,
+      "16": 1,
+      "17": 1,
+      "18": 1,
+      "19": 1,
+      "2": 2,
+      "20": 1,
+      "21": 1,
+      "22": 1,
+      "23": 1,
+      "24": 1,
+      "25": 1,
+      "26": 1,
+      "27": 1,
+      "28": 1,
+      "29": 1,
+      "3": 2,
+      "30": 1,
+      "31": 1,
+      "32": 1,
+      "33": 1,
+      "34": 1,
+      "35": 1,
+      "4": 2,
+      "5": 2,
+      "6": 2,
+      "7": 2,
+      "8": 1,
+      "9": 1
+    },
+    "segment_count": 2,
+    "segment_kinds": {
+      "persistent_coverage": 1,
+      "sequential_polish": 1
+    },
+    "total_block_visits": 44
+  },
+  "leverage": {
+    "block_count": 8,
+    "leverage_per_block": [
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7
+    ],
+    "leverage_positive_blocks": 8,
+    "relation_count": 28
+  },
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "milestones": [
+    {
+      "best_error": 1379657.9669741406,
+      "fes": 180000
+    },
+    {
+      "best_error": 1372867.3569373044,
+      "fes": 600000
+    },
+    {
+      "best_error": 1372382.2495793463,
+      "fes": 1000000
+    },
+    {
+      "best_error": 1372382.2495793463,
+      "fes": 2000000
+    },
+    {
+      "best_error": 1343793.812644843,
+      "fes": 3000000
+    }
+  ],
+  "order_records": [],
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "7164136783e145b0a0d38f98069bd4dafa1a9ffaf22c3f4c51214cd853bc592a",
+  "route": "coverage_451200_then_relation_cover_polish_1804464_then_mmes_tail_564336",
+  "run_seed": 129,
+  "schema_version": "arac-upgrade-s1-arm-receipt-v1"
+}

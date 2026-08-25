@@ -1,0 +1,137 @@
+{
+  "action_result_hash": "2c43ae0e9b7f8cc4c5b61aa8ad5ce181b6e5120724af2c94c52d79aa5f7d5ebf",
+  "action_seed": 117,
+  "case_id": "E3",
+  "census": {
+    "boundary_count": 1,
+    "boundary_phase": "run_stalled_block_rescue",
+    "link_rows": [],
+    "links_with_both_owners": 0,
+    "max_patch_fe": 0,
+    "native_phase_count": 4,
+    "qualified_boundary_count": 0,
+    "reanchor_all_proven": true,
+    "reanchor_rows": [
+      {
+        "entry_fes": 1307986,
+        "first_session_anchor_hash": "c2a83672490e41f5153d75e2f5dd6dac8a6f82dddebb19e1707e5fbf00e3204d",
+        "first_session_birth_fes": 1308024,
+        "incumbent_hash_at_birth": "c2a83672490e41f5153d75e2f5dd6dac8a6f82dddebb19e1707e5fbf00e3204d",
+        "incumbent_hash_at_entry": "178119f86c4757f5e186cd3298ab720abfc33800c0cb1ae02c05b3402d30387d",
+        "reanchor_proven": true
+      }
+    ],
+    "source_improvement_count": 18301,
+    "source_phase": "run_stateful_block_visits",
+    "source_proposal_blocks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  "checkpoint_hash": "f00e18942a80c61c2dbf679d23aae2311c7e2e1e207b10bea40bd8affdda9af2",
+  "elapsed_seconds": 505.26706,
+  "final_error": 5244835.507959322,
+  "host": "smp",
+  "identity": {
+    "action_result_hash": {
+      "frozen": "2c43ae0e9b7f8cc4c5b61aa8ad5ce181b6e5120724af2c94c52d79aa5f7d5ebf",
+      "match": true,
+      "rerun": "2c43ae0e9b7f8cc4c5b61aa8ad5ce181b6e5120724af2c94c52d79aa5f7d5ebf"
+    },
+    "checkpoint_hash": {
+      "frozen": "f00e18942a80c61c2dbf679d23aae2311c7e2e1e207b10bea40bd8affdda9af2",
+      "match": true,
+      "rerun": "f00e18942a80c61c2dbf679d23aae2311c7e2e1e207b10bea40bd8affdda9af2"
+    },
+    "final_error": {
+      "frozen": 5244835.507959322,
+      "match": true,
+      "rerun": 5244835.507959322
+    },
+    "route": {
+      "frozen": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127986_visits_187_stale_restarts_47_rescue_281992_probes_184_rescue_visits_40_global_polish_1410000",
+      "match": true,
+      "rerun": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127986_visits_187_stale_restarts_47_rescue_281992_probes_184_rescue_visits_40_global_polish_1410000"
+    }
+  },
+  "identity_all_match": true,
+  "initial_error": 2370710387.156419,
+  "instrumentation": {
+    "improvement_count": 18399,
+    "phases": [
+      {
+        "entry_fes": 180000,
+        "exit_fes": 1307986,
+        "incumbent_error_at_entry": 2370710387.156419,
+        "incumbent_hash_at_entry": "2c3ad6d91dd051ab6551ac32d10034c8a5fabc192eb716ffd858b517a54fbbe6",
+        "namespace": null,
+        "tag": "run_stateful_block_visits"
+      },
+      {
+        "entry_fes": 1307986,
+        "exit_fes": 1589978,
+        "incumbent_error_at_entry": 33737937.33479511,
+        "incumbent_hash_at_entry": "178119f86c4757f5e186cd3298ab720abfc33800c0cb1ae02c05b3402d30387d",
+        "namespace": null,
+        "tag": "run_stalled_block_rescue"
+      },
+      {
+        "entry_fes": 1589978,
+        "exit_fes": 2999978,
+        "incumbent_error_at_entry": 31783768.13056541,
+        "incumbent_hash_at_entry": "62f176650cfcc524b3d213d52a1766a00a38ca28c66fdbf7805a041b5f64e3e9",
+        "namespace": "smp-global-polish",
+        "tag": "run_full_space"
+      },
+      {
+        "entry_fes": 2999978,
+        "exit_fes": 3000000,
+        "incumbent_error_at_entry": 5244835.507959322,
+        "incumbent_hash_at_entry": "7dad07d57f5e1fcb36ff4d94f0cda571345d60f90f1edbaf67afdd8bd28d98f1",
+        "namespace": "smp-terminal",
+        "tag": "run_full_space"
+      }
+    ],
+    "session_count": 59,
+    "timeline_rows": 51076
+  },
+  "lane": "aob_identity",
+  "manifest_sha256": "f8ab02e8e9e7be29c8321e3464923493bc46051cb805cec982b213c8b89bf576",
+  "receipt_hash": "867b4118af3f4c7b2b151dfee4bef140f47521875fbe73bee148da395e8feb3b",
+  "route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127986_visits_187_stale_restarts_47_rescue_281992_probes_184_rescue_visits_40_global_polish_1410000",
+  "run_seed": 117,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t1-arm-receipt-v1"
+}

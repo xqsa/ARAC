@@ -1,0 +1,149 @@
+{
+  "action_result_hash": "fd94a81ab4bf0ac9bcee1bb624b90e692bc6d493fa69d8a19f46aebf76bcb5ea",
+  "action_seed": 314159,
+  "cell_id": "chain4-strong",
+  "checkpoint_hash": "bcb1d608eae9f18a35f80f2dd793518f5b0a8db5b4b5d345b12c047e9fd21628",
+  "elapsed_seconds": 316.785775,
+  "final_error": 48.41152065154165,
+  "initial_error": 54571.276969035156,
+  "kernel_accepted_count": 0,
+  "kernel_consumed_fes": 140976,
+  "kernel_receipts": [
+    {
+      "accepted_links": 0,
+      "best_error_after_joint": 4184.556179569103,
+      "best_error_before": 4184.556179569103,
+      "boundary_phase": "run_stalled_block_rescue",
+      "forwarded_fes": 141024,
+      "joint_fes": 140976,
+      "link_scopes": [
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        }
+      ]
+    }
+  ],
+  "manifest_sha256": "859f78c411aa1d1c1072e96152b32601fcd0e83068cd1787ff9a7b0cee111f52",
+  "receipt_hash": "9829c907452f0077288280f9a19cf91cb50552ce9aa5008c696f3213f1e4a99b",
+  "route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127992_visits_22_stale_restarts_0_rescue_141019_probes_20_rescue_visits_5_global_polish_1410000",
+  "run_seed": 20270501,
+  "schema_version": "arac-upgrade-shared-transaction-v4-arm-receipt-v1",
+  "variant": "a1"
+}

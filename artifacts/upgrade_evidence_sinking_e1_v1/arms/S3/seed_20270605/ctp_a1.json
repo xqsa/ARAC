@@ -1,0 +1,34 @@
+{
+  "action_result_hash": "acb494d2e7777e08c69daf210a9f2a4bf331cafd5e38e596c9443f3ad713e2a7",
+  "case_id": "S3",
+  "checkpoint_hash": "847e417d7f8371abc8c71a1a9352c9e51af775d1a9d2047cbdcb0d42ef581c64",
+  "conditioned_tail_fraction": 0.3611970167107192,
+  "conditioning_norm": 0.8059850835535957,
+  "elapsed_seconds": 922.532513,
+  "final_error": 1639.61928184757,
+  "frozen_tail_fraction": 0.2,
+  "initial_error": 25114590.74273917,
+  "manifest_sha256": "9b561cc35e36780ead3b6b925a1474e62b9b23f37a15e500d2311e668692b5df",
+  "receipt_hash": "ae79e749e15255c88f1ddbf4bf2c028609534b4241bd0d5fbd3ed740f9d4e969",
+  "relation_count": 24,
+  "route": "coverage_360240_then_relation_cover_polish_1440912_then_mmes_tail_1018848",
+  "run_seed": 20270605,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-evidence-sinking-e1-arm-receipt-v1",
+  "variant": "a1"
+}

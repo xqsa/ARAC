@@ -11,6 +11,7 @@ from arac.actions._execution import (
     terminal_result,
 )
 from arac.actions.phase2_v2 import RecoveredAorPhase2State, RecoveredSmpPhase2State
+from arac.actions.smp import SmpExecutor
 from arac.runtime.contracts import ActionContext, ActionResult, Phase2Snapshot
 from arac.runtime.optimizers import PypopOptimizerPort
 
@@ -96,4 +97,39 @@ class RecoveredSmpExecutor:
         )
 
 
-__all__ = ["RecoveredAorExecutor", "RecoveredSmpExecutor"]
+class RecoveredHistoricalSmpExecutor:
+    """Select the recovered SMP lifecycle by relation topology.
+
+    ``RecoveredSmpExecutor`` remains the resumable v2 state-machine wrapper;
+    this adapter is used by the recovered one-shot registry only.  Conflicting
+    overlap uses the evidenced rescue, global-polish, and terminal-tail budget
+    ownership, while zero-relation cases retain the recovered hybrid rescue
+    route that was already validated on E1.
+    """
+
+    name = "smp"
+    historical_lifecycle_profile = "historical_compatible_smp_v1_clip_offspring_true"
+    zero_relation_lifecycle_profile = "zero_relation_recovered_smp_v1_clip_offspring_false"
+
+    def execute(self, context: ActionContext) -> ActionResult:
+        if not isinstance(context, ActionContext) or context.action_name != self.name:
+            raise TypeError("recovered historical SMP requires an SMP ActionContext")
+        if not context.ledger.allow_out_of_bounds:
+            raise ValueError("recovered historical SMP requires the explicit unbounded-offspring profile")
+        if context.checkpoint.overlap_relation_count == 0:
+            result = RecoveredSmpExecutor().execute(context)
+            lifecycle_profile = self.zero_relation_lifecycle_profile
+        else:
+            result = SmpExecutor().execute(context)
+            lifecycle_profile = self.historical_lifecycle_profile
+        return terminal_result(
+            context,
+            route=f"recovered_{lifecycle_profile}_{result.route}",
+        )
+
+
+__all__ = [
+    "RecoveredAorExecutor",
+    "RecoveredHistoricalSmpExecutor",
+    "RecoveredSmpExecutor",
+]

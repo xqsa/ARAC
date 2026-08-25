@@ -1,0 +1,37 @@
+{
+  "action_name": "smp",
+  "baseline_receipt_sha256": {
+    "117": "e2127982a07c0c93ba2c83829f2ce30b08ec07af77951d5ef8bafb734085aba5",
+    "123": "f8422bda15bb5bcfc152cfa58d9f8e27c7becdc7d88b4912d06721fffc9b6dc2",
+    "129": "4f3522b4058a33c6559dd96034e4c5727511104d06f2338bb96f05623249056f",
+    "135": "a893150baefd4071953c4a3f8a89a7d00dce4eac8ec7bbce2fa2a13b6d4a4212",
+    "141": "6cdb664bd9cfdd74803efec5666b453234b93722609eb5645cc3cc1dafc827aa"
+  },
+  "baseline_semantics": "frozen_previous_screen_receipt_final_error_only",
+  "case_id": "E1",
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "manifest_sha256": "466a9ce89c42030eacacb61f74a00af982a32cdf146194d7387c07da974b73ed",
+  "patch_enabled": false,
+  "protocol_sha256": "375f9d840c823821e07dd88263e31497585c7efacdf0ac782244970350617d59",
+  "schema_version": "arac-recovery-smp-zero-relation-preservation-manifest-v1",
+  "seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "selector_enabled": false,
+  "soft_routing_enabled": false,
+  "source_sha256": {
+    "campaign": "87898a8ebd3a8c1dbf364416945c500529b58cf30fdc0b3d377e1c184f618433",
+    "contracts": "c17bc689584b1842f6d9362c52d235243df4e5bc8baaf525606ca4e9c3432fc5",
+    "execution": "cb8d6d533537c88d90a2d9b8af6cf97af1aac195ebc263aeeb3de779e3d0bd13",
+    "fixed_campaign": "d07a1bb2054c633f2e1b486b0bb49743159a79353764c0b2a0de3565ab5a3f5f",
+    "ledger": "ee01bf317ebb5da8a33c86d69f025d9487667e1ddcada7d62592dade34f2a8e0",
+    "protocol": "375f9d840c823821e07dd88263e31497585c7efacdf0ac782244970350617d59",
+    "recovered": "7d5f6f6af6e23a11a587ec9af80a79618e72412051f7f366b1a2a69a6d6d8a87",
+    "recovered_registry": "61a375714f58eda489bd748657e5da8ad597db7e758d214a17c30a1bda658c8d"
+  }
+}

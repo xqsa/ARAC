@@ -1,0 +1,71 @@
+{
+  "schema_version": "arac-upgrade-u1-host-reachability-protocol-v1",
+  "candidate_id": "shared_patch_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "reachability_seed": 117,
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "aob_lane": {
+    "mapped_hosts": {
+      "S1": "ctp", "S2": "ctp", "S3": "ctp", "S4": "ctp", "S5": "ctp", "S6": "ctp",
+      "R1": "gcb", "R2": "gcb", "R3": "gcb", "R4": "gcb", "R5": "gcb", "R6": "gcb"
+    },
+    "structural_rows": {
+      "A1": "aor", "A2": "aor", "A3": "aor", "A4": "aor", "A5": "aor", "A6": "aor",
+      "E1": "smp", "E2": "smp", "E3": "smp", "E4": "smp", "E5": "smp", "E6": "smp"
+    },
+    "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+    "frozen_screen_receipt_root": "artifacts/recovery_first_screen_smp_topology_v3/arms",
+    "identity_fields": ["final_error", "route", "action_result_hash", "checkpoint_hash"],
+    "identity_rule": "every instrumented AOB rerun must reproduce the frozen screen receipt bit-identically on all identity fields; this proves the instrumentation itself is zero-tax"
+  },
+  "generator_lane": {
+    "cells": ["chain-mild", "chain-strong", "hub-mild", "hub-strong", "pairs-mild", "pairs-strong"],
+    "hosts": ["ctp", "gcb"],
+    "phase1_protocol": "arac-identity-blind-evidence-v9",
+    "dimension": 1000,
+    "generator_protocol": "arac-upgrade-conflicting-generator-v1",
+    "forced_host_rule": "host label is local to the experiment; the production selector and planner never participate"
+  },
+  "leverage_definition": {
+    "formula": "leverage(block) = |{relations r in checkpoint : r.left_block == block or r.right_block == block}|",
+    "note": "the v2.1 plan defines leverage as the number of Phase-I shared variables in a scope; recovered-lane checkpoints expose block-pair RelationEvidence over a disjoint block partition and no per-variable membership, so the executor-lane translation is preregistered as the incident relation count"
+  },
+  "reachability_definition": {
+    "host_reachable": "the instrumented run completed the terminal contract and executed at least one sweep-capable segment with non-zero consumed FE",
+    "mount_scope_reachable": "at least one visit to a block with leverage > 0; when the checkpoint has zero relations the arm is recorded as mechanism_silent (leverage is identically zero, S-ladder is a no-op by construction)",
+    "mount_absent": "the mapped action (aor/smp) carries no CTP/GSS mount point by freeze contract"
+  },
+  "gate_rules": {
+    "aob_identity_all": true,
+    "aob_terminal_contract_all": true,
+    "aob_host_reachable_all": true,
+    "aob_mount_scope_reachable_when_relations_exist": true,
+    "generator_discovery_all": "every cell must discover at least one relation with strength > 0 at the reachability seed",
+    "generator_terminal_contract_all": true,
+    "generator_mount_scope_reachable_all": true,
+    "structural_rows_complete": true
+  },
+  "sources": [
+    "experiments/upgrade/shared_patch_v1/protocol.json",
+    "experiments/upgrade/shared_patch_v1/conflicting_generator.py",
+    "experiments/upgrade/shared_patch_v1/host_instrumentation.py",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability.py",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability_protocol_v1.json"
+  ],
+  "pinned_trees": [
+    "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "artifacts/current_arac_aob24_recovery_v1/runs",
+    "artifacts/recovery_first_screen_smp_topology_v3/arms"
+  ],
+  "output_root": "artifacts/upgrade_u1_host_reachability_v1",
+  "max_workers": 12,
+  "runtime_environment": {
+    "required_interpreter": "E:/ARAC/.venv/Scripts/python.exe",
+    "required_blas_prefixes": ["libscipy_openblas"],
+    "note": "AOB identity fields are bit-reproducible only under the frozen interpreter/BLAS stack that produced the recovery screen (E:/ARAC .venv, numpy 2.3.5, scipy libscipy_openblas); receipts record python_executable and threadpools, and the identity gate fails closed under any other stack. A first execution attempt under a different interpreter (hermes-agent venv, numpy 1.26.4) was discarded before any gate judgment; see docs/arac-oc-progress-log.md."
+  },
+  "u1_rule": "U1 produces the per-case reachability table only; it authorizes no performance comparison and no patch execution"
+}

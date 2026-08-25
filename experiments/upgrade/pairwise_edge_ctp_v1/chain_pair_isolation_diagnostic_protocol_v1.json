@@ -1,0 +1,13 @@
+{
+  "candidate_id": "pairwise_edge_ctp_v1",
+  "cell": "chain4-strong",
+  "diagnostic_seeds": [
+    20270421,
+    20270422,
+    20270423
+  ],
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "output_root": "artifacts/upgrade_pairwise_edge_ctp_v1_chain_diagnostic_v1",
+  "schema_version": "arac-upgrade-chain-pair-isolation-diagnostic-protocol-v1",
+  "threshold": 1e-13
+}

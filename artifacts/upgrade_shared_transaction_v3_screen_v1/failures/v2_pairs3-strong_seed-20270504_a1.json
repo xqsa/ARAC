@@ -1,0 +1,8 @@
+{
+  "error": "'consumed_fes'",
+  "error_type": "KeyError",
+  "failed_at_utc": "2026-08-23T20:25:17.335212+00:00",
+  "key": "v2:pairs3-strong:seed-20270504:a1",
+  "schema_version": "arac-upgrade-shared-transaction-v3-failure-v1",
+  "traceback": "Traceback (most recent call last):\n  File \"E:\\ARAC\\experiments\\upgrade\\shared_transaction_v3\\screen.py\", line 169, in _run_arm\n    \"kernel_consumed_fes\": sum(int(item[\"consumed_fes\"]) for item in receipts),\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"E:\\ARAC\\experiments\\upgrade\\shared_transaction_v3\\screen.py\", line 169, in <genexpr>\n    \"kernel_consumed_fes\": sum(int(item[\"consumed_fes\"]) for item in receipts),\n                                   ~~~~^^^^^^^^^^^^^^^^\nKeyError: 'consumed_fes'\n"
+}

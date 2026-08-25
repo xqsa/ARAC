@@ -51,6 +51,11 @@ from arac.evidence.phase1_overlap_pilot import (
     Phase1OverlapPilotResult,
     run_phase1_overlap_pilot,
 )
+from arac.evidence.soft_rddsm_adapter import (
+    overlap_evidence_hash,
+    overlap_evidence_payload,
+    soft_evidence_to_overlap_evidence,
+)
 
 __all__ = [
     "EVIDENCE_MODES",
@@ -92,4 +97,7 @@ __all__ = [
     "PHASE1_OVERLAP_PILOT_PROTOCOL",
     "Phase1OverlapPilotResult",
     "run_phase1_overlap_pilot",
+    "soft_evidence_to_overlap_evidence",
+    "overlap_evidence_payload",
+    "overlap_evidence_hash",
 ]

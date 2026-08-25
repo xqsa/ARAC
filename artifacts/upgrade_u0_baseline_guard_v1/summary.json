@@ -1,0 +1,33 @@
+{
+  "candidate_id": "shared_patch_v1",
+  "checks": {
+    "e1_preservation_green": true,
+    "freeze_id_matches_anchor": true,
+    "patch_disabled": true,
+    "screen_contract_green": true,
+    "selector_disabled": true,
+    "smp_smoke_green": true,
+    "soft_routing_disabled": true,
+    "verifier_status_frozen": true
+  },
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": true,
+  "manifest_sha256": "8af7ff226bf7e44c3d55231da02955c231d326742c278d0ddf9d717d4bbd1acd",
+  "result_hash": "f69f0a140ca2eede5c7f45ca95bf1d6c43096a185849792dc79d3e6089b54ef7",
+  "schema_version": "arac-upgrade-u0-summary-v1",
+  "upgrade_authorized_to": "u1",
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

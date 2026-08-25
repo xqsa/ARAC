@@ -15,6 +15,7 @@ import numpy as np
 
 from arac.benchmarks.aob import OptimizationProblem
 from arac.evidence.soft_rddsm import SoftDsmConfig, _rdg_interact, discover_hierarchical_soft
+from arac.evidence.soft_rddsm_adapter import soft_evidence_to_overlap_evidence
 from arac.runtime.ledger import EvaluationLedger
 
 DIMENSION = 7
@@ -78,6 +79,15 @@ def test_two_blocks_one_shared_variable_is_recovered() -> None:
     bridging = {interaction.variable for interaction in result.evidence.variable_region_interactions}
     assert bridging == {SHARED, 4, 5, 6}
     assert set(result.shared_candidates) <= bridging
+
+    sidecar = soft_evidence_to_overlap_evidence(result.evidence)
+    assert sidecar.complete is True
+    assert sidecar.memberships[SHARED] == (0, 1)
+    assert tuple(
+        variable
+        for variable, owners in enumerate(sidecar.memberships)
+        if len(owners) > 1
+    ) == (SHARED,)
 
 
 def test_level_budgets_reconcile_exactly_with_ledger() -> None:

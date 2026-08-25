@@ -1,0 +1,611 @@
+{
+  "action_result_hash": "3182dd9bfa3a12afacf9a50af0ed80bc76e09f7c0122bf5115288e2e2cc3e9ec",
+  "action_seed": 314159,
+  "cell_id": "pairs3-strong",
+  "census": {
+    "boundary_count": 2,
+    "boundary_phase": "run_full_space",
+    "link_rows": [
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 5
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 30
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 36
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 40
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 43
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 48
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 68
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "0": {
+            "commit_fes": 1739596,
+            "incumbent_hash_after": "83197de050e406ed024f2c3599945322591b5f6cccef909c1d467afe712874f6"
+          },
+          "1": {
+            "commit_fes": 616031,
+            "incumbent_hash_after": "cba422b3f9d15df5d80810d98dfb3d459f070abefd31b8805b26641419e93554"
+          }
+        },
+        "variable": 71
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 443
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 456
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 458
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 463
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 464
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 472
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 474
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 1882020,
+            "incumbent_hash_after": "506b55418d4a520d1c41a483a3803de6387a5db72386da13bd3d34d7af30f4b4"
+          },
+          "5": {
+            "commit_fes": 2021917,
+            "incumbent_hash_after": "1aeb776e181dff87a139ab62a058b5c5fffce45ef97b77e1d0c2f239855b74cb"
+          }
+        },
+        "variable": 485
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 803
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 820
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 833
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 840
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 843
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 859
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 862
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "8": {
+            "commit_fes": 2162080,
+            "incumbent_hash_after": "3e6cd9d9a6884c770ba6bb36b9daffea681d7bc1d04121c0416eb2bbccdb7ea3"
+          },
+          "9": {
+            "commit_fes": 2302091,
+            "incumbent_hash_after": "1df4829db2e8d7160c6c2f620cbbaa40e3b849fb24997413fb3a6405698da057"
+          }
+        },
+        "variable": 870
+      }
+    ],
+    "links_with_both_owners": 24,
+    "max_patch_fe": 0,
+    "native_phase_count": 9,
+    "qualified_boundary_count": 0,
+    "reanchor_all_proven": false,
+    "reanchor_rows": [
+      {
+        "entry_fes": 796455,
+        "first_session_anchor_hash": null,
+        "first_session_birth_fes": null,
+        "incumbent_hash_at_birth": null,
+        "incumbent_hash_at_entry": "653dd0016793a58ab9012b1555ac3a2433efcde596af178d105141f28c6aef9f",
+        "reanchor_proven": false
+      },
+      {
+        "entry_fes": 2999999,
+        "first_session_anchor_hash": null,
+        "first_session_birth_fes": null,
+        "incumbent_hash_at_birth": null,
+        "incumbent_hash_at_entry": "241b47034391206f1e19314effddc076aa44706fb6a90c381b6fd43625dea139",
+        "reanchor_proven": false
+      }
+    ],
+    "source_improvement_count": 14504,
+    "source_phase": "run_cold_start_block_sweeps",
+    "source_proposal_blocks": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  "certificate_link_count": 24,
+  "checkpoint_hash": "a86523949ef26d52ed2d4758c6130b429717729178a05f4fb39715897a452224",
+  "elapsed_seconds": 389.526502,
+  "final_error": 206.8848420237191,
+  "host": "gcb",
+  "initial_error": 53973.97036904609,
+  "instrumentation": {
+    "improvement_count": 14504,
+    "phases": [
+      {
+        "entry_fes": 180000,
+        "exit_fes": 384611,
+        "incumbent_error_at_entry": 53973.97036904609,
+        "incumbent_hash_at_entry": "cf9d0ad12adba504e4b2f6ba915ed03ffd2699961ee91ab730ab417db3808c3e",
+        "namespace": "gcb-source",
+        "tag": "run_cold_start_block_sweeps"
+      },
+      {
+        "entry_fes": 384611,
+        "exit_fes": 570925,
+        "incumbent_error_at_entry": 41268.88600232219,
+        "incumbent_hash_at_entry": "fb4d5260476278108e4b8b8e8870356b70ede326b2b02107ff1e22147c5b14bc",
+        "namespace": "gcb-source",
+        "tag": "run_cold_start_block_sweeps"
+      },
+      {
+        "entry_fes": 570925,
+        "exit_fes": 796455,
+        "incumbent_error_at_entry": 37762.643346651224,
+        "incumbent_hash_at_entry": "a999f13759136bac8610ff0b56899c6cf4a99eb8736fe64b11946b0146e7650c",
+        "namespace": "gcb-source",
+        "tag": "run_cold_start_block_sweeps"
+      },
+      {
+        "entry_fes": 796455,
+        "exit_fes": 1021985,
+        "incumbent_error_at_entry": 36220.64051327575,
+        "incumbent_hash_at_entry": "653dd0016793a58ab9012b1555ac3a2433efcde596af178d105141f28c6aef9f",
+        "namespace": "gcb-global-coordination-a86523949ef26d52ed2d4758c6130b429717729178a05f4fb39715897a452224",
+        "tag": "run_full_space"
+      },
+      {
+        "entry_fes": 1021985,
+        "exit_fes": 1229161,
+        "incumbent_error_at_entry": 1353.3967764879344,
+        "incumbent_hash_at_entry": "e4390e4cbef620541dd2030787c80a003377fdf46dd6792f75b34c1ddc87d99e",
+        "namespace": "gcb-native",
+        "tag": "run_cold_start_block_sweeps"
+      },
+      {
+        "entry_fes": 1229161,
+        "exit_fes": 1412131,
+        "incumbent_error_at_entry": 1353.3967764879344,
+        "incumbent_hash_at_entry": "e4390e4cbef620541dd2030787c80a003377fdf46dd6792f75b34c1ddc87d99e",
+        "namespace": "gcb-native",
+        "tag": "run_cold_start_block_sweeps"
+      },
+      {
+        "entry_fes": 1412131,
+        "exit_fes": 1599680,
+        "incumbent_error_at_entry": 1353.3967764879344,
+        "incumbent_hash_at_entry": "e4390e4cbef620541dd2030787c80a003377fdf46dd6792f75b34c1ddc87d99e",
+        "namespace": "gcb-native",
+        "tag": "run_cold_start_block_sweeps"
+      },
+      {
+        "entry_fes": 1599680,
+        "exit_fes": 2999999,
+        "incumbent_error_at_entry": 1353.3967764879344,
+        "incumbent_hash_at_entry": "e4390e4cbef620541dd2030787c80a003377fdf46dd6792f75b34c1ddc87d99e",
+        "namespace": "gcb-native",
+        "tag": "run_cold_start_block_sweeps"
+      },
+      {
+        "entry_fes": 2999999,
+        "exit_fes": 3000000,
+        "incumbent_error_at_entry": 206.8848420237191,
+        "incumbent_hash_at_entry": "241b47034391206f1e19314effddc076aa44706fb6a90c381b6fd43625dea139",
+        "namespace": "gcb-terminal-alignment-a86523949ef26d52ed2d4758c6130b429717729178a05f4fb39715897a452224",
+        "tag": "run_full_space"
+      }
+    ],
+    "session_count": 94,
+    "timeline_rows": 16841
+  },
+  "lane": "generator",
+  "manifest_sha256": "f8ab02e8e9e7be29c8321e3464923493bc46051cb805cec982b213c8b89bf576",
+  "receipt_hash": "186c214b0a3717da9851af17237f8b4779165d82ca169a255597c0cc166709ee",
+  "route": "positive_relation_graph_source_616455_sweeps_3_coordination_225530_cold_native_1978014_windows_7_tail_1",
+  "run_seed": 20270505,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t1-arm-receipt-v1"
+}

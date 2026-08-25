@@ -1,0 +1,85 @@
+{
+  "aor_case_summaries": [
+    {
+      "action_result_hashes_valid": true,
+      "case_id": "A4",
+      "historical_target_mean": 78200.0,
+      "route_set": [
+        "recovered_fresh_zero_mean_sepcmaes_2820000"
+      ],
+      "screen_displayed_mean_not_higher": false,
+      "screen_mean": 78257.56189846099,
+      "screen_sample_std": 48.64449134714041,
+      "screen_to_historical_target_ratio": 1.000736085658069,
+      "seed_count": 5
+    },
+    {
+      "action_result_hashes_valid": true,
+      "case_id": "A6",
+      "historical_target_mean": 78000.0,
+      "route_set": [
+        "recovered_fresh_zero_mean_sepcmaes_2820000"
+      ],
+      "screen_displayed_mean_not_higher": false,
+      "screen_mean": 78123.17808863384,
+      "screen_sample_std": 71.50434972253636,
+      "screen_to_historical_target_ratio": 1.0015792062645363,
+      "seed_count": 5
+    }
+  ],
+  "aor_source_identity_exact": true,
+  "ctp_case_summary": {
+    "action_result_hashes_valid": true,
+    "case_id": "S6",
+    "historical_target_mean": 4180.0,
+    "matched_tail_ablation_baseline_tail_fes": [
+      204,
+      84,
+      312
+    ],
+    "matched_tail_ablation_candidate_tail_fes": [
+      564048,
+      564228,
+      564108
+    ],
+    "matched_tail_ablation_candidate_win_count": 3,
+    "matched_tail_ablation_geometric_ratio": 0.28973337775624947,
+    "matched_tail_ablation_same_checkpoint": true,
+    "matched_tail_ablation_seed_count": 3,
+    "screen_displayed_mean_not_higher": false,
+    "screen_mean": 5283.947051884028,
+    "screen_route_has_reserved_tail": true,
+    "screen_route_set": [
+      "coverage_450984_then_relation_cover_polish_1804968_then_mmes_tail_564048",
+      "coverage_451008_then_relation_cover_polish_1804656_then_mmes_tail_564336",
+      "coverage_451008_then_relation_cover_polish_1804848_then_mmes_tail_564144",
+      "coverage_451044_then_relation_cover_polish_1804860_then_mmes_tail_564096"
+    ],
+    "screen_sample_std": 2670.0745857998045,
+    "screen_to_historical_target_ratio": 1.2641021655224947,
+    "seed_count": 5
+  },
+  "ctp_source_differs": true,
+  "decision": {
+    "aor_code_change_authorized": false,
+    "aor_interpretation": "current and historical AOR sources are byte-identical; A4/A6 residual is not an AOR lifecycle delta",
+    "aor_lifecycle_attribution_complete": true,
+    "ctp_interpretation": "S6 tail ablation is positive on matched 31001-31003 checkpoints, but it is not paired to screen seeds 117-141; do not claim screen recovery",
+    "ctp_production_change_authorized": false,
+    "ctp_tail_mechanism_matched_evidence": true,
+    "next_gate": "fresh matched S6 screen-seed tail attribution or retain current CTP while AOR/GCB remain unresolved"
+  },
+  "generated_at_utc": "2026-08-23T03:38:33.800071+00:00",
+  "patch_enabled": false,
+  "reference_thresholds_used_for_decision": false,
+  "report_sha256": "a0ef616bf5dbf79f861fc85af04a773e0cfa57a45bf3f3b241b702b36feed9d3",
+  "schema_version": "arac-aor-ctp-recovery-attribution-report-v1",
+  "selector_enabled": false,
+  "soft_routing_enabled": false,
+  "source_hashes": {
+    "aor_current_source": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805",
+    "aor_historical_source": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805",
+    "ctp_current_source": "0d413c47205d447750c528da43c07efada0c20bdd8305c160026b757192fe256",
+    "ctp_historical_source": "a10847d65f39a564b5b16c1d592e14a6f2837c1adc537cce9154e5f059a7f3a4"
+  }
+}

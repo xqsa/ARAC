@@ -108,6 +108,9 @@ class SoftDiscoveryResult:
     blocks: tuple[tuple[int, ...], ...]
     level_budgets: tuple[tuple[str, int], ...]
     shared_candidates: tuple[int, ...]
+    discovery_start_fes: int = 0
+    discovery_consumed_fes: int = 0
+    discovery_end_fes: int = 0
 
 
 def _probe_score(
@@ -173,10 +176,17 @@ def build_soft_dsm(
     config: SoftDsmConfig | None = None,
     step: float = 0.25,
     seed: int = 0,
+    budget_fes: int | None = None,
 ) -> tuple[dict[tuple[int, int], SoftEdge], int, int]:
     """Probe candidate edges with a two-tier screen/confirm scheme."""
 
     config = SoftDsmConfig() if config is None else config
+    if budget_fes is not None and (
+        isinstance(budget_fes, bool) or not isinstance(budget_fes, int) or budget_fes < 0
+    ):
+        raise ValueError("budget_fes must be a non-negative integer")
+    if budget_fes is not None and budget_fes > ledger.remaining:
+        raise ValueError("soft DSM budget reservation exceeds ledger headroom")
     rng = np.random.default_rng(seed ^ 0x50F7)
     dimension = problem.dimension
     center = (problem.lower_array + problem.upper_array) / 2.0
@@ -189,9 +199,11 @@ def build_soft_dsm(
 
     candidates = sorted(_mutual_knn_candidates(signatures, config.k_mutual))
     start = ledger.count
+    stage_budget = config.dsm_budget if budget_fes is None else min(config.dsm_budget, budget_fes)
     edges: dict[tuple[int, int], SoftEdge] = {}
     for left, right in candidates:
-        if ledger.count - start + 4 > config.dsm_budget:
+        screen_cost = 4 * len(anchors)
+        if ledger.count - start + screen_cost > stage_budget:
             break
         screen_scores = [
             _probe_score(problem, ledger, anchor, left, right, step, float(sign))
@@ -205,7 +217,7 @@ def build_soft_dsm(
             continue
         scores = list(screen_scores)
         for _ in range(config.confirm_extra):
-            if ledger.count - start + 4 > config.dsm_budget:
+            if ledger.count - start + 4 > stage_budget:
                 break
             anchor = anchors[int(rng.integers(0, len(anchors)))]
             scores.append(
@@ -402,6 +414,8 @@ def _block_separable(
     threshold: float,
     probes: int,
     seed: int,
+    budget_start: int | None = None,
+    budget: int | None = None,
 ) -> bool:
     """True when two member sets show no joint interaction across probes.
 
@@ -413,7 +427,10 @@ def _block_separable(
 
     rng = np.random.default_rng(seed)
     for _probe in range(probes):
-        if ledger.remaining < 4:
+        if budget_start is not None and budget is not None:
+            if ledger.count - budget_start + 4 > budget:
+                return False
+        elif ledger.remaining < 4:
             return False
         delta_a = np.zeros(problem.dimension)
         delta_a[members_a] = step * float(rng.choice((-1.0, 1.0)))
@@ -445,6 +462,7 @@ def discover_hierarchical_soft(
     signature_probe_count: int = 12,
     signature_probe_size: int = 16,
     step: float = 0.25,
+    budget_fes: int | None = None,
 ) -> SoftDiscoveryResult:
     """Full soft-RDDSM branch: signature -> soft DSM -> blocks -> evidence.
 
@@ -462,12 +480,43 @@ def discover_hierarchical_soft(
     if ledger.problem is not problem:
         raise ValueError("discovery requires the ledger for the same problem")
     config = SoftDsmConfig() if config is None else config
+    discovery_start_fes = ledger.count
+    if budget_fes is None:
+        budget_fes = ledger.remaining
+    if isinstance(budget_fes, bool) or not isinstance(budget_fes, int) or budget_fes < 0:
+        raise ValueError("budget_fes must be a non-negative integer")
+    if budget_fes > ledger.remaining:
+        raise ValueError("soft-RDDSM budget reservation exceeds ledger headroom")
+
+    def discovery_consumed() -> int:
+        return ledger.count - discovery_start_fes
+
+    def discovery_remaining() -> int:
+        return budget_fes - discovery_consumed()
+
     dimension = problem.dimension
     center = (problem.lower_array + problem.upper_array) / 2.0
     span = problem.upper_array - problem.lower_array
     anchor_rng = np.random.default_rng(run_seed ^ 0x5A17)
     signature_anchor = center + anchor_rng.uniform(-0.2, 0.2, size=dimension) * span
 
+    signature_expected = (
+        1
+        + dimension
+        + signature_probe_count
+        + dimension * signature_probe_count
+        + signature_probe_count * signature_probe_size
+    )
+    # The RDG stage always needs one centre evaluation after signatures and
+    # DSM.  Reserve that anchor before any objective call; otherwise a DSM
+    # screen can legally consume the last FE and make the later guard fail
+    # only after a partial discovery receipt has been written.
+    minimum_discovery_fes = signature_expected + 1
+    if discovery_remaining() < minimum_discovery_fes:
+        raise ValueError(
+            "soft-RDDSM budget reservation cannot pay the variable-signature stage: "
+            f"need {minimum_discovery_fes}, have {discovery_remaining()}"
+        )
     signature_result = compute_variable_signatures(
         problem,
         ledger,
@@ -484,6 +533,9 @@ def discover_hierarchical_soft(
         config=config,
         step=step,
         seed=run_seed ^ 0x50F7,
+        # Keep one FE reserved for the RDG centre anchor.  All DSM screens
+        # and confirmations still draw from the same discovery reservation.
+        budget_fes=discovery_remaining() - 1,
     )
     # Note: blocks are now formed by RDG recursive detection below,
     # replacing the kNN-edge connected components that absorbed overlap.
@@ -494,13 +546,20 @@ def discover_hierarchical_soft(
     # non-shared members.  A size cap prevents unbounded growth.
     centre_point = (problem.lower_array + problem.upper_array) / 2.0
     rdg_start = ledger.count
+    rdg_budget = discovery_remaining()
+    if rdg_budget < 1:
+        raise ValueError("soft-RDDSM budget reservation cannot pay the RDG anchor evaluation")
     centre_value = float(
         np.asarray(ledger.evaluate(centre_point[np.newaxis, :])).reshape(-1)[0]
     )
 
     def _find_interactors(seed: int, candidates: list[int], budget_left: int) -> set[int]:
         """Recursive bisection: find candidates that interact with seed."""
-        if not candidates or budget_left < 3:
+        if (
+            not candidates
+            or budget_left < 3
+            or ledger.count - rdg_start + 3 > rdg_budget
+        ):
             return set()
         if _rdg_interact(
             problem, ledger,
@@ -520,7 +579,6 @@ def discover_hierarchical_soft(
     # Stage 1: build a disjoint coarse cover.  The candidate pool is complete
     # (never a random subset), so a positive recursive branch cannot lose a
     # member before the next seed is selected.
-    rdg_budget = config.dsm_budget
     grouped: set[int] = set()
     rdg_blocks: list[tuple[int, ...]] = []
     for seed in range(dimension):
@@ -625,6 +683,8 @@ def discover_hierarchical_soft(
     # never make the residual groups separable.
     interactions_by_key: dict[tuple[int, int, int], VariableRegionInteraction] = {}
     shared_targets: dict[int, set[int]] = {}
+    candidate_shared_variables: set[int] = set()
+    unresolved_shared_variables: set[int] = set()
     separability_rng = np.random.default_rng(run_seed ^ 0x5EED)
     separability_anchor = center + separability_rng.uniform(-0.2, 0.2, size=dimension) * span
     candidate_groups = tuple(refined_groups) if refinement_complete else ()
@@ -639,10 +699,17 @@ def discover_hierarchical_soft(
             right_residual = sorted(right_set - common)
             if not common or not left_residual or not right_residual:
                 continue
+            # An intersection is a shared-variable candidate, not a proof.
+            # Keep it separate from confirmed hyperedges so an unfinished or
+            # rejected confirmation cannot be mistaken for separability.
+            candidate_shared_variables.update(common)
             confirmed_common: list[int] = []
+            tested_common: set[int] = set()
             for variable in sorted(common):
                 if ledger.count - rdg_start + 6 > rdg_budget:
+                    unresolved_shared_variables.update(set(common) - tested_common)
                     break
+                tested_common.add(variable)
                 interacts_left = _rdg_interact(
                     problem,
                     ledger,
@@ -674,6 +741,11 @@ def discover_hierarchical_soft(
                 or len(left_residual) < config.min_residual_size
                 or len(right_residual) < config.min_residual_size
             ):
+                if common and (
+                    len(left_residual) < config.min_residual_size
+                    or len(right_residual) < config.min_residual_size
+                ):
+                    unresolved_shared_variables.update(common)
                 continue
             if not _block_separable(
                 problem,
@@ -685,13 +757,17 @@ def discover_hierarchical_soft(
                 threshold=config.edge_threshold,
                 probes=config.block_separability_probes,
                 seed=run_seed ^ (0x7EA5 * (left_index + 1) ^ right_index),
+                budget_start=rdg_start,
+                budget=rdg_budget,
             ):
+                unresolved_shared_variables.update(common)
                 continue
             # The sign-randomized set test above is conservative but can
             # cancel on a tiny residual.  A deterministic mixed-difference
             # check provides a second direction and rejects fragments of the
             # same true component that happened to share one variable.
             if ledger.count - rdg_start + 3 > rdg_budget:
+                unresolved_shared_variables.update(common)
                 continue
             if _rdg_interact(
                 problem,
@@ -702,6 +778,7 @@ def discover_hierarchical_soft(
                 base_value=centre_value,
                 threshold=config.edge_threshold,
             ):
+                unresolved_shared_variables.update(common)
                 continue
 
             for variable in sorted(left_set | right_set):
@@ -769,14 +846,6 @@ def discover_hierarchical_soft(
             )
         )
 
-    member_variables = {interaction.variable for interaction in interactions}
-    variable_status = tuple(
-        (
-            variable,
-            "member_candidate" if variable in member_variables else "observed_separable",
-        )
-        for variable in range(dimension)
-    )
     adjacency: dict[int, set[int]] = {node.node_id: set() for node in tree.leaves}
     for relation in relations:
         adjacency[relation.left].add(relation.right)
@@ -794,14 +863,49 @@ def discover_hierarchical_soft(
             unseen.discard(node)
             stack_c.extend(adjacency[node] - component)
         components.append(tuple(sorted(component)))
+
+    confirmed_variables = set(shared_candidates)
+    leaf_components = {
+        leaf: component
+        for component in components
+        for leaf in component
+    }
+    unresolved_variables = (
+        set(unresolved_shared_variables)
+        | (candidate_shared_variables - confirmed_variables)
+    )
+    variable_status = tuple(
+        (
+            variable,
+            "member_candidate"
+            if variable in confirmed_variables
+            else "not_yet_resolved"
+            if variable in unresolved_variables or not refinement_complete
+            else "observed_separable",
+        )
+        for variable in range(dimension)
+    )
     per_component_mode = []
     for component in components:
+        component_set = set(component)
+        component_hyperedges = {
+            hyperedge.variable
+            for hyperedge in hyperedges
+            if set(hyperedge.regions).issubset(component_set)
+        }
+        component_unresolved = {
+            variable
+            for variable in unresolved_variables
+            if leaf_of_variable[variable] in component_set
+        }
         if len(component) < 2:
             per_component_mode.append((component, "SPARSE"))
-        elif hyperedges:
-            per_component_mode.append((component, "SPARSE"))
-        else:
+        elif not refinement_complete or component_unresolved or not component_hyperedges:
+            # A local candidate without a confirming hyperedge is unresolved;
+            # evidence from another component cannot close this component.
             per_component_mode.append((component, "HIERARCHICAL"))
+        else:
+            per_component_mode.append((component, "SPARSE"))
 
     evidence = Phase1Evidence(
         dimension=dimension,
@@ -826,6 +930,9 @@ def discover_hierarchical_soft(
         blocks=blocks,
         level_budgets=evidence.level_budgets,
         shared_candidates=tuple(shared_candidates),
+        discovery_start_fes=discovery_start_fes,
+        discovery_consumed_fes=discovery_consumed(),
+        discovery_end_fes=ledger.count,
     )
 
 

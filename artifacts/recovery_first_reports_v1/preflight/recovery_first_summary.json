@@ -1,0 +1,202 @@
+{
+  "execute_requested": false,
+  "gate_status": {
+    "B0": true,
+    "B1": false,
+    "B2": true,
+    "B3": false
+  },
+  "gates": {
+    "B0": {
+      "case_count": 4,
+      "context_count": 4,
+      "expected_context_count": 4,
+      "failures": [],
+      "gate_passed": true,
+      "result_hash": "faf0282db75914a7fa5d6f830b81884c97bf58f5ac438996385861c1d44f994a",
+      "rows": [
+        {
+          "action_seed": 117,
+          "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+          "checkpoint_file_sha256": "32979485799abf472ff3180a9e90c97b00d76febe3122495fbe59278519d3bc2",
+          "checkpoint_hash": "637dd63cfa2f19a1b69c568efcbf351d3089a7a7412d999ee0d9cdd964022270",
+          "key": "A1:seed-117",
+          "valid": true,
+          "vendor_tree_sha256": "ac757555b4f3dd4311cc847d9b3cb38205a555cc4cf2037877eb5b7346c1d24c"
+        },
+        {
+          "action_seed": 117,
+          "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+          "checkpoint_file_sha256": "3ef0d6f2e3123070a64d271e928cab61bae8e6139d4250cae39417458b4f5932",
+          "checkpoint_hash": "7007e3ecdecc81efb6edad1eca521bd06e8cd9bf18fd7fec61db20b4801ac486",
+          "key": "E1:seed-117",
+          "valid": true,
+          "vendor_tree_sha256": "ac757555b4f3dd4311cc847d9b3cb38205a555cc4cf2037877eb5b7346c1d24c"
+        },
+        {
+          "action_seed": 117,
+          "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+          "checkpoint_file_sha256": "3114dcb8c89f693fc7751a9d61de3d2fcc9f03516094b3be513bf99c5d7139c8",
+          "checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+          "key": "R1:seed-117",
+          "valid": true,
+          "vendor_tree_sha256": "ac757555b4f3dd4311cc847d9b3cb38205a555cc4cf2037877eb5b7346c1d24c"
+        },
+        {
+          "action_seed": 117,
+          "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+          "checkpoint_file_sha256": "1fee12ccc093fe10610bf98339199cbc5096999cb6206879ffb2b6378c68798c",
+          "checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+          "key": "S1:seed-117",
+          "valid": true,
+          "vendor_tree_sha256": "ac757555b4f3dd4311cc847d9b3cb38205a555cc4cf2037877eb5b7346c1d24c"
+        }
+      ],
+      "schema_version": "arac-recovery-first-b0-provenance-v1",
+      "seed_count": 1,
+      "vendor_file_count": 67,
+      "vendor_tree_sha256": "ac757555b4f3dd4311cc847d9b3cb38205a555cc4cf2037877eb5b7346c1d24c"
+    },
+    "B1": {
+      "complete_matrix": false,
+      "duplicate_count": 0,
+      "expected_arm_count": 16,
+      "fixed_action_summary_present": false,
+      "gate_passed": false,
+      "historical_comparison": {
+        "reason": "historical table has ARAC aggregate only; original per-action seed/budget metadata is not retained",
+        "status": "not_bitwise_comparable"
+      },
+      "historical_protocol_status": "inferred_protocol_not_bitwise_recovered",
+      "historical_reference_available": true,
+      "mapped_action_coverage": [
+        {
+          "action": "aor",
+          "case_id": "A1",
+          "present": false
+        },
+        {
+          "action": "smp",
+          "case_id": "E1",
+          "present": false
+        },
+        {
+          "action": "gcb",
+          "case_id": "R1",
+          "present": false
+        },
+        {
+          "action": "ctp",
+          "case_id": "S1",
+          "present": false
+        }
+      ],
+      "mode": "preflight",
+      "new_selector_enabled": false,
+      "observed_arm_count": 0,
+      "patch_enabled": false,
+      "receipt_hash_complete": false,
+      "result_hash": "8364c560034ffe782eb649691d2208cf6393823fe3517ad4a6f42297739f28cc",
+      "schema_version": "arac-recovery-first-b1-fixed-action-v1",
+      "soft_routing_enabled": false,
+      "terminal_fes_exact": false
+    },
+    "B2": {
+      "action_evaluation_performed": false,
+      "context_count": 4,
+      "expected_context_count": 4,
+      "failures": [],
+      "gate_passed": true,
+      "result_hash": "4c094de049587135f6fb6a0953db3c497854bce58af7706f46a01198093bd465",
+      "rows": [
+        {
+          "action_evaluation_performed": false,
+          "key": "A1:seed-117",
+          "parity": true,
+          "selected_action": "ctp",
+          "selector_input_hash_after": "19005a8aeffcf3fa56a2de5997248e02ffe189c2b377d68bffd13ccb229ee379",
+          "selector_input_hash_before": "19005a8aeffcf3fa56a2de5997248e02ffe189c2b377d68bffd13ccb229ee379",
+          "selector_output_hash_after": "db46585eea67b5adca791a221166d6818782d09b21140e66413f2751347082c8",
+          "selector_output_hash_before": "db46585eea67b5adca791a221166d6818782d09b21140e66413f2751347082c8"
+        },
+        {
+          "action_evaluation_performed": false,
+          "key": "E1:seed-117",
+          "parity": true,
+          "selected_action": "smp",
+          "selector_input_hash_after": "110d28ef2de0a1d8a45b3c80813e146a3150b4c836cebfc27bc1565951b527d8",
+          "selector_input_hash_before": "110d28ef2de0a1d8a45b3c80813e146a3150b4c836cebfc27bc1565951b527d8",
+          "selector_output_hash_after": "f0993cc0ba36d9e832e20599f02b9c459ed72cf79ea0d782e730cfd5a72ccbb1",
+          "selector_output_hash_before": "f0993cc0ba36d9e832e20599f02b9c459ed72cf79ea0d782e730cfd5a72ccbb1"
+        },
+        {
+          "action_evaluation_performed": false,
+          "key": "R1:seed-117",
+          "parity": true,
+          "selected_action": "smp",
+          "selector_input_hash_after": "f7950bbe9e9a8d662c60ebe3fd7df0a976aeb901d03d4bd57fe01e6f61c4f6af",
+          "selector_input_hash_before": "f7950bbe9e9a8d662c60ebe3fd7df0a976aeb901d03d4bd57fe01e6f61c4f6af",
+          "selector_output_hash_after": "f0993cc0ba36d9e832e20599f02b9c459ed72cf79ea0d782e730cfd5a72ccbb1",
+          "selector_output_hash_before": "f0993cc0ba36d9e832e20599f02b9c459ed72cf79ea0d782e730cfd5a72ccbb1"
+        },
+        {
+          "action_evaluation_performed": false,
+          "key": "S1:seed-117",
+          "parity": true,
+          "selected_action": "smp",
+          "selector_input_hash_after": "bea63102f19d1921751e3b301a53971acf19b1d6e3a9d1fed8f03005f4814367",
+          "selector_input_hash_before": "bea63102f19d1921751e3b301a53971acf19b1d6e3a9d1fed8f03005f4814367",
+          "selector_output_hash_after": "f0993cc0ba36d9e832e20599f02b9c459ed72cf79ea0d782e730cfd5a72ccbb1",
+          "selector_output_hash_before": "f0993cc0ba36d9e832e20599f02b9c459ed72cf79ea0d782e730cfd5a72ccbb1"
+        }
+      ],
+      "schema_version": "arac-recovery-first-b2-selector-parity-v1"
+    },
+    "B3": {
+      "case_summaries": {
+        "A1": {
+          "action_mapping_restored": false,
+          "count": 1,
+          "selector_route_valid": true,
+          "terminal_contract": true
+        },
+        "E1": {
+          "action_mapping_restored": true,
+          "count": 1,
+          "selector_route_valid": true,
+          "terminal_contract": true
+        },
+        "R1": {
+          "action_mapping_restored": false,
+          "count": 1,
+          "selector_route_valid": true,
+          "terminal_contract": true
+        },
+        "S1": {
+          "action_mapping_restored": false,
+          "count": 1,
+          "selector_route_valid": true,
+          "terminal_contract": true
+        }
+      },
+      "context_count": 4,
+      "expected_context_count": 4,
+      "failures": [],
+      "gate_passed": false,
+      "result_hash": "f1d3a11c5b6d13c9474b2600f7861d513950ebe22ffe78a038fc6080fdab6136",
+      "schema_version": "arac-recovery-first-b3-end-to-end-v1",
+      "unrecovered_cases": [
+        "A1",
+        "R1",
+        "S1"
+      ]
+    }
+  },
+  "mode": "preflight",
+  "new_selector_enabled": false,
+  "patch_enabled": false,
+  "recovery_ready_for_matched_host": false,
+  "result_hash": "6323c2f9514c5a21256c5c3e08d5bce93edd5d4e76af6c25c4b706348d38c6f3",
+  "schema_version": "arac-recovery-first-campaign-v1",
+  "soft_routing_enabled": false
+}

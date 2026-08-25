@@ -1,0 +1,21 @@
+{
+  "candidate_id": "pairwise_edge_ctp_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "966b1f27483d6b81df00e20f7ad396b0486adbd160d1ffee682648bc9cc349a7",
+  "protocol_sha256": "1156deb9de28248de9a7bd4cdb25c50e75eac53a91c0019d1a5368b403209174",
+  "schema_version": "arac-upgrade-pairwise-edge-p0-manifest-v1",
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

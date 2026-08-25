@@ -1,0 +1,225 @@
+{
+  "action_result_hash": "7febadc47cac60713dfc652b6bb4179ef384d60adc1a4469c5bc3d599e9e5e6d",
+  "case_id": "S1",
+  "checkpoint_hash": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+  "elapsed_seconds": 948.661743,
+  "final_error": 5.168148355100764e-07,
+  "forced_host": false,
+  "host": "ctp",
+  "identity": {
+    "action_result_hash": {
+      "frozen": "7febadc47cac60713dfc652b6bb4179ef384d60adc1a4469c5bc3d599e9e5e6d",
+      "match": true,
+      "rerun": "7febadc47cac60713dfc652b6bb4179ef384d60adc1a4469c5bc3d599e9e5e6d"
+    },
+    "checkpoint_hash": {
+      "frozen": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270",
+      "match": true,
+      "rerun": "7e7e9fe47728a789c6829c8f3c1940865c6f846c787bdcf094692be1905a8270"
+    },
+    "final_error": {
+      "frozen": 5.168148355100764e-07,
+      "match": true,
+      "rerun": 5.168148355100764e-07
+    },
+    "route": {
+      "frozen": "coverage_564000_then_sequential_block_polish_2256000",
+      "match": true,
+      "rerun": "coverage_564000_then_sequential_block_polish_2256000"
+    }
+  },
+  "initial_error": 32558935.391316988,
+  "instrumentation": {
+    "leverage_positive_block_visits": 0,
+    "per_block_visits": {
+      "0": 2,
+      "1": 2,
+      "10": 2,
+      "11": 2,
+      "12": 2,
+      "13": 2,
+      "14": 2,
+      "15": 2,
+      "16": 2,
+      "17": 2,
+      "18": 2,
+      "19": 2,
+      "2": 2,
+      "3": 2,
+      "4": 2,
+      "5": 2,
+      "6": 2,
+      "7": 2,
+      "8": 2,
+      "9": 2
+    },
+    "segment_count": 2,
+    "segment_kinds": {
+      "persistent_coverage": 1,
+      "sequential_polish": 1
+    },
+    "total_block_visits": 40
+  },
+  "lane": "aob",
+  "leverage": {
+    "block_count": 20,
+    "leverage_per_block": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "leverage_positive_blocks": 0,
+    "relation_count": 0,
+    "relation_strength_max": 0.0
+  },
+  "manifest_sha256": "64da4cde50ce5d5f6fd1302284d36077005167a3c1e13557977b5fc8a4837375",
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "a2fd3c35588cd78c06231966358ea2d35ed31095422f0fad3ce6bd2602d68d25",
+  "route": "coverage_564000_then_sequential_block_polish_2256000",
+  "run_seed": 117,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openmp",
+        "num_threads": 1,
+        "prefix": "vcomp"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-u1-arm-receipt-v1",
+  "segments": [
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 564000,
+      "end_fes": 744000,
+      "kind": "persistent_coverage",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 564000,
+      "start_fes": 180000
+    },
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 2256000,
+      "end_fes": 3000000,
+      "kind": "sequential_polish",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 2256000,
+      "start_fes": 744000
+    }
+  ]
+}

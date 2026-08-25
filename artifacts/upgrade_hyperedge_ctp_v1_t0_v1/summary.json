@@ -1,0 +1,38 @@
+{
+  "candidate_id": "hyperedge_ctp_v1",
+  "case_rows": [
+    {
+      "R_tail_over_no_tail": 0.17837372569775428,
+      "case_id": "S3",
+      "causal_signal_confirmed": true,
+      "ci95": [
+        0.05757100965193386,
+        0.5854103321896487
+      ],
+      "contract_ok": true,
+      "pair_count": 5
+    },
+    {
+      "R_tail_over_no_tail": 0.41855691270883283,
+      "case_id": "S6",
+      "causal_signal_confirmed": true,
+      "ci95": [
+        0.3580622229951522,
+        0.5184004867227636
+      ],
+      "contract_ok": true,
+      "pair_count": 5
+    }
+  ],
+  "checks": {
+    "both_cases_causal": true,
+    "contract_compliance_all": true,
+    "coverage_complete": true
+  },
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": true,
+  "line_b_unaffected": true,
+  "result_hash": "ec9d49341330186a73d918d1b478c3b8658798635b3b1d5a368a55cc4ba5b040",
+  "schema_version": "arac-upgrade-hyperedge-t0-summary-v1",
+  "tail_tuning_branch_closed_on_failure": false
+}

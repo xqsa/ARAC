@@ -1,0 +1,193 @@
+{
+  "action_result_hash": "70e71c36e400661e24410506c273d3f4c297d3629ae208e67fd889fe7ce39d66",
+  "arm": "a1",
+  "case_id": "S1",
+  "cell_id": null,
+  "checkpoint_hash": "028f177ded6e34d13792700ea26f405c7acc6b23b39024bdca1ae7d0df938e37",
+  "elapsed_seconds": 1514.754345,
+  "final_error": 6.841509788439833e-07,
+  "forced_host": false,
+  "ground_truth_hash": null,
+  "host": "ctp",
+  "identity": {
+    "action_result_hash": {
+      "frozen": "70e71c36e400661e24410506c273d3f4c297d3629ae208e67fd889fe7ce39d66",
+      "match": true,
+      "rerun": "70e71c36e400661e24410506c273d3f4c297d3629ae208e67fd889fe7ce39d66"
+    },
+    "final_error": {
+      "frozen": 6.841509788439833e-07,
+      "match": true,
+      "rerun": 6.841509788439833e-07
+    },
+    "route": {
+      "frozen": "coverage_564000_then_sequential_block_polish_2256000",
+      "match": true,
+      "rerun": "coverage_564000_then_sequential_block_polish_2256000"
+    }
+  },
+  "initial_error": 34698774.90992731,
+  "instrumentation": {
+    "leverage_positive_block_visits": 0,
+    "per_block_visits": {
+      "0": 2,
+      "1": 2,
+      "10": 2,
+      "11": 2,
+      "12": 2,
+      "13": 2,
+      "14": 2,
+      "15": 2,
+      "16": 2,
+      "17": 2,
+      "18": 2,
+      "19": 2,
+      "2": 2,
+      "3": 2,
+      "4": 2,
+      "5": 2,
+      "6": 2,
+      "7": 2,
+      "8": 2,
+      "9": 2
+    },
+    "segment_count": 2,
+    "segment_kinds": {
+      "persistent_coverage": 1,
+      "sequential_polish": 1
+    },
+    "total_block_visits": 40
+  },
+  "leverage": {
+    "block_count": 20,
+    "leverage_per_block": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "leverage_positive_blocks": 0,
+    "relation_count": 0
+  },
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "milestones": [
+    {
+      "best_error": 34698774.90992731,
+      "fes": 180000
+    },
+    {
+      "best_error": 26492570.151925303,
+      "fes": 600000
+    },
+    {
+      "best_error": 25119632.011945963,
+      "fes": 1000000
+    },
+    {
+      "best_error": 13329449.921045259,
+      "fes": 2000000
+    },
+    {
+      "best_error": 6.841509788439833e-07,
+      "fes": 3000000
+    }
+  ],
+  "order_records": [
+    {
+      "applied_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "baseline_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "block_count": 20,
+      "head_slots": 4,
+      "host": "ctp",
+      "leverage_per_block": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "namespace": "ctp-coverage",
+      "order_changed": false,
+      "relation_count": 0,
+      "start_sweep_index": null
+    }
+  ],
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "15c69a619b7e3df59497ab39bb07b348c03ee3bb69b278c3abf2e0146f31b7ab",
+  "route": "coverage_564000_then_sequential_block_polish_2256000",
+  "run_seed": 123,
+  "schema_version": "arac-upgrade-s1-arm-receipt-v1"
+}

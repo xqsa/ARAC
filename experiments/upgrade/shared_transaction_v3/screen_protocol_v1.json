@@ -1,0 +1,54 @@
+{
+  "action_seed": 314159,
+  "bootstrap_draws": 10000,
+  "bootstrap_seed": 20260824,
+  "boundary": [
+    "run_stateful_block_visits",
+    "run_stalled_block_rescue"
+  ],
+  "candidate_id": "shared_transaction_v3",
+  "cells": [
+    "chain4-strong",
+    "pairs3-strong"
+  ],
+  "confirmation_output_root": "artifacts/upgrade_shared_transaction_v3_confirm_v1",
+  "confirmation_seeds": [
+    20270511,
+    20270512,
+    20270513,
+    20270514,
+    20270515
+  ],
+  "eps_ref": {
+    "chain4-strong": 2.4533165734261275,
+    "pairs3-strong": 2.3102826379821635
+  },
+  "eps_ref_source": "v1 screen smp_a0 arms (same seeds and action seed, deterministic bit-equal finals)",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "host": "smp",
+  "kernel": {
+    "acceptance": "ledger strict-best only",
+    "budget_source": "carved from the rescue window the host already reserved; remainder forwarded to frozen run_stalled_block_rescue",
+    "fe_per_link": 20000,
+    "kind": "certified_link_joint_rescue",
+    "max_total_share_of_rescue": 0.5,
+    "scope": "merged union of the two certified owner blocks (shared coordinates co-optimized with both owners)",
+    "selection": "all certified links with both owners fresh in the stateful phase",
+    "state": "stateless across boundaries"
+  },
+  "max_workers": 8,
+  "non_inferior_ci_lower": 1.05,
+  "output_root": "artifacts/upgrade_shared_transaction_v3_screen_v1",
+  "phase1_fes": 180000,
+  "schema_version": "arac-upgrade-shared-transaction-v3-screen-protocol-v1",
+  "seeds": [
+    20270501,
+    20270502,
+    20270503,
+    20270504,
+    20270505
+  ],
+  "strict_win_ci_upper": 1.0,
+  "strict_win_ratio": 0.95,
+  "total_budget_fes": 3000000
+}

@@ -1,0 +1,41 @@
+{
+  "all_checkpoint_bindings_exact": true,
+  "all_exact_baseline_matches": true,
+  "all_receipt_hashes_valid": true,
+  "all_terminal_fes_exact": true,
+  "case_id": "E1",
+  "context_count": 5,
+  "expected_context_count": 5,
+  "final_errors": [
+    {
+      "baseline": 2.7812810315273853e-07,
+      "current": 2.7812810315273853e-07,
+      "run_seed": 117
+    },
+    {
+      "baseline": 1.2020696247501136e-06,
+      "current": 1.2020696247501136e-06,
+      "run_seed": 123
+    },
+    {
+      "baseline": 3.965439146199769e-06,
+      "current": 3.965439146199769e-06,
+      "run_seed": 129
+    },
+    {
+      "baseline": 3.306564873158522e-05,
+      "current": 3.306564873158522e-05,
+      "run_seed": 135
+    },
+    {
+      "baseline": 2.148522608182012e-07,
+      "current": 2.148522608182012e-07,
+      "run_seed": 141
+    }
+  ],
+  "performance_superiority_claim_authorized": false,
+  "preservation_gate_passed": true,
+  "reference_thresholds_used_for_decision": false,
+  "schema_version": "arac-recovery-smp-zero-relation-preservation-summary-v1",
+  "summary_sha256": "13603bb2808af3281029c70e974be0dacc15c97277c4aec434767a85bd31a462"
+}

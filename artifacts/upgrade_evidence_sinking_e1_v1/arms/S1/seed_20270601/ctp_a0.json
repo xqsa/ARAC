@@ -1,0 +1,34 @@
+{
+  "action_result_hash": "ccac0a1b33d732b17dc2317d42e058231e8b238834dba3e8038d311791ce5534",
+  "case_id": "S1",
+  "checkpoint_hash": "e905f2a517fccabc22a0e69fe16dd740148d4134ab4acf82ccb9e868b11ce86c",
+  "conditioned_tail_fraction": 0.2,
+  "conditioning_norm": 0.0,
+  "elapsed_seconds": 796.328468,
+  "final_error": 6.096224784550046e-07,
+  "frozen_tail_fraction": 0.2,
+  "initial_error": 52275681.38113063,
+  "manifest_sha256": "9b561cc35e36780ead3b6b925a1474e62b9b23f37a15e500d2311e668692b5df",
+  "receipt_hash": "bb6cdbffad1faf631a476f704d8893bc8215be34fec67ed9ac779efde24d86b9",
+  "relation_count": 0,
+  "route": "coverage_564000_then_sequential_block_polish_2256000",
+  "run_seed": 20270601,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-evidence-sinking-e1-arm-receipt-v1",
+  "variant": "a0"
+}

@@ -1,0 +1,149 @@
+{
+  "action_result_hash": "ce8d08bb4c1fb2a7978d95d656c22f3926e010f0416009152bd3b4d3815b614d",
+  "action_seed": 314159,
+  "cell_id": "pairs3-strong",
+  "checkpoint_hash": "b6a42237b70add906efc4fca58c24b79734b71db9228c979d6a7cf016c6af80d",
+  "elapsed_seconds": 693.545331,
+  "final_error": 139.72314458340406,
+  "initial_error": 57414.04028914031,
+  "kernel_accepted_count": 0,
+  "kernel_consumed_fes": 112608,
+  "kernel_receipts": [
+    {
+      "accepted_links": 0,
+      "best_error_after_joint": 57414.04028914031,
+      "best_error_before": 57414.04028914031,
+      "boundary_phase": "run_persistent_blocks",
+      "forwarded_fes": 338592,
+      "joint_fes": 112608,
+      "link_scopes": [
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 0,
+          "right_block": 1,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 4,
+          "right_block": 5,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        },
+        {
+          "left_block": 8,
+          "right_block": 9,
+          "scope_size": 200
+        }
+      ]
+    }
+  ],
+  "manifest_sha256": "a6b983ffc66b91a108746f0f06f45e14ffffaf41f2c87cf4d5300ff506f43fef",
+  "receipt_hash": "6f78ca523ddeddadcc492953b58d535888a5fc6d7735d768c8dcb29408d7c862",
+  "route": "coverage_338520_then_relation_cover_polish_1804764_then_mmes_tail_564108",
+  "run_seed": 20270504,
+  "schema_version": "arac-upgrade-shared-transaction-v5-arm-receipt-v1",
+  "variant": "a1"
+}

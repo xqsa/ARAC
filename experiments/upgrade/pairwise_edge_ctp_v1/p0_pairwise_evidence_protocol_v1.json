@@ -1,0 +1,26 @@
+{
+  "candidate_id": "pairwise_edge_ctp_v1",
+  "cell": "pairs3-strong",
+  "discovery_seeds": [
+    20270401,
+    20270402,
+    20270403,
+    20270404,
+    20270405
+  ],
+  "dsm_budget_cap": 100000,
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "generator_freeze": {
+    "conditioning": "linked-elliptic",
+    "generator_protocol": "arac-upgrade-conflicting-generator-v3",
+    "linkage_lambda": 2.0,
+    "note": "selected as the best configuration of the preregistered v3 grid (26/30 preflight passes; zero-optimum convention enforced) and frozen here before any H0 run",
+    "shared_width": 8
+  },
+  "output_root": "artifacts/upgrade_pairwise_edge_ctp_v1_p0_v1",
+  "phase1_fes": 180000,
+  "precision_required": 1.0,
+  "recall_required": 0.9,
+  "schema_version": "arac-upgrade-pairwise-edge-p0-protocol-v1",
+  "total_budget_fes": 3000000
+}

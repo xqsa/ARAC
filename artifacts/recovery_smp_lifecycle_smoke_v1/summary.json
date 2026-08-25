@@ -1,0 +1,340 @@
+{
+  "all_clip_profiles_explicit": true,
+  "all_current_routes_reachable": true,
+  "all_final_errors_finite": true,
+  "case_summaries": [
+    {
+      "case_id": "E2",
+      "current_mean": 4606071.280115494,
+      "current_sample_std": 1169873.950298686,
+      "current_to_historical_geometric_mean_ratio": 1.0,
+      "exact_final_error_pair_count": 5,
+      "historical_compatible_mean": 4606071.280115494,
+      "historical_compatible_sample_std": 1169873.950298686
+    },
+    {
+      "case_id": "E3",
+      "current_mean": 5542908.798784215,
+      "current_sample_std": 1203884.7732065537,
+      "current_to_historical_geometric_mean_ratio": 1.0,
+      "exact_final_error_pair_count": 5,
+      "historical_compatible_mean": 5542908.798784215,
+      "historical_compatible_sample_std": 1203884.7732065537
+    },
+    {
+      "case_id": "E4",
+      "current_mean": 9583005.723527646,
+      "current_sample_std": 1832291.3511167616,
+      "current_to_historical_geometric_mean_ratio": 1.0,
+      "exact_final_error_pair_count": 5,
+      "historical_compatible_mean": 9583005.723527646,
+      "historical_compatible_sample_std": 1832291.3511167616
+    },
+    {
+      "case_id": "E5",
+      "current_mean": 10383131.724275224,
+      "current_sample_std": 1694299.2612457832,
+      "current_to_historical_geometric_mean_ratio": 1.0,
+      "exact_final_error_pair_count": 5,
+      "historical_compatible_mean": 10383131.724275224,
+      "historical_compatible_sample_std": 1694299.2612457832
+    },
+    {
+      "case_id": "E6",
+      "current_mean": 15438880.821101705,
+      "current_sample_std": 3200024.1355345175,
+      "current_to_historical_geometric_mean_ratio": 1.0,
+      "exact_final_error_pair_count": 5,
+      "historical_compatible_mean": 15438880.821101705,
+      "historical_compatible_sample_std": 3200024.1355345175
+    }
+  ],
+  "context_count": 50,
+  "current_routes_have_no_noop_tail": true,
+  "exact_terminal_fes": true,
+  "expected_context_count": 50,
+  "pair_count": 25,
+  "pairs": [
+    {
+      "case_id": "E2",
+      "current_final_error": 4985990.074182124,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127986_visits_193_stale_restarts_45_rescue_281994_probes_78_rescue_visits_15_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 4985990.074182124,
+      "historical_compatible_route": "stateful_block_visits_1127986_visits_193_stale_restarts_45_rescue_281994_probes_78_rescue_visits_15_global_polish_1410000",
+      "run_seed": 117,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E2",
+      "current_final_error": 4996762.190281665,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127995_visits_183_stale_restarts_43_rescue_281987_probes_158_rescue_visits_25_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 4996762.190281665,
+      "historical_compatible_route": "stateful_block_visits_1127995_visits_183_stale_restarts_43_rescue_281987_probes_158_rescue_visits_25_global_polish_1410000",
+      "run_seed": 123,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E2",
+      "current_final_error": 5965451.4063436305,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127986_visits_186_stale_restarts_42_rescue_281990_probes_80_rescue_visits_15_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 5965451.4063436305,
+      "historical_compatible_route": "stateful_block_visits_1127986_visits_186_stale_restarts_42_rescue_281990_probes_80_rescue_visits_15_global_polish_1410000",
+      "run_seed": 129,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E2",
+      "current_final_error": 4269464.961192229,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127994_visits_188_stale_restarts_44_rescue_281995_probes_78_rescue_visits_15_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 4269464.961192229,
+      "historical_compatible_route": "stateful_block_visits_1127994_visits_188_stale_restarts_44_rescue_281995_probes_78_rescue_visits_15_global_polish_1410000",
+      "run_seed": 135,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E2",
+      "current_final_error": 2812687.768577819,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127997_visits_186_stale_restarts_46_rescue_282000_probes_74_rescue_visits_14_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 2812687.768577819,
+      "historical_compatible_route": "stateful_block_visits_1127997_visits_186_stale_restarts_46_rescue_282000_probes_74_rescue_visits_14_global_polish_1410000",
+      "run_seed": 141,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E3",
+      "current_final_error": 5244835.507959322,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127986_visits_187_stale_restarts_47_rescue_281992_probes_184_rescue_visits_40_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 5244835.507959322,
+      "historical_compatible_route": "stateful_block_visits_1127986_visits_187_stale_restarts_47_rescue_281992_probes_184_rescue_visits_40_global_polish_1410000",
+      "run_seed": 117,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E3",
+      "current_final_error": 6621789.273199663,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127991_visits_185_stale_restarts_44_rescue_281995_probes_186_rescue_visits_36_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 6621789.273199663,
+      "historical_compatible_route": "stateful_block_visits_1127991_visits_185_stale_restarts_44_rescue_281995_probes_186_rescue_visits_36_global_polish_1410000",
+      "run_seed": 123,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E3",
+      "current_final_error": 4345895.643345153,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127987_visits_165_stale_restarts_40_rescue_281986_probes_116_rescue_visits_22_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 4345895.643345153,
+      "historical_compatible_route": "stateful_block_visits_1127987_visits_165_stale_restarts_40_rescue_281986_probes_116_rescue_visits_22_global_polish_1410000",
+      "run_seed": 129,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E3",
+      "current_final_error": 6980863.244044297,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127995_visits_183_stale_restarts_42_rescue_281995_probes_110_rescue_visits_22_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 6980863.244044297,
+      "historical_compatible_route": "stateful_block_visits_1127995_visits_183_stale_restarts_42_rescue_281995_probes_110_rescue_visits_22_global_polish_1410000",
+      "run_seed": 135,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E3",
+      "current_final_error": 4521160.325372639,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127986_visits_169_stale_restarts_37_rescue_281989_probes_102_rescue_visits_22_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 4521160.325372639,
+      "historical_compatible_route": "stateful_block_visits_1127986_visits_169_stale_restarts_37_rescue_281989_probes_102_rescue_visits_22_global_polish_1410000",
+      "run_seed": 141,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E4",
+      "current_final_error": 7670807.703334607,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127999_visits_199_stale_restarts_52_rescue_281996_probes_108_rescue_visits_23_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 7670807.703334607,
+      "historical_compatible_route": "stateful_block_visits_1127999_visits_199_stale_restarts_52_rescue_281996_probes_108_rescue_visits_23_global_polish_1410000",
+      "run_seed": 117,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E4",
+      "current_final_error": 11164747.392448109,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127988_visits_162_stale_restarts_38_rescue_281996_probes_74_rescue_visits_14_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 11164747.392448109,
+      "historical_compatible_route": "stateful_block_visits_1127988_visits_162_stale_restarts_38_rescue_281996_probes_74_rescue_visits_14_global_polish_1410000",
+      "run_seed": 123,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E4",
+      "current_final_error": 8531306.859296253,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127998_visits_191_stale_restarts_44_rescue_281998_probes_78_rescue_visits_9_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 8531306.859296253,
+      "historical_compatible_route": "stateful_block_visits_1127998_visits_191_stale_restarts_44_rescue_281998_probes_78_rescue_visits_9_global_polish_1410000",
+      "run_seed": 129,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E4",
+      "current_final_error": 8660157.777702011,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127991_visits_171_stale_restarts_40_rescue_282000_probes_246_rescue_visits_50_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 8660157.777702011,
+      "historical_compatible_route": "stateful_block_visits_1127991_visits_171_stale_restarts_40_rescue_282000_probes_246_rescue_visits_50_global_polish_1410000",
+      "run_seed": 135,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E4",
+      "current_final_error": 11888008.884857254,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127992_visits_179_stale_restarts_41_rescue_281996_probes_74_rescue_visits_14_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 11888008.884857254,
+      "historical_compatible_route": "stateful_block_visits_1127992_visits_179_stale_restarts_41_rescue_281996_probes_74_rescue_visits_14_global_polish_1410000",
+      "run_seed": 141,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E5",
+      "current_final_error": 9826326.021761362,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127996_visits_175_stale_restarts_42_rescue_281990_probes_70_rescue_visits_9_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 9826326.021761362,
+      "historical_compatible_route": "stateful_block_visits_1127996_visits_175_stale_restarts_42_rescue_281990_probes_70_rescue_visits_9_global_polish_1410000",
+      "run_seed": 117,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E5",
+      "current_final_error": 11102704.420431854,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127993_visits_179_stale_restarts_40_rescue_281983_probes_112_rescue_visits_19_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 11102704.420431854,
+      "historical_compatible_route": "stateful_block_visits_1127993_visits_179_stale_restarts_40_rescue_281983_probes_112_rescue_visits_19_global_polish_1410000",
+      "run_seed": 123,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E5",
+      "current_final_error": 10311584.683391439,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127985_visits_188_stale_restarts_46_rescue_281993_probes_148_rescue_visits_25_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 10311584.683391439,
+      "historical_compatible_route": "stateful_block_visits_1127985_visits_188_stale_restarts_46_rescue_281993_probes_148_rescue_visits_25_global_polish_1410000",
+      "run_seed": 129,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E5",
+      "current_final_error": 8030412.845798126,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127996_visits_157_stale_restarts_39_rescue_281996_probes_114_rescue_visits_22_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 8030412.845798126,
+      "historical_compatible_route": "stateful_block_visits_1127996_visits_157_stale_restarts_39_rescue_281996_probes_114_rescue_visits_22_global_polish_1410000",
+      "run_seed": 135,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E5",
+      "current_final_error": 12644630.64999334,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127994_visits_169_stale_restarts_39_rescue_281992_probes_70_rescue_visits_9_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 12644630.64999334,
+      "historical_compatible_route": "stateful_block_visits_1127994_visits_169_stale_restarts_39_rescue_281992_probes_70_rescue_visits_9_global_polish_1410000",
+      "run_seed": 141,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E6",
+      "current_final_error": 15325806.105876487,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127991_visits_163_stale_restarts_38_rescue_281994_probes_130_rescue_visits_27_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 15325806.105876487,
+      "historical_compatible_route": "stateful_block_visits_1127991_visits_163_stale_restarts_38_rescue_281994_probes_130_rescue_visits_27_global_polish_1410000",
+      "run_seed": 117,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E6",
+      "current_final_error": 15146471.558575425,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127988_visits_172_stale_restarts_41_rescue_281983_probes_134_rescue_visits_27_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 15146471.558575425,
+      "historical_compatible_route": "stateful_block_visits_1127988_visits_172_stale_restarts_41_rescue_281983_probes_134_rescue_visits_27_global_polish_1410000",
+      "run_seed": 123,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E6",
+      "current_final_error": 12263316.170627663,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127990_visits_163_stale_restarts_38_rescue_281994_probes_74_rescue_visits_9_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 12263316.170627663,
+      "historical_compatible_route": "stateful_block_visits_1127990_visits_163_stale_restarts_38_rescue_281994_probes_74_rescue_visits_9_global_polish_1410000",
+      "run_seed": 129,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E6",
+      "current_final_error": 13738977.989736363,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127989_visits_145_stale_restarts_34_rescue_281994_probes_74_rescue_visits_9_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 13738977.989736363,
+      "historical_compatible_route": "stateful_block_visits_1127989_visits_145_stale_restarts_34_rescue_281994_probes_74_rescue_visits_9_global_polish_1410000",
+      "run_seed": 135,
+      "same_checkpoint": true
+    },
+    {
+      "case_id": "E6",
+      "current_final_error": 20719832.28069259,
+      "current_route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127991_visits_173_stale_restarts_39_rescue_281999_probes_136_rescue_visits_27_global_polish_1410000",
+      "current_to_historical_ratio": 1.0,
+      "exact_final_error": true,
+      "historical_compatible_final_error": 20719832.28069259,
+      "historical_compatible_route": "stateful_block_visits_1127991_visits_173_stale_restarts_39_rescue_281999_probes_136_rescue_visits_27_global_polish_1410000",
+      "run_seed": 141,
+      "same_checkpoint": true
+    }
+  ],
+  "performance_superiority_claim_authorized": false,
+  "reference_thresholds_used_for_decision": false,
+  "same_checkpoint_per_pair": true,
+  "schema_version": "arac-recovery-smp-lifecycle-smoke-summary-v1",
+  "smoke_gate_passed": true,
+  "summary_sha256": "a84fb3a86ab4a6211f67eedfe5eb3a6b0b1d05a55c602604e0e4914a7ed3e3ab"
+}

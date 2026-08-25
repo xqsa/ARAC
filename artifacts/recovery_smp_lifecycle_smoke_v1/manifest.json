@@ -1,0 +1,41 @@
+{
+  "action_name": "smp",
+  "cases": [
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6"
+  ],
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "clip_offspring": true,
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "manifest_sha256": "18b3cdd394086fe5d55be7a58be805de24af0353756b646bdfc65b271cb4feb1",
+  "patch_enabled": false,
+  "protocol_sha256": "8f7290f3e8a36f1350b0737483bc3031e4fe0ef16a5a181fc6bc4c1590020742",
+  "schema_version": "arac-recovery-smp-lifecycle-smoke-manifest-v1",
+  "seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "selector_enabled": false,
+  "soft_routing_enabled": false,
+  "source_sha256": {
+    "campaign": "feb7ea5e731f26d68eabaf478dfa2c9e583bee18ce655684e2daff02a7266958",
+    "contracts": "c17bc689584b1842f6d9362c52d235243df4e5bc8baaf525606ca4e9c3432fc5",
+    "execution": "cb8d6d533537c88d90a2d9b8af6cf97af1aac195ebc263aeeb3de779e3d0bd13",
+    "historical_smp": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "ledger": "ee01bf317ebb5da8a33c86d69f025d9487667e1ddcada7d62592dade34f2a8e0",
+    "protocol": "8f7290f3e8a36f1350b0737483bc3031e4fe0ef16a5a181fc6bc4c1590020742",
+    "recovered": "1eecf18f76cf75fd8867b9482606ea9d41120b9dd9d2fb2c2b43f365847e34d4",
+    "recovered_registry": "61a375714f58eda489bd748657e5da8ad597db7e758d214a17c30a1bda658c8d",
+    "smp": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd"
+  },
+  "variants": [
+    "current_recovered",
+    "historical_compatible"
+  ]
+}

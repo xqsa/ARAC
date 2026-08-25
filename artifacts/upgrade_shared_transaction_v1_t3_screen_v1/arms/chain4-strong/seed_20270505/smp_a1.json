@@ -1,0 +1,164 @@
+{
+  "action_result_hash": "ba653b060c25bd131ac41b0e62d156cd5f9aca83e8dee5538e46b88bde4def48",
+  "action_seed": 314159,
+  "cell_id": "chain4-strong",
+  "checkpoint_hash": "02d54e61aaff4f6d660180a7cf10ee535e329e8bc920d7646c83bc65a6e896a3",
+  "downstream_entry_hashes": [
+    "198980266d58532c6d75271300abf4c9402acf907290b9bacdb0672bf581696b"
+  ],
+  "elapsed_seconds": 287.847637,
+  "final_error": 24.533165734261274,
+  "host": "smp",
+  "initial_error": 53823.222323932685,
+  "kernel_accepted_count": 0,
+  "kernel_consumed_fes": 8,
+  "kernel_receipts": [
+    {
+      "accepted_count": 0,
+      "best_error_after": 484.2854525735602,
+      "best_error_before": 484.2854525735602,
+      "boundary_phase": "run_stalled_block_rescue",
+      "candidates": [
+        {
+          "accepted": false,
+          "aggregator": "median",
+          "clipped_value": 1.5244534277315747,
+          "coordinate": 7,
+          "duplicate_of_previous": false,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 1.5244534277315747
+        },
+        {
+          "accepted": false,
+          "aggregator": "mean",
+          "clipped_value": 1.5244534277315747,
+          "coordinate": 7,
+          "duplicate_of_previous": true,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 1.5244534277315747
+        },
+        {
+          "accepted": false,
+          "aggregator": "median",
+          "clipped_value": 0.01936247485065952,
+          "coordinate": 35,
+          "duplicate_of_previous": false,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 0.01936247485065952
+        },
+        {
+          "accepted": false,
+          "aggregator": "mean",
+          "clipped_value": 0.01936247485065952,
+          "coordinate": 35,
+          "duplicate_of_previous": true,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 0.01936247485065952
+        },
+        {
+          "accepted": false,
+          "aggregator": "median",
+          "clipped_value": 0.009455199837626192,
+          "coordinate": 43,
+          "duplicate_of_previous": false,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 0.009455199837626192
+        },
+        {
+          "accepted": false,
+          "aggregator": "mean",
+          "clipped_value": 0.009455199837626192,
+          "coordinate": 43,
+          "duplicate_of_previous": true,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 0.009455199837626192
+        },
+        {
+          "accepted": false,
+          "aggregator": "median",
+          "clipped_value": 0.007634789940503659,
+          "coordinate": 47,
+          "duplicate_of_previous": false,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 0.007634789940503659
+        },
+        {
+          "accepted": false,
+          "aggregator": "mean",
+          "clipped_value": 0.007634789940503659,
+          "coordinate": 47,
+          "duplicate_of_previous": true,
+          "error": 484.2854525735602,
+          "evaluated_fes": 1,
+          "raw_value": 0.007634789940503659
+        }
+      ],
+      "consumed_fes": 8,
+      "requested_coordinates": [
+        7,
+        35,
+        43,
+        47,
+        62,
+        63,
+        77,
+        93,
+        106,
+        113,
+        114,
+        119,
+        122,
+        176,
+        192,
+        198,
+        216,
+        217,
+        236,
+        237,
+        241,
+        243,
+        282,
+        289
+      ],
+      "reserved_fes": 8,
+      "returned_fes": 0,
+      "selected_coordinates": [
+        7,
+        35,
+        43,
+        47
+      ],
+      "silent_reason": null
+    }
+  ],
+  "manifest_sha256": "a0012ac9fe14bec9034a541c8fbec5481ad631607c1570a4d126530753fe9e18",
+  "phase_count": 4,
+  "receipt_hash": "07d7cd6cc3fd090e2dc7fb31993d725948c3142be6ed35418f216224426055d0",
+  "route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127992_visits_18_stale_restarts_0_rescue_281998_probes_38_rescue_visits_10_global_polish_1410000",
+  "run_seed": 20270505,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t3-arm-receipt-v1",
+  "variant": "a1"
+}

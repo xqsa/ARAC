@@ -1,0 +1,76 @@
+{
+  "action_result_hash": "163461a14a21213ef671183dd82e9fd309f1b6178d6136aca7b261ef4dd00820",
+  "arm": "a0",
+  "case_id": null,
+  "cell_id": "pairs-mild",
+  "checkpoint_hash": "96df2b0dc6c59b5dacccab03d810d1d82485c23622d9bb83560f18e3435ba258",
+  "elapsed_seconds": 1093.855264,
+  "final_error": 2263150.4990546843,
+  "forced_host": true,
+  "ground_truth_hash": "15203f6591d6d4c9fa3b0f4b96ff0536a65790c14f841eee9ac3b2b8e9bcfbce",
+  "host": "gcb",
+  "identity": null,
+  "initial_error": 2300060.2508656587,
+  "instrumentation": {
+    "leverage_positive_block_visits": 64,
+    "per_block_visits": {
+      "0": 8,
+      "1": 8,
+      "2": 8,
+      "3": 8,
+      "4": 8,
+      "5": 8,
+      "6": 8,
+      "7": 8
+    },
+    "segment_count": 7,
+    "segment_kinds": {
+      "cold_start_sweeps": 7
+    },
+    "total_block_visits": 64
+  },
+  "leverage": {
+    "block_count": 8,
+    "leverage_per_block": [
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7
+    ],
+    "leverage_positive_blocks": 8,
+    "relation_count": 28
+  },
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "milestones": [
+    {
+      "best_error": 2300060.2508656587,
+      "fes": 180000
+    },
+    {
+      "best_error": 2298277.743639697,
+      "fes": 600000
+    },
+    {
+      "best_error": 2264879.0420184536,
+      "fes": 1000000
+    },
+    {
+      "best_error": 2263817.5567835486,
+      "fes": 2000000
+    },
+    {
+      "best_error": 2263150.4990546843,
+      "fes": 3000000
+    }
+  ],
+  "order_records": [],
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "d78fd3175cfa3c14840d5d60a6dffe6b9dbf9fa65186b8d5abff59412cde2680",
+  "route": "positive_relation_graph_source_473100_sweeps_3_coordination_201381_cold_native_2145518_windows_5_tail_1",
+  "run_seed": 117,
+  "schema_version": "arac-upgrade-s1-arm-receipt-v1"
+}

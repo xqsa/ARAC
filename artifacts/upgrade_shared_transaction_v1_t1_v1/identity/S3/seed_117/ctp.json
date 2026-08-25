@@ -1,0 +1,116 @@
+{
+  "action_result_hash": "47c284ebb7e912fb34ee81924cb9eb8623a0588fff958b5ad03fe29355a36127",
+  "action_seed": 117,
+  "case_id": "S3",
+  "census": {
+    "boundary_count": 1,
+    "boundary_phase": "run_sequential_blocks",
+    "link_rows": [],
+    "links_with_both_owners": 0,
+    "max_patch_fe": 0,
+    "native_phase_count": 3,
+    "qualified_boundary_count": 0,
+    "reanchor_all_proven": true,
+    "reanchor_rows": [
+      {
+        "entry_fes": 630984,
+        "first_session_anchor_hash": "14df7efe938c83c0a0a6bfae8742faa42b05e2b395a140df7b25ca40c29da337",
+        "first_session_birth_fes": 630984,
+        "incumbent_hash_at_birth": "14df7efe938c83c0a0a6bfae8742faa42b05e2b395a140df7b25ca40c29da337",
+        "incumbent_hash_at_entry": "14df7efe938c83c0a0a6bfae8742faa42b05e2b395a140df7b25ca40c29da337",
+        "reanchor_proven": true
+      }
+    ],
+    "source_improvement_count": 1041,
+    "source_phase": "run_persistent_blocks",
+    "source_proposal_blocks": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      11
+    ]
+  },
+  "checkpoint_hash": "704d2709df1ecd2ea836ab48b4233e066eaae16ed2717065455736818aba08cc",
+  "elapsed_seconds": 830.475623,
+  "final_error": 111.16004292092254,
+  "host": "ctp",
+  "identity": {
+    "action_result_hash": {
+      "frozen": "47c284ebb7e912fb34ee81924cb9eb8623a0588fff958b5ad03fe29355a36127",
+      "match": true,
+      "rerun": "47c284ebb7e912fb34ee81924cb9eb8623a0588fff958b5ad03fe29355a36127"
+    },
+    "checkpoint_hash": {
+      "frozen": "704d2709df1ecd2ea836ab48b4233e066eaae16ed2717065455736818aba08cc",
+      "match": true,
+      "rerun": "704d2709df1ecd2ea836ab48b4233e066eaae16ed2717065455736818aba08cc"
+    },
+    "final_error": {
+      "frozen": 111.16004292092254,
+      "match": true,
+      "rerun": 111.16004292092254
+    },
+    "route": {
+      "frozen": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192",
+      "match": true,
+      "rerun": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192"
+    }
+  },
+  "identity_all_match": true,
+  "initial_error": 43821011.58943149,
+  "instrumentation": {
+    "improvement_count": 32089,
+    "phases": [
+      {
+        "entry_fes": 180000,
+        "exit_fes": 630984,
+        "incumbent_error_at_entry": 43821011.58943149,
+        "incumbent_hash_at_entry": "1e893761d31108479b70fce172c9edd3c244406a2c82b53850e4bc56c59ece71",
+        "namespace": null,
+        "tag": "run_persistent_blocks"
+      },
+      {
+        "entry_fes": 630984,
+        "exit_fes": 2435808,
+        "incumbent_error_at_entry": 33427476.22436936,
+        "incumbent_hash_at_entry": "14df7efe938c83c0a0a6bfae8742faa42b05e2b395a140df7b25ca40c29da337",
+        "namespace": null,
+        "tag": "run_sequential_blocks"
+      },
+      {
+        "entry_fes": 2435808,
+        "exit_fes": 3000000,
+        "incumbent_error_at_entry": 197.93589186153258,
+        "incumbent_hash_at_entry": "81503054a7f3bd8b25888317ab04d28ea35c79e4b4a5849c4f72edbb67a626fe",
+        "namespace": "ctp-relation-mmes-tail",
+        "tag": "run_full_space"
+      }
+    ],
+    "session_count": 61,
+    "timeline_rows": 43537
+  },
+  "lane": "aob_identity",
+  "manifest_sha256": "f8ab02e8e9e7be29c8321e3464923493bc46051cb805cec982b213c8b89bf576",
+  "receipt_hash": "8be22ef8ec55680120917277e5cdd1fa988bf0bbc344a86abe67d28517d54b48",
+  "route": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192",
+  "run_seed": 117,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t1-arm-receipt-v1"
+}

@@ -1,0 +1,171 @@
+{
+  "action_result_hash": "20f15b6bd11182be63de74d95ab10be0ab7b3f6e3f3248e11197ea320e4c8cd8",
+  "arm": "a1",
+  "case_id": "R5",
+  "cell_id": null,
+  "checkpoint_hash": "4af39a5657b61c378f2f90188d33d5f6cea1e4138ad8f6e51f96a1e9aaaf6a2c",
+  "elapsed_seconds": 1214.984079,
+  "final_error": 436790.9529332689,
+  "forced_host": false,
+  "ground_truth_hash": null,
+  "host": "gcb",
+  "identity": null,
+  "initial_error": 8922915.49516733,
+  "instrumentation": {
+    "leverage_positive_block_visits": 316,
+    "per_block_visits": {
+      "0": 17,
+      "1": 17,
+      "10": 16,
+      "11": 17,
+      "12": 17,
+      "13": 17,
+      "14": 17,
+      "15": 16,
+      "16": 16,
+      "17": 17,
+      "18": 16,
+      "2": 17,
+      "3": 17,
+      "4": 17,
+      "5": 16,
+      "6": 16,
+      "7": 16,
+      "8": 17,
+      "9": 17
+    },
+    "segment_count": 7,
+    "segment_kinds": {
+      "cold_start_sweeps": 7
+    },
+    "total_block_visits": 316
+  },
+  "leverage": {
+    "block_count": 19,
+    "leverage_per_block": [
+      3,
+      4,
+      3,
+      2,
+      2,
+      3,
+      2,
+      2,
+      3,
+      2,
+      2,
+      2,
+      3,
+      3,
+      2,
+      1,
+      2,
+      2,
+      1
+    ],
+    "leverage_positive_blocks": 19,
+    "relation_count": 22
+  },
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "milestones": [
+    {
+      "best_error": 8922915.49516733,
+      "fes": 180000
+    },
+    {
+      "best_error": 1295430.2851776315,
+      "fes": 600000
+    },
+    {
+      "best_error": 479330.2946972438,
+      "fes": 1000000
+    },
+    {
+      "best_error": 448831.8704505891,
+      "fes": 2000000
+    },
+    {
+      "best_error": 436790.9529332689,
+      "fes": 3000000
+    }
+  ],
+  "order_records": [
+    {
+      "applied_order": [
+        1,
+        2,
+        0,
+        12,
+        4,
+        11,
+        9,
+        3,
+        14,
+        8,
+        17,
+        13,
+        5,
+        16,
+        6,
+        7,
+        15,
+        18,
+        10
+      ],
+      "baseline_order": [
+        4,
+        2,
+        0,
+        11,
+        9,
+        3,
+        12,
+        14,
+        8,
+        1,
+        17,
+        13,
+        5,
+        16,
+        6,
+        7,
+        15,
+        18,
+        10
+      ],
+      "block_count": 19,
+      "head_slots": 4,
+      "host": "gcb",
+      "leverage_per_block": [
+        3,
+        4,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        2,
+        3,
+        3,
+        2,
+        1,
+        2,
+        2,
+        1
+      ],
+      "namespace": "gcb-source",
+      "order_changed": true,
+      "relation_count": 22,
+      "start_sweep_index": 0
+    }
+  ],
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "67f2b62788a3faf81c9b811427f51273d102a5d04a7a9d6443f7f2fc1833105c",
+  "route": "positive_relation_graph_source_462690_sweeps_3_coordination_139714_cold_native_2217589_windows_14_tail_7",
+  "run_seed": 123,
+  "schema_version": "arac-upgrade-s1-arm-receipt-v1"
+}

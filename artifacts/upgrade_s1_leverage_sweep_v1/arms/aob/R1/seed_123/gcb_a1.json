@@ -1,0 +1,192 @@
+{
+  "action_result_hash": "09f1cebe33516056c2ea0097968558acfa8666ebe31880fdb788b643c97bbdea",
+  "arm": "a1",
+  "case_id": "R1",
+  "cell_id": null,
+  "checkpoint_hash": "51e90b19b7cc0a6236ad7122b904b3290ea8b211d33f846be3d87fc06de3c2da",
+  "elapsed_seconds": 1141.435071,
+  "final_error": 159646.7381922739,
+  "forced_host": false,
+  "ground_truth_hash": null,
+  "host": "gcb",
+  "identity": {
+    "action_result_hash": {
+      "frozen": "09f1cebe33516056c2ea0097968558acfa8666ebe31880fdb788b643c97bbdea",
+      "match": true,
+      "rerun": "09f1cebe33516056c2ea0097968558acfa8666ebe31880fdb788b643c97bbdea"
+    },
+    "final_error": {
+      "frozen": 159646.7381922739,
+      "match": true,
+      "rerun": 159646.7381922739
+    },
+    "route": {
+      "frozen": "zero_relation_source_393285_sweeps_3_coordination_127240_cold_native_2299465_windows_17_tail_10",
+      "match": true,
+      "rerun": "zero_relation_source_393285_sweeps_3_coordination_127240_cold_native_2299465_windows_17_tail_10"
+    }
+  },
+  "initial_error": 6415959.257501175,
+  "instrumentation": {
+    "leverage_positive_block_visits": 0,
+    "per_block_visits": {
+      "0": 20,
+      "1": 20,
+      "10": 19,
+      "11": 19,
+      "12": 19,
+      "13": 19,
+      "14": 19,
+      "15": 19,
+      "16": 19,
+      "17": 19,
+      "18": 19,
+      "19": 19,
+      "2": 20,
+      "3": 20,
+      "4": 20,
+      "5": 20,
+      "6": 19,
+      "7": 19,
+      "8": 19,
+      "9": 19
+    },
+    "segment_count": 7,
+    "segment_kinds": {
+      "cold_start_sweeps": 7
+    },
+    "total_block_visits": 386
+  },
+  "leverage": {
+    "block_count": 20,
+    "leverage_per_block": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "leverage_positive_blocks": 0,
+    "relation_count": 0
+  },
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "milestones": [
+    {
+      "best_error": 6415959.257501175,
+      "fes": 180000
+    },
+    {
+      "best_error": 581766.4685408897,
+      "fes": 600000
+    },
+    {
+      "best_error": 226621.68832687434,
+      "fes": 1000000
+    },
+    {
+      "best_error": 201844.3283921355,
+      "fes": 2000000
+    },
+    {
+      "best_error": 159646.7381922739,
+      "fes": 3000000
+    }
+  ],
+  "order_records": [
+    {
+      "applied_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "baseline_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "block_count": 20,
+      "head_slots": 4,
+      "host": "gcb",
+      "leverage_per_block": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "namespace": "gcb-source",
+      "order_changed": false,
+      "relation_count": 0,
+      "start_sweep_index": 0
+    }
+  ],
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "4e56d28c6ddfdea74d39703d4913d1f8d33f32c3054a7265bf8aaf29b0ad7047",
+  "route": "zero_relation_source_393285_sweeps_3_coordination_127240_cold_native_2299465_windows_17_tail_10",
+  "run_seed": 123,
+  "schema_version": "arac-upgrade-s1-arm-receipt-v1"
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "arac-recovery-first-screen-protocol-v1",
+  "cases": [
+    "A1", "A2", "A3", "A4", "A5", "A6",
+    "E1", "E2", "E3", "E4", "E5", "E6",
+    "R1", "R2", "R3", "R4", "R5", "R6",
+    "S1", "S2", "S3", "S4", "S5", "S6"
+  ],
+  "screen_seeds": [117, 123, 129, 135, 141],
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "terminal_fes": 3000000,
+  "historical_action_mapping": {
+    "A1": "aor", "A2": "aor", "A3": "aor", "A4": "aor", "A5": "aor", "A6": "aor",
+    "E1": "smp", "E2": "smp", "E3": "smp", "E4": "smp", "E5": "smp", "E6": "smp",
+    "S1": "ctp", "S2": "ctp", "S3": "ctp", "S4": "ctp", "S5": "ctp", "S6": "ctp",
+    "R1": "gcb", "R2": "gcb", "R3": "gcb", "R4": "gcb", "R5": "gcb", "R6": "gcb"
+  },
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "historical_table": "output/pdf/aob_arac_method_comparison_corrected.csv",
+  "historical_target_column": "ARAC Mean +/- Std",
+  "output_root": "artifacts/recovery_first_screen_v1",
+  "max_workers": 24,
+  "native_threads": 1,
+  "patch_enabled": false,
+  "soft_routing_enabled": false,
+  "selector_enabled": false,
+  "aggregate_precision": ".2E",
+  "screen_rule": "all_case_displayed_means_must_be_no_higher_than_historical_arac_displayed_mean; screening_only_not_final_recovery"
+}

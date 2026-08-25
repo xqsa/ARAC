@@ -1,0 +1,53 @@
+{
+  "schema_version": "arac-recovery-first-protocol-v1",
+  "cases": [
+    "A1", "A2", "A3", "A4", "A5", "A6",
+    "E1", "E2", "E3", "E4", "E5", "E6",
+    "R1", "R2", "R3", "R4", "R5", "R6",
+    "S1", "S2", "S3", "S4", "S5", "S6"
+  ],
+  "seeds": [
+    117, 118, 119, 120, 121, 122, 123, 124, 125,
+    126, 127, 128, 129, 130, 131, 132, 133, 134,
+    135, 136, 137, 138, 139, 140, 141
+  ],
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "terminal_fes": 3000000,
+  "historical_action_mapping": {
+    "A1": "aor", "A2": "aor", "A3": "aor", "A4": "aor", "A5": "aor", "A6": "aor",
+    "E1": "smp", "E2": "smp", "E3": "smp", "E4": "smp", "E5": "smp", "E6": "smp",
+    "S1": "ctp", "S2": "ctp", "S3": "ctp", "S4": "ctp", "S5": "ctp", "S6": "ctp",
+    "R1": "gcb", "R2": "gcb", "R3": "gcb", "R4": "gcb", "R5": "gcb", "R6": "gcb"
+  },
+  "actions": ["ctp", "smp", "gcb", "aor"],
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "selector_directory": "artifacts/current_grouped_selector_v1",
+  "fixed_action_protocol": "experiments/historical_recovery/current_recovered_four_arm_protocol_v2.json",
+  "historical_table": "output/pdf/aob_arac_method_comparison_corrected.csv",
+  "historical_target_column": "ARAC Mean +/- Std",
+  "preflight_cases": ["A1", "E1", "R1", "S1"],
+  "preflight_seeds": [117],
+  "preflight_output_root": "artifacts/recovery_first_preflight_v1",
+  "output_root": "artifacts/recovery_first_matrix_v1",
+  "report_root": "artifacts/recovery_first_reports_v1",
+  "max_workers": 24,
+  "native_threads": 1,
+  "registry": "RecoveredActionRegistry",
+  "allow_out_of_bounds": true,
+  "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+  "patch_enabled": false,
+  "soft_routing_enabled": false,
+  "new_selector_enabled": false,
+  "selector_mode": "parity_only",
+  "historical_protocol_status": "inferred_protocol_not_bitwise_recovered",
+  "historical_precision": ".2E",
+  "gate_policy": {
+    "B0": "provenance_only",
+    "B1": "all_24_cases_x_25_seeds_x_4_actions_and_historical_mapped_action",
+    "B2": "selector_input_hash_to_output_hash_without_action_evaluation",
+    "B3": "phase1_selector_selected_action_terminal_contract"
+  }
+}

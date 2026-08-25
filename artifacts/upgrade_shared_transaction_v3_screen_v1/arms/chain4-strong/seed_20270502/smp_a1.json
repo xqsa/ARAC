@@ -1,0 +1,109 @@
+{
+  "action_result_hash": "63968b1cda7fd6cb8bb340c8baa6d8f939f2606c1b41932b1153fc4a9e4b9c63",
+  "action_seed": 314159,
+  "cell_id": "chain4-strong",
+  "checkpoint_hash": "6eddf05ab201371ea618d6b2b0ec8157b899cb8ca5d7d4fd3374e0c5bf063a40",
+  "elapsed_seconds": 316.055718,
+  "final_error": 46.57540674926713,
+  "initial_error": 57511.99298308138,
+  "kernel_accepted_count": 0,
+  "kernel_consumed_fes": 140800,
+  "kernel_receipts": [
+    {
+      "accepted_links": 0,
+      "best_error_after_joint": 6500.858413912822,
+      "best_error_before": 6500.858413912822,
+      "boundary_phase": "run_stalled_block_rescue",
+      "forwarded_fes": 141200,
+      "joint_fes": 140800,
+      "link_scopes": [
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 1,
+          "right_block": 2,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        },
+        {
+          "left_block": 2,
+          "right_block": 3,
+          "scope_size": 200
+        }
+      ]
+    }
+  ],
+  "manifest_sha256": "6e2a72423cbdb98c85b062e6bc8b9ee7cf2f6ffc027bab6c8c843f2ad15996f0",
+  "receipt_hash": "89d29d7d5a5a67c63db3368ea19c354bb2a2958b63be72e76a983f932c1177b0",
+  "route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127992_visits_20_stale_restarts_0_rescue_141190_probes_20_rescue_visits_5_global_polish_1410000",
+  "run_seed": 20270502,
+  "schema_version": "arac-upgrade-shared-transaction-v3-arm-receipt-v1",
+  "variant": "a1"
+}

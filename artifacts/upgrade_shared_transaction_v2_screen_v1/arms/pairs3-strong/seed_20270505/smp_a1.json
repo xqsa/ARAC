@@ -1,0 +1,111 @@
+{
+  "action_result_hash": "2e87136303336a93704ec600a187290e2aeee039d0cff79d8f52411e9fffcf24",
+  "action_seed": 314159,
+  "cell_id": "pairs3-strong",
+  "checkpoint_hash": "a86523949ef26d52ed2d4758c6130b429717729178a05f4fb39715897a452224",
+  "elapsed_seconds": 219.811693,
+  "final_error": 23.166235016891733,
+  "initial_error": 53973.97036904609,
+  "kernel_accepted_count": 4,
+  "kernel_consumed_fes": 12,
+  "kernel_receipts": [
+    {
+      "accepted_count": 4,
+      "best_error_after": 335.0454310425557,
+      "best_error_before": 338.23670918657444,
+      "boundary_phase": "run_stalled_block_rescue",
+      "candidates": [
+        {
+          "accepted": true,
+          "clipped_vertex": -0.6106280660855896,
+          "coordinate": 5,
+          "delta": 2.5,
+          "evaluated_fes": 3,
+          "f0": 338.23670918657444,
+          "f_minus": 413.3050484538544,
+          "f_plus": 363.39919498341624,
+          "vertex": -0.6106280660855896,
+          "vertex_error": 335.1306360187009
+        },
+        {
+          "accepted": true,
+          "clipped_vertex": -0.01789735728343763,
+          "coordinate": 30,
+          "delta": 2.5,
+          "evaluated_fes": 3,
+          "f0": 335.1306360187009,
+          "f_minus": 1165.8132449313998,
+          "f_plus": 1199.281088749878,
+          "vertex": -0.01789735728343763,
+          "vertex_error": 335.0480248905951
+        },
+        {
+          "accepted": true,
+          "clipped_vertex": -0.007728925150145759,
+          "coordinate": 36,
+          "delta": 2.5,
+          "evaluated_fes": 3,
+          "f0": 335.0480248905951,
+          "f_minus": 2257.7820043704705,
+          "f_plus": 2262.091752793058,
+          "vertex": -0.007728925150145759,
+          "vertex_error": 335.04742180602625
+        },
+        {
+          "accepted": true,
+          "clipped_vertex": -0.004408252938360731,
+          "coordinate": 40,
+          "delta": 2.5,
+          "evaluated_fes": 3,
+          "f0": 335.04742180602625,
+          "f_minus": 3674.9960179821355,
+          "f_plus": 3685.318282996537,
+          "vertex": -0.004408252938360731,
+          "vertex_error": 335.0454310425557
+        }
+      ],
+      "consumed_fes": 12,
+      "eligible_coordinates": [
+        5,
+        30,
+        36,
+        40,
+        43,
+        48,
+        68,
+        71,
+        443,
+        456,
+        458,
+        463,
+        464,
+        472,
+        474,
+        485,
+        803,
+        820,
+        833,
+        840,
+        843,
+        859,
+        862,
+        870
+      ],
+      "reserved_fes": 12,
+      "returned_fes": 0,
+      "selected_coordinates": [
+        5,
+        30,
+        36,
+        40
+      ],
+      "silent_reason": null
+    }
+  ],
+  "manifest_sha256": "1e7fdc8a0fc24a7980ba4d703f1653fdd32bbf0102d22af734f2156df705d2b2",
+  "receipt_hash": "7db5da3c0c7ee8f2f050b3059f7d5940bd327f0dc16fa52bc82c06767b653884",
+  "route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127992_visits_18_stale_restarts_0_rescue_281998_probes_38_rescue_visits_9_global_polish_1409998",
+  "run_seed": 20270505,
+  "schema_version": "arac-upgrade-shared-transaction-v2-arm-receipt-v1",
+  "variant": "a1"
+}

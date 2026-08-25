@@ -1,0 +1,308 @@
+{
+  "action_result_hash": "ed4a045eba6deb0d309c2b1c87d4155d66be6c309cee96c59135c1cee55e6079",
+  "action_seed": 314159,
+  "cell_id": "pairs3-strong",
+  "census": {
+    "boundary_count": 1,
+    "boundary_phase": "run_sequential_blocks",
+    "link_rows": [
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 17
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 27
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 54
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 58
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 74
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 86
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 90
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 98
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 407
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 408
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 409
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 415
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 441
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 467
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 477
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 0,
+        "variable": 483
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 810
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 836
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 838
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 849
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 869
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 872
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 873
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 1,
+        "variable": 877
+      }
+    ],
+    "links_with_both_owners": 0,
+    "max_patch_fe": 0,
+    "native_phase_count": 3,
+    "qualified_boundary_count": 0,
+    "reanchor_all_proven": true,
+    "reanchor_rows": [
+      {
+        "entry_fes": 631200,
+        "first_session_anchor_hash": "562ae7b426eae29339e1f736fe53bb7960acab6093b45de4b68eb14e3c157fc4",
+        "first_session_birth_fes": 631200,
+        "incumbent_hash_at_birth": "562ae7b426eae29339e1f736fe53bb7960acab6093b45de4b68eb14e3c157fc4",
+        "incumbent_hash_at_entry": "562ae7b426eae29339e1f736fe53bb7960acab6093b45de4b68eb14e3c157fc4",
+        "reanchor_proven": true
+      }
+    ],
+    "source_improvement_count": 959,
+    "source_phase": "run_persistent_blocks",
+    "source_proposal_blocks": [
+      2,
+      3,
+      8
+    ]
+  },
+  "certificate_link_count": 24,
+  "checkpoint_hash": "f50664e625ff2dd2bfb2b7ff3902dd8a73fcaf722f50801fc6e005d535a0ba3d",
+  "elapsed_seconds": 841.311163,
+  "final_error": 120.95002990216017,
+  "host": "ctp",
+  "initial_error": 63086.69756475091,
+  "instrumentation": {
+    "improvement_count": 32457,
+    "phases": [
+      {
+        "entry_fes": 180000,
+        "exit_fes": 631200,
+        "incumbent_error_at_entry": 63086.69756475091,
+        "incumbent_hash_at_entry": "3606900789d02819dc7c3342b98c708091ecc4a1beec7ca9ff74d2ba61de7550",
+        "namespace": null,
+        "tag": "run_persistent_blocks"
+      },
+      {
+        "entry_fes": 631200,
+        "exit_fes": 2435964,
+        "incumbent_error_at_entry": 54186.36327649001,
+        "incumbent_hash_at_entry": "562ae7b426eae29339e1f736fe53bb7960acab6093b45de4b68eb14e3c157fc4",
+        "namespace": null,
+        "tag": "run_sequential_blocks"
+      },
+      {
+        "entry_fes": 2435964,
+        "exit_fes": 3000000,
+        "incumbent_error_at_entry": 293.57777000498027,
+        "incumbent_hash_at_entry": "11f4a1c7546402323d27d19f324a7484ce79412179aa8a46bef94c9c0ba2bae1",
+        "namespace": "ctp-relation-mmes-tail",
+        "tag": "run_full_space"
+      }
+    ],
+    "session_count": 23,
+    "timeline_rows": 42659
+  },
+  "lane": "generator",
+  "manifest_sha256": "f8ab02e8e9e7be29c8321e3464923493bc46051cb805cec982b213c8b89bf576",
+  "receipt_hash": "8daad59cd74c6326956449b3712c6c909f03e185b88515a94fcd5477c57289c2",
+  "route": "coverage_451200_then_relation_cover_polish_1804764_then_mmes_tail_564036",
+  "run_seed": 20270503,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t1-arm-receipt-v1"
+}

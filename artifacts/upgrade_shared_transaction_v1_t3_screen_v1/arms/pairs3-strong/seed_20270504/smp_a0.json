@@ -1,0 +1,39 @@
+{
+  "action_result_hash": "524ba85bba702769489bb058dafbf34b54d5a9a3b6a8545643320c111edb6a96",
+  "action_seed": 314159,
+  "cell_id": "pairs3-strong",
+  "checkpoint_hash": "b6a42237b70add906efc4fca58c24b79734b71db9228c979d6a7cf016c6af80d",
+  "downstream_entry_hashes": [
+    "45ef40c0a46f755ac182318609bba1efc3f3381324a85471428d51ebff30a55e"
+  ],
+  "elapsed_seconds": 218.547722,
+  "final_error": 40.6728226011619,
+  "host": "smp",
+  "initial_error": 57414.04028914031,
+  "kernel_accepted_count": 0,
+  "kernel_consumed_fes": 0,
+  "kernel_receipts": [],
+  "manifest_sha256": "a0012ac9fe14bec9034a541c8fbec5481ad631607c1570a4d126530753fe9e18",
+  "phase_count": 4,
+  "receipt_hash": "d44e3af2a33cc88d1379660f69241485857c5ece57c260ccd6789c51162b58ff",
+  "route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127992_visits_20_stale_restarts_0_rescue_282000_probes_40_rescue_visits_9_global_polish_1410000",
+  "run_seed": 20270504,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t3-arm-receipt-v1",
+  "variant": "a0"
+}

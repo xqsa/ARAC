@@ -1,0 +1,81 @@
+{
+  "candidate_id": "pairwise_edge_ctp_v1",
+  "cell": "pairs3-strong",
+  "checks": {
+    "all_seeds_certified": false,
+    "coverage_complete": true,
+    "replay_deterministic": true,
+    "runtime_truth_free": true
+  },
+  "dsm_budget_cap": 100000,
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": false,
+  "patch_stage_authorized": false,
+  "performance_comparison_run": false,
+  "replay": {
+    "checkpoint_hash_equal": true,
+    "discovery_fes_equal": true,
+    "evidence_hash_equal": true,
+    "seed": 20270401
+  },
+  "result_hash": "cc2290983b208b2a1cf2167c0937db3bc52a676bf4ca3fcf53beb4c3fccf96de",
+  "schema_version": "arac-upgrade-pairwise-edge-p0-summary-v1",
+  "seed_rows": [
+    {
+      "certificate_count": 16,
+      "discovery_fes": 98228,
+      "merged_region_count": 1,
+      "phase1_fes_exact": true,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "rejected_hyperedge_count": 0,
+      "seed": 20270401,
+      "seed_passed": false
+    },
+    {
+      "certificate_count": 24,
+      "discovery_fes": 99099,
+      "merged_region_count": 0,
+      "phase1_fes_exact": true,
+      "precision": 1.0,
+      "recall": 1.0,
+      "rejected_hyperedge_count": 0,
+      "seed": 20270402,
+      "seed_passed": true
+    },
+    {
+      "certificate_count": 24,
+      "discovery_fes": 99311,
+      "merged_region_count": 0,
+      "phase1_fes_exact": true,
+      "precision": 1.0,
+      "recall": 1.0,
+      "rejected_hyperedge_count": 0,
+      "seed": 20270403,
+      "seed_passed": true
+    },
+    {
+      "certificate_count": 24,
+      "discovery_fes": 99283,
+      "merged_region_count": 0,
+      "phase1_fes_exact": true,
+      "precision": 1.0,
+      "recall": 1.0,
+      "rejected_hyperedge_count": 0,
+      "seed": 20270404,
+      "seed_passed": true
+    },
+    {
+      "certificate_count": 16,
+      "discovery_fes": 100016,
+      "merged_region_count": 1,
+      "phase1_fes_exact": true,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "rejected_hyperedge_count": 0,
+      "seed": 20270405,
+      "seed_passed": false
+    }
+  ],
+  "truth_usage_note": "generator truth was consumed offline for certification metrics only; the runtime never reads it"
+}

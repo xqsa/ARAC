@@ -1,0 +1,25 @@
+{
+  "schema_version": "arac-upgrade-u0-baseline-guard-protocol-v1",
+  "candidate_id": "shared_patch_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "expected_verifier": {
+    "status": "frozen",
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "smp_smoke_green": true,
+    "e1_preservation_green": true,
+    "screen_contract_green": true,
+    "patch_enabled": false,
+    "soft_routing_enabled": false,
+    "selector_enabled": false
+  },
+  "verifier_module": "experiments.historical_recovery.verify_recovered_baseline_freeze",
+  "output_root": "artifacts/upgrade_u0_baseline_guard_v1",
+  "sources": [
+    "experiments/upgrade/shared_patch_v1/protocol.json",
+    "experiments/upgrade/shared_patch_v1/u0_baseline_guard.py",
+    "experiments/upgrade/shared_patch_v1/u0_baseline_guard_protocol_v1.json",
+    "experiments/historical_recovery/recovered_baseline_freeze_protocol_v1.json",
+    "experiments/historical_recovery/verify_recovered_baseline_freeze.py"
+  ],
+  "gate_rule": "freeze verifier must report the frozen anchor with all three greens true and all three upgrade switches off; U0 performs no performance runs and produces no new production behavior"
+}

@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from arac.actions.ctp import CtpExecutor
 from arac.actions.gcb import GcbExecutor
-from arac.actions.recovered import RecoveredAorExecutor, RecoveredSmpExecutor
+from arac.actions.recovered import (
+    RecoveredAorExecutor,
+    RecoveredHistoricalSmpExecutor,
+)
 from arac.runtime.contracts import ACTION_NAMES, ActionContext, ActionResult
 
 
@@ -14,7 +17,7 @@ class RecoveredActionRegistry:
     def __init__(self) -> None:
         executors = (
             CtpExecutor(),
-            RecoveredSmpExecutor(),
+            RecoveredHistoricalSmpExecutor(),
             GcbExecutor(),
             RecoveredAorExecutor(),
         )

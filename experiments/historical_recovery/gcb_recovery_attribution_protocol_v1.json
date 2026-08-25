@@ -1,0 +1,21 @@
+{
+  "schema_version": "arac-gcb-recovery-attribution-protocol-v1",
+  "status": "frozen_receipt_attribution",
+  "purpose": "Attribute production-checkpoint GCB current versus historical-compatible schedule differences without rerunning expensive arms.",
+  "cases": ["R1", "R2", "R3", "R4", "R5", "R6"],
+  "seeds": [117, 123, 129, 135, 141],
+  "variants": ["current", "historical_compatible"],
+  "action_name": "gcb",
+  "input_root": "artifacts/recovery_action_lifecycle_diagnostic_v1",
+  "input_summary_sha256": "d449804727efef80a007f1e8515e062b464f818dd56648f33038f4c71662def8",
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "terminal_fes": 3000000,
+  "output_root": "artifacts/gcb_recovery_attribution_v1",
+  "patch_enabled": false,
+  "soft_routing_enabled": false,
+  "selector_enabled": false,
+  "reference_thresholds_used_for_decision": false,
+  "decision_rule": "attribute_schedule_only; do_not_authorize_production_gcb_rollback_or_selector_change"
+}

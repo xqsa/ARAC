@@ -1,0 +1,49 @@
+{
+  "action_seed": 314159,
+  "bootstrap_draws": 10000,
+  "bootstrap_seed": 20260824,
+  "candidate_id": "shared_transaction_v7",
+  "cells": [
+    "chain4-strong",
+    "pairs3-strong"
+  ],
+  "confirmation_output_root": "artifacts/upgrade_shared_transaction_v7_confirm_v1",
+  "confirmation_seeds": [
+    20270511,
+    20270512,
+    20270513,
+    20270514,
+    20270515
+  ],
+  "eps_ref": {
+    "chain4-strong": 2.4533165734261275,
+    "pairs3-strong": 2.3102826379821635
+  },
+  "eps_ref_source": "T1 patch-off smp arms (same seeds and action seed, deterministic bit-equal finals)",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "host": "smp",
+  "kernel": {
+    "cap_behaviour": "silent for the rest of the run once the cap is hit; consumption recorded",
+    "kind": "per_visit_shared_coordinate_recentring",
+    "max_fe_per_visit": 24,
+    "max_total_fraction_of_phase2": 0.01,
+    "rationale": "v2 receipts: the local repair is always accepted but once-per-run timing drowns in trajectory noise; v3-v6: one-shot restarts never write back; v7 aggregates the proven repair at visit scale (FEA/OCC periodic shared-variable synchronization)",
+    "recipe": "v2 three-point quadratic re-centering (0.25*span probes, interior vertex, strict-best only) applied after EVERY stateful visit of a certified-owner block",
+    "selection": "deterministic schedule over T0-certified links; no classifier, no online selection signal, no cross-visit state"
+  },
+  "max_workers": 8,
+  "non_inferior_ci_lower": 1.05,
+  "output_root": "artifacts/upgrade_shared_transaction_v7_screen_v1",
+  "phase1_fes": 180000,
+  "schema_version": "arac-upgrade-shared-transaction-v7-screen-protocol-v1",
+  "seeds": [
+    20270501,
+    20270502,
+    20270503,
+    20270504,
+    20270505
+  ],
+  "strict_win_ci_upper": 1.0,
+  "strict_win_ratio": 0.95,
+  "total_budget_fes": 3000000
+}

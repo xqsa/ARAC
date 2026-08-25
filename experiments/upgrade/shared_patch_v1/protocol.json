@@ -1,0 +1,36 @@
+{
+  "schema_version": "arac-upgrade-shared-patch-candidate-protocol-v1",
+  "candidate_id": "shared_patch_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "freeze_protocol": "experiments/historical_recovery/recovered_baseline_freeze_protocol_v1.json",
+  "freeze_verifier_entrypoint": "PYTHONPATH='.;src' python -m experiments.historical_recovery.verify_recovered_baseline_freeze verify",
+  "plan_reference": "docs/arac-oc-stepwise-upgrade-plan-v2.1.md",
+  "mount_hosts": ["ctp", "gcb"],
+  "mount_exclusions": ["smp", "aor", "phase1", "selector"],
+  "stage_order": [
+    "u0",
+    "u1",
+    "s1",
+    "s2",
+    "s3",
+    "s4",
+    "s5a",
+    "s5b",
+    "aob_preservation",
+    "fresh_seed_confirmation",
+    "production_e2e"
+  ],
+  "baseline_defaults": {
+    "patch_enabled": false,
+    "soft_routing_enabled": false,
+    "selector_enabled": false
+  },
+  "lane_rules": {
+    "upgrade_code_namespace": "experiments/upgrade/shared_patch_v1/",
+    "frozen_source_editable": false,
+    "artifact_override": false,
+    "failure_policy": "any failed stage closes that stage and rolls back to the previous passed stage; thresholds are frozen per stage protocol before execution"
+  },
+  "host_note": "gcb is the recovered-lane name of the historical GSS episode; all ladder text referring to the GSS host maps to the gcb executor.",
+  "evidence_note": "recovered-lane Phase-I checkpoints expose block-pair RelationEvidence (left_block/right_block/strength/disagreement) and a disjoint block partition; they carry no per-variable shared-variable marker. Stage protocols must preregister the executor-lane translation of plan-level quantities that assumed per-variable overlap membership."
+}

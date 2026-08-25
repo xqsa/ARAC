@@ -1,7 +1,7 @@
 # ARAC-OC Shared-Patch 完成方案
 
-日期：2026-08-22  
-状态：修订后主方案，待实现与预注册实验  
+日期：2026-08-23
+状态：恢复基线已冻结；shared-patch 升级候选待实现与预注册实验
 上游：`arac-oc-completion-plan.md`、`arac-oc-dual-overlap-upgrade.md`、
 `arac-oc-gate54a-judgment.md`、`references/lit-review/phase2_shared_var_new_directions.md`
 
@@ -9,6 +9,72 @@
 stateful shared-patch kernel 为唯一新增机制主线。
 
 ## 1. 最终裁决
+
+### 1.0.3 Recovered baseline freeze
+
+恢复后的四动作执行锚点已冻结为
+`arac-recovered-baseline-20260823-v1`。冻结协议、21 个文件的 SHA-256
+和 verifier 见：
+
+- `experiments/historical_recovery/recovered_baseline_freeze_protocol_v1.json`；
+- `experiments/historical_recovery/verify_recovered_baseline_freeze.py`；
+- `docs/arac-oc-recovered-baseline-freeze.md`。
+
+冻结点的生产默认值为 `patch=false`、`soft_routing=false`、`selector=false`。
+下一步升级只允许进入 `experiments/upgrade/`，并按 U0-U4 通过后才可申请
+promotion；不得直接覆盖冻结 source、protocol 或 evidence artifacts。升级准备
+说明见 `docs/arac-oc-next-upgrade-preparation.md`。
+
+### 1.0 P1 实质判定与恢复优先路线
+
+旧 P1 的形式检查虽然通过，但 12/12 cell 没有 patch receipt，五臂轨迹
+逐位相同，归因比均为 1.0000。因此该 P1 只能标记为“机制不可评估”，
+不能作为 patch 失败或性能证据。根因是 AOB 的 conforming owner proposal
+使冲突级保持 low，planner 选择 `arbitration_only`，CTP/GSS 没有生产挂载点。
+
+恢复路线固定为三条互不混淆的证据链：
+
+```text
+AOB：历史性能恢复 + selector 非劣 + patch 零税
+conflicting overlap generator：shared-patch 机制增量
+生产统一 loop：恢复基线后的端到端组合验证
+```
+
+执行入口：
+
+- `experiments/historical_recovery/recovery_first_protocol_v1.json`
+- `experiments/historical_recovery/recovery_first_campaign.py`
+- `experiments/overlap_shared_patch_matched_host_gate.py`
+
+旧 P2/P4 在 B1/M0 之前不启动。恢复实验关闭 patch、soft routing 和新
+selector；matched-host 只在自有 conflicting generator 中强制 CTP/GSS，
+不修改生产 planner。
+
+### 1.0.1 B0-B3 恢复 Gate
+
+- **B0 Provenance**：逐 case/seed 校验 checkpoint hash、Phase-I/terminal FE、
+  action seed、boundary profile 和 vendor tree hash。
+- **B1 Fixed-Action**：完整 24×25×4 矩阵，四动作族都必须覆盖；按历史映射
+  `A→AOR, E→SMP, S→CTP, R→GCB` 检查 mapped-action coverage。历史表只保留
+  ARAC aggregate 时，结果明确标为 `inferred_protocol_not_bitwise_recovered`，
+  不把代表性 lane 当作历史逐位恢复。
+- **B2 Selector Parity**：复用 checkpoint 的 Phase-I 特征输入，验证 input
+  hash→output hash→selected action；不重新评价动作。
+- **B3 End-to-End**：验证 Phase-I→selector→selected action 的 terminal contract，
+  每个未恢复 case 单独列出，不用统一平均掩盖失败。
+
+### 1.0.2 当前 Gate 顺序（取代旧 P1-P4）
+
+旧的 AOB P1/P2/P3/P4 链不再作为当前执行入口。当前顺序是：
+
+```text
+B0 -> B1 -> B2 -> B3 -> M0 -> M1 -> M2 -> AOB preservation -> production E2E
+```
+
+其中 B1 未通过时停止创新；M0 未通过时禁止性能比较；M1 未通过时保留
+历史基线并放弃当前 patch 版本；软路由只能在 M1 后作为 CTP/GSS 内部
+utility 进入单独 Gate。旧 P1 的形式检查产物保留为历史诊断，不得解释为
+机制接入或 superiority 证据。
 
 最终方法固定为：
 
@@ -483,7 +549,7 @@ fixed FE lane。
 
 P0 失败则停止后续实验。
 
-### Gate P1：小型归因
+### Legacy Gate P1：小型归因（已退休，仅作历史记录）
 
 使用四个代表性 case：
 
@@ -511,9 +577,11 @@ R2 / A3 / S5 / R6
 - A4 相比 A2 的 median anytime AUC 不得劣化超过 5%；
 - 所有 receipt/state hash 审计通过。
 
-P1 证明机制接入和可归因，不作正式 superiority 结论。
+该旧 P1 已被 2026-08-22 的实质判定覆盖：其形式 checks 通过但实际无 patch
+挂载点，因此不能证明机制接入。当前等价的可达性与归因由 matched-host
+M0/M1 承担。
 
-### Gate P2：四 case fresh-seed 筛查
+### Legacy Gate P2：四 case fresh-seed 筛查（已退休）
 
 使用四枚全新 seed：
 
@@ -541,7 +609,7 @@ P2 是筛查门，不作最终性能优越性判断。
 不再使用“至少两个 case 严格改善”作为 P2 条件。所有改善结果标记为
 exploratory，正式主张留给 P4。
 
-### Gate P3：Selector Boundary Parity
+### Legacy Gate P3：Selector Boundary Parity（已退休）
 
 P3 只验证相同 selector 输入是否产生相同 selector 输出。
 
@@ -571,7 +639,7 @@ selector_input_hash_after
 P3 失败仅指“相同 selector 输入产生不同 selector 输出”，不能因为 patch
 合法改变运行状态，就强制后续轨迹逐位一致。
 
-### Gate P4：24 × 25 确认实验
+### Legacy Gate P4：24 × 25 确认实验（已退休）
 
 复用已有 24-case 矩阵，使用 25 枚新 seed：
 
@@ -648,6 +716,17 @@ win-or-tie >= 0.60
 - seed registry 冲突时预检失败，不能静默替换。
 
 ## 12. 失败语义与回退
+
+### 12.0 当前恢复优先止损线
+
+- **B1 不通过**：停止创新实验，继续隔离未恢复的 AOR/SMP/CTP/GCB 动作。
+- **B2 不通过**：冻结 selector，不接入任何新调度逻辑。
+- **B3 不通过**：保留 fixed-action 结果，逐 case 修复 handoff，不启动 M0。
+- **M0 不通过**：实验设计不可评估，禁止性能比较。
+- **M1 不通过**：保留历史基线，放弃当前 patch 版本。
+- **M2/软路由不通过**：回退到无软路由的 matched-host kernel。
+- **AOB preservation 不通过**：patch 默认关闭。
+- **生产 E2E 不通过**：只保留 matched-host 机制结论，不宣称生产 superiority。
 
 ### P0 失败
 
@@ -728,6 +807,7 @@ SMP/AOR                   = unchanged
 最终生产决策：
 
 ```text
-P0-P4 全部通过 -> A4 成为 patch-enabled 生产内核
-任一性能或 parity gate 未通过 -> 保留 A1/v2
+B0-B3、M0-M1、AOB preservation 全部通过 -> 才可申请 production E2E
+M2/soft-routing 通过 -> 才可分别开启对应机制
+任一恢复、可达性、归因或 parity gate 未通过 -> 保留历史基线，patch 默认关闭
 ```

@@ -1,0 +1,109 @@
+{
+  "candidate_id": "shared_transaction_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "a0012ac9fe14bec9034a541c8fbec5481ad631607c1570a4d126530753fe9e18",
+  "protocol_sha256": "77a2a9e9cae8973dab1fdffff19915ffa07b39ed7e6febef6e6f3b3ae8635ac1",
+  "schema_version": "arac-upgrade-shared-transaction-t3-manifest-v1",
+  "stage": "screen",
+  "t1_lane_qualification": {
+    "all_lanes_qualified": true,
+    "note": "T1 frozen checks failed only on the CTP lane (proposal coverage); T3 preregisters the SMP host, whose T1 census is fully qualified on all cell x seed arms.",
+    "rows": [
+      {
+        "cell_id": "chain4-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270501
+      },
+      {
+        "cell_id": "chain4-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 16,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270502
+      },
+      {
+        "cell_id": "chain4-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270503
+      },
+      {
+        "cell_id": "chain4-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270504
+      },
+      {
+        "cell_id": "chain4-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270505
+      },
+      {
+        "cell_id": "pairs3-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270501
+      },
+      {
+        "cell_id": "pairs3-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270502
+      },
+      {
+        "cell_id": "pairs3-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270503
+      },
+      {
+        "cell_id": "pairs3-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 16,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270504
+      },
+      {
+        "cell_id": "pairs3-strong",
+        "lane_qualified": true,
+        "links_with_both_owners": 24,
+        "qualified_boundary_count": 1,
+        "reanchor_all_proven": true,
+        "seed": 20270505
+      }
+    ]
+  },
+  "t1_result_hash": "05dc41bf2088e57908b27e1899acdac392ed64d47a9a2246938cc04e605a6782",
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

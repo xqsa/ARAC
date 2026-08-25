@@ -1,0 +1,21 @@
+{
+  "schema_version": "arac-recovery-smp-zero-relation-preservation-protocol-v1",
+  "status": "frozen_e1_preservation_gate",
+  "case_id": "E1",
+  "seeds": [117, 123, 129, 135, 141],
+  "action_name": "smp",
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "terminal_fes": 3000000,
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "baseline_receipt_root": "artifacts/recovery_first_screen_v1/arms/E1",
+  "output_root": "artifacts/recovery_smp_zero_relation_preservation_v1",
+  "native_threads": 1,
+  "max_workers": 5,
+  "patch_enabled": false,
+  "soft_routing_enabled": false,
+  "selector_enabled": false,
+  "gate_rule": "new_zero_relation_smp_final_error_must_match_frozen_previous_screen_receipt_for_each_seed"
+}

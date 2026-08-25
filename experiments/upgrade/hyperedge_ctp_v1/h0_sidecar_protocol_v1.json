@@ -1,0 +1,47 @@
+{
+  "activation_cells": [
+    "chain4-strong",
+    "pairs3-strong"
+  ],
+  "candidate_id": "hyperedge_ctp_v1",
+  "cells": [
+    "chain4-mild",
+    "chain4-strong",
+    "pairs3-mild",
+    "pairs3-strong",
+    "hub3-mild",
+    "hub3-strong"
+  ],
+  "discovery_seeds": [
+    20270101,
+    20270102,
+    20270103
+  ],
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "generator_freeze": {
+    "conditioning": "linked-elliptic",
+    "generator_protocol": "arac-upgrade-conflicting-generator-v3",
+    "linkage_lambda": 2.0,
+    "note": "selected as the best configuration of the preregistered v3 grid (26/30 preflight passes; zero-optimum convention enforced) and frozen here before any H0 run",
+    "shared_width": 8
+  },
+  "output_root": "artifacts/upgrade_hyperedge_ctp_v1_h0_v1",
+  "phase1_fes": 180000,
+  "schema_version": "arac-upgrade-hyperedge-h0-protocol-v1",
+  "soft_config": {
+    "block_edge_threshold": 1e-08,
+    "block_separability_probes": 5,
+    "confirm_extra": 2,
+    "confirm_threshold": 1e-10,
+    "dsm_budget": 55000,
+    "edge_threshold": 1e-13,
+    "k_mutual": 6,
+    "max_block_size": 60,
+    "min_residual_size": 3,
+    "rdg_region_size": 16,
+    "screen_anchors": 2,
+    "tau_block": 0.6,
+    "tau_connect": 0.3
+  },
+  "total_budget_fes": 3000000
+}

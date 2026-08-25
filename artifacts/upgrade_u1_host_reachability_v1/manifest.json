@@ -1,0 +1,29 @@
+{
+  "candidate_id": "shared_patch_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "64da4cde50ce5d5f6fd1302284d36077005167a3c1e13557977b5fc8a4837375",
+  "pinned_trees": {
+    "artifacts/current_arac_aob24_recovery_v1/runs": {
+      "file_count": 600,
+      "sha256": "2af2ece17ebd102382a70cb41175e1fb805a449f13ca0b48dbd71ab0bd476a6f"
+    },
+    "artifacts/historical_recovery_fixed_expert_v1/checkpoints": {
+      "file_count": 600,
+      "sha256": "d37c2f836258d6b8cfbf95795095ec86ee4fb6ad5851f114aca44c9453b7a3e8"
+    },
+    "artifacts/recovery_first_screen_smp_topology_v3/arms": {
+      "file_count": 120,
+      "sha256": "94b14e382f9a4a2a9d304fa2342ce2fc51e5a7af889c19cd24b03805e8cbb70c"
+    }
+  },
+  "protocol_sha256": "8f8d4a35c9d655809bd5fd2e96b0b32599071927de435d6399e7905a375aa967",
+  "reachability_seed": 117,
+  "schema_version": "arac-upgrade-u1-manifest-v1",
+  "source_sha256": {
+    "experiments/upgrade/shared_patch_v1/conflicting_generator.py": "12c697c1aae02d680e6a1121080e08697ef2693468be7b936d7539bc0ec35ba8",
+    "experiments/upgrade/shared_patch_v1/host_instrumentation.py": "9709516c2ce9188d1fdaae59f3d3e0437bd8dad79c1563ac3127938de5f95450",
+    "experiments/upgrade/shared_patch_v1/protocol.json": "a12dc4de522f44a396156efd0f72e35b522d00012733f9ab772ef7cc740f47e1",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability.py": "9ff05621a5ea32fd43f3c2a119ebe12677b6ccb1e2100dd8cc0f31ed3bc62e64",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability_protocol_v1.json": "8f8d4a35c9d655809bd5fd2e96b0b32599071927de435d6399e7905a375aa967"
+  }
+}

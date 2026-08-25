@@ -1,0 +1,7 @@
+{
+  "candidate_id": "soft_rddsm_mainline_v10",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "9fc12fbe3a60bc8eeb5ec2eb4d62d801edd03caf331b43ba3b90a0661aadb29a",
+  "protocol_sha256": "5856f75a078e952f263dbc2c81120b72a1c97a5a416b1f7e5ac7770ad8b25958",
+  "schema_version": "arac-upgrade-soft-rddsm-mainline-v10-ga-manifest-v1"
+}

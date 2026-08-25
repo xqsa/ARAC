@@ -1,0 +1,2756 @@
+{
+  "action_result_hash": "38ea6c4fda0b8f75d78e08b5d76860856d458a2dc8d63cc7097cd7b5345bdebd",
+  "case_id": "R1",
+  "checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+  "elapsed_seconds": 694.325817,
+  "final_error": 142644.51064973444,
+  "forced_host": false,
+  "host": "gcb",
+  "identity": {
+    "action_result_hash": {
+      "frozen": "38ea6c4fda0b8f75d78e08b5d76860856d458a2dc8d63cc7097cd7b5345bdebd",
+      "match": true,
+      "rerun": "38ea6c4fda0b8f75d78e08b5d76860856d458a2dc8d63cc7097cd7b5345bdebd"
+    },
+    "checkpoint_hash": {
+      "frozen": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+      "match": true,
+      "rerun": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e"
+    },
+    "final_error": {
+      "frozen": 142644.51064973444,
+      "match": true,
+      "rerun": 142644.51064973444
+    },
+    "route": {
+      "frozen": "zero_relation_source_424164_sweeps_3_coordination_151080_cold_native_2244746_windows_16_tail_10",
+      "match": true,
+      "rerun": "zero_relation_source_424164_sweeps_3_coordination_151080_cold_native_2244746_windows_16_tail_10"
+    }
+  },
+  "initial_error": 6838642.94954471,
+  "instrumentation": {
+    "leverage_positive_block_visits": 0,
+    "per_block_visits": {
+      "0": 19,
+      "1": 19,
+      "10": 19,
+      "11": 19,
+      "12": 19,
+      "13": 19,
+      "14": 18,
+      "15": 18,
+      "16": 18,
+      "17": 18,
+      "18": 18,
+      "19": 18,
+      "2": 19,
+      "3": 19,
+      "4": 19,
+      "5": 19,
+      "6": 19,
+      "7": 19,
+      "8": 19,
+      "9": 19
+    },
+    "segment_count": 7,
+    "segment_kinds": {
+      "cold_start_sweeps": 7
+    },
+    "total_block_visits": 374
+  },
+  "lane": "aob",
+  "leverage": {
+    "block_count": 20,
+    "leverage_per_block": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "leverage_positive_blocks": 0,
+    "relation_count": 0,
+    "relation_strength_max": 0.0
+  },
+  "manifest_sha256": "64da4cde50ce5d5f6fd1302284d36077005167a3c1e13557977b5fc8a4837375",
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "db6c93b36e7e7aa6d96a9da517c403602bddebe8212ec475c7b294750edf6629",
+  "route": "zero_relation_source_424164_sweeps_3_coordination_151080_cold_native_2244746_windows_16_tail_10",
+  "run_seed": 117,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openmp",
+        "num_threads": 1,
+        "prefix": "vcomp"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-u1-arm-receipt-v1",
+  "segments": [
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 149399,
+      "end_fes": 329399,
+      "kind": "cold_start_sweeps",
+      "namespace": "gcb-source",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 225600,
+      "start_fes": 180000,
+      "sweep_count": 1,
+      "visits": [
+        {
+          "actual_fes": 5719,
+          "group_index": 0,
+          "requested_fes": 11267,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 11280,
+          "group_index": 1,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 8816,
+          "group_index": 2,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 3,
+          "requested_fes": 11267,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 8192,
+          "group_index": 4,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 6479,
+          "group_index": 5,
+          "requested_fes": 11267,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 3200,
+          "group_index": 6,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 9440,
+          "group_index": 7,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 5392,
+          "group_index": 8,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 9,
+          "requested_fes": 11267,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 8379,
+          "group_index": 10,
+          "requested_fes": 11267,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 8848,
+          "group_index": 11,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 5488,
+          "group_index": 12,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 9328,
+          "group_index": 13,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 3584,
+          "group_index": 14,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 3152,
+          "group_index": 15,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 4592,
+          "group_index": 16,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 9296,
+          "group_index": 17,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 7824,
+          "group_index": 18,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        },
+        {
+          "actual_fes": 7856,
+          "group_index": 19,
+          "requested_fes": 11280,
+          "sweep_index": 0
+        }
+      ]
+    },
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 123685,
+      "end_fes": 453084,
+      "kind": "cold_start_sweeps",
+      "namespace": "gcb-source",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 225600,
+      "start_fes": 329399,
+      "sweep_count": 1,
+      "visits": [
+        {
+          "actual_fes": 1349,
+          "group_index": 0,
+          "requested_fes": 11267,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 1024,
+          "group_index": 1,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 2,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 3,
+          "requested_fes": 11267,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 8256,
+          "group_index": 4,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 2052,
+          "group_index": 5,
+          "requested_fes": 11267,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 7232,
+          "group_index": 6,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 6384,
+          "group_index": 7,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 10384,
+          "group_index": 8,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 9,
+          "requested_fes": 11267,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 1558,
+          "group_index": 10,
+          "requested_fes": 11267,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 5664,
+          "group_index": 11,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 1824,
+          "group_index": 12,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 7360,
+          "group_index": 13,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 6448,
+          "group_index": 14,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 6960,
+          "group_index": 15,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 10880,
+          "group_index": 16,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 6864,
+          "group_index": 17,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 9808,
+          "group_index": 18,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        },
+        {
+          "actual_fes": 1072,
+          "group_index": 19,
+          "requested_fes": 11280,
+          "sweep_index": 1
+        }
+      ]
+    },
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 151080,
+      "end_fes": 604164,
+      "kind": "cold_start_sweeps",
+      "namespace": "gcb-source",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 225600,
+      "start_fes": 453084,
+      "sweep_count": 1,
+      "visits": [
+        {
+          "actual_fes": 1406,
+          "group_index": 0,
+          "requested_fes": 11267,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 11280,
+          "group_index": 1,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 7216,
+          "group_index": 2,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 3,
+          "requested_fes": 11267,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 8656,
+          "group_index": 4,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 5,
+          "requested_fes": 11267,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 7328,
+          "group_index": 6,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 6112,
+          "group_index": 7,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 11200,
+          "group_index": 8,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 9,
+          "requested_fes": 11267,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 1121,
+          "group_index": 10,
+          "requested_fes": 11267,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 1040,
+          "group_index": 11,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 9664,
+          "group_index": 12,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 7120,
+          "group_index": 13,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 6656,
+          "group_index": 14,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 8624,
+          "group_index": 15,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 10096,
+          "group_index": 16,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 6576,
+          "group_index": 17,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 9152,
+          "group_index": 18,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        },
+        {
+          "actual_fes": 4032,
+          "group_index": 19,
+          "requested_fes": 11280,
+          "sweep_index": 2
+        }
+      ]
+    },
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 148451,
+      "end_fes": 903695,
+      "kind": "cold_start_sweeps",
+      "namespace": "gcb-native",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 225600,
+      "start_fes": 755244,
+      "sweep_count": 1,
+      "visits": [
+        {
+          "actual_fes": 11267,
+          "group_index": 0,
+          "requested_fes": 11267,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 3808,
+          "group_index": 1,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 7936,
+          "group_index": 2,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 5016,
+          "group_index": 3,
+          "requested_fes": 11267,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 8704,
+          "group_index": 4,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 5282,
+          "group_index": 5,
+          "requested_fes": 11267,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 8672,
+          "group_index": 6,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 8336,
+          "group_index": 7,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 11280,
+          "group_index": 8,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 9,
+          "requested_fes": 11267,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 10,
+          "requested_fes": 11267,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 7664,
+          "group_index": 11,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 11280,
+          "group_index": 12,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 10448,
+          "group_index": 13,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 8528,
+          "group_index": 14,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 2400,
+          "group_index": 15,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 2656,
+          "group_index": 16,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 2432,
+          "group_index": 17,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 3904,
+          "group_index": 18,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        },
+        {
+          "actual_fes": 6304,
+          "group_index": 19,
+          "requested_fes": 11280,
+          "sweep_index": 3
+        }
+      ]
+    },
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 139254,
+      "end_fes": 1042949,
+      "kind": "cold_start_sweeps",
+      "namespace": "gcb-native",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 225600,
+      "start_fes": 903695,
+      "sweep_count": 1,
+      "visits": [
+        {
+          "actual_fes": 11267,
+          "group_index": 0,
+          "requested_fes": 11267,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 11280,
+          "group_index": 1,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 6800,
+          "group_index": 2,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 1577,
+          "group_index": 3,
+          "requested_fes": 11267,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 7776,
+          "group_index": 4,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 1121,
+          "group_index": 5,
+          "requested_fes": 11267,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 7696,
+          "group_index": 6,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 6704,
+          "group_index": 7,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 11120,
+          "group_index": 8,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 9,
+          "requested_fes": 11267,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 2774,
+          "group_index": 10,
+          "requested_fes": 11267,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 6144,
+          "group_index": 11,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 10112,
+          "group_index": 12,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 7248,
+          "group_index": 13,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 6448,
+          "group_index": 14,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 7440,
+          "group_index": 15,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 10576,
+          "group_index": 16,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 6688,
+          "group_index": 17,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 1072,
+          "group_index": 18,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        },
+        {
+          "actual_fes": 4144,
+          "group_index": 19,
+          "requested_fes": 11280,
+          "sweep_index": 4
+        }
+      ]
+    },
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 138709,
+      "end_fes": 1181658,
+      "kind": "cold_start_sweeps",
+      "namespace": "gcb-native",
+      "per_block_visits": {
+        "0": 1,
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1,
+        "9": 1,
+        "10": 1,
+        "11": 1,
+        "12": 1,
+        "13": 1,
+        "14": 1,
+        "15": 1,
+        "16": 1,
+        "17": 1,
+        "18": 1,
+        "19": 1
+      },
+      "requested_fes": 225600,
+      "start_fes": 1042949,
+      "sweep_count": 1,
+      "visits": [
+        {
+          "actual_fes": 1919,
+          "group_index": 0,
+          "requested_fes": 11267,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 1152,
+          "group_index": 1,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 6256,
+          "group_index": 2,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 3,
+          "requested_fes": 11267,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 9024,
+          "group_index": 4,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 1349,
+          "group_index": 5,
+          "requested_fes": 11267,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 7456,
+          "group_index": 6,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 6864,
+          "group_index": 7,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 10592,
+          "group_index": 8,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 2907,
+          "group_index": 9,
+          "requested_fes": 11267,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 11267,
+          "group_index": 10,
+          "requested_fes": 11267,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 5872,
+          "group_index": 11,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 9408,
+          "group_index": 12,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 7344,
+          "group_index": 13,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 6240,
+          "group_index": 14,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 7440,
+          "group_index": 15,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 10992,
+          "group_index": 16,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 6512,
+          "group_index": 17,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 10544,
+          "group_index": 18,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        },
+        {
+          "actual_fes": 4304,
+          "group_index": 19,
+          "requested_fes": 11280,
+          "sweep_index": 5
+        }
+      ]
+    },
+    {
+      "block_count": 20,
+      "block_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "consumed_fes": 1818332,
+      "end_fes": 2999990,
+      "kind": "cold_start_sweeps",
+      "namespace": "gcb-native",
+      "per_block_visits": {
+        "0": 13,
+        "1": 13,
+        "2": 13,
+        "3": 13,
+        "4": 13,
+        "5": 13,
+        "6": 13,
+        "7": 13,
+        "8": 13,
+        "9": 13,
+        "10": 13,
+        "11": 13,
+        "12": 13,
+        "13": 13,
+        "14": 12,
+        "15": 12,
+        "16": 12,
+        "17": 12,
+        "18": 12,
+        "19": 12
+      },
+      "requested_fes": 1818342,
+      "start_fes": 1181658,
+      "sweep_count": 13,
+      "visits": [
+        {
+          "actual_fes": 3154,
+          "group_index": 0,
+          "requested_fes": 90915,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 11824,
+          "group_index": 1,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 7344,
+          "group_index": 2,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 1520,
+          "group_index": 3,
+          "requested_fes": 90915,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 8432,
+          "group_index": 4,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 26752,
+          "group_index": 5,
+          "requested_fes": 90915,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 7344,
+          "group_index": 6,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 1344,
+          "group_index": 7,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 11760,
+          "group_index": 8,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 20976,
+          "group_index": 9,
+          "requested_fes": 90915,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 26258,
+          "group_index": 10,
+          "requested_fes": 90915,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 5360,
+          "group_index": 11,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 9808,
+          "group_index": 12,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 7024,
+          "group_index": 13,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 6320,
+          "group_index": 14,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 6592,
+          "group_index": 15,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 10384,
+          "group_index": 16,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 6512,
+          "group_index": 17,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 1536,
+          "group_index": 18,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 4416,
+          "group_index": 19,
+          "requested_fes": 90912,
+          "sweep_index": 6
+        },
+        {
+          "actual_fes": 27075,
+          "group_index": 0,
+          "requested_fes": 81681,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 12592,
+          "group_index": 1,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 8112,
+          "group_index": 2,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 1140,
+          "group_index": 3,
+          "requested_fes": 81681,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 8304,
+          "group_index": 4,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 1482,
+          "group_index": 5,
+          "requested_fes": 81681,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 7328,
+          "group_index": 6,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 6464,
+          "group_index": 7,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 11488,
+          "group_index": 8,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 1501,
+          "group_index": 9,
+          "requested_fes": 81681,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 24472,
+          "group_index": 10,
+          "requested_fes": 81681,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 6240,
+          "group_index": 11,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 10608,
+          "group_index": 12,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 8560,
+          "group_index": 13,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 6272,
+          "group_index": 14,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 8608,
+          "group_index": 15,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 10160,
+          "group_index": 16,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 6272,
+          "group_index": 17,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 9888,
+          "group_index": 18,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 4432,
+          "group_index": 19,
+          "requested_fes": 81680,
+          "sweep_index": 7
+        },
+        {
+          "actual_fes": 27588,
+          "group_index": 0,
+          "requested_fes": 72618,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 12064,
+          "group_index": 1,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 5872,
+          "group_index": 2,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 21641,
+          "group_index": 3,
+          "requested_fes": 72618,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 8592,
+          "group_index": 4,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 1330,
+          "group_index": 5,
+          "requested_fes": 72618,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 7392,
+          "group_index": 6,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 6304,
+          "group_index": 7,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 11008,
+          "group_index": 8,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 1577,
+          "group_index": 9,
+          "requested_fes": 72618,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 1064,
+          "group_index": 10,
+          "requested_fes": 72618,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 5536,
+          "group_index": 11,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 9680,
+          "group_index": 12,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 7632,
+          "group_index": 13,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 5984,
+          "group_index": 14,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 7856,
+          "group_index": 15,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 9984,
+          "group_index": 16,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 6128,
+          "group_index": 17,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 10944,
+          "group_index": 18,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 4336,
+          "group_index": 19,
+          "requested_fes": 72624,
+          "sweep_index": 8
+        },
+        {
+          "actual_fes": 3268,
+          "group_index": 0,
+          "requested_fes": 63992,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 11392,
+          "group_index": 1,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 7440,
+          "group_index": 2,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 23788,
+          "group_index": 3,
+          "requested_fes": 63992,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 8704,
+          "group_index": 4,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 1045,
+          "group_index": 5,
+          "requested_fes": 63992,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 7632,
+          "group_index": 6,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 7088,
+          "group_index": 7,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 12448,
+          "group_index": 8,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 1767,
+          "group_index": 9,
+          "requested_fes": 63992,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 1026,
+          "group_index": 10,
+          "requested_fes": 63992,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 6336,
+          "group_index": 11,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 9536,
+          "group_index": 12,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 8320,
+          "group_index": 13,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 14,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 6624,
+          "group_index": 15,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 10496,
+          "group_index": 16,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 5856,
+          "group_index": 17,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 10800,
+          "group_index": 18,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 4144,
+          "group_index": 19,
+          "requested_fes": 64000,
+          "sweep_index": 9
+        },
+        {
+          "actual_fes": 1425,
+          "group_index": 0,
+          "requested_fes": 56316,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 12528,
+          "group_index": 1,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 6736,
+          "group_index": 2,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 38114,
+          "group_index": 3,
+          "requested_fes": 56316,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 9056,
+          "group_index": 4,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 2318,
+          "group_index": 5,
+          "requested_fes": 56316,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 7184,
+          "group_index": 6,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 6240,
+          "group_index": 7,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 1024,
+          "group_index": 8,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 20596,
+          "group_index": 9,
+          "requested_fes": 56316,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 1159,
+          "group_index": 10,
+          "requested_fes": 56316,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 1056,
+          "group_index": 11,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 9792,
+          "group_index": 12,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 7744,
+          "group_index": 13,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 6304,
+          "group_index": 14,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 7360,
+          "group_index": 15,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 10704,
+          "group_index": 16,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 6880,
+          "group_index": 17,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 11456,
+          "group_index": 18,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 4544,
+          "group_index": 19,
+          "requested_fes": 56320,
+          "sweep_index": 10
+        },
+        {
+          "actual_fes": 25897,
+          "group_index": 0,
+          "requested_fes": 47709,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 13200,
+          "group_index": 1,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 6352,
+          "group_index": 2,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 23807,
+          "group_index": 3,
+          "requested_fes": 47709,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 1120,
+          "group_index": 4,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 25232,
+          "group_index": 5,
+          "requested_fes": 47709,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 7184,
+          "group_index": 6,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 1664,
+          "group_index": 7,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 11328,
+          "group_index": 8,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 1311,
+          "group_index": 9,
+          "requested_fes": 47709,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 25973,
+          "group_index": 10,
+          "requested_fes": 47709,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 5984,
+          "group_index": 11,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 9856,
+          "group_index": 12,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 7680,
+          "group_index": 13,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 6144,
+          "group_index": 14,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 7056,
+          "group_index": 15,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 11344,
+          "group_index": 16,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 6160,
+          "group_index": 17,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 9808,
+          "group_index": 18,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 4544,
+          "group_index": 19,
+          "requested_fes": 47696,
+          "sweep_index": 11
+        },
+        {
+          "actual_fes": 2964,
+          "group_index": 0,
+          "requested_fes": 37126,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 11584,
+          "group_index": 1,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 6816,
+          "group_index": 2,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 21831,
+          "group_index": 3,
+          "requested_fes": 37126,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 8720,
+          "group_index": 4,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 27246,
+          "group_index": 5,
+          "requested_fes": 37126,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 7696,
+          "group_index": 6,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 6480,
+          "group_index": 7,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 1344,
+          "group_index": 8,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 1596,
+          "group_index": 9,
+          "requested_fes": 37126,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 1786,
+          "group_index": 10,
+          "requested_fes": 37126,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 6688,
+          "group_index": 11,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 1072,
+          "group_index": 12,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 7488,
+          "group_index": 13,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 8080,
+          "group_index": 14,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 7472,
+          "group_index": 15,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 10544,
+          "group_index": 16,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 6528,
+          "group_index": 17,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 10608,
+          "group_index": 18,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 3872,
+          "group_index": 19,
+          "requested_fes": 37120,
+          "sweep_index": 12
+        },
+        {
+          "actual_fes": 2337,
+          "group_index": 0,
+          "requested_fes": 29108,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 11696,
+          "group_index": 1,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 6720,
+          "group_index": 2,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 1520,
+          "group_index": 3,
+          "requested_fes": 29108,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 8080,
+          "group_index": 4,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 1064,
+          "group_index": 5,
+          "requested_fes": 29108,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 7056,
+          "group_index": 6,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 6528,
+          "group_index": 7,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 10368,
+          "group_index": 8,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 1387,
+          "group_index": 9,
+          "requested_fes": 29108,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 25004,
+          "group_index": 10,
+          "requested_fes": 29108,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 6368,
+          "group_index": 11,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 9760,
+          "group_index": 12,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 1056,
+          "group_index": 13,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 6416,
+          "group_index": 14,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 7424,
+          "group_index": 15,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 1520,
+          "group_index": 16,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 6608,
+          "group_index": 17,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 10160,
+          "group_index": 18,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 4032,
+          "group_index": 19,
+          "requested_fes": 29104,
+          "sweep_index": 13
+        },
+        {
+          "actual_fes": 22344,
+          "group_index": 0,
+          "requested_fes": 22344,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 12256,
+          "group_index": 1,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 6800,
+          "group_index": 2,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 2432,
+          "group_index": 3,
+          "requested_fes": 22344,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 8784,
+          "group_index": 4,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 1596,
+          "group_index": 5,
+          "requested_fes": 22344,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 7632,
+          "group_index": 6,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 5888,
+          "group_index": 7,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 12096,
+          "group_index": 8,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 20216,
+          "group_index": 9,
+          "requested_fes": 22344,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 22344,
+          "group_index": 10,
+          "requested_fes": 22344,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 5648,
+          "group_index": 11,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 9232,
+          "group_index": 12,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 7232,
+          "group_index": 13,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 6464,
+          "group_index": 14,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 7264,
+          "group_index": 15,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 2048,
+          "group_index": 16,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 6160,
+          "group_index": 17,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 9808,
+          "group_index": 18,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 4480,
+          "group_index": 19,
+          "requested_fes": 22352,
+          "sweep_index": 14
+        },
+        {
+          "actual_fes": 13300,
+          "group_index": 0,
+          "requested_fes": 13300,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 13312,
+          "group_index": 1,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 2,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 1805,
+          "group_index": 3,
+          "requested_fes": 13300,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 8288,
+          "group_index": 4,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 1368,
+          "group_index": 5,
+          "requested_fes": 13300,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 6752,
+          "group_index": 6,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 7120,
+          "group_index": 7,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 12416,
+          "group_index": 8,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 2546,
+          "group_index": 9,
+          "requested_fes": 13300,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 13300,
+          "group_index": 10,
+          "requested_fes": 13300,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 6080,
+          "group_index": 11,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 9936,
+          "group_index": 12,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 7408,
+          "group_index": 13,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 6688,
+          "group_index": 14,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 7408,
+          "group_index": 15,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 10288,
+          "group_index": 16,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 6128,
+          "group_index": 17,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 1152,
+          "group_index": 18,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 4192,
+          "group_index": 19,
+          "requested_fes": 13312,
+          "sweep_index": 15
+        },
+        {
+          "actual_fes": 6023,
+          "group_index": 0,
+          "requested_fes": 6023,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 1,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 2,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6023,
+          "group_index": 3,
+          "requested_fes": 6023,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 4,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 1273,
+          "group_index": 5,
+          "requested_fes": 6023,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 6,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 7,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 8,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 2090,
+          "group_index": 9,
+          "requested_fes": 6023,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 1938,
+          "group_index": 10,
+          "requested_fes": 6023,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 5856,
+          "group_index": 11,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 12,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 13,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 14,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 15,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 16,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 17,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 6032,
+          "group_index": 18,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 3856,
+          "group_index": 19,
+          "requested_fes": 6032,
+          "sweep_index": 16
+        },
+        {
+          "actual_fes": 760,
+          "group_index": 0,
+          "requested_fes": 760,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 1,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 2,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 760,
+          "group_index": 3,
+          "requested_fes": 760,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 4,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 760,
+          "group_index": 5,
+          "requested_fes": 760,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 6,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 7,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 8,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 760,
+          "group_index": 9,
+          "requested_fes": 760,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 760,
+          "group_index": 10,
+          "requested_fes": 760,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 11,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 12,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 13,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 14,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 15,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 16,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 17,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 18,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 752,
+          "group_index": 19,
+          "requested_fes": 752,
+          "sweep_index": 17
+        },
+        {
+          "actual_fes": 19,
+          "group_index": 0,
+          "requested_fes": 19,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 1,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 2,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 19,
+          "group_index": 3,
+          "requested_fes": 19,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 4,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 19,
+          "group_index": 5,
+          "requested_fes": 19,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 6,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 7,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 8,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 19,
+          "group_index": 9,
+          "requested_fes": 19,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 19,
+          "group_index": 10,
+          "requested_fes": 19,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 11,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 12,
+          "requested_fes": 16,
+          "sweep_index": 18
+        },
+        {
+          "actual_fes": 16,
+          "group_index": 13,
+          "requested_fes": 16,
+          "sweep_index": 18
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "action_seed": 314159,
+  "bootstrap_draws": 10000,
+  "bootstrap_seed": 20260824,
+  "candidate_id": "shared_transaction_v8",
+  "cells": [
+    "chain4-strong",
+    "pairs3-strong"
+  ],
+  "confirmation_output_root": "artifacts/upgrade_shared_transaction_v8_confirm_v1",
+  "confirmation_seeds": [
+    20270511,
+    20270512,
+    20270513,
+    20270514,
+    20270515
+  ],
+  "design": "fresh-seed confirmation of the v7 screen signal (pairs3 geoR 0.8801, corrected CI upper 1.0041) on never-run seeds with on-the-fly T0 certification; the five v7 screen seeds are NOT reused for judgment",
+  "eps_ref": {
+    "chain4-strong": 2.4533165734261275,
+    "pairs3-strong": 2.3102826379821635
+  },
+  "eps_ref_source": "v7 screen patch-off arms (same cells; scale guard only)",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "host": "smp",
+  "kernel": {
+    "acceptance": "ledger strict-best only",
+    "kind": "per_visit_shared_coordinate_recentring (v7 mechanism, unchanged import)",
+    "max_fe_per_visit": 24,
+    "max_total_fraction_of_phase2": 0.01,
+    "source": "experiments.upgrade.shared_transaction_v7.per_visit_recenter_kernel"
+  },
+  "max_workers": 8,
+  "non_inferior_ci_lower": 1.05,
+  "output_root": "artifacts/upgrade_shared_transaction_v8_screen_v1",
+  "phase1_fes": 180000,
+  "schema_version": "arac-upgrade-shared-transaction-v8-screen-protocol-v1",
+  "seeds": [
+    20270501,
+    20270502,
+    20270503,
+    20270504,
+    20270505
+  ],
+  "statistics_correction": "v7 screen verdicts recomputed with exp() applied before threshold comparison (log-scale bug fixed in all modules); thresholds unchanged",
+  "strict_win_ci_upper": 1.0,
+  "strict_win_ratio": 0.95,
+  "total_budget_fes": 3000000
+}

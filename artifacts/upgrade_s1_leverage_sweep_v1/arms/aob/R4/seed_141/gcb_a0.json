@@ -1,0 +1,114 @@
+{
+  "action_result_hash": "5d963b3eb87aea5bf715002359612800ca79d3a4807ac583dc6f52e2697f7ed5",
+  "arm": "a0",
+  "case_id": "R4",
+  "cell_id": null,
+  "checkpoint_hash": "c3fc3b32664b0ca81b0c1ba400021a67f440b9ea4ef429434cd95f479374d5bd",
+  "elapsed_seconds": 1156.504589,
+  "final_error": 428390.6223529712,
+  "forced_host": false,
+  "ground_truth_hash": null,
+  "host": "gcb",
+  "identity": {
+    "action_result_hash": {
+      "frozen": "5d963b3eb87aea5bf715002359612800ca79d3a4807ac583dc6f52e2697f7ed5",
+      "match": true,
+      "rerun": "5d963b3eb87aea5bf715002359612800ca79d3a4807ac583dc6f52e2697f7ed5"
+    },
+    "final_error": {
+      "frozen": 428390.6223529712,
+      "match": true,
+      "rerun": 428390.6223529712
+    },
+    "route": {
+      "frozen": "positive_relation_graph_source_467301_sweeps_3_coordination_130744_cold_native_2221955_windows_16_tail_0",
+      "match": true,
+      "rerun": "positive_relation_graph_source_467301_sweeps_3_coordination_130744_cold_native_2221955_windows_16_tail_0"
+    }
+  },
+  "initial_error": 7529786.082370275,
+  "instrumentation": {
+    "leverage_positive_block_visits": 361,
+    "per_block_visits": {
+      "0": 19,
+      "1": 19,
+      "10": 19,
+      "11": 19,
+      "12": 19,
+      "13": 19,
+      "14": 19,
+      "15": 19,
+      "16": 19,
+      "17": 19,
+      "18": 19,
+      "2": 19,
+      "3": 19,
+      "4": 19,
+      "5": 19,
+      "6": 19,
+      "7": 19,
+      "8": 19,
+      "9": 19
+    },
+    "segment_count": 7,
+    "segment_kinds": {
+      "cold_start_sweeps": 7
+    },
+    "total_block_visits": 361
+  },
+  "leverage": {
+    "block_count": 19,
+    "leverage_per_block": [
+      4,
+      4,
+      4,
+      4,
+      2,
+      3,
+      2,
+      4,
+      3,
+      2,
+      2,
+      2,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "leverage_positive_blocks": 19,
+    "relation_count": 26
+  },
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "milestones": [
+    {
+      "best_error": 7529786.082370275,
+      "fes": 180000
+    },
+    {
+      "best_error": 990045.3512404853,
+      "fes": 600000
+    },
+    {
+      "best_error": 455869.7175643226,
+      "fes": 1000000
+    },
+    {
+      "best_error": 429165.4310014188,
+      "fes": 2000000
+    },
+    {
+      "best_error": 428390.6223529712,
+      "fes": 3000000
+    }
+  ],
+  "order_records": [],
+  "phase1_protocol": "arac-identity-blind-evidence-v9",
+  "receipt_hash": "f3076bc7f0fad22d6c512964b78f08bbd681975fe61491a1b971c2e31574b545",
+  "route": "positive_relation_graph_source_467301_sweeps_3_coordination_130744_cold_native_2221955_windows_16_tail_0",
+  "run_seed": 141,
+  "schema_version": "arac-upgrade-s1-arm-receipt-v1"
+}

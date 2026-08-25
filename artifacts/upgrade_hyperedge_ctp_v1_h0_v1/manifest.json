@@ -1,0 +1,21 @@
+{
+  "candidate_id": "hyperedge_ctp_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "358e84df8fbc85f995c80175d7fe0b552d2b5722a9254f182a08ab18754aa578",
+  "protocol_sha256": "e262c211c3b194068133df1040a975e9936581893f8c9fa31b5fdef208b737ef",
+  "schema_version": "arac-upgrade-hyperedge-h0-manifest-v1",
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

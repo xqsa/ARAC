@@ -1,0 +1,43 @@
+{
+  "candidate_id": "shared_transaction_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "host_mapping": {
+    "A1": "aor",
+    "A2": "aor",
+    "A3": "aor",
+    "A4": "aor",
+    "A5": "aor",
+    "A6": "aor",
+    "E1": "smp",
+    "E2": "smp",
+    "E3": "smp",
+    "E4": "smp",
+    "E5": "smp",
+    "E6": "smp",
+    "R1": "gcb",
+    "R2": "gcb",
+    "R3": "gcb",
+    "R4": "gcb",
+    "R5": "gcb",
+    "R6": "gcb",
+    "S1": "ctp",
+    "S2": "ctp",
+    "S3": "ctp",
+    "S4": "ctp",
+    "S5": "ctp",
+    "S6": "ctp"
+  },
+  "max_workers": 8,
+  "output_root": "artifacts/upgrade_shared_transaction_v1_t4_v1",
+  "phase1_fes": 180000,
+  "prediction": "AOB carries no certified shared structure, so the enabled mount is silent: zero kernel FE and bit-identical frozen receipts on every arm.",
+  "schema_version": "arac-upgrade-shared-transaction-t4-protocol-v1",
+  "screen_seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "total_budget_fes": 3000000
+}

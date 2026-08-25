@@ -1,0 +1,82 @@
+{
+  "cases": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "checkpoint_tree": {
+    "file_count": 600,
+    "root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "sha256": "d37c2f836258d6b8cfbf95795095ec86ee4fb6ad5851f114aca44c9453b7a3e8"
+  },
+  "current_receipt_tree": {
+    "file_count": 600,
+    "root": "artifacts/current_arac_aob24_recovery_v1/runs",
+    "sha256": "2af2ece17ebd102382a70cb41175e1fb805a449f13ca0b48dbd71ab0bd476a6f"
+  },
+  "manifest_sha256": "786d017781992ff1e407f41626e3fc62922c203fe4cb2bd275b0a95c65f1f95e",
+  "mapping": {
+    "A1": "aor",
+    "A2": "aor",
+    "A3": "aor",
+    "A4": "aor",
+    "A5": "aor",
+    "A6": "aor",
+    "E1": "smp",
+    "E2": "smp",
+    "E3": "smp",
+    "E4": "smp",
+    "E5": "smp",
+    "E6": "smp",
+    "R1": "gcb",
+    "R2": "gcb",
+    "R3": "gcb",
+    "R4": "gcb",
+    "R5": "gcb",
+    "R6": "gcb",
+    "S1": "ctp",
+    "S2": "ctp",
+    "S3": "ctp",
+    "S4": "ctp",
+    "S5": "ctp",
+    "S6": "ctp"
+  },
+  "patch_enabled": false,
+  "protocol_sha256": "77276956d38f62bc4e94f91820df146440b617038ab69f025f5b70e5fd2e6edc",
+  "schema_version": "arac-recovery-first-screen-manifest-v1",
+  "screen_seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "selector_enabled": false,
+  "soft_routing_enabled": false,
+  "source_sha256": {
+    "fixed_campaign": "d07a1bb2054c633f2e1b486b0bb49743159a79353764c0b2a0de3565ab5a3f5f",
+    "screen_campaign": "1994d04d33d2e8bc210827e9800624b2159b34f3827edb64b9b4c019414a5d9b",
+    "screen_protocol": "77276956d38f62bc4e94f91820df146440b617038ab69f025f5b70e5fd2e6edc"
+  }
+}

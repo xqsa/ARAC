@@ -1,0 +1,75 @@
+{
+  "schema_version": "arac-recovered-baseline-freeze-v1",
+  "status": "frozen",
+  "freeze_id": "arac-recovered-baseline-20260823-v1",
+  "frozen_at_utc": "2026-08-23T00:00:00Z",
+  "purpose": "Freeze the repaired four-action execution anchor before the next shared-variable upgrade.",
+  "entrypoint": {
+    "registry": "src/arac/actions/recovered_registry.py",
+    "registry_class": "RecoveredActionRegistry",
+    "action_mapping": {
+      "A1-A6": "aor",
+      "E1-E6": "smp",
+      "R1-R6": "gcb",
+      "S1-S6": "ctp"
+    }
+  },
+  "runtime_contract": {
+    "dimension": 1000,
+    "phase1_fes": 180000,
+    "terminal_fes": 3000000,
+    "screen_seeds": [117, 123, 129, 135, 141],
+    "boundary_profile": "official_hcc_no_offspring_clipping_reproduction",
+    "native_threads": 1,
+    "patch_enabled": false,
+    "soft_routing_enabled": false,
+    "selector_enabled": false,
+    "topology_conditioned_smp": true,
+    "positive_relation_smp_profile": "historical_compatible_smp_v1_clip_offspring_true",
+    "zero_relation_smp_profile": "zero_relation_recovered_smp_v1_clip_offspring_false"
+  },
+  "source_files": {
+    "src/arac/actions/_execution.py": "cb8d6d533537c88d90a2d9b8af6cf97af1aac195ebc263aeeb3de779e3d0bd13",
+    "src/arac/actions/aor.py": "15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805",
+    "src/arac/actions/ctp.py": "0d413c47205d447750c528da43c07efada0c20bdd8305c160026b757192fe256",
+    "src/arac/actions/gcb.py": "097cd7a1117fd524b35f21cc7771fec94af5428446acae0f5ff971b2e03aae82",
+    "src/arac/actions/smp.py": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "src/arac/actions/phase2_v2.py": "597405e5160fb219f7f0bf497959e37983be8a9db1a64a6de61570543a631431",
+    "src/arac/actions/recovered.py": "7d5f6f6af6e23a11a587ec9af80a79618e72412051f7f366b1a2a69a6d6d8a87",
+    "src/arac/actions/recovered_registry.py": "61a375714f58eda489bd748657e5da8ad597db7e758d214a17c30a1bda658c8d",
+    "src/arac/runtime/contracts.py": "c17bc689584b1842f6d9362c52d235243df4e5bc8baaf525606ca4e9c3432fc5",
+    "src/arac/runtime/optimizers.py": "0af3e622dfdcc94ccd7be40bbab3b30395033bbc39ecfdd9a4fa0572d76475fe"
+  },
+  "protocol_files": {
+    "experiments/historical_recovery/recovery_first_protocol_v1.json": "d0e2a2bb73e4fc71ac6898f63e0f6fc5ad38f4ffa2c03000daab290f2521ed44",
+    "experiments/historical_recovery/recovery_first_screen_smp_topology_v3_protocol.json": "77276956d38f62bc4e94f91820df146440b617038ab69f025f5b70e5fd2e6edc",
+    "experiments/historical_recovery/current_recovered_four_arm_protocol_v2.json": "f21efc0ff8085bb4c44dbba949b12ce64288dfafb4f3a1100e13b9e30578dfa2"
+  },
+  "evidence_artifacts": {
+    "artifacts/recovery_first_screen_smp_topology_v3/manifest.json": "c909b86c888e806337cda935a8b88aa8bb63106ba4bf570f70517b1f24382627",
+    "artifacts/recovery_first_screen_smp_topology_v3/summary.json": "f75b03e47faf77fa8023b197a724d791606f1f794b88921cab349b5f2df6324b",
+    "artifacts/recovery_smp_lifecycle_smoke_v1/summary.json": "3abcf0448e434dbbe410c0639716a713c61fd231b5975b0aea1b9d8f75ca2608",
+    "artifacts/recovery_smp_zero_relation_preservation_v1/summary.json": "7f44c560598f1452833a535f8365527af68fde5707ff445d9887bcb2034a8d3c",
+    "artifacts/recovery_action_lifecycle_diagnostic_v1/summary.json": "d449804727efef80a007f1e8515e062b464f818dd56648f33038f4c71662def8",
+    "artifacts/gcb_recovery_attribution_v1/report.json": "89c5dc3618849e5907d9eb3b852e7e251896672bc80755670ef88b3c5bf24b8e",
+    "artifacts/aor_ctp_recovery_attribution_v1/report.json": "d0b10705ef346cf510b0d558d45e5c0025091e567ee5c76b9dfa928ff2977d63",
+    "artifacts/ctp_tail_ablation_v1/summary.json": "9ca9558997cfa03ba4aabc696db68557e1defb9ef55f1ff0b9bcaecfaa336209"
+  },
+  "upgrade_boundary": {
+    "candidate_namespace": "experiments/upgrade/",
+    "must_not_modify_frozen_files": true,
+    "required_baseline_checks": [
+      "verify_recovered_baseline_freeze",
+      "recovered action registry tests",
+      "AOB patch-off preservation contract"
+    ],
+    "required_upgrade_gates": [
+      "U0 kernel contract and exact FE",
+      "U1 matched-host reachability",
+      "U2 nested attribution A0-A4",
+      "U3 AOB preservation/no-tax",
+      "U4 production end-to-end parity"
+    ],
+    "promotion_rule": "Only a candidate that passes baseline checks and all applicable upgrade gates may be promoted; otherwise keep the frozen registry as the production anchor."
+  }
+}

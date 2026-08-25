@@ -5,10 +5,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from arac.actions.recovered import RecoveredHistoricalSmpExecutor, RecoveredSmpExecutor
 from arac.actions.recovered_registry import RecoveredActionRegistry
+from arac.actions.smp import SmpExecutor
 from arac.actions.registry import ActionRegistry
 from arac.benchmarks.aob import OptimizationProblem
-from arac.runtime.contracts import ACTION_NAMES, ActionContext, PhaseCheckpoint
+from arac.runtime.contracts import ACTION_NAMES, ActionContext, PhaseCheckpoint, RelationEvidence
 from arac.runtime.ledger import EvaluationLedger
 from arac.runtime.phase2 import execute_phase2_action
 
@@ -95,6 +97,75 @@ def test_recovered_registry_rejects_a_bounded_ledger() -> None:
             action_seed=context.action_seed,
             registry=RecoveredActionRegistry(),
         )
+
+
+def test_recovered_registry_uses_historical_smp_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _context("smp", allow_out_of_bounds=True)
+    context = ActionContext(
+        "smp",
+        PhaseCheckpoint(
+            protocol=context.checkpoint.protocol,
+            run_seed=context.checkpoint.run_seed,
+            total_budget_fes=context.checkpoint.total_budget_fes,
+            phase1_fes=context.checkpoint.phase1_fes,
+            incumbent=context.checkpoint.incumbent,
+            incumbent_error=context.checkpoint.incumbent_error,
+            feature_names=context.checkpoint.feature_names,
+            feature_values=context.checkpoint.feature_values,
+            blocks=context.checkpoint.blocks,
+            relations=(RelationEvidence(0, 1, strength=1.0, disagreement=0.8),),
+        ),
+        context.problem,
+        EvaluationLedger.from_checkpoint(
+            context.problem,
+            total_budget=context.checkpoint.total_budget_fes,
+            phase1_fes=context.checkpoint.phase1_fes,
+            incumbent=context.checkpoint.incumbent,
+            incumbent_error=context.checkpoint.incumbent_error,
+            allow_out_of_bounds=True,
+        ),
+        action_seed=context.action_seed,
+    )
+
+    def fake_historical_execute(self: SmpExecutor, active: ActionContext):
+        del self
+        from arac.actions._execution import terminal_result
+
+        while active.ledger.remaining:
+            active.ledger.evaluate(active.ledger.best_x)
+        return terminal_result(
+            active,
+            route="stateful_block_visits_1_rescue_2_global_polish_3",
+        )
+
+    monkeypatch.setattr(SmpExecutor, "execute", fake_historical_execute)
+    registry = RecoveredActionRegistry()
+
+    assert isinstance(registry._executors["smp"], RecoveredHistoricalSmpExecutor)
+    result = registry.execute(context)
+
+    assert result.route.startswith("recovered_historical_compatible_smp_v1_clip_offspring_true_")
+    assert "rescue_" in result.route
+    assert "global_polish_" in result.route
+    assert "noop_" not in result.route
+
+
+def test_recovered_registry_preserves_zero_relation_smp_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _context("smp", allow_out_of_bounds=True)
+
+    def fake_zero_relation_execute(self: RecoveredSmpExecutor, active: ActionContext):
+        del self
+        from arac.actions._execution import terminal_result
+
+        while active.ledger.remaining:
+            active.ledger.evaluate(active.ledger.best_x)
+        return terminal_result(active, route="stateful_visits_1_zero_relation_hybrid_rescue_noop_2")
+
+    monkeypatch.setattr(RecoveredSmpExecutor, "execute", fake_zero_relation_execute)
+    result = RecoveredActionRegistry().execute(context)
+
+    assert result.route.startswith("recovered_zero_relation_recovered_smp_v1_clip_offspring_false_")
+    assert "zero_relation_hybrid_rescue" in result.route
 
 
 def test_phase2_handoff_rejects_a_different_problem_instance() -> None:

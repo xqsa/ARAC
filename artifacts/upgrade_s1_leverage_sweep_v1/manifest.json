@@ -1,0 +1,41 @@
+{
+  "candidate_id": "shared_patch_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "d746d3e681bcd4867d24c2b05c48b88cd0a59b324ca72150b16380955e01eb30",
+  "pinned_trees": {
+    "artifacts/current_arac_aob24_recovery_v1/runs": {
+      "file_count": 600,
+      "sha256": "2af2ece17ebd102382a70cb41175e1fb805a449f13ca0b48dbd71ab0bd476a6f"
+    },
+    "artifacts/historical_recovery_fixed_expert_v1/checkpoints": {
+      "file_count": 600,
+      "sha256": "d37c2f836258d6b8cfbf95795095ec86ee4fb6ad5851f114aca44c9453b7a3e8"
+    },
+    "artifacts/recovery_first_screen_smp_topology_v3/arms": {
+      "file_count": 120,
+      "sha256": "94b14e382f9a4a2a9d304fa2342ce2fc51e5a7af889c19cd24b03805e8cbb70c"
+    },
+    "artifacts/upgrade_u1_host_reachability_v1": {
+      "file_count": 33,
+      "sha256": "82b4881323b1ef098e7a17adbef419439b38fc78950817dc7951ba33684eb178"
+    }
+  },
+  "protocol_sha256": "c8ae6cfa3ad9da9bccfb806de76669bba91d441870f09edb1aeaba147da94854",
+  "schema_version": "arac-upgrade-s1-manifest-v1",
+  "screen_seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "source_sha256": {
+    "experiments/upgrade/shared_patch_v1/conflicting_generator.py": "12c697c1aae02d680e6a1121080e08697ef2693468be7b936d7539bc0ec35ba8",
+    "experiments/upgrade/shared_patch_v1/host_instrumentation.py": "de903ca7788233391053e11e525bb28cd9a1352a942f46f357101d05cc9ac0f9",
+    "experiments/upgrade/shared_patch_v1/protocol.json": "a12dc4de522f44a396156efd0f72e35b522d00012733f9ab772ef7cc740f47e1",
+    "experiments/upgrade/shared_patch_v1/s1_leverage_sweep.py": "7585393adf595c7f6893a1771e492ee9b4a02bc19e988e2815b60d214b135c6a",
+    "experiments/upgrade/shared_patch_v1/s1_leverage_sweep_protocol_v1.json": "c8ae6cfa3ad9da9bccfb806de76669bba91d441870f09edb1aeaba147da94854",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability.py": "76564c1b5772be796340b6b305242bb61f8a7b17d59dbb77baee74118dac356f",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability_protocol_v1.json": "8f8d4a35c9d655809bd5fd2e96b0b32599071927de435d6399e7905a375aa967"
+  }
+}

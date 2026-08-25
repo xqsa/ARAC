@@ -1,0 +1,213 @@
+{
+  "candidate_id": "shared_transaction_v1",
+  "checks": {
+    "mini_exact_terminal_fe_both_arms": true,
+    "mini_kernel_receipt_contract": true,
+    "mini_kernel_receipts_present": true,
+    "mini_off_silent": true,
+    "toy_accept_and_duplicate": true,
+    "toy_bounds_clipping": true,
+    "toy_fail_closed_silence": true,
+    "toy_selection_cap_order": true,
+    "toy_stateless_determinism": true
+  },
+  "elapsed_seconds": 1.76174,
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": true,
+  "kernel_consumed_fes": 2,
+  "mini_arm_off": {
+    "enabled": false,
+    "final_error": 2.221646502463944e-30,
+    "improvement_count": 740,
+    "kernel_receipts": [],
+    "ledger_count": 60000,
+    "phase_count": 3,
+    "route": "coverage_9504_then_relation_cover_polish_38016_then_mmes_tail_11880",
+    "terminal_fes": 60000
+  },
+  "mini_arm_on": {
+    "enabled": true,
+    "final_error": 2.221646502463944e-30,
+    "improvement_count": 740,
+    "kernel_receipts": [
+      {
+        "accepted_count": 0,
+        "best_error_after": 224.82346378128926,
+        "best_error_before": 224.82346378128926,
+        "boundary_phase": "run_sequential_blocks",
+        "candidates": [
+          {
+            "accepted": false,
+            "aggregator": "median",
+            "clipped_value": -4.516744858721983,
+            "coordinate": 2,
+            "duplicate_of_previous": false,
+            "error": 225.51608156309427,
+            "evaluated_fes": 1,
+            "raw_value": -4.516744858721983
+          },
+          {
+            "accepted": false,
+            "aggregator": "mean",
+            "clipped_value": -4.516744858721983,
+            "coordinate": 2,
+            "duplicate_of_previous": true,
+            "error": 225.51608156309427,
+            "evaluated_fes": 1,
+            "raw_value": -4.516744858721983
+          }
+        ],
+        "consumed_fes": 2,
+        "requested_coordinates": [
+          2
+        ],
+        "reserved_fes": 8,
+        "returned_fes": 6,
+        "selected_coordinates": [
+          2
+        ],
+        "silent_reason": null
+      }
+    ],
+    "ledger_count": 60000,
+    "phase_count": 3,
+    "route": "coverage_9504_then_relation_cover_polish_38016_then_mmes_tail_11878",
+    "terminal_fes": 60000
+  },
+  "result_hash": "72e6f9c58130dec1f43cbb97160cfe2ecc4f7ed57f3d8fe106c42564958bd5d4",
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t2-summary-v1",
+  "t3_authorized": true,
+  "toy": {
+    "accept_and_duplicate": {
+      "accepted_count": 1,
+      "best_improved": true,
+      "consumed_fes": 2,
+      "duplicate_flagged": true,
+      "duplicate_rejected": true,
+      "ledger_advanced_exactly": true,
+      "passed": true,
+      "returned_fes": 6
+    },
+    "bounds_clipping": {
+      "clipped_values": [
+        0.0,
+        0.0
+      ],
+      "passed": true,
+      "raw_values": [
+        0.0,
+        0.0
+      ]
+    },
+    "fail_closed_silence": {
+      "consumed_fes": 0,
+      "ledger_untouched": true,
+      "passed": true,
+      "silent_reason": "no_link_with_both_owners_fresh"
+    },
+    "selection_cap_order": {
+      "passed": true,
+      "selected": [
+        1,
+        2,
+        3,
+        5
+      ]
+    },
+    "stateless_determinism": {
+      "passed": true,
+      "payload_a": {
+        "accepted_count": 1,
+        "best_error_after": 89.0,
+        "best_error_before": 98.0,
+        "boundary_phase": "toy-boundary",
+        "candidates": [
+          {
+            "accepted": true,
+            "aggregator": "median",
+            "clipped_value": 2.0,
+            "coordinate": 1,
+            "duplicate_of_previous": false,
+            "error": 89.0,
+            "evaluated_fes": 1,
+            "raw_value": 2.0
+          },
+          {
+            "accepted": false,
+            "aggregator": "mean",
+            "clipped_value": 2.0,
+            "coordinate": 1,
+            "duplicate_of_previous": true,
+            "error": 89.0,
+            "evaluated_fes": 1,
+            "raw_value": 2.0
+          }
+        ],
+        "consumed_fes": 2,
+        "requested_coordinates": [
+          1
+        ],
+        "reserved_fes": 8,
+        "returned_fes": 6,
+        "selected_coordinates": [
+          1
+        ],
+        "silent_reason": null
+      },
+      "payload_b": {
+        "accepted_count": 1,
+        "best_error_after": 89.0,
+        "best_error_before": 98.0,
+        "boundary_phase": "toy-boundary",
+        "candidates": [
+          {
+            "accepted": true,
+            "aggregator": "median",
+            "clipped_value": 2.0,
+            "coordinate": 1,
+            "duplicate_of_previous": false,
+            "error": 89.0,
+            "evaluated_fes": 1,
+            "raw_value": 2.0
+          },
+          {
+            "accepted": false,
+            "aggregator": "mean",
+            "clipped_value": 2.0,
+            "coordinate": 1,
+            "duplicate_of_previous": true,
+            "error": 89.0,
+            "evaluated_fes": 1,
+            "raw_value": 2.0
+          }
+        ],
+        "consumed_fes": 2,
+        "requested_coordinates": [
+          1
+        ],
+        "reserved_fes": 8,
+        "returned_fes": 6,
+        "selected_coordinates": [
+          1
+        ],
+        "silent_reason": null
+      }
+    }
+  }
+}

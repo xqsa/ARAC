@@ -1,0 +1,20 @@
+{
+  "schema_version": "arac-upgrade-hyperedge-t0-protocol-v1",
+  "candidate_id": "hyperedge_ctp_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "cases": ["S3", "S6"],
+  "seeds": [20270111, 20270112, 20270113, 20270114, 20270115],
+  "arms": ["tail_20pct", "no_reserved_tail"],
+  "arm_definition": {
+    "tail_20pct": "frozen CtpExecutor via RecoveredActionRegistry (positive-relation 20% MMES tail reserve is the frozen baseline)",
+    "no_reserved_tail": "candidate-namespace CTP copy identical to the frozen executor except the positive-relation tail reserve is removed (reserve fraction 0); coverage, relation-cover polish and the exact terminal budget are unchanged"
+  },
+  "checkpoint_rule": "each case/seed generates one fresh Phase-I checkpoint with the frozen run_phase1 (arac-identity-blind-evidence-v9, 180,000 FE) before any arm runs; both arms of a pair share the checkpoint and the action seed",
+  "total_budget_fes": 3000000,
+  "phase1_fes": 180000,
+  "phase2_fes": 2820000,
+  "max_workers": 16,
+  "gate_rule": "both cases must satisfy R(tail_20pct/no_reserved_tail) < 1 with 95% paired bootstrap CI upper < 1, plus FE/checkpoint/hash/terminal/positive-relation contract compliance",
+  "failure_policy": "on failure the frozen 20% tail stays unchanged and any tail-ratio tuning branch is permanently closed; line B may continue (different mechanism)",
+  "output_root": "artifacts/upgrade_hyperedge_ctp_v1_t0_v1"
+}

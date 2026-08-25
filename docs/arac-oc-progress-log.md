@@ -3,6 +3,43 @@
 用途：夜间自主推进的连续性锚点 + 用户晨读摘要。所有 gate 结论以对应
 protocol 文档和 artifacts 为准，本文件只做索引和决策记录。
 
+## 2026-08-22 Recovery-first 状态
+
+- P1 实质判定：**不可评估**。12/12 cell 为 `arbitration_only`，patch
+  receipt=0，A0-A4 逐位相同；旧 P2/P4 停止。
+- **B0**：recovery-first preflight 已通过（4 case × 1 seed 的只读
+  checkpoint/current-receipt provenance）。
+- **B1**：完整 24×25×4 fixed-action 矩阵尚未执行，当前状态为 not started；
+  不以 `recovered_actions_fixed_action_v1` 的四个代表性 lane 代替。
+- **B2**：selector parity preflight 已通过，未重新评价动作。
+- **B3**：current E2E preflight terminal contract 已通过，但 selected action
+  尚未恢复到历史 fixed-expert mapping，故 B3 仍失败并逐 case 列出。
+- **M0**：conflicting matched-host preflight 已通过。A1-A4 均有非零 8-FE
+  patch receipt，A3 有 state trace，A4 有 radius trace，且 route 明确为
+  `forced_ctp`/`forced_gss`；selector 和 production planner 未参与。
+- **M1/M2**：M1 只作嵌套消融归因，M2 fresh seed 性能比较在 M0/M1 之后运行。
+
+### B1-Screen（24 cases × 5 historical seeds × mapped action）
+
+筛查已完成：120/120 arms，24 cases 各运行其历史单动作，0 failed arms。
+所有 terminal FE、checkpoint binding、receipt hash 均通过；但 screening mean
+gate 未通过，因此不启动 B1-Final 25-seed，也不启动任何 patch/soft-routing 实验。
+
+| action | 通过 | 失败 |
+|---|---:|---:|
+| AOR | 4/6 | A4, A6 |
+| SMP | 1/6 | E2, E3, E4, E5, E6 |
+| GCB | 0/6 | R1-R6 |
+| CTP | 5/6 | S6 |
+
+证据：`artifacts/recovery_first_screen_v1/summary.json`。
+这表明当前问题不是 selector 或 patch 可达性，而是 SMP/GCB 的 fixed-action
+恢复和少数 AOR/CTP case 仍有系统性回归；按止损线先定位动作协议、边界、预算和
+checkpoint handoff 差异。
+
+恢复后的默认生产策略：历史基线作为稳定 anchor；patch 和软路由默认关闭，
+只有对应 Gate 通过的机制才允许单独开启。
+
 ## 当前状态（2026-08-15 夜间，第 2 次更新）
 
 - Gate 37（绝对 hub 信号）：已执行，3 判据过 1。归因：推断结构 hub 10–20，
@@ -1773,3 +1810,567 @@ DO 入档发现结构性事实——soft-RDDSM 划分 disjoint、HCC 式共享�
 恒 0，故补 relation_coupling（相关块覆盖变量比/关系数/强度）作为
 v5.4 实际设计输入（A3 0.728/110、R2 0.676/56、R6 0.454/208、
 S5 0.657/200 @20260901）。预注册预测见设计文档 §4-5。
+
+## Recovery action lifecycle diagnostic（2026-08-23）
+
+`artifacts/recovery_action_lifecycle_diagnostic_v1/summary.json` 已完成 55 个 paired
+case/seed、共 110 arms（24 workers，0 failures）。55/55 pair 复用相同 checkpoint，
+terminal FE 与 receipt/action-result hash contract 全通过；该诊断不使用历史阈值做运行时决策。
+
+- SMP E2-E6：历史兼容 schedule 在 24/25 pair 胜出，case geometric ratio 为 1.789、
+  4.559、8.687、11.756、10.663。当前 SMP 将 2.82M FE 几乎全部放入 stateful visits，
+  尾部 no-op；历史兼容版本保留 rescue 和约 1.41M MMES global polish，生命周期差异已隔离。
+- GCB R1-R6：结果混合（历史兼容 16/30 pair 胜出）。当前 schedule 在 R1/R3 更好，
+  R2/R4/R6 略差，R5 近似持平，不能据此统一回退 GCB。
+- `historical_compatible` 是冻结 source 的 schedule 对照，不是 bitwise historical replay；
+  不授权历史 superiority、B1-Final、soft routing 或生产 patch 实验。
+
+下一步：先恢复 SMP rescue/global-polish budget ownership，做 E2-E6 五 seed paired smoke，
+再决定是否重跑 24x5 screen；GCB 继续冻结并单独做 schedule attribution。
+
+## SMP lifecycle repair and 24x5 recovery screen（2026-08-23）
+
+按上述诊断执行最小修复：保留 `RecoveredSmpExecutor` 的可恢复 v2 状态机，
+将 `RecoveredActionRegistry` 的 one-shot SMP dispatch 改为历史兼容生命周期 wrapper。
+wrapper 复用冻结 `SmpExecutor`，恢复 stateful visits、rescue、MMES global polish 和
+terminal Sep-CMAES；route 显式标注 `historical_compatible_smp_v1_clip_offspring_true`。
+
+paired smoke：`artifacts/recovery_smp_lifecycle_smoke_v1/summary.json`。
+`50/50 arms`、`0 failures`、`25/25 checkpoint pairs`、terminal FE/hash 全通过；
+E2-E6 的 25 对 final error 逐位一致，所有 current route 均有 rescue/global-polish，
+无 noop 尾部。该结果证明修复已挂载且生命周期可归因，不作 superiority 声明。
+
+随后用新 output root 重跑 `24 × 5` mapped-action screen：
+`artifacts/recovery_first_screen_smp_lifecycle_v2/summary.json`。
+结果为 `120/120`、`0 failures`、所有 contract 通过，但 overall screen gate 仍为 false：
+
+- SMP：E2-E6 通过，E1 失败；
+- AOR：A4、A6 失败；
+- GCB：R1-R6 全部失败；
+- CTP：S6 失败，其余 S1-S5 通过。
+
+因此 SMP 生命周期修复可以保留为恢复基线的一部分，但不能把未恢复动作的回归
+归因到 SMP 或 shared-patch。B1-Final、soft routing 和 production patch 继续关闭；
+下一步按失败动作族做最小 fixed-action attribution，优先 E1 与 GCB schedule，
+不重新启动旧 P2/P4。
+
+## E1 zero-relation preservation（2026-08-23）
+
+24x5 screen 后发现 SMP historical-compatible 生命周期不应覆盖零关系 E1：
+旧 recovered zero-relation hybrid route 的 E1 均值约为 near-zero，而统一历史
+生命周期引入 clipping/rescue 分配后明显回归。已将 recovered SMP one-shot registry
+改为 topology-conditioned dispatch：正关系沿用 historical-compatible lifecycle，
+零关系沿用原 recovered hybrid lifecycle。
+
+独立 gate：`artifacts/recovery_smp_zero_relation_preservation_v1/summary.json`。
+5/5 seed、0 failures、FE/hash/checkpoint 全通过，final error 与旧 E1 screen receipts
+逐位一致。此前 `recovery_first_screen_smp_lifecycle_v2` 的整体 Gate 仍只代表条件
+路由修复前版本；如需新的 B1 汇总，必须重新跑完整 24x5。
+
+## Topology-conditioned 24x5 recovery screen（2026-08-23）
+
+条件路由修复后重新运行完整 `24 × 5` screen，产物为
+`artifacts/recovery_first_screen_smp_topology_v3/summary.json`：
+`120/120 arms`、`0 failures`，checkpoint、terminal FE 与 receipt hash 全通过。
+
+- SMP E1-E6 全部通过；E1 均值恢复为 `7.75e-06`；
+- AOR A4/A6、GCB R1-R6、CTP S6 仍失败；其余 case 通过；
+- overall screen gate 仍为 false，不能宣布 B1-Final 或历史四动作完全恢复。
+
+SMP 条件路由冻结为当前 recovered baseline；后续只做 AOR/GCB/CTP 各自的
+fixed-action attribution，不把残余回归归因给 shared-patch。
+
+## GCB schedule attribution（2026-08-23）
+
+基于已完成的 `recovery_action_lifecycle_diagnostic_v1` receipts，新增无重算
+归因报告 `artifacts/gcb_recovery_attribution_v1/report.json`：60 arms、30 pairs，
+checkpoint/terminal FE/route 解析全通过。
+
+current 相对 historical-compatible 平均少约 235k warmup/source FE、少约 74k
+coordination FE，多约 309k continuation/native FE；但性能方向混合（R1/R3 current
+更好，R2/R4/R6 historical-compatible 更好，R5 近似持平）。因此不做统一 GCB 回退，
+生产 GCB 保持冻结；后续若继续，只运行预注册 fresh-seed schedule ablation。
+
+## AOR A4/A6 + CTP S6 fixed-action attribution（2026-08-23）
+
+归因协议与报告：
+`experiments/historical_recovery/aor_ctp_recovery_attribution_protocol_v1.json`、
+`artifacts/aor_ctp_recovery_attribution_v1/report.json`。验证命令：
+`$env:PYTHONPATH='.;src'; python -m experiments.historical_recovery.aor_ctp_recovery_attribution verify`，
+通过；定向测试 `tests/test_aor_ctp_recovery_attribution.py` 为 2/2。
+
+- AOR 当前/冻结历史 source SHA-256 完全一致
+  （`15f7d567351ce660658079b70f3cc00d9feceeab7c962a4779246e1f442e2805`）。
+  A4=`78,257.56` vs `78,200`（ratio `1.000736`），A6=`78,123.18` vs `78,000`
+  （ratio `1.001579`）；结论为 source/lifecycle 非归因，不修改 AOR。
+- CTP S6 screen mean=`5,283.95` vs `4,180`（ratio `1.264102`），虽已出现
+  reserved tail，仍未恢复。matched checkpoint tail ablation（31001-31003）
+  为 3/3 candidate wins，几何 ratio=`0.289733`；但与 screen seeds 不配对，
+  仅作机制证据，不作 screen recovery 或生产替换声明。
+- `aor_code_change_authorized=false`、`ctp_production_change_authorized=false`；
+  B1-Final、patch、soft routing、selector 继续关闭。若继续 CTP，下一 gate 是
+  fresh matched S6 screen-seed tail attribution。
+
+## Recovered baseline freeze（2026-08-23）
+
+当前修复后的四动作执行锚点已冻结为
+`arac-recovered-baseline-20260823-v1`。冻结协议：
+`experiments/historical_recovery/recovered_baseline_freeze_protocol_v1.json`；
+校验入口：
+`experiments/historical_recovery/verify_recovered_baseline_freeze.py`。
+
+- 21 个 source/protocol/evidence 文件的 SHA-256 全部锁定；
+- recovery screen 的 120/120 arms FE、checkpoint、receipt contract 全通过；
+- SMP lifecycle smoke 与 E1 preservation 均通过；
+- patch、soft routing、selector 仍为关闭，冻结 baseline 是默认生产回滚目标；
+- 下一步升级只允许进入 `experiments/upgrade/`，按 U0-U4 独立验证，不覆盖冻结源。
+
+## Stepwise upgrade plan v2 + literature review（2026-08-23）
+
+完成 v1 阶梯方案的契约审阅与跨来源文献核验。正式方案：
+`docs/arac-oc-stepwise-upgrade-plan-v2.md`；检索记录：
+`references/lit-review/arac_oc_stepwise_upgrade_literature_2026-08-23.md`。
+
+- S1/S2 保留为零新增 FE 的重排机制；confidence 在当前 checkpoint 未证明可用，
+  首版只用 shared-variable leverage count；
+- S3 明确为每 scope 最多四个 shared coordinates、每个坐标一对 ± 候选、
+  固定 8-FE reservation cap；
+- S4 只引入 `z,r` 和局部 context hash，写集排除 self-accept reset；
+- S5 拆为 S5a disagreement candidate 与 S5b soft owner weighting；
+- DCCC/CCFR3/SACC/AOS 资源调度留到 S6，不与首版 kernel 混合。
+
+下一步从 S0 freeze verifier 与 S1 screen 开始，不直接接入 S5 或学习型调度。
+
+## Stepwise upgrade execution: U0 passed, U1 launched（2026-08-23）
+
+按 `docs/arac-oc-stepwise-upgrade-plan-v2.1.md` 启动 `shared_patch_v1` 升级候选，
+代码全部位于 `experiments/upgrade/shared_patch_v1/`，不触碰冻结源。
+
+- **U0 baseline guard**：`artifacts/upgrade_u0_baseline_guard_v1`，verifier
+  8/8 通过（status frozen、三项 green、patch/soft routing/selector 全 off）。
+  运行入口：
+  `PYTHONPATH='.;src' ./.venv/Scripts/python -m experiments.upgrade.shared_patch_v1.u0_baseline_guard`。
+- **conflicting overlap generator v1**：3 拓扑（chain/hub/pairs，各 10 块、
+  每链 8 个共享变量）× 2 冲突级（mild δ=0.10、strong δ=0.25）= 6 个预注册
+  cell。冻结 Phase-I（soft-RDDSM v9）在全部 6 cell 上发现正关系
+  （28 条/cell，最大强度 0.039-0.169，strong 一致高于 mild）。
+- **S1 leverage-priority sweep 实现**：executor-lane 的 leverage 预注册为
+  "checkpoint 块的关系关联数"（恢复 lane 的 checkpoint 只有块级
+  RelationEvidence，无逐变量 shared 标记）；首个 block sweep 的前
+  `ceil(20%·n)` 槽位按 `(-leverage, original_rank)` 重排，其余槽位与后续
+  sweep 保持冻结顺序。零关系时顺序恒等（内置 ov0 no-tax 控制）。
+  机制通过包裹冻结扫掠函数的 `block_order` 参数实现，零新增 FE。
+- **S2 propagation handoff 实现**：`HandoffState` 单 transient 字段
+  `last_improved`；gcb 逐冷访问槽位、ctp 以 polish 段为槽位（coverage
+  交错段无槽位语义，保持 S1 静态序，已预注册为粒度解释）；邻居分别定义为
+  关系边与 polish 覆盖的变量集交集。`no_acceptance_event` 与
+  `host_unreachable` 分开计数。零关系时逐位回退（冒烟验证通过）。
+- **解释器事故与处置**：U1 首次执行意外跑在 PATH 上的 hermes-agent venv
+  （numpy 1.26.4 + libopenblas 0.3.23.dev）下，AOB 仪器化重跑与冻结 screen
+  收据的逐位一致性全部失败（checkpoint hash 一致、final_error/route 漂移）。
+  根因是 BLAS 数值栈不同导致轨迹发散，不是代码或仪器化问题。已停止战役、
+  删除该批产物（未做任何 gate 判定），并在 U1 协议中预注册运行环境要求
+  （`E:/ARAC/.venv` + libscipy_openblas，收据记录 python_executable 与
+  threadpools，identity gate fail-closed）。升级 lane 的所有命令改用
+  `./.venv/Scripts/python`。这次事故同时确认：冻结 screen 的逐位复现
+  依赖解释器/BLAS 栈，跨环境不可假设。
+- **U1 重跑**：24 臂（AOB 12 mapped-host 仪器化重跑 + 逐位一致性校验、
+  generator 6 cell × 2 强制 host）在正确解释器下进行中，产物将写入
+  `artifacts/upgrade_u1_host_reachability_v1`。S1 screen（240 臂，A0/A1
+  配对，里程碑 anytime 采样）在 U1 gate 通过后启动。
+
+## U1 host reachability passed（2026-08-23）
+
+`artifacts/upgrade_u1_host_reachability_v1/summary.json`：8/8 checks 通过，
+`s1_screen_authorized=true`，`performance_comparison_authorized=false`。
+
+- **AOB 逐位一致性**：12/12 mapped-host 仪器化重跑（S1-S6 ctp、R1-R6 gcb，
+  seed 117，3M FE）的 final_error/route/action_result_hash 与冻结 screen
+  收据逐位一致——同时证明了仪器化本身零税、冻结 anchor 在正确解释器栈
+  （`E:/ARAC .venv` + libscipy_openblas）下可精确复现；
+- **reachability 表**：S2-S6（ctp）与 R2-R6（gcb）host 可达且存在
+  leverage>0 的 scope 访问；S1/R1 为零关系（mechanism_silent，S 阶梯按
+  构造 no-op）；A/E 12 case 按契约 mount_absent；
+- **generator lane**：6/6 cell Phase-I 发现正关系，12/12 强制 host 运行
+  完成终值契约且全部访问到 leverage>0 scope；
+- **收据哈希口径修复**：首执行把 `segments[*].per_block_visits` 写成 int 键，
+  `sort_keys` 对 int 键按数值序、JSON 回读按字典序，导致重算哈希与声称
+  哈希不一致；校验器改为按写入时规范形（int 键）重算并与声称哈希精确
+  对账，后续 stage 的仪器化一律 str 键。产物本身未改动。
+
+S1 screen 已按预注册协议启动
+（`experiments/upgrade/shared_patch_v1/s1_leverage_sweep_protocol_v1.json`：
+240 臂 = AOB 12 mapped hosts × 5 seeds × {a0,a1} + generator 6 cells × 5
+seeds × {ctp,gcb} × {a0,a1}；eps_ref 表在首臂运行前冻结；anytime 里程碑
+600k/1M/2M/3M；判据为 ov0 逐位 no-tax + 每宿主 lane 的 final/anytime
+非劣 paired bootstrap）。S2 协议已同步冻结，加载器强制 S1 gate 先通过。
+
+## S1 leverage-priority sweep screen: gate FAILED, reorder closed（2026-08-23）
+
+`artifacts/upgrade_s1_leverage_sweep_v1/summary.json`：240/240 arms 完成、
+0 失败，`gate_passed=false`、`s2_screen_authorized=false`。按 v2.1 止损线
+（S1 失败：关闭重排，不接入 patch），S1 关闭，S2 保持 blocked，生产默认
+不变（重排从未接入生产，冻结 baseline 无需回滚动作）。
+
+实质结果：
+
+- **ctp 宿主结构惰性**：S2-S6 全部 30 对 ratio 精确 1.0000。根因是冻结
+  coverage 交错段的所有块会话一次性创建且从不重锚（`begin_visit` 只在
+  冷访问路径调用），交错顺序对数值轨迹不敏感——"纯重排"机制在该宿主
+  无法表达，除非 fork coverage 语义（超出 S1 的零 FE 重排边界）。
+- **generator lane 全部 1.0000**：6 个 cell 的 Phase-I 发现为 8 块完全图
+  （28 关系、leverage 全等），按平局规则 S1 序 = baseline 序，机制静默。
+  v2 generator 需要更稀疏的拓扑才能真正检验 leverage 排序。
+- **gcb 宿主为唯一活跃 lane 且 final 非劣失败**：R2-R6 每对 route 全部
+  改变（早停时点随访问顺序移动，FE 分布漂移属预期），pooled geo≈0.998
+  但 per-case CI 上界至 1.26（R3 geoR=1.056、R5=1.054），`gcb_final_nontax
+  =false`；anytime 非劣通过（CI 下界 > -0.05）。机制在 gcb 上可激活、
+  可观测，但没有稳定收益方向。
+- **ov0 控制**：R1/S1 全部 5 seed 逐位一致（identity 通过），`ov0_exact
+  _no_tax=true`；全部 a0 AOB 臂与冻结 screen 收据逐位一致。
+
+检查规则缺陷（记录在案，不做事后放宽）：`routes_unchanged_all_pairs`
+把顺序改变宿主的 route 漂移当失败；`a0_orders_never_changed` 的扫描误含
+a1 收据；`a1_order_changed_where_leverage_exists` 未允许 leverage 平局
+导致的合法零变化。即使全部修正这三项，`gcb_final_nontax=false` 仍单独
+构成实质失败。
+
+结论与去向：S1 关闭；重排不进入任何候选；S2 协议与加载器保持 blocked
+留档。若重启升级，需要新的候选版本目录（例如仅在 gcb 宿主挂载的
+leverage 排序 v2 + 稀疏拓扑 generator v2），不得复用本轮结论改判。
+
+## v5.0 hyperedge_ctp_v1：H0 认证失败，线 B 按止损线终止（2026-08-23）
+
+按 v5.0 计划（CTP 尾部因果复验 → 超边认证共享变量内核）执行。代码在
+`experiments/upgrade/hyperedge_ctp_v1/`，冻结源/Phase-I v9/selector/
+AOR/SMP/GCB 全程未改；每阶段前置冻结校验器。
+
+- **generator v3 冻结**：`(linked-elliptic, shared_width=8, λ=2.0)`
+  （预注册网格最优 26/30；强制零最优值约定——Phase-I 结构通道按
+  `best_error + optimum` 重建基值，非零最优值会把最小值注入每个交互
+  差分并把发现饱和成完全图，这是 v2/v3 初版退化的根因）。真值增加
+  显式 `shared_owner_pairs`。
+- **T0（线 A）**：S3/S6 × 20270111-15 × {tail_20pct, no_reserved_tail}
+  运行中；变体执行器与冻结版在零关系 checkpoint 上逐位一致、正关系时
+  仅移除 20% 尾部预留（冒烟验证 FE 重分布精确）。
+- **H0（线 B）GATE FAILED**：`artifacts/upgrade_hyperedge_ctp_v1_h0_v1`。
+  soft-RDDSM（计划冻结配置 + 180k 精确补足）在 6 cell × 3 discovery
+  seed 上的认证结果：
+  - precision 几乎处处 1.0（唯一例外 chain4-strong/20270103 = 0.0：
+    该 seed 的发现把 planted 0∪1 合并成一个 200 变量区域——链式传递
+    失败模式，认证准则正确拒绝）；
+  - **chain4（链拓扑）结构性失败**：每个 seed 都有 8 个 2-region 超边
+    + 16 个 3-region 超边（链变量的证据跨三个区域），违反"每个超边
+    恰有两个 region"；
+  - **pairs3-strong 差一个 seed**：precision 1.0、无 3-region、
+    forest/度数全过，但 20270101 的 recall=16/24=0.667<0.75（第三条
+    link 的确认在预算边界未完成）；
+  - hub3 度数 3，按准则正确不激活。
+- **处置**：按预注册止损线（H0 失败 → 停止线 B），H1/H2/AOB
+  preservation 均未执行，未做任何性能比较。认证机器本身按设计工作：
+  它拒绝了链式传递与 hub 结构。pairs3 拓扑在 2/3 seed 上干净认证
+  （precision 恒 1.0），如实记录为仪器能力边界；不做任何 seed 更换
+  或阈值放宽（属事后调参）。若重启线 B，需要新候选版本（例如更高
+  dsm_budget 的仪器修复 + 只预注册 pairs 族），不得复用本轮结论改判。
+- **seed 登记冲突**：20270101-25 段与 `current_selector_fresh_e2e`
+  协议（从未执行、无产物）重叠；已在根协议记录，未静默忽略。
+
+## v5.0 T0 因果复验通过（方向修正后判定）（2026-08-23）
+
+`artifacts/upgrade_hyperedge_ctp_v1_t0_v1/summary.json`：`gate_passed=true`。
+
+- S3：R(tail_20pct/no_reserved_tail)=0.178，CI=[0.058, 0.585]；
+- S6：R=0.419，CI=[0.358, 0.518]；
+- 两个 case 均满足 R<1 且 CI 上界<1：冻结 CTP 的正关系 20% MMES 尾
+  在全新 seed（20270111-15）上有强因果收益（尾部臂误差低 2.4-5.6 倍），
+  checkpoint 共享/正关系/终值 FE 契约全部合规；
+- 记录一次判定修复：汇总初版把配对方向写反（算成 no_tail/tail），
+  抽查原始收据发现方向与判定矛盾后修正为预注册口径
+  R=tail/no_tail 并重算；臂级收据从未有误，全部 20 臂 0 失败；
+- 按计划：冻结 20% 尾保持不变（其因果有效性现在有 fresh-seed 证据），
+  "再调 tail 比例 / 按 Phase-I 特征调 tail"分支永久关闭。
+
+**v5.0 总结**：线 A（T0）通过并确认尾部因果；线 B（H0 认证）失败并按
+止损线终止，未进行任何性能比较。冻结基线全程未动，校验器始终绿。
+
+## v5.1 pairwise_edge_ctp_v1：P0 证书门失败（区域合并伪影），链式可分离性诊断通过（2026-08-24）
+
+按 v5.1 协议执行：不放宽任何阈值、不改冻结源；二元共享边证书
+`PairwiseSharedEdge(j, region_a, region_b)`（恰两区域 + 双侧证据 +
+无第三区域未解释证据；三区域输出整体拒绝、禁止事后拆分）。
+
+- **P0（pairs3-strong × 20270401-05，DSM/RDG 预算上限 100k 预注册）**
+  GATE FAILED：`artifacts/upgrade_pairwise_edge_ctp_v1_p0_v1`。
+  - 3/5 seed 完美：precision=1.0、recall=24/24、零区域合并、重放哈希
+    一致、180k FE 精确；
+  - 2/5 seed 失败且签名一致：粗覆盖把两个 planted 块合并成一个
+    ~200 变量区域 → 该对 link 无法出证书 → recall=16/24=0.667；
+  - **合并机制定位**：粗 RDG 按变量索引升序取种子，当某共享变量
+    最先成为其组件种子时，其交互邻域同时含两个 owner 块（共享变量
+    同时进入两个块的联动和）→ 合并；概率 ~8%/对/seed，与 2/5 观测
+    吻合；与预算无关（55k→100k 无改善）；
+  - 全部 5 seed 已出证书 15/15 全对（precision 恒 1.0）；
+  - 按预注册：patch 阶段不授权，未做任何性能比较。
+- **chain_pair_isolation_diagnostic_v1（chain4-strong × 3 seed，
+  每链接逐变量 residual 三检验，289 FE/seed）通过**：链的每个共享
+  变量都与自己两个 owner 的残差交互、与远侧块残差不交互——
+  **链式 overlap 可被 pair-specific residual 证据分离**；v5.0 的链式
+  失败源于传递式 resolved-hyperedge 构造与区域合并伪影，不是证据
+  模型不可行。若做 v5.2：需要按链接分别解析 + 对种子序合并伪影的
+  防护（例如残差互检后拆分或重种子），仍不得事后放宽阈值。
+- 冻结基线全程未动，校验器绿；生产默认（patch/soft routing/selector
+  off）不变；CTP 20% 关系尾维持 T0 验证的冻结状态。
+
+## shared_transaction_v1（SCST v3.0）：T0 结构认证 PASSED，T1 战役启动（2026-08-24）
+
+按用户目标（不抛弃失败案例、在冻结基线上升级、真正的重叠机制创新、
+底线非劣）裁决执行 SCST v3.0 主线（`experiments/upgrade/shared_transaction_v1/`），
+evidence-sinking 的 E0 判决先行落地：生产契约不动（contracts.py 在冻结清单内），
+逐变量共享身份走 soft-RDDSM 旁路腿，AOB 上机制结构性静默（T4 预注册预测）。
+
+**失败案例教训的条款化**（详见候选 README 表格）：v5.1 区域合并伪影 →
+端点细化拆分修复；v5.0 链式三区域拒绝 → 逐对目标验证（chain_pair_isolation
+管线化）；54a 不可辨识 → 内核零分类；P1 零挂载 → T1 先证边界；S1 宿主惰性 →
+只挂自然边界；v4-v5.3 跷跷板 → 无状态固定 8 FE；Gate 53 → AOB 预期静默。
+
+**T0（结构认证）gate_passed=true**（`artifacts/upgrade_shared_transaction_v1_t0_v1`，
+result_hash b84e5423…，t1_authorized=true）：
+- 6 cell × 5 seed（20270501-05）全部 precision=1.0、recall=1.0、
+  merged_region_count=0、rejected_hyperedge_count=0、证书图森林；
+- v5.0/v5.1 的两个仪器级失败被同时修复：链式 recall 0.333→1.0
+  （16 条三区域超边经逐对残差验证后全部正确出证书）；Stage-1 天然合并
+  （chain4-mild×2、pairs3-strong×1、hub3-mild×2，共 5 次）全部被
+  端点细化拆分修复（升序主分配约定保持，块内 owner 混杂为零）；
+- checkpoint relations 从认证证书派生（strength=证书数）——修复 soft-DSM
+  边池在 generator v3 上零跨块边导致 relation_count=0 的挂载缺陷
+  （p0 收据佐证该缺陷先于本候选存在）；
+- 精确 180k FE 边界与双跑重放哈希一致全部通过。
+
+设计迭代记录（发生在烟测阶段，gate 判据从未回调）：第一版 DSM 强边拆分
+修复不可用（kNN 候选池不采样块内对）；overlap 判据从 min_residual_size
+改为互不包含（shared_width=8 > 3，真拆分曾被误拒；截断包含式假拆分仍被拒）。
+
+**T2（内核契约）实现即绿**（9/9：接受+重复拒绝、fail-closed 静默、选择
+上限/排序、边界裁剪、无状态确定性、mini 宿主两臂精确 FE、A0 静默）；
+按阶梯顺序在 T1 判定后重跑留档。T3/T4 模块与协议已就绪：
+T3 eps_ref 将从 T1 收据冻结（min positive patch-off final / 10），
+confirmation seeds 20270511-15 预注册；T4 预注册预测 = AOB 全矩阵逐位恒等 +
+零 lane 消耗。生产默认（patch/soft-routing/selector off）全程未动。
+
+## shared_transaction_v1 T1 判定：CTP lane 判负（机制发现），SMP 全合格；T3 收窄 SMP-only（2026-08-24）
+
+`artifacts/upgrade_shared_transaction_v1_t1_v1`（32 臂零失败）：
+
+- **identity_arms_bit_identical=true**：S3/ctp、E3/smp 在仪器安装下与冻结
+  recovery-screen 收据四字段逐位一致——T1 仪器在生产路径零税获证。
+- **SMP 宿主 10/10 臂合格**：每臂恰 1 个合格边界（stateful→rescue），
+  reanchor 全证，24/24（或 16/24）链接双 owner proposal 新鲜；
+  proposal 归因横跨全部 10 块（每臂 ~19k 次 strict-best 改进）。
+- **CTP lane 失败（gate_passed=false 的唯一来源）**：coverage 阶段
+  strict-best 写回集中于每 run 1-4 个块（共 ~850 次改进）——交错持久
+  会话一旦某块领跑，移动的全局 best 门槛使旧锚块极少再写回；结构（T0）
+  与传播（reanchor=true）均在，唯 §3.4 双 owner 条件永不能满足。
+  这是"共享写回经济集中"的收据级机制发现，按预注册判据如实判负。
+- 判据修正记录（首轮战役即停即改，产物删除重跑）：reanchor 第一版
+  要求锚==边界入口哈希，过严（rescue 斜率探针自身可改进 incumbent）；
+  修正为活锚定判据（锚==出生时刻 timeline incumbent，install 播种基行）。
+
+**T3 host 范围预注册（协议在首臂运行前冻结）**：依据 T1 普查收窄为
+SMP-only；CTP lane 预算冻结为 0。eps_ref 从 T1 SMP 收据冻结
+（chain4=2.4533、pairs3=2.3103）；confirmation seeds 20270511-15 预注册。
+T3 screen（20 臂）已启动。
+
+## shared_transaction_v1 T3 screen：判负，根因=互斥划分下 proposal 恒退化（2026-08-24）
+
+`artifacts/upgrade_shared_transaction_v1_t3_screen_v1`（20 臂零失败）：
+
+- contract/reachability/非劣全绿；**at_least_one_strict_win=false**。
+- 全部 10 对 A0/A1 终值逐位相同；每 run 内核消耗 8 FE、接受 0 次。
+- **收据级根因**：每候选评估误差恒等于边界前误差 → 候选==incumbent。
+  互斥划分下共享坐标 j 只被主块 A 移动；B 的"proposal 快照"在 j 上只是
+  A 最后设定值的拷贝 → P_j=[v,v] 恒退化，median/mean 无事可仲裁。
+  **结构性结论：冻结四动作的互斥划分架构从不表达共享变量的值冲突；
+  仲裁型事务（FEA 语义）在该架构上原理性空转。**
+- 按预注册止损线：v1 候选关闭于 T3；保留 A0；T5/confirmation 不启动；
+  生产默认未动（floor 天然保持）。
+
+**v2 方向（由根因直接导出，新候选目录+新协议）**：结构认证的共享坐标
+重整内核——owner 非主块移动后，j 的全目标切片最优点偏移；以 3 点二次
+拟合（每坐标 3 FE，仅信完整目标反馈，无 owner 权威/分类器/状态）把 j
+重新对中。复用 v1 的 T0 认证资产与 T1 SMP 边界资格。
+
+## shared_transaction_v2/v3/v4 三连 screen：全部判负，边界干预空间以递进收据穷尽（2026-08-24）
+
+- **v2 重整内核**（3 点二次拟合，12 FE）：机械上完全工作（每臂 4/4 坐标
+  strict-best 接受，边界即时改进 4541→4537）；pairs3 geoR 0.9685、
+  CI [0.9487, 0.9902]（CI 上界<1.0，统计显著改善）但未达 0.95 严格线；
+  chain4 混合（geoR 1.046，一个 1.29 败例）。**撞尺度公理**：12 FE 微窗口
+  对 2.82M 轨迹，终值被锚点扰动方差支配（F2/Gate47b 家族复现）。
+- **v3 联合救援**（认证链接合并 scope，从 rescue 窗口划 20k FE/链接）：
+  accepted_links=0 全臂，默认 σ warm-up 在 1e6 条件数 192 维 scope 上
+  起不来；预算被偷 → chain4 一致回归（geoR 1.0665，CI 全>1.0）。
+- **v4 联合救援+rescue 原生 warm-up**（STATE_RESCUE 配方逐字照抄）：
+  仍 accepted_links=0，终值与 v3 逐位相同（拒绝评估不改变下游状态）。
+  **闭环诊断：边界处 incumbent 已被 1.2M FE stateful 打磨到全新会话无
+  收益空间；SMP stateful→rescue 边界的干预空间穷尽。**
+- 全部判定按各自冻结协议执行；A0/生产默认未动（floor 全程保持）；
+  四个候选目录与收据完整留档（upgrade_shared_transaction_v1..v4）。
+
+**证据指向的下一候选**（未启动）：CTP 侧 coverage 阶段的认证 scope
+干预——T1 已证 CTP 写回集中在领跑块（1-4/10），集中锁定发生在 coverage
+内部；早期（而非边界）对认证链接 scope 的联合访问是唯一未探索的
+预算尺度窗口，与 G5（拓扑条件化生命周期）同族。
+
+## shared_transaction_v5 screen：判负 + 实现缺陷定位（证书级 vs 块对级选择）（2026-08-24）
+
+`artifacts/upgrade_shared_transaction_v5_screen_v1`（20 ctp 臂零失败）：
+
+- chain4 geoR 0.9984 CI [0.9882, 1.0086]（持平）；pairs3 geoR 0.9662
+  CI [0.8715, 1.039]（3W/2L，含 0.795 大胜与 1.080 大败，高方差）。
+- **accepted_links=0 全臂**：执行缺陷定位——`_links` 取了 24 张证书
+  （每块对 8 个共享变量 → 8 张重复证书）而非 3 个唯一块对，25% 上限
+  被摊成 24×4.7k FE 的重复 scope 会话，warm-up 不足全部零写回。
+  冻结协议字面（"all T0-certified links"）被执行成了证书级；README
+  本意（每链接 20k FE）是块对级。判定按冻结协议如实记录 false。
+- v6 = 去重修正（唯一块对 × 完整 20k FE/对），已启动。
+
+## shared_transaction_v6 screen：判负，第三个机制事实锁定（2026-08-24）
+
+`artifacts/upgrade_shared_transaction_v6_screen_v1`（20 ctp 臂零失败，
+scope 正确：3 唯一块对 × 200 维 × 20k FE）：chain4 geoR 0.9878
+CI [0.957, 1.0165]；pairs3 geoR 0.999 CI [0.9617, 1.0659]；
+**accepted_links 仍为 0（全部 30 个联合会话）**——全新 coverage 配方
+会话在 20k FE 内无法赢得一次 strict-best 写回。
+
+**机制事实三联**（v1-v6 收据收敛）：(1) 互斥划分不表达共享变量值冲突
+（仲裁无输入）；(2) 一次性边界干预（微窗口或重启会话）无法对抗
+2.82M FE 轨迹的扰动方差；(3) 全新重启会话竞争不过宿主的持久机制
+（coverage 的 853 次写回来自交错持久状态）。唯一稳定正信号：v2 的
+重对中修复本身总是被接受（4/4×全臂），失败在时机与频率。
+
+**v7（证据链终点设计）**：逐访问连续协调——owner 块每次 stateful
+visit 结束后，对其认证链接的共享坐标各做一次 3-FE 二次拟合重对中
+（每次 visit ≤24 FE，全程 ≤1% Phase-II 预算硬上限，超限即停）。
+确定性时刻表、零在线选择信号、strict-best-only；对应 FEA/OCC 文献的
+周期性共享变量同步，把 v2 的有效局部修复聚合到访问尺度。
+
+## v7 逐访问重对中 screen：最强正信号；统计口径 bug 修正；v8 fresh-seed 确认启动（2026-08-24）
+
+`artifacts/upgrade_shared_transaction_v7_screen_v1`（20 smp 臂零失败）：
+
+- **pairs3-strong geoR 0.8801**（4W/1L，胜例 0.79–0.85×，即 12–21% 终值改善），
+  412 次重对中被 strict-best 接受、内核仅耗 2.2k FE（≤1% 上限内）；
+  chain4 geoR 0.9861（2W/3L，79 次接受，48 FE/run）。
+- **统计口径修正**：`_paired_bootstrap` 返回 log 尺度，而 strict_win 判据
+  直接与其比较线性阈值 1.0（bug 继承自 v1 T3 模块）。修正为 exp() 后比较，
+  阈值未动；五个受影响模块全部修正并重算——v1–v6 判定不变（皆大边距失败），
+  **v7 按正确口径 CI 上界 1.0041 > 1.0，差 0.0041 未过**（初版误报 pass 已撤回）。
+- v8 = v7 机制原样（内核别名导入）、修正统计、预注册 fresh seeds
+  20270511-15（从未运行过、on-the-fly T0 认证）的确认战役；判定不重用
+  v7 的 5 个 screen seeds。confirmation 战役运行中。
+
+## v8 fresh-seed 确认：判负，v7 信号未复现——八候选证据链闭环（2026-08-24）
+
+`artifacts/upgrade_shared_transaction_v8_confirm_v1`（20 臂零失败，
+seeds 20270511-15，on-the-fly T0 认证全过）：
+
+- chain4 geoR 1.0983 CI [0.9442, 1.325]；pairs3 geoR 1.0368
+  CI [0.9231, 1.1571]；非劣与 reachability 绿；strict_win=false。
+- v7 screen 的 pairs3 强信号（0.8801）在从未运行过的 seeds 上未复现；
+  合并 n=10：pairs3 geoR 0.9553 CI [0.8692, 1.0536]——微弱正漂移，
+  远低于预注册门槛。
+- 机制接受修复 894 次（pairs3）/72 次（chain4），内核 FE ≤1% 上限内——
+  **局部修复总是被接受，但 ≤1% 预算的连续微协调无法主导宿主轨迹方差。
+  尺度公理的最终确认。**
+
+**八候选总结**（v1 仲裁退化 / v2 微窗口方差 / v3v4 晚期无空间 /
+v5v6 重启零写回 / v7v8 逐访问不复现）：在冻结四动作架构内、generator
+cells 上、按预注册严格判据，任何边界/访问尺度的共享变量协调机制
+都无法清除 0.95&CI 门槛——宿主预算结构对这些 cell 已近最优。
+正资产：T0 认证仪器（PASSED）、T1 零税仪器与写回集中发现、
+互斥划分不表达值冲突的结构性发现、以及八份完整判定书。
+下一步候选（未启动）：evidence-sinking E1（CTP tail 的证据条件化，
+G3 机制证据 geo 0.2897，唯一未消耗的历史正收益点）。
+
+## evidence_sinking_e1_v1：判负，G3 未配对证据不可迁移的边界预测兑现（2026-08-24）
+
+`artifacts/upgrade_evidence_sinking_e1_v1`（30 Phase-I + 60 臂零失败，
+seeds 20270601-05 全新，机制 = tail 份额 0.20×(1+min(1, mean_strength/0.08))
+运行前常量替换，S1 恒等按构造成立）：
+
+- **S1 逐位恒等 ✓（5/5 seeds，final/route/hash 全同）**——保守默认公理
+  再次完美保持。
+- **S2-S5 非劣 FAIL**：S3 geoR 1.7276 CI [1.376, 2.305]、S4 1.3912
+  CI [1.135, 1.700]（均显著回归）；S5 1.108；S2 1.049（方差极大
+  0.553–2.065）。
+- S6 geoR 0.9965 CI [0.772, 1.228]（持平，未达 0.98）。
+- **机制解读**：加大 MMES 尾 = 偷走 relation-cover polish，而 polish 的
+  边际价值在 S3/S4 高于尾部。G3 的 0.2897 是"尾 vs 无尾"的存在性证据，
+  不是">20%"的剂量证据；v4.0 计划预注册的边界预测（"若配对后不兑现，
+  如实记录为未配对机制证据不可迁移"）兑现。按止损线：E1 关闭，
+  CTP tail 保持冻结 20%。
+- 运行注记：战役曾被宿主环境中断一次（40/60），--resume 续跑完成，
+  零失败、零重复臂。
+
+**九候选全景（v1-v8 + E1）**：全部按冻结协议判定，无一通过；每份
+失败都有收据级根因；生产默认全程 frozen（非劣底线严格保持）。
+剩余未消耗的候选方向：E2（SMP 预算连续化）/E3（GCB source window
+加权）——同杠杆类但先验弱于 E1（E1 是唯一有历史正收益点支撑的）；
+或转入论文线（C1-C6 + 九候选边界地图 + T0 认证仪器）。
+
+## 外部代码审阅（51 文件快照）逐条裁定（2026-08-24）
+
+来源：用户提交的独立审阅（基于不完整上传快照，无运行环境）。逐条对照
+真实仓库核实：
+
+| # | 审阅主张 | 裁定 | 证据 |
+|---|---|---|---|
+| P0-1 | coordination/state.py 缺失，run_arac_oc 无法导入 | **证伪（快照伪影）** | 文件存在于 src/arac/coordination/state.py；T1/E1 战役刚跑通大量生产导入 |
+| P0-2 | Phase-I 混合差分步长不一致，可分函数产生非零残差 | **证实（数学边界，非实效 bug）** | phase1.py:135/146：单块步长 c·s/√n vs 联合 c·s/√(n_l+n_r)；均匀 span 下残差为常数被 median+3MAD 稳健阈值裁掉（零关系 case 实测 0 关系佐证）；非均匀 span/elliptic 条件下伪关系原理上可越阈——Phase-I 的可分性保证依赖稳健阈值而非精确零残差 |
+| P0-3 | 非零 optimum 产生伪交互 | **证实（已知已文档化）** | generator v3 强零最优值约定（2026-08-23 进度日志）；本审阅独立再发现 |
+| P0-4 | sparse pilot 默认 315k FE > 180k 上限 | 属实但作用于 **OC 线（已被恢复基线取代），非冻结四动作链** | pilot 只被 overlap_core/phase1_overlap_pilot 引用 |
+| P0-5 | OC loop value gate 回滚丢弃已观察最优点 | **证实（OC 线语义）** | loop.py:519-527：operator_value_ratio 未达即 restore_archive——违反 best-observed 不变量；恢复基线链（strict-best 永不回退）无此问题 |
+| P0-6 | SMP hybrid rescue/GCB 异质 population 崩溃路径 | **未验证（需定向复现）** | 边缘拓扑下的可达性主张，尚未复现 |
+| P0-7 | Shared Patch 入口 NameError 等 | **证实为潜伏死代码** | loop.py:24 只 import dataclass 非 dataclasses 模块，:494 调用 dataclasses.replace 必 NameError——但 patch 默认关且 P1-P4 已按协议退役，分支不可达 |
+| P0-8 | v2 snapshot 序列化未初始化 scratch | **未证实** | optimizers.py:425 y=np.full 初始化（非垃圾内存）；hash 不稳定主张需复现 |
+| 边界 | additive conflicting ownership 聚合目标不可辨识 | **证实并与 Gate 54a 独立收敛** | 审阅者的 (x−a)²+(x−b)² 等价性与 54a 的 Σw(v−o)²=(Σw)(v−m)²+const 同构；其"oracle 结构下 conflict_score=0"推论与 v1-T3 的 proposal 恒退化收据完全吻合——两个独立分析强化同一结论 |
+
+**处置**（映射治理结构）：冻结锚不动（经验行为已被逐位复现锚定）；
+P0-5/P0-7 在 OC 线——标注 retired 或修复进 upgrade 命名空间；
+P0-2/P0-3 写入论文诚实边界节（Phase-I 适用边界：近零 optimum +
+稳健阈值脆弱性）；P0-6/P0-8 立定向复现任务后再定。
+
+## 论文入口复活：P0-4 实证 + blessed 配置确认（2026-08-24）
+
+- **P0-4 逐位证实并在当前 HEAD 实证复现**：sparse screening 默认参数
+  （bucket_size=8、rounds=8、5 anchors）在 1000 维需 315,040 FE >
+  Phase-I 180,000 上限；`run_arac_oc` 默认参数在 S3 上以
+  "overlap discovery did not populate the Phase-I archive" 崩溃
+  （discovery 预算不足返回零消费 incomplete → 空 ledger 异常）。
+  OC 论文入口默认不可用，与外审 P0-4 一致。
+- **blessed 配置定位**：`aob24_overlap_applicability_audit.py` 的
+  PHASE1_KWARGS（anchor_count=5、step=0.25、rounds=12、bucket_size=16、
+  max_candidate_pairs=128）是历史上跑通 1000 维 AOB-24 的调用形态，
+  screening 预算 121,020 ≤ 180k。S3 冒烟（当前 HEAD、完整 3M OC 管线、
+  seed 20260824）已启动。
+- 处置方向：论文入口文档必须显式携带 phase1_kwargs（默认参数是
+  小维度设计遗留）；是否把默认值修为 blessed 配置待裁决
+  （会改变依赖默认值的历史脚本行为）。
+
+## 论文入口复现地图：C1/C3 在当前 HEAD 活体复现（2026-08-24）
+
+用户裁决：AOB 之外（校准 cell）的入口冒烟无意义——据此停止并改走
+AOB 主张的活体复验。结果（详见 docs/arac-oc-paper-reproduction-map.md）：
+
+- **C1/C2 ✅ 活体复现**：soft-RDDSM 发现 on AOB 六 case（当前 HEAD、
+  `artifacts/upgrade_paper_entry_c1_headrev_v1`）——召回 0.789(R6)–
+  1.000(R2) 与冻结区间逐端点吻合、精度 1.0 全程、E1/R1 零误报、
+  预算逐笔对账。
+- **C3 ✅ 活体复现**：Gate 41a 离线评估（`upgrade_paper_entry_c3_headrev_v1`）
+  四检查全绿（21/3 vs HCC、geo 0.0645、oracle 命中 ≥0.95、全 case
+  ≤1.10× 历史列）；其活体基质（四臂 AOB 执行）由 T1 identity 逐位
+  一致早已证实。
+- **入口地图澄清**：C4=24 维受控生成器主张（边界 #5）；统一 OC 循环
+  非 AOB 入口（边界 #2）且默认 pilot 参数在 1000 维崩溃（P0-4 实证，
+  blessed kwargs 必须显式传递）；C5 只能从 tag v5.3-prealation 复现
+  （episodes 已删，runner 断裂）；P0-5/P0-7 默认配置均不可达。

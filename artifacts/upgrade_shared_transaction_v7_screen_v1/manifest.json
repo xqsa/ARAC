@@ -1,0 +1,22 @@
+{
+  "candidate_id": "shared_transaction_v7",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "d94e42f975ab84b1603e58dd0ed99ffd5cfe5ce41b621c6253315b68336db277",
+  "protocol_sha256": "185d35473d86577b50f5353ec2be437776d8a03875e24af4f8758f7ccb30417b",
+  "schema_version": "arac-upgrade-shared-transaction-v7-manifest-v1",
+  "stage": "screen",
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

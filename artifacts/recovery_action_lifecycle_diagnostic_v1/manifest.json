@@ -1,0 +1,46 @@
+{
+  "cases": [
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6"
+  ],
+  "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+  "created_at_utc": "2026-08-22T14:51:13.954713+00:00",
+  "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+  "manifest_sha256": "82c126629ea411fe536616268d757468715b9f53d01101e488b7a31bf7bf5343",
+  "patch_enabled": false,
+  "protocol_sha256": "3c1b67b30d00ff75480783e661356cef731e9e088743872d2d6e573a6c7173b9",
+  "schema_version": "arac-recovery-action-lifecycle-diagnostic-manifest-v1",
+  "seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "selector_enabled": false,
+  "soft_routing_enabled": false,
+  "source_sha256": {
+    "artifacts/historical_recovery_fixed_expert_v1/frozen_protocol/sources/gcb.py": "e8efc9f33a5baaae184be1b5315f6fe65643b89a574249cd5595d1791f7c3b5d",
+    "artifacts/historical_recovery_fixed_expert_v1/frozen_protocol/sources/smp.py": "eab855446aa885af3497c503cd4eefded41a3fc2f4083ddcbdc324500b4587cd",
+    "experiments/historical_recovery/recovery_action_lifecycle_diagnostic.py": "36e16361a7206345b53cebdcb43aa9af021b9adb363cd53c2a637ea9f2fac8d1",
+    "experiments/historical_recovery/recovery_action_lifecycle_diagnostic_protocol_v1.json": "3c1b67b30d00ff75480783e661356cef731e9e088743872d2d6e573a6c7173b9",
+    "src/arac/actions/_execution.py": "cb8d6d533537c88d90a2d9b8af6cf97af1aac195ebc263aeeb3de779e3d0bd13",
+    "src/arac/actions/gcb.py": "097cd7a1117fd524b35f21cc7771fec94af5428446acae0f5ff971b2e03aae82",
+    "src/arac/actions/recovered.py": "2f131d763a63916cf6fadfe17a0c7b0b0e48af48fc7f544011682288c10944b5",
+    "src/arac/runtime/contracts.py": "c17bc689584b1842f6d9362c52d235243df4e5bc8baaf525606ca4e9c3432fc5",
+    "src/arac/runtime/ledger.py": "ee01bf317ebb5da8a33c86d69f025d9487667e1ddcada7d62592dade34f2a8e0"
+  },
+  "variants": [
+    "current",
+    "historical_compatible"
+  ]
+}

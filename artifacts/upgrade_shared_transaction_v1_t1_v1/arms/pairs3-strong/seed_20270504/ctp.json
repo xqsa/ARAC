@@ -1,0 +1,388 @@
+{
+  "action_result_hash": "886b87c9eb2514f597509b115ac611e8cb05ee401aa61cd345b87ceeb24639d2",
+  "action_seed": 314159,
+  "cell_id": "pairs3-strong",
+  "census": {
+    "boundary_count": 1,
+    "boundary_phase": "run_sequential_blocks",
+    "link_rows": [
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 8
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 15
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 31
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 34
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 40
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 57
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 71
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 84
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 442
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 456
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 463
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 475
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 478
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 482
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 489
+      },
+      {
+        "both_owners_fresh": true,
+        "owner_blocks": [
+          4,
+          5
+        ],
+        "proposal_owner_count": 2,
+        "proposal_values": {
+          "4": {
+            "commit_fes": 630660,
+            "incumbent_hash_after": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c"
+          },
+          "5": {
+            "commit_fes": 403152,
+            "incumbent_hash_after": "f766d562213ede6a56ed58669ae18cb4f3dad0e56707535a02af5f24be4c213e"
+          }
+        },
+        "variable": 498
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 807
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 815
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 820
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 833
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 839
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 862
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 877
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          8,
+          9
+        ],
+        "proposal_owner_count": 0,
+        "variable": 893
+      }
+    ],
+    "links_with_both_owners": 8,
+    "max_patch_fe": 8,
+    "native_phase_count": 3,
+    "qualified_boundary_count": 1,
+    "reanchor_all_proven": true,
+    "reanchor_rows": [
+      {
+        "entry_fes": 631200,
+        "first_session_anchor_hash": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c",
+        "first_session_birth_fes": 631200,
+        "incumbent_hash_at_birth": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c",
+        "incumbent_hash_at_entry": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c",
+        "reanchor_proven": true
+      }
+    ],
+    "source_improvement_count": 840,
+    "source_phase": "run_persistent_blocks",
+    "source_proposal_blocks": [
+      2,
+      4,
+      5
+    ]
+  },
+  "certificate_link_count": 24,
+  "checkpoint_hash": "b6a42237b70add906efc4fca58c24b79734b71db9228c979d6a7cf016c6af80d",
+  "elapsed_seconds": 825.411688,
+  "final_error": 143.31042455788702,
+  "host": "ctp",
+  "initial_error": 57414.04028914031,
+  "instrumentation": {
+    "improvement_count": 31883,
+    "phases": [
+      {
+        "entry_fes": 180000,
+        "exit_fes": 631200,
+        "incumbent_error_at_entry": 57414.04028914031,
+        "incumbent_hash_at_entry": "709e28497506b2de46e60053069bdd614af8c576c8c91a515528c46463f11218",
+        "namespace": null,
+        "tag": "run_persistent_blocks"
+      },
+      {
+        "entry_fes": 631200,
+        "exit_fes": 2435964,
+        "incumbent_error_at_entry": 50327.687172047794,
+        "incumbent_hash_at_entry": "34d7fdf493ea464f0ced7282bb02bc074d86ce2e42af248a0c28b204a6b85f5c",
+        "namespace": null,
+        "tag": "run_sequential_blocks"
+      },
+      {
+        "entry_fes": 2435964,
+        "exit_fes": 3000000,
+        "incumbent_error_at_entry": 296.8313855873421,
+        "incumbent_hash_at_entry": "d1d66a6ea7f928afafa8d56e8a4cf2dfdaf66825cf91163667fff3c0353c5606",
+        "namespace": "ctp-relation-mmes-tail",
+        "tag": "run_full_space"
+      }
+    ],
+    "session_count": 23,
+    "timeline_rows": 41780
+  },
+  "lane": "generator",
+  "manifest_sha256": "f8ab02e8e9e7be29c8321e3464923493bc46051cb805cec982b213c8b89bf576",
+  "receipt_hash": "e62c9dd2a97af7f714ca3a572a8808f4592cfd47345b3f166a06f805c26ade93",
+  "route": "coverage_451200_then_relation_cover_polish_1804764_then_mmes_tail_564036",
+  "run_seed": 20270504,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t1-arm-receipt-v1"
+}

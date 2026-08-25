@@ -1,0 +1,852 @@
+{
+  "candidate_id": "pairwise_edge_ctp_v1",
+  "cell": "chain4-strong",
+  "conclusion": "pair-specific residual evidence separates chain links",
+  "diagnostic_only": true,
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "performance_claim_authorized": false,
+  "result_hash": "88c02c4d37dc211377899d0d3e97e2041bf9a51921b47e851589fe85eb1301eb",
+  "schema_version": "arac-upgrade-chain-diagnostic-summary-v1",
+  "seed_rows": [
+    {
+      "all_links_separable": true,
+      "consumed_fes": 289,
+      "link_rows": [
+        {
+          "isolated_count": 8,
+          "link": [
+            0,
+            1
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 16
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 17
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 32
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 35
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 43
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 48
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 62
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 90
+            }
+          ]
+        },
+        {
+          "isolated_count": 8,
+          "link": [
+            1,
+            2
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 104
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 116
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 147
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 156
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 168
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 169
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 175
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 190
+            }
+          ]
+        },
+        {
+          "isolated_count": 8,
+          "link": [
+            2,
+            3
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 201
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 213
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 216
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 246
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 247
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 254
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 266
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 282
+            }
+          ]
+        }
+      ],
+      "seed": 20270421
+    },
+    {
+      "all_links_separable": true,
+      "consumed_fes": 289,
+      "link_rows": [
+        {
+          "isolated_count": 8,
+          "link": [
+            0,
+            1
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 13
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 17
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 33
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 39
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 40
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 52
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 62
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 90
+            }
+          ]
+        },
+        {
+          "isolated_count": 8,
+          "link": [
+            1,
+            2
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 101
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 106
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 114
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 118
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 141
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 175
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 184
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 197
+            }
+          ]
+        },
+        {
+          "isolated_count": 8,
+          "link": [
+            2,
+            3
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 220
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 223
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 251
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 257
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 261
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 262
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 272
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 280
+            }
+          ]
+        }
+      ],
+      "seed": 20270422
+    },
+    {
+      "all_links_separable": true,
+      "consumed_fes": 289,
+      "link_rows": [
+        {
+          "isolated_count": 8,
+          "link": [
+            0,
+            1
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 2
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 21
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 23
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 25
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 32
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 58
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 59
+            },
+            {
+              "interacts_far_residuals": {
+                "2": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 78
+            }
+          ]
+        },
+        {
+          "isolated_count": 8,
+          "link": [
+            1,
+            2
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 114
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 115
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 120
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 129
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 133
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 136
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 161
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "3": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 165
+            }
+          ]
+        },
+        {
+          "isolated_count": 8,
+          "link": [
+            2,
+            3
+          ],
+          "pairwise_separable": true,
+          "shared_variable_count": 8,
+          "variables": [
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 202
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 210
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 224
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 231
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 252
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 275
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 280
+            },
+            {
+              "interacts_far_residuals": {
+                "0": false,
+                "1": false
+              },
+              "interacts_own_left_residual": true,
+              "interacts_own_right_residual": true,
+              "isolated": true,
+              "variable": 299
+            }
+          ]
+        }
+      ],
+      "seed": 20270423
+    }
+  ]
+}

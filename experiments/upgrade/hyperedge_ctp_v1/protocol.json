@@ -1,0 +1,31 @@
+{
+  "schema_version": "arac-upgrade-hyperedge-ctp-candidate-protocol-v1",
+  "candidate_id": "hyperedge_ctp_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "freeze_protocol": "experiments/historical_recovery/recovered_baseline_freeze_protocol_v1.json",
+  "freeze_verifier_entrypoint": "PYTHONPATH='.;src' ./.venv/Scripts/python -m experiments.historical_recovery.verify_recovered_baseline_freeze verify",
+  "plan_reference": "docs/arac-oc-v5-hyperedge-ctp-upgrade.md",
+  "stage_order": ["t0", "h0", "h1", "h2", "aob_preservation"],
+  "baseline_defaults": {
+    "patch_enabled": false,
+    "soft_routing_enabled": false,
+    "selector_enabled": false
+  },
+  "lane_rules": {
+    "upgrade_code_namespace": "experiments/upgrade/hyperedge_ctp_v1/",
+    "frozen_source_editable": false,
+    "artifact_override": false,
+    "max_workers": 16,
+    "native_threads": 1,
+    "total_budget_fes": 3000000,
+    "phase1_fes": 180000,
+    "paired_ratio": "R = exp(mean(log(max(e_c,1e-300)/max(e_b,1e-300)))); 10,000 resamples paired bootstrap 95% CI; candidate and baseline arms of a pair share the checkpoint and the action seed",
+    "fail_closed": "any uncertified or contract-violating structure takes the corresponding mechanism-free path"
+  },
+  "touch_boundary": "frozen sources, Phase-I v9, selector, AOR, SMP, GCB are never modified; no reorder, online credit, soft routing, z/u/r state, ADMM or dynamic budget allocation is introduced; the candidate stays default-off until every gate passes",
+  "seed_registry_note": "seeds 20270101-20270125 are registered by experiments/historical_recovery/current_selector_fresh_e2e_protocol.json (a selector lane that was never executed and has no artifacts); the v5.0 plan explicitly assigns 20270111-20270115 to T0 and 20270101-20270103 to H0 discovery - the overlap is recorded here rather than silently ignored, and the two lanes share no artifacts",
+  "runtime_environment": {
+    "required_interpreter": "E:/ARAC/.venv/Scripts/python.exe",
+    "required_blas_prefixes": ["libscipy_openblas"]
+  }
+}

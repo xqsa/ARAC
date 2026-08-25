@@ -1,0 +1,307 @@
+{
+  "action_result_hash": "d084eb770e1d1a175a17fe58e69b4871d44f7612c6e71fa2258c5d9f9c9b0ebe",
+  "action_seed": 314159,
+  "cell_id": "chain4-strong",
+  "census": {
+    "boundary_count": 1,
+    "boundary_phase": "run_sequential_blocks",
+    "link_rows": [
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 2
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 3
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 20
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 37
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 58
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 60
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 74
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          0,
+          1
+        ],
+        "proposal_owner_count": 0,
+        "variable": 82
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 114
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 148
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 151
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 166
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 171
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 173
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 175
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          1,
+          2
+        ],
+        "proposal_owner_count": 0,
+        "variable": 179
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 212
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 232
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 236
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 242
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 245
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 246
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 258
+      },
+      {
+        "both_owners_fresh": false,
+        "owner_blocks": [
+          2,
+          3
+        ],
+        "proposal_owner_count": 0,
+        "variable": 282
+      }
+    ],
+    "links_with_both_owners": 0,
+    "max_patch_fe": 0,
+    "native_phase_count": 3,
+    "qualified_boundary_count": 0,
+    "reanchor_all_proven": true,
+    "reanchor_rows": [
+      {
+        "entry_fes": 631200,
+        "first_session_anchor_hash": "caa963a1a0d26a5315624e97b0476b5016f3e2bcba698541f1282c8270fe8e41",
+        "first_session_birth_fes": 631200,
+        "incumbent_hash_at_birth": "caa963a1a0d26a5315624e97b0476b5016f3e2bcba698541f1282c8270fe8e41",
+        "incumbent_hash_at_entry": "caa963a1a0d26a5315624e97b0476b5016f3e2bcba698541f1282c8270fe8e41",
+        "reanchor_proven": true
+      }
+    ],
+    "source_improvement_count": 913,
+    "source_phase": "run_persistent_blocks",
+    "source_proposal_blocks": [
+      5,
+      6
+    ]
+  },
+  "certificate_link_count": 24,
+  "checkpoint_hash": "740f2e9b826ac6bf65fe6b2771bbd630ec26d9095d3a6bd5e26288b425c2abeb",
+  "elapsed_seconds": 842.652908,
+  "final_error": 134.64082069089636,
+  "host": "ctp",
+  "initial_error": 53333.34080680157,
+  "instrumentation": {
+    "improvement_count": 32459,
+    "phases": [
+      {
+        "entry_fes": 180000,
+        "exit_fes": 631200,
+        "incumbent_error_at_entry": 53333.34080680157,
+        "incumbent_hash_at_entry": "8467286dfa572da5fe637017f652c44239709bd1d690a94bdcbdcbb38019c8bc",
+        "namespace": null,
+        "tag": "run_persistent_blocks"
+      },
+      {
+        "entry_fes": 631200,
+        "exit_fes": 2435964,
+        "incumbent_error_at_entry": 46457.19173680851,
+        "incumbent_hash_at_entry": "caa963a1a0d26a5315624e97b0476b5016f3e2bcba698541f1282c8270fe8e41",
+        "namespace": null,
+        "tag": "run_sequential_blocks"
+      },
+      {
+        "entry_fes": 2435964,
+        "exit_fes": 3000000,
+        "incumbent_error_at_entry": 278.13406759127975,
+        "incumbent_hash_at_entry": "0252375270b0cc97ae7cb9c0c7a1edcf119cb1da08ebc139f7f5d2871dde2149",
+        "namespace": "ctp-relation-mmes-tail",
+        "tag": "run_full_space"
+      }
+    ],
+    "session_count": 23,
+    "timeline_rows": 42073
+  },
+  "lane": "generator",
+  "manifest_sha256": "f8ab02e8e9e7be29c8321e3464923493bc46051cb805cec982b213c8b89bf576",
+  "receipt_hash": "17a0f089a3f4be8c4673fb6e809111578d8abbe87115c1456f70a087ee300892",
+  "route": "coverage_451200_then_relation_cover_polish_1804764_then_mmes_tail_564036",
+  "run_seed": 20270504,
+  "runtime": {
+    "numpy_version": "2.3.5",
+    "python_executable": "E:\\ARAC\\.venv\\Scripts\\python.exe",
+    "threadpools": [
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      },
+      {
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas"
+      }
+    ]
+  },
+  "schema_version": "arac-upgrade-shared-transaction-t1-arm-receipt-v1"
+}

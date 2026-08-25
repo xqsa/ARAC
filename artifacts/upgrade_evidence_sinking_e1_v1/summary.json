@@ -1,0 +1,380 @@
+{
+  "candidate_id": "evidence_sinking_e1_v1",
+  "case_rows": [
+    {
+      "all_pairs_bitwise_identical": true,
+      "case_id": "S1",
+      "ci95_exp": [
+        1.0,
+        1.0
+      ],
+      "geometric_mean_ratio": 1.0,
+      "pairs": [
+        {
+          "a0_final": 6.096224784550046e-07,
+          "a1_final": 6.096224784550046e-07,
+          "applied_share": 0.2,
+          "bitwise_identical": true,
+          "log_ratio": 0.0,
+          "route_a0": "coverage_564000_then_sequential_block_polish_2256000",
+          "route_a1": "coverage_564000_then_sequential_block_polish_2256000",
+          "seed": 20270601
+        },
+        {
+          "a0_final": 1.24056690220698e-06,
+          "a1_final": 1.24056690220698e-06,
+          "applied_share": 0.2,
+          "bitwise_identical": true,
+          "log_ratio": 0.0,
+          "route_a0": "coverage_564000_then_sequential_block_polish_2256000",
+          "route_a1": "coverage_564000_then_sequential_block_polish_2256000",
+          "seed": 20270602
+        },
+        {
+          "a0_final": 1.1022582108275809e-06,
+          "a1_final": 1.1022582108275809e-06,
+          "applied_share": 0.2,
+          "bitwise_identical": true,
+          "log_ratio": 0.0,
+          "route_a0": "coverage_564000_then_sequential_block_polish_2256000",
+          "route_a1": "coverage_564000_then_sequential_block_polish_2256000",
+          "seed": 20270603
+        },
+        {
+          "a0_final": 3.081544419660943e-07,
+          "a1_final": 3.081544419660943e-07,
+          "applied_share": 0.2,
+          "bitwise_identical": true,
+          "log_ratio": 0.0,
+          "route_a0": "coverage_564000_then_sequential_block_polish_2256000",
+          "route_a1": "coverage_564000_then_sequential_block_polish_2256000",
+          "seed": 20270604
+        },
+        {
+          "a0_final": 3.783206649640758e-07,
+          "a1_final": 3.783206649640758e-07,
+          "applied_share": 0.2,
+          "bitwise_identical": true,
+          "log_ratio": 0.0,
+          "route_a0": "coverage_564000_then_sequential_block_polish_2256000",
+          "route_a1": "coverage_564000_then_sequential_block_polish_2256000",
+          "seed": 20270605
+        }
+      ]
+    },
+    {
+      "all_pairs_bitwise_identical": false,
+      "case_id": "S2",
+      "ci95_exp": [
+        0.714856118139255,
+        1.60490348216076
+      ],
+      "geometric_mean_ratio": 1.0486039259898103,
+      "pairs": [
+        {
+          "a0_final": 205.69446097099166,
+          "a1_final": 113.74507365915805,
+          "applied_share": 0.30913079118151615,
+          "bitwise_identical": false,
+          "log_ratio": -0.5924321201886158,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804680_then_mmes_tail_564120",
+          "route_a1": "coverage_389520_then_relation_cover_polish_1558440_then_mmes_tail_872040",
+          "seed": 20270601
+        },
+        {
+          "a0_final": 1091.5203583569119,
+          "a1_final": 1618.9509736248735,
+          "applied_share": 0.3343786239122249,
+          "bitwise_identical": false,
+          "log_ratio": 0.3942068437918748,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804680_then_mmes_tail_564120",
+          "route_a1": "coverage_375360_then_relation_cover_polish_1501200_then_mmes_tail_943440",
+          "seed": 20270602
+        },
+        {
+          "a0_final": 821.6973971764106,
+          "a1_final": 754.3488898530549,
+          "applied_share": 0.24325336808973597,
+          "bitwise_identical": false,
+          "log_ratio": -0.08551721769930526,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804680_then_mmes_tail_564120",
+          "route_a1": "coverage_426720_then_relation_cover_polish_1706940_then_mmes_tail_686340",
+          "seed": 20270603
+        },
+        {
+          "a0_final": 695.5204697249476,
+          "a1_final": 567.1740351105999,
+          "applied_share": 0.2520340614591391,
+          "bitwise_identical": false,
+          "log_ratio": -0.2039942457366125,
+          "route_a0": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192",
+          "route_a1": "coverage_421800_then_relation_cover_polish_1687392_then_mmes_tail_710808",
+          "seed": 20270604
+        },
+        {
+          "a0_final": 194.4305389150958,
+          "a1_final": 401.46089789810134,
+          "applied_share": 0.3074838987356339,
+          "bitwise_identical": false,
+          "log_ratio": 0.7250351657288637,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804704_then_mmes_tail_564096",
+          "route_a1": "coverage_390480_then_relation_cover_polish_1562352_then_mmes_tail_867168",
+          "seed": 20270605
+        }
+      ]
+    },
+    {
+      "all_pairs_bitwise_identical": false,
+      "case_id": "S3",
+      "ci95_exp": [
+        1.3757020852699884,
+        2.3051481622512715
+      ],
+      "geometric_mean_ratio": 1.7276053749084357,
+      "pairs": [
+        {
+          "a0_final": 997.2227719870893,
+          "a1_final": 1865.804343871459,
+          "applied_share": 0.34398397401804665,
+          "bitwise_identical": false,
+          "log_ratio": 0.6264733353627215,
+          "route_a0": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192",
+          "route_a1": "coverage_369816_then_relation_cover_polish_1479744_then_mmes_tail_970440",
+          "seed": 20270601
+        },
+        {
+          "a0_final": 1835.361910553533,
+          "a1_final": 2858.4802407580223,
+          "applied_share": 0.3193079069352651,
+          "bitwise_identical": false,
+          "log_ratio": 0.44304841072707657,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804680_then_mmes_tail_564120",
+          "route_a1": "coverage_383760_then_relation_cover_polish_1535760_then_mmes_tail_900480",
+          "seed": 20270602
+        },
+        {
+          "a0_final": 988.4695576609356,
+          "a1_final": 1313.682262035842,
+          "applied_share": 0.2594566235667082,
+          "bitwise_identical": false,
+          "log_ratio": 0.28443151445225295,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_417528_then_relation_cover_polish_1670400_then_mmes_tail_732072",
+          "seed": 20270603
+        },
+        {
+          "a0_final": 458.1486382539736,
+          "a1_final": 613.1738310233355,
+          "applied_share": 0.23519252049544967,
+          "bitwise_identical": false,
+          "log_ratio": 0.2914548008641625,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_431136_then_relation_cover_polish_1725600_then_mmes_tail_663264",
+          "seed": 20270604
+        },
+        {
+          "a0_final": 552.2197382269828,
+          "a1_final": 1639.61928184757,
+          "applied_share": 0.3611970167107192,
+          "bitwise_identical": false,
+          "log_ratio": 1.0882733050896523,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804704_then_mmes_tail_564096",
+          "route_a1": "coverage_360240_then_relation_cover_polish_1440912_then_mmes_tail_1018848",
+          "seed": 20270605
+        }
+      ]
+    },
+    {
+      "all_pairs_bitwise_identical": false,
+      "case_id": "S4",
+      "ci95_exp": [
+        1.1346016526724045,
+        1.6998576713912041
+      ],
+      "geometric_mean_ratio": 1.391242351450239,
+      "pairs": [
+        {
+          "a0_final": 2078.8944657245697,
+          "a1_final": 3106.1578195838265,
+          "applied_share": 0.34565864298444765,
+          "bitwise_identical": false,
+          "log_ratio": 0.4015502890843679,
+          "route_a0": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192",
+          "route_a1": "coverage_368904_then_relation_cover_polish_1476216_then_mmes_tail_974880",
+          "seed": 20270601
+        },
+        {
+          "a0_final": 1572.641406703736,
+          "a1_final": 2818.9736587148104,
+          "applied_share": 0.3188204839898113,
+          "bitwise_identical": false,
+          "log_ratio": 0.5836162375721813,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804680_then_mmes_tail_564120",
+          "route_a1": "coverage_384000_then_relation_cover_polish_1536840_then_mmes_tail_899160",
+          "seed": 20270602
+        },
+        {
+          "a0_final": 707.7894765816334,
+          "a1_final": 815.0108031854132,
+          "applied_share": 0.274299587739354,
+          "bitwise_identical": false,
+          "log_ratio": 0.14105466857960147,
+          "route_a0": "coverage_450984_then_relation_cover_polish_1804968_then_mmes_tail_564048",
+          "route_a1": "coverage_409260_then_relation_cover_polish_1636752_then_mmes_tail_773988",
+          "seed": 20270603
+        },
+        {
+          "a0_final": 4223.767629392548,
+          "a1_final": 4151.717224059893,
+          "applied_share": 0.25811730898748786,
+          "bitwise_identical": false,
+          "log_ratio": -0.01720549532414346,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_418392_then_relation_cover_polish_1673280_then_mmes_tail_728328",
+          "seed": 20270604
+        },
+        {
+          "a0_final": 2259.0285148009298,
+          "a1_final": 3884.1524101094474,
+          "applied_share": 0.4,
+          "bitwise_identical": false,
+          "log_ratio": 0.5419699300010653,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804704_then_mmes_tail_564096",
+          "route_a1": "coverage_338400_then_relation_cover_polish_1353264_then_mmes_tail_1128336",
+          "seed": 20270605
+        }
+      ]
+    },
+    {
+      "all_pairs_bitwise_identical": false,
+      "case_id": "S5",
+      "ci95_exp": [
+        0.8786360703218044,
+        1.3572632039211632
+      ],
+      "geometric_mean_ratio": 1.108268229027393,
+      "pairs": [
+        {
+          "a0_final": 4146.11509154751,
+          "a1_final": 4268.939889301731,
+          "applied_share": 0.4,
+          "bitwise_identical": false,
+          "log_ratio": 0.029193753644582498,
+          "route_a0": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192",
+          "route_a1": "coverage_338352_then_relation_cover_polish_1353240_then_mmes_tail_1128408",
+          "seed": 20270601
+        },
+        {
+          "a0_final": 8203.53597806481,
+          "a1_final": 11121.046538700464,
+          "applied_share": 0.3523332659925922,
+          "bitwise_identical": false,
+          "log_ratio": 0.30427411942643695,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804680_then_mmes_tail_564120",
+          "route_a1": "coverage_365280_then_relation_cover_polish_1460700_then_mmes_tail_994020",
+          "seed": 20270602
+        },
+        {
+          "a0_final": 3060.2967281475508,
+          "a1_final": 4496.014546695583,
+          "applied_share": 0.4,
+          "bitwise_identical": false,
+          "log_ratio": 0.3846794668152877,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_338256_then_relation_cover_polish_1353600_then_mmes_tail_1128144",
+          "seed": 20270603
+        },
+        {
+          "a0_final": 5411.5986441360365,
+          "a1_final": 3799.790690496429,
+          "applied_share": 0.281207901481987,
+          "bitwise_identical": false,
+          "log_ratio": -0.3535985634323379,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_405216_then_relation_cover_polish_1621440_then_mmes_tail_793344",
+          "seed": 20270604
+        },
+        {
+          "a0_final": 6655.901164182977,
+          "a1_final": 7728.758894784534,
+          "applied_share": 0.4,
+          "bitwise_identical": false,
+          "log_ratio": 0.14944443848222846,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804704_then_mmes_tail_564096",
+          "route_a1": "coverage_338400_then_relation_cover_polish_1353264_then_mmes_tail_1128336",
+          "seed": 20270605
+        }
+      ]
+    },
+    {
+      "all_pairs_bitwise_identical": false,
+      "case_id": "S6",
+      "ci95_exp": [
+        0.7722135607130378,
+        1.2282114084801938
+      ],
+      "geometric_mean_ratio": 0.9964824355977013,
+      "pairs": [
+        {
+          "a0_final": 2161.412293720065,
+          "a1_final": 3118.27051710732,
+          "applied_share": 0.37057125882624176,
+          "bitwise_identical": false,
+          "log_ratio": 0.36651667896725065,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_354888_then_relation_cover_polish_1419840_then_mmes_tail_1045272",
+          "seed": 20270601
+        },
+        {
+          "a0_final": 9861.17653396691,
+          "a1_final": 6564.657405315186,
+          "applied_share": 0.3961700435967205,
+          "bitwise_identical": false,
+          "log_ratio": -0.40690516405901467,
+          "route_a0": "coverage_450984_then_relation_cover_polish_1804824_then_mmes_tail_564192",
+          "route_a1": "coverage_340404_then_relation_cover_polish_1362312_then_mmes_tail_1117284",
+          "seed": 20270602
+        },
+        {
+          "a0_final": 6537.482039001053,
+          "a1_final": 5524.297753742073,
+          "applied_share": 0.27033976380935393,
+          "bitwise_identical": false,
+          "log_ratio": -0.16839594607653563,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_411480_then_relation_cover_polish_1645920_then_mmes_tail_762600",
+          "seed": 20270603
+        },
+        {
+          "a0_final": 7432.625119750365,
+          "a1_final": 8169.469268441404,
+          "applied_share": 0.3739923998465997,
+          "bitwise_identical": false,
+          "log_ratio": 0.09452483584969795,
+          "route_a0": "coverage_451008_then_relation_cover_polish_1804800_then_mmes_tail_564192",
+          "route_a1": "coverage_352944_then_relation_cover_polish_1412160_then_mmes_tail_1054896",
+          "seed": 20270604
+        },
+        {
+          "a0_final": 2808.3789594760997,
+          "a1_final": 3093.3300650223327,
+          "applied_share": 0.4,
+          "bitwise_identical": false,
+          "log_ratio": 0.0966407674273246,
+          "route_a0": "coverage_451200_then_relation_cover_polish_1804704_then_mmes_tail_564096",
+          "route_a1": "coverage_338400_then_relation_cover_polish_1353264_then_mmes_tail_1128336",
+          "seed": 20270605
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "s1_bitwise_identical": true,
+    "s2_s5_non_inferior": false,
+    "s6_strict_win": false
+  },
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": false,
+  "result_hash": "265a5982b463afa8cbfc751a03a17143717fcfb27bb2912c7fb0ba009e6c9b5a",
+  "schema_version": "arac-upgrade-evidence-sinking-e1-summary-v1"
+}

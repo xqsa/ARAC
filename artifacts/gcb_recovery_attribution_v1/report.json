@@ -1,0 +1,1110 @@
+{
+  "all_final_errors_finite": true,
+  "arm_count": 60,
+  "case_summaries": [
+    {
+      "case_id": "R1",
+      "current_better_count": 4,
+      "current_mean": 169065.04454803214,
+      "current_to_historical_geometric_mean_ratio": 0.916822515464482,
+      "historical_compatible_better_count": 1,
+      "historical_compatible_mean": 183023.87945593215,
+      "mean_schedule_delta_current_minus_historical": {
+        "continuation": 132942.4,
+        "coordination": -42936.0,
+        "tail": 1.2,
+        "warmup": -90007.6,
+        "windows": 0.6
+      }
+    },
+    {
+      "case_id": "R2",
+      "current_better_count": 1,
+      "current_mean": 236322.5337070104,
+      "current_to_historical_geometric_mean_ratio": 1.1429442629004625,
+      "historical_compatible_better_count": 4,
+      "historical_compatible_mean": 206636.69736488824,
+      "mean_schedule_delta_current_minus_historical": {
+        "continuation": 145857.8,
+        "coordination": -6301.4,
+        "tail": -5.8,
+        "warmup": -139550.6,
+        "windows": 1.4
+      }
+    },
+    {
+      "case_id": "R3",
+      "current_better_count": 3,
+      "current_mean": 298951.260488193,
+      "current_to_historical_geometric_mean_ratio": 0.9274946007454501,
+      "historical_compatible_better_count": 2,
+      "historical_compatible_mean": 323116.6365196906,
+      "mean_schedule_delta_current_minus_historical": {
+        "continuation": 202360.0,
+        "coordination": -38908.8,
+        "tail": 4.4,
+        "warmup": -163455.6,
+        "windows": 1.8
+      }
+    },
+    {
+      "case_id": "R4",
+      "current_better_count": 2,
+      "current_mean": 351866.18052825105,
+      "current_to_historical_geometric_mean_ratio": 1.064378096061848,
+      "historical_compatible_better_count": 3,
+      "historical_compatible_mean": 330074.865411585,
+      "mean_schedule_delta_current_minus_historical": {
+        "continuation": 320593.2,
+        "coordination": -70704.0,
+        "tail": -3.2,
+        "warmup": -249886.0,
+        "windows": 2.0
+      }
+    },
+    {
+      "case_id": "R5",
+      "current_better_count": 3,
+      "current_mean": 340768.36966919864,
+      "current_to_historical_geometric_mean_ratio": 0.994198287947954,
+      "historical_compatible_better_count": 2,
+      "historical_compatible_mean": 339648.9613264184,
+      "mean_schedule_delta_current_minus_historical": {
+        "continuation": 419845.6,
+        "coordination": -93977.2,
+        "tail": 3.8,
+        "warmup": -325872.2,
+        "windows": 2.0
+      }
+    },
+    {
+      "case_id": "R6",
+      "current_better_count": 1,
+      "current_mean": 381408.8529940945,
+      "current_to_historical_geometric_mean_ratio": 1.0188494817719653,
+      "historical_compatible_better_count": 4,
+      "historical_compatible_mean": 373795.8874898349,
+      "mean_schedule_delta_current_minus_historical": {
+        "continuation": 633037.4,
+        "coordination": -189378.2,
+        "tail": -2.2,
+        "warmup": -443657.0,
+        "windows": 3.6
+      }
+    }
+  ],
+  "decision": {
+    "next_gate": "fresh-seed GCB schedule ablation on R1-R6 or retain current production GCB until a pre-registered schedule passes",
+    "production_gcb_change_authorized": false,
+    "reason": "paired evidence is mixed; current wins R1/R3 while historical-compatible wins R2/R4/R6 and R5 is near tie",
+    "schedule_attribution_complete": true,
+    "uniform_historical_rollback_supported": false
+  },
+  "exact_terminal_fes": true,
+  "mean_schedule_delta_current_minus_historical": {
+    "continuation": 309106.06666666665,
+    "coordination": -73700.93333333333,
+    "tail": -0.3,
+    "warmup": -235404.83333333334,
+    "windows": 1.9
+  },
+  "pair_count": 30,
+  "pairs": [
+    {
+      "case_id": "R1",
+      "checkpoint_hash": "9bbda93d2e42cb9ab5d3900a928a72359200d7981a9c0ffb570a31c298ab6d7e",
+      "current_final_error": 142644.51064973444,
+      "current_schedule": {
+        "continuation": 2244746,
+        "coordination": 151080,
+        "relation": "zero_relation",
+        "tail": 10,
+        "warmup": 424164,
+        "windows": 16
+      },
+      "current_to_historical_ratio": 0.8280868208580252,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 172257.91675072524,
+      "historical_schedule": {
+        "continuation": 2041759,
+        "coordination": 216025,
+        "relation": "zero_relation",
+        "tail": 4,
+        "warmup": 562212,
+        "windows": 16
+      },
+      "run_seed": 117,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 202987,
+        "coordination": -64945,
+        "tail": 6,
+        "warmup": -138048,
+        "windows": 0
+      }
+    },
+    {
+      "case_id": "R1",
+      "checkpoint_hash": "51e90b19b7cc0a6236ad7122b904b3290ea8b211d33f846be3d87fc06de3c2da",
+      "current_final_error": 159646.7381922739,
+      "current_schedule": {
+        "continuation": 2299465,
+        "coordination": 127240,
+        "relation": "zero_relation",
+        "tail": 10,
+        "warmup": 393285,
+        "windows": 17
+      },
+      "current_to_historical_ratio": 0.9754446759936339,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 163665.60002969948,
+      "historical_schedule": {
+        "continuation": 2137698,
+        "coordination": 151908,
+        "relation": "zero_relation",
+        "tail": 8,
+        "warmup": 530386,
+        "windows": 15
+      },
+      "run_seed": 123,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 161767,
+        "coordination": -24668,
+        "tail": 2,
+        "warmup": -137101,
+        "windows": 2
+      }
+    },
+    {
+      "case_id": "R1",
+      "checkpoint_hash": "a2d13a45534333912003dfe695da8522673c77cd2c29e6f42cffa60f055be261",
+      "current_final_error": 153145.34122595456,
+      "current_schedule": {
+        "continuation": 2244928,
+        "coordination": 144464,
+        "relation": "zero_relation",
+        "tail": 14,
+        "warmup": 430594,
+        "windows": 16
+      },
+      "current_to_historical_ratio": 0.7963255955208749,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 192314.98031377795,
+      "historical_schedule": {
+        "continuation": 2138710,
+        "coordination": 156764,
+        "relation": "zero_relation",
+        "tail": 12,
+        "warmup": 524514,
+        "windows": 16
+      },
+      "run_seed": 129,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 106218,
+        "coordination": -12300,
+        "tail": 2,
+        "warmup": -93920,
+        "windows": 0
+      }
+    },
+    {
+      "case_id": "R1",
+      "checkpoint_hash": "d3c653be2e7cc55d61db5a86d8d152a38b96ab7507dacbca53bd49623fc93c94",
+      "current_final_error": 176930.43906092568,
+      "current_schedule": {
+        "continuation": 2219801,
+        "coordination": 143502,
+        "relation": "zero_relation",
+        "tail": 9,
+        "warmup": 456688,
+        "windows": 17
+      },
+      "current_to_historical_ratio": 0.9044872188472423,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 195614.08428349195,
+      "historical_schedule": {
+        "continuation": 2056988,
+        "coordination": 229229,
+        "relation": "zero_relation",
+        "tail": 11,
+        "warmup": 533772,
+        "windows": 16
+      },
+      "run_seed": 135,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 162813,
+        "coordination": -85727,
+        "tail": -2,
+        "warmup": -77084,
+        "windows": 1
+      }
+    },
+    {
+      "case_id": "R1",
+      "checkpoint_hash": "e5f3acb4479aa93458d29bcc8ab9e8c60f8c4168ea017af8ca724c2abb9b0b2a",
+      "current_final_error": 212958.19361127206,
+      "current_schedule": {
+        "continuation": 2213853,
+        "coordination": 140088,
+        "relation": "zero_relation",
+        "tail": 7,
+        "warmup": 466052,
+        "windows": 16
+      },
+      "current_to_historical_ratio": 1.1134089967829222,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 191266.8159019662,
+      "historical_schedule": {
+        "continuation": 2182926,
+        "coordination": 167128,
+        "relation": "zero_relation",
+        "tail": 9,
+        "warmup": 469937,
+        "windows": 16
+      },
+      "run_seed": 141,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 30927,
+        "coordination": -27040,
+        "tail": -2,
+        "warmup": -3885,
+        "windows": 0
+      }
+    },
+    {
+      "case_id": "R2",
+      "checkpoint_hash": "02d8a2d691b7ec74a5fc00eb0050e7ccc6581e193d2409a051783a288ac11a6c",
+      "current_final_error": 248359.48061763335,
+      "current_schedule": {
+        "continuation": 2226187,
+        "coordination": 131262,
+        "relation": "positive_relation_graph",
+        "tail": 7,
+        "warmup": 462544,
+        "windows": 17
+      },
+      "current_to_historical_ratio": 1.1798895432371106,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 210493.839903218,
+      "historical_schedule": {
+        "continuation": 1968861,
+        "coordination": 171692,
+        "relation": "positive_relation_graph",
+        "tail": 11,
+        "warmup": 679436,
+        "windows": 16
+      },
+      "run_seed": 117,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 257326,
+        "coordination": -40430,
+        "tail": -4,
+        "warmup": -216892,
+        "windows": 1
+      }
+    },
+    {
+      "case_id": "R2",
+      "checkpoint_hash": "6ddb74fd69b4a1ff9d43e471f9bdf0570fb2ff811f6401a95e39b1a7c449190a",
+      "current_final_error": 226606.8387602173,
+      "current_schedule": {
+        "continuation": 2195447,
+        "coordination": 143921,
+        "relation": "positive_relation_graph",
+        "tail": 0,
+        "warmup": 480632,
+        "windows": 20
+      },
+      "current_to_historical_ratio": 1.214571392254295,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 186573.50255848328,
+      "historical_schedule": {
+        "continuation": 2219401,
+        "coordination": 99785,
+        "relation": "positive_relation_graph",
+        "tail": 12,
+        "warmup": 500802,
+        "windows": 20
+      },
+      "run_seed": 123,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": -23954,
+        "coordination": 44136,
+        "tail": -12,
+        "warmup": -20170,
+        "windows": 0
+      }
+    },
+    {
+      "case_id": "R2",
+      "checkpoint_hash": "e1fd37cb39887dc3d699e58f5e9621e48fd478433bf30dab1f6a55991ad42372",
+      "current_final_error": 197449.5449743869,
+      "current_schedule": {
+        "continuation": 2197182,
+        "coordination": 142033,
+        "relation": "positive_relation_graph",
+        "tail": 0,
+        "warmup": 480785,
+        "windows": 17
+      },
+      "current_to_historical_ratio": 0.8002621266203966,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 246731.0877352651,
+      "historical_schedule": {
+        "continuation": 2065662,
+        "coordination": 160787,
+        "relation": "positive_relation_graph",
+        "tail": 2,
+        "warmup": 593549,
+        "windows": 16
+      },
+      "run_seed": 129,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 131520,
+        "coordination": -18754,
+        "tail": -2,
+        "warmup": -112764,
+        "windows": 1
+      }
+    },
+    {
+      "case_id": "R2",
+      "checkpoint_hash": "f626185c1ed6d9445ab1b1a077232de53dd01696be72afc75b8bd131ffc8b7d6",
+      "current_final_error": 273570.8032994558,
+      "current_schedule": {
+        "continuation": 2229896,
+        "coordination": 134779,
+        "relation": "positive_relation_graph",
+        "tail": 5,
+        "warmup": 455320,
+        "windows": 20
+      },
+      "current_to_historical_ratio": 1.3927819566527226,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 196420.41023918014,
+      "historical_schedule": {
+        "continuation": 1884916,
+        "coordination": 203251,
+        "relation": "positive_relation_graph",
+        "tail": 7,
+        "warmup": 731826,
+        "windows": 18
+      },
+      "run_seed": 135,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 344980,
+        "coordination": -68472,
+        "tail": -2,
+        "warmup": -276506,
+        "windows": 2
+      }
+    },
+    {
+      "case_id": "R2",
+      "checkpoint_hash": "91f9f1911d559f8e507b2f2b4171842e7c38dfbf3d4e95f9bc18aa08f35f3e5f",
+      "current_final_error": 235626.0008833587,
+      "current_schedule": {
+        "continuation": 2223794,
+        "coordination": 137189,
+        "relation": "positive_relation_graph",
+        "tail": 0,
+        "warmup": 459017,
+        "windows": 21
+      },
+      "current_to_historical_ratio": 1.22108378552006,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 192964.64638829473,
+      "historical_schedule": {
+        "continuation": 2204377,
+        "coordination": 85176,
+        "relation": "positive_relation_graph",
+        "tail": 9,
+        "warmup": 530438,
+        "windows": 18
+      },
+      "run_seed": 141,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 19417,
+        "coordination": 52013,
+        "tail": -9,
+        "warmup": -71421,
+        "windows": 3
+      }
+    },
+    {
+      "case_id": "R3",
+      "checkpoint_hash": "be90409b3fbdc007a487aba9ee9ac8676c76844f6a5b913bab32e02a23cd7ec2",
+      "current_final_error": 297464.1320887411,
+      "current_schedule": {
+        "continuation": 2205107,
+        "coordination": 142131,
+        "relation": "positive_relation_graph",
+        "tail": 1,
+        "warmup": 472761,
+        "windows": 16
+      },
+      "current_to_historical_ratio": 1.1663040042670707,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 255048.5388032888,
+      "historical_schedule": {
+        "continuation": 1888880,
+        "coordination": 223161,
+        "relation": "positive_relation_graph",
+        "tail": 7,
+        "warmup": 707952,
+        "windows": 13
+      },
+      "run_seed": 117,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 316227,
+        "coordination": -81030,
+        "tail": -6,
+        "warmup": -235191,
+        "windows": 3
+      }
+    },
+    {
+      "case_id": "R3",
+      "checkpoint_hash": "56bc2c07dabbcb654d06fc6125aba1eebd8fdf33c2989de5515ff3410bc5d009",
+      "current_final_error": 235892.42428609252,
+      "current_schedule": {
+        "continuation": 2238240,
+        "coordination": 140564,
+        "relation": "positive_relation_graph",
+        "tail": 11,
+        "warmup": 441185,
+        "windows": 18
+      },
+      "current_to_historical_ratio": 0.6075567541663114,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 388264.0142973701,
+      "historical_schedule": {
+        "continuation": 1989560,
+        "coordination": 212921,
+        "relation": "positive_relation_graph",
+        "tail": 3,
+        "warmup": 617516,
+        "windows": 16
+      },
+      "run_seed": 123,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 248680,
+        "coordination": -72357,
+        "tail": 8,
+        "warmup": -176331,
+        "windows": 2
+      }
+    },
+    {
+      "case_id": "R3",
+      "checkpoint_hash": "6501cc66022c353c7ecad8807ff5f372dd666a61455451426f2b37b6932c5729",
+      "current_final_error": 271573.99806638464,
+      "current_schedule": {
+        "continuation": 2178792,
+        "coordination": 152792,
+        "relation": "positive_relation_graph",
+        "tail": 11,
+        "warmup": 488405,
+        "windows": 17
+      },
+      "current_to_historical_ratio": 0.9963133579966066,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 272578.89888425,
+      "historical_schedule": {
+        "continuation": 2087687,
+        "coordination": 126604,
+        "relation": "positive_relation_graph",
+        "tail": 5,
+        "warmup": 605704,
+        "windows": 16
+      },
+      "run_seed": 129,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 91105,
+        "coordination": 26188,
+        "tail": 6,
+        "warmup": -117299,
+        "windows": 1
+      }
+    },
+    {
+      "case_id": "R3",
+      "checkpoint_hash": "666e5aa703ff39b35ea1bd6ab50bee84836a4a3afa1890fa5e3e8417dd9000d6",
+      "current_final_error": 332913.27125062747,
+      "current_schedule": {
+        "continuation": 2317250,
+        "coordination": 94640,
+        "relation": "positive_relation_graph",
+        "tail": 4,
+        "warmup": 408106,
+        "windows": 21
+      },
+      "current_to_historical_ratio": 0.9168845122701953,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 363091.8254103105,
+      "historical_schedule": {
+        "continuation": 2049421,
+        "coordination": 155864,
+        "relation": "positive_relation_graph",
+        "tail": 0,
+        "warmup": 614715,
+        "windows": 18
+      },
+      "run_seed": 135,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 267829,
+        "coordination": -61224,
+        "tail": 4,
+        "warmup": -206609,
+        "windows": 3
+      }
+    },
+    {
+      "case_id": "R3",
+      "checkpoint_hash": "3d6e1bd0ee11d7543df7b9ae88a09ae6396b72dbbed684273923b1dd43ac84b8",
+      "current_final_error": 356912.47674911947,
+      "current_schedule": {
+        "continuation": 2246686,
+        "coordination": 133393,
+        "relation": "positive_relation_graph",
+        "tail": 10,
+        "warmup": 439911,
+        "windows": 20
+      },
+      "current_to_historical_ratio": 1.060346337690207,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 336599.90520323353,
+      "historical_schedule": {
+        "continuation": 2158727,
+        "coordination": 139514,
+        "relation": "positive_relation_graph",
+        "tail": 0,
+        "warmup": 521759,
+        "windows": 20
+      },
+      "run_seed": 141,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 87959,
+        "coordination": -6121,
+        "tail": 10,
+        "warmup": -81848,
+        "windows": 0
+      }
+    },
+    {
+      "case_id": "R4",
+      "checkpoint_hash": "0032e6571ab03a13f15bd66ab84b06d69073e03f5c4d11ee225d2e8392c96821",
+      "current_final_error": 413386.40116939205,
+      "current_schedule": {
+        "continuation": 2215688,
+        "coordination": 133032,
+        "relation": "positive_relation_graph",
+        "tail": 4,
+        "warmup": 471276,
+        "windows": 15
+      },
+      "current_to_historical_ratio": 1.5128986407590785,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 273241.3064777297,
+      "historical_schedule": {
+        "continuation": 2001659,
+        "coordination": 209099,
+        "relation": "positive_relation_graph",
+        "tail": 7,
+        "warmup": 609235,
+        "windows": 14
+      },
+      "run_seed": 117,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 214029,
+        "coordination": -76067,
+        "tail": -3,
+        "warmup": -137959,
+        "windows": 1
+      }
+    },
+    {
+      "case_id": "R4",
+      "checkpoint_hash": "7b6a18875edac01959102b476c83f05ff7af7f92a30e0daf978254adb4730038",
+      "current_final_error": 331703.6799663854,
+      "current_schedule": {
+        "continuation": 2204621,
+        "coordination": 146984,
+        "relation": "positive_relation_graph",
+        "tail": 4,
+        "warmup": 468391,
+        "windows": 17
+      },
+      "current_to_historical_ratio": 1.0236295197694274,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 324046.61409247137,
+      "historical_schedule": {
+        "continuation": 1744344,
+        "coordination": 215341,
+        "relation": "positive_relation_graph",
+        "tail": 12,
+        "warmup": 860303,
+        "windows": 13
+      },
+      "run_seed": 123,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 460277,
+        "coordination": -68357,
+        "tail": -8,
+        "warmup": -391912,
+        "windows": 4
+      }
+    },
+    {
+      "case_id": "R4",
+      "checkpoint_hash": "b272a243e6f8c91196515bbd2d3dd3e43d26ee68303b9656c88e1f38d16d3220",
+      "current_final_error": 292513.91598072083,
+      "current_schedule": {
+        "continuation": 2240535,
+        "coordination": 127045,
+        "relation": "positive_relation_graph",
+        "tail": 5,
+        "warmup": 452415,
+        "windows": 16
+      },
+      "current_to_historical_ratio": 0.994166377307861,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 294230.3447968436,
+      "historical_schedule": {
+        "continuation": 1831772,
+        "coordination": 246842,
+        "relation": "positive_relation_graph",
+        "tail": 2,
+        "warmup": 741384,
+        "windows": 14
+      },
+      "run_seed": 129,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 408763,
+        "coordination": -119797,
+        "tail": 3,
+        "warmup": -288969,
+        "windows": 2
+      }
+    },
+    {
+      "case_id": "R4",
+      "checkpoint_hash": "5dffb91cfd83a10bafe8b0a52c58d8d187a6755193624517fb67a1b35acc665c",
+      "current_final_error": 293336.28317178565,
+      "current_schedule": {
+        "continuation": 2297986,
+        "coordination": 124228,
+        "relation": "positive_relation_graph",
+        "tail": 16,
+        "warmup": 397770,
+        "windows": 18
+      },
+      "current_to_historical_ratio": 0.8861030518548412,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 331040.8225744822,
+      "historical_schedule": {
+        "continuation": 2191177,
+        "coordination": 83164,
+        "relation": "positive_relation_graph",
+        "tail": 16,
+        "warmup": 545643,
+        "windows": 17
+      },
+      "run_seed": 135,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 106809,
+        "coordination": 41064,
+        "tail": 0,
+        "warmup": -147873,
+        "windows": 1
+      }
+    },
+    {
+      "case_id": "R4",
+      "checkpoint_hash": "c3fc3b32664b0ca81b0c1ba400021a67f440b9ea4ef429434cd95f479374d5bd",
+      "current_final_error": 428390.6223529712,
+      "current_schedule": {
+        "continuation": 2221955,
+        "coordination": 130744,
+        "relation": "positive_relation_graph",
+        "tail": 0,
+        "warmup": 467301,
+        "windows": 16
+      },
+      "current_to_historical_ratio": 1.0013449339433569,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 427815.2391163982,
+      "historical_schedule": {
+        "continuation": 1808867,
+        "coordination": 261107,
+        "relation": "positive_relation_graph",
+        "tail": 8,
+        "warmup": 750018,
+        "windows": 14
+      },
+      "run_seed": 141,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 413088,
+        "coordination": -130363,
+        "tail": -8,
+        "warmup": -282717,
+        "windows": 2
+      }
+    },
+    {
+      "case_id": "R5",
+      "checkpoint_hash": "9930fd657c58fe3f2a879cf364f1b115a37cee68f9704fbd154b4cd2e5300aea",
+      "current_final_error": 328874.5518422065,
+      "current_schedule": {
+        "continuation": 2201812,
+        "coordination": 149935,
+        "relation": "positive_relation_graph",
+        "tail": 13,
+        "warmup": 468240,
+        "windows": 15
+      },
+      "current_to_historical_ratio": 0.8755900876398893,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 375603.32909737696,
+      "historical_schedule": {
+        "continuation": 1970261,
+        "coordination": 176294,
+        "relation": "positive_relation_graph",
+        "tail": 14,
+        "warmup": 673431,
+        "windows": 13
+      },
+      "run_seed": 117,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 231551,
+        "coordination": -26359,
+        "tail": -1,
+        "warmup": -205191,
+        "windows": 2
+      }
+    },
+    {
+      "case_id": "R5",
+      "checkpoint_hash": "4af39a5657b61c378f2f90188d33d5f6cea1e4138ad8f6e51f96a1e9aaaf6a2c",
+      "current_final_error": 432908.4596188711,
+      "current_schedule": {
+        "continuation": 2216091,
+        "coordination": 146399,
+        "relation": "positive_relation_graph",
+        "tail": 7,
+        "warmup": 457503,
+        "windows": 15
+      },
+      "current_to_historical_ratio": 1.2775962686268418,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 338846.05821850145,
+      "historical_schedule": {
+        "continuation": 1926200,
+        "coordination": 199204,
+        "relation": "positive_relation_graph",
+        "tail": 0,
+        "warmup": 694596,
+        "windows": 14
+      },
+      "run_seed": 123,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 289891,
+        "coordination": -52805,
+        "tail": 7,
+        "warmup": -237093,
+        "windows": 1
+      }
+    },
+    {
+      "case_id": "R5",
+      "checkpoint_hash": "d451c6ccd710942c91c7a28a9ffcfd95eb23861c817601c451fc654dc947b337",
+      "current_final_error": 273608.61520852474,
+      "current_schedule": {
+        "continuation": 2182888,
+        "coordination": 148729,
+        "relation": "positive_relation_graph",
+        "tail": 3,
+        "warmup": 488380,
+        "windows": 15
+      },
+      "current_to_historical_ratio": 0.8704930784265055,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 314314.52126316377,
+      "historical_schedule": {
+        "continuation": 1758225,
+        "coordination": 278991,
+        "relation": "positive_relation_graph",
+        "tail": 8,
+        "warmup": 782776,
+        "windows": 12
+      },
+      "run_seed": 129,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 424663,
+        "coordination": -130262,
+        "tail": -5,
+        "warmup": -294396,
+        "windows": 3
+      }
+    },
+    {
+      "case_id": "R5",
+      "checkpoint_hash": "9c8f3b95508fa6e6682b36c142c6ca1a1267c085756b6d0ec1c3a29f9b1762c4",
+      "current_final_error": 332368.6883833654,
+      "current_schedule": {
+        "continuation": 2284823,
+        "coordination": 118679,
+        "relation": "positive_relation_graph",
+        "tail": 12,
+        "warmup": 416486,
+        "windows": 15
+      },
+      "current_to_historical_ratio": 0.9693424202707763,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 342880.5770106723,
+      "historical_schedule": {
+        "continuation": 1963086,
+        "coordination": 148773,
+        "relation": "positive_relation_graph",
+        "tail": 3,
+        "warmup": 708138,
+        "windows": 15
+      },
+      "run_seed": 135,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 321737,
+        "coordination": -30094,
+        "tail": 9,
+        "warmup": -291652,
+        "windows": 0
+      }
+    },
+    {
+      "case_id": "R5",
+      "checkpoint_hash": "1a5bc4151a3ba621682408ca82c10889a29bd7bf2e394ecdb23ccd72cba690a2",
+      "current_final_error": 336081.53329302534,
+      "current_schedule": {
+        "continuation": 2159488,
+        "coordination": 152410,
+        "relation": "positive_relation_graph",
+        "tail": 11,
+        "warmup": 508091,
+        "windows": 14
+      },
+      "current_to_historical_ratio": 1.0290300150973142,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 326600.32104237744,
+      "historical_schedule": {
+        "continuation": 1328102,
+        "coordination": 382776,
+        "relation": "positive_relation_graph",
+        "tail": 2,
+        "warmup": 1109120,
+        "windows": 10
+      },
+      "run_seed": 141,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 831386,
+        "coordination": -230366,
+        "tail": 9,
+        "warmup": -601029,
+        "windows": 4
+      }
+    },
+    {
+      "case_id": "R6",
+      "checkpoint_hash": "66f1e1bb1bd641615b80002621646dc654af4caa857c264e1e2cca6800060a9e",
+      "current_final_error": 336676.521729814,
+      "current_schedule": {
+        "continuation": 2170191,
+        "coordination": 159933,
+        "relation": "positive_relation_graph",
+        "tail": 11,
+        "warmup": 489865,
+        "windows": 14
+      },
+      "current_to_historical_ratio": 0.9591379496461078,
+      "historical_compatible_better": false,
+      "historical_compatible_final_error": 351019.91517908056,
+      "historical_schedule": {
+        "continuation": 1800444,
+        "coordination": 284640,
+        "relation": "positive_relation_graph",
+        "tail": 6,
+        "warmup": 734910,
+        "windows": 12
+      },
+      "run_seed": 117,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 369747,
+        "coordination": -124707,
+        "tail": 5,
+        "warmup": -245045,
+        "windows": 2
+      }
+    },
+    {
+      "case_id": "R6",
+      "checkpoint_hash": "077db0ea1ad0f567d6bc2c8b7168d337bc5616d3c4ac94aebeaf94a7d8a11169",
+      "current_final_error": 412789.6819347401,
+      "current_schedule": {
+        "continuation": 2190348,
+        "coordination": 145487,
+        "relation": "positive_relation_graph",
+        "tail": 2,
+        "warmup": 484163,
+        "windows": 13
+      },
+      "current_to_historical_ratio": 1.050531702527292,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 392934.05514719925,
+      "historical_schedule": {
+        "continuation": 1465862,
+        "coordination": 370850,
+        "relation": "positive_relation_graph",
+        "tail": 13,
+        "warmup": 983275,
+        "windows": 9
+      },
+      "run_seed": 123,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 724486,
+        "coordination": -225363,
+        "tail": -11,
+        "warmup": -499112,
+        "windows": 4
+      }
+    },
+    {
+      "case_id": "R6",
+      "checkpoint_hash": "ea3cdccc5dfd2e9928a66a04dd180d2c141aa7b14dce4cb6aa3051c9b29a3a9d",
+      "current_final_error": 340098.27924700663,
+      "current_schedule": {
+        "continuation": 2185742,
+        "coordination": 154071,
+        "relation": "positive_relation_graph",
+        "tail": 2,
+        "warmup": 480185,
+        "windows": 13
+      },
+      "current_to_historical_ratio": 1.018024298694451,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 334076.7795848883,
+      "historical_schedule": {
+        "continuation": 1576603,
+        "coordination": 304961,
+        "relation": "positive_relation_graph",
+        "tail": 14,
+        "warmup": 938422,
+        "windows": 9
+      },
+      "run_seed": 129,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 609139,
+        "coordination": -150890,
+        "tail": -12,
+        "warmup": -458237,
+        "windows": 4
+      }
+    },
+    {
+      "case_id": "R6",
+      "checkpoint_hash": "aeff2ec0b8b109c0b062305323165e7c9b91200a412ec6c625a16ccd5481dc6a",
+      "current_final_error": 422840.5243373581,
+      "current_schedule": {
+        "continuation": 2272127,
+        "coordination": 135815,
+        "relation": "positive_relation_graph",
+        "tail": 4,
+        "warmup": 412054,
+        "windows": 15
+      },
+      "current_to_historical_ratio": 1.0125492795407702,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 417599.94588029577,
+      "historical_schedule": {
+        "continuation": 1540148,
+        "coordination": 339819,
+        "relation": "positive_relation_graph",
+        "tail": 2,
+        "warmup": 940031,
+        "windows": 11
+      },
+      "run_seed": 135,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 731979,
+        "coordination": -204004,
+        "tail": 2,
+        "warmup": -527977,
+        "windows": 4
+      }
+    },
+    {
+      "case_id": "R6",
+      "checkpoint_hash": "fe24484095e72b9ce329e6fd6ecd2d50ca5a1df042981cf7ccf2bb69ef1f11ac",
+      "current_final_error": 394639.25772155373,
+      "current_schedule": {
+        "continuation": 2181340,
+        "coordination": 146344,
+        "relation": "positive_relation_graph",
+        "tail": 10,
+        "warmup": 492306,
+        "windows": 13
+      },
+      "current_to_historical_ratio": 1.0570258144417757,
+      "historical_compatible_better": true,
+      "historical_compatible_final_error": 373348.7416577107,
+      "historical_schedule": {
+        "continuation": 1451504,
+        "coordination": 388271,
+        "relation": "positive_relation_graph",
+        "tail": 5,
+        "warmup": 980220,
+        "windows": 9
+      },
+      "run_seed": 141,
+      "same_checkpoint": true,
+      "schedule_delta_current_minus_historical": {
+        "continuation": 729836,
+        "coordination": -241927,
+        "tail": 5,
+        "warmup": -487914,
+        "windows": 4
+      }
+    }
+  ],
+  "report_sha256": "856ea275618d991dd4b2655ef278af7521b5ab95c72bdbd9fc7ad276a8b63a07",
+  "route_parse_valid": true,
+  "same_checkpoint_per_pair": true,
+  "schema_version": "arac-gcb-recovery-attribution-report-v1",
+  "source_summary_schema": "arac-recovery-action-lifecycle-diagnostic-summary-v1",
+  "source_summary_sha256": "d449804727efef80a007f1e8515e062b464f818dd56648f33038f4c71662def8"
+}

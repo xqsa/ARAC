@@ -1,0 +1,143 @@
+我认为最值得做的升级，不是继续做“共享块优先重排”，也不是立刻上软路由，而是新增一个直接处理共享变量的机制：
+
+## 最佳建议：结构认证的共享变量事务层
+
+英文可暂定为 **Structure-Certified Shared-variable Transaction（SCST）**。
+
+它的核心不是给共享变量指定唯一 owner，也不是相信某个 component 的信号；而是：
+
+1. 先确认变量确实是可信的共享变量；
+2. 让多个 owner 保留对该变量的本地提议；
+3. 在四动作已有的自然阶段边界，生成极少量全局候选；
+4. 只由完整目标函数 + strict-best 决定是否写回。
+
+这比 S1 的“先优化哪个 block”更直接地解决重叠问题：同一个变量被多个子问题分别推动后，系统如何形成一个可验证的全局决定。
+
+形式上，对共享变量 \(j\)：
+
+```text
+M(j) = {拥有 j 的 blocks / components}
+
+Pj = {p_g,j : g ∈ M(j)}     # owner 在原有优化过程中产生的提议
+dj = robust_spread(Pj) / range_j
+```
+
+只在以下条件同时满足时激活：
+
+```text
+|M(j)| >= 2
+结构证据可信
+至少两个 owner proposal 新鲜
+存在下游会重新读取 incumbent 的自然边界
+```
+
+第一版不要相信 owner 的“局部收益”来决定方向。对每个入选坐标只测试两个无权威候选：
+
+```text
+candidate-1: x[j] <- median(Pj)
+candidate-2: x[j] <- mean(Pj)
+```
+
+每个候选均是完整向量评价，其余坐标保持当前 incumbent；最多 4 个坐标，因此固定为最多 8 FE。只有严格优于 `best_error_before` 才提交。这样不会重演此前“某个耦合信号被错误赋予方向权威”的问题。
+
+后续若这个无状态 kernel 有证据，再单独加 trust-region 半径；不要把持久状态、分歧方向、owner 权重、软路由一起加进去。
+
+## 为什么这是比重排更好的路线
+
+你刚完成的 S1 已经说明：
+
+- CTP 的 coverage 内部重排没有因果作用点；
+- generator v1 的完全图让 leverage 无法区分；
+- GCB 的顺序会改变早停与 FE 分配，因而不是一个稳定、干净的共享变量协调 host。
+
+SCST 不依赖“排序一定改变轨迹”。它只在一个动作已经完成一段工作、下一个阶段确实会重读 incumbent 时介入。因此它直接绕过 CTP coverage 的结构惰性。
+
+近两年文献也更支持这条组合路线：
+
+| 文献 | 可借鉴内容 | 对 ARAC 的具体用法 |
+|---|---|---|
+| [Komarnicki et al., GECCO 2024](https://doi.org/10.1145/3638529.3654171) | 共享变量允许多重归属，组件资源会受共享关系影响 | 不再给 \(j\) 强行指定唯一 owner；保留多 owner proposal |
+| [Tian et al., OEDG，IEEE TEVC，online 2024](https://doi.org/10.1109/tevc.2024.3390719) | 两阶段识别并修正重叠结构；benchmark 必须区分拓扑、重叠度、可分性 | patch 前先做结构认证；generator 必须有稀疏且度数不等的关系图 |
+| [Qiu et al., IEEE TSMC 2024](https://doi.org/10.1109/tsmc.2024.3389751) | overlapping decomposition 下的局部搜索与全局 consensus | 借鉴“局部 proposal → 全局协调”的结构；不照搬其网络组合优化实现 |
+| [Qiu et al., GECCO Companion 2025](https://doi.org/10.1145/3712255.3726560) | 将重叠结构处理与优化过程分成两阶段 | 结构发现/认证与共享变量优化应分开做 Gate |
+| [Pei et al., AOS Survey 2025](https://doi.org/10.1109/tai.2025.3545792) | 自适应调度应与状态、credit 分开归因 | 软路由和动作选择留到 kernel 成功之后，不混入首版 |
+
+最关键的文献组合是：**OEDG 的“结构先认证” + OCC 的“共享变量多重归属”**。这比只借一个 trust-region 或资源分配思想更贴合你的研究问题。
+
+## 如何挂到现有四动作
+
+四个动作不应被强行改成同一种 host；这是恢复基线后必须保留的差异。
+
+| 动作 | SCST 角色 | 首版处理 |
+|---|---|---|
+| AOR | 没有 block owner，也没有中间协调边界 | 保持完全关闭，作为 no-tax 对照 |
+| SMP | 有 stateful block visits，随后是 rescue / global polish | 首选 host：在 stateful 阶段结束、进入 rescue 或 global polish 前执行一次事务 |
+| CTP | coverage 完成后进入 relation-cover polish，再进入 MMES tail | 首选 host：只放在 coverage → relation-cover polish 边界；绝不插入 coverage 内部 |
+| GCB | source sweeps → full-space coordination → native sweeps | 先只记录 proposal；待 kernel 在 SMP/CTP 成功后，作为冻结的迁移验证 host |
+
+这与当前执行语义是一致的：
+
+- CTP 已有 `coverage → relation-cover polish → MMES tail` 的自然阶段边界，见 [ctp.py](/E:/ARAC/src/arac/actions/ctp.py:73)。
+- SMP 已有 `stateful visits → rescue → global polish` 的生命周期，见 [smp.py](/E:/ARAC/src/arac/actions/smp.py:45)。
+- GCB 已有 source、global coordination、native windows 的边界，见 [gcb.py](/E:/ARAC/src/arac/actions/gcb.py:120)。
+- AOR 是单一全空间优化器，强塞 owner proposal 反而会制造不存在的重叠语义，见 [aor.py](/E:/ARAC/src/arac/actions/aor.py:46)。
+
+所以“用在四动作上”的正确含义是：四动作共享同一个可审计接口，但只有具备真实 owner 与下游重锚边界的动作允许激活。AOR 静默不是缺陷，而是可信的负对照。
+
+## 建议的执行阶梯
+
+不要从失败的 S1 接着往下跑；新建 `shared_transaction_v1`，与 v2.1 的重排链完全分开。
+
+1. `T0 — structure certificate`
+
+   从已有 `checkpoint.blocks` 构建精确的变量—owner incidence，确认 `M(j)`；并要求 generator 的 Phase-I 发现图稀疏、度数有差异。完全图或 `max leverage = min leverage` 直接 fail，不进入性能实验。
+
+2. `T1 — proposal and boundary audit`
+
+   不加 patch，只记录每个 owner 的 proposal、proposal anchor hash、freshness 和下游首次读取 incumbent 的位置。
+
+   通过条件不是“proposal 数量大于零”，而是：若事务接受，下一阶段确实会以新 incumbent 初始化。CTP 必须证明 relation-cover polish 读取到更新后的 incumbent；SMP 必须证明下一次 rescue/global stage 可见。
+
+3. `T2 — fixed-FE, stateless transaction kernel`
+
+   对照是 patch-off recovered action；候选仅为 `median` 与 `mean`，每坐标 2 FE、每 barrier 最多 4 坐标、从该动作预注册 operator reservation 划出。不得借 sense、probe、tail 或另一动作预算。
+
+4. `T3 — matched-host attribution`
+
+   只在稀疏 conflicting generator 上比较：
+
+   ```text
+   A0: patch off
+   A1: owner proposal transaction（median/mean，固定 8 FE）
+   ```
+
+   先看可达性、receipt、接受率、严格 FE 分类和 no-regression；随后才用新 seed 看 final error 与 anytime AUC。
+
+5. `T4 — AOB preservation`
+
+   AOB 只要求 selector、action route、terminal FE 不变且结果非劣。无 proposal 或未触发是合法静默，不把 AOB 当作共享变量收益实验。
+
+6. `T5 — 单独增加半径或软权重`
+
+   只有 T3 通过，才依次比较：
+
+   ```text
+   A2 - A1：持久 z,r
+   A3 - A2：disagreement-direction candidate
+   A4 - A3：soft owner weight
+   ```
+
+   不能跳级。
+
+## 你现在最应该先做的事
+
+先做 `T0 + T1`，而不是跑新的长矩阵：
+
+- 把 generator v2 改为稀疏异质拓扑，例如 star（度数 `7,1,…,1`）、chain（`1,2,…,2,1`）和 pairs；
+- 对每个共享坐标确认真实 owner 集；
+- 在 SMP/CTP 的自然阶段边界记录 proposal 与 incumbent 重锚证据；
+- 不评价性能、不改冻结源、不接入生产。
+
+如果 T0/T1 通过，你就终于有了一个真正作用于“共享变量本身”的、可在四动作体系中审计的创新点；如果失败，失败也会准确说明是“没有可信共享结构”还是“没有可传播的执行边界”，不会再出现 S1 那种“机制被静默退化却误以为在比较性能”的情况。
+
+本次使用 CrossRef 核验 DOI，并以 OpenAlex 补充近期论文元数据与摘要；未修改工作区文件。

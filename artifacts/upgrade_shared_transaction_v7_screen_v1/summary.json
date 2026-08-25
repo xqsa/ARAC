@@ -1,0 +1,129 @@
+{
+  "candidate_id": "shared_transaction_v7",
+  "checks": {
+    "at_least_one_strict_win": false,
+    "no_cell_breaks_non_inferiority": true,
+    "reachability_all_arms": true
+  },
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": false,
+  "groups": [
+    {
+      "breaks_non_inferiority": false,
+      "cell_id": "chain4-strong",
+      "ci95_exp_lower": 0.9019558230125396,
+      "ci95_exp_upper": 1.0781449151081854,
+      "geometric_mean_ratio": 0.9861232601623329,
+      "pairs": [
+        {
+          "a0_final": 45.6600372986868,
+          "a1_accepted": 16,
+          "a1_consumed": 48,
+          "a1_final": 46.255387146025896,
+          "log_ratio": 0.012954478028160838,
+          "seed": 20270501
+        },
+        {
+          "a0_final": 44.73199503170326,
+          "a1_accepted": 15,
+          "a1_consumed": 46,
+          "a1_final": 38.83122324058786,
+          "log_ratio": -0.14146437238878445,
+          "seed": 20270502
+        },
+        {
+          "a0_final": 37.039939142763615,
+          "a1_accepted": 16,
+          "a1_consumed": 46,
+          "a1_final": 43.0309001179412,
+          "log_ratio": 0.14992169825019175,
+          "seed": 20270503
+        },
+        {
+          "a0_final": 49.7034930260852,
+          "a1_accepted": 16,
+          "a1_consumed": 48,
+          "a1_final": 51.30463034356944,
+          "log_ratio": 0.03170579536419372,
+          "seed": 20270504
+        },
+        {
+          "a0_final": 24.533165734261274,
+          "a1_accepted": 16,
+          "a1_consumed": 48,
+          "a1_final": 21.694064480252564,
+          "log_ratio": -0.12298720868382816,
+          "seed": 20270505
+        }
+      ],
+      "strict_win": false,
+      "total_accepted": 79,
+      "total_consumed_fes": 236,
+      "win_tie_loss": [
+        2,
+        0,
+        3
+      ]
+    },
+    {
+      "breaks_non_inferiority": false,
+      "cell_id": "pairs3-strong",
+      "ci95_exp_lower": 0.8077366405814864,
+      "ci95_exp_upper": 1.0041460753834608,
+      "geometric_mean_ratio": 0.8800887935568114,
+      "pairs": [
+        {
+          "a0_final": 33.869630130939186,
+          "a1_accepted": 69,
+          "a1_consumed": 353,
+          "a1_final": 28.592689713463187,
+          "log_ratio": -0.16936766578528206,
+          "seed": 20270501
+        },
+        {
+          "a0_final": 24.031022041104734,
+          "a1_accepted": 84,
+          "a1_consumed": 537,
+          "a1_final": 20.515389636158943,
+          "log_ratio": -0.15817026226654302,
+          "seed": 20270502
+        },
+        {
+          "a0_final": 29.078267889097333,
+          "a1_accepted": 75,
+          "a1_consumed": 520,
+          "a1_final": 23.476228775456548,
+          "log_ratio": -0.21400271951585065,
+          "seed": 20270503
+        },
+        {
+          "a0_final": 40.6728226011619,
+          "a1_accepted": 136,
+          "a1_consumed": 662,
+          "a1_final": 46.53692523948848,
+          "log_ratio": 0.1346859685940763,
+          "seed": 20270504
+        },
+        {
+          "a0_final": 23.102826379821636,
+          "a1_accepted": 48,
+          "a1_consumed": 142,
+          "a1_final": 18.322819843073376,
+          "log_ratio": -0.23180769518151148,
+          "seed": 20270505
+        }
+      ],
+      "strict_win": false,
+      "total_accepted": 412,
+      "total_consumed_fes": 2214,
+      "win_tie_loss": [
+        4,
+        0,
+        1
+      ]
+    }
+  ],
+  "result_hash": "0164bb25c480a1098eb0a6045fd8b7398fba86a024041a4f345d1d375b181e38",
+  "schema_version": "arac-upgrade-shared-transaction-v7-summary-v1",
+  "stage": "screen"
+}

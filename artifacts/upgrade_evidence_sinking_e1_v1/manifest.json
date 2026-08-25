@@ -1,0 +1,21 @@
+{
+  "candidate_id": "evidence_sinking_e1_v1",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "9b561cc35e36780ead3b6b925a1474e62b9b23f37a15e500d2311e668692b5df",
+  "protocol_sha256": "83ecc4af1c3566e8d982a9cdba7170a665a599b534463ad1935cbb6b9e4008ad",
+  "schema_version": "arac-upgrade-evidence-sinking-e1-manifest-v1",
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "diagnostic_only": true,
+  "manifest_sha256": "7355638f9037bcd9a60271f0af7b126fe2501dfbc802726d53eeecac7c2a5f84",
+  "performance_claim": false,
+  "protocol_sha256": "9859fb18724a183b3fbef77a88c451da89603628af972f510b46935df5007969",
+  "schema_version": "arac-upgrade-chain-diagnostic-manifest-v1",
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

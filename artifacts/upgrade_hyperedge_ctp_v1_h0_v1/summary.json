@@ -1,0 +1,251 @@
+{
+  "candidate_id": "hyperedge_ctp_v1",
+  "cell_rows": [
+    {
+      "activated": false,
+      "all_seeds_passed": false,
+      "cell_id": "chain4-mild",
+      "preregistered_activation": false,
+      "seed_rows": [
+        {
+          "certified_hyperedge_count": 8,
+          "hyperedges_with_more_than_two_regions": 16,
+          "precision": 1.0,
+          "recall": 0.3333333333333333,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270101,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 8,
+          "hyperedges_with_more_than_two_regions": 16,
+          "precision": 1.0,
+          "recall": 0.3333333333333333,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270102,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 8,
+          "hyperedges_with_more_than_two_regions": 16,
+          "precision": 1.0,
+          "recall": 0.3333333333333333,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270103,
+          "seed_passed": false
+        }
+      ]
+    },
+    {
+      "activated": false,
+      "all_seeds_passed": false,
+      "cell_id": "chain4-strong",
+      "preregistered_activation": true,
+      "seed_rows": [
+        {
+          "certified_hyperedge_count": 8,
+          "hyperedges_with_more_than_two_regions": 16,
+          "precision": 1.0,
+          "recall": 0.3333333333333333,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270101,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 8,
+          "hyperedges_with_more_than_two_regions": 16,
+          "precision": 1.0,
+          "recall": 0.3333333333333333,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270102,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 8,
+          "hyperedges_with_more_than_two_regions": 8,
+          "precision": 0.0,
+          "recall": 0.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270103,
+          "seed_passed": false
+        }
+      ]
+    },
+    {
+      "activated": false,
+      "all_seeds_passed": false,
+      "cell_id": "pairs3-mild",
+      "preregistered_activation": false,
+      "seed_rows": [
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270101,
+          "seed_passed": true
+        },
+        {
+          "certified_hyperedge_count": 16,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 0.6666666666666666,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270102,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270103,
+          "seed_passed": true
+        }
+      ]
+    },
+    {
+      "activated": false,
+      "all_seeds_passed": false,
+      "cell_id": "pairs3-strong",
+      "preregistered_activation": true,
+      "seed_rows": [
+        {
+          "certified_hyperedge_count": 16,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 0.6666666666666666,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270101,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270102,
+          "seed_passed": true
+        },
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 1,
+          "seed": 20270103,
+          "seed_passed": true
+        }
+      ]
+    },
+    {
+      "activated": false,
+      "all_seeds_passed": false,
+      "cell_id": "hub3-mild",
+      "preregistered_activation": false,
+      "seed_rows": [
+        {
+          "certified_hyperedge_count": 16,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 0.6666666666666666,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 2,
+          "seed": 20270101,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 3,
+          "seed": 20270102,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 3,
+          "seed": 20270103,
+          "seed_passed": false
+        }
+      ]
+    },
+    {
+      "activated": false,
+      "all_seeds_passed": false,
+      "cell_id": "hub3-strong",
+      "preregistered_activation": false,
+      "seed_rows": [
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 3,
+          "seed": 20270101,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 24,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 3,
+          "seed": 20270102,
+          "seed_passed": false
+        },
+        {
+          "certified_hyperedge_count": 16,
+          "hyperedges_with_more_than_two_regions": 0,
+          "precision": 1.0,
+          "recall": 0.6666666666666666,
+          "region_graph_forest": true,
+          "region_graph_max_degree": 2,
+          "seed": 20270103,
+          "seed_passed": false
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "activation_cells_certified": false,
+    "coverage_complete": true,
+    "no_uncertified_activation": true
+  },
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_passed": false,
+  "generator_freeze": {
+    "conditioning": "linked-elliptic",
+    "generator_protocol": "arac-upgrade-conflicting-generator-v3",
+    "linkage_lambda": 2.0,
+    "note": "selected as the best configuration of the preregistered v3 grid (26/30 preflight passes; zero-optimum convention enforced) and frozen here before any H0 run",
+    "shared_width": 8
+  },
+  "h1_authorized": false,
+  "result_hash": "7e1fdaa2b910a22d03d7024125c097ad9a23c69b08c4ac71ca8cf4c5a8ed42f8",
+  "schema_version": "arac-upgrade-hyperedge-h0-summary-v1",
+  "truth_usage_note": "generator truth was consumed offline for H0 certification only; runtime paths never read it"
+}

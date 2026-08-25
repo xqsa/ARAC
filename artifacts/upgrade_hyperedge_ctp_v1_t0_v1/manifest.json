@@ -1,0 +1,32 @@
+{
+  "candidate_id": "hyperedge_ctp_v1",
+  "cases": [
+    "S3",
+    "S6"
+  ],
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "manifest_sha256": "3e9fd5c594b17db16f7226feb91a498f7d13a9ae4a8de0c47083f746bfee45ed",
+  "protocol_sha256": "8ccaf7217f91862015dd39ed1daf54549587351dc0753d3dcb3b80d842e0c73f",
+  "schema_version": "arac-upgrade-hyperedge-t0-manifest-v1",
+  "seeds": [
+    20270111,
+    20270112,
+    20270113,
+    20270114,
+    20270115
+  ],
+  "verifier_report": {
+    "checked_file_count": 21,
+    "e1_preservation_green": true,
+    "evidence_artifact_count": 8,
+    "freeze_id": "arac-recovered-baseline-20260823-v1",
+    "patch_enabled": false,
+    "protocol_file_count": 3,
+    "screen_contract_green": true,
+    "selector_enabled": false,
+    "smp_smoke_green": true,
+    "soft_routing_enabled": false,
+    "source_file_count": 10,
+    "status": "frozen"
+  }
+}

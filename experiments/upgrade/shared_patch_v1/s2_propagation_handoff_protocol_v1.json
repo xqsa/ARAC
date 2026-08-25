@@ -1,0 +1,141 @@
+{
+  "aob_lane": {
+    "checkpoint_root": "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "current_e2e_receipt_root": "artifacts/current_arac_aob24_recovery_v1/runs",
+    "frozen_screen_receipt_root": "artifacts/recovery_first_screen_smp_topology_v3/arms",
+    "identity_fields": [
+      "final_error",
+      "route",
+      "action_result_hash"
+    ],
+    "identity_rule": "a0 arms and every zero-relation a1 arm must reproduce the frozen screen receipt bit-identically; positive-relation a1 arms differ by construction (reordered first sweep) and are compared through the preregistered statistics",
+    "mapped_hosts": {
+      "R1": "gcb",
+      "R2": "gcb",
+      "R3": "gcb",
+      "R4": "gcb",
+      "R5": "gcb",
+      "R6": "gcb",
+      "S1": "ctp",
+      "S2": "ctp",
+      "S3": "ctp",
+      "S4": "ctp",
+      "S5": "ctp",
+      "S6": "ctp"
+    },
+    "structural_rows": {
+      "A1": "aor",
+      "A2": "aor",
+      "A3": "aor",
+      "A4": "aor",
+      "A5": "aor",
+      "A6": "aor",
+      "E1": "smp",
+      "E2": "smp",
+      "E3": "smp",
+      "E4": "smp",
+      "E5": "smp",
+      "E6": "smp"
+    }
+  },
+  "arms": [
+    "a2"
+  ],
+  "candidate_id": "shared_patch_v1",
+  "eps_reference": {
+    "aob": {
+      "R1": 14264.451064973444,
+      "R2": 19744.954497438688,
+      "R3": 23589.24242860925,
+      "R4": 29251.391598072085,
+      "R5": 27360.861520852475,
+      "R6": 33667.6521729814,
+      "S1": 4.1180877557767616e-08,
+      "S2": 5.402083514015951,
+      "S3": 11.116004292092253,
+      "S4": 143.30651125167844,
+      "S5": 187.5335395025466,
+      "S6": 247.2770118239614
+    },
+    "generator": {
+      "chain-mild": 325205.08050006506,
+      "chain-strong": 1314898.740490631,
+      "hub-mild": 56536.41986186989,
+      "hub-strong": 417930.75503014505,
+      "pairs-mild": 226295.2771625814,
+      "pairs-strong": 1104934.893872172
+    }
+  },
+  "eps_reference_rule": "aob: min positive frozen-screen final error across the five seeds, divided by 10; generator: min positive U1 seed-117 final error across both hosts, divided by 10; frozen before any S1 arm ran; S2 reuses the frozen S1 table unchanged",
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate_rules": {
+    "anytime_nontax_per_host": "a2 vs a1 95% paired bootstrap lower of mean relative anytime diff >= -0.05",
+    "coverage_complete": "120 a2 arms (12 aob mapped hosts x 5 seeds + 6 cells x 5 seeds x 2 hosts); paired a1 arms come from the frozen S1 screen",
+    "final_nontax_per_host": "a2 vs a1 geometric mean ratio <= 1.05 with 95% paired bootstrap upper <= 1.05",
+    "handoff_trace_occurred_per_host": true,
+    "ov0_exact_no_tax": "zero-relation aob a2 arms reproduce the frozen screen receipts bit-identically",
+    "routes_unchanged_all_pairs": "a2 route equals its paired a1 route"
+  },
+  "generator_lane": {
+    "cells": [
+      "chain-mild",
+      "chain-strong",
+      "hub-mild",
+      "hub-strong",
+      "pairs-mild",
+      "pairs-strong"
+    ],
+    "generator_protocol": "arac-upgrade-conflicting-generator-v1",
+    "hosts": [
+      "ctp",
+      "gcb"
+    ],
+    "phase1_protocol": "arac-identity-blind-evidence-v9"
+  },
+  "handoff_semantics": "last_improved updates only on a strict-best acceptance during a slot; the next slot prefers a remaining neighbour of the improving scope, otherwise falls back to the static S1/baseline order; no_acceptance_event and host_unreachable are counted separately",
+  "max_workers": 24,
+  "milestone_fes": [
+    600000,
+    1000000,
+    2000000,
+    3000000
+  ],
+  "output_root": "artifacts/upgrade_s2_propagation_handoff_v1",
+  "pinned_trees": [
+    "artifacts/historical_recovery_fixed_expert_v1/checkpoints",
+    "artifacts/current_arac_aob24_recovery_v1/runs",
+    "artifacts/recovery_first_screen_smp_topology_v3/arms",
+    "artifacts/upgrade_u1_host_reachability_v1"
+  ],
+  "runtime_environment": {
+    "required_blas_prefixes": [
+      "libscipy_openblas"
+    ],
+    "required_interpreter": "E:/ARAC/.venv/Scripts/python.exe"
+  },
+  "s1_output_root": "artifacts/upgrade_s1_leverage_sweep_v1",
+  "s1_summary": "artifacts/upgrade_s1_leverage_sweep_v1/summary.json",
+  "schema_version": "arac-upgrade-s2-propagation-handoff-protocol-v1",
+  "screen_seeds": [
+    117,
+    123,
+    129,
+    135,
+    141
+  ],
+  "slot_granularity": {
+    "ctp": "the polish cover is slot-structured (one full block polish per slot, handoff state from its first slot); the interleaved coverage segment keeps the S1 static order and does not seed the handoff state",
+    "gcb": "every cold block visit is a slot; handoff state spans all sweeps; neighbours are checkpoint relation edges"
+  },
+  "sources": [
+    "experiments/upgrade/shared_patch_v1/protocol.json",
+    "experiments/upgrade/shared_patch_v1/conflicting_generator.py",
+    "experiments/upgrade/shared_patch_v1/host_instrumentation.py",
+    "experiments/upgrade/shared_patch_v1/s1_leverage_sweep.py",
+    "experiments/upgrade/shared_patch_v1/s1_leverage_sweep_protocol_v1.json",
+    "experiments/upgrade/shared_patch_v1/s2_propagation_handoff.py",
+    "experiments/upgrade/shared_patch_v1/s2_propagation_handoff_campaign.py",
+    "experiments/upgrade/shared_patch_v1/s2_propagation_handoff_protocol_v1.json",
+    "experiments/upgrade/shared_patch_v1/u1_host_reachability.py"
+  ]
+}

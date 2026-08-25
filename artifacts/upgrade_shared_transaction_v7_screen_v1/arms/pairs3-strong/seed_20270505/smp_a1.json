@@ -1,0 +1,28 @@
+{
+  "action_result_hash": "ed86fa48e120417f9bd9971cf991512f2ec3c173767f96ab26a7db5085f11694",
+  "action_seed": 314159,
+  "cell_id": "pairs3-strong",
+  "checkpoint_hash": "a86523949ef26d52ed2d4758c6130b429717729178a05f4fb39715897a452224",
+  "elapsed_seconds": 208.835647,
+  "final_error": 18.322819843073376,
+  "initial_error": 53973.97036904609,
+  "kernel_accepted_count": 48,
+  "kernel_consumed_fes": 142,
+  "kernel_receipts": [
+    {
+      "accepted": 48,
+      "cap_hit": false,
+      "consumed_fes": 142,
+      "coordinates_evaluated": 142,
+      "error_before_first": 50305.500594484154,
+      "recentered_visits": 6,
+      "visits_seen": 20
+    }
+  ],
+  "manifest_sha256": "d94e42f975ab84b1603e58dd0ed99ffd5cfe5ce41b621c6253315b68336db277",
+  "receipt_hash": "a73cb3d42fea34d26166bf6710d038a9261e53fc5855c72170d50141d2737935",
+  "route": "recovered_historical_compatible_smp_v1_clip_offspring_true_stateful_block_visits_1127982_visits_10_stale_restarts_0_rescue_281998_probes_38_rescue_visits_10_global_polish_1410000",
+  "run_seed": 20270505,
+  "schema_version": "arac-upgrade-shared-transaction-v7-arm-receipt-v1",
+  "variant": "a1"
+}

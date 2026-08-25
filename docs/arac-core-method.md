@@ -99,13 +99,15 @@ ARAC-Core 使用无训练、确定性的结构规则：
 
 ```text
 structural inference incomplete  -> AOR
-complete and zero relations      -> SMP
-disconnected relation graph      -> CTP
-fully connected relation graph   -> GCB
+complete and zero relations      -> SMP (zero-relation lifecycle)
+disconnected relation graph      -> CTP (SMP remains overlap-compatible)
+fully connected relation graph   -> GCB (SMP remains overlap-compatible)
 ```
 
-这是一条机制路由规则。它主张动作与当前证据描述的结构相匹配，不主张提前知道哪一个动作
-会成为某个随机 seed 下的终局冠军。
+这是一条保守的主路由规则。`SMP` 不是“无共享变量专属动作”：只要变量级证据完整，
+它仍然是合法候选；存在共享变量时使用 overlap-aware 的 rescue/polish 生命周期。
+因此主路由标签不等于动作适用性的排他证明，也不主张提前知道哪一个动作会成为某个随机
+seed 下的终局冠军。
 
 ## 5. 历史执行契约（不属于 ARAC-OC）
 

@@ -1,0 +1,62 @@
+{
+  "candidate_id": "soft_rddsm_mainline_v10",
+  "cases": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "composition": {
+    "discovery": "discover_hierarchical_soft with default SoftDsmConfig (the C1 baseline instrument), occupying the v9 structure stage slot; minimum tail 2000 FE enforced",
+    "feature_names": "v9 PHASE1_FEATURE_NAMES unchanged",
+    "known_tradeoff": "discovery (~96k FE) costs MMES tail time vs v9 (tail ~24k vs ~107k on S3): better structure, worse Phase-I incumbent; whether Phase-II compensates is the G-C question",
+    "landscape_probes": "v9 verbatim (240 FE, same rng namespaces/partition/probe design)",
+    "progress_features": "stage mapping identical to v9: probe/warmup/structure(=discovery)/tail",
+    "structural_features": "v9 formulas and constants (window 174000) over the discovery output",
+    "tail": "v9 MMES top-up recipe to exactly 180000 FE",
+    "warmup": "v9 warmup MMES stage mirrored verbatim (60000 FE, same seed namespace; bitwise-identical prefix to v9)"
+  },
+  "freeze_anchor": "arac-recovered-baseline-20260823-v1",
+  "gate": {
+    "coverage": "24 cases x 7 seeds",
+    "determinism": "double-run checkpoint hash equality on every job",
+    "landscape_parity": "bitwise equality of every probe-derived feature vs the frozen v9 checkpoint of the same (case, seed)",
+    "precision": "precision==1.0 wherever recovered is non-empty; zero recovered on zero-overlap cases (A1/E1/R1/S1)",
+    "recorded_not_gated": "shared recall vs C1 frozen range 0.789-1.0; dispatch feature v9/v10 distributions",
+    "warmup_parity_recorded": "warmup_log10_gain expected bitwise-equal (recorded, included in transfer reference)"
+  },
+  "max_workers": 8,
+  "output_root": "artifacts/upgrade_soft_rddsm_mainline_v10_ga_v1",
+  "phase1_protocol": "arac-soft-rddsm-mainline-v10-candidate-1",
+  "schema_version": "arac-upgrade-soft-rddsm-mainline-v10-ga-protocol-v1",
+  "seed_rationale": "the frozen v9 four-arm matrix seeds - G-B pairs cell-by-cell",
+  "seeds": [
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123
+  ]
+}
