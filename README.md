@@ -1,86 +1,97 @@
 # ARAC-OC：面向变量重叠的大规模全局优化
 
-当前框架是**soft-RDDSM 发现 + 变量级重叠证据 sidecar + 非学习结构路由 +
-四动作 Phase-II**：Phase-I 用 soft-RDDSM 从计数黑盒评价中发现重叠结构，
-经确认的 hyperedge 构造变量级 sidecar，由确定性结构规则（不训练、不读
-benchmark 身份）路由到恰好一个 Phase-II 动作，在精确 3,000,000 FE 终止。
+ARAC-OC 的当前框架是 **soft-RDDSM 结构发现 + 变量级重叠证据 sidecar +
+非学习结构路由 + 四动作 Phase-II**：重叠不再只是测试函数的标签，而是被
+显式编码进变量证据和图结构中，由确定性路由规则映射到恰好一个 Phase-II
+动作，在总预算下输出可审计的终值与 receipt。
 
 ```text
-soft-RDDSM Phase-I（身份盲，180,000 FE）
-  -> confirmed hyperedge -> 变量级重叠证据 sidecar
-  -> 非学习结构路由（AOR / SMP / CTP / GCB）
-  -> action-view checkpoint -> 恰好一个 Phase-II 动作
-  -> EvaluationLedger：exact-FE 计费 + strict-best 仲裁 + receipt/state hash
+目标函数、变量边界、随机种子、总 FE 预算
+        ↓
+Phase-I 预算预留
+        ↓
+soft-RDDSM 结构发现器
+        ↓
+确认的 hyperedge
++ 变量级 overlap evidence sidecar
++ overlap graph
++ evidence completeness
+        ↓
+非学习、确定性的结构路由器
+        ↓
+AOR / SMP / CTP / GCB
+        ↓
+从 Phase-I checkpoint 继续执行 Phase-II
+        ↓
+3,000,000 FE 下的最终最优解和完整 receipt
 ```
 
-## 框架分述
+## 1. Phase-I：soft-RDDSM 发现结构
 
-### 1. soft-RDDSM 发现（Phase-I v10）
+当前 Phase-I 使用 soft-RDDSM 做递归结构发现，经过 signature、warmup、
+DSM/RD 类探测后，输出三类信息：
 
-协议 `arac-soft-rddsm-mainline-v10-candidate-1`
-（`experiments/upgrade/soft_rddsm_mainline_v10/phase1_v10.py`，
-机制在 `src/arac/evidence/soft_rddsm.py`）：
+- `confirmed hyperedges`：确认存在内部交互的变量集合；
+- 变量级状态：例如 `member_candidate`、`observed_separable`、
+  `not_yet_resolved`；
+- 组件 overlap graph：节点是组件，若两个组件共享变量则连边。
+
+只有确认的 hyperedge 才能把变量加入额外的 owner group；区域级交互
+没有确认 hyperedge 时，证书标记为不完整，而不是静默变成重叠隶属。
+sidecar schema 为 `arac-soft-rddsm-overlap-evidence-v1` 并携带 hash。
+
+## 2. Evidence contract：先判断证据是否完整
+
+只有当所有组件和变量都已经被解析，并且不存在 `not_yet_resolved` 状态时，
+才能设置：
 
 ```text
-240-FE v9 景观探针（与 v9 同 seed 逐位相同）
-  -> 变量签名（Gate 43 共享测量基：P=12 固定 batch 池）
-  -> mutual-kNN 候选边（无 d^2 矩阵）
-  -> 两级计费条件对探针（screen -> confirm，逐边 support 而非单阈值判定）
-  -> 软设计结构矩阵（加权 + support）
-  -> RDG 粗分组 + 小区域递归细化
-  -> 完全交叠可分性 + 双侧确认 -> ResolvedOverlapHyperedge（Gate 42 语义）
-  -> checkpoint blocks/relations（T0 映射）+ MMES 补齐至精确 180,000 FE
+evidence.complete = True
 ```
 
-40 个特征沿用 v9 命名（landscape 逐位 v9、structural 由发现证据馈入、
-progress 分段映射）。前置 Gate 42（证据语义）、43（变量签名）、44
-（区域接口）已全部通过；C1 活体复现：AOB 六 case 召回 0.789（R6）至
-1.000（R2），精度全程 1.0，E1/R1 零误报。
+`resolved_hyperedges` 是否为非空 tuple 不能代表证据完整。
 
-### 2. 变量级重叠证据 sidecar
+当前实验中 Phase-I 通常限制为 `180,000 FE`，soft-RDDSM 的 discovery FE
+必须属于这个上限，而不是在 discovery 完成以后再补检查。
 
-`src/arac/evidence/soft_rddsm_adapter.py` 是分层证据到 Phase-II 之间的
-窄桥：叶子仍是互斥分区，只有 `ResolvedOverlapHyperedge` 能把变量加入
-额外的 owner group，产出 `Phase1OverlapEvidence`（groups / memberships /
-逐对置信度 / completeness），schema 为
-`arac-soft-rddsm-overlap-evidence-v1` 并带 hash。区域级交互没有确认
-hyperedge 时，证书标记为不完整，而不是静默变成重叠隶属。
+## 3. 非学习结构路由
 
-### 3. 非学习结构路由
+| 证据状态 | 动作 | 作用 |
+|---|---|---|
+| 证据不完整 | AOR | 保守探索，避免基于错误结构做强路由 |
+| 证据完整且无共享变量 | SMP | 独立处理各可分离组件 |
+| 证据完整且 overlap graph 不连通 | CTP | 分别处理多个独立 overlap cluster |
+| 证据完整且 overlap graph 连通 | GCB | 对全局耦合结构进行联合优化 |
 
-`src/arac/analysis/structural_router.py` 的 `route_from_overlap_evidence`
-只依据证据完整性、共享变量存在性和 owner 图连通性；目标尺度、benchmark
-名称、拟合 selector、在线增益信号都不进入决策：
+这里要特别区分：
 
-```text
-证据不完整                    -> AOR   （overlap_evidence_incomplete）
-完整且无共享变量               -> SMP   （complete_disjoint_structure）
-完整且多个重叠连通分量         -> CTP   （complete_disconnected_overlap_components）
-完整且连通的重叠图             -> GCB   （complete_connected_overlap_graph）
-```
+SMP 的路由条件是"没有跨组件共享变量"，不等于"函数内部完全没有交互"。
+一个组件内部可以有 hyperedge，仍然可以使用 SMP。历史记录中 SMP 也可能
+作为通用动作或 fallback 作用于部分重叠问题，所以不能仅凭动作名称推断
+该函数没有 overlap。
 
-主路由不是动作排他标签：只要变量级证据完整，SMP 保持结构兼容
-（`zero_relation` / `overlap_aware` 两种 lifecycle 模式）。升级 lane 的
-组合入口 `experiments/upgrade/soft_rddsm_structural_router_v1` 用
-`action_view_checkpoint()` 把 sidecar 的 owner 图投影为
-`PhaseCheckpoint.relations`（incumbent、Phase-I/terminal FE 边界不变，
-原始 checkpoint hash 与 action view hash 分开记录）。
+路由只依据证据完整性、共享变量存在性和 overlap graph 连通性；目标
+尺度、benchmark 名称、拟合 selector、在线增益信号都不进入决策。
+实现见 `src/arac/analysis/structural_router.py`；`src/arac/dispatch_policy.py`
+另保留一条 Gate 41a 校准的两特征规则（`tail_log10_gain` +
+`structural_relation_density`）作 C3 口径对照，同样是确定性规则。
 
-`src/arac/dispatch_policy.py` 保留另一条 Gate 41a 校准的两特征规则
-（`tail_log10_gain` + `structural_relation_density`，阈值落在族间空隙），
-供 C3 口径的历史对照；两条路由都是确定性规则，无训练组件。
+## 4. Phase-II：动作执行
 
-### 4. 四动作 Phase-II
+路由器把结构证据和 overlap graph 传给 `ActionRegistry`，然后从同一个
+Phase-I checkpoint 继续执行对应动作。Phase-II 固定：
 
-- **CTP**（Coverage-to-Polish）、**SMP**（State-Memory Persistence）、
-  **GCB**（Graph-Conditioned Balancing）、**AOR**（Adaptive Optimizer
-  Routing）实现同一 `ActionContext -> ActionResult` 契约；
-- 恢复基线 `arac-recovered-baseline-20260823-v1` 以
-  `RecoveredActionRegistry`（`src/arac/actions/recovered_registry.py`）
-  为冻结锚点，生产默认 `patch=false`、`soft_routing=false`、
-  `selector=false`（`docs/arac-oc-recovered-baseline-freeze.md`）；
-- 只执行被路由选中的一个动作，不试跑其余动作；所有候选由真实目标评价，
-  strict-best archive 永不回退；算子异常 fail-closed，不静默改派。
+- action registry；
+- boundary profile；
+- warmup/continuation schedule；
+- 剩余 FE 预算。
+
+最终在总预算下输出最优解、动作轨迹、路由原因、结构证据和 FE receipt。
+只执行被路由选中的一个动作，不试跑其余动作；所有候选由真实目标函数
+评价，strict-best archive 永不回退；算子异常 fail-closed，不静默改派。
+恢复基线 `arac-recovered-baseline-20260823-v1` 以
+`RecoveredActionRegistry`（`src/arac/actions/recovered_registry.py`）为
+冻结锚点，生产默认 `patch=false`、`soft_routing=false`、`selector=false`。
 
 ## 使用方式
 
@@ -141,16 +152,15 @@ result = run_arac_oc(
 
 - **升级总纲**：`docs/arac-oc-shared-patch-completion-plan.md`——在
   Phase-I、路由和外层动作全部不变的前提下，只在 CTP/GSS 内部挂载
-  stateful shared-patch kernel（候选族 / `z,u,r` 持久状态 / 局部
-  context hash / 固定 8 FE lane）。gate 顺序
+  stateful shared-patch kernel。gate 顺序
   `B0 -> B1 -> B2 -> B3 -> M0 -> M1 -> M2 -> AOB preservation -> production E2E`。
 - **恢复优先协议**：`docs/arac-oc-recovery-first-protocol.md`。当前
   B1-Screen 120 臂零契约失败，但 displayed-mean screen 未通过（AOR 4/6、
-  SMP 1/6、GCB 0/6、CTP 5/6），属诊断性恢复失败；B1-Final 与创新实验
-  在隔离该动作级回归前保持阻塞。
+  SMP 1/6、GCB 0/6、CTP 5/6）；B1-Final 与创新实验在隔离该动作级回归前
+  保持阻塞。
 - **已关闭的路线**：一致性分类（Gate 54a 不可辨识性裁决）、阶梯式
-  S1 杠杆扫掠序 / S2 传播接续（三重证据证伪）、九个 shared-transaction
-  升级候选（v1-v8 + E1）全部按冻结协议判定未通过。
+  S1 杠杆扫掠序 / S2 传播接续、九个 shared-transaction 升级候选
+  （v1-v8 + E1）。
 - **v6.0 双轴状态设计**：预注册未实现（`docs/arac-oc-v6_0-design.md`）。
 - `UNCALIBRATED_FIELDS` 中的阈值尚未通过独立校准门；当前代码验证的是
   契约、FE 对账、严格接受和确定性，不构成跨 benchmark 性能结论。
@@ -158,7 +168,7 @@ result = run_arac_oc(
 ## 代码结构
 
 - `src/arac/evidence/`：Phase-I 证据（`soft_rddsm.py` 发现、
-  `soft_rddsm_adapter.py` sidecar、`hierarchical.py` 三层证据 schema、
+  `soft_rddsm_adapter.py` sidecar、`hierarchical.py` 证据 schema、
   `variable_signature.py` 签名）。
 - `src/arac/analysis/structural_router.py`：非学习结构路由。
 - `src/arac/actions/`：四个 Phase-II 动作与 `recovered_registry.py`
